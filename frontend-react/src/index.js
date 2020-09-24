@@ -15,6 +15,15 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
+
+/*
+
+Documentation
+https://demos.creative-tim.com/light-bootstrap-dashboard-react/#/documentation/getting-started?ref=lbdr-fixed-plugin
+
+*/
+
+
 import React from "react";
 import ReactDOM from "react-dom";
 
