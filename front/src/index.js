@@ -1,12 +1,12 @@
 /*!
 
 =========================================================
-* Light Bootstrap Dashboard React - v1.3.0
+* Material Dashboard React - v1.9.0
 =========================================================
 
-* Product Page: https://www.creative-tim.com/product/light-bootstrap-dashboard-react
-* Copyright 2019 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/light-bootstrap-dashboard-react/blob/master/LICENSE.md)
+* Product Page: https://www.creative-tim.com/product/material-dashboard-react
+* Copyright 2020 Creative Tim (https://www.creative-tim.com)
+* Licensed under MIT (https://github.com/creativetimofficial/material-dashboard-react/blob/master/LICENSE.md)
 
 * Coded by Creative Tim
 
@@ -15,39 +15,26 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-
-/*
-
-Documentation
-https://demos.creative-tim.com/light-bootstrap-dashboard-react/#/documentation/getting-started?ref=lbdr-fixed-plugin
-
-*/
-
-
 import React from "react";
 import ReactDOM from "react-dom";
+import { createBrowserHistory } from "history";
+import { Router, Route, Switch, Redirect } from "react-router-dom";
 
-import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+// core components
+import Admin from "layouts/Admin.js";
+import RTL from "layouts/RTL.js";
 
-import SignIn from "views/SignIn.jsx"
-import SignUp from "views/SignUp.jsx"
+import "assets/css/material-dashboard-react.css?v=1.9.0";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./assets/css/animate.min.css";
-import "./assets/sass/light-bootstrap-dashboard-react.scss?v=1.3.0";
-import "./assets/css/demo.css";
-import "./assets/css/pe-icon-7-stroke.css";
-
-import AdminLayout from "layouts/Admin.jsx";
+const hist = createBrowserHistory();
 
 ReactDOM.render(
-  <BrowserRouter>
+  <Router history={hist}>
     <Switch>
-    <Route path="/signup" component={SignUp}/>
-      <Route path="/login" component={SignIn}/>
-      <Route path="/admin" render={props => <AdminLayout {...props} />} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/rtl" component={RTL} />
       <Redirect from="/" to="/admin/dashboard" />
     </Switch>
-  </BrowserRouter>,
+  </Router>,
   document.getElementById("root")
 );
