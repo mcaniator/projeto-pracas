@@ -22,7 +22,7 @@ import { Router, Route, Switch, Redirect } from "react-router-dom";
 
 // core components
 import Admin from "layouts/Admin.js";
-import RTL from "layouts/RTL.js";
+
 
 // pages for this public pages
 import Components from "views/website/Components/Components.js";
@@ -40,7 +40,7 @@ ReactDOM.render(
       
       {/* Rotas admin */}
       <Route path="/admin" component={Admin} />
-      <Route path="/rtl" component={RTL} />
+      
       {/*<Redirect from="/" to="/admin/dashboard" />*/}
       
       {/* public routes */}
