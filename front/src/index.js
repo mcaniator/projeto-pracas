@@ -30,6 +30,9 @@ import LandingPage from "views/website/LandingPage/LandingPage.js";
 import ProfilePage from "views/website/ProfilePage/ProfilePage.js";
 import LoginPage from "views/website/LoginPage/LoginPage.js";
 
+// pages for public pages project praças
+import Home from "views/website/Home/Home";
+
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 
 const hist = createBrowserHistory();
@@ -47,7 +50,8 @@ ReactDOM.render(
       <Route path="/landing-page" component={LandingPage} />
       <Route path="/profile-page" component={ProfilePage} />
       <Route path="/login-page" component={LoginPage} />
-      <Route path="/" component={Components} />
+      <Route path="/components" component={Components} />
+      <Route path="/" component={Home} />
     </Switch>
   </Router>,
   document.getElementById("root")
