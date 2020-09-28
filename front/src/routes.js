@@ -35,8 +35,18 @@ import Maps from "views/admin/Maps/Maps.js";
 import NotificationsPage from "views/admin/Notifications/Notifications.js";
 import UpgradeToPro from "views/admin/UpgradeToPro/UpgradeToPro.js";
 
+// project praças
+import Pracas from "views/admin/Pracas";
+
 
 const dashboardRoutes = [
+  {
+    path: "/pracas",
+    name: "Praças",
+    icon: Dashboard,
+    component: Pracas,
+    layout: "/admin"
+  },
   {
     path: "/dashboard",
     name: "Dashboard",
