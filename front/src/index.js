@@ -44,7 +44,7 @@ ReactDOM.render(
       {/* Rotas admin */}
       <Route path="/admin" component={Admin} />
       
-      {/*<Redirect from="/" to="/admin/dashboard" />*/}
+      <Redirect from="/logout" to="/" />
       
       {/* public routes */}
       <Route path="/landing-page" component={LandingPage} />

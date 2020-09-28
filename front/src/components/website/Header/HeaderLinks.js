@@ -12,7 +12,7 @@ import ListItem from "@material-ui/core/ListItem";
 import Tooltip from "@material-ui/core/Tooltip";
 
 // @material-ui/icons
-import { Apps, CloudDownload } from "@material-ui/icons";
+import { Apps, CloudDownload, AccountBox } from "@material-ui/icons";
 
 // core components
 import CustomDropdown from "components/website/CustomDropdown/CustomDropdown.js";
@@ -27,6 +27,15 @@ export default function HeaderLinks(props) {
   return (
     <List className={classes.list}>
       <ListItem className={classes.listItem}>
+        <Button
+          href="/login-page"
+          color="transparent"
+          className={classes.navLink}
+        >
+          <AccountBox className={classes.icons} /> Login
+        </Button>
+      </ListItem>
+      <ListItem className={classes.listItem}>
         <CustomDropdown
           noLiPadding
           buttonText="Components"
@@ -36,7 +45,7 @@ export default function HeaderLinks(props) {
           }}
           buttonIcon={Apps}
           dropdownList={[
-            <Link to="/" className={classes.dropdownLink}>
+            <Link to="/components" className={classes.dropdownLink}>
               All components
             </Link>,
             <a

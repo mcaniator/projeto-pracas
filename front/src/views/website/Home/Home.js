@@ -26,10 +26,11 @@ export default function Components(props) {
   return (
     <div>
       <Header
-        brand="Material Kit React"
+        brand="Projeto Praças"
         rightLinks={<HeaderLinks />}
         fixed
         color="transparent"
+        href="/"
         changeColorOnScroll={{
           height: 400,
           color: "white"

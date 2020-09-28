@@ -37,7 +37,7 @@ export default function LoginPage(props) {
       <Header
         absolute
         color="transparent"
-        brand="Material Kit React"
+        brand="Projeto Praças | Login"
         rightLinks={<HeaderLinks />}
         {...rest}
       />
@@ -138,8 +138,12 @@ export default function LoginPage(props) {
                     />
                   </CardBody>
                   <CardFooter className={classes.cardFooter}>
-                    <Button simple color="primary" size="lg">
-                      Get started
+                    <Button 
+                      simple color="primary" 
+                      size="lg"
+                      href="/admin"
+                    >
+                      Entrar no Admin
                     </Button>
                   </CardFooter>
                 </form>
