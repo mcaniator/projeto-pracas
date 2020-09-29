@@ -33,6 +33,7 @@ import Typography from "views/admin/Typography/Typography.js";
 import Icons from "views/admin/Icons/Icons.js";
 import Maps from "views/admin/Maps/Maps.js";
 import NotificationsPage from "views/admin/Notifications/Notifications.js";
+import Leaflet from "views/admin/Leaflet";
 import UpgradeToPro from "views/admin/UpgradeToPro/UpgradeToPro.js";
 
 // project praças
@@ -94,6 +95,13 @@ const dashboardRoutes = [
     name: "Notifications",
     icon: Notifications,
     component: NotificationsPage,
+    layout: "/admin"
+  },
+  {
+    path: "/leaflet",
+    name: "Leaflet",
+    icon: LocationOn,
+    component: Leaflet,
     layout: "/admin"
   },
   {
