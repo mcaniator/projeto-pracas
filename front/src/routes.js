@@ -27,7 +27,6 @@ import Language from "@material-ui/icons/Language";
 
 // core components/views for Admin layout
 import DashboardPage from "views/admin/Dashboard/Dashboard.js";
-import UserProfile from "views/admin/UserProfile/UserProfile.js";
 import TableList from "views/admin/TableList/TableList.js";
 import Typography from "views/admin/Typography/Typography.js";
 import Icons from "views/admin/Icons/Icons.js";
@@ -38,6 +37,10 @@ import UpgradeToPro from "views/admin/UpgradeToPro/UpgradeToPro.js";
 
 // project praças
 import Pracas from "views/admin/Pracas";
+import Users from "views/admin/Users/Index";
+import CreateUser from "views/admin/Users/UserCreate";
+import EditUser from "views/admin/Users/UserEdit";
+import ShowUser from "views/admin/Users/UserShow";
 
 
 const dashboardRoutes = [
@@ -49,17 +52,41 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
+    path: "/usuarios",
+    name: "Usuários",
+    icon: Person,
+    component: Users,
+    layout: "/admin"
+  },
+  {
+    path: "/criar",
+    name: "Criar usuário",
+    icon: Person,
+    component: CreateUser,
+    layout: "/admin/usuarios",
+    notView: true,
+  },
+  {
+    path: "/editar",
+    name: "Editar Usuário",
+    icon: Person,
+    component: EditUser,
+    layout: "/admin/usuarios",
+    notView: true,
+  },
+  {
+    path: "/mostrar",
+    name: "Mostrar Usuário",
+    icon: Person,
+    component: ShowUser,
+    layout: "/admin/usuarios",
+    notView: true,
+  },
+  {
     path: "/dashboard",
     name: "Dashboard",
     icon: Dashboard,
     component: DashboardPage,
-    layout: "/admin"
-  },
-  {
-    path: "/user",
-    name: "User Profile",
-    icon: Person,
-    component: UserProfile,
     layout: "/admin"
   },
   {

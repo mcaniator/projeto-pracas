@@ -14,6 +14,13 @@
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
+=========================================================
+
+* Documentation
+
+  https://demos.creative-tim.com/material-dashboard-react/#/documentation/tutorial
+https://demos.creative-tim.com/material-kit-react/#/documentation/tutorial
+
 */
 import React from "react";
 import ReactDOM from "react-dom";
@@ -52,7 +59,21 @@ ReactDOM.render(
       <Route path="/login-page" component={LoginPage} />
       <Route path="/components" component={Components} />
       <Route path="/" component={Home} />
+
+
+
+    {/* Usuários */}
+    {/* <Route path="/admin/usuarios" component={Components} />
+    <Route path="/admin/usuarios" component={Components} />
+    <Route path="/admin/usuarios" component={Components} />
+    <Route path="/admin/usuarios" component={Components} /> */}
+
+
+
     </Switch>
   </Router>,
   document.getElementById("root")
 );
+
+
+
