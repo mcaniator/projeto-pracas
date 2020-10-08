@@ -16,6 +16,9 @@ import Card from "components/Card/Card.js";
 import CardHeader from "components/Card/CardHeader.js";
 import CardBody from "components/Card/CardBody.js";
 
+import SimpleModal from "components/SimpleModal/SimpleModal.js"
+
+
 import './style.css'
 
 const { BaseLayer, Overlay } = LayersControl
@@ -59,14 +62,7 @@ export default class Leaflet extends Component<{}, State> {
                   url="https://tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png"
                 />
               </BaseLayer>
-              <Overlay name="Marker with popup">
-                <Marker position={center}>
-                  <Popup>
-                    A pretty CSS3 popup. <br /> Easily customizable.
-                  </Popup>
-                </Marker>
-              </Overlay>
-              <Overlay checked name="Layer group with circles">
+              <Overlay /*checked */ name="Layer group with circles">
                 <LayerGroup>
                   <Circle center={center} fillColor="blue" radius={200} />
                   <Circle
@@ -93,11 +89,16 @@ export default class Leaflet extends Component<{}, State> {
                 </FeatureGroup>
               </Overlay>
             </LayersControl>
-
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+                <Marker position={center}>
+                  <Popup>
+                    A pretty CSS3 popup. <br /> Easily customizable.
+                    <SimpleModal/>
+                  </Popup>
+                </Marker>
           </Map>
 
         </GridItem>
