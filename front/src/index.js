@@ -18,7 +18,7 @@
 
 * Documentation
 
-  https://demos.creative-tim.com/material-dashboard-react/#/documentation/tutorial
+https://demos.creative-tim.com/material-dashboard-react/#/documentation/tutorial
 https://demos.creative-tim.com/material-kit-react/#/documentation/tutorial
 
 */
@@ -37,6 +37,12 @@ import LandingPage from "views/website/LandingPage/LandingPage.js";
 import ProfilePage from "views/website/ProfilePage/ProfilePage.js";
 import LoginPage from "views/website/LoginPage/LoginPage.js";
 
+import CreateUser from "views/admin/Users/UserCreate";
+import EditUser from "views/admin/Users/UserEdit";
+import ShowUser from "views/admin/Users/UserShow";
+
+
+
 // pages for public pages project praças
 import Home from "views/website/Home/Home";
 
@@ -44,12 +50,17 @@ import "assets/css/material-dashboard-react.css?v=1.9.0";
 
 const hist = createBrowserHistory();
 
+
+
+
 ReactDOM.render(
   <Router history={hist}>
     <Switch>
       
       {/* Rotas admin */}
       <Route path="/admin" component={Admin} />
+
+
       
       <Redirect from="/logout" to="/" />
       
@@ -58,15 +69,14 @@ ReactDOM.render(
       <Route path="/profile-page" component={ProfilePage} />
       <Route path="/login-page" component={LoginPage} />
       <Route path="/components" component={Components} />
-      <Route path="/" component={Home} />
+      <Route path="/" component={Home} exact />
 
 
 
     {/* Usuários */}
-    {/* <Route path="/admin/usuarios" component={Components} />
-    <Route path="/admin/usuarios" component={Components} />
-    <Route path="/admin/usuarios" component={Components} />
-    <Route path="/admin/usuarios" component={Components} /> */}
+    <Route path="/admin/usuarios/editar" name="EDITAR" component={EditUser} />
+    <Route path="/admin/usuarios/mostrar/" component={ShowUser} />
+    <Route path="/admin/usuarios/criar/" component={CreateUser} />
 
 
 
@@ -74,6 +84,5 @@ ReactDOM.render(
   </Router>,
   document.getElementById("root")
 );
-
 
 

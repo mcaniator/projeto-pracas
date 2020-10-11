@@ -44,9 +44,9 @@ const useStyles = makeStyles(styles);
 const buttons = () => {
   return (
     <>
-      <Button href="/admin/usuarios/mostrar" color="success">{<ShowIcon />}</Button>
-      <Button href="/admin/usuarios/editar" color="info">{<EditIcon />}</Button>
-      <Button href="/admin/usuarios/remove" color="danger">{<DeleteIcon />}</Button>
+      <Button href="/admin/usuarios-mostrar" color="success">{<ShowIcon />}</Button>
+      <Button href="/admin/usuarios-editar" color="info">{<EditIcon />}</Button>
+      <Button href="/admin/usuarios-remove" color="danger">{<DeleteIcon />}</Button>
     </>
   );
 }
