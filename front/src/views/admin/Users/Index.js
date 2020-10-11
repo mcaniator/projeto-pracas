@@ -36,6 +36,12 @@ const styles = {
     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
     marginBottom: "3px",
     textDecoration: "none"
+  },
+  createButton: {
+    color: "#AAAAAA",
+    // colocar botão alinhado a direita
+
+
   }
 };
 
@@ -56,6 +62,11 @@ export default function UserIndex() {
   return (
     <div>
       <GridContainer>
+      
+      <CardHeader>
+        <Button className={classes.createButton} href="/admin/usuarios-criar" color="primary">Criar usuário</Button>
+      </CardHeader>
+
       <GridItem xs={12} sm={12} md={12}>
         <Card>
           <CardHeader color="success">
