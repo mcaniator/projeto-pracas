@@ -31,6 +31,8 @@ import CardFooter from "components/Card/CardFooter.js";
 
 import { bugs, website, server } from "variables/general.js";
 
+import SimpleModal from "components/SimpleModal/SimpleModal.js"
+
 import {
   dailySalesChart,
   emailsSubscriptionChart,
@@ -50,6 +52,9 @@ export default function Dashboard() {
           <Danger>Ola!!!!!</Danger>
         </CardBody>
       </Card>
+
+      <SimpleModal/>
+
     </div>
   );
 }
