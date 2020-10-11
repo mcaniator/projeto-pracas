@@ -17,6 +17,7 @@
     "perfect-scrollbar": "1.5.0",
     "prop-types": "15.7.2",
     "react": "16.13.1",
+    "react-bootstrap-sweetalert": "^5.2.0",
     "react-chartist": "0.14.3",
     "react-datetime": "2.16.3",
     "react-dom": "16.13.1",

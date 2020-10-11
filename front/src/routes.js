@@ -22,6 +22,7 @@ import LibraryBooks from "@material-ui/icons/LibraryBooks";
 import BubbleChart from "@material-ui/icons/BubbleChart";
 import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
+import AddAlert from "@material-ui/icons/AddAlert";
 import Unarchive from "@material-ui/icons/Unarchive";
 import Language from "@material-ui/icons/Language";
 
@@ -32,6 +33,8 @@ import Typography from "views/admin/Typography/Typography.js";
 import Icons from "views/admin/Icons/Icons.js";
 import NotificationsPage from "views/admin/Notifications/Notifications.js";
 import Leaflet from "views/admin/Leaflet";
+import SweetAlert from "views/admin/SweetAlert/SweetAlert"
+
 
 // project praças
 import Pracas from "views/admin/Pracas";
@@ -122,6 +125,13 @@ const dashboardRoutes = [
     name: "Leaflet",
     icon: LocationOn,
     component: Leaflet,
+    layout: "/admin"
+  },
+  {
+    path: "/sweet-alert",
+    name: "Sweet Alert",
+    icon: AddAlert,
+    component: SweetAlert,
     layout: "/admin"
   },
 ];
