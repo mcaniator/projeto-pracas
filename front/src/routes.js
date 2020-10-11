@@ -33,11 +33,12 @@ import Icons from "views/admin/Icons/Icons.js";
 import Maps from "views/admin/Maps/Maps.js";
 import NotificationsPage from "views/admin/Notifications/Notifications.js";
 import Leaflet from "views/admin/Leaflet";
-import UpgradeToPro from "views/admin/UpgradeToPro/UpgradeToPro.js";
 
 // project praças
 import Pracas from "views/admin/Pracas";
 import Users from "views/admin/Users/Index";
+
+
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
@@ -59,27 +60,27 @@ const dashboardRoutes = [
     layout: "/admin"
   },
   {
-    path: "/criar",
+    path: "/usuarios/criar",
     name: "Criar usuário",
     icon: Person,
     component: CreateUser,
-    layout: "/admin/usuarios",
+    layout: "/admin",
     notView: true,
   },
   {
-    path: "/editar",
+    path: "/usuarios/editar",
     name: "Editar Usuário",
     icon: Person,
     component: EditUser,
-    layout: "/admin/usuarios",
+    layout: "/admin",
     notView: true,
   },
   {
-    path: "/mostrar",
+    path: "/usuarios/mostrar",
     name: "Mostrar Usuário",
     icon: Person,
     component: ShowUser,
-    layout: "/admin/usuarios",
+    layout: "/admin",
     notView: true,
   },
   {
@@ -131,13 +132,6 @@ const dashboardRoutes = [
     component: Leaflet,
     layout: "/admin"
   },
-  {
-    path: "/upgrade-to-pro",
-    name: "Upgrade To PRO",
-    icon: Unarchive,
-    component: UpgradeToPro,
-    layout: "/admin"
-  }
 ];
 
 export default dashboardRoutes;
