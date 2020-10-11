@@ -30,7 +30,6 @@ import DashboardPage from "views/admin/Dashboard/Dashboard.js";
 import TableList from "views/admin/TableList/TableList.js";
 import Typography from "views/admin/Typography/Typography.js";
 import Icons from "views/admin/Icons/Icons.js";
-import Maps from "views/admin/Maps/Maps.js";
 import NotificationsPage from "views/admin/Notifications/Notifications.js";
 import Leaflet from "views/admin/Leaflet";
 
@@ -109,13 +108,6 @@ const dashboardRoutes = [
     name: "Icons",
     icon: BubbleChart,
     component: Icons,
-    layout: "/admin"
-  },
-  {
-    path: "/maps",
-    name: "Maps",
-    icon: LocationOn,
-    component: Maps,
     layout: "/admin"
   },
   {
