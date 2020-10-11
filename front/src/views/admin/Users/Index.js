@@ -63,7 +63,7 @@ export default function UserIndex() {
     <div>
       <GridContainer>
       
-      <CardHeader>
+      <CardHeader xs={12} sm={12} md={4}>
         <Button className={classes.createButton} href="/admin/usuarios-criar" color="primary">Criar usuário</Button>
       </CardHeader>
 
