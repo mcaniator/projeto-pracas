@@ -18,11 +18,24 @@ import HeaderLinks from "components/website/Header/HeaderLinks.js";
 
 import styles from "assets/jss/material-kit-react/views/components.js";
 
+import { bgImage } from "variables/general";
+
 const useStyles = makeStyles(styles);
 
-export default function Components(props) {
+
+function Random(props) {
+  var maxNumber = 3;
+  var randomNumber = Math.floor((Math.random() * maxNumber) + 1);
+  return <div>{randomNumber}</div>;
+}
+
+
+export default function Home(props) {
   const classes = useStyles();
   const { ...rest } = props;
+
+  console.log(bgImage);
+
   return (
     <div>
       <Header
@@ -37,14 +50,14 @@ export default function Components(props) {
         }}
         {...rest}
       />
-      <Parallax image={require("assets/img/bg4.jpg")}>
+      <Parallax image={require('assets/img/bgPracas1.jpg')}> 
         <div className={classes.container}>
           <GridContainer>
             <GridItem>
-              <div className={classes.brand}>
-                <h1 className={classes.title}>Material Kit React.</h1>
+                <div className={classes.brand}>
+                <h1 className={classes.title}>Projeto Praças.</h1>
                 <h3 className={classes.subtitle}>
-                  A Badass Material-UI Kit based on Material Design.
+                  Um Projeto............
                 </h3>
               </div>
             </GridItem>
@@ -58,6 +71,7 @@ export default function Components(props) {
             <Button color="primary" size="lg" simple>
               View Login Page
             </Button>
+            <Random />
           </Link>
         </GridItem>
       </div>

@@ -23,8 +23,6 @@ import BubbleChart from "@material-ui/icons/BubbleChart";
 import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
 import AddAlert from "@material-ui/icons/AddAlert";
-import Unarchive from "@material-ui/icons/Unarchive";
-import Language from "@material-ui/icons/Language";
 
 // core components/views for Admin layout
 import DashboardPage from "views/admin/Dashboard/Dashboard.js";

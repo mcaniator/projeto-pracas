@@ -12,9 +12,6 @@ import {
 } from 'react-leaflet'
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
-import Card from "components/Card/Card.js";
-import CardHeader from "components/Card/CardHeader.js";
-import CardBody from "components/Card/CardBody.js";
 
 import SimpleModal from "components/SimpleModal/SimpleModal.js"
 
