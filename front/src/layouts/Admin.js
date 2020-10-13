@@ -121,6 +121,3 @@ export default function Admin({ ...rest }) {
     </div>
   );
 }
-
-
-// style={{overflow: "hidden"}}
