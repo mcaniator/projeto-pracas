@@ -40,95 +40,95 @@ export default function UserEditCard() {
   return (
     <div>
         <Card>
-        <CardHeader color="primary">
-            <h4 className={classes.cardTitleWhite}>Criar Usuário</h4>
-            <p className={classes.cardCategoryWhite}>Informe seus dados abaixo</p>
-        </CardHeader>
-        <CardBody>
-        <GridContainer>
-            <GridItem xs={12} sm={12} md={5}>
-                <CustomInput
-                labelText="First Name"
-                id="first-name"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            <GridItem xs={12} sm={12} md={7}>
-                <CustomInput
-                labelText="Last Name"
-                id="last-name"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            </GridContainer>
+            <CardHeader color="primary">
+                <h4 className={classes.cardTitleWhite}>Criar Usuário</h4>
+                <p className={classes.cardCategoryWhite}>Informe seus dados abaixo</p>
+            </CardHeader>
+            <CardBody>
             <GridContainer>
-            <GridItem xs={12} sm={12} md={5}>
-                <CustomInput
-                labelText="Matrícula (disabled)"
-                id="company-disabled"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                inputProps={{
-                    disabled: true
-                }}
-                />
-            </GridItem>
+                <GridItem xs={12} sm={12} md={5}>
+                    <CustomInput
+                    labelText="First Name"
+                    id="first-name"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                <GridItem xs={12} sm={12} md={7}>
+                    <CustomInput
+                    labelText="Last Name"
+                    id="last-name"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                </GridContainer>
+                <GridContainer>
+                <GridItem xs={12} sm={12} md={5}>
+                    <CustomInput
+                    labelText="Matrícula (disabled)"
+                    id="company-disabled"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    inputProps={{
+                        disabled: true
+                    }}
+                    />
+                </GridItem>
 
-            <GridItem xs={12} sm={12} md={7}>
-                <CustomInput
-                labelText="Email address"
-                id="email-address"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            </GridContainer>
-            
-            <GridContainer>
-            <GridItem xs={12} sm={12} md={4}>
-                <CustomInput
-                labelText="Senha"
-                id="city"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            <GridItem xs={12} sm={12} md={4}>
-                <CustomInput
-                labelText="Repita a senha"
-                id="country"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            <GridItem xs={12} sm={12} md={4}>
-                <CustomInput
-                labelText="Tipo de usuário"
-                id="postal-code"
-                formControlProps={{
-                    fullWidth: true
-                }}
-                />
-            </GridItem>
-            </GridContainer>
-            <GridContainer>
-            <GridItem xs={12} sm={12} md={12}>
-            <GridItem xs={12} sm={4}></GridItem>
-                <PictureUpload id="picture-upload" />
-            </GridItem>
-            </GridContainer>
-        </CardBody>
-        <CardFooter>
-            <Button color="primary">Criar Usuário</Button>
-        </CardFooter>
+                <GridItem xs={12} sm={12} md={7}>
+                    <CustomInput
+                    labelText="Email address"
+                    id="email-address"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                </GridContainer>
+                
+                <GridContainer>
+                <GridItem xs={12} sm={12} md={4}>
+                    <CustomInput
+                    labelText="Senha"
+                    id="city"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                <GridItem xs={12} sm={12} md={4}>
+                    <CustomInput
+                    labelText="Repita a senha"
+                    id="country"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                <GridItem xs={12} sm={12} md={4}>
+                    <CustomInput
+                    labelText="Tipo de usuário"
+                    id="postal-code"
+                    formControlProps={{
+                        fullWidth: true
+                    }}
+                    />
+                </GridItem>
+                </GridContainer>
+                <GridContainer>
+                <GridItem xs={12} sm={12} md={12}>
+                <GridItem xs={12} sm={4}></GridItem>
+                    <PictureUpload id="picture-upload" />
+                </GridItem>
+                </GridContainer>
+            </CardBody>
+            <CardFooter>
+                <Button color="primary">Criar Usuário</Button>
+            </CardFooter>
         </Card>
     </div>
   );

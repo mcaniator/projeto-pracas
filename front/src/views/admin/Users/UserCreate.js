@@ -11,7 +11,7 @@ export default function UserCreate() {
   return (
     <div>
       <GridContainer>
-        <GridItem >
+        <GridItem xs={12} sm={12} md={12}>
           <UserEditCard />
         </GridItem>
       </GridContainer>
