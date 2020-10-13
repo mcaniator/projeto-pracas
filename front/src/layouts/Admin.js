@@ -55,10 +55,10 @@ export default function Admin({ ...rest }) {
     setMobileOpen(!mobileOpen);
   };
   const isLeafletView = () => {
-    return window.location.pathname !== "/admin/leaflet";
+    return window.location.pathname === "/admin/leaflet";
   };
 
-  const leafletScrollView = isLeafletView() ? 'auto' : 'hidden';
+  const leafletScrollView = isLeafletView() ? 'hidden' : 'auto';
 
   const resizeFunction = () => {
     if (window.innerWidth >= 960) {
@@ -100,23 +100,23 @@ export default function Admin({ ...rest }) {
       <div style={{overflow: leafletScrollView}} className={classes.mainPanel} ref={mainPanel}>
       
         {isLeafletView() ? (
+          null
+        ) : (
           <Navbar
             routes={routes}
             handleDrawerToggle={handleDrawerToggle}
             {...rest}
           />
-        ) : (
-          null
         )}
         {/* On the /maps route we want the map to be on full screen - this is not possible if the content and conatiner classes are present because they have some paddings which would make the map smaller */}
         {isLeafletView() ? (
+          <div>{switchRoutes}</div>
+        ) : (
           <div className={classes.content}>
             <div className={classes.container}>{switchRoutes}</div>
           </div>
-        ) : (
-          <div>{switchRoutes}</div>
         )}
-        {isLeafletView() ? <Footer /> : null}
+        {isLeafletView() ? null : <Footer />}
       </div>
     </div>
   );
