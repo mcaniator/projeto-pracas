@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const requireDir = require('require-dir');
 
 const app = express();
 
@@ -11,11 +12,19 @@ mongoose.connect(
     }
 );
 
-require('./src/models/User')
+requireDir('./src/models');
+
+const User = mongoose.model("User");
 
 
 app.get('/', (req, res) => {
-    res.send('Hello Vinimaan!');
-})
+    User.create({
+        name: "Viniman",
+        email: "vinicius.oliveira@ice.ufjf.br",
+        password: "123456"
+    });
+
+    return res.send('Hello Vinimaan!');
+});
 
 app.listen(3001);
