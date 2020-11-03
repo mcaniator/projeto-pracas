@@ -3,28 +3,20 @@ const mongoose = require('mongoose');
 const requireDir = require('require-dir');
 
 const app = express();
+app.use(express.json());
 
 mongoose.connect(
-    'mongodb://locahost:27017/nodeapi',
+    'mongodb://localhost:27017/nodeapi',
     { 
          useNewUrlParser: true,
-         useUnifiedTopology: true 
+         useUnifiedTopology: true,
+         
     }
 );
 
 requireDir('./src/models');
 
-const User = mongoose.model("User");
 
+app.use('/nodeapi', require('./src/routes'));
 
-app.get('/', (req, res) => {
-    User.create({
-        name: "Viniman",
-        email: "vinicius.oliveira@ice.ufjf.br",
-        password: "123456"
-    });
-
-    return res.send('Hello Vinimaan!');
-});
-
-app.listen(3001);
+app.listen(3002);
