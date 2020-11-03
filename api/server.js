@@ -11,6 +11,9 @@ mongoose.connect(
     }
 );
 
+require('./src/models/User')
+
+
 app.get('/', (req, res) => {
     res.send('Hello Vinimaan!');
 })
