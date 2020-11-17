@@ -39,6 +39,9 @@ import Pracas from "views/admin/Pracas";
 import Users from "views/admin/Users/Index";
 
 
+import Home from "views/website/Home";
+
+
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";

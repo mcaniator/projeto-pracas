@@ -32,10 +32,10 @@ import Admin from "layouts/Admin.js";
 
 
 // pages for this public pages
-import Components from "views/website/Components/Components.js";
-import LandingPage from "views/website/LandingPage/LandingPage.js";
-import ProfilePage from "views/website/ProfilePage/ProfilePage.js";
-import LoginPage from "views/website/LoginPage/LoginPage.js";
+import Components from "views/website/Components";
+import LandingPage from "views/website/LandingPage";
+import ProfilePage from "views/website/ProfilePage";
+import LoginPage from "views/website/LoginPage";
 
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
@@ -44,7 +44,7 @@ import ShowUser from "views/admin/Users/UserShow";
 
 
 // pages for public pages project praças
-import Home from "views/website/Home/Home";
+import Home from "views/website/Home";
 
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 

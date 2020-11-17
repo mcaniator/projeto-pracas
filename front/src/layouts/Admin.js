@@ -10,14 +10,12 @@ import Navbar from "components/Navbar/Navbar.js";
 import Footer from "components/Footer/Footer.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
-import routes from "routes.js";
+import routes from "routesAdmin.js";
 
 import styles from "assets/jss/material-dashboard-react/layouts/adminStyle.js";
 
 import bgImage from "assets/img/sidebar-3.jpg";
 import logo from "assets/img/logo.png";
-
-import {RemoveScrollBar} from 'react-remove-scroll-bar';
 
 let ps;
 
