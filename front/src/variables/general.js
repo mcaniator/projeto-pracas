@@ -18,7 +18,7 @@ var server = [
   'Sign contract for "What are conference organizers afraid of?"'
 ];
 
-var bgImage = 'assets/img/bgPracas1.jpg';
+var bgImage = 'assets/img/bg-pracas-jf-1.jpg';
 
 module.exports = {
   // these 3 are used to create the tasks lists in TasksCard - Dashboard view

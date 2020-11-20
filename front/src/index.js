@@ -33,8 +33,7 @@ import Admin from "layouts/Admin.js";
 
 // pages for this public pages
 import Components from "views/website/Components";
-import LandingPage from "views/website/LandingPage";
-import ProfilePage from "views/website/ProfilePage";
+import About from "views/website/About";
 import LoginPage from "views/website/LoginPage";
 
 import CreateUser from "views/admin/Users/UserCreate";
@@ -65,8 +64,7 @@ ReactDOM.render(
       <Redirect from="/logout" to="/" />
       
       {/* public routes */}
-      <Route path="/landing-page" component={LandingPage} />
-      <Route path="/profile-page" component={ProfilePage} />
+      <Route path="/quem-somos" component={About} />
       <Route path="/login-page" component={LoginPage} />
       <Route path="/components" component={Components} />
       <Route path="/" component={Home} exact />

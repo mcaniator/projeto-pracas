@@ -18,6 +18,21 @@ import GridItem from "components/website/Grid/GridItem.js";
 import Button from "components/website/CustomButtons/Button.js";
 import Parallax from "components/website/Parallax/Parallax.js";
 
+import Badge from "components/website/Badge/Badge.js";
+import Card from "components/website/Card/Card.js";
+import Clearfix from "components/website/Clearfix/Clearfix.js";
+import CustomButtons from "components/website/CustomButtons/Button.js";
+import CustomDropdownJs from "components/website/CustomDropdown/CustomDropdown.js";
+import CustomDropdownJsx from "components/website/CustomDropdown/CustomDropdown.jsx";
+import CustomInput from "components/website/CustomInput/CustomInput.js";
+import CustomLinearProgress from "components/website/CustomLinearProgress/CustomLinearProgress.js";
+import CustomTabs from "components/website/CustomTabs/CustomTabs.js";
+import InfoArea from "components/website/InfoArea/InfoArea.js";
+import NavPills from "components/website/NavPills/NavPills.js";
+import Pagination from "components/website/Pagination/Pagination.js";
+import Typography from "components/website/Typography/Primary.js";
+
+
 // sections for this page
 import HeaderLinks from "components/website/Header/HeaderLinks.js";
 
@@ -47,7 +62,7 @@ export default function Home(props) {
         brand="Projeto Praças"
         rightLinks={<HeaderLinks />}
         fixed
-        color="transparent"
+        // color="transparent"
         href="/"
         changeColorOnScroll={{
           height: 400,
@@ -55,7 +70,7 @@ export default function Home(props) {
         }}
         {...rest}
       />
-      <Parallax image={require('assets/img/bgPracas1.jpg')}> 
+      <Parallax image={require('assets/img/bg-pracas-jf-1.jpg')}>
         <div className={classes.container}>
           <GridContainer>
             <GridItem>
@@ -71,6 +86,7 @@ export default function Home(props) {
       </Parallax>
 
       <div className={classNames(classes.main, classes.mainRaised)}>
+        <Badge />
         <GridItem md={12} className={classes.textCenter}>
           <Link to={"/login-page"} className={classes.link}>
             <Button color="primary" size="lg" simple>

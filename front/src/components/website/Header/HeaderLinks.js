@@ -32,7 +32,7 @@ export default function HeaderLinks(props) {
           color="transparent"
           className={classes.navLink}
         >
-          <AccountBox className={classes.icons} /> Home
+          <Home className={classes.icons} /> Home
         </Button>
       </ListItem>
       <ListItem className={classes.listItem}>
@@ -53,6 +53,24 @@ export default function HeaderLinks(props) {
             </Link>
           ]}
         />
+      </ListItem>
+      <ListItem className={classes.listItem}>
+        <Button
+          href="/login-page"
+          color="transparent"
+          className={classes.navLink}
+        >
+          <AccountBox className={classes.icons} /> Quem Somos
+        </Button>
+      </ListItem>
+      <ListItem className={classes.listItem}>
+        <Button
+          href="/login-page"
+          color="transparent"
+          className={classes.navLink}
+        >
+          <AccountBox className={classes.icons} /> Contato
+        </Button>
       </ListItem>
       <ListItem className={classes.listItem}>
         <Button
