@@ -25,18 +25,18 @@ import Notifications from "@material-ui/icons/Notifications";
 import AddAlert from "@material-ui/icons/AddAlert";
 
 // core components/views for Admin layout
-import DashboardPage from "views/admin/Dashboard/Dashboard.js";
-import TableList from "views/admin/TableList/TableList.js";
-import Typography from "views/admin/Typography/Typography.js";
-import Icons from "views/admin/Icons/Icons.js";
-import NotificationsPage from "views/admin/Notifications/Notifications.js";
+import DashboardPage from "views/admin/Dashboard";
+import TableList from "views/admin/TableList";
+import Typography from "views/admin/Typography";
+import Icons from "views/admin/Icons";
+import NotificationsPage from "views/admin/Notifications";
 import Leaflet from "views/admin/Leaflet";
-import SweetAlert from "views/admin/SweetAlert/SweetAlert"
+import SweetAlert from "views/admin/SweetAlert"
 
 
 // project praças
 import Pracas from "views/admin/Pracas";
-import Users from "views/admin/Users/Index";
+import Users from "views/admin/Users";
 
 
 import Home from "views/website/Home";
