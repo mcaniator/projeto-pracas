@@ -12,7 +12,7 @@ import Sidebar from "components/Sidebar/Sidebar.js";
 
 import routes from "routesAdmin.js";
 
-import styles from "assets/jss/material-dashboard-react/layouts/adminStyle.js";
+import styles from "./adminStyle.js";
 
 import bgImage from "assets/img/sidebar-3.jpg";
 import logo from "assets/img/logo.png";

@@ -13,7 +13,7 @@ import Button from "components/CustomButtons/Button";
 import Card from "components/Card/Card";
 import CardBody from "components/Card/CardBody";
 
-import sweetAlertStyle from "assets/jss/material-dashboard-react/views/sweetAlertStyle";
+import sweetAlertStyle from "./sweetAlertStyle";
 
 class SweetAlertPage extends React.Component {
   constructor(props) {
