@@ -10,12 +10,12 @@ import Navbar from "components/Navbar/Navbar.js";
 import Footer from "components/Footer/Footer.js";
 import Sidebar from "components/Sidebar/Sidebar.js";
 
-import routes from "routes.js";
+import routes from "routesAdmin.js";
 
-import styles from "assets/jss/material-dashboard-react/layouts/adminStyle.js";
+import styles from "./adminStyle.js";
 
 import bgImage from "assets/img/sidebar-3.jpg";
-import logo from "assets/img/reactlogo.png";
+import logo from "assets/img/logo.png";
 
 let ps;
 
@@ -52,9 +52,12 @@ export default function Admin({ ...rest }) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-  const getRoute = () => {
-    return window.location.pathname !== "/admin/maps";
+  const isLeafletView = () => {
+    return window.location.pathname === "/admin/leaflet";
   };
+
+  const leafletScrollView = isLeafletView() ? 'hidden' : 'auto';
+
   const resizeFunction = () => {
     if (window.innerWidth >= 960) {
       setMobileOpen(false);
@@ -79,10 +82,11 @@ export default function Admin({ ...rest }) {
     };
   }, [mainPanel]);
   return (
+
     <div className={classes.wrapper}>
       <Sidebar
         routes={routes}
-        logoText={"Creative Tim"}
+        logoText={"Projeto Praças"}
         logo={logo}
         image={image}
         handleDrawerToggle={handleDrawerToggle}
@@ -90,21 +94,27 @@ export default function Admin({ ...rest }) {
         color={color}
         {...rest}
       />
-      <div className={classes.mainPanel} ref={mainPanel}>
-        <Navbar
-          routes={routes}
-          handleDrawerToggle={handleDrawerToggle}
-          {...rest}
-        />
+     
+      <div style={{overflow: leafletScrollView}} className={classes.mainPanel} ref={mainPanel}>
+      
+        {isLeafletView() ? (
+          null
+        ) : (
+          <Navbar
+            routes={routes}
+            handleDrawerToggle={handleDrawerToggle}
+            {...rest}
+          />
+        )}
         {/* On the /maps route we want the map to be on full screen - this is not possible if the content and conatiner classes are present because they have some paddings which would make the map smaller */}
-        {getRoute() ? (
+        {isLeafletView() ? (
+          <div>{switchRoutes}</div>
+        ) : (
           <div className={classes.content}>
             <div className={classes.container}>{switchRoutes}</div>
           </div>
-        ) : (
-          <div className={classes.map}>{switchRoutes}</div>
         )}
-        {getRoute() ? <Footer /> : null}
+        {isLeafletView() ? null : <Footer />}
       </div>
     </div>
   );

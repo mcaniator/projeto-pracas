@@ -14,6 +14,13 @@
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
+=========================================================
+
+* Documentation
+
+https://demos.creative-tim.com/material-dashboard-react/#/documentation/tutorial
+https://demos.creative-tim.com/material-kit-react/#/documentation/tutorial
+
 */
 import React from "react";
 import ReactDOM from "react-dom";
@@ -25,17 +32,25 @@ import Admin from "layouts/Admin.js";
 
 
 // pages for this public pages
-import Components from "views/website/Components/Components.js";
-import LandingPage from "views/website/LandingPage/LandingPage.js";
-import ProfilePage from "views/website/ProfilePage/ProfilePage.js";
-import LoginPage from "views/website/LoginPage/LoginPage.js";
+import Components from "views/website/Components";
+import About from "views/website/About";
+import LoginPage from "views/website/LoginPage";
+
+import CreateUser from "views/admin/Users/UserCreate";
+import EditUser from "views/admin/Users/UserEdit";
+import ShowUser from "views/admin/Users/UserShow";
+
+
 
 // pages for public pages project praças
-import Home from "views/website/Home/Home";
+import Home from "views/website/Home";
 
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 
 const hist = createBrowserHistory();
+
+
+
 
 ReactDOM.render(
   <Router history={hist}>
@@ -43,16 +58,29 @@ ReactDOM.render(
       
       {/* Rotas admin */}
       <Route path="/admin" component={Admin} />
+
+
       
       <Redirect from="/logout" to="/" />
       
       {/* public routes */}
-      <Route path="/landing-page" component={LandingPage} />
-      <Route path="/profile-page" component={ProfilePage} />
+      <Route path="/quem-somos" component={About} />
       <Route path="/login-page" component={LoginPage} />
       <Route path="/components" component={Components} />
-      <Route path="/" component={Home} />
+      <Route path="/" component={Home} exact />
+
+
+
+    {/* Usuários */}
+    <Route path="/admin/usuarios/editar" name="EDITAR" component={EditUser} />
+    <Route path="/admin/usuarios/mostrar/" component={ShowUser} />
+    <Route path="/admin/usuarios/criar/" component={CreateUser} />
+
+
+
     </Switch>
   </Router>,
   document.getElementById("root")
 );
+
+
