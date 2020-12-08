@@ -7,7 +7,7 @@ import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 import Button from "components/website/CustomButtons/Button.js";
 // core components
-import styles from "assets/jss/material-kit-react/views/componentsSections/downloadStyle.js";
+import styles from "./downloadStyle.js";
 
 const useStyles = makeStyles(styles);
 

@@ -13,7 +13,7 @@ import Button from "components/website/CustomButtons/Button.js";
 import landing from "assets/img/landing.jpg";
 import profile from "assets/img/profile.jpg";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/exampleStyle.js";
+import styles from "./exampleStyle.js";
 
 const useStyles = makeStyles(styles);
 

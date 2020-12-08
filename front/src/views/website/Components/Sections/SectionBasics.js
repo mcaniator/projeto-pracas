@@ -22,7 +22,7 @@ import CustomLinearProgress from "components/website/CustomLinearProgress/Custom
 import Paginations from "components/website/Pagination/Pagination.js";
 import Badge from "components/website/Badge/Badge.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/basicsStyle.js";
+import styles from "./basicsStyle.js";
 
 const useStyles = makeStyles(styles);
 

@@ -14,7 +14,7 @@ import Card from "components/website/Card/Card.js";
 import CardBody from "components/website/Card/CardBody.js";
 import CardFooter from "components/website/Card/CardFooter.js";
 
-import styles from "assets/jss/material-kit-react/views/landingPageSections/teamStyle.js";
+import styles from "./teamStyle.js";
 
 import team1 from "assets/img/faces/avatar.jpg";
 import team2 from "assets/img/faces/christian.jpg";

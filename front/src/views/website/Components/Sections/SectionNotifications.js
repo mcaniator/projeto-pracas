@@ -8,7 +8,7 @@ import Warning from "@material-ui/icons/Warning";
 import SnackbarContent from "components/website/Snackbar/SnackbarContent.js";
 import Clearfix from "components/website/Clearfix/Clearfix.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/notificationsStyles.js";
+import styles from "./notificationsStyles.js";
 
 const useStyles = makeStyles(styles);
 

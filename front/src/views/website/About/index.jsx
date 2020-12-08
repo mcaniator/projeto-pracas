@@ -15,7 +15,7 @@ import Button from "components/website/CustomButtons/Button.js";
 import HeaderLinks from "components/website/Header/HeaderLinks.js";
 import Parallax from "components/website/Parallax/Parallax.js";
 
-import styles from "assets/jss/material-kit-react/views/landingPage.js";
+import styles from "./landingPage.js";
 
 // Sections for this page
 import ProductSection from "./Sections/ProductSection.js";

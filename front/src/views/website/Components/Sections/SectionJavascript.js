@@ -21,7 +21,7 @@ import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 import Button from "components/website/CustomButtons/Button.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/javascriptStyles.js";
+import styles from "./javascriptStyles.js";
 
 const useStyles = makeStyles(styles);
 

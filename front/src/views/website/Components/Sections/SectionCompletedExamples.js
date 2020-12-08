@@ -7,7 +7,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/completedStyle.js";
+import styles from "./completedStyle.js";
 
 const useStyles = makeStyles(styles);
 

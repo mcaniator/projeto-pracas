@@ -21,7 +21,7 @@ import Button from "components/website/CustomButtons/Button.js";
 import image from "assets/img/bg.jpg";
 import profileImage from "assets/img/faces/avatar.jpg";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/navbarsStyle.js";
+import styles from "./navbarsStyle.js";
 
 const useStyles = makeStyles(styles);
 

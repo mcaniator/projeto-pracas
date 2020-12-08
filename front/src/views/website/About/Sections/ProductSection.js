@@ -11,7 +11,7 @@ import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 import InfoArea from "components/website/InfoArea/InfoArea.js";
 
-import styles from "assets/jss/material-kit-react/views/landingPageSections/productStyle.js";
+import styles from "./productStyle.js";
 
 const useStyles = makeStyles(styles);
 

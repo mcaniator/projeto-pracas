@@ -21,7 +21,7 @@ import CardHeader from "components/website/Card/CardHeader.js";
 import CardFooter from "components/website/Card/CardFooter.js";
 import CustomInput from "components/website/CustomInput/CustomInput.js";
 
-import styles from "assets/jss/material-kit-react/views/loginPage.js";
+import styles from "./loginPage.js";
 
 import image from "assets/img/bg7.jpg";
 

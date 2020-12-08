@@ -10,7 +10,7 @@ import GridItem from "components/website/Grid/GridItem.js";
 import CustomInput from "components/website/CustomInput/CustomInput.js";
 import Button from "components/website/CustomButtons/Button.js";
 
-import styles from "assets/jss/material-kit-react/views/landingPageSections/workStyle.js";
+import styles from "./workStyle.js";
 
 const useStyles = makeStyles(styles);
 

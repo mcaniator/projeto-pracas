@@ -11,7 +11,7 @@ import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 import CustomTabs from "components/website/CustomTabs/CustomTabs.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/tabsStyle.js";
+import styles from "./tabsStyle.js";
 
 const useStyles = makeStyles(styles);
 

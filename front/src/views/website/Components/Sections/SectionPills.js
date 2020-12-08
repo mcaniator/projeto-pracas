@@ -12,7 +12,7 @@ import GridContainer from "components/website/Grid/GridContainer.js";
 import GridItem from "components/website/Grid/GridItem.js";
 import NavPills from "components/website/NavPills/NavPills.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/pillsStyle.js";
+import styles from "./pillsStyle.js";
 
 const useStyles = makeStyles(styles);
 

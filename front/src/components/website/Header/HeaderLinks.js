@@ -18,7 +18,7 @@ import { Apps, Home, AccountBox } from "@material-ui/icons";
 import CustomDropdown from "components/website/CustomDropdown/CustomDropdown.js";
 import Button from "components/website/CustomButtons/Button.js";
 
-import styles from "assets/jss/material-kit-react/components/headerLinksStyle.js";
+import styles from "./headerLinksStyle.js";
 
 const useStyles = makeStyles(styles);
 

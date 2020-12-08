@@ -14,7 +14,7 @@ import Card from "components/website/Card/Card.js";
 import CardBody from "components/website/Card/CardBody.js";
 import CardHeader from "components/website/Card/CardHeader.js";
 
-import styles from "assets/jss/material-kit-react/components/customTabsStyle.js";
+import styles from "./customTabsStyle.js";
 
 const useStyles = makeStyles(styles);
 

@@ -28,7 +28,7 @@ import SectionLogin from "./Sections/SectionLogin.js";
 import SectionExamples from "./Sections/SectionExamples.js";
 import SectionDownload from "./Sections/SectionDownload.js";
 
-import styles from "assets/jss/material-kit-react/views/components.js";
+import styles from "./components.js";
 
 const useStyles = makeStyles(styles);
 

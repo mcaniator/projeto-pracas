@@ -36,7 +36,7 @@ import Typography from "components/website/Typography/Primary.js";
 // sections for this page
 import HeaderLinks from "components/website/Header/HeaderLinks.js";
 
-import styles from "assets/jss/material-kit-react/views/components.js";
+import styles from "../Components/components.js";
 
 import { bgImage } from "variables/general";
 

@@ -16,7 +16,7 @@ import CardFooter from "components/website/Card/CardFooter.js";
 import Button from "components/website/CustomButtons/Button.js";
 import CustomInput from "components/website/CustomInput/CustomInput.js";
 
-import styles from "assets/jss/material-kit-react/views/componentsSections/loginStyle.js";
+import styles from "./loginStyle.js";
 
 const useStyles = makeStyles(styles);
 
