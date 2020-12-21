@@ -136,7 +136,6 @@ export default class Leaflet extends Component<{}, State> {
 
             <Marker position={center}>
               <Popup>
-                {/* <SimpleModal/> */}
                 <Button type="button" onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
                   Cadastrar praça
                 </Button>
