@@ -9,10 +9,21 @@ import {
 } from 'react-leaflet'
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
-
-import SimpleModal from "components/SimpleModal/SimpleModal.js"
-
+import Button from "../../../components/website/CustomButtons/Button.js";
 import Control from 'react-leaflet-control';
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import { JsonForms } from '@jsonforms/react';
+import {
+  materialRenderers,
+  materialCells
+} from '@jsonforms/material-renderers';
+//import json que cria os forms
+import schema from '../../../forms/example/schema.json';
+import uischema from '../../../forms/example/uischema.json';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -23,10 +34,6 @@ type State = {
 }
 
 const center = [-21.7642, -43.3496]
-const rectangle = [
-  [-21.7642, -43.3496],
-  [-21.73, -43.32],
-]
 
 export default class Leaflet extends Component<{}, State> {
 
@@ -41,7 +48,10 @@ export default class Leaflet extends Component<{}, State> {
                                   [-21.740845188197625, -43.38140487670899],
                                   [-21.773210071085067, -43.38277816772462]]
                   }],
-    drawActive: false
+    drawActive: false,
+    register: {
+      open : false
+    },
   }
 
   handleClick(e)
@@ -82,6 +92,15 @@ export default class Leaflet extends Component<{}, State> {
     this.setState({currentPolygon: []});
   }
 
+  registerDialogOpen()
+  {
+    this.setState({register: {open:true}});
+  }
+  registerDialogClose()
+  {
+    this.setState({register: {open:false}});
+  }
+
   render() {
     const position = [this.state.lat, this.state.lng];
     
@@ -117,8 +136,35 @@ export default class Leaflet extends Component<{}, State> {
 
             <Marker position={center}>
               <Popup>
-                A pretty CSS3 popup. <br /> Easily customizable.
-                <SimpleModal/>
+                <Button type="button" onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                  Cadastrar praça
+                </Button>
+                <Dialog
+                  fullWidth={true}
+                  maxWidth={'md'}
+                  open={this.state.register.open}
+                  onClose={ this.registerDialogClose.bind(this) }
+                  aria-labelledby="max-width-dialog-title"
+                >
+                  <DialogTitle>Cadastrar Praça</DialogTitle>
+                  <DialogContent dividers>
+                    <JsonForms
+                      schema={schema}
+                      uischema={uischema}
+                      renderers={materialRenderers}
+                      cells={materialCells}
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button autoFocus onClick={this.registerDialogClose.bind(this)} color="primary">
+                      Cancelar
+                    </Button>
+                    <Button color="primary">
+                      Confirmar
+                    </Button>
+                  </DialogActions>
+
+                </Dialog>
               </Popup>
             </Marker>
 

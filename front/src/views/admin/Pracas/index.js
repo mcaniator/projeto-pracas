@@ -5,8 +5,6 @@ import Danger from "components/Typography/Danger.js";
 import Card from "components/Card/Card.js";
 import CardBody from "components/Card/CardBody.js";
 
-import SimpleModal from "components/SimpleModal/SimpleModal.js"
-
 
 export default function Dashboard() {
 
@@ -17,9 +15,6 @@ export default function Dashboard() {
           <Danger>Ola!!!!!</Danger>
         </CardBody>
       </Card>
-
-      <SimpleModal/>
-
     </div>
   );
 }
