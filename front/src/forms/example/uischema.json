@@ -3,18 +3,18 @@
   "elements": [
     {
       "type": "Category",
-      "label": "Basic Information",
+      "label": "Informações Básicas",
       "elements": [
         {
           "type": "HorizontalLayout",
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/firstName"
+              "scope": "#/properties/nome"
             },
             {
               "type": "Control",
-              "scope": "#/properties/secondName"
+              "scope": "#/properties/nomePopular"
             }
           ]
         },
@@ -23,51 +23,15 @@
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/birthDate"
+              "scope": "#/properties/tipo"
             },
             {
               "type": "Control",
-              "scope": "#/properties/nationality"
-            }
-          ]
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/provideAddress"
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/vegetarian"
-        }
-      ]
-    },
-    {
-      "type": "Category",
-      "label": "Address",
-      "elements": [
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/address/properties/street"
+              "scope": "#/properties/categorias"
             },
             {
               "type": "Control",
-              "scope": "#/properties/address/properties/streetNumber"
-            }
-          ]
-        },
-        {
-          "type": "HorizontalLayout",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/address/properties/city"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/address/properties/postalCode"
+              "scope": "#/properties/comentarios"
             }
           ]
         }
@@ -75,33 +39,22 @@
     },
     {
       "type": "Category",
-      "label": "Additional",
+      "label": "Endereço",
       "elements": [
         {
-          "type": "Control",
-          "scope": "#/properties/vegetarianOptions/properties/vegan"
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/vegetarianOptions/properties/favoriteVegetable"
-        },
-        {
-          "type": "Control",
-          "scope": "#/properties/vegetarianOptions/properties/otherFavoriteVegetable",
-          "rule": {
-            "effect": "SHOW",
-            "condition": {
-              "scope": "#/properties/vegetarianOptions/properties/favoriteVegetable",
-              "schema": {
-                "const": "Other"
-              }
+          "type": "HorizontalLayout",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/address/properties/Endereço"
             }
-          }
+          ]
         }
       ]
     }
   ],
   "options": {
-    "variant": "stepper"
+    "variant": "stepper",
+    "showNavButtons": true
   }
 }
