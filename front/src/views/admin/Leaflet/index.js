@@ -153,6 +153,7 @@ export default class Leaflet extends Component<{}, State> {
                       uischema={uischema}
                       renderers={materialRenderers}
                       cells={materialCells}
+                      onChange={({ data, _errors }) => console.log(data)}
                     />
                   </DialogContent>
                   <DialogActions>

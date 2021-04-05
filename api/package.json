@@ -1,21 +1,19 @@
 {
-  "name": "api",
+  "name": "praca-api",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
+  "license": "MIT",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev" : "nodemon src/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "mongoose": "^5.10.11",
-    "require-dir": "^1.2.0"
+    "pg": "^8.5.1",
+    "pg-hstore": "^2.3.3",
+    "sequelize": "^6.5.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.7",
+    "sequelize-cli": "^6.2.0"
   }
 }

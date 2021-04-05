@@ -1,23 +1,20 @@
-const mongoose = require('mongoose');
+const { Model, DataTypes } = require('sequelize');
 
-const UserSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+class User extends Model {
+  static init(sequelize) {
+    super.init({
+      name: DataTypes.STRING,
+      email: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+      phone_number: DataTypes.STRING,
+    }, {
+      sequelize
+    })
+  }
 
-    }
-});
+  static associate(models) {
 
-mongoose.model('User', UserSchema);
+  }
+}
+
+module.exports = User;
