@@ -25,6 +25,8 @@ import {
 import schema from '../../../forms/example/schema.json';
 import uischema from '../../../forms/example/uischema.json';
 
+import axios from 'axios';
+
 const { BaseLayer, Overlay } = LayersControl
 
 type State = {
@@ -52,6 +54,7 @@ export default class Leaflet extends Component<{}, State> {
     register: {
       open : false
     },
+    data: {},
   }
 
   handleClick(e)
@@ -99,6 +102,31 @@ export default class Leaflet extends Component<{}, State> {
   registerDialogClose()
   {
     this.setState({register: {open:false}});
+  }
+
+  sendSquareRegister()
+  {
+    var data = this.state.data;
+
+    var submit = {
+      addresses : [],
+    };
+
+    for (var i in data.address.Endereço){
+      submit.addresses.push({
+        "UF": data.address.Endereço[i]["estado"],
+        "city": data.address.Endereço[i]["cidade"],
+        "neighborhood": data.address.Endereço[i]["bairro"],
+        "street": data.address.Endereço[i]["Rua"],
+        "number": data.address.Endereço[i]["Número"],
+      });
+    }
+
+    console.log(submit.addresses);
+
+    axios.post(`http://localhost:3333/addresses`, submit)
+      .then(res => {
+      });
   }
 
   render() {
@@ -153,14 +181,15 @@ export default class Leaflet extends Component<{}, State> {
                       uischema={uischema}
                       renderers={materialRenderers}
                       cells={materialCells}
-                      onChange={({ data, _errors }) => console.log(data)}
+                      onChange={({ data, _errors }) => this.setState({"data": data})}
+                      
                     />
                   </DialogContent>
                   <DialogActions>
                     <Button autoFocus onClick={this.registerDialogClose.bind(this)} color="primary">
                       Cancelar
                     </Button>
-                    <Button color="primary">
+                    <Button onClick={this.sendSquareRegister.bind(this)} color="primary">
                       Confirmar
                     </Button>
                   </DialogActions>
