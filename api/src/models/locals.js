@@ -1,8 +1,6 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
+const { Model, DataTypes } = require('sequelize');
+
   class locals extends Model {
     /**
      * Helper method for defining associations.
@@ -12,26 +10,77 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
     }
+
+
+  static init(sequelize) {
+        super.init({
+        name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        common_name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        type: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        free_space_category: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        comments: {
+          type: DataTypes.TEXT,
+          allowNull: false,
+        },
+        creation_year: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        reform_year: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        mayor_creation: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        legislation: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        useful_area: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+        },
+        area_pjf: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+        },
+        angle_inclination: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+        },
+        urban_region: {
+          type: DataTypes.BOOLEAN,
+          allowNull: true,
+        },
+        inactive_not_found: {
+          type: DataTypes.BOOLEAN,
+          allowNull: true,
+        },
+        address_id: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+        }
+      },
+      {
+      sequelize,
+      timestamps: false,
+      }
+    )
   };
-  locals.init({
-    name: DataTypes.STRING,
-    common_name: DataTypes.STRING,
-    type: DataTypes.INTEGER,
-    free_space_category: DataTypes.INTEGER,
-    comments: DataTypes.TEXT,
-    creation_year: DataTypes.STRING,
-    reform_year: DataTypes.STRING,
-    mayor_creation: DataTypes.STRING,
-    legislation: DataTypes.STRING,
-    useful_area: DataTypes.INTEGER,
-    area_pjf: DataTypes.INTEGER,
-    angle_inclination: DataTypes.INTEGER,
-    urban_region: DataTypes.BOOLEAN,
-    inactive_not_found: DataTypes.BOOLEAN,
-    address_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'locals',
-  });
-  return locals;
 };
+ 
+  module.exports = locals;

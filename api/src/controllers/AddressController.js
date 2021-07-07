@@ -9,6 +9,7 @@ module.exports = {
 
   async store(req, res) {
     const {addresses} = req.body;
+    console.log(addresses);
     const ret =  await Address.bulkCreate(addresses);
     return res.json(ret);
   }
