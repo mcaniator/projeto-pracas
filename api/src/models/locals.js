@@ -73,6 +73,10 @@ const { Model, DataTypes } = require('sequelize');
         address_id: {
           type: DataTypes.INTEGER,
           allowNull: true,
+        },
+        polygon: {
+            type: DataTypes.GEOMETRY("Polygon"),
+            allowNull: true
         }
       },
       {
@@ -82,5 +86,5 @@ const { Model, DataTypes } = require('sequelize');
     )
   };
 };
- 
+
   module.exports = locals;

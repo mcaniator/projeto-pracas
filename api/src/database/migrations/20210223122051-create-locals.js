@@ -12,6 +12,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      polygon:{
+        type: Sequelize.GEOMETRY("Polygon"),
+        allowNull : true
+      },
       common_name: {
         type: Sequelize.STRING,
         allowNull: false,
