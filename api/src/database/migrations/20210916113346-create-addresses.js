@@ -11,6 +11,11 @@ module.exports = {
       UF: {
         type: Sequelize.STRING
       },
+      locals_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references : {model: 'locals', key : 'id'}
+      },
       city: {
         type: Sequelize.STRING
       },
