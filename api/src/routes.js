@@ -5,6 +5,7 @@ const AddressController = require('./controllers/AddressController');
 const TechController = require('./controllers/TechController');
 const ReportController = require('./controllers/ReportController');
 const LocalController = require('./controllers/LocalController');
+const EvaluationController = require('./controllers/EvaluationController');
 
 const routes = express.Router();
 
@@ -24,5 +25,8 @@ routes.get('/locals', LocalController.index);
 routes.post('/locals', LocalController.store);
 
 routes.get('/report', ReportController.show);
+
+routes.get('/evaluation', EvaluationController.index)
+routes.post('/evaluation', EvaluationController.store);
 
 module.exports = routes;
