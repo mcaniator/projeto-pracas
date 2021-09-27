@@ -1,4 +1,8 @@
 import React from "react";
+import { useState, useEffect } from "react";
+
+import axios from "axios";
+
 // @material-ui/core components
 import { makeStyles } from "@material-ui/core/styles";
 import classNames from "classnames";
@@ -12,11 +16,12 @@ import CardBody from "components/Card/CardBody.js";
 // image
 import image from "assets/img/bgPracas2.jpg"
 import Create from "@material-ui/icons/Create";
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, IconButton, Icon, Select, InputLabel, MenuItem, Tooltip } from "@material-ui/core";
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar, IconButton, Icon, Select, InputLabel, MenuItem, Tooltip, Modal } from "@material-ui/core";
 // import ListItemButton from "@material-ui/core/ListItem"
 import AccessibleIcon from '@material-ui/icons/Accessible';
 import CustomInput from "components/CustomInput/CustomInput";
 import { Add } from "@material-ui/icons";
+
 
 const styles = {
   bg: {
@@ -57,29 +62,76 @@ const styles = {
   },
   listItem: {
     width: '30%'
+  },
+  modal: {
+    position: 'absolute',
+    top: '30%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    p: 4,
   }
 };
 
 // const useStyles = makeStyles(styles);
 
-function items() {
-  return [1, 2, 3, 4, 5].map(value => {
-    return (
-      <ListItem key={value} button>
-        <ListItemAvatar>
-          <Avatar
-            alt={`Avatar n°${value + 1}`}
-          />
-        </ListItemAvatar>
-        <ListItemText id={value} primary={`Pessoa ${value}`} secondary={'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Null... '} />
-      </ListItem>
-    );
-  });
-}
-
 export default function TableList() {
   // const classes = useStyles();
   // console.log(classes);
+  const [modalData, setModalData] = useState({});
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = (evaluation) => {
+    setModalData(evaluation);
+    setOpen(true)
+  };
+  const handleClose = () => setOpen(false);
+
+
+  const [avaliacaoes, setAvaliacaoes] = useState([]);
+  const [tipo, setTipo] = useState('');
+
+  const api = axios.create({
+    baseURL: `http://localhost:3333`,
+    method: "no-cors",
+  });
+
+
+  const getAvaliacoes = async () => {
+    try {
+      await api.get('/evaluation').then(res => {
+        setAvaliacaoes(res.data);
+      });
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+
+  useEffect(() => {
+    getAvaliacoes();
+  }, [tipo, avaliacaoes.length]);
+
+  function items(evaluations) {
+    console.log(evaluations)
+    return evaluations.map(value => {
+      return (
+        <ListItem key={value.id} button onClick={() => { handleOpen(value) }}>
+          <ListItemAvatar>
+            <Avatar
+              alt={`Avatar n°${value.name}`}
+            />
+          </ListItemAvatar>
+          <ListItemText id={value} primary={`${value.name}`} secondary={'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Null... '} />
+        </ListItem>
+      );
+    });
+  }
+
+  function selectChange(event) {
+    setTipo(event.target.value)
+  }
+
+
   return (
     <GridContainer>
       <GridItem style={styles.bg} xs={12}>
@@ -92,11 +144,12 @@ export default function TableList() {
           <li>Nome de Praça</li>
         </ul>
       </GridItem>
+
       <GridItem xs={12}>
         <h3>Últimas Avaliações</h3>
         <hr></hr>
         <List style={styles.list}>
-          {items()}
+          {items(avaliacaoes)}
           <ListItem button>
             <Icon> <Add /> </Icon>
             <ListItemText primary={`Ver Mais`} />
@@ -104,6 +157,23 @@ export default function TableList() {
         </List>
         <hr></hr>
       </GridItem>
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Card style={styles.modal}>
+          <CardHeader color="success">
+            <h3>Avaliação de {modalData.name}</h3>
+          </CardHeader>
+          <CardBody>
+            <p>Lorem</p>
+          </CardBody>
+        </Card>
+      </Modal>
+
       <GridItem xs={12}>
         <Card style={{ width: "100%" }}>
           <form>
@@ -112,8 +182,14 @@ export default function TableList() {
             </CardHeader>
             <CardBody style={{ width: "100%" }}>
               <h4><Icon><AccessibleIcon /></Icon> Acessibilidade</h4>
-              <InputLabel>Calçada</InputLabel>
-              <Select label="Tipo" style={{ width: "80%", maxWidth: "360px" }}>
+              <InputLabel>Tipo</InputLabel>
+              <Select
+                label="Tipo"
+                value={tipo}
+                onChange={selectChange}
+                style={{ width: "80%", maxWidth: "360px" }}
+              >
+                <MenuItem value='' />
                 <MenuItem value={1}>Entorno</MenuItem>
                 <MenuItem value={2}>Exterior</MenuItem>
               </Select>
