@@ -16,7 +16,7 @@ import CardBody from "components/Card/CardBody.js";
 // image
 import image from "assets/img/bgPracas2.jpg"
 import Create from "@material-ui/icons/Create";
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, IconButton, Icon, Select, InputLabel, MenuItem, Tooltip, Modal } from "@material-ui/core";
+import { List, ListItem, ListItemAvatar, ListItemText, Avatar, IconButton, Icon, Select, InputLabel, MenuItem, Tooltip, Modal, Button } from "@material-ui/core";
 // import ListItemButton from "@material-ui/core/ListItem"
 import AccessibleIcon from '@material-ui/icons/Accessible';
 import CustomInput from "components/CustomInput/CustomInput";
@@ -107,6 +107,19 @@ export default function TableList() {
     }
   }
 
+  const postAvaliacao = async (avaliacao) => {
+    try {
+      console.log('post', avaliacao)
+
+      await api.post('/evaluation', avaliacao)
+        .then(res => {
+          console.log('postado')
+        });
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     getAvaliacoes();
   }, [tipo, avaliacaoes.length]);
@@ -124,7 +137,7 @@ export default function TableList() {
           <ListItemText id={value} primary={`${value.name}`} secondary={'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Null... '} />
         </ListItem>
       );
-    });
+    }).reverse();
   }
 
   function selectChange(event) {
@@ -176,7 +189,7 @@ export default function TableList() {
 
       <GridItem xs={12}>
         <Card style={{ width: "100%" }}>
-          <form>
+          <form onSubmit={(e) => { e.preventDefault() }}>
             <CardHeader color="success">
               <h3>Fazer uma avaliação</h3>
             </CardHeader>
@@ -193,6 +206,16 @@ export default function TableList() {
                 <MenuItem value={1}>Entorno</MenuItem>
                 <MenuItem value={2}>Exterior</MenuItem>
               </Select>
+
+              <br /><br />
+              <Button variant="contained" color="primary" onClick={() => {
+                postAvaliacao({
+                  "name": "fulano",
+                  "type": 1,
+                  "email": "fulano@email.com",
+                  "password": "pswd123",
+                });
+              }} >Enviar</Button>
             </CardBody>
           </form>
         </Card>
