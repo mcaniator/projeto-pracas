@@ -4,23 +4,20 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 // @material-ui/core components
-import { makeStyles } from "@material-ui/core/styles";
-import classNames from "classnames";
+import { IconButton, Tooltip } from "@material-ui/core";
+import AccessibleIcon from '@material-ui/icons/Accessible';
+
 // core components
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
-import Card from "components/Card/Card.js";
-import CardHeader from "components/Card/CardHeader.js";
-import CardBody from "components/Card/CardBody.js";
+import Tabs from "components/CustomTabs/CustomTabs.js";
 
 // image
 import image from "assets/img/bgPracas2.jpg"
 import Create from "@material-ui/icons/Create";
-import { List, ListItem, ListItemAvatar, ListItemText, Avatar, IconButton, Icon, Select, InputLabel, MenuItem, Tooltip, Modal, Button } from "@material-ui/core";
-// import ListItemButton from "@material-ui/core/ListItem"
-import AccessibleIcon from '@material-ui/icons/Accessible';
-import CustomInput from "components/CustomInput/CustomInput";
-import { Add } from "@material-ui/icons";
+
+// forms
+import AccessibilityForm from "./Accessibility";
 
 
 const styles = {
@@ -89,7 +86,6 @@ export default function TableList() {
 
 
   const [avaliacaoes, setAvaliacaoes] = useState([]);
-  const [tipo, setTipo] = useState('');
 
   const api = axios.create({
     baseURL: `http://localhost:3333`,
@@ -97,53 +93,48 @@ export default function TableList() {
   });
 
 
-  const getAvaliacoes = async () => {
-    try {
-      await api.get('/evaluation').then(res => {
-        setAvaliacaoes(res.data);
-      });
-    } catch (err) {
-      console.error(err.message);
-    }
-  }
+  // const getAvaliacoes = async () => {
+  //   try {
+  //     await api.get('/evaluation').then(res => {
+  //       setAvaliacaoes(res.data);
+  //     });
+  //   } catch (err) {
+  //     console.error(err.message);
+  //   }
+  // }
 
-  const postAvaliacao = async (avaliacao) => {
-    try {
-      console.log('post', avaliacao)
+  // const postAvaliacao = async (avaliacao) => {
+  //   try {
+  //     console.log('post', avaliacao)
 
-      await api.post('/evaluation', avaliacao)
-        .then(res => {
-          console.log('postado')
-        });
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  //     await api.post('/evaluation', avaliacao)
+  //       .then(res => {
+  //         console.log('postado')
+  //       });
+  //   } catch (err) {
+  //     console.error(err)
+  //   }
+  // }
 
-  useEffect(() => {
-    getAvaliacoes();
-  }, [tipo, avaliacaoes.length]);
+  // useEffect(() => {
+  //   getAvaliacoes();
+  // }, [tipo, avaliacaoes.length]);
 
-  function items(evaluations) {
-    console.log(evaluations)
-    return evaluations.map(value => {
-      return (
-        <ListItem key={value.id} button onClick={() => { handleOpen(value) }}>
-          <ListItemAvatar>
-            <Avatar
-              alt={`Avatar n°${value.name}`}
-            />
-          </ListItemAvatar>
-          <ListItemText id={value} primary={`${value.name}`} secondary={'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Null... '} />
-        </ListItem>
-      );
-    }).reverse();
-  }
-
-  function selectChange(event) {
-    setTipo(event.target.value)
-  }
-
+  // function items(evaluations) {
+  //   console.log(evaluations)
+  //   return evaluations.map(value => {
+  //     return (
+  //       <ListItem key={value.id} button onClick={() => { handleOpen(value) }}>
+  //         <ListItemAvatar>
+  //           <Avatar
+  //             alt={`Avatar n°${value.name}`}
+  //           />
+  //         </ListItemAvatar>
+  //         <ListItemText id={value} primary={`${value.name}`} secondary={'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Null... '} />
+  //       </ListItem>
+  //     );
+  //   }).reverse();
+  // }
 
   return (
     <GridContainer>
@@ -159,6 +150,25 @@ export default function TableList() {
       </GridItem>
 
       <GridItem xs={12}>
+        <Tabs
+          // title="Avaliação:"
+          headerColor="success"
+          tabs={[
+            {
+              tabName: "Acessibilidade",
+              tabIcon: AccessibleIcon,
+              tabContent: (<AccessibilityForm></AccessibilityForm>)
+            },
+            {
+              tabName: "test",
+              // tabIcon: AccessibleIcon,
+              tabContent: (<div>test </div>)
+            },
+          ]}
+        />
+      </GridItem>
+
+      {/* <GridItem xs={12}>
         <h3>Últimas Avaliações</h3>
         <hr></hr>
         <List style={styles.list}>
@@ -169,9 +179,9 @@ export default function TableList() {
           </ListItem>
         </List>
         <hr></hr>
-      </GridItem>
+      </GridItem> */}
 
-      <Modal
+      {/* <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
@@ -185,41 +195,7 @@ export default function TableList() {
             <p>Lorem</p>
           </CardBody>
         </Card>
-      </Modal>
-
-      <GridItem xs={12}>
-        <Card style={{ width: "100%" }}>
-          <form onSubmit={(e) => { e.preventDefault() }}>
-            <CardHeader color="success">
-              <h3>Fazer uma avaliação</h3>
-            </CardHeader>
-            <CardBody style={{ width: "100%" }}>
-              <h4><Icon><AccessibleIcon /></Icon> Acessibilidade</h4>
-              <InputLabel>Tipo</InputLabel>
-              <Select
-                label="Tipo"
-                value={tipo}
-                onChange={selectChange}
-                style={{ width: "80%", maxWidth: "360px" }}
-              >
-                <MenuItem value='' />
-                <MenuItem value={1}>Entorno</MenuItem>
-                <MenuItem value={2}>Exterior</MenuItem>
-              </Select>
-
-              <br /><br />
-              <Button variant="contained" color="primary" onClick={() => {
-                postAvaliacao({
-                  "name": "fulano",
-                  "type": 1,
-                  "email": "fulano@email.com",
-                  "password": "pswd123",
-                });
-              }} >Enviar</Button>
-            </CardBody>
-          </form>
-        </Card>
-      </GridItem>
+      </Modal> */}
     </GridContainer>
   );
 }
