@@ -7,6 +7,7 @@ const ReportController = require('./controllers/ReportController');
 const LocalController = require('./controllers/LocalController');
 const DepredationController = require('./controllers/DepredationController');
 const NoiseController = require('./controllers/noises');
+const EvaluationController = require('./controllers/EvaluationController');
 
 const routes = express.Router();
 
@@ -33,5 +34,8 @@ routes.post('/noises', NoiseController.store);
 
 routes.get('/report', ReportController.show);
 
+
+routes.get('/evaluation', EvaluationController.index)
+routes.post('/evaluation', EvaluationController.store);
 
 module.exports = routes;

@@ -31,7 +31,8 @@ import Typography from "views/admin/Typography";
 import Icons from "views/admin/Icons";
 import NotificationsPage from "views/admin/Notifications";
 import Leaflet from "views/admin/Leaflet";
-import SweetAlert from "views/admin/SweetAlert"
+import SweetAlert from "views/admin/SweetAlert";
+import Avaliacao from "views/admin/Avaliacao";
 
 
 // project praças
@@ -45,6 +46,7 @@ import Home from "views/website/Home";
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
+import { Star } from "@material-ui/icons";
 
 
 const dashboardRoutes = [
@@ -133,6 +135,13 @@ const dashboardRoutes = [
     name: "Sweet Alert",
     icon: AddAlert,
     component: SweetAlert,
+    layout: "/admin"
+  },
+  {
+    path: "/avaliacao",
+    name: "Avaliação",
+    icon: Star,
+    component: Avaliacao,
     layout: "/admin"
   },
 ];
