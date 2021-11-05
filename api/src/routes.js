@@ -5,6 +5,8 @@ const AddressController = require('./controllers/AddressController');
 const TechController = require('./controllers/TechController');
 const ReportController = require('./controllers/ReportController');
 const LocalController = require('./controllers/LocalController');
+const DepredationController = require('./controllers/DepredationController');
+const NoiseController = require('./controllers/noises');
 
 const routes = express.Router();
 
@@ -23,6 +25,13 @@ routes.delete('/users/:user_id/techs', TechController.delete);
 routes.get('/locals', LocalController.index);
 routes.post('/locals', LocalController.store);
 
+routes.get('/depredations', DepredationController.index);
+routes.post('/depredations', DepredationController.store);
+
+routes.get('/noises', NoiseController.index);
+routes.post('/noises', NoiseController.store);
+
 routes.get('/report', ReportController.show);
+
 
 module.exports = routes;

@@ -4,6 +4,7 @@ const Address = require('../models/Address');
 module.exports = {
   async index(req, res) {
     const addresses = await Address.findAll();
+    console.log(addresses);
     return res.json(addresses);
   },
 

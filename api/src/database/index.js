@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Address = require('../models/Address');
 const Tech = require('../models/Tech');
 const Local = require('../models/locals');
+const Noises = require('../models/noises');
 // const Event = require('../models/Event');
 
 const connection = new Sequelize(dbConfig);
@@ -13,12 +14,14 @@ User.init(connection);
 Address.init(connection);
 Tech.init(connection);
 Local.init(connection);
+Noises.init(connection);
 // Event.init(connection);
 
 User.associate(connection.models);
 Address.associate(connection.models);
 Tech.associate(connection.models);
 Local.associate(connection.models);
+Noises.associate(connection.models);
 // Event.associate(connection.models);
 
 module.exports = connection;

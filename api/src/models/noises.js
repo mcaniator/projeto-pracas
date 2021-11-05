@@ -1,8 +1,6 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
+const { Model, DataTypes } = require('sequelize');
+
   class noises extends Model {
     /**
      * Helper method for defining associations.
@@ -12,16 +10,49 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
     }
+
+
+  static init(sequelize) {
+        super.init({
+        db_level: {
+          type: DataTypes.DECIMAL,
+          allowNull: false,
+        },
+        is_weekend: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+        },
+        positioning: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        category: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        evaluation_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+        createdAt: {
+          field:"createdAt",
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: sequelize.NOW
+        },
+        updatedAt: {
+          field:"updatedAt",
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: sequelize.NOW
+        }
+      },
+      {
+      sequelize,
+      timestamps: true,
+      }
+    )
   };
-  noises.init({
-    db_level: DataTypes.DECIMAL,
-    is_weekend: DataTypes.BOOLEAN,
-    positioning: DataTypes.INTEGER,
-    category: DataTypes.INTEGER,
-    evaluation_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'noises',
-  });
-  return noises;
 };
+
+  module.exports = noises;

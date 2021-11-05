@@ -15,14 +15,14 @@ module.exports = {
         }
       },
       include: [
-        { 
-          association: 'addresses', 
-          where: { 
+        {
+          association: 'addresses',
+          where: {
             street: 'Rua Guilherme Gembala'
-          } 
+          }
         },
-        { 
-          association: 'techs', 
+        {
+          association: 'techs',
           required: false,
           where: {
             name: {
