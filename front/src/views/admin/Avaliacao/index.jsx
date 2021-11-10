@@ -6,6 +6,7 @@ import axios from "axios";
 // @material-ui/core components
 import { IconButton, Tooltip } from "@material-ui/core";
 import AccessibleIcon from '@material-ui/icons/Accessible';
+import HearingIcon from '@material-ui/icons/Hearing';
 
 // core components
 import GridItem from "components/Grid/GridItem.js";
@@ -18,6 +19,7 @@ import Create from "@material-ui/icons/Create";
 
 // forms
 import AccessibilityForm from "./Accessibility";
+import NoiseForm from "./Ruido.jsx";
 
 
 const styles = {
@@ -158,6 +160,11 @@ export default function TableList() {
               tabName: "Acessibilidade",
               tabIcon: AccessibleIcon,
               tabContent: (<AccessibilityForm></AccessibilityForm>)
+            },
+            {
+              tabName: "Ruído",
+              tabIcon: HearingIcon,
+              tabContent: (<NoiseForm></NoiseForm>)
             },
             {
               tabName: "test",
