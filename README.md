@@ -17,3 +17,17 @@ Com isso todas as dependências necessárias serão instaladas. Teste a instala�
     npm start
 
 A expectativa é que o servidor de desenvolvimento seja iniciado e a página de localhost:3000 abra no seu navegador padrão
+
+## Backend
+Primeiramente é necessario ter um servidor do [PostgreSQL](https://www.postgresql.org/) configurado no computador com um banco de dados. \
+para inicializar o servidor, na pasta */api*:
+
+    yarn dev
+
+Para configurar o banco de dados:
+
+    npx sequelize db:migrate
+
+
+
+
