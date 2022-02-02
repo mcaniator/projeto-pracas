@@ -1,0 +1,16 @@
+[
+    {
+        "nome": "Categoria 1",
+        "perguntas": [
+            "No céu tem pão?",
+            "What would be the best and worst part of being a cat in your opinion?",
+            "What is your current go-to song to dance to when nobody is around?"
+        ]
+    },
+    {
+        "nome": "Categoria 2",
+        "perguntas": [
+            "What is the most interesting class you've ever taken?"
+        ]
+    }
+]

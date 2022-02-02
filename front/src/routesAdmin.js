@@ -37,7 +37,7 @@ import SweetAlert from "views/admin/SweetAlert"
 // project praças
 import Pracas from "views/admin/Pracas";
 import Users from "views/admin/Users";
-
+import FormBuilder from "views/admin/CadastroForm";
 
 import Home from "views/website/Home";
 
@@ -45,6 +45,7 @@ import Home from "views/website/Home";
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
+import { Note } from "@material-ui/icons";
 
 
 const dashboardRoutes = [
@@ -133,6 +134,13 @@ const dashboardRoutes = [
     name: "Sweet Alert",
     icon: AddAlert,
     component: SweetAlert,
+    layout: "/admin"
+  },
+  {
+    path: "/form-builder",
+    name: "Cadastro de Formulario",
+    icon: Note,
+    component: FormBuilder,
     layout: "/admin"
   },
 ];
