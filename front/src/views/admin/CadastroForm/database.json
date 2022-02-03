@@ -1,16 +1,147 @@
 [
     {
-        "nome": "Categoria 1",
+        "nome": "Contagem de Pessoas",
         "perguntas": [
-            "No céu tem pão?",
-            "What would be the best and worst part of being a cat in your opinion?",
-            "What is your current go-to song to dance to when nobody is around?"
+            "ADULTOS - Sedentario - homems",
+            "ADULTOS - Sedentario - mulheres",
+            "ADULTOS - Caminhando- homems",
+            "ADULTOS - Caminhando- mulheres",
+            "ADULTOS - Vigoroso - homems",
+            "ADULTOS - Vigoroso - mulheres",
+            "IDOSOS - Sedentario - homems",
+            "IDOSOS - Sedentario - mulheres",
+            "IDOSOS - Caminhando- homems",
+            "IDOSOS - Caminhando- mulheres",
+            "IDOSOS - Vigoroso - homems",
+            "IDOSOS - Vigoroso - mulheres",
+            "CRIANCAS - Sedentario - homems",
+            "CRIANCAS - Sedentario - mulheres",
+            "CRIANCAS - Caminhando- homems",
+            "CRIANCAS - Caminhando- mulheres",
+            "CRIANCAS - Vigoroso - homems",
+            "CRIANCAS - Vigoroso - mulheres",
+            "JOVENS - Sedentario - homems",
+            "JOVENS - Sedentario - mulheres",
+            "JOVENS - Caminhando- homems",
+            "JOVENS - Caminhando- mulheres",
+            "JOVENS - Vigoroso - homems",
+            "JOVENS - Vigoroso - mulheres",
+            "PETS"            
         ]
     },
     {
-        "nome": "Categoria 2",
+        "nome": "Vigilancia - Qtde",
         "perguntas": [
-            "What is the most interesting class you've ever taken?"
+            "Cameras de Vigilancia",
+            "Posto Policial",
+            "Do centro do parque, quanto é visível o entorno"
+        ]
+    },
+    {
+        "nome": "Depredacao",
+        "perguntas": [
+            "Pichacao",
+            "sinais de abandono (lixo acumulado...)"
+        ]
+    },
+    {
+        "nome": "Acesso e Entorno - Qtde",
+        "perguntas": [
+            "Placa com nome",
+            "Ponto de transporte público no entorno (número de baias para ônibus)",
+            "Ponto de táxi no entorno (número de vagas)",
+            "Estacionamento Veículos (número de vagas)",
+            "Estacionamento Motos (número de vagas)",
+            "Ciclovia que permita acesso a praça",
+            "Bicicletário (capacidade)"
+        ]
+    },
+    {
+        "nome": "Acessibilidade das calçadas e travessias do entorno da praça",
+        "perguntas": [
+            "Calçada do Entorno Faixa livre > 1,20 m",
+            "Calçada do Entorno Faixa de serviço > 0,70 m",
+            "Altura livre mínima de 2,10 m",
+            "Travessia de pedestre com rebaixamento e piso tátil conforme NBR 9050",
+            "Ausência de obstáculos (buracos, caixas de inspeção desniveladas, grelhas desniveladas com espaçamento maior que 15mm…)",
+            "Inclinação Transversal com máximo de 3%",
+            "Inclinação Longitudinal acompanhando as vias lindeiras",
+            "Sinalização Tátil em locais definidos pela NBR 9050",
+            "Revestimento de piso regular, firme, estável, não trepidante e antiderrapante definidos pela NBR 9050",
+            "Vaga para pessoa com deficiência",
+            "Vaga para idosos"
+        ]
+    },
+    {
+        "nome": "Acessibilidade do interior da praça",
+        "perguntas": [
+            "Presença de rota acessível com piso adequado segundo a NBR 9050 ",
+            "Presença de 10% dos equipamentos e mobiliários (mesas, bebedouros…) adaptados segundo a NBR 9050"
+        ]
+    },
+    {
+        "nome": "Areas de Atividades - Qtde",
+        "perguntas": [
+            "Parque Infantil",
+            "Equipamento de Ginástica",
+            "Pista de Skate",
+            "Piquenique",
+            "Quadra",
+            "Quadra Coberta",
+            "Campo de Futebol",
+            "Parque de Cachorros",
+            "Area de Jogos (Mesa)",
+            "Pista de Caminhada",
+            "Espaco para Atividades Religiosas",
+            "Mesas com Bancos",
+            "Mesa de Ping Pong",
+            "Banca de Revistas",
+            "Palco/Coreto",
+            "Outros"
+        ]
+    },
+    {
+        "nome": "Facilidades - Qtde",
+        "perguntas": [
+            "Lixeira",
+            "Banheiro",
+            "Telefone Publico",
+            "Bebedouro",
+            "Wi-fi"
+        ]
+    },
+    {
+        "nome": "Elementos Paisagísticos - Qtde",
+        "perguntas": [
+            "Obra de Arte",
+            "Espelho d'agua",
+            "Chafariz",
+            "Area Gramada",
+            "Tratamento Paisagistico"
+        ]
+    },
+    {
+        "nome": "Espacos para Sentar - Qtde",
+        "perguntas": [
+            "Bancos (metro linear)",
+            "Cadeiras Moveis",
+            "Arquibancadas",
+            "Mureta adequata para sentar",
+            "Escada"
+        ]
+    },
+    {
+        "nome": "Calçadas - Qtde",
+        "perguntas": [
+            "Calçadas do perimetro da praca"
+        ]
+    },
+    {
+        "nome": "Segurança de Piso",
+        "perguntas": [
+            "O piso possui alguma ponta afiada ou perigosa?",
+            "Possui alguma água acumulada?",
+            "Possui algum risco de aprisionamento (de roupas, corpo, pés, pernas ou dedos)?"
         ]
     }
 ]
