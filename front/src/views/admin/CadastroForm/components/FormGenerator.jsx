@@ -33,15 +33,15 @@ function FormGenerator() {
        {form.map(e => (
         <div>
 
-          <p style={{fontSize: "22px"}}>
+          <h1 style={{fontSize: "22px"}}>
             {e.nome}
             <Divider />
-          </p>
+          </h1>
           
           {e.perguntas.map( str => (
-            <p style={{fontSize: "15px"}}>
+            <h2 style={{fontSize: "15px"}}>
             {str}
-            </p>
+            </h2>
           ))}  
 
         </div>          
