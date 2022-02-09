@@ -15,29 +15,30 @@ export default class FormBuilder extends React.Component {
             data: database,
         };
 
-        this.handleDataChange = this.handleDataChange.bind(this);
-
-        console.log(this.state.data)
+        this.insertQuestion = this.insertQuestion.bind(this);
     }
 
-    handleDataChange(newElement) {
+    insertQuestion(index, question) {
+        let copy = [...this.state.data];
+        copy[index].perguntas.push(question);
+
         this.setState({
-            data: [...this.state.data, newElement]
-        })
+            data: copy
+        });
     }
 
     render() {
-        return(
+        return (
             <div>
                 <GridContainer>
                     <GridItem xs={12}>
-                        <Tabs 
+                        <Tabs
                             // title="Construtor de Formulario:"
                             headerColor="success"
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <Question data={this.state.data} onDataChange={this.handleDataChange} />
+                                    tabContent: <Question data={this.state.data} insertQuestion={this.insertQuestion} />
                                 },
                                 {
                                     tabName: "2",
