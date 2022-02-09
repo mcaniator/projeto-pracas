@@ -3,6 +3,7 @@ import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import Tabs from "components/CustomTabs/CustomTabs.js";
 import Question from "./components/Question";
+import FormGenerator from "./components/FormGenerator";
 
 
 export default class FormBuilder extends React.Component {
@@ -45,7 +46,7 @@ export default class FormBuilder extends React.Component {
                                 },
                                 {
                                     tabName: "3",
-                                    tabContent: (<h1>3</h1>)
+                                    tabContent: <FormGenerator data={this.state.date} onDataChange={this.handleDataChange} />
                                 }
                             ]}
                         />

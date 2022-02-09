@@ -1,5 +1,6 @@
 [
     {
+        "id": 0,
         "nome": "Contagem de Pessoas",
         "perguntas": [
             "ADULTOS - Sedentario - homems",
@@ -30,6 +31,7 @@
         ]
     },
     {
+        "id": 1,
         "nome": "Vigilancia - Qtde",
         "perguntas": [
             "Cameras de Vigilancia",
@@ -38,6 +40,7 @@
         ]
     },
     {
+        "id": 2,
         "nome": "Depredacao",
         "perguntas": [
             "Pichacao",
@@ -45,6 +48,7 @@
         ]
     },
     {
+        "id": 3,
         "nome": "Acesso e Entorno - Qtde",
         "perguntas": [
             "Placa com nome",
@@ -57,6 +61,7 @@
         ]
     },
     {
+        "id": 4,
         "nome": "Acessibilidade das calçadas e travessias do entorno da praça",
         "perguntas": [
             "Calçada do Entorno Faixa livre > 1,20 m",
@@ -73,6 +78,7 @@
         ]
     },
     {
+        "id": 5,
         "nome": "Acessibilidade do interior da praça",
         "perguntas": [
             "Presença de rota acessível com piso adequado segundo a NBR 9050 ",
@@ -80,6 +86,7 @@
         ]
     },
     {
+        "id": 6,
         "nome": "Areas de Atividades - Qtde",
         "perguntas": [
             "Parque Infantil",
@@ -101,6 +108,7 @@
         ]
     },
     {
+        "id": 7,
         "nome": "Facilidades - Qtde",
         "perguntas": [
             "Lixeira",
@@ -111,6 +119,7 @@
         ]
     },
     {
+        "id": 8,
         "nome": "Elementos Paisagísticos - Qtde",
         "perguntas": [
             "Obra de Arte",
@@ -121,6 +130,7 @@
         ]
     },
     {
+        "id": 9,
         "nome": "Espacos para Sentar - Qtde",
         "perguntas": [
             "Bancos (metro linear)",
@@ -131,12 +141,14 @@
         ]
     },
     {
+        "id": 10,
         "nome": "Calçadas - Qtde",
         "perguntas": [
             "Calçadas do perimetro da praca"
         ]
     },
     {
+        "id": 11,
         "nome": "Segurança de Piso",
         "perguntas": [
             "O piso possui alguma ponta afiada ou perigosa?",
