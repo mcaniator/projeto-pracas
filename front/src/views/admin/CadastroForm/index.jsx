@@ -2,8 +2,8 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import Tabs from "components/CustomTabs/CustomTabs.js";
-import Question from "./components/Question";
-
+import Question from "./components/Question.jsx";
+import Category from "./components/Category.jsx"
 
 export default class FormBuilder extends React.Component {
     constructor(props) {
@@ -16,6 +16,7 @@ export default class FormBuilder extends React.Component {
         };
 
         this.insertQuestion = this.insertQuestion.bind(this);
+        this.insertCategory = this.insertCategory.bind(this);
     }
 
     insertQuestion(index, question) {
@@ -25,6 +26,17 @@ export default class FormBuilder extends React.Component {
         this.setState({
             data: copy
         });
+    }
+
+    insertCategory(name) {
+        let newCategory = {
+            nome: name,
+            perguntas: []
+        }
+
+        this.setState({
+            data: [...this.state.data, newCategory]
+        })
     }
 
     render() {
@@ -42,7 +54,7 @@ export default class FormBuilder extends React.Component {
                                 },
                                 {
                                     tabName: "2",
-                                    tabContent: (<h1>2</h1>)
+                                    tabContent: <Category insertCategory={this.insertCategory} />
                                 },
                                 {
                                     tabName: "3",
