@@ -15,8 +15,12 @@ Para instalar as dependências entre na pasta *./front/* e rode
 Com isso todas as dependências necessárias serão instaladas. Teste a instalação rodando
 
     npm start
+### Possíveis erros
+Um erro <...> com o pacote `node-gyp`:
+* instalar python2
 
-A expectativa é que o servidor de desenvolvimento seja iniciado e a página de localhost:3000 abra no seu navegador padrão
+Um erro <...> envolvendo um codigo em c/c++:
+* mudar a versão do node para uma mais antiga (a versão 15.14 funciona)
 
 ## Backend
 Primeiramente é necessario ter um servidor do [PostgreSQL](https://www.postgresql.org/) configurado no computador com um banco de dados. \
