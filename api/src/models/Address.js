@@ -13,6 +13,7 @@ const { Model, DataTypes } = require('sequelize');
     static init(sequelize) {
       super.init({
         UF: {type: DataTypes.STRING, field:"UF"},
+        locals_id: DataTypes.INTEGER,  
         city: DataTypes.STRING,
         neighborhood: DataTypes.STRING,
         street: DataTypes.STRING,

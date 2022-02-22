@@ -4,7 +4,6 @@ module.exports = {
     await queryInterface.createTable('locals', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
@@ -30,7 +29,7 @@ module.exports = {
       },
       comments: {
         type: Sequelize.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       creation_year: {
         type: Sequelize.STRING,

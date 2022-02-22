@@ -115,6 +115,7 @@ export default class Leaflet extends Component<{}, State> {
 
     sendSquareRegister(polygonId){
         var data = this.state.data;
+        let currentPolygon = this.state.polygonList.find(o => o.id === polygonId)
 
         var submitAddresses = {
             addresses: [],
@@ -123,16 +124,6 @@ export default class Leaflet extends Component<{}, State> {
         var submitLocal = {
             locals: [],
         };
-
-        for (var i in data.address.Endereço) {
-            submitAddresses.addresses.push({
-                UF: data.address.Endereço[i]["estado"],
-                city: data.address.Endereço[i]["cidade"],
-                neighborhood: data.address.Endereço[i]["bairro"],
-                street: data.address.Endereço[i]["Rua"],
-                number: data.address.Endereço[i]["Número"]
-            });
-        }
 
         var tipo = 0;
 
@@ -189,11 +180,11 @@ export default class Leaflet extends Component<{}, State> {
             break;
         }
 
-        const polygon = { type: 'Polygon', coordinates: [this.state.polygonList[polygonId]['coordinates']]}
-
+        const polygon = { type: 'Polygon', coordinates: [currentPolygon['coordinates']]}
+        console.log(polygon)
         submitLocal.locals.push(
             {
-                id : this.state.polygonList.id,
+                id : polygonId,
                 name: data.nome,
                 common_name: data.nomePopular,
                 type: tipo,
@@ -203,15 +194,25 @@ export default class Leaflet extends Component<{}, State> {
             }
         );
 
+        for (var i in data.address.Endereço) {
+            submitAddresses.addresses.push({
+                UF: data.address.Endereço[i]["estado"],
+                city: data.address.Endereço[i]["cidade"],
+                neighborhood: data.address.Endereço[i]["bairro"],
+                street: data.address.Endereço[i]["Rua"],
+                number: data.address.Endereço[i]["Número"],
+                locals_id: polygonId,
+            });
+        }
 
         console.log(submitLocal.locals[0]);
 
-        axios
-        .post(`http://localhost:3333/addresses`, submitAddresses)
-            .then((res) => {});
-
-            axios.post(`http://localhost:3333/locals`, submitLocal.locals[0])
-                .then((res) => {});
+        axios.post(`http://localhost:3333/locals`, submitLocal.locals[0])
+            .then((res) => {
+                //return(
+                    axios.post(`http://localhost:3333/addresses`, submitAddresses).then((res_) => {});
+                //)
+            });
     }
 
     componentWillMount(){
