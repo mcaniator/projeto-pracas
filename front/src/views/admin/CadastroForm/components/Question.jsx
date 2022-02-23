@@ -3,10 +3,10 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import CustomInput from "components/CustomInput/CustomInput";
-import { Select, MenuItem } from "@material-ui/core";
+import { Select, MenuItem, ListItem, IconButton, ListItemText, List, Paper } from "@material-ui/core";
 import RegularButton from "components/CustomButtons/Button";
 import Snackbar from "components/Snackbar/Snackbar";
-import { Add } from "@material-ui/icons";
+import { Add, Delete } from "@material-ui/icons";
 
 import DialogCategory from "./DialogCategory.js";
 
@@ -25,6 +25,7 @@ export default class Question extends React.Component {
         this.state = {
             category: 0,
             type: 0,
+            options: [],
             showSuccess: false,
             showError: false,
             showDialog: false,
@@ -36,13 +37,14 @@ export default class Question extends React.Component {
         this.closeMessage = this.closeMessage.bind(this);
         this.inserQuestion = this.inserQuestion.bind(this);
         this.insertCategory = this.insertCategory.bind(this);
+        this.addOption = this.addOption.bind(this);
+        this.rmOption = this.rmOption.bind(this);
     }
 
     handleChange(event) {
         console.log(event);
 
         let name = event.target.name;
-        console.log(name, { [name]: event.target.value });
         this.setState({
             [name]: event.target.value,
         })
@@ -86,6 +88,8 @@ export default class Question extends React.Component {
             document.getElementById('question').value = ''
             this.setState({
                 category: 0,
+                type: 0,
+                options: [],
                 showSuccess: true,
                 showError: false
             })
@@ -105,6 +109,35 @@ export default class Question extends React.Component {
         else if (message == 'error') {
             this.setState({ showError: false })
         }
+    }
+
+    addOption() {
+        let opt = document.getElementById('option');
+        let text = opt.value.trim()
+
+        if (text.length > 0) {
+            let newItem = (
+                <ListItem key={text}>
+                    <ListItemText
+                        primary={text}
+                    />
+                    <IconButton edge="end" aria-label="deletar" onClick={() => { this.rmOption(text) }}>
+                        <Delete />
+                    </IconButton>
+                </ListItem>)
+
+            this.setState({
+                options: [...this.state.options, newItem]
+            })
+
+            opt.value = ''
+        }
+    }
+
+    rmOption(key) {
+        this.setState({
+            options: this.state.options.filter(e => { console.log(e); return e.key != key })
+        })
     }
 
     render() {
@@ -188,6 +221,51 @@ export default class Question extends React.Component {
 
                     </Select>
                 </GridItem>
+
+
+                {this.state.type == 'Opções' &&
+                    <>
+                        <GridItem xs={12} md={8}>
+                            <CustomInput
+                                labelText="Nova opcao"
+                                id="option"
+                                formControlProps={{
+                                    fullWidth: true,
+                                }}
+
+                                inputProps={{
+                                    type: "text",
+                                }}
+                            ></CustomInput>
+                        </GridItem>
+
+                        <GridItem xs={12} md={4}>
+                            <RegularButton style={selectStyle} color="info" onClick={this.addOption}>Adcionar</RegularButton>
+                        </GridItem>
+
+                        <GridItem xs={12} md={12}>
+                            <Paper>
+                                <List sx={{
+                                    width: '100%',
+                                    maxWidth: 360,
+                                    bgcolor: 'background.paper',
+                                    position: 'relative',
+                                    overflow: 'auto',
+                                    maxHeight: 50,
+                                    '& ul': { padding: 0 },
+                                }}>
+                                    {this.state.options.length == 0 &&
+                                        <ListItem>
+                                            <ListItemText key={0} primary={"Adcione opções"} />
+                                        </ListItem>}
+                                    {this.state.options}
+                                </List>
+                            </Paper>
+                        </GridItem>
+                    </>
+                }
+
+
                 <GridItem>
                     <RegularButton color="primary" onClick={this.inserQuestion}>Adcionar</RegularButton>
                     <Snackbar
