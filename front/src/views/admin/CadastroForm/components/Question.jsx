@@ -6,6 +6,9 @@ import CustomInput from "components/CustomInput/CustomInput";
 import { Select, MenuItem } from "@material-ui/core";
 import RegularButton from "components/CustomButtons/Button";
 import Snackbar from "components/Snackbar/Snackbar";
+import { Add } from "@material-ui/icons";
+
+import DialogCategory from "./DialogCategory.js";
 
 const selectStyle = {
     display: 'block',
@@ -22,12 +25,16 @@ export default class Question extends React.Component {
         this.state = {
             value: 0,
             showSuccess: false,
-            showError: false
+            showError: false,
+            showDialog: false,
         }
 
-        this.handleChange = this.handleChange.bind(this)
-        this.closeMessage = this.closeMessage.bind(this)
-        this.inserQuestion = this.inserQuestion.bind(this)
+        this.handleChange = this.handleChange.bind(this);
+        this.handleRenderValue = this.handleRenderValue.bind(this);
+        this.showDialog = this.showDialog.bind(this);
+        this.closeMessage = this.closeMessage.bind(this);
+        this.inserQuestion = this.inserQuestion.bind(this);
+        this.insertCategory = this.insertCategory.bind(this);
     }
 
     handleChange(event) {
@@ -36,6 +43,33 @@ export default class Question extends React.Component {
                 value: event.target.value,
             }
         })
+    }
+
+    handleRenderValue(selected) {
+        console.log(selected)
+        switch (selected) {
+            case 0:
+            case 1: {
+                return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
+            }
+
+            default:
+                return selected;
+        }
+
+    }
+
+    showDialog() {
+        this.setState({showDialog: true});
+    }
+
+    insertCategory(category) {
+        console.log(category);
+        if(category?.length > 0) {
+            console.log(2)
+        }
+
+        this.setState({showDialog: false})
     }
 
     inserQuestion() {
@@ -92,26 +126,24 @@ export default class Question extends React.Component {
                         id="select"
                         value={this.state.value ? this.state.value : 0}
                         style={selectStyle}
-                        renderValue={(selected) => {
-                            console.log(this.state)
-                            if (selected === 0) {
-                                return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
-                            }
-
-                            return selected;
-                        }}
+                        renderValue={this.handleRenderValue}
                         onChange={this.handleChange}
                     >
                         <MenuItem value={0} disabled>Categoria</MenuItem>
+                        <MenuItem value={1}>
+                            <RegularButton color="white" onClick={this.showDialog} style={{ width: '100%' }}>
+                                    <Add/>
+                                Nova Categoria
+                            </RegularButton>
+                        </MenuItem>
 
-                        {/* Por que react? Por que eu nao posso usar um map e resolver em uma linha? */}
                         {/* {this.state.props.map(e => (<MenuItem key={e.nome}>{e.nome}</MenuItem>))} */}
                         {
                             (() => {
                                 let arr = []
 
                                 for (let i = 0; i < this.props.data.length; i++) {
-                                    arr.push(<MenuItem value={this.props.data[i].category}>{this.props.data[i].category}</MenuItem>)
+                                    arr.push(<MenuItem key={'k' + i} value={this.props.data[i].category}>{this.props.data[i].category}</MenuItem>)
                                 }
 
                                 return arr
@@ -139,6 +171,7 @@ export default class Question extends React.Component {
                         close
                     ></Snackbar>
                 </GridItem>
+                <DialogCategory open={this.state.showDialog} close={this.insertCategory}></DialogCategory>
             </GridContainer>
         );
     }
