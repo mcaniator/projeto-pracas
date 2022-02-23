@@ -66,7 +66,7 @@ export default class Question extends React.Component {
     insertCategory(category) {
         console.log(category);
         if(category?.length > 0) {
-            console.log(2)
+            this.props.insertCategory(category)
         }
 
         this.setState({showDialog: false})
@@ -107,7 +107,7 @@ export default class Question extends React.Component {
 
     render() {
         return (
-            <GridContainer style={{}}>
+            <GridContainer style={{paddingLeft: '2em', paddingRight: '4em'}}>
                 <GridItem xs={12} md={8}>
                     <CustomInput
                         labelText="Pergunta"
