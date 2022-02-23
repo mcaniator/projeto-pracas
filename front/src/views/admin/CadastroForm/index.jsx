@@ -10,9 +10,11 @@ export default class FormBuilder extends React.Component {
         super(props);
 
         let database = require('./database.json');
+        let database2 = require('./database2.json');
 
         this.state = {
             data: database,
+            data2: database2
         };
 
         this.insertQuestion = this.insertQuestion.bind(this);
@@ -50,7 +52,7 @@ export default class FormBuilder extends React.Component {
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <Question data={this.state.data} insertQuestion={this.insertQuestion} />
+                                    tabContent: <Question data={this.state.data2} insertQuestion={this.insertQuestion} />
                                 },
                                 {
                                     tabName: "2",

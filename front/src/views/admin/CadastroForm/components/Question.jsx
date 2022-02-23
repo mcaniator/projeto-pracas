@@ -111,7 +111,7 @@ export default class Question extends React.Component {
                                 let arr = []
 
                                 for (let i = 0; i < this.props.data.length; i++) {
-                                    arr.push(<MenuItem value={this.props.data[i].nome}>{this.props.data[i].nome}</MenuItem>)
+                                    arr.push(<MenuItem value={this.props.data[i].category}>{this.props.data[i].category}</MenuItem>)
                                 }
 
                                 return arr
