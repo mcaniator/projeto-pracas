@@ -23,7 +23,8 @@ export default class Question extends React.Component {
         super(props);
 
         this.state = {
-            value: 0,
+            category: 0,
+            type: 0,
             showSuccess: false,
             showError: false,
             showDialog: false,
@@ -38,10 +39,12 @@ export default class Question extends React.Component {
     }
 
     handleChange(event) {
-        this.setState(() => {
-            return {
-                value: event.target.value,
-            }
+        console.log(event);
+
+        let name = event.target.name;
+        console.log(name, { [name]: event.target.value });
+        this.setState({
+            [name]: event.target.value,
         })
     }
 
@@ -56,20 +59,19 @@ export default class Question extends React.Component {
             default:
                 return selected;
         }
-
     }
 
     showDialog() {
-        this.setState({showDialog: true});
+        this.setState({ showDialog: true });
     }
 
     insertCategory(category) {
         console.log(category);
-        if(category?.length > 0) {
+        if (category?.length > 0) {
             this.props.insertCategory(category)
         }
 
-        this.setState({showDialog: false})
+        this.setState({ showDialog: false })
     }
 
     inserQuestion() {
@@ -83,7 +85,7 @@ export default class Question extends React.Component {
 
             document.getElementById('question').value = ''
             this.setState({
-                value: 0,
+                category: 0,
                 showSuccess: true,
                 showError: false
             })
@@ -107,8 +109,8 @@ export default class Question extends React.Component {
 
     render() {
         return (
-            <GridContainer style={{paddingLeft: '2em', paddingRight: '4em'}}>
-                <GridItem xs={12} md={8}>
+            <GridContainer style={{ paddingLeft: '2em', paddingRight: '4em' }}>
+                <GridItem xs={12} md={6}>
                     <CustomInput
                         labelText="Pergunta"
                         id="question"
@@ -123,16 +125,27 @@ export default class Question extends React.Component {
                 </GridItem>
                 <GridItem xs={12} md={4}>
                     <Select
-                        id="select"
-                        value={this.state.value ? this.state.value : 0}
+                        id="select-category"
+                        name="category"
+                        value={this.state.category ? this.state.category : 0}
                         style={selectStyle}
-                        renderValue={this.handleRenderValue}
+                        renderValue={(selected) => {
+                            switch (selected) {
+                                case 0:
+                                case 1: {
+                                    return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
+                                }
+
+                                default:
+                                    return selected;
+                            }
+                        }}
                         onChange={this.handleChange}
                     >
                         <MenuItem value={0} disabled>Categoria</MenuItem>
                         <MenuItem value={1}>
                             <RegularButton color="white" onClick={this.showDialog} style={{ width: '100%' }}>
-                                    <Add/>
+                                <Add />
                                 Nova Categoria
                             </RegularButton>
                         </MenuItem>
@@ -149,6 +162,30 @@ export default class Question extends React.Component {
                                 return arr
                             })()
                         }
+                    </Select>
+                </GridItem>
+                <GridItem xs={12} md={2}>
+                    <Select
+                        id="select-type"
+                        name="type"
+                        value={this.state.type ? this.state.type : 0}
+                        style={selectStyle}
+                        renderValue={(selected) => {
+                            switch (selected) {
+                                case 0: {
+                                    return <span style={{ color: '#AAAAB2' }}>Tipo</span>;
+                                }
+                                default:
+                                    return selected;
+                            }
+                        }}
+                        onChange={this.handleChange}
+                    >
+                        <MenuItem value={0} disabled>Tipo</MenuItem>
+                        <MenuItem value={'Texto'}>Texto</MenuItem>
+                        <MenuItem value={'Numérico'}>Numérico</MenuItem>
+                        <MenuItem value={'Opções'}>Opções</MenuItem>
+
                     </Select>
                 </GridItem>
                 <GridItem>
