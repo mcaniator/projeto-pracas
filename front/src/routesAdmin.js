@@ -23,6 +23,7 @@ import BubbleChart from "@material-ui/icons/BubbleChart";
 import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
 import AddAlert from "@material-ui/icons/AddAlert";
+import AssignmentIcon from '@material-ui/icons/Assignment';
 
 // core components/views for Admin layout
 import DashboardPage from "views/admin/Dashboard";
@@ -45,6 +46,7 @@ import Home from "views/website/Home";
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
+import Forms from "views/admin/Forms/index.js";
 
 
 const dashboardRoutes = [
@@ -133,6 +135,13 @@ const dashboardRoutes = [
     name: "Sweet Alert",
     icon: AddAlert,
     component: SweetAlert,
+    layout: "/admin"
+  },
+  {
+    path: "/forms",
+    name: "Formulario",
+    icon: AssignmentIcon,
+    component: Forms,
     layout: "/admin"
   },
 ];
