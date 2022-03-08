@@ -177,7 +177,7 @@ export default class Question extends React.Component {
                     >
                         <MenuItem value={0} disabled>Categoria</MenuItem>
                         <MenuItem value={1}>
-                            <RegularButton color="white" onClick={this.showDialog} style={{ width: '100%' }}>
+                            <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
                                 <Add />
                                 Nova Categoria
                             </RegularButton>
