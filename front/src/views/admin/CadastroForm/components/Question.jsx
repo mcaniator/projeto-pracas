@@ -42,8 +42,6 @@ export default class Question extends React.Component {
     }
 
     handleChange(event) {
-        console.log(event);
-
         let name = event.target.name;
         this.setState({
             [name]: event.target.value,
@@ -68,7 +66,6 @@ export default class Question extends React.Component {
     }
 
     insertCategory(category) {
-        console.log(category);
         if (category?.length > 0) {
             this.props.insertCategory(category)
         }
@@ -156,47 +153,6 @@ export default class Question extends React.Component {
                         }}
                     ></CustomInput>
                 </GridItem>
-                <GridItem xs={12} md={4}>
-                    <Select
-                        id="select-category"
-                        name="category"
-                        value={this.state.category ? this.state.category : 0}
-                        style={selectStyle}
-                        renderValue={(selected) => {
-                            switch (selected) {
-                                case 0:
-                                case 1: {
-                                    return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
-                                }
-
-                                default:
-                                    return selected;
-                            }
-                        }}
-                        onChange={this.handleChange}
-                    >
-                        <MenuItem value={0} disabled>Categoria</MenuItem>
-                        <MenuItem value={1}>
-                            <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
-                                <Add />
-                                Nova Categoria
-                            </RegularButton>
-                        </MenuItem>
-
-                        {/* {this.state.props.map(e => (<MenuItem key={e.nome}>{e.nome}</MenuItem>))} */}
-                        {
-                            (() => {
-                                let arr = []
-
-                                for (let i = 0; i < this.props.data.length; i++) {
-                                    arr.push(<MenuItem key={'k' + i} value={this.props.data[i].category}>{this.props.data[i].category}</MenuItem>)
-                                }
-
-                                return arr
-                            })()
-                        }
-                    </Select>
-                </GridItem>
                 <GridItem xs={12} md={2}>
                     <Select
                         id="select-type"
@@ -219,6 +175,47 @@ export default class Question extends React.Component {
                         <MenuItem value={'Numérico'}>Numérico</MenuItem>
                         <MenuItem value={'Opções'}>Opções</MenuItem>
 
+                    </Select>
+                </GridItem>
+                <GridItem xs={12} md={4}>
+                    <Select
+                        id="select-category"
+                        name="category"
+                        value={this.state.category ? this.state.category : 0}
+                        style={selectStyle}
+                        renderValue={(selected) => {
+                            switch (selected) {
+                                case 0:
+                                case 1: {
+                                    return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
+                                }
+
+                                default:
+                                    return this.props.categories.find(e => e.id == selected).name;
+                            }
+                        }}
+                        onChange={this.handleChange}
+                    >
+                        <MenuItem value={0} disabled>Categoria</MenuItem>
+                        <MenuItem value={1}>
+                            <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
+                                <Add />
+                                Nova Categoria
+                            </RegularButton>
+                        </MenuItem>
+
+                        {/* {this.state.props.map(e => (<MenuItem key={e.nome}>{e.nome}</MenuItem>))} */}
+                        {
+                            (() => {
+                                let arr = []
+
+                                for (let i = 0; i < this.props.categories.length; i++) {
+                                    arr.push(<MenuItem key={this.props.categories[i].id} value={this.props.categories[i].id}>{this.props.categories[i].name}</MenuItem>)
+                                }
+
+                                return arr
+                            })()
+                        }
                     </Select>
                 </GridItem>
 

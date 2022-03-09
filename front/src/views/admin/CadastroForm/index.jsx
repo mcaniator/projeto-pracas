@@ -4,6 +4,8 @@ import GridItem from "components/Grid/GridItem";
 import Tabs from "components/CustomTabs/CustomTabs.js";
 import Question from "./components/Question.jsx";
 
+import axios from "axios";
+
 export default class FormBuilder extends React.Component {
     constructor(props) {
         super(props);
@@ -11,9 +13,8 @@ export default class FormBuilder extends React.Component {
         let database = require('./database.json');
         let database2 = require('./database2.json');
 
-        console.log(database2)
-
         this.state = {
+            categories: [],
             data: database,
             data2: database2
         };
@@ -21,6 +22,24 @@ export default class FormBuilder extends React.Component {
         this.insertQuestion = this.insertQuestion.bind(this);
         this.insertCategory = this.insertCategory.bind(this);
         this.insertCategory2 = this.insertCategory2.bind(this);
+        this.init = this.init.bind(this);
+
+        this.init();
+    }
+
+    async init() {
+        try {
+            let res = await axios.get('http://localhost:3333/category');
+
+
+            if (res.status === 200) {
+                this.setState({
+                    categories: res.data
+                })
+            }
+        } catch (e) {
+
+        }
     }
 
     insertQuestion(index, question) {
@@ -32,15 +51,25 @@ export default class FormBuilder extends React.Component {
         });
     }
 
-    insertCategory(name) {
+    async insertCategory(name) {
         let newCategory = {
-            nome: name,
-            perguntas: []
+            name,
+            optional: false,
+            active: true,
         }
 
-        this.setState({
-            data: [...this.state.data, newCategory]
-        })
+        try {
+            let res = await axios.post('http://localhost:3333/category', { category: [newCategory] })
+
+            if (res.status == 200)
+                this.setState({
+                    categories: [...this.state.categories, ...res.data]
+                })
+
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
 
     insertCategory2(name) {
@@ -65,7 +94,7 @@ export default class FormBuilder extends React.Component {
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <Question data={this.state.data2} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory2}/>
+                                    tabContent: <Question data={this.state.data2} categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
                                 },
                                 {
                                     tabName: "2",
