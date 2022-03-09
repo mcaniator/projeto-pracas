@@ -74,15 +74,34 @@ export default class Question extends React.Component {
     }
 
     inserQuestion() {
-        let question = document.getElementById('question').value.trim();
-        let category = this.state.value;
+        let name = document.getElementById('question').value.trim();
+        let category_id = this.state.category;
+        let type = this.state.type;
 
-        if (question.length > 0 && category != 0) {
-            let index = this.props.data.findIndex(e => e.nome === category)
+        const types = {
+            'Texto': 'text',
+            'Numérico': 'numeric',
+            'Opções': 'option',
+        }
 
-            this.props.insertQuestion(index, question)
+        if (name.length > 0 && category_id != 0 && type != 0) {
+            let question = {
+                name,
+                category_id,
+                active: true,
+                optional: false
+            }
 
-            document.getElementById('question').value = ''
+            if(types[type] === 'numeric') {
+                let field = {
+                    id_field: -1,
+                    min: 0,
+                }
+
+                console.log(question, types[type], field);
+                this.props.insertQuestion(question, types[type], field);
+            }
+
             this.setState({
                 category: 0,
                 type: 0,
@@ -90,6 +109,8 @@ export default class Question extends React.Component {
                 showSuccess: true,
                 showError: false
             })
+
+            document.getElementById('question').value = ''
         }
         else {
             this.setState({

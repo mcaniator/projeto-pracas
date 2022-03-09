@@ -21,7 +21,6 @@ export default class FormBuilder extends React.Component {
 
         this.insertQuestion = this.insertQuestion.bind(this);
         this.insertCategory = this.insertCategory.bind(this);
-        this.insertCategory2 = this.insertCategory2.bind(this);
         this.init = this.init.bind(this);
 
         this.init();
@@ -38,17 +37,25 @@ export default class FormBuilder extends React.Component {
                 })
             }
         } catch (e) {
-
+            console.error(e);
         }
     }
 
-    insertQuestion(index, question) {
-        let copy = [...this.state.data];
-        copy[index].perguntas.push(question);
+   async insertQuestion(question, type, typeField) {
+        try {
+            let resForms = await axios.post('http://localhost:3333/form_field', { forms: [question] })
 
-        this.setState({
-            data: copy
-        });
+            if (resForms.status == 200) {
+                typeField.id_field = resForms.data[0].id;
+
+                let resField = await axios.post(`http://localhost:3333/${type}_field`, { forms: [typeField] })
+
+                console.log(resField);
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
 
     async insertCategory(name) {
@@ -70,17 +77,6 @@ export default class FormBuilder extends React.Component {
         catch (e) {
             console.error(e);
         }
-    }
-
-    insertCategory2(name) {
-        let newCategory = {
-            category: name,
-            questions: []
-        }
-
-        this.setState({
-            data2: [...this.state.data2, newCategory]
-        })
     }
 
     render() {
