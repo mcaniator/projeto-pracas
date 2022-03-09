@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 
-  class formsFields extends Model {
+  class FormsFields extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -23,4 +23,4 @@ const { Model, DataTypes } = require('sequelize');
     }
   };
 
-  module.exports = formsFields;
+  module.exports = FormsFields;

@@ -47,7 +47,7 @@ routes.get('/person_category', PersonCategoryController.index);
 routes.get('/person_category', PersonCategoryController.store);
 
 routes.get('/form_field', FormFieldController.index);
-routes.get('/form_field', FormFieldController.store);
+routes.post('/form_field', FormFieldController.store);
 
 routes.get('/form_structure', FormStructureController.index);
 routes.get('/form_structure', FormStructureController.store);
