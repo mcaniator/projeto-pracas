@@ -13,7 +13,14 @@ module.exports = {
   async store(req, res) {
     const {category} = req.body;
     console.log(category);
-    const ret =  await Category.bulkCreate(category);
-    return res.json(ret);
+
+    try {
+      const ret =  await Category.bulkCreate(category);
+      return res.json(ret);
+
+    }catch(e) {
+      console.error(e);
+      return res.status(500).send('Error')
+    }
   }
 };

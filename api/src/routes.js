@@ -65,7 +65,7 @@ routes.get('/option', OptionController.index);
 routes.get('/option', OptionController.store);
 
 routes.get('/category', CategoryController.index);
-routes.get('/category', CategoryController.store);
+routes.post('/category', CategoryController.store);
 
 routes.get('/report', ReportController.show);
 
