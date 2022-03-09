@@ -1,4 +1,8 @@
-const Category = require('../models/category');
+const connection = require('../database/index')
+const {  DataTypes } = require('sequelize');
+
+
+const Category = require('../models/category')(connection, DataTypes);
 
 module.exports = {
   async index(req, res) {
