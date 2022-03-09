@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 
-  class numericfield extends Model {
+  class NumericField extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -12,14 +12,15 @@ const { Model, DataTypes } = require('sequelize');
 
     static init(sequelize) {
       super.init({
-        field_id: DataTypes.INTEGER,
+        id_field: DataTypes.INTEGER,
         min: DataTypes.FLOAT,
         max: DataTypes.FLOAT
       }, {
         sequelize,
         modelName: 'numericfield',
+        tableName: 'numericfield',
       })
     }
   };
 
-  module.exports = numericfield;
+  module.exports = NumericField;

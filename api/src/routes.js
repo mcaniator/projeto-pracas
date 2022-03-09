@@ -56,7 +56,7 @@ routes.get('/text_field', TextFieldController.index);
 routes.get('/text_field', TextFieldController.store);
 
 routes.get('/numeric_field', NumericFieldController.index);
-routes.get('/numeric_field', NumericFieldController.store);
+routes.post('/numeric_field', NumericFieldController.store);
 
 routes.get('/option_field', OptionFieldController.index);
 routes.get('/option_field', OptionFieldController.store);
