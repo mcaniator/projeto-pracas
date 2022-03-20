@@ -1,6 +1,10 @@
-const { Model, DataTypes } = require('sequelize');
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
 
-  class numericfield extends Model {
+  class NumericField extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,17 +13,16 @@ const { Model, DataTypes } = require('sequelize');
     static associate(models) {
       // define association here
     }
-
-    static init(sequelize) {
-      super.init({
-        field_id: DataTypes.INTEGER,
-        min: DataTypes.FLOAT,
-        max: DataTypes.FLOAT
-      }, {
-        sequelize,
-        modelName: 'numericfield',
-      })
-    }
   };
 
-  module.exports = numericfield;
+  NumericField.init({
+    id_field: DataTypes.INTEGER,
+    min: DataTypes.FLOAT,
+    max: DataTypes.FLOAT
+  }, {
+    sequelize,
+    modelName: 'NumericField',
+    tableName: 'numericfield'
+  })
+  return NumericField;
+};

@@ -1,4 +1,4 @@
-const Form = require('../models/forms-structure');
+const Form = require('../models/form-structure');
 
 module.exports = {
   async index(req, res) {
