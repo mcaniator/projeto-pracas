@@ -1,26 +1,34 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('noises', {
+    await queryInterface.createTable('addresses', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      db_level: {
-        type: Sequelize.DECIMAL
+      UF: {
+        type: Sequelize.STRING
       },
-      is_weekend: {
-        type: Sequelize.BOOLEAN
+      locals_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references : {model: 'locals', key : 'id'}
       },
-      positioning: {
-        type: Sequelize.INTEGER
+      city: {
+        type: Sequelize.STRING
       },
-      category: {
-        type: Sequelize.INTEGER
+      neighborhood: {
+        type: Sequelize.STRING
       },
-      evaluation_id: {
+      street: {
+        type: Sequelize.STRING
+      },
+      number: {
+        type: Sequelize.STRING
+      },
+      planning_region_id: {
         type: Sequelize.INTEGER
       },
       createdAt: {
@@ -34,6 +42,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('noises');
+    await queryInterface.dropTable('addresses');
   }
 };

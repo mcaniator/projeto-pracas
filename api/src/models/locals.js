@@ -14,6 +14,11 @@ const { Model, DataTypes } = require('sequelize');
 
   static init(sequelize) {
         super.init({
+        id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
         name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -32,7 +37,7 @@ const { Model, DataTypes } = require('sequelize');
         },
         comments: {
           type: DataTypes.TEXT,
-          allowNull: false,
+          allowNull: true,
         },
         creation_year: {
           type: DataTypes.STRING,

@@ -3,7 +3,7 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
 
-     await queryInterface.createTable('planning_units', 
+     await queryInterface.createTable('optionfield', 
      { 
       id: {
         type: Sequelize.INTEGER,
@@ -11,35 +11,28 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      type: {
+      option_limit: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      phone_number: {
-        type: Sequelize.STRING,
+      total_options: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      email: {
-        type: Sequelize.STRING,
+      visual_preference: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      created_at: {
-        type: Sequelize.DATE,
+      id_field: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
+        references : {model: 'forms-fields', key : 'id'}
+      }
     });
   },
 
   down: async (queryInterface, Sequelize) => {
 
-     await queryInterface.dropTable('planning_units');
+     await queryInterface.dropTable('optionfield');
   }
 };

@@ -27,6 +27,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
+      answers: {
+        type: Sequelize.JSON
+      },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE

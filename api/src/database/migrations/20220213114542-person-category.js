@@ -1,39 +1,34 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('street_safeties', {
+    await queryInterface.createTable('person_category', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      crosswalk: {
-        type: Sequelize.BOOLEAN
-      },
-      semaphore: {
-        type: Sequelize.BOOLEAN
-      },
-      protection_fence: {
-        type: Sequelize.BOOLEAN
-      },
-      speed_limit_plate: {
-        type: Sequelize.BOOLEAN
-      },
-      evaluation_id: {
+      age_rating: {
         type: Sequelize.INTEGER
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+      physical_activity: {
+        type: Sequelize.BOOLEAN
       },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
+      deficiency_person: {
+        type: Sequelize.BOOLEAN
+      },
+      illegal_activity: {
+        type: Sequelize.BOOLEAN
+      },
+      homeless: {
+        type: Sequelize.BOOLEAN
+      },
+      quantity: {
+        type: Sequelize.INTEGER
       }
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('street_safeties');
+    await queryInterface.dropTable('person_category');
   }
 };
