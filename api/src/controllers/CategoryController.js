@@ -1,4 +1,4 @@
-const Category = require('../models/category');
+const { Category } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {category} = req.body;
-    console.log(category);
     const ret =  await Category.bulkCreate(category);
     return res.json(ret);
   }

@@ -88,6 +88,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       timestamps: false,
+      modelName: 'Local',
+      tableName: 'locals'
     })
     
   return locals;

@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     active: DataTypes.BOOLEAN
   }, {
     sequelize,
-    modelName: 'category',
+    modelName: 'Category',
+    tableName: 'category',
   });
   return category;
 };

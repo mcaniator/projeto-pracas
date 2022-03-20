@@ -1,4 +1,4 @@
-const Option = require('../models/option');
+const { Option } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {options} = req.body;
-    console.log(options);
     const ret =  await Option.bulkCreate(options);
     return res.json(ret);
   }

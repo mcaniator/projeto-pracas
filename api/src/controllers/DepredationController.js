@@ -1,4 +1,4 @@
-const depredations = require('../models/depredations');
+const { Depredation } = require('../models');
 
 module.exports = {
   async index(req, res) {

@@ -1,15 +1,14 @@
-const Category = require('../models/person_category');
+const { PersonCategory } = require('../models');
 
 module.exports = {
   async index(req, res) {
-    const category = await Category.findAll();
+    const category = await PersonCategory.findAll();
     return res.json(category);
   },
 
   async store(req, res) {
     const {category} = req.body;
-    console.log(category);
-    const ret =  await Category.bulkCreate(category);
+    const ret =  await PersonCategory.bulkCreate(category);
     return res.json(ret);
   }
 };

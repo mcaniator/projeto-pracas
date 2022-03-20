@@ -1,5 +1,4 @@
-// const User = require('../models/User');
-const Address = require('../models/Address');
+const { Address } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,9 +7,8 @@ module.exports = {
   },
 
   async store(req, res) {
-    const {addresses} = req.body;
-    console.log(addresses);
-    const ret =  await Address.bulkCreate(addresses);
+    const { addresses } = req.body;
+    const ret = await Address.bulkCreate(addresses);
     return res.json(ret);
   }
 };
