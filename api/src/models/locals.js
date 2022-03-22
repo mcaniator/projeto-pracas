@@ -83,6 +83,18 @@ module.exports = (sequelize, DataTypes) => {
     polygon: {
       type: DataTypes.GEOMETRY("Polygon"),
       allowNull: true
+    },
+    createdAt: {
+      field: "createdAt",
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: sequelize.NOW
+    },
+    updatedAt: {
+      field: "updatedAt",
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: sequelize.NOW
     }
   },
     {

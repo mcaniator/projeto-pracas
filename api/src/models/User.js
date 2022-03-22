@@ -13,6 +13,18 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     type: DataTypes.INTEGER,
     phone_number: DataTypes.STRING,
+    createdAt: {
+      field: "created_at",
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: sequelize.NOW
+    },
+    updatedAt: {
+      field: "updated_at",
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: sequelize.NOW
+    }
   }, {
     sequelize,
     modelName: 'User',
