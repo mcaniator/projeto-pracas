@@ -83,13 +83,15 @@ module.exports = (sequelize, DataTypes) => {
     polygon: {
       type: DataTypes.GEOMETRY("Polygon"),
       allowNull: true
-    }
+    },
   },
     {
       sequelize,
       timestamps: false,
       modelName: 'Local',
-      tableName: 'locals'
+      tableName: 'locals',
+      timestamps: true,
+      underscored: false
     })
     
   return locals;

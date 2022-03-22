@@ -16,11 +16,14 @@ module.exports = (sequelize, DataTypes) => {
   category.init({
     name: DataTypes.STRING,
     optional: DataTypes.BOOLEAN,
-    active: DataTypes.BOOLEAN
+    active: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Category',
     tableName: 'category',
+    timestamps: true,
+    underscored: true,
+    updatedAt: false
   });
   return category;
 };
