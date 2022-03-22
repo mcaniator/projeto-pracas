@@ -24,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
     local_id: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'coutings',
+    modelName: 'Counting',
+    tableName: 'coutings',
   });
   return coutings;
 };

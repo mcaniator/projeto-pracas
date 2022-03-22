@@ -1,4 +1,4 @@
-const Counting = require('../models/coutings');
+const { Counting } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {counting} = req.body;
-    console.log(counting);
     const ret =  await Counting.bulkCreate(counting);
     return res.json(ret);
   }

@@ -1,4 +1,4 @@
-const Local = require('../models/locals');
+const { Local } = require('../models');
 
 module.exports = {
     async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
     async store(req, res) {
         const locals = req.body;
-        console.log(locals);
         const ret = await Local.create(locals);
         return res.json(ret);
     }

@@ -22,7 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     answers: DataTypes.JSON
   }, {
     sequelize,
-    modelName: 'evaluations',
+    modelName: 'Evaluation',
+    tableName: 'evaluations',
   });
   return evaluations;
 };

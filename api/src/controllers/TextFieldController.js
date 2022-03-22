@@ -1,15 +1,15 @@
-const Form = require('../models/textfield');
+const { TextField } = require('../models');
 
 module.exports = {
   async index(req, res) {
-    const forms = await Form.findAll();
+    const forms = await TextField.findAll();
     return res.json(forms);
   },
 
   async store(req, res) {
     const {forms} = req.body;
     console.log(forms);
-    const ret =  await Form.bulkCreate(forms);
+    const ret =  await TextField.bulkCreate(forms);
     return res.json(ret);
   }
 };

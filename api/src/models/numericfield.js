@@ -1,4 +1,8 @@
-const { Model, DataTypes } = require('sequelize');
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
 
   class NumericField extends Model {
     /**
@@ -9,18 +13,16 @@ const { Model, DataTypes } = require('sequelize');
     static associate(models) {
       // define association here
     }
-
-    static init(sequelize) {
-      super.init({
-        id_field: DataTypes.INTEGER,
-        min: DataTypes.FLOAT,
-        max: DataTypes.FLOAT
-      }, {
-        sequelize,
-        modelName: 'numericfield',
-        tableName: 'numericfield',
-      })
-    }
   };
 
-  module.exports = NumericField;
+  NumericField.init({
+    id_field: DataTypes.INTEGER,
+    min: DataTypes.FLOAT,
+    max: DataTypes.FLOAT
+  }, {
+    sequelize,
+    modelName: 'NumericField',
+    tableName: 'numericfield'
+  })
+  return NumericField;
+};

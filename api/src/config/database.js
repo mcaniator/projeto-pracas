@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
     dialect: 'postgres',
     host: 'localhost',
@@ -9,7 +7,5 @@ module.exports = {
     define: {
         timestamps: true,
         underscored: true,
-    },
-
-    'models-path': path.resolve('src/models', 'sequelize'),
+    }
 }

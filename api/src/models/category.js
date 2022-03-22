@@ -14,14 +14,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   category.init({
-    // id: DataTypes.INTEGER,
     name: DataTypes.STRING,
     optional: DataTypes.BOOLEAN,
     active: DataTypes.BOOLEAN
   }, {
     sequelize,
-    modelName: 'category',
-    tableName: 'category'
+    modelName: 'Category',
+    tableName: 'category',
   });
   return category;
 };
