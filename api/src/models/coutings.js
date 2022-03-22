@@ -22,22 +22,12 @@ module.exports = (sequelize, DataTypes) => {
     sky: DataTypes.STRING,
     person_on_local_id: DataTypes.INTEGER,
     local_id: DataTypes.STRING,
-    createdAt: {
-      field: "createdAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    },
-    updatedAt: {
-      field: "updatedAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    }
   }, {
     sequelize,
     modelName: 'Counting',
     tableName: 'coutings',
+    timestamps: true,
+    underscored: false
   });
   return coutings;
 };

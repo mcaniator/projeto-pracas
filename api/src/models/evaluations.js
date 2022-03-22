@@ -20,22 +20,12 @@ module.exports = (sequelize, DataTypes) => {
     password: DataTypes.STRING,
     user_id: DataTypes.INTEGER,
     answers: DataTypes.JSON,
-    createdAt: {
-      field: "createdAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    },
-    updatedAt: {
-      field: "updatedAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    }
   }, {
     sequelize,
     modelName: 'Evaluation',
     tableName: 'evaluations',
+    timestamps: true,
+    underscored: false
   });
   return evaluations;
 };

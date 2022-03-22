@@ -84,24 +84,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.GEOMETRY("Polygon"),
       allowNull: true
     },
-    createdAt: {
-      field: "createdAt",
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: sequelize.NOW
-    },
-    updatedAt: {
-      field: "updatedAt",
-      type: DataTypes.DATE,
-      allowNull: true,
-      defaultValue: sequelize.NOW
-    }
   },
     {
       sequelize,
       timestamps: false,
       modelName: 'Local',
-      tableName: 'locals'
+      tableName: 'locals',
+      timestamps: true,
+      underscored: false
     })
     
   return locals;

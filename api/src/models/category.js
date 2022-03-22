@@ -17,16 +17,13 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     optional: DataTypes.BOOLEAN,
     active: DataTypes.BOOLEAN,
-    createdAt: {
-      field: "created_at",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    },
   }, {
     sequelize,
     modelName: 'Category',
     tableName: 'category',
+    timestamps: true,
+    underscored: true,
+    updatedAt: false
   });
   return category;
 };
