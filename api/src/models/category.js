@@ -16,7 +16,13 @@ module.exports = (sequelize, DataTypes) => {
   category.init({
     name: DataTypes.STRING,
     optional: DataTypes.BOOLEAN,
-    active: DataTypes.BOOLEAN
+    active: DataTypes.BOOLEAN,
+    createdAt: {
+      field: "created_at",
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: sequelize.NOW
+    },
   }, {
     sequelize,
     modelName: 'Category',
