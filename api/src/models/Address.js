@@ -21,23 +21,12 @@ module.exports = (sequelize, DataTypes) => {
     street: DataTypes.STRING,
     number: DataTypes.STRING,
     planning_region_id: DataTypes.INTEGER,
-    createdAt: {
-      field: "createdAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    },
-    updatedAt: {
-      field: "updatedAt",
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: sequelize.NOW
-    }
   }, {
     sequelize,
     modelName: 'Address',
     tableName: 'addresses',
     timestamps: true,
+    underscored: false
   });
   return Address;
 };
