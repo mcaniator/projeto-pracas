@@ -1,4 +1,4 @@
-const Form = require('../models/forms');
+const { Form } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {forms} = req.body;
-    console.log(forms);
     const ret =  await Form.bulkCreate(forms);
     return res.json(ret);
   }

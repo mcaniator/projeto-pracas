@@ -44,25 +44,25 @@ routes.get('/counting', CountingController.index);
 routes.post('/counting', CountingController.store);
 
 routes.get('/person_category', PersonCategoryController.index);
-routes.get('/person_category', PersonCategoryController.store);
+routes.post('/person_category', PersonCategoryController.store);
 
 routes.get('/form_field', FormFieldController.index);
 routes.post('/form_field', FormFieldController.store);
 
 routes.get('/form_structure', FormStructureController.index);
-routes.get('/form_structure', FormStructureController.store);
+routes.post('/form_structure', FormStructureController.store);
 
 routes.get('/text_field', TextFieldController.index);
-routes.get('/text_field', TextFieldController.store);
+routes.post('/text_field', TextFieldController.store);
 
 routes.get('/numeric_field', NumericFieldController.index);
 routes.post('/numeric_field', NumericFieldController.store);
 
 routes.get('/option_field', OptionFieldController.index);
-routes.get('/option_field', OptionFieldController.store);
+routes.post('/option_field', OptionFieldController.store);
 
 routes.get('/option', OptionController.index);
-routes.get('/option', OptionController.store);
+routes.post('/option', OptionController.store);
 
 routes.get('/category', CategoryController.index);
 routes.post('/category', CategoryController.store);

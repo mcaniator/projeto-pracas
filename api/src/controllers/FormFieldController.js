@@ -1,4 +1,4 @@
-const FormsFields = require('../models/forms-fields');
+const { FormsFields } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {forms} = req.body;
-    console.log(forms);
     const ret =  await FormsFields.bulkCreate(forms);
     return res.json(ret);
   }

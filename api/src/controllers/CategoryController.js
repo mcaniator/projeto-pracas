@@ -1,8 +1,4 @@
-const connection = require('../database/index')
-const {  DataTypes } = require('sequelize');
-
-
-const Category = require('../models/category')(connection, DataTypes);
+const { Category } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -12,15 +8,7 @@ module.exports = {
 
   async store(req, res) {
     const {category} = req.body;
-    console.log(category);
-
-    try {
-      const ret =  await Category.bulkCreate(category);
-      return res.json(ret);
-
-    }catch(e) {
-      console.error(e);
-      return res.status(500).send('Error')
-    }
+    const ret =  await Category.bulkCreate(category);
+    return res.json(ret);
   }
 };

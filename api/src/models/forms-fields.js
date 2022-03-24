@@ -1,5 +1,8 @@
-const { Model, DataTypes } = require('sequelize');
-
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
   class FormsFields extends Model {
     /**
      * Helper method for defining associations.
@@ -9,18 +12,17 @@ const { Model, DataTypes } = require('sequelize');
     static associate(models) {
       // define association here
     }
-
-    static init(sequelize) {
-      super.init({
-        name: DataTypes.STRING,
-        optional: DataTypes.BOOLEAN,
-        active: DataTypes.BOOLEAN,
-        category_id: DataTypes.INTEGER  
-      }, {
-        sequelize,
-        modelName: 'forms-fields',
-      })
-    }
   };
+  FormsFields.init({
+    name: DataTypes.STRING,
+    optional: DataTypes.BOOLEAN,
+    active: DataTypes.BOOLEAN,
+    category_id: DataTypes.INTEGER
+  }, {
+    sequelize,
+    modelName: 'FormsFields',
+    tableName: 'forms-fields'
+  });
 
-  module.exports = FormsFields;
+  return FormsFields;
+};

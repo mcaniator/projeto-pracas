@@ -21,10 +21,13 @@ module.exports = (sequelize, DataTypes) => {
     temperature: DataTypes.INTEGER,
     sky: DataTypes.STRING,
     person_on_local_id: DataTypes.INTEGER,
-    local_id: DataTypes.STRING
+    local_id: DataTypes.STRING,
   }, {
     sequelize,
-    modelName: 'coutings',
+    modelName: 'Counting',
+    tableName: 'coutings',
+    timestamps: true,
+    underscored: false
   });
   return coutings;
 };
