@@ -5,7 +5,11 @@ import { useState } from "react";
 import { Divider } from '@material-ui/core';
 import Button from "@material-ui/core/Button";
 
+import axios from "axios";
+
 function FormGenerator() {
+
+  const [count, setCount] = useState(0);  
   
   const addType = (id) => { // Controle de adição de tipos
     /*var count = Object.keys(form).length; Usado antes para expandir o formulário*/
@@ -21,28 +25,34 @@ function FormGenerator() {
     {/*Procura no formulário se a pergunta já existe*/
       if(form[k].id == id) {
         check = 1;
-        console.log("i");
         break;
       }
     };
 
-    if(check == 0)/*Caso não exista no form, a categoria é adicionada */
-      form.push(add);
+    if(check == 0)
+    {
+      /*Caso não exista no form, a categoria é adicionada */
+      form.push(add);  
+      setCount(count+1);
+    } 
   }
 
   const deleteCategory = (id) => {//Remove a categoria específica
 
     for(var index in form){
       if(form[index].id == id){
-          form.splice(index,1); // Remove a categoria de id igual
+          form.splice(index, 1); // Remove a categoria de id igual
+          setCount(count-1);
+          
           break; // força a parada do loop
       }
-    };
-
+    }; 
   }
 
-  const submitForm = () => {
-    //precisa da API
+  const submitForm = (name) => {
+    console.log(name);
+    //Preciso confirmar se esse axios funciona
+    axios.post(`http://localhost:3000/${name}_form`, form);
   }
 
   const [name,setName]=useState(null);
@@ -81,7 +91,7 @@ function FormGenerator() {
        ))}
       <Divider variant="middle" />
       <input type="text" onChange={getName} />
-      <Button onClick = {() => {submitForm()}} style={{marginLeft: "25px", marginTop: "25px"}} > SUBMIT </Button>
+      <Button onClick = {() => {submitForm(getName)}} style={{marginLeft: "25px", marginTop: "25px"}} > SUBMIT </Button>
     </div>
   );
 }
