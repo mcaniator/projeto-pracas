@@ -20,7 +20,7 @@ Um erro <...> com o pacote `node-gyp`:
 * instalar python2
 
 Um erro <...> envolvendo um codigo em c/c++:
-* mudar a versão do node para uma mais antiga (a versão 15.14 funciona)
+* mudar a versão do node para uma mais antiga (a versão 14 funciona (15+ não funciona))
 
 ## Backend
 Primeiramente é necessario ter um servidor do [PostgreSQL](https://www.postgresql.org/) configurado no computador com um banco de dados. \
