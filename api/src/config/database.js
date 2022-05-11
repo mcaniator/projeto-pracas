@@ -6,6 +6,6 @@ module.exports = {
     database: 'square_project',
     define: {
         timestamps: false,
-        // underscored: true,
+        underscored: false,
     }
 }
