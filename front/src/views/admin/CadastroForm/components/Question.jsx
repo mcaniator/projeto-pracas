@@ -221,8 +221,7 @@ export default class Question extends React.Component {
                         style={selectStyle}
                         renderValue={(selected) => {
                             switch (selected) {
-                                case 0:
-                                case 1: {
+                                case 0: {
                                     return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
                                 }
 
@@ -233,25 +232,13 @@ export default class Question extends React.Component {
                         onChange={this.handleChange}
                     >
                         <MenuItem value={0} disabled>Categoria</MenuItem>
-                        <MenuItem value={1}>
+                        <MenuItem value={0}>
                             <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
                                 <Add />
                                 Nova Categoria
                             </RegularButton>
                         </MenuItem>
-
-                        {/* {this.state.props.map(e => (<MenuItem key={e.nome}>{e.nome}</MenuItem>))} */}
-                        {
-                            (() => {
-                                let arr = []
-
-                                for (let i = 0; i < this.props.categories.length; i++) {
-                                    arr.push(<MenuItem key={this.props.categories[i].id} value={this.props.categories[i].id}>{this.props.categories[i].name}</MenuItem>)
-                                }
-
-                                return arr
-                            })()
-                        }
+                        {this.props.categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
                     </Select>
                 </GridItem>
 
