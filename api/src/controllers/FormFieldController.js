@@ -1,4 +1,4 @@
-const { FormsFields } = require('../models');
+const { FormsFields, NumericField, TextField, Option, OptionField, sequelize } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -7,8 +7,44 @@ module.exports = {
   },
 
   async store(req, res) {
-    const {forms} = req.body;
-    const ret =  await FormsFields.bulkCreate(forms);
-    return res.json(ret);
+    const { question, type, field, options } = req.body;
+    let Field;
+
+    switch (type) {
+      case 'numeric':
+        Field = NumericField;
+        break;
+      case 'text':
+        Field = TextField;
+        break;
+      case 'option':
+        Field = OptionField
+        break;
+      default:
+        return res.status(400).json({ msg: 'Invalid field type' });
+    }
+
+    const result = await sequelize.transaction(async (t) => {
+      const formField = await FormsFields.create(question, { transaction: t });
+
+      field.id_field = formField.dataValues.id;
+
+      const typeField = await Field.create(field, { transaction: t });
+
+      if (type === 'option') {
+        options.forEach((opt) => {
+          opt.id_optionfield = typeField.dataValues.id;
+        });
+
+        const opts = await Option.bulkCreate(options, { transaction: t });
+
+        return { formField, typeField, options: opts }
+      }
+
+      return { formField, typeField }
+    })
+
+
+    return res.json(result);
   }
 };
