@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   OptionField.init({
-    field_id: DataTypes.INTEGER,
+    id_field: DataTypes.INTEGER,
     option_limit: DataTypes.INTEGER,
     total_options: DataTypes.INTEGER,
     visual_preference: DataTypes.INTEGER,

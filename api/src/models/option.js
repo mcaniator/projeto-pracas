@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Option.init({
-    optionfield_id: DataTypes.INTEGER,
+    id_optionfield: DataTypes.INTEGER,
     name: DataTypes.STRING,
   }, {
     sequelize,

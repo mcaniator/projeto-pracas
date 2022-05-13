@@ -42,17 +42,10 @@ export default class FormBuilder extends React.Component {
         }
     }
 
-   async insertQuestion(question, type, typeField) {
+    async insertQuestion(question, type, field, options) {
         try {
-            let resForms = await axios.post('http://localhost:3333/form_field', { forms: [question] })
-
-            if (resForms.status == 200) {
-                typeField.id_field = resForms.data[0].id;
-
-                let resField = await axios.post(`http://localhost:3333/${type}_field`, { forms: [typeField] })
-
-                console.log(resField);
-            }
+            let resForms = await axios.post('http://localhost:3333/form_field', { question, type, field, options })
+            console.log(resForms);
         }
         catch (e) {
             console.error(e);

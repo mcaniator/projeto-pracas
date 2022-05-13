@@ -85,22 +85,37 @@ export default class Question extends React.Component {
         }
 
         if (name.length > 0 && category_id != 0 && type != 0) {
+            let field, options = null;
+
+            switch (types[type]) {
+                case 'numeric':
+                    field = {
+                        id_field: -1,
+                        min: 0,
+                    }
+                    break;
+                case 'text':
+                    field = {}
+                    break;
+                case 'option':
+                    field = {
+                        option_limit: 10,
+                        total_options: 1,
+                        visual_preference: 1
+                    }
+                    options = this.state.options;
+                    break;
+            }
+
             let question = {
                 name,
                 category_id,
                 active: true,
-                optional: false
+                optional: false,
             }
 
-            if(types[type] === 'numeric') {
-                let field = {
-                    id_field: -1,
-                    min: 0,
-                }
-
-                console.log(question, types[type], field);
-                this.props.insertQuestion(question, types[type], field);
-            }
+            console.log(question);
+            this.props.insertQuestion(question, types[type], field, options);
 
             this.setState({
                 category: 0,
