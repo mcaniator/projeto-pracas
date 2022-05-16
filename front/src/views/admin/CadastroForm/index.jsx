@@ -4,6 +4,7 @@ import GridItem from "components/Grid/GridItem";
 import Tabs from "components/CustomTabs/CustomTabs.js";
 import Question from "./components/Question.jsx";
 import FormGenerator from "./components/FormGenerator.jsx";
+import {FormTest} from './components/FormTest.jsx';
 
 import axios from "axios";
 
@@ -88,7 +89,7 @@ export default class FormBuilder extends React.Component {
                                 },
                                 {
                                     tabName: "2",
-                                    tabContent: (<h1>2</h1>)
+                                    tabContent: <FormTest data={this.state.date} onDataChange={this.handleDataChange} />
                                 },
                                 {
                                     tabName: "3",
