@@ -89,9 +89,13 @@ export default class Question extends React.Component {
 
             switch (types[type]) {
                 case 'numeric':
+                    let min = parseFloat(document.getElementById('min-number').value().trim()) || null;
+                    let max = parseFloat(document.getElementById('min-number').value().trim()) || null;
+
                     field = {
-                        id_field: -1,
-                        min: 0,
+                        id_field: -1, // nao lembro o porque de setar essa valor que eh invalido aqui xD
+                        min,
+                        max
                     }
                     break;
                 case 'text':
@@ -246,11 +250,30 @@ export default class Question extends React.Component {
                     </GridItem>
 
                     {this.state.type == 'Texto' &&
+                        <GridItem xs={12} md={4}>
+                            <CustomInput
+                                labelText="Limite de character"
+                                id="limit"
+                                formControlProps={{
+                                    fullWidth: true,
+                                }}
+
+                                inputProps={{
+                                    type: "number",
+                                    inputProps: {
+                                        min: 1,
+                                    },
+                                }}
+                            ></CustomInput>
+                        </GridItem>
+                    }
+
+                    {this.state.type == 'Numérico' &&
                         <>
                             <GridItem xs={12} md={4}>
                                 <CustomInput
-                                    labelText="Limite de character"
-                                    id="limit"
+                                    labelText="Valor Mínimo"
+                                    id="min-number"
                                     formControlProps={{
                                         fullWidth: true,
                                     }}
@@ -258,12 +281,28 @@ export default class Question extends React.Component {
                                     inputProps={{
                                         type: "number",
                                         inputProps: {
-                                            min: 1,
+                                            step: 0.1,
                                         },
                                     }}
                                 ></CustomInput>
                             </GridItem>
-                            <br />
+
+                            <GridItem xs={12} md={4}>
+                                <CustomInput
+                                    labelText="Valor Máximo"
+                                    id="max-number"
+                                    formControlProps={{
+                                        fullWidth: true,
+                                    }}
+
+                                    inputProps={{
+                                        type: "number",
+                                        inputProps: {
+                                            step: 0.1,
+                                        },
+                                    }}
+                                ></CustomInput>
+                            </GridItem>
                         </>
                     }
 
