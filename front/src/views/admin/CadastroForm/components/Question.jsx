@@ -3,7 +3,7 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import CustomInput from "components/CustomInput/CustomInput";
-import { Select, MenuItem, ListItem, IconButton, ListItemText, List, Paper } from "@material-ui/core";
+import { Select, MenuItem, ListItem, IconButton, ListItemText, List, Paper, InputLabel } from "@material-ui/core";
 import RegularButton from "components/CustomButtons/Button";
 import Snackbar from "components/Snackbar/Snackbar";
 import { Add, Delete } from "@material-ui/icons";
@@ -14,7 +14,11 @@ const selectStyle = {
     display: 'block',
     margin: 'auto',
     width: '100%',
-    marginTop: '2.6em',
+    // marginTop: '1.8em',
+}
+
+const labelStyle = {
+    marginTop: '1.69em',
 }
 
 
@@ -105,8 +109,8 @@ export default class Question extends React.Component {
                     break;
                 case 'option':
                     field = {
-                        option_limit: 10,
-                        total_options: 1,
+                        option_limit: this.state.options.length,
+                        total_options: this.state.options.length,
                         visual_preference: 1
                     }
                     options = this.state.options;
@@ -197,23 +201,16 @@ export default class Question extends React.Component {
                         ></CustomInput>
                     </GridItem>
                     <GridItem xs={12} md={2}>
+                        <InputLabel id="lbl-type" style={labelStyle}>Tipo</InputLabel>
                         <Select
+                            labelId="lbl-type"
                             id="select-type"
                             name="type"
                             value={this.state.type ? this.state.type : 0}
                             style={selectStyle}
-                            renderValue={(selected) => {
-                                switch (selected) {
-                                    case 0: {
-                                        return <span style={{ color: '#AAAAB2' }}>Tipo</span>;
-                                    }
-                                    default:
-                                        return selected;
-                                }
-                            }}
+                            label="Tipo"
                             onChange={this.handleChange}
                         >
-                            <MenuItem value={0} disabled>Tipo</MenuItem>
                             <MenuItem value={'Texto'}>Texto</MenuItem>
                             <MenuItem value={'Numérico'}>Numérico</MenuItem>
                             <MenuItem value={'Opções'}>Opções</MenuItem>
@@ -221,24 +218,20 @@ export default class Question extends React.Component {
                         </Select>
                     </GridItem>
                     <GridItem xs={12} md={4}>
+                        <InputLabel id="lbl-category" style={labelStyle}>Categoria</InputLabel>
                         <Select
+                            labelId="lbl-catogory"
                             id="select-category"
                             name="category"
                             value={this.state.category ? this.state.category : 0}
                             style={selectStyle}
                             renderValue={(selected) => {
-                                switch (selected) {
-                                    case 0: {
-                                        return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
-                                    }
-
-                                    default:
-                                        return this.props.categories.find(e => e.id == selected).name;
-                                }
+                                if (selected === 0)
+                                    return ''
+                                return this.props.categories.find(e => e.id == selected).name;
                             }}
                             onChange={this.handleChange}
                         >
-                            <MenuItem value={0} disabled>Categoria</MenuItem>
                             <MenuItem value={0}>
                                 <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
                                     <Add />
