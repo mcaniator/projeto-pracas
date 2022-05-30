@@ -29,6 +29,7 @@ export default class Question extends React.Component {
         this.state = {
             category: 0,
             type: 0,
+            style: 0,
             options: [],
             showSuccess: false,
             showError: false,
@@ -36,7 +37,6 @@ export default class Question extends React.Component {
         }
 
         this.handleChange = this.handleChange.bind(this);
-        this.handleRenderValue = this.handleRenderValue.bind(this);
         this.showDialog = this.showDialog.bind(this);
         this.closeMessage = this.closeMessage.bind(this);
         this.inserQuestion = this.inserQuestion.bind(this);
@@ -50,19 +50,6 @@ export default class Question extends React.Component {
         this.setState({
             [name]: event.target.value,
         })
-    }
-
-    handleRenderValue(selected) {
-        console.log(selected)
-        switch (selected) {
-            case 0:
-            case 1: {
-                return <span style={{ color: '#AAAAB2' }}>Categoria</span>;
-            }
-
-            default:
-                return selected;
-        }
     }
 
     showDialog() {
@@ -108,10 +95,26 @@ export default class Question extends React.Component {
                     field = { char_limit }
                     break;
                 case 'option':
+                    let visual_preference;
+
+                    switch (this.state.style) {
+                        case 'Caixa de Seleção':
+                            visual_preference = 0;
+                            break;
+                        case 'Botões Radio':
+                            visual_preference = 1;
+                            break;
+                        case 'Caixa de checagem':
+                            visual_preference = 2;
+                            break;
+                        default:
+                            visual_preference = 0;
+                    }
+
                     field = {
                         option_limit: this.state.options.length,
                         total_options: this.state.options.length,
-                        visual_preference: 1
+                        visual_preference
                     }
                     options = this.state.options;
                     break;
@@ -124,7 +127,6 @@ export default class Question extends React.Component {
                 optional: false,
             }
 
-            console.log(question);
             this.props.insertQuestion(question, types[type], field, options);
 
             this.setState({
@@ -299,10 +301,27 @@ export default class Question extends React.Component {
                         </>
                     }
 
-
                     {this.state.type == 'Opções' &&
                         <>
-                            <GridItem xs={12} md={8}>
+                            <GridItem xs={12} md={2}>
+                                <InputLabel id="lbl-option" style={labelStyle}>Estilo Visual</InputLabel>
+                                <Select
+                                    labelId="lbl-option"
+                                    id="style-option"
+                                    name="style"
+                                    value={this.state.style ? this.state.style : 0}
+                                    style={selectStyle}
+                                    label="Estilo Visual"
+                                    onChange={this.handleChange}
+                                >
+                                    <MenuItem value={'Caixa de Seleção'}>Caixa de Seleção</MenuItem>
+                                    <MenuItem value={'Botões Radio'}>Botões Radio</MenuItem>
+                                    <MenuItem value={'Caixa de checagem'}>Caixa de Checagem</MenuItem>
+
+                                </Select>
+                            </GridItem>
+
+                            <GridItem xs={12} md={6}>
                                 <CustomInput
                                     labelText="Nova opcao"
                                     id="option"
@@ -317,7 +336,7 @@ export default class Question extends React.Component {
                             </GridItem>
 
                             <GridItem xs={12} md={4}>
-                                <RegularButton style={selectStyle} color="info" onClick={this.addOption}>Adcionar</RegularButton>
+                                <RegularButton style={labelStyle} color="info" onClick={this.addOption}>Adcionar</RegularButton>
                             </GridItem>
 
                             <GridItem xs={12} md={12}>
