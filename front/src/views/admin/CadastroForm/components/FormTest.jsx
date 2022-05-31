@@ -45,6 +45,16 @@ const AddCategoryToForm = (id) =>
     }
 };
 
+const RemoveCategoryForm = (id)=>
+{
+    form_test[0].category.splice(form_test[0].category.indexOf(id));
+};
+
+const RemoveQuestionForm = (id) =>
+{
+    form_test[0].question.splice(form_test[0].question.indexOf(id));
+};
+
 const AuxLoadCategory = (id) => {
     if(form_test[0].category.includes(id)){
         for(var i in Category){
@@ -63,19 +73,6 @@ const AuxLoadQuestion = (id) => {
     }    
 };
 
-const LoadCategory = () => {
-    const array = []
-    var check = 0;
-
-    for(var i in form_test[0].category){
-        array.push(AuxLoadCategory(form_test[0].category[i]));
-        for(var k in form_test[0].question){
-            array.push(AuxLoadQuestion(form_test[0].question[k]))
-        }
-    }
-    console.log(array);
-    return array;
-};
 
 export function FormTest(){
     return (
@@ -89,6 +86,7 @@ export function FormTest(){
                     <div style={{fontSize:"26px"}}>
                         <Button onClick={() => AddCategoryToForm(e.id)} style={{marginRight: "25px"}} > ADD </Button>
                         {e.name}
+                        <Button onClick={() => RemoveCategoryForm(e.id)} style={{marginRight: "25px",position: 'absolute', right: '0'}} > REMOVE </Button>
                     </div>
                     <Divider variant="middle" />
                     {form_field.map(f =>(
@@ -96,6 +94,7 @@ export function FormTest(){
                             <div>
                                 <Button onClick={() => AddQuestionToForm(f.id)} style={{marginRight: "25px", marginLeft: "25px"}} > ADD </Button>
                                 {f.name}
+                                <Button onClick={() => RemoveQuestionForm(f.id)} style={{marginRight: "25px",position: 'absolute', right: '0'}} > REMOVE </Button>
                             </div>
                         ) : (<></>)
                     ))}
@@ -105,10 +104,19 @@ export function FormTest(){
 
             <Divider variant="middle" />
             
-            <div>
-                {LoadCategory()}
-            </div>
-
+            {form_test[0].category.map(e => (
+                <div>
+                    <div style={{fontSize:"26px"}}>
+                        {AuxLoadCategory(e)}
+                    </div>
+                    {form_test[0].question.map(f => (
+                        <div style={{marginLeft:"15px"}}>
+                            {AuxLoadQuestion(f)}
+                        </div>
+                    ))}
+                </div>
+                ))
+            }
         </div>
     );
 }
