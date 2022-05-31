@@ -9,6 +9,7 @@ import axios from "axios";
 
 export default function Dashboard() {
   const [pracas, setPracas] = useState([]);
+  const [address, setAddresses] = useState([]);
 
   const api = axios.create({
     baseURL: `http://localhost:3333`,
@@ -25,9 +26,23 @@ export default function Dashboard() {
     }
   }
 
+  const getAddresses = async () => {
+    try {
+      await api.get('/addresses').then(res => {
+        setAddresses(res.data);
+      });
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+
   useEffect(() => {
     getPracas();
   }, [pracas.length]);
+
+  useEffect(() => {
+    getAddresses();
+}, [address.length]);
 
   function transformaTipo(tipo)
   {
