@@ -37,6 +37,7 @@ import SweetAlert from "views/admin/SweetAlert"
 // project praças
 import Pracas from "views/admin/Pracas";
 import Users from "views/admin/Users";
+import testing from 'views/admin/test'
 
 
 import Home from "views/website/Home";
@@ -45,6 +46,8 @@ import Home from "views/website/Home";
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
+import { Test } from "@jsonforms/core";
+import { ContactSupportOutlined } from "@material-ui/icons";
 
 
 const dashboardRoutes = [
@@ -135,6 +138,13 @@ const dashboardRoutes = [
     component: SweetAlert,
     layout: "/admin"
   },
+  {
+    path: '/testing',
+    name: 'testing',
+    icon: AddAlert,
+    component: testing,
+    layout: '/admin'
+  }
 ];
 
 export default dashboardRoutes;
