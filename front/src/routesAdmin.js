@@ -89,41 +89,41 @@ const dashboardRoutes = [
     layout: "/admin",
     notRenderOnSidebar: true,
   },
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: Dashboard,
-    component: DashboardPage,
-    layout: "/admin"
-  },
-  {
-    path: "/table",
-    name: "Table List",
-    icon: "content_paste",
-    component: TableList,
-    layout: "/admin"
-  },
-  {
-    path: "/typography",
-    name: "Typography",
-    icon: LibraryBooks,
-    component: Typography,
-    layout: "/admin"
-  },
-  {
-    path: "/icons",
-    name: "Icons",
-    icon: BubbleChart,
-    component: Icons,
-    layout: "/admin"
-  },
-  {
-    path: "/notifications",
-    name: "Notifications",
-    icon: Notifications,
-    component: NotificationsPage,
-    layout: "/admin"
-  },
+  // {
+  //   path: "/dashboard",
+  //   name: "Dashboard",
+  //   icon: Dashboard,
+  //   component: DashboardPage,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/table",
+  //   name: "Table List",
+  //   icon: "content_paste",
+  //   component: TableList,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/typography",
+  //   name: "Typography",
+  //   icon: LibraryBooks,
+  //   component: Typography,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/icons",
+  //   name: "Icons",
+  //   icon: BubbleChart,
+  //   component: Icons,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/notifications",
+  //   name: "Notifications",
+  //   icon: Notifications,
+  //   component: NotificationsPage,
+  //   layout: "/admin"
+  // },
   {
     path: "/leaflet",
     name: "Leaflet",
@@ -131,13 +131,13 @@ const dashboardRoutes = [
     component: Leaflet,
     layout: "/admin"
   },
-  {
-    path: "/sweet-alert",
-    name: "Sweet Alert",
-    icon: AddAlert,
-    component: SweetAlert,
-    layout: "/admin"
-  },
+  // {
+  //   path: "/sweet-alert",
+  //   name: "Sweet Alert",
+  //   icon: AddAlert,
+  //   component: SweetAlert,
+  //   layout: "/admin"
+  // },
   {
     path: '/testing',
     name: 'testing',
