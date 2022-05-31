@@ -19,10 +19,13 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     user_id: DataTypes.INTEGER,
-    answers: DataTypes.JSON
+    answers: DataTypes.JSON,
   }, {
     sequelize,
-    modelName: 'evaluations',
+    modelName: 'Evaluation',
+    tableName: 'evaluations',
+    timestamps: true,
+    underscored: false
   });
   return evaluations;
 };

@@ -1,15 +1,14 @@
-const Form = require('../models/numericfield');
+const { NumericField } = require('../models');
 
 module.exports = {
   async index(req, res) {
-    const forms = await Form.findAll();
+    const forms = await NumericField.findAll();
     return res.json(forms);
   },
 
   async store(req, res) {
-    const {forms} = req.body;
-    console.log(forms);
-    const ret =  await Form.bulkCreate(forms);
+    const { forms } = req.body;
+    const ret = await NumericField.bulkCreate(forms);
     return res.json(ret);
   }
 };

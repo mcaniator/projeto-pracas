@@ -1,4 +1,4 @@
-const Evaluation = require('../models/evaluations');
+const { Evaluation } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -8,7 +8,6 @@ module.exports = {
 
   async store(req, res) {
     const {evals} = req.body;
-    console.log(evals);
     const ret =  await Evaluation.bulkCreate(evals);
     return res.json(ret);
   }

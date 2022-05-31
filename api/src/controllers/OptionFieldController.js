@@ -1,15 +1,14 @@
-const Form = require('../models/optionfield');
+const { OptionField } = require('../models');
 
 module.exports = {
   async index(req, res) {
-    const forms = await Form.findAll();
+    const forms = await OptionField.findAll();
     return res.json(forms);
   },
 
   async store(req, res) {
     const {forms} = req.body;
-    console.log(forms);
-    const ret =  await Form.bulkCreate(forms);
+    const ret =  await OptionField.bulkCreate(forms);
     return res.json(ret);
   }
 };
