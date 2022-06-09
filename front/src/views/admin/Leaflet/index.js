@@ -11,11 +11,13 @@ import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
 import Button from "../../../components/website/CustomButtons/Button.js";
 import Control from "react-leaflet-control";
+import { IconButton } from "@material-ui/core";
 
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogActions from "@material-ui/core/DialogActions";
+import { DialogContentText } from "@material-ui/core";
 import { JsonForms } from "@jsonforms/react";
 import {
     materialRenderers,
@@ -27,6 +29,7 @@ import schema from "../../../forms/example/schema.json";
 import uischema from "../../../forms/example/uischema.json";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import L from "react-leaflet";
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -66,15 +69,35 @@ export default class Leaflet extends Component<{}, State> {
         register: {
             open: false,
         },
+        alert:{
+            success: false,
+            error: false,
+        },
+        error_msg: 'exception 404',
         data: {},
     };
 
     handleClick(e) {
+        var submitEval = {
+            
+                
+                    name: "Aval1",
+                    type: 1,
+                    email: 'email@gmail.com',
+                    password: "1234",
+                    user_id: 1,
+                    answers: {name: "pergunta", id: 2}
+                
+            
+        };
+
+        //axios.post(`http://localhost:3333/evaluations`, submitEval).then((res_) => {});
+
         if (this.state.drawActive) {
             const newPos = [e.latlng.lat, e.latlng.lng];
             this.setState((state) => {
                 return { currentPolygon: state.currentPolygon.concat([newPos]) };
-            });
+             });
         }
     }
 
@@ -93,7 +116,8 @@ export default class Leaflet extends Component<{}, State> {
                     polygonList: state.polygonList.concat({
                         id: state.polygonList.length,
                         coordinates: state.currentPolygon,
-                        center: center
+                        center: center,
+                        _new : true
                     }),
                 };
             });
@@ -111,6 +135,19 @@ export default class Leaflet extends Component<{}, State> {
 
     registerDialogClose(){
         this.setState({ register: { open: false } });
+    }
+
+    registerAlertOpen(success){
+        success ? this.setState({ alert: { success: true } }) : this.setState({ alert: { error: true } })
+        console.log(this.state.error_msg)
+    }
+
+    registerAlertClose(success){
+        success ? this.setState({ alert: { success: false } }) : this.setState({ alert: { error: false } })
+    }
+
+    openAssessment(){
+        console.log('click')
     }
 
     sendSquareRegister(polygonId){
@@ -205,13 +242,14 @@ export default class Leaflet extends Component<{}, State> {
             });
         }
 
-        console.log(submitLocal.locals[0]);
-
         axios.post(`http://localhost:3333/locals`, submitLocal.locals[0])
             .then((res) => {
-                //return(
-                    axios.post(`http://localhost:3333/addresses`, submitAddresses).then((res_) => {});
-                //)
+                axios.post(`http://localhost:3333/addresses`, submitAddresses).then((res_) => {});
+                this.setState({alert : {success : true}})
+                this.setState({register : {open : false}})
+            }).catch((err) => {
+                this.setState({error_msg : err.message})
+                this.setState({alert : {error : true}})
             });
     }
 
@@ -222,7 +260,8 @@ export default class Leaflet extends Component<{}, State> {
                     this.state.polygonList = res.data.map( p => ({
                         id : p.id,
                         coordinates : p.polygon.coordinates,
-                        center : polylabel(p.polygon.coordinates, 1.0)
+                        center : polylabel(p.polygon.coordinates, 1.0),
+                        _new : false
                     }))
                     console.log(this.state.polygonList)
                 });
@@ -268,12 +307,11 @@ export default class Leaflet extends Component<{}, State> {
             Descartar Desenho
             </button>
             </Control>
-
             <TileLayer
             url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
             />
 
-            {this.state.polygonList.map(polygon => (
+            {this.state.polygonList.filter((obj) => {return obj._new}).map(polygon => (
                 <Marker key = {polygon.id} position={polygon.center}>
                 <Popup>
                 <Button type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
@@ -309,7 +347,68 @@ export default class Leaflet extends Component<{}, State> {
                 </Dialog>
                 </Popup>
                 </Marker>
+
             ))}
+
+            {this.state.polygonList.filter((obj) => {return !obj._new}).map(polygon => (
+                <Marker key = {polygon.id} position={polygon.center}>
+                    <Popup>
+                        <GridContainer>
+                            <GridItem xs={12}>
+                                <Button fullWidth type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                                    Editar praça
+                                </Button>
+                            </GridItem>
+                            <GridItem xs={12}>
+                                <Button fullWidth type="button" key = {polygon.id} href = "/admin/testing" color="primary" size="sm" col>
+                                    Adicionar avaliação
+                                </Button>
+                            </GridItem> 
+                        </GridContainer>
+                    </Popup>
+                </Marker>
+            ))} 
+
+            <Dialog
+                maxWidth={'md'}
+                open={this.state.alert.success}
+                onClose={ this.registerAlertClose.bind(this, true) }
+                aria-labelledby="max-width-dialog-title"    
+            >                
+                <DialogTitle id="alert-dialog-title">{"Sucesso"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        A praça foi inserida com sucesso!
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={this.registerAlertClose.bind(this, true)} color="primary">
+                        Ok
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            
+            <Dialog
+                maxWidth={'md'}
+                open={this.state.alert.error}
+                onClose={ this.registerAlertClose.bind(this, false) }
+                aria-labelledby="max-width-dialog-title"    
+            >                
+                <DialogTitle id="alert-dialog-title">{"Error"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Erro! A praça não pôde ser inserida.
+                    </DialogContentText>
+                    <DialogContentText>
+                        {this.state.error_msg}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={this.registerAlertClose.bind(this, false)} color="primary">
+                        Ok
+                    </Button>
+                </DialogActions>            
+            </Dialog>
 
             <Polygon key="drawPolygon" positions={this.state.currentPolygon} color="blue" />
             {this.state.polygonList.map(polygon => (
@@ -322,8 +421,9 @@ export default class Leaflet extends Component<{}, State> {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             </Map>
-
+            
             </GridItem>
+            
             </GridContainer>
         )
     }
