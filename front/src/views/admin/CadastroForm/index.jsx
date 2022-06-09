@@ -12,14 +12,10 @@ export default class FormBuilder extends React.Component {
     constructor(props) {
         super(props);
 
-        let database = require('./database.json');
-        let database2 = require('./database2.json');
 
         this.state = {
             categories: [],
             fields: [],
-            data: database,
-            data2: database2
         };
 
         this.insertQuestion = this.insertQuestion.bind(this);
@@ -92,7 +88,7 @@ export default class FormBuilder extends React.Component {
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <Question data={this.state.data2} categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
+                                    tabContent: <Question categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
                                 },
                                 {
                                     tabName: "2",
@@ -100,7 +96,7 @@ export default class FormBuilder extends React.Component {
                                 },
                                 {
                                     tabName: "3",
-                                    tabContent: <FormGenerator data={this.state.date} onDataChange={this.handleDataChange} />
+                                    tabContent: <FormGenerator onDataChange={this.handleDataChange} />
                                 }
                             ]}
                         />

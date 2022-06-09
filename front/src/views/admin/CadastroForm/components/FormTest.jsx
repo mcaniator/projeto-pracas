@@ -1,11 +1,7 @@
 import React from 'react';
-import database from "../database.json";
-import form from "../form.json";
 import { useState } from "react";
 import { Divider } from '@material-ui/core';
 import Button from "@material-ui/core/Button";
-import Category from "../category.json";
-import form_field from "../form_field.json";
 import form_test from "../form_test.json";
 
 export function FormTest(props) {
