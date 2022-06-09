@@ -17,6 +17,7 @@ export default class FormBuilder extends React.Component {
 
         this.state = {
             categories: [],
+            fields: [],
             data: database,
             data2: database2
         };
@@ -30,12 +31,13 @@ export default class FormBuilder extends React.Component {
 
     async init() {
         try {
-            let res = await axios.get('http://localhost:3333/category');
+            let categories = await axios.get('http://localhost:3333/category');
+            let fields = await axios.get('http://localhost:3333/form_field');
 
-
-            if (res.status === 200) {
+            if (categories.status === 200) {
                 this.setState({
-                    categories: res.data
+                    categories: categories.data,
+                    fields: fields.data
                 })
             }
         } catch (e) {
@@ -46,7 +48,12 @@ export default class FormBuilder extends React.Component {
     async insertQuestion(question, type, field, options) {
         try {
             let resForms = await axios.post('http://localhost:3333/form_field', { question, type, field, options })
-            console.log(resForms);
+            console.log('resforms:', resForms);
+            console.log('data:', resForms.data);
+
+            this.setState({
+                fields: [...this.state.fields, resForms.data.formField]
+            })
         }
         catch (e) {
             console.error(e);
@@ -89,7 +96,7 @@ export default class FormBuilder extends React.Component {
                                 },
                                 {
                                     tabName: "2",
-                                    tabContent: <FormTest data={this.state.date} onDataChange={this.handleDataChange} />
+                                    tabContent: <FormTest categories={this.state.categories} fields={this.state.fields} />
                                 },
                                 {
                                     tabName: "3",
