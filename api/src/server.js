@@ -26,7 +26,6 @@ app.use((err, req, res, next) => {
             res.send({ error: 'Internal error' });
         }
     }
-    next()
 })
 
 app.listen(3333);
