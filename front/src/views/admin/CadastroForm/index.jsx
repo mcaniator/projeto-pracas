@@ -7,11 +7,11 @@ import FormGenerator from "./components/FormGenerator.jsx";
 import {FormTest} from './components/FormTest.jsx';
 
 import axios from "axios";
+import FormPicker from "./components/FormPicker.jsx";
 
 export default class FormBuilder extends React.Component {
     constructor(props) {
         super(props);
-
 
         this.state = {
             categories: [],
@@ -88,15 +88,16 @@ export default class FormBuilder extends React.Component {
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <Question categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
+                                    tabContent: <FormPicker categories={this.state.categories} fields={this.state.fields} />
                                 },
                                 {
                                     tabName: "2",
-                                    tabContent: <FormTest categories={this.state.categories} fields={this.state.fields} />
+                                    tabContent: <Question categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
                                 },
                                 {
                                     tabName: "3",
-                                    tabContent: <FormGenerator onDataChange={this.handleDataChange} />
+                                    tabContent: <FormTest categories={this.state.categories} fields={this.state.fields} />
+                                    // tabContent: <FormGenerator onDataChange={this.handleDataChange} />
                                 }
                             ]}
                         />
