@@ -10,9 +10,11 @@ app.use(routes);
 
 // Middleware de erros, todas execoes param aqui
 app.use((err, req, res, next) => {
-    console.error(typeof err.parent.code)
+    console.error(err);
+    
+    let code = err.parent?.code || -1;
 
-    switch (err.parent.code) {
+    switch (code) {
         case '23502': // Falta campo obrigatorio no insert
         case '42703': // Coluna que nao existe
             res.status(400);
@@ -20,7 +22,6 @@ app.use((err, req, res, next) => {
             break;
 
         default: {
-            console.error(err);
             res.status(500);
             res.send({ error: 'Internal error' });
         }

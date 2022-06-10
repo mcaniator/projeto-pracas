@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   TextField.init({
-    field_id: DataTypes.INTEGER,
+    id_field: DataTypes.INTEGER,
     char_limit: DataTypes.INTEGER,
   }, {
     sequelize,

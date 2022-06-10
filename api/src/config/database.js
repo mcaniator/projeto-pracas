@@ -5,7 +5,7 @@ module.exports = {
     password: '02Ago1962',
     database: 'square_project',
     define: {
-        timestamps: false,
-        // underscored: true,
+        timestamps: true,
+        underscored: false,
     }
 }
