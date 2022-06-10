@@ -7,7 +7,6 @@ import {
     TileLayer,
     Polygon,
 } from "react-leaflet";
-import {BrowserRouter as Router, Link} from 'react-router-dom';
 import GridItem from "components/Grid/GridItem.js";
 import GridContainer from "components/Grid/GridContainer.js";
 import Button from "../../../components/website/CustomButtons/Button.js";
@@ -361,11 +360,9 @@ export default class Leaflet extends Component<{}, State> {
                                 </Button>
                             </GridItem>
                             <GridItem xs={12}>
-                                <Link to = '/admin/testing'>
-                                    <Button fullWidth type="button" key = {polygon.id} color="primary" size="sm" col>
-                                        Adicionar avaliação
-                                    </Button>
-                                </Link>
+                                <Button fullWidth type="button" key = {polygon.id} href = "/admin/testing" color="primary" size="sm" col>
+                                    Adicionar avaliação
+                                </Button>
                             </GridItem> 
                         </GridContainer>
                     </Popup>

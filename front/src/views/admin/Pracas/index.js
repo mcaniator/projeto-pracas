@@ -1,11 +1,9 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import {BrowserRouter as Router, Link} from 'react-router-dom';
 
 // components
 import { AgGridColumn, AgGridReact } from "ag-grid-react";
 import "ag-grid-community/dist/styles/ag-grid.css";
-import Button from "components/CustomButtons/Button.js";
 import "ag-grid-community/dist/styles/ag-theme-alpine.css";
 import axios from "axios";
 
@@ -105,7 +103,6 @@ export default function Dashboard() {
     return categoria.value;
   }
 
-  console.log(pracas)
   return (
     <div className="ag-theme-alpine" style={{ height: 900, width: "100%" }}>
       <AgGridReact rowData={pracas}>
@@ -150,16 +147,6 @@ export default function Dashboard() {
           sortable={true}
           filter={true}
           floatingFilter={true}
-        />
-        <AgGridColumn
-          headerName = 'Criar avaliação'
-          flex={1}
-          cellRendererFramework = {(params) => 
-            <div>
-            <Link to = "/admin/testing">
-              <Button color = 'primary'>Criar</Button>
-            </Link>
-          </div>}
         />
       </AgGridReact>
     </div>
