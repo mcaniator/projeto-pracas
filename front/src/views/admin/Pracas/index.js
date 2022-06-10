@@ -105,7 +105,6 @@ export default function Dashboard() {
     return categoria.value;
   }
 
-  console.log(pracas)
   return (
     <div className="ag-theme-alpine" style={{ height: 900, width: "100%" }}>
       <AgGridReact rowData={pracas}>
@@ -156,8 +155,11 @@ export default function Dashboard() {
           flex={1}
           cellRendererFramework = {(params) => 
             <div>
-            <Link to = "/admin/testing">
-              <Button color = 'primary'>Criar</Button>
+            <Link to = {{
+              pathname: "/admin/Evaluation",
+              state: params['data']['id']
+              }}>
+              <Button color = 'primary' onClick = {() => {console.log(params['data']['id'])}}>Criar</Button>
             </Link>
           </div>}
         />

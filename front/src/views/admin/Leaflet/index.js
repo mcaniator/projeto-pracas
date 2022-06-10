@@ -361,7 +361,10 @@ export default class Leaflet extends Component<{}, State> {
                                 </Button>
                             </GridItem>
                             <GridItem xs={12}>
-                                <Link to = '/admin/testing'>
+                                <Link  to = {{
+                                    pathname: "/admin/Evaluation",
+                                    state: polygon.id //Verificar se id polígono = id no banco
+                                }}>
                                     <Button fullWidth type="button" key = {polygon.id} color="primary" size="sm" col>
                                         Adicionar avaliação
                                     </Button>
