@@ -26,27 +26,15 @@ module.exports = {
 
   async completeForms(req, res) {
     const forms = await Form.findAll({
-      attributes: ['id', 'evaluations_id'],
+      attributes: ['id', 'createdAt'],
       include: {
         model: FormsFields,
-        attributes: ['name', 'active', 'optional'],
+        attributes: ['name', 'category_id', 'active', 'optional'],
         through: {
           attributes: []
         },
-        include: {
-          model: Category,
-          attributes: ['id','name', 'active', 'optional']
-        }
       }
     });
-    // const forms = await FormsFields.findAll({
-    //   include: {
-    //     model: Category,
-    //     // through: {
-    //     //   attributes: []
-    //     // }
-    //   }
-    // });
     return res.json(forms);
   },
 
