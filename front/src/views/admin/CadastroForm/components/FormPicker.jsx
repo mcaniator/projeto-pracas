@@ -1,5 +1,6 @@
 import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
 import { Add, Delete } from "@material-ui/icons";
+import RegularButton from "components/CustomButtons/Button";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import React from "react";
@@ -14,6 +15,8 @@ export default class FormPicker extends React.Component {
         };
 
         this.addCategory = this.addCategory.bind(this);
+        this.addField = this.addField.bind(this);
+        this.createForm = this.createForm.bind(this);
     }
 
     addCategory(category, fields) {
@@ -49,9 +52,6 @@ export default class FormPicker extends React.Component {
                 addedCategories: [...this.state.addedCategories, category],
                 addedFields: [...this.state.addedFields, [field]]
             })
-
-            // let merge = [].concat.apply([], this.state.addedFields)
-            // console.log(merge);
         }
         else {
             let addedFields = this.state.addedFields;
@@ -61,6 +61,29 @@ export default class FormPicker extends React.Component {
                 addedField.push(field);
                 this.setState({ addedFields })
             }
+        }
+    }
+
+    async createForm() {
+        if (this.state.addedFields.length === 0)
+            return;
+
+        // Array 2d para 1d
+        let merged = [].concat.apply([], this.state.addedFields)
+        merged = merged.map(e => ({ id: e.id }));
+
+        try {
+            let res = await this.props.axios.post('http://localhost:3333/forms', { fields: merged })
+            console.log(res);
+
+            if (res.status === 200)
+                this.setState({
+                    addedCategories: [],
+                    addedFields: []
+                })
+        }
+        catch (e) {
+            console.error(e);
         }
     }
 
@@ -97,7 +120,7 @@ export default class FormPicker extends React.Component {
                     </List>
                 </GridItem>
 
-                <GridItem>
+                <GridItem xs={12}>
                     <h3><b>Formulario:</b></h3>
                     <List>
                         {this.state.addedCategories.map((category, idx) => {
@@ -123,6 +146,9 @@ export default class FormPicker extends React.Component {
                             );
                         })}
                     </List>
+                </GridItem>
+                <GridItem xs={12} md={4}>
+                    <RegularButton color="info" onClick={this.createForm}>salvar</RegularButton>
                 </GridItem>
             </GridContainer>
         </>
