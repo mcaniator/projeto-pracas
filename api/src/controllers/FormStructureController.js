@@ -7,8 +7,8 @@ module.exports = {
   },
 
   async store(req, res) {
-    const {forms} = req.body;
-    const ret =  await FormStructure.bulkCreate(forms);
+    const structures = req.body;
+    const ret = await FormStructure.bulkCreate(structures);
     return res.json(ret);
   }
 };
