@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsToMany(models.Form, { foreignKey: 'id_forms_fields', through: models.FormStructure });
+      this.belongsTo(models.Category, { foreignKey: 'category_id' })
     }
   };
   FormsFields.init({
