@@ -103,7 +103,7 @@ export default class Question extends React.Component {
                         total_options: 1,
                         visual_preference: 1
                     }
-                    options = this.state.options;
+                    options = this.state.options.map(opt => ({ name: opt.key }));
                     break;
             }
 
@@ -162,6 +162,8 @@ export default class Question extends React.Component {
             this.setState({
                 options: [...this.state.options, newItem]
             })
+
+            console.log(this.state.options)
 
             opt.value = ''
         }
