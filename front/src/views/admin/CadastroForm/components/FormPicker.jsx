@@ -22,7 +22,7 @@ export default class FormPicker extends React.Component {
     addCategory(category, fields) {
         let idx = this.state.addedCategories.indexOf(category);
 
-        if (idx === - 1) {
+        if (idx === -1) {
             this.setState({
                 addedCategories: [...this.state.addedCategories, category],
                 addedFields: [...this.state.addedFields, fields]
