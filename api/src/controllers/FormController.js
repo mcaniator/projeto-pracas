@@ -1,4 +1,4 @@
-const { Form, FormStructure, FormsFields, Category, sequelize } = require('../models');
+const { Form, FormStructure, FormsFields, NumericField, TextField, OptionField, Option, sequelize } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -29,10 +29,31 @@ module.exports = {
       attributes: ['id', 'createdAt'],
       include: {
         model: FormsFields,
-        attributes: ['name', 'category_id', 'active', 'optional'],
+        attributes: ['id', 'name', 'category_id', 'active', 'optional'],
         through: {
           attributes: []
         },
+        include: [
+          {
+            model: NumericField,
+            required: false,
+            attributes: ['id', 'min', 'max']
+          },
+          {
+            model: TextField,
+            required: false,
+            attributes: ['id', 'char_limit']
+          },
+          {
+            model: OptionField,
+            required: false,
+            attributes: ['id', 'total_options', 'option_limit', 'visual_preference'],
+            include: {
+              model: Option,
+              attributes: ['id', 'name']
+            }
+          },
+        ]
       }
     });
     return res.json(forms);
@@ -45,10 +66,31 @@ module.exports = {
       attributes: ['id', 'createdAt'],
       include: {
         model: FormsFields,
-        attributes: ['name', 'category_id', 'active', 'optional'],
+        attributes: ['id', 'name', 'category_id', 'active', 'optional'],
         through: {
           attributes: []
         },
+        include: [
+          {
+            model: NumericField,
+            required: false,
+            attributes: ['id', 'min', 'max']
+          },
+          {
+            model: TextField,
+            required: false,
+            attributes: ['id', 'char_limit']
+          },
+          {
+            model: OptionField,
+            required: false,
+            attributes: ['id', 'total_options', 'option_limit', 'visual_preference'],
+            include: {
+              model: Option,
+              attributes: ['id', 'name']
+            }
+          },
+        ]
       }
     });
     return res.json(forms);

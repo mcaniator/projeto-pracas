@@ -12,6 +12,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsToMany(models.Form, { foreignKey: 'id_forms_fields', through: models.FormStructure });
       this.belongsTo(models.Category, { foreignKey: 'category_id' })
+      this.hasOne(models.NumericField, { foreignKey: 'id_field' })
+      this.hasOne(models.TextField, { foreignKey: 'id_field' })
+      this.hasOne(models.OptionField, { foreignKey: 'id_field' })
     }
   };
   FormsFields.init({
