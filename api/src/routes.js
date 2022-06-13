@@ -48,6 +48,7 @@ routes.post('/evaluations', asyncRoute(EvaluationController.store));
 
 routes.get('/forms', asyncRoute(FormController.index));
 routes.post('/forms', asyncRoute(FormController.store));
+routes.get('/forms/complete', asyncRoute(FormController.completeForms));
 
 routes.get('/counting', asyncRoute(CountingController.index));
 routes.post('/counting', asyncRoute(CountingController.store));

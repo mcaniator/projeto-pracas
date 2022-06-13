@@ -1,4 +1,4 @@
-const { Form, FormStructure, sequelize } = require('../models');
+const { Form, FormStructure, FormsFields, sequelize } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -22,5 +22,18 @@ module.exports = {
     });
 
     return res.json(result);
-  }
+  },
+
+  async completeForms(req, res) {
+    const forms = await Form.findAll({
+      include: {
+        model: FormsFields,
+        through: {
+          attributes: []
+        }
+      }
+    });
+    return res.json(forms);
+  },
+
 };
