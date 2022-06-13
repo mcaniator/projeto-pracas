@@ -88,11 +88,11 @@ export default class FormBuilder extends React.Component {
                             tabs={[
                                 {
                                     tabName: "1",
-                                    tabContent: <FormPicker categories={this.state.categories} fields={this.state.fields} axios={axios} />
+                                    tabContent: <Question categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
                                 },
                                 {
                                     tabName: "2",
-                                    tabContent: <Question categories={this.state.categories} insertQuestion={this.insertQuestion} insertCategory={this.insertCategory} />
+                                    tabContent: <FormPicker categories={this.state.categories} fields={this.state.fields} axios={axios} />
                                 },
                                 {
                                     tabName: "3",
