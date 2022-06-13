@@ -38,4 +38,20 @@ module.exports = {
     return res.json(forms);
   },
 
+  async completeFormById(req, res) {
+    const { form_id } = req.params;
+
+    const forms = await Form.findByPk(form_id, {
+      attributes: ['id', 'createdAt'],
+      include: {
+        model: FormsFields,
+        attributes: ['name', 'category_id', 'active', 'optional'],
+        through: {
+          attributes: []
+        },
+      }
+    });
+    return res.json(forms);
+  },
+
 };
