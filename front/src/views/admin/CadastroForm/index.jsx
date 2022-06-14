@@ -8,6 +8,7 @@ import { FormTest } from './components/FormTest.jsx';
 
 import axios from "axios";
 import FormPicker from "./components/FormPicker.jsx";
+import FormMount from "./components/FormMount.jsx";
 
 export default class FormBuilder extends React.Component {
     constructor(props) {
@@ -98,6 +99,10 @@ export default class FormBuilder extends React.Component {
                                     tabName: "3",
                                     tabContent: <FormTest categories={this.state.categories} fields={this.state.fields} />
                                     // tabContent: <FormGenerator onDataChange={this.handleDataChange} />
+                                },
+                                {
+                                    tabName: "4",
+                                    tabContent: <FormMount categories={this.state.categories} axios={axios} />
                                 }
                             ]}
                         />
