@@ -81,7 +81,7 @@ export default class Question extends React.Component {
             switch (types[type]) {
                 case 'numeric':
                     let min = parseFloat(document.getElementById('min-number').value.trim()) || null;
-                    let max = parseFloat(document.getElementById('min-number').value.trim()) || null;
+                    let max = parseFloat(document.getElementById('max-number').value.trim()) || null;
 
                     field = {
                         id_field: -1, // nao lembro o porque de setar essa valor que eh invalido aqui xD
