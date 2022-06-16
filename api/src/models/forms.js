@@ -11,11 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsToMany(models.FormsFields, { foreignKey: 'id_forms', through: models.FormStructure });
+      this.hasMany(models.Evaluation, { foreignKey: 'forms_id' });
     }
   };
-  Forms.init({
-    evaluations_id: DataTypes.INTEGER
-  }, {
+  Forms.init({}, {
     sequelize,
     modelName: 'Form',
     tableName: 'forms'
