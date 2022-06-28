@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsTo(models.Form, { foreignKey: 'forms_id' })
     }
   };
   evaluations.init({
@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     password: DataTypes.STRING,
     user_id: DataTypes.INTEGER,
     answers: DataTypes.JSON,
+    forms_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Evaluation',

@@ -24,6 +24,7 @@ import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
 import AddAlert from "@material-ui/icons/AddAlert";
 import AssignmentIcon from '@material-ui/icons/Assignment';
+import Assessment from '@material-ui/icons/Assessment';
 
 // core components/views for Admin layout
 import DashboardPage from "views/admin/Dashboard";
@@ -38,6 +39,8 @@ import SweetAlert from "views/admin/SweetAlert"
 // project praças
 import Pracas from "views/admin/Pracas";
 import Users from "views/admin/Users";
+import FormBuilder from "views/admin/CadastroForm";
+import Evaluation from 'views/admin/Evaluation'
 
 
 import Home from "views/website/Home";
@@ -47,6 +50,8 @@ import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
 import Forms from "views/admin/Forms/index.js";
+import { Test } from "@jsonforms/core";
+import { Note, ContactSupportOutlined } from "@material-ui/icons";
 
 
 const dashboardRoutes = [
@@ -88,41 +93,41 @@ const dashboardRoutes = [
     layout: "/admin",
     notRenderOnSidebar: true,
   },
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: Dashboard,
-    component: DashboardPage,
-    layout: "/admin"
-  },
-  {
-    path: "/table",
-    name: "Table List",
-    icon: "content_paste",
-    component: TableList,
-    layout: "/admin"
-  },
-  {
-    path: "/typography",
-    name: "Typography",
-    icon: LibraryBooks,
-    component: Typography,
-    layout: "/admin"
-  },
-  {
-    path: "/icons",
-    name: "Icons",
-    icon: BubbleChart,
-    component: Icons,
-    layout: "/admin"
-  },
-  {
-    path: "/notifications",
-    name: "Notifications",
-    icon: Notifications,
-    component: NotificationsPage,
-    layout: "/admin"
-  },
+  // {
+  //   path: "/dashboard",
+  //   name: "Dashboard",
+  //   icon: Dashboard,
+  //   component: DashboardPage,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/table",
+  //   name: "Table List",
+  //   icon: "content_paste",
+  //   component: TableList,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/typography",
+  //   name: "Typography",
+  //   icon: LibraryBooks,
+  //   component: Typography,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/icons",
+  //   name: "Icons",
+  //   icon: BubbleChart,
+  //   component: Icons,
+  //   layout: "/admin"
+  // },
+  // {
+  //   path: "/notifications",
+  //   name: "Notifications",
+  //   icon: Notifications,
+  //   component: NotificationsPage,
+  //   layout: "/admin"
+  // },
   {
     path: "/leaflet",
     name: "Leaflet",
@@ -130,11 +135,26 @@ const dashboardRoutes = [
     component: Leaflet,
     layout: "/admin"
   },
+  // {
+  //   path: "/sweet-alert",
+  //   name: "Sweet Alert",
+  //   icon: AddAlert,
+  //   component: SweetAlert,
+  //   layout: "/admin"
+  // },
   {
-    path: "/sweet-alert",
-    name: "Sweet Alert",
-    icon: AddAlert,
-    component: SweetAlert,
+    path: '/Evaluation',
+    name: 'Evaluation',
+    icon: Assessment,
+    component: Evaluation,
+    layout: "/admin",
+    notRenderOnSidebar: true
+  },
+  {
+    path: "/form-builder",
+    name: "Cadastro de Formulario",
+    icon: Note,
+    component: FormBuilder,
     layout: "/admin"
   },
   {
@@ -145,5 +165,4 @@ const dashboardRoutes = [
     layout: "/admin"
   },
 ];
-
 export default dashboardRoutes;

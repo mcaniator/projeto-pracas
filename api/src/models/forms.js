@@ -10,12 +10,11 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsToMany(models.FormsFields, { foreignKey: 'id_forms', through: models.FormStructure });
+      this.hasMany(models.Evaluation, { foreignKey: 'forms_id' });
     }
   };
-  Forms.init({
-    evaluations_id: DataTypes.INTEGER
-  }, {
+  Forms.init({}, {
     sequelize,
     modelName: 'Form',
     tableName: 'forms'

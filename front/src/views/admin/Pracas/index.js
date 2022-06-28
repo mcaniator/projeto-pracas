@@ -1,14 +1,17 @@
 import React from "react";
 import { useState, useEffect } from "react";
+import {BrowserRouter as Router, Link} from 'react-router-dom';
 
 // components
 import { AgGridColumn, AgGridReact } from "ag-grid-react";
 import "ag-grid-community/dist/styles/ag-grid.css";
+import Button from "components/CustomButtons/Button.js";
 import "ag-grid-community/dist/styles/ag-theme-alpine.css";
 import axios from "axios";
 
 export default function Dashboard() {
   const [pracas, setPracas] = useState([]);
+  const [address, setAddresses] = useState([]);
 
   const api = axios.create({
     baseURL: `http://localhost:3333`,
@@ -25,9 +28,23 @@ export default function Dashboard() {
     }
   }
 
+  const getAddresses = async () => {
+    try {
+      await api.get('/addresses').then(res => {
+        setAddresses(res.data);
+      });
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+
   useEffect(() => {
     getPracas();
   }, [pracas.length]);
+
+  useEffect(() => {
+    getAddresses();
+}, [address.length]);
 
   function transformaTipo(tipo)
   {
@@ -132,6 +149,19 @@ export default function Dashboard() {
           sortable={true}
           filter={true}
           floatingFilter={true}
+        />
+        <AgGridColumn
+          headerName = 'Criar avaliação'
+          flex={1}
+          cellRendererFramework = {(params) => 
+            <div>
+            <Link to = {{
+              pathname: "/admin/Evaluation",
+              state: params['data']['id']
+              }}>
+              <Button color = 'primary' onClick = {() => {console.log(params['data']['id'])}}>Criar</Button>
+            </Link>
+          </div>}
         />
       </AgGridReact>
     </div>

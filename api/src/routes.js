@@ -19,54 +19,66 @@ const FormStructureController = require('./controllers/FormStructureController')
 
 const routes = express.Router();
 
+/*
+    O express nessa versao nao suportar funcoes async e nao chama o catch para quando ocorre um erro.
+    Para funcionar o middleware de erro no server.js, precisa dessa funcao abaixo.
+*/
+const asyncRoute = callback => (req, res, next) => {
+    return Promise
+        .resolve(callback(req, res))
+        .catch(next);
+}
 
-routes.get('/users', UserController.index);
-routes.post('/users', UserController.store);
+routes.get('/users', asyncRoute(UserController.index));
+routes.post('/users', asyncRoute(UserController.store));
 
-routes.get('/addresses', AddressController.index);
-routes.post('/addresses', AddressController.store);
-routes.post('/users/:user_id/addresses', AddressController.store);
+routes.get('/addresses', asyncRoute(AddressController.index));
+routes.post('/addresses', asyncRoute(AddressController.store));
+routes.post('/users/:user_id/addresses', asyncRoute(AddressController.store));
 
-routes.get('/users/:user_id/techs', TechController.index);
-routes.post('/users/:user_id/techs', TechController.store);
-routes.delete('/users/:user_id/techs', TechController.delete);
+routes.get('/users/:user_id/techs', asyncRoute(TechController.index));
+routes.post('/users/:user_id/techs', asyncRoute(TechController.store));
+routes.delete('/users/:user_id/techs', asyncRoute(TechController.delete));
 
-routes.get('/locals', LocalController.index);
-routes.post('/locals', LocalController.store);
+routes.get('/locals', asyncRoute(LocalController.index));
+routes.post('/locals', asyncRoute(LocalController.store));
 
-routes.get('/evaluations', EvaluationController.index);
-routes.post('/evaluations', EvaluationController.store);
+routes.get('/evaluations', asyncRoute(EvaluationController.index));
+routes.post('/evaluations', asyncRoute(EvaluationController.store));
 
-routes.get('/forms', FormController.index);
-routes.post('/forms', FormController.store);
+routes.get('/forms', asyncRoute(FormController.index));
+routes.post('/forms', asyncRoute(FormController.store));
+routes.get('/forms/complete', asyncRoute(FormController.completeForms));
+routes.get('/forms/:form_id/complete', asyncRoute(FormController.completeFormById));
 
-routes.get('/counting', CountingController.index);
-routes.post('/counting', CountingController.store);
 
-routes.get('/person_category', PersonCategoryController.index);
-routes.post('/person_category', PersonCategoryController.store);
+routes.get('/counting', asyncRoute(CountingController.index));
+routes.post('/counting', asyncRoute(CountingController.store));
 
-routes.get('/form_field', FormFieldController.index);
-routes.post('/form_field', FormFieldController.store);
+routes.get('/person_category', asyncRoute(PersonCategoryController.index));
+routes.post('/person_category', asyncRoute(PersonCategoryController.store));
 
-routes.get('/form_structure', FormStructureController.index);
-routes.post('/form_structure', FormStructureController.store);
+routes.get('/form_field', asyncRoute(FormFieldController.index));
+routes.post('/form_field', asyncRoute(FormFieldController.store));
 
-routes.get('/text_field', TextFieldController.index);
-routes.post('/text_field', TextFieldController.store);
+routes.get('/form_structure', asyncRoute(FormStructureController.index));
+routes.post('/form_structure', asyncRoute(FormStructureController.store));
 
-routes.get('/numeric_field', NumericFieldController.index);
-routes.post('/numeric_field', NumericFieldController.store);
+routes.get('/text_field', asyncRoute(TextFieldController.index));
+routes.post('/text_field', asyncRoute(TextFieldController.store));
 
-routes.get('/option_field', OptionFieldController.index);
-routes.post('/option_field', OptionFieldController.store);
+routes.get('/numeric_field', asyncRoute(NumericFieldController.index));
+routes.post('/numeric_field', asyncRoute(NumericFieldController.store));
 
-routes.get('/option', OptionController.index);
-routes.post('/option', OptionController.store);
+routes.get('/option_field', asyncRoute(OptionFieldController.index));
+routes.post('/option_field', asyncRoute(OptionFieldController.store));
 
-routes.get('/category', CategoryController.index);
-routes.post('/category', CategoryController.store);
+routes.get('/option', asyncRoute(OptionController.index));
+routes.post('/option', asyncRoute(OptionController.store));
 
-routes.get('/report', ReportController.show);
+routes.get('/category', asyncRoute(CategoryController.index));
+routes.post('/category', asyncRoute(CategoryController.store));
+
+routes.get('/report', asyncRoute(ReportController.show));
 
 module.exports = routes;

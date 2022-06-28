@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsTo(models.OptionField, {foreignKey: 'id_optionfield'})
     }
   };
   Option.init({
-    optionfield_id: DataTypes.INTEGER,
+    id_optionfield: DataTypes.INTEGER,
     name: DataTypes.STRING,
   }, {
     sequelize,

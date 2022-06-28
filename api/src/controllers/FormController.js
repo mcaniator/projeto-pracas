@@ -1,4 +1,4 @@
-const { Form } = require('../models');
+const { Form, FormStructure, FormsFields, NumericField, TextField, OptionField, Option, sequelize } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -7,8 +7,93 @@ module.exports = {
   },
 
   async store(req, res) {
-    const {forms} = req.body;
-    const ret =  await Form.bulkCreate(forms);
-    return res.json(ret);
-  }
+    const { fields } = req.body;
+
+    const result = await sequelize.transaction(async (t) => {
+      const form = await Form.create(null, { transaction: t });
+
+      const structures = fields.map(field => {
+        return { id_forms: form.dataValues.id, id_forms_fields: field.id }
+      })
+
+      const formStructures = await FormStructure.bulkCreate(structures, { transaction: t });
+
+      return { form, formStructures }
+    });
+
+    return res.json(result);
+  },
+
+  async completeForms(req, res) {
+    const forms = await Form.findAll({
+      attributes: ['id', 'createdAt'],
+      include: {
+        model: FormsFields,
+        attributes: ['id', 'name', 'category_id', 'active', 'optional'],
+        through: {
+          attributes: []
+        },
+        include: [
+          {
+            model: NumericField,
+            required: false,
+            attributes: ['id', 'min', 'max']
+          },
+          {
+            model: TextField,
+            required: false,
+            attributes: ['id', 'char_limit']
+          },
+          {
+            model: OptionField,
+            required: false,
+            attributes: ['id', 'total_options', 'option_limit', 'visual_preference'],
+            include: {
+              model: Option,
+              attributes: ['id', 'name']
+            }
+          },
+        ]
+      }
+    });
+    return res.json(forms);
+  },
+
+  async completeFormById(req, res) {
+    const { form_id } = req.params;
+
+    const forms = await Form.findByPk(form_id, {
+      attributes: ['id', 'createdAt'],
+      include: {
+        model: FormsFields,
+        attributes: ['id', 'name', 'category_id', 'active', 'optional'],
+        through: {
+          attributes: []
+        },
+        include: [
+          {
+            model: NumericField,
+            required: false,
+            attributes: ['id', 'min', 'max']
+          },
+          {
+            model: TextField,
+            required: false,
+            attributes: ['id', 'char_limit']
+          },
+          {
+            model: OptionField,
+            required: false,
+            attributes: ['id', 'total_options', 'option_limit', 'visual_preference'],
+            include: {
+              model: Option,
+              attributes: ['id', 'name']
+            }
+          },
+        ]
+      }
+    });
+    return res.json(forms);
+  },
+
 };
