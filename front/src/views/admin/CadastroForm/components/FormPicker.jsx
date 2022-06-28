@@ -64,6 +64,52 @@ export default class FormPicker extends React.Component {
         }
     }
 
+    removeCategory(category) {
+        let idx = this.state.addedCategories.indexOf(category);
+
+        let addedFields = this.state.addedFields;
+        let addedField = addedFields[idx];
+
+        let categoryFields = this.props.fields;
+
+        if (idx !== -1) {
+            this.state.addedCategories.splice(idx);
+
+            for (const field of categoryFields) {
+                if (addedField.includes(field)) {
+                    this.state.addedFields.splice(idx);;
+                }
+            }
+
+            this.setState({
+                addedCategories: [...this.state.addedCategories],
+                addedFields: [...this.state.addedFields]
+            })
+        }
+    }
+
+    removeField(category, field) {
+        let idx = this.state.addedCategories.indexOf(category);
+
+        if (idx === -1) {
+            idx = this.state.addedCategories.length;
+
+            this.setState({
+                addedCategories: [...this.state.addedCategories],
+                addedFields: [...this.state.addedFields]
+            })
+        }
+        else {
+            let addedFields = this.state.addedFields;
+            let addedField = addedFields[idx];
+
+            if (addedField.indexOf(field) !== -1) {
+                addedField.splice(addedField.indexOf(field));
+                this.setState({ addedFields })
+            }
+        }
+    }
+
     async createForm() {
         if (this.state.addedFields.length === 0)
             return;
@@ -128,14 +174,14 @@ export default class FormPicker extends React.Component {
                                 <div key={category.id}>
                                     <ListItem style={{ padding: 0 }}>
                                         <ListItemText primary={<b>{category.name.toUpperCase()}
-                                            <IconButton><Delete /></IconButton></b>} />
+                                            <IconButton onClick={() => { this.removeCategory(category) }}><Delete /></IconButton></b>} />
                                     </ListItem>
 
                                     <List style={{ width: 'fit-content', padding: 0 }}>
                                         {this.state.addedFields[idx].map(field => {
                                             return (
                                                 <ListItem key={field.id} sx={{ pl: 4 }}>
-                                                    <ListItemIcon><IconButton><Delete /></IconButton></ListItemIcon>
+                                                    <ListItemIcon><IconButton onClick={() => { this.removeField(category, field) }}><Delete /></IconButton></ListItemIcon>
                                                     <ListItemText primary={field.name}></ListItemText>
                                                 </ListItem>
                                             );
