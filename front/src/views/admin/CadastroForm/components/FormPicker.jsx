@@ -77,7 +77,7 @@ export default class FormPicker extends React.Component {
 
             for (const field of categoryFields) {
                 if (addedField.includes(field)) {
-                    this.state.addedFields.splice(idx);;
+                    this.state.addedFields.splice(idx, 1);;
                 }
             }
 
@@ -104,7 +104,7 @@ export default class FormPicker extends React.Component {
             let addedField = addedFields[idx];
 
             if (addedField.indexOf(field) !== -1) {
-                addedField.splice(addedField.indexOf(field));
+                addedField.splice(addedField.indexOf(field), 1);
                 this.setState({ addedFields })
             }
         }

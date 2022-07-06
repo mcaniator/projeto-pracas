@@ -338,7 +338,7 @@ export default class Question extends React.Component {
                             </GridItem>
 
                             <GridItem xs={12} md={4}>
-                                <RegularButton style={labelStyle} color="info" onClick={this.addOption}>Adcionar</RegularButton>
+                                <RegularButton style={labelStyle} color="info" onClick={this.addOption}>Adicionar</RegularButton>
                             </GridItem>
 
                             <GridItem xs={12} md={12}>
@@ -354,7 +354,7 @@ export default class Question extends React.Component {
                                     }}>
                                         {this.state.options.length == 0 &&
                                             <ListItem>
-                                                <ListItemText key={0} primary={"Adcione opções"} />
+                                                <ListItemText key={0} primary={"Adicione opções"} />
                                             </ListItem>}
                                         {this.state.options}
                                     </List>
@@ -366,7 +366,7 @@ export default class Question extends React.Component {
                 </GridContainer>
                 <GridContainer style={{ paddingLeft: '2em', paddingRight: '4em' }}>
                     <GridItem>
-                        <RegularButton color="primary" onClick={this.inserQuestion}>Adcionar</RegularButton>
+                        <RegularButton color="primary" onClick={this.inserQuestion}>Adicionar</RegularButton>
                         <Snackbar
                             place={"tc"}
                             color="success"
