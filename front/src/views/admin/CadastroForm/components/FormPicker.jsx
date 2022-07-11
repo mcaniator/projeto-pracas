@@ -1,4 +1,4 @@
-import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText } from "@material-ui/core";
+import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText, TextField } from "@material-ui/core";
 import { Add, Delete } from "@material-ui/icons";
 import RegularButton from "components/CustomButtons/Button";
 import GridContainer from "components/Grid/GridContainer";
@@ -12,12 +12,37 @@ export default class FormPicker extends React.Component {
         this.state = {
             addedCategories: [],
             addedFields: [],
+            textFields: [],
         };
 
         this.addCategory = this.addCategory.bind(this);
         this.addField = this.addField.bind(this);
         this.createForm = this.createForm.bind(this);
     }
+
+    componentDidMount(){
+        fetch("http://localhost:3333/text_field")
+            .then((res) => res.json())
+            .then((json) => {
+                this.setState({
+                    textFields: json,
+                });
+            })
+    }
+
+    /*async getText() {
+        try {
+            let text = await this.props.axios.get('http://localhost:3333/text_field');
+
+            if (text.status === 200) {
+                this.setState({
+                    textFields: text.data,
+                })
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }*/
 
     addCategory(category, fields) {
         let idx = this.state.addedCategories.indexOf(category);
@@ -110,6 +135,18 @@ export default class FormPicker extends React.Component {
         }
     }
 
+    isField(id){
+        for(const field of this.state.textFields){
+            console.log("i")
+            console.log(field.id_field)
+            if(field.id_field === id){
+                return(
+                    <TextField id="standard-basic" label="TextField" variant="standard" />
+                )
+            }
+        }
+    }
+
     async createForm() {
         if (this.state.addedFields.length === 0)
             return;
@@ -148,13 +185,13 @@ export default class FormPicker extends React.Component {
                                         <ListItemText primary={<b>{category.name.toUpperCase()}
                                             <IconButton onClick={() => { this.addCategory(category, categoryFields) }}><Add /></IconButton></b>} />
                                     </ListItem>
-
                                     <List style={{ width: 'fit-content', padding: 0 }}>
                                         {categoryFields.map(field => {
                                             return (
                                                 <ListItem key={field.id} sx={{ pl: 4 }}>
                                                     <ListItemIcon><IconButton onClick={() => { this.addField(category, field) }} ><Add /></IconButton></ListItemIcon>
                                                     <ListItemText primary={field.name}></ListItemText>
+                                                    {this.isField(field.id)}
                                                 </ListItem>
                                             );
                                         })}
@@ -164,6 +201,15 @@ export default class FormPicker extends React.Component {
                             );
                         })}
                     </List>
+                </GridItem>
+                <GridItem xs={12}>
+                        <List>
+                            {this.state.textFields.map((e) => {
+                                return (
+                                    e.id_field
+                                )
+                            })}
+                        </List>
                 </GridItem>
 
                 <GridItem xs={12}>
