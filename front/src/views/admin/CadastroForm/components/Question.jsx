@@ -95,7 +95,7 @@ export default class Question extends React.Component {
                     field = { char_limit }
                     break;
                 case 'option':
-                    let visual_preference;
+                    let visual_preference, option_limit;
 
                     switch (this.state.style) {
                         case 'Caixa de Seleção':
@@ -106,13 +106,14 @@ export default class Question extends React.Component {
                             break;
                         case 'Caixa de checagem':
                             visual_preference = 2;
+                            option_limit = parseInt(document.getElementById('option-limit').value.trim()) || null;
                             break;
                         default:
                             visual_preference = 0;
                     }
 
                     field = {
-                        option_limit: this.state.options.length,
+                        option_limit: option_limit || this.state.options.length,
                         total_options: this.state.options.length,
                         visual_preference
                     }
@@ -337,8 +338,28 @@ export default class Question extends React.Component {
                                 ></CustomInput>
                             </GridItem>
 
+
                             <GridItem xs={12} md={4}>
                                 <RegularButton style={labelStyle} color="info" onClick={this.addOption}>Adcionar</RegularButton>
+                            </GridItem>
+
+                            <GridItem xs={12} md={4}>
+                                {this.state.style === 'Caixa de checagem' &&
+                                    <CustomInput
+                                        labelText="Máximo de opções selecionáveis"
+                                        id="option-limit"
+                                        formControlProps={{
+                                            fullWidth: true,
+                                        }}
+
+                                        inputProps={{
+                                            type: "number",
+                                            inputProps: {
+                                                step: 1,
+                                            },
+                                        }}
+                                    ></CustomInput>
+                                }
                             </GridItem>
 
                             <GridItem xs={12} md={12}>

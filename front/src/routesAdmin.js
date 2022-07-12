@@ -23,6 +23,7 @@ import BubbleChart from "@material-ui/icons/BubbleChart";
 import LocationOn from "@material-ui/icons/LocationOn";
 import Notifications from "@material-ui/icons/Notifications";
 import AddAlert from "@material-ui/icons/AddAlert";
+import AssignmentIcon from '@material-ui/icons/Assignment';
 import Assessment from '@material-ui/icons/Assessment';
 
 // core components/views for Admin layout
@@ -48,6 +49,7 @@ import Home from "views/website/Home";
 import CreateUser from "views/admin/Users/UserCreate";
 import EditUser from "views/admin/Users/UserEdit";
 import ShowUser from "views/admin/Users/UserShow";
+import Forms from "views/admin/Forms/index.js";
 import { Test } from "@jsonforms/core";
 import { Note, ContactSupportOutlined } from "@material-ui/icons";
 
@@ -155,6 +157,12 @@ const dashboardRoutes = [
     component: FormBuilder,
     layout: "/admin"
   },
+  {
+    path: "/forms",
+    name: "Formulario",
+    icon: AssignmentIcon,
+    component: Forms,
+    layout: "/admin"
+  },
 ];
-
 export default dashboardRoutes;
