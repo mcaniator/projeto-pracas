@@ -5,7 +5,7 @@ import {
     Marker,
     Popup,
     TileLayer,
-    Polygon,
+    Polygon
 } from "react-leaflet";
 import {BrowserRouter as Router, Link} from 'react-router-dom';
 import GridItem from "components/Grid/GridItem.js";
@@ -17,9 +17,15 @@ import { IconButton } from "@material-ui/core";
 import Dialog from "@material-ui/core/Dialog";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
+import TextField from "@material-ui/core/TextField"
 import DialogActions from "@material-ui/core/DialogActions";
 import { DialogContentText } from "@material-ui/core";
 import { JsonForms } from "@jsonforms/react";
+import SearchIcon from '@material-ui/icons/Search';
+import Toolbar from "@material-ui/core/Toolbar"
+import AppBar from "@material-ui/core/AppBar"
+import Box from '@material-ui/core/Box'
+import InputAdornment from "@material-ui/core/InputAdornment";
 import {
     materialRenderers,
     materialCells,
@@ -31,6 +37,7 @@ import uischema from "../../../forms/example/uischema.json";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import L from "react-leaflet";
+import { Grid } from "ag-grid-community";
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -39,6 +46,7 @@ type State = {
     lng: number,
     zoom: number,
 };
+
 
 const center = [-21.7642, -43.3496];
 
@@ -76,6 +84,7 @@ export default class Leaflet extends Component<{}, State> {
         },
         error_msg: 'exception 404',
         data: {},
+        searchBar: ''
     };
 
     handleClick(e) {
@@ -118,6 +127,7 @@ export default class Leaflet extends Component<{}, State> {
                         id: state.polygonList.length,
                         coordinates: state.currentPolygon,
                         center: center,
+                        name: 'Praça não cadastrada',
                         _new : true
                     }),
                 };
@@ -149,6 +159,17 @@ export default class Leaflet extends Component<{}, State> {
 
     openAssessment(){
         console.log('click')
+    }
+
+    searchSquare(){
+        let squareName = this.state.searchBar;
+        let query = this.state.polygonList.find((obj) => {return obj.name.localeCompare(squareName, 'pt-BR', { sensitivity: 'base' }) === 0}) 
+        //Busca polígono com nome igual o da caixa de texto
+        if(query){
+            this.setState({lat: query.center[0], lng: query.center[1], zoom: 20})
+        }else{
+            console.log(squareName)
+        }
     }
 
     sendSquareRegister(polygonId){
@@ -260,6 +281,7 @@ export default class Leaflet extends Component<{}, State> {
                 await api.get('/locals').then(res => {
                     this.state.polygonList = res.data.map( p => ({
                         id : p.id,
+                        name: p.name,
                         coordinates : p.polygon.coordinates,
                         center : polylabel(p.polygon.coordinates, 1.0),
                         _new : false
@@ -277,160 +299,168 @@ export default class Leaflet extends Component<{}, State> {
     render(){
         const position = [this.state.lat, this.state.lng];
 
-
-
         return (
+        <div>
+            <AppBar position = 'static' color = '#9c9c9c'>
+                <Toolbar>
+                    <GridItem xs={10} sm={10} md={10}>
+                        <TextField id="txt-search-praca" label="Pesquisar por Praça" type="search" variant="filled" fullWidth 
+                        onChange = {(event) => {this.setState({"searchBar": event.target.value})}}
+                            InputProps={{
+                                startAdornment: ( //Ícone de Search
+                                <InputAdornment position='start'>
+                                    <SearchIcon />
+                                </InputAdornment>
+                                ),
+                            }} />
+                    </GridItem>
+                    <GridItem xs={2} sm={2} md={2}>
+                        <Button fullWidth col color = 'primary' onClick={ this.searchSquare.bind(this) }>
+                            Buscar
+                        </Button>
+                    </GridItem>
+                </Toolbar>
+            </AppBar>
             <GridContainer>
-            <GridItem xs={12} sm={12} md={12}>
-            <Map center={position} zoom={this.state.zoom} style={{ height: '100vh', width: '100%' }} onClick={this.handleClick.bind(this)}>
+                <Map center={[this.state.lat, this.state.lng]} zoom={this.state.zoom} style={{ height: '90vh', width: '100%' }} onClick={this.handleClick.bind(this)}>
+                    <Control position="topleft" >
+                        <Button color = 'primary' onClick={ this.startDraw.bind(this) } fullWidth>Começar Desenho</Button>
+                    </Control>
+                
+                    <Control position="topleft" >
+                        <Button onClick={ this.addPolygon.bind(this) } color = 'primary' fullWidth col>Adicionar Poligono</Button>
+                    </Control>
+                
+                    <Control position="topleft" >
+                        <Button onClick={ this.clearDraw.bind(this) } color = 'primary' fullWidth col>Descartar Desenho</Button>
+                    </Control>
+                
+                    <TileLayer
+                    url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+                    />
 
-            <Control position="topleft" >
-            <button
-            onClick={ this.startDraw.bind(this) }
-            style={{color: "#f00"}}
-            >
-            Começar Desenho
-            </button>
-            </Control>
-
-            <Control position="topleft" >
-            <button
-            onClick={ this.addPolygon.bind(this) }
-            >
-            Adicionar Poligono
-            </button>
-            </Control>
-
-            <Control position="topleft" >
-            <button
-            onClick={ this.clearDraw.bind(this) }
-            >
-            Descartar Desenho
-            </button>
-            </Control>
-            <TileLayer
-            url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-            />
-
-            {this.state.polygonList.filter((obj) => {return obj._new}).map(polygon => (
-                <Marker key = {polygon.id} position={polygon.center}>
-                <Popup>
-                <Button type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
-                Cadastrar praça
-                </Button>
-                <Dialog
-                fullWidth={true}
-                maxWidth={'md'}
-                open={this.state.register.open}
-                onClose={ this.registerDialogClose.bind(this) }
-                aria-labelledby="max-width-dialog-title"
-                >
-                <DialogTitle>Cadastrar Praça</DialogTitle>
-                <DialogContent dividers>
-                <JsonForms
-                schema={schema}
-                uischema={uischema}
-                renderers={materialRenderers}
-                cells={materialCells}
-                onChange={({ data, _errors }) => this.setState({"data": data})}
-
-                />
-                </DialogContent>
-                <DialogActions>
-                <Button autoFocus onClick={this.registerDialogClose.bind(this)} color="primary">
-                Cancelar
-                </Button>
-                <Button onClick={this.sendSquareRegister.bind(this, polygon.id)} color="primary">
-                Confirmar
-                </Button>
-                </DialogActions>
-
-                </Dialog>
-                </Popup>
-                </Marker>
-
-            ))}
-
-            {this.state.polygonList.filter((obj) => {return !obj._new}).map(polygon => (
-                <Marker key = {polygon.id} position={polygon.center}>
+                {this.state.polygonList.filter((obj) => {return obj._new}).map(polygon => (
+                    <Marker key = {polygon.id} position={polygon.center}> {/* Marker para CADASTRO de nova praça */}
                     <Popup>
-                        <GridContainer>
-                            <GridItem xs={12}>
-                                <Button fullWidth type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
-                                    Editar praça
-                                </Button>
-                            </GridItem>
-                            <GridItem xs={12}>
-                                <Link  to = {{
-                                    pathname: "/admin/Evaluation",
-                                    state: polygon.id //Verificar se id polígono = id no banco
-                                }}>
-                                    <Button fullWidth type="button" key = {polygon.id} color="primary" size="sm" col>
-                                        Adicionar avaliação
-                                    </Button>
-                                </Link>
-                            </GridItem> 
-                        </GridContainer>
+                    <Button type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                    Cadastrar praça
+                    </Button>
+                    <Dialog
+                    fullWidth={true}
+                    maxWidth={'md'}
+                    open={this.state.register.open}
+                    onClose={ this.registerDialogClose.bind(this) }
+                    aria-labelledby="max-width-dialog-title"
+                    >
+                    <DialogTitle>Cadastrar Praça</DialogTitle>
+                    <DialogContent dividers>
+                    <JsonForms
+                    schema={schema}
+                    uischema={uischema}
+                    renderers={materialRenderers}
+                    cells={materialCells}
+                    onChange={({ data, _errors }) => this.setState({"data": data})}
+
+                    />
+                    </DialogContent>
+                    <DialogActions>
+                    <Button autoFocus onClick={this.registerDialogClose.bind(this)} color="primary">
+                    Cancelar
+                    </Button>
+                    <Button onClick={this.sendSquareRegister.bind(this, polygon.id)} color="primary">
+                    Confirmar
+                    </Button>
+                    </DialogActions>
+
+                    </Dialog>
                     </Popup>
-                </Marker>
-            ))} 
+                    </Marker>
 
-            <Dialog
-                maxWidth={'md'}
-                open={this.state.alert.success}
-                onClose={ this.registerAlertClose.bind(this, true) }
-                aria-labelledby="max-width-dialog-title"    
-            >                
-                <DialogTitle id="alert-dialog-title">{"Sucesso"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        A praça foi inserida com sucesso!
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.registerAlertClose.bind(this, true)} color="primary">
-                        Ok
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            
-            <Dialog
-                maxWidth={'md'}
-                open={this.state.alert.error}
-                onClose={ this.registerAlertClose.bind(this, false) }
-                aria-labelledby="max-width-dialog-title"    
-            >                
-                <DialogTitle id="alert-dialog-title">{"Error"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Erro! A praça não pôde ser inserida.
-                    </DialogContentText>
-                    <DialogContentText>
-                        {this.state.error_msg}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.registerAlertClose.bind(this, false)} color="primary">
-                        Ok
-                    </Button>
-                </DialogActions>            
-            </Dialog>
+                ))}
 
-            <Polygon key="drawPolygon" positions={this.state.currentPolygon} color="blue" />
-            {this.state.polygonList.map(polygon => (
-                <Polygon key={polygon.id} positions={polygon.coordinates} color="red" />
-            ))}
+                {this.state.polygonList.filter((obj) => {return !obj._new}).map(polygon => (
+                    <Marker key = {polygon.id} position={polygon.center}> {/* Marker para EDIÇÂO de nova praça */}
+                        <Popup>
+                            <GridContainer>
+                                <GridItem xs = {12} style={{textAlign: "center"}}>
+                                    <b>{polygon.name}</b>
+                                </GridItem>
+                                <GridItem xs={12}>
+                                    <Button fullWidth type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                                        Editar praça
+                                    </Button>
+                                </GridItem>
+                                <GridItem xs={12}>
+                                    <Link  to = {{
+                                        pathname: "/admin/Evaluation",
+                                        state: polygon.id //Verificar se id polígono = id no banco
+                                    }}>
+                                        <Button fullWidth type="button" key = {polygon.id} color="primary" size="sm" col>
+                                            Adicionar avaliação
+                                        </Button>
+                                    </Link>
+                                </GridItem> 
+                            </GridContainer>
+                        </Popup>
+                    </Marker>
+                ))} 
+
+                <Dialog
+                    maxWidth={'md'}
+                    open={this.state.alert.success}
+                    onClose={ this.registerAlertClose.bind(this, true) }
+                    aria-labelledby="max-width-dialog-title"    
+                >                
+                    <DialogTitle id="alert-dialog-title">{"Sucesso"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            A praça foi inserida com sucesso!
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.registerAlertClose.bind(this, true)} color="primary">
+                            Ok
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                
+                <Dialog
+                    maxWidth={'md'}
+                    open={this.state.alert.error}
+                    onClose={ this.registerAlertClose.bind(this, false) }
+                    aria-labelledby="max-width-dialog-title"    
+                >                
+                    <DialogTitle id="alert-dialog-title">{"Error"}</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Erro! A praça não pôde ser inserida.
+                        </DialogContentText>
+                        <DialogContentText>
+                            {this.state.error_msg}
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={this.registerAlertClose.bind(this, false)} color="primary">
+                            Ok
+                        </Button>
+                    </DialogActions>            
+                </Dialog>
+
+                <Polygon key="drawPolygon" positions={this.state.currentPolygon} color="blue" />
+                {this.state.polygonList.map(polygon => (
+                    <Polygon key={polygon.id} positions={polygon.coordinates} color="red" />
+                ))}
 
 
-            <TileLayer
-            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            </Map>
-            
-            </GridItem>
-            
+                <TileLayer
+                attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                </Map>
+                
+                     
             </GridContainer>
+        </div>
         )
     }
 }
