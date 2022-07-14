@@ -13,6 +13,8 @@ export default class FormPicker extends React.Component {
             addedCategories: [],
             addedFields: [],
             textFields: [],
+            numericFields: [],
+            optionFields: [],
         };
 
         this.addCategory = this.addCategory.bind(this);
@@ -28,21 +30,22 @@ export default class FormPicker extends React.Component {
                     textFields: json,
                 });
             })
+            fetch("http://localhost:3333/numeric_field")
+            .then((res) => res.json())
+            .then((json) => {
+                this.setState({
+                    numericFields: json,
+                });
+            })
+            fetch("http://localhost:3333/option_field")
+            .then((res) => res.json())
+            .then((json) => {
+                this.setState({
+                    optionFields: json,
+                });
+            })
     }
 
-    /*async getText() {
-        try {
-            let text = await this.props.axios.get('http://localhost:3333/text_field');
-
-            if (text.status === 200) {
-                this.setState({
-                    textFields: text.data,
-                })
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }*/
 
     addCategory(category, fields) {
         let idx = this.state.addedCategories.indexOf(category);
@@ -135,13 +138,31 @@ export default class FormPicker extends React.Component {
         }
     }
 
-    isField(id){
+    fieldIs(id){
         for(const field of this.state.textFields){
             console.log("i")
             console.log(field.id_field)
             if(field.id_field === id){
                 return(
                     <TextField id="standard-basic" label="TextField" variant="standard" />
+                )
+            }
+        }
+        for(const field of this.state.numericFields){
+            console.log("i")
+            console.log(field.id_field)
+            if(field.id_field === id){
+                return(
+                    <TextField id="standard-basic" label="numericField" variant="standard" />
+                )
+            }
+        }
+        for(const field of this.state.optionFields){
+            console.log("i")
+            console.log(field.id_field)
+            if(field.id_field === id){
+                return(
+                    <TextField id="standard-basic" label="optionField" variant="standard" />
                 )
             }
         }
@@ -191,7 +212,7 @@ export default class FormPicker extends React.Component {
                                                 <ListItem key={field.id} sx={{ pl: 4 }}>
                                                     <ListItemIcon><IconButton onClick={() => { this.addField(category, field) }} ><Add /></IconButton></ListItemIcon>
                                                     <ListItemText primary={field.name}></ListItemText>
-                                                    {this.isField(field.id)}
+                                                    {this.fieldIs(field.id)}
                                                 </ListItem>
                                             );
                                         })}
@@ -201,15 +222,6 @@ export default class FormPicker extends React.Component {
                             );
                         })}
                     </List>
-                </GridItem>
-                <GridItem xs={12}>
-                        <List>
-                            {this.state.textFields.map((e) => {
-                                return (
-                                    e.id_field
-                                )
-                            })}
-                        </List>
                 </GridItem>
 
                 <GridItem xs={12}>
