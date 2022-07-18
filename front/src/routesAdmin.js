@@ -42,6 +42,8 @@ import Users from "views/admin/Users";
 import FormBuilder from "views/admin/CadastroForm";
 import Evaluation from 'views/admin/Evaluation'
 
+import OldBuilder from "views/admin/CadastroForm/old-index.jsx"
+
 
 import Home from "views/website/Home";
 
@@ -155,6 +157,13 @@ const dashboardRoutes = [
     name: "Cadastro de Formulario",
     icon: Note,
     component: FormBuilder,
+    layout: "/admin"
+  },
+  {
+    path: "/old-builder",
+    name: "[old] Cadastro de Formulario",
+    icon: Note,
+    component: OldBuilder,
     layout: "/admin"
   },
   {

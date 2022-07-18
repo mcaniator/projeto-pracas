@@ -2,13 +2,13 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import Tabs from "components/CustomTabs/CustomTabs.js";
-import Question from "./Question.jsx";
-import FormGenerator from "./FormGenerator.jsx";
-import { FormTest } from './FormTest.jsx';
+import Question from "./components/Question.jsx";
+import FormGenerator from "./components/FormGenerator.jsx";
+import { FormTest } from './components/FormTest.jsx';
 
 import axios from "axios";
-import FormPicker from "./FormPicker.jsx";
-import FormMount from "./FormMount.jsx";
+import FormPicker from "./components/FormPicker.jsx";
+import FormMount from "./components/FormMount.jsx";
 
 export default class FormBuilder extends React.Component {
     constructor(props) {
