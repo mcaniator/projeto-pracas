@@ -60,6 +60,7 @@ routes.post('/person_category', asyncRoute(PersonCategoryController.store));
 
 routes.get('/form_field', asyncRoute(FormFieldController.index));
 routes.post('/form_field', asyncRoute(FormFieldController.store));
+routes.get('/form_field/category', asyncRoute(FormFieldController.getWithCategory))
 
 routes.get('/form_structure', asyncRoute(FormStructureController.index));
 routes.post('/form_structure', asyncRoute(FormStructureController.store));

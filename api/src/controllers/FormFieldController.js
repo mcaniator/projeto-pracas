@@ -1,4 +1,4 @@
-const { FormsFields, NumericField, TextField, Option, OptionField, sequelize } = require('../models');
+const { FormsFields, Category, NumericField, TextField, Option, OptionField, sequelize } = require('../models');
 
 module.exports = {
   async index(req, res) {
@@ -46,5 +46,19 @@ module.exports = {
 
 
     return res.json(result);
+  },
+
+  async getWithCategory(req, res) {
+    const fields = await Category.findAll({
+      attributes: ['id', 'name'],
+      where: { active: true },
+      include: {
+        attributes: ['id', 'name', 'optional'],
+        model: FormsFields,
+        where: { active: true },
+      },
+    });
+
+    res.json(fields)
   }
 };
