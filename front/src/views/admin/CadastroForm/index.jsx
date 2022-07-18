@@ -2,7 +2,7 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import axios from "axios";
-import { ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Typography, IconButton, ListItem, ListItemText, List, ListItemIcon, Button } from "@material-ui/core";
+import { ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Typography, IconButton, ListItem, ListItemText, List, ListItemIcon, Button, Paper } from "@material-ui/core";
 import { Add, ExpandMore } from "@material-ui/icons";
 
 import Form from "@rjsf/material-ui";
@@ -16,7 +16,7 @@ export default class FormBuilder extends React.Component {
         this.state = {
             data: [], // categoria com suas perguntas [{category, FormFields: []}]
             formSchema: {
-                title: "Criar Fom",
+                title: "Pré-Visualização Formulário",
                 type: "object",
                 properties: {},
             },
@@ -105,8 +105,8 @@ export default class FormBuilder extends React.Component {
     render() {
         return (
             <GridContainer>
-                <GridItem xs={12}><h2>Criar Formulario</h2></GridItem>
-                <GridItem xs={12} md={6} style={{ backgroundColor: '#aa0000' }}>
+                <GridItem xs={12}><h2>Criar Formulário</h2></GridItem>
+                <GridItem xs={12} md={6}>
                     {this.state.data.map((category, catIdx) => (
                         <ExpansionPanel key={category.id}>
                             <ExpansionPanelSummary expandIcon={<ExpandMore />}>
@@ -130,8 +130,10 @@ export default class FormBuilder extends React.Component {
                     )
                     )}
                 </GridItem>
-                <GridItem xs={12} md={6} style={{ backgroundColor: '#00aa00' }}>
-                    < Form schema={this.state.formSchema} uiSchema={this.state.uiSchema} formData={formData} />
+                <GridItem xs={12} md={6}>
+                    <Paper style={{padding: '1em'}}>
+                        < Form schema={this.state.formSchema} uiSchema={this.state.uiSchema} formData={formData} />
+                    </Paper>
                 </GridItem>
             </GridContainer>);
     }
