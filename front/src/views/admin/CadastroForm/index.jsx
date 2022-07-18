@@ -2,10 +2,25 @@ import React from "react";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import axios from "axios";
-import { ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Typography, IconButton, ListItem, ListItemText, List, ListItemIcon, Button, Paper } from "@material-ui/core";
+import { ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Typography, IconButton, ListItem, ListItemText, List, ListItemIcon, Button, Paper, Modal } from "@material-ui/core";
 import { Add, ExpandMore } from "@material-ui/icons";
+import Question from "./components/Question2";
+
+import RegularButton from "components/CustomButtons/Button";
 
 import Form from "@rjsf/material-ui";
+
+const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '70%',
+    bgcolor: 'background.paper',
+    // border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
 
 const formData = {};
 export default class FormBuilder extends React.Component {
@@ -20,10 +35,13 @@ export default class FormBuilder extends React.Component {
                 type: "object",
                 properties: {},
             },
-            uiSchema: {}
+            uiSchema: {},
+            openQuestion: false
         }
 
         this.init = this.init.bind(this);
+        this.openModal = this.openModal.bind(this);
+        this.closeModal = this.closeModal.bind(this);
 
         this.init();
     }
@@ -102,10 +120,30 @@ export default class FormBuilder extends React.Component {
         }
     }
 
+    openModal() {
+        this.setState({
+            openQuestion: true
+        })
+    }
+
+    closeModal() {
+        this.setState({
+            openQuestion: false
+        })
+    }
+
     render() {
         return (
             <GridContainer>
                 <GridItem xs={12}><h2>Criar Formulário</h2></GridItem>
+
+                <GridItem xs={12} style={{ marginBottom: '0.5em' }}>
+                    <Paper style={{ padding: '0.2em' }}>
+                        <RegularButton color="primary">Nova Categoria</RegularButton>
+                        <RegularButton color="primary" onClick={this.openModal}>Nova Pergunta</RegularButton>
+                    </Paper>
+                </GridItem>
+
                 <GridItem xs={12} md={6}>
                     {this.state.data.map((category, catIdx) => (
                         <ExpansionPanel key={category.id}>
@@ -131,10 +169,17 @@ export default class FormBuilder extends React.Component {
                     )}
                 </GridItem>
                 <GridItem xs={12} md={6}>
-                    <Paper style={{padding: '1em'}}>
+                    <Paper style={{ padding: '1em' }}>
                         < Form schema={this.state.formSchema} uiSchema={this.state.uiSchema} formData={formData} />
                     </Paper>
                 </GridItem>
+
+                {/* Modal adcionar pergunta */}
+                <Modal open={this.state.openQuestion} onClose={this.closeModal}>
+                    <Paper style={modalStyle}>
+                        <Question categories={this.state.data}></Question>
+                    </Paper>
+                </Modal>
             </GridContainer>);
     }
 }
