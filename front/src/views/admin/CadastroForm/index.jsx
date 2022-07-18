@@ -9,6 +9,7 @@ import Question from "./components/Question2";
 import RegularButton from "components/CustomButtons/Button";
 
 import Form from "@rjsf/material-ui";
+import DialogCategory from "./components/DialogCategory";
 
 const modalStyle = {
     position: 'absolute',
@@ -20,7 +21,7 @@ const modalStyle = {
     // border: '2px solid #000',
     boxShadow: 24,
     p: 4,
-  };
+};
 
 const formData = {};
 export default class FormBuilder extends React.Component {
@@ -36,7 +37,8 @@ export default class FormBuilder extends React.Component {
                 properties: {},
             },
             uiSchema: {},
-            openQuestion: false
+            openQuestion: false,
+            openNewCategory: false,
         }
 
         this.init = this.init.bind(this);
@@ -120,15 +122,19 @@ export default class FormBuilder extends React.Component {
         }
     }
 
-    openModal() {
+    openModal(opt) {
+        opt = opt === 1 ? 'openQuestion' : 'openNewCategory';
+
         this.setState({
-            openQuestion: true
+            [opt]: true
         })
     }
 
-    closeModal() {
+    closeModal(opt) {
+        opt = opt === 1 ? 'openQuestion' : 'openNewCategory';
+
         this.setState({
-            openQuestion: false
+            [opt]: false
         })
     }
 
@@ -139,8 +145,8 @@ export default class FormBuilder extends React.Component {
 
                 <GridItem xs={12} style={{ marginBottom: '0.5em' }}>
                     <Paper style={{ padding: '0.2em' }}>
-                        <RegularButton color="primary">Nova Categoria</RegularButton>
-                        <RegularButton color="primary" onClick={this.openModal}>Nova Pergunta</RegularButton>
+                        <RegularButton color="primary" onClick={() => { this.openModal(1) }}>Nova Pergunta</RegularButton>
+                        <RegularButton color="primary" onClick={() => { this.openModal(2) }}>Nova Categoria</RegularButton>
                     </Paper>
                 </GridItem>
 
@@ -175,11 +181,13 @@ export default class FormBuilder extends React.Component {
                 </GridItem>
 
                 {/* Modal adcionar pergunta */}
-                <Modal open={this.state.openQuestion} onClose={this.closeModal}>
+                <Modal open={this.state.openQuestion} onClose={() => { this.closeModal(1) }}>
                     <Paper style={modalStyle}>
                         <Question categories={this.state.data}></Question>
                     </Paper>
                 </Modal>
+
+                <DialogCategory open={this.state.openNewCategory} close={() => { this.closeModal(2) }}></DialogCategory>
             </GridContainer>);
     }
 }
