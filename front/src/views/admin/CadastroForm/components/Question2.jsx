@@ -8,7 +8,6 @@ import RegularButton from "components/CustomButtons/Button";
 import Snackbar from "components/Snackbar/Snackbar";
 import { Add, Delete } from "@material-ui/icons";
 
-import DialogCategory from "./DialogCategory.js";
 
 const selectStyle = {
     display: 'block',
@@ -31,16 +30,10 @@ export default class Question extends React.Component {
             type: 0,
             style: 0,
             options: [],
-            showSuccess: false,
-            showError: false,
-            showDialog: false,
         }
 
         this.handleChange = this.handleChange.bind(this);
-        this.showDialog = this.showDialog.bind(this);
-        this.closeMessage = this.closeMessage.bind(this);
         this.inserQuestion = this.inserQuestion.bind(this);
-        this.insertCategory = this.insertCategory.bind(this);
         this.addOption = this.addOption.bind(this);
         this.rmOption = this.rmOption.bind(this);
     }
@@ -50,18 +43,6 @@ export default class Question extends React.Component {
         this.setState({
             [name]: event.target.value,
         })
-    }
-
-    showDialog() {
-        this.setState({ showDialog: true });
-    }
-
-    insertCategory(category) {
-        if (category?.length > 0) {
-            // this.props.insertCategory(category)
-        }
-
-        this.setState({ showDialog: false })
     }
 
     inserQuestion() {
@@ -128,14 +109,12 @@ export default class Question extends React.Component {
                 optional: false,
             }
 
-            // this.props.insertQuestion(question, types[type], field, options);
+            this.props.insertQuestion(question, types[type], field, options);
 
             this.setState({
                 category: 0,
                 type: 0,
                 options: [],
-                showSuccess: true,
-                showError: false
             })
 
             document.getElementById('question').value = ''
@@ -145,15 +124,6 @@ export default class Question extends React.Component {
                 showError: true,
                 showSuccess: false
             })
-        }
-    }
-
-    closeMessage(message) {
-        if (message == 'success') {
-            this.setState({ showSuccess: false })
-        }
-        else if (message == 'error') {
-            this.setState({ showError: false })
         }
     }
 
@@ -237,12 +207,6 @@ export default class Question extends React.Component {
                             }}
                             onChange={this.handleChange}
                         >
-                            <MenuItem value={0}>
-                                <RegularButton color="info" onClick={this.showDialog} style={{ width: '100%' }}>
-                                    <Add />
-                                    Nova Categoria
-                                </RegularButton>
-                            </MenuItem>
                             {this.props.categories.map(cat => <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>)}
                         </Select>
                     </GridItem>
@@ -383,8 +347,8 @@ export default class Question extends React.Component {
                             </GridItem>
                         </>
                     }
-
                 </GridContainer>
+                
                 <GridContainer style={{ paddingLeft: '2em', paddingRight: '4em' }}>
                     <GridItem>
                         <RegularButton color="primary" onClick={this.inserQuestion}>Adcionar</RegularButton>
@@ -406,7 +370,6 @@ export default class Question extends React.Component {
                             close
                         ></Snackbar>
                     </GridItem>
-                    <DialogCategory open={this.state.showDialog} close={this.insertCategory}></DialogCategory>
                 </GridContainer>
             </>
         );

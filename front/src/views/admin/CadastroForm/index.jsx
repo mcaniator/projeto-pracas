@@ -46,6 +46,7 @@ export default class FormBuilder extends React.Component {
         this.openCategoryModal = this.openCategoryModal.bind(this);
         this.closeQuestionModal = this.closeQuestionModal.bind(this);
         this.closeCategoryModal = this.closeCategoryModal.bind(this);
+        this.insertQuestion = this.insertQuestion.bind(this);
 
         this.init();
     }
@@ -158,6 +159,24 @@ export default class FormBuilder extends React.Component {
         }
     }
 
+    async insertQuestion(question, type, field, options) {
+        try {
+            let resForms = await axios.post('http://localhost:3333/form_field', { question, type, field, options })
+            let formField = resForms.data.formField;
+
+            const category = this.state.data.find(cat => cat.id === formField.category_id);
+
+            // Desse jeito eu mudo o estado de uma maneira facil sem chamar this.setState
+            // Mas devia eu fazer desse jeito? Algo me diz que nao, mas esta funcionando
+            category.FormsFields.push(formField);
+
+            this.closeQuestionModal();
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+
     render() {
         return (
             <GridContainer>
@@ -208,7 +227,7 @@ export default class FormBuilder extends React.Component {
                 {/* Modal adcionar pergunta */}
                 <Modal open={this.state.openQuestion} onClose={this.closeQuestionModal}>
                     <Paper style={modalStyle}>
-                        <Question categories={this.state.data}></Question>
+                        <Question categories={this.state.data} insertQuestion={this.insertQuestion}></Question>
                     </Paper>
                 </Modal>
 
