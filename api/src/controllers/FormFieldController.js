@@ -56,6 +56,7 @@ module.exports = {
         attributes: ['id', 'name', 'optional'],
         model: FormsFields,
         where: { active: true },
+        required: false
       },
     });
 
