@@ -127,7 +127,36 @@ export default class FormBuilder extends React.Component {
     openQuestionModal() { this.setState({ openQuestion: true }) }
     openCategoryModal() { this.setState({ openNewCategory: true }) }
     closeQuestionModal() { this.setState({ openQuestion: false }) }
-    closeCategoryModal() { this.setState({ openNewCategory: false }) }
+
+    async closeCategoryModal(newCategory) {
+        this.setState({ openNewCategory: false });
+
+        if (typeof newCategory === 'string' && newCategory.trim().length > 0) {
+            newCategory = {
+                name: newCategory,
+                optional: false,
+                active: true
+            }
+            console.log(this.state.data);
+            try {
+                let res = await axios.post('http://localhost:3333/category', { category: [newCategory] })
+
+                if (res.status == 200) {
+                    let cat = res.data[0];
+                    cat.FormsFields = [];
+
+                    console.log(cat);
+
+                    this.setState({
+                        data: [...this.state.data, cat]
+                    });
+                }
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+    }
 
     render() {
         return (
@@ -148,18 +177,23 @@ export default class FormBuilder extends React.Component {
                                 <Typography>{category.name}</Typography>
                             </ExpansionPanelSummary>
                             <ExpansionPanelDetails>
-                                <List style={{ width: '100%', padding: 0 }}>
-                                    <ListItem>
-                                        <Button onClick={() => { this.addAllFields(catIdx) }}>Adcionar todas dessa categoria</Button>
-                                    </ListItem>
-
-                                    {category.FormsFields.map((field, fieIdx) => (
-                                        <ListItem key={field.id}>
-                                            <ListItemText primary={field.name}></ListItemText>
-                                            <ListItemIcon><IconButton onClick={() => { this.addField(catIdx, fieIdx) }}><Add /></IconButton></ListItemIcon>
+                                {category.FormsFields.length === 0 &&
+                                    <Typography>Sem perguntas cadastradas para essa categoria</Typography>
+                                }
+                                {category.FormsFields.length > 0 &&
+                                    <List style={{ width: '100%', padding: 0 }}>
+                                        <ListItem>
+                                            <Button onClick={() => { this.addAllFields(catIdx) }}>Adcionar todas dessa categoria</Button>
                                         </ListItem>
-                                    ))}
-                                </List>
+
+                                        {category.FormsFields.map((field, fieIdx) => (
+                                            <ListItem key={field.id}>
+                                                <ListItemText primary={field.name}></ListItemText>
+                                                <ListItemIcon><IconButton onClick={() => { this.addField(catIdx, fieIdx) }}><Add /></IconButton></ListItemIcon>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                }
                             </ExpansionPanelDetails>
                         </ExpansionPanel>
                     )
