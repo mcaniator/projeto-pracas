@@ -38,6 +38,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import L from "react-leaflet";
 import { Grid } from "ag-grid-community";
+import Autocomplete from '@material-ui/lab/Autocomplete'
+
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -304,7 +306,7 @@ export default class Leaflet extends Component<{}, State> {
             <AppBar position = 'static' color = '#9c9c9c'>
                 <Toolbar>
                     <GridItem xs={10} sm={10} md={10}>
-                        <TextField id="txt-search-praca" label="Pesquisar por Praça" type="search" variant="filled" fullWidth 
+                        {/* <TextField id="txt-search-praca" label="Pesquisar por Praça" type="search" variant="filled" fullWidth 
                         onChange = {(event) => {this.setState({"searchBar": event.target.value})}}
                             InputProps={{
                                 startAdornment: ( //Ícone de Search
@@ -312,7 +314,23 @@ export default class Leaflet extends Component<{}, State> {
                                     <SearchIcon />
                                 </InputAdornment>
                                 ),
-                            }} />
+                            }} /> */}
+                            <Autocomplete 
+                                id="txt-search-praca"
+                                noOptionsText = 'Sem praças encontradas'
+                                options = {this.state.polygonList.map((obj) => {return obj.name})}
+                                getOptionLabel = {option => option}
+                                renderInput = {params => (
+                                <TextField {...params} label = 'Pesquisar por Praça' variant = 'filled' fullWidth 
+                                onKeyUp={(event) => {
+                                    if (event.key== 'Enter')
+                                        this.searchSquare()
+                                }}
+                                />   
+                                )}
+                                onInputChange = {(event, value) => {this.setState({"searchBar": value})}}
+                            />
+                
                     </GridItem>
                     <GridItem xs={2} sm={2} md={2}>
                         <Button fullWidth col color = 'primary' onClick={ this.searchSquare.bind(this) }>
