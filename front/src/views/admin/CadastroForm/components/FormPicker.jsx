@@ -1,5 +1,5 @@
-import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText, TextField } from "@material-ui/core";
-import { Add, Delete } from "@material-ui/icons";
+import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText, TextField, FormControlLabel, Checkbox } from "@material-ui/core";
+import { Add, CheckBox, Delete } from "@material-ui/icons";
 import RegularButton from "components/CustomButtons/Button";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
@@ -15,6 +15,7 @@ export default class FormPicker extends React.Component {
             textFields: [],
             numericFields: [],
             optionFields: [],
+            options: [],
         };
 
         this.addCategory = this.addCategory.bind(this);
@@ -42,6 +43,13 @@ export default class FormPicker extends React.Component {
             .then((json) => {
                 this.setState({
                     optionFields: json,
+                });
+            })
+            fetch("http://localhost:3333/option")
+            .then((res) => res.json())
+            .then((json) => {
+                this.setState({
+                    options: json,
                 });
             })
     }
@@ -140,29 +148,40 @@ export default class FormPicker extends React.Component {
 
     fieldIs(id){
         for(const field of this.state.textFields){
-            console.log("i")
-            console.log(field.id_field)
             if(field.id_field === id){
                 return(
-                    <TextField id="standard-basic" label="TextField" variant="standard" />
+                    <TextField 
+                        id="text" 
+                        label="TextField" 
+                        variant="standard" 
+                        style={{marginLeft: 'auto', marginRight: 'auto'}} 
+                        color ="info"/>
                 )
             }
         }
         for(const field of this.state.numericFields){
-            console.log("i")
-            console.log(field.id_field)
             if(field.id_field === id){
                 return(
-                    <TextField id="standard-basic" label="numericField" variant="standard" />
+                    <TextField 
+                        id="numeric" 
+                        label="nº" 
+                        variant="standard" 
+                        style={{width:'15%', marginLeft: 'auto', marginRight: 'auto'}}
+                        type= "number"  />
                 )
             }
         }
         for(const field of this.state.optionFields){
-            console.log("i")
-            console.log(field.id_field)
             if(field.id_field === id){
                 return(
-                    <TextField id="standard-basic" label="optionField" variant="standard" />
+                    this.state.options.map( e => {
+                        return e.id_optionfield == field.id ? 
+                            <div>
+                                <FormControlLabel  control={<Checkbox />}/>
+                                {e.name}
+                            </div> : 
+                            <div/>
+                    })
                 )
             }
         }
