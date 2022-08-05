@@ -96,22 +96,42 @@ export default class FormBuilder extends React.Component {
         let category = this.state.data[catIdx];
         let field = category.FormsFields[fieIdx];
 
+        let config, uiConfig;
+
+        if (field.TextField) {
+            config = { type: 'string' }
+        }
+        else if (field.NumericField) {
+            let max = field.NumericField.max, min = field.NumericField.min;
+            console.log(field.NumericField)
+
+            if (typeof max === "number" && typeof min === "number")
+                uiConfig = { "ui:widget": "range" };
+            else
+                uiConfig = { "ui:widget": "updown" }
+
+            config = { type: 'number', minimum: min, maximum: max }
+        }
+        if (field.OptionField) {
+            config = { type: 'object' }
+        };
+
+        this.setState({
+            uiSchema: {
+                ...this.state.uiSchema,
+                [field.name]: uiConfig
+            }
+        })
+
         if (!this.state.formSchema.properties[category.name]) {
-
-
             this.addCategory(catIdx, {
-                [field.name]: {
-                    type: 'string'
-                }
+                [field.name]: config
             });
         }
         else {
             let stateCategory = this.state.formSchema.properties[category.name];
 
-            stateCategory.properties[field.name] = {
-                type: 'string'
-            }
-            console.log(stateCategory)
+            stateCategory.properties[field.name] = config;
 
             this.setState({
                 formSchema: {
@@ -123,6 +143,8 @@ export default class FormBuilder extends React.Component {
                 }
             })
         }
+
+        // console.log(this.state.formSchema, this.state.uiSchema)
     }
 
     openQuestionModal() { this.setState({ openQuestion: true }) }
@@ -138,7 +160,7 @@ export default class FormBuilder extends React.Component {
                 optional: false,
                 active: true
             }
-            console.log(this.state.data);
+
             try {
                 let res = await axios.post('http://localhost:3333/category', { category: [newCategory] })
 
