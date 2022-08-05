@@ -56,7 +56,28 @@ module.exports = {
         attributes: ['id', 'name', 'optional'],
         model: FormsFields,
         where: { active: true },
-        required: false
+        required: false,
+        include: [
+          {
+            model: NumericField,
+            required: false,
+            attributes: ['min', 'max']
+          },
+          {
+            model: TextField,
+            required: false,
+            attributes: ['id']
+          },
+          {
+            model: OptionField,
+            required: false,
+            attributes: ['id', 'total_options', 'option_limit', 'visual_preference'],
+            include: {
+              model: Option,
+              attributes: ['id', 'name']
+            }
+          },
+        ]
       },
     });
 
