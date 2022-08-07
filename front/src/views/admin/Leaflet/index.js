@@ -80,6 +80,9 @@ export default class Leaflet extends Component<{}, State> {
         register: {
             open: false,
         },
+        edit: {
+            open: false
+        },
         alert:{
             success: false,
             error: false,
@@ -150,6 +153,14 @@ export default class Leaflet extends Component<{}, State> {
         this.setState({ register: { open: false } });
     }
 
+    editDialogOpen(){
+        this.setState({ edit: { open: true } });
+    }
+
+    editDialogClose(){
+        this.setState({ edit: { open: false } });
+    }
+
     registerAlertOpen(success){
         success ? this.setState({ alert: { success: true } }) : this.setState({ alert: { error: true } })
         console.log(this.state.error_msg)
@@ -172,6 +183,11 @@ export default class Leaflet extends Component<{}, State> {
         }else{
             console.log(squareName)
         }
+    }
+
+    sendSquareEdit(polygonId){
+        var data = this.state.data;
+        
     }
 
     sendSquareRegister(polygonId){
@@ -271,6 +287,8 @@ export default class Leaflet extends Component<{}, State> {
                 axios.post(`http://localhost:3333/addresses`, submitAddresses).then((res_) => {});
                 this.setState({alert : {success : true}})
                 this.setState({register : {open : false}})
+                currentPolygon._new = false
+                currentPolygon.name = data.nome
             }).catch((err) => {
                 this.setState({error_msg : err.message})
                 this.setState({alert : {error : true}})
@@ -404,7 +422,7 @@ export default class Leaflet extends Component<{}, State> {
                                     <b>{polygon.name}</b>
                                 </GridItem>
                                 <GridItem xs={12}>
-                                    <Button fullWidth type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                                    <Button fullWidth type="button" key = {polygon.id} onClick={this.editDialogOpen.bind(this) } color="primary" size="sm" col>
                                         Editar praça
                                     </Button>
                                 </GridItem>
@@ -419,6 +437,35 @@ export default class Leaflet extends Component<{}, State> {
                                     </Link>
                                 </GridItem> 
                             </GridContainer>
+
+                            <Dialog
+                                fullWidth={true}
+                                maxWidth={'md'}
+                                open={this.state.edit.open}
+                                onClose={ this.registerDialogClose.bind(this) }
+                                aria-labelledby="max-width-dialog-title"
+                            >
+                            <DialogTitle>Editar Praça</DialogTitle>
+                            <DialogContent dividers>
+                                <JsonForms
+                                    schema={schema}
+                                    uischema={uischema}
+                                    renderers={materialRenderers}
+                                    cells={materialCells}
+                                    onChange={({ data, _errors }) => this.setState({"data": data})}
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button autoFocus onClick={this.editDialogClose.bind(this)} color="primary">
+                                Cancelar
+                                </Button>
+                                <Button onClick={this.sendSquareEdit.bind(this, polygon.id)} color="primary">
+                                Confirmar
+                                </Button>
+                            </DialogActions>
+
+                            </Dialog>
+
                         </Popup>
                     </Marker>
                 ))} 
