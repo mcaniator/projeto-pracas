@@ -112,8 +112,19 @@ export default class FormBuilder extends React.Component {
 
             config = { type: 'number', minimum: min, maximum: max }
         }
-        if (field.OptionField) {
-            config = { type: 'object' }
+        else if (field.OptionField) {
+            console.log(field);
+            config = {
+                type: 'array',
+                title: field.name,
+                items: {
+                    type: "string",
+                    enum: field.OptionField.Options.map(e => e.name)
+                },
+                uniqueItems: true
+            }
+
+            uiConfig = { "ui:widget": "checkboxes" };
         };
 
         this.setState({
@@ -121,7 +132,7 @@ export default class FormBuilder extends React.Component {
                 ...this.state.uiSchema,
                 [field.name]: uiConfig
             }
-        })
+        });
 
         if (!this.state.formSchema.properties[category.name]) {
             this.addCategory(catIdx, {
@@ -144,7 +155,10 @@ export default class FormBuilder extends React.Component {
             })
         }
 
-        // console.log(this.state.formSchema, this.state.uiSchema)
+        setTimeout(
+            () => { console.log(this.state.formSchema.properties, this.state.uiSchema) },
+            500
+        )
     }
 
     openQuestionModal() { this.setState({ openQuestion: true }) }
