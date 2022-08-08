@@ -38,6 +38,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import L from "react-leaflet";
 import { Grid } from "ag-grid-community";
+import Autocomplete from '@material-ui/lab/Autocomplete'
+
 
 const { BaseLayer, Overlay } = LayersControl;
 
@@ -77,6 +79,9 @@ export default class Leaflet extends Component<{}, State> {
         drawActive: false,
         register: {
             open: false,
+        },
+        edit: {
+            open: false
         },
         alert:{
             success: false,
@@ -148,6 +153,14 @@ export default class Leaflet extends Component<{}, State> {
         this.setState({ register: { open: false } });
     }
 
+    editDialogOpen(){
+        this.setState({ edit: { open: true } });
+    }
+
+    editDialogClose(){
+        this.setState({ edit: { open: false } });
+    }
+
     registerAlertOpen(success){
         success ? this.setState({ alert: { success: true } }) : this.setState({ alert: { error: true } })
         console.log(this.state.error_msg)
@@ -170,6 +183,11 @@ export default class Leaflet extends Component<{}, State> {
         }else{
             console.log(squareName)
         }
+    }
+
+    sendSquareEdit(polygonId){
+        var data = this.state.data;
+        
     }
 
     sendSquareRegister(polygonId){
@@ -269,6 +287,8 @@ export default class Leaflet extends Component<{}, State> {
                 axios.post(`http://localhost:3333/addresses`, submitAddresses).then((res_) => {});
                 this.setState({alert : {success : true}})
                 this.setState({register : {open : false}})
+                currentPolygon._new = false
+                currentPolygon.name = data.nome
             }).catch((err) => {
                 this.setState({error_msg : err.message})
                 this.setState({alert : {error : true}})
@@ -304,7 +324,7 @@ export default class Leaflet extends Component<{}, State> {
             <AppBar position = 'static' color = '#9c9c9c'>
                 <Toolbar>
                     <GridItem xs={10} sm={10} md={10}>
-                        <TextField id="txt-search-praca" label="Pesquisar por Praça" type="search" variant="filled" fullWidth 
+                        {/* <TextField id="txt-search-praca" label="Pesquisar por Praça" type="search" variant="filled" fullWidth 
                         onChange = {(event) => {this.setState({"searchBar": event.target.value})}}
                             InputProps={{
                                 startAdornment: ( //Ícone de Search
@@ -312,7 +332,23 @@ export default class Leaflet extends Component<{}, State> {
                                     <SearchIcon />
                                 </InputAdornment>
                                 ),
-                            }} />
+                            }} /> */}
+                            <Autocomplete 
+                                id="txt-search-praca"
+                                noOptionsText = 'Sem praças encontradas'
+                                options = {this.state.polygonList.map((obj) => {return obj.name})}
+                                getOptionLabel = {option => option}
+                                renderInput = {params => (
+                                <TextField {...params} label = 'Pesquisar por Praça' variant = 'filled' fullWidth 
+                                onKeyUp={(event) => {
+                                    if (event.key== 'Enter')
+                                        this.searchSquare()
+                                }}
+                                />   
+                                )}
+                                onInputChange = {(event, value) => {this.setState({"searchBar": value})}}
+                            />
+                
                     </GridItem>
                     <GridItem xs={2} sm={2} md={2}>
                         <Button fullWidth col color = 'primary' onClick={ this.searchSquare.bind(this) }>
@@ -386,7 +422,7 @@ export default class Leaflet extends Component<{}, State> {
                                     <b>{polygon.name}</b>
                                 </GridItem>
                                 <GridItem xs={12}>
-                                    <Button fullWidth type="button" key = {polygon.id} onClick={this.registerDialogOpen.bind(this) } color="primary" size="sm" col>
+                                    <Button fullWidth type="button" key = {polygon.id} onClick={this.editDialogOpen.bind(this) } color="primary" size="sm" col>
                                         Editar praça
                                     </Button>
                                 </GridItem>
@@ -401,6 +437,35 @@ export default class Leaflet extends Component<{}, State> {
                                     </Link>
                                 </GridItem> 
                             </GridContainer>
+
+                            <Dialog
+                                fullWidth={true}
+                                maxWidth={'md'}
+                                open={this.state.edit.open}
+                                onClose={ this.registerDialogClose.bind(this) }
+                                aria-labelledby="max-width-dialog-title"
+                            >
+                            <DialogTitle>Editar Praça</DialogTitle>
+                            <DialogContent dividers>
+                                <JsonForms
+                                    schema={schema}
+                                    uischema={uischema}
+                                    renderers={materialRenderers}
+                                    cells={materialCells}
+                                    onChange={({ data, _errors }) => this.setState({"data": data})}
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button autoFocus onClick={this.editDialogClose.bind(this)} color="primary">
+                                Cancelar
+                                </Button>
+                                <Button onClick={this.sendSquareEdit.bind(this, polygon.id)} color="primary">
+                                Confirmar
+                                </Button>
+                            </DialogActions>
+
+                            </Dialog>
+
                         </Popup>
                     </Marker>
                 ))} 
