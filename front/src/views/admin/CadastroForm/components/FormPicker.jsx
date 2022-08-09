@@ -174,14 +174,16 @@ export default class FormPicker extends React.Component {
         for(const field of this.state.optionFields){
             if(field.id_field === id){
                 return(
-                    this.state.options.map( e => {
-                        return e.id_optionfield == field.id ? 
-                            <div>
-                                <FormControlLabel  control={<Checkbox />}/>
-                                {e.name}
-                            </div> : 
-                            <div/>
-                    })
+                    <div>
+                        {this.state.options.map( e => {
+                            return e.id_optionfield == field.id ? 
+                                <div>
+                                    <FormControlLabel  control={<Checkbox />}/>
+                                    {e.name}
+                                </div> : 
+                                <div/>
+                        })}
+                    </div>
                 )
             }
         }
@@ -231,7 +233,6 @@ export default class FormPicker extends React.Component {
                                                 <ListItem key={field.id} sx={{ pl: 4 }}>
                                                     <ListItemIcon><IconButton onClick={() => { this.addField(category, field) }} ><Add /></IconButton></ListItemIcon>
                                                     <ListItemText primary={field.name}></ListItemText>
-                                                    {this.fieldIs(field.id)}
                                                 </ListItem>
                                             );
                                         })}
@@ -260,6 +261,7 @@ export default class FormPicker extends React.Component {
                                                 <ListItem key={field.id} sx={{ pl: 4 }}>
                                                     <ListItemIcon><IconButton onClick={() => { this.removeField(category, field) }}><Delete /></IconButton></ListItemIcon>
                                                     <ListItemText primary={field.name}></ListItemText>
+                                                    {this.fieldIs(field.id)}
                                                 </ListItem>
                                             );
                                         })}
