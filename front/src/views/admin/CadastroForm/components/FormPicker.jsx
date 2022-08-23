@@ -1,9 +1,11 @@
-import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, ListItemIcon, ListItemText, TextField, FormControlLabel, Checkbox } from "@material-ui/core";
+import { Box, Card, CardHeader, Divider, IconButton, List, ListItem, 
+    ListItemIcon, ListItemText, TextField, FormControlLabel, Checkbox, Radio, RadioGroup} from "@material-ui/core";
 import { Add, CheckBox, Delete } from "@material-ui/icons";
 import RegularButton from "components/CustomButtons/Button";
 import GridContainer from "components/Grid/GridContainer";
 import GridItem from "components/Grid/GridItem";
 import React from "react";
+
 
 export default class FormPicker extends React.Component {
     constructor(props) {
@@ -173,18 +175,48 @@ export default class FormPicker extends React.Component {
         }
         for(const field of this.state.optionFields){
             if(field.id_field === id){
-                return(
-                    <div>
-                        {this.state.options.map( e => {
-                            return e.id_optionfield == field.id ? 
-                                <div>
-                                    <FormControlLabel  control={<Checkbox />}/>
-                                    {e.name}
-                                </div> : 
-                                <div/>
-                        })}
-                    </div>
-                )
+                if(field.visual_preference == 0){
+                    return(
+                        <div>
+                            {this.state.options.map( e => {
+                                return e.id_optionfield == field.id ? 
+                                    <div>
+                                        <FormControlLabel  control={<Checkbox />}/>
+                                        {e.name}
+                                    </div> : 
+                                    <div/>
+                            })}
+                        </div>
+                    )
+                }
+                else if(field.visual_preference == 1){
+                    return(
+                        //falta ajustar posição e cor dos botoes
+                        <div>
+                            {this.state.options.map( e => {
+                                return e.id_optionfield == field.id ? 
+                                    <RadioGroup>
+                                        <FormControlLabel label={e.name} labelPlacement= 'end' control={<Radio color="blueviolet" />}/> 
+                                    </RadioGroup> : 
+                                    <div/>
+                            })}
+                        </div>
+                    )
+                } 
+                else if(field.visual_preference == 2){
+                    return(
+                        <div>
+                            {this.state.options.map( e => {
+                                return e.id_optionfield == field.id ? 
+                                    <div>
+                                        <FormControlLabel  control={<Checkbox />}/>
+                                        {e.name}
+                                    </div> : 
+                                    <div/>
+                            })}
+                        </div>
+                    )
+                } 
             }
         }
     }
