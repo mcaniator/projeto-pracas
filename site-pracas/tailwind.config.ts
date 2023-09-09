@@ -27,6 +27,8 @@ module.exports = {
         "ocean-blue": "#4C6DA3",
         "ocean-blue-darker": "#364D73",
         "off-white": "#D9D9D9",
+        "imperial-red": "#FA4646",
+        "vista-blue": "#799CE1",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -80,6 +82,9 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+    },
+    borderRadius: {
+      "4xl": "20px",
     },
   },
   plugins: [require("tailwindcss-animate")],

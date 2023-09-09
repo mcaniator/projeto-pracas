@@ -1,48 +1,21 @@
 import {
-  IconInfoSquareRoundedFilled,
   IconLeaf,
   IconLogin,
-  IconMailFilled,
   IconPlant2,
   IconSeeding,
   IconTree,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { titillium_web } from "./fonts";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Header from "@/components/header";
+import HomeHeader from "@/components/homeHeader";
 import fotoPraca from "/public/bg-praca-jf-1.jpg";
-
-const Footer = () => {
-  return (
-    <footer className={cn("flex px-7 pb-5", titillium_web.className)}>
-      <div>
-        <Button asChild variant={"ghost"} className="px-3 py-5 pl-2">
-          <Link className="flex items-center" href={"/about"}>
-            <IconInfoSquareRoundedFilled size={27} />
-            <span className="text-2xl">Sobre nós!</span>
-          </Link>
-        </Button>
-      </div>
-
-      <div className="ml-auto">
-        <Button asChild variant={"ghost"} className="px-3 py-5 pl-1">
-          <Link className="flex items-center" href={"mailto:email@email.com"}>
-            <IconMailFilled size={27} />
-            <span className="text-2xl">Contato</span>
-          </Link>
-        </Button>
-      </div>
-    </footer>
-  );
-};
+import Footer from "@/components/footer";
 
 const Home = () => {
   return (
     <main className="bg-off-white">
-      <Header>
+      <HomeHeader>
         <div>
           <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
             <Link className="flex items-center" href={"/"}>
@@ -60,7 +33,7 @@ const Home = () => {
             </Link>
           </Button>
         </div>
-      </Header>
+      </HomeHeader>
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">
@@ -76,10 +49,14 @@ const Home = () => {
               </h1>
             </div>
             <div className="relative z-10 col-span-2 flex w-full items-center justify-center sm:col-auto sm:justify-end">
-              <Button className="w-48">Ver praças</Button>
+              <Button className="w-48 px-0" size={"lg"}>
+                <span className="-mb-1 font-bold">Ver praças</span>
+              </Button>
             </div>
             <div className="relative z-10 col-span-2 flex w-full items-center justify-center sm:col-auto sm:justify-start">
-              <Button className="w-48">Comparar praças</Button>
+              <Button className="w-48 px-0" size={"lg"}>
+                <span className="-mb-1 font-bold">Comparar praças</span>
+              </Button>
             </div>
           </div>
         </section>

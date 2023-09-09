@@ -1,53 +1,35 @@
-"use client";
-
 import { titillium_web } from "@/app/fonts";
 import { cn } from "@/lib/utils";
-import { ReactNode, useEffect, useRef } from "react";
+import { Button } from "./ui/button";
+import Link from "next/link";
+import { IconLogin, IconTree } from "@tabler/icons-react";
 
-const Header = ({ children }: { children: ReactNode }) => {
-  const header = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const getPosition = () => {
-      if (header.current != null) {
-        if (window.scrollY > window.innerHeight * 0.85) {
-          header.current.style.color = "black";
-          console.log(window.innerHeight);
-
-          if (window.innerWidth < 1024)
-            header.current.style.backgroundColor = "rgb(255 255 255 / 0.3)";
-        } else {
-          header.current.style.color = "white";
-
-          if (window.innerWidth < 1024)
-            header.current.style.backgroundColor = "rgb(0 0 0 / 0.3)";
-        }
-
-        if (window.innerWidth >= 1024)
-          header.current.style.backgroundColor = "";
-      }
-    };
-
-    getPosition();
-
-    addEventListener("scroll", getPosition);
-    addEventListener("resize", getPosition);
-
-    return () => {
-      removeEventListener("scroll", getPosition);
-      removeEventListener("resize", getPosition);
-    };
-  }, []);
-
+const Header = ({ className }: { className?: string }) => {
   return (
     <header
       className={cn(
-        "fixed z-20 flex w-full  bg-black/30 px-7 py-5 text-white backdrop-blur-[2px] transition-all lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+        "fixed flex w-full px-7 py-5 text-white transition-all",
         titillium_web.className,
+        className,
       )}
-      ref={header}
     >
-      {children}
+      <div>
+        <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
+          <Link className="flex items-center" href={"/"}>
+            <IconTree size={34} />
+            <span className="text-2xl sm:text-3xl">Projeto Praças</span>
+          </Link>
+        </Button>
+      </div>
+
+      <div className="ml-auto">
+        <Button asChild variant={"ghost"} className="px-3 py-6 pl-2">
+          <Link href={"/login"} className="flex items-center">
+            <IconLogin size={34} />
+            <span className="text-2xl sm:text-3xl"> Login</span>
+          </Link>
+        </Button>
+      </div>
     </header>
   );
 };
