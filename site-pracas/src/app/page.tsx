@@ -5,11 +5,10 @@ import {
   IconSeeding,
   IconTree,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import HomeHeader from "@/components/homeHeader";
-import fotoPraca from "/public/bg-praca-jf-1.jpg";
+import fotoPraca from "/public/fotoPraca.jpg";
 import Footer from "@/components/footer";
 
 const Home = () => {
