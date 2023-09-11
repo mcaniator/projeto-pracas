@@ -1,10 +1,9 @@
 "use client";
 
-import { ReactNode, useEffect, useRef } from "react";
-import { titillium_web } from "@/app/fonts";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
+import Header from "./header";
 
-const HomeHeader = ({ children }: { children: ReactNode }) => {
+const HomeHeader = () => {
   const header = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -40,15 +39,10 @@ const HomeHeader = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <header
-      className={cn(
-        "fixed z-20 flex w-full  bg-black/30 px-7 py-5 text-white backdrop-blur-[2px] transition-all lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
-        titillium_web.className,
-      )}
+    <Header
       ref={header}
-    >
-      {children}
-    </header>
+      className="z-20 bg-black/30  backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none"
+    />
   );
 };
 

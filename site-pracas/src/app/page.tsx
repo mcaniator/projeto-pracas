@@ -15,25 +15,7 @@ import Footer from "@/components/footer";
 const Home = () => {
   return (
     <main className="bg-off-white">
-      <HomeHeader>
-        <div>
-          <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
-            <Link className="flex items-center" href={"/"}>
-              <IconTree size={34} />
-              <span className="text-2xl sm:text-3xl">Projeto Praças</span>
-            </Link>
-          </Button>
-        </div>
-
-        <div className="ml-auto">
-          <Button asChild variant={"ghost"} className="px-3 py-6 pl-2">
-            <Link href={"/login"} className="flex items-center">
-              <IconLogin size={34} />
-              <span className="text-2xl sm:text-3xl"> Login</span>
-            </Link>
-          </Button>
-        </div>
-      </HomeHeader>
+      <HomeHeader />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">
