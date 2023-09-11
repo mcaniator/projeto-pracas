@@ -22,7 +22,7 @@ const Footer = ({ className }: { className?: string }) => {
       </div>
 
       <div className="ml-auto">
-        <Button asChild variant={"ghost"} className="px-3 py-5 pl-1">
+        <Button asChild variant={"ghost"} className="px-3 py-5">
           <Link className="flex items-center" href={"mailto:email@email.com"}>
             <IconMailFilled size={27} />
             <span className="text-2xl">Contato</span>

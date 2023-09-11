@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const HomeHeader = ({ children }: { children: ReactNode }) => {
   const header = useRef<HTMLElement>(null);
+
   useEffect(() => {
     const getPosition = () => {
       if (header.current != null) {

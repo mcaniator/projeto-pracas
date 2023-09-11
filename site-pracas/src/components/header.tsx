@@ -3,8 +3,15 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { IconLogin, IconTree } from "@tabler/icons-react";
+import { forwardRef } from "react";
 
-const Header = ({ className }: { className?: string }) => {
+const Header = ({
+  className = "",
+  isLogin = false,
+}: {
+  className?: string;
+  isLogin?: boolean;
+}) => {
   return (
     <header
       className={cn(
@@ -22,14 +29,18 @@ const Header = ({ className }: { className?: string }) => {
         </Button>
       </div>
 
-      <div className="ml-auto">
-        <Button asChild variant={"ghost"} className="px-3 py-6 pl-2">
-          <Link href={"/login"} className="flex items-center">
-            <IconLogin size={34} />
-            <span className="text-2xl sm:text-3xl"> Login</span>
-          </Link>
-        </Button>
-      </div>
+      {!isLogin ? (
+        <div className="ml-auto">
+          <Button asChild variant={"ghost"} className="px-3 py-6 pl-2">
+            <Link href={"/login"} className="flex items-center">
+              <IconLogin size={34} />
+              <span className="text-2xl sm:text-3xl"> Login</span>
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div />
+      )}
     </header>
   );
 };

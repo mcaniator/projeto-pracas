@@ -21,11 +21,11 @@ module.exports = {
         "temporario-bg": "url(/bg7.jpg)",
       },
       colors: {
+        "bice-blue": "#056B9E",
+        "indigo-dye": "#034363",
         "cambridge-blue": "#8FBC94",
         asparagus: "#6DA34D",
         "seasick-green": "#DDFBE133",
-        "ocean-blue": "#4C6DA3",
-        "ocean-blue-darker": "#364D73",
         "off-white": "#D9D9D9",
         "imperial-red": "#FA4646",
         "vista-blue": "#799CE1",
@@ -63,11 +63,6 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
@@ -84,7 +79,16 @@ module.exports = {
       },
     },
     borderRadius: {
-      "4xl": "20px",
+      none: "0",
+      sm: "0.125rem",
+      DEFAULT: "0.25rem",
+      md: "0.375rem",
+      lg: "0.5rem",
+      xl: "0.75rem",
+      "2xl": "1rem",
+      "3xl": "1.5rem",
+      full: "9999px",
+      "2.5xl": "20px",
     },
   },
   plugins: [require("tailwindcss-animate")],
