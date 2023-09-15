@@ -2,8 +2,9 @@ import { titillium_web } from "@/app/fonts";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { IconLogin, IconTree } from "@tabler/icons-react";
+import { IconTree } from "@tabler/icons-react";
 import { ForwardedRef, forwardRef } from "react";
+import LoginButton from "./loginButton";
 
 const Header = forwardRef(
   (
@@ -36,18 +37,7 @@ const Header = forwardRef(
           </Button>
         </div>
 
-        {!isLogin ? (
-          <div className="ml-auto">
-            <Button asChild variant={"ghost"} className="px-3 py-6 pl-2">
-              <Link href={"/login"} className="flex items-center">
-                <IconLogin size={34} />
-                <span className="text-2xl sm:text-3xl"> Login</span>
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <div />
-        )}
+        {!isLogin ? <LoginButton /> : <div />}
       </header>
     );
   },

@@ -1,10 +1,4 @@
-import {
-  IconLeaf,
-  IconLogin,
-  IconPlant2,
-  IconSeeding,
-  IconTree,
-} from "@tabler/icons-react";
+import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import HomeHeader from "@/components/homeHeader";
@@ -19,13 +13,13 @@ const Home = () => {
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">
           <IconLeaf className="absolute h-96 w-96 -translate-x-28 translate-y-24 rotate-[20deg] stroke-1 text-seasick-green sm:h-[700px] sm:w-[700px] sm:-translate-x-40 sm:translate-y-12" />
-          <IconPlant2 className=" absolute bottom-0 right-0 h-96 w-96 translate-x-32 translate-y-24 -rotate-[35deg] stroke-1 text-seasick-green sm:h-[700px] sm:w-[700px] sm:translate-x-60 sm:translate-y-40" />
+          <IconPlant2 className="absolute bottom-0 right-0 h-96 w-96 translate-x-32 translate-y-24 -rotate-[35deg] stroke-1 text-seasick-green sm:h-[700px] sm:w-[700px] sm:translate-x-60 sm:translate-y-40" />
         </div>
 
         <section className="flex h-full items-center justify-center px-2 text-white sm:px-[20%] lg:px-[25%]">
           <div className="grid gap-4">
             <div className="relative z-10 col-span-2">
-              <h1 className=" text-center text-7xl font-bold leading-tight">
+              <h1 className="text-center text-7xl font-bold leading-tight">
                 Texto aqui blah blah blah blah blah blah
               </h1>
             </div>
