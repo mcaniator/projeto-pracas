@@ -29,6 +29,7 @@ module.exports = {
         "off-white": "#D9D9D9",
         "imperial-red": "#FA4646",
         "vista-blue": "#799CE1",
+        mauve: "#E7A1FF",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

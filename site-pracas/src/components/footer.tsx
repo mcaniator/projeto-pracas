@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
-import {
-  IconInfoSquareRoundedFilled,
-  IconMailFilled,
-} from "@tabler/icons-react";
+import { IconInfoSquareRounded, IconMail } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { titillium_web } from "@/app/fonts";
 
@@ -14,8 +11,8 @@ const Footer = ({ className }: { className?: string }) => {
     >
       <div>
         <Button asChild variant={"ghost"} className="px-3 py-5 pl-2">
-          <Link className="flex items-center" href={"/about"}>
-            <IconInfoSquareRoundedFilled size={27} />
+          <Link className="flex items-center gap-1" href={"/about"}>
+            <IconInfoSquareRounded size={27} />
             <span className="text-2xl">Sobre nós!</span>
           </Link>
         </Button>
@@ -23,8 +20,11 @@ const Footer = ({ className }: { className?: string }) => {
 
       <div className="ml-auto">
         <Button asChild variant={"ghost"} className="px-3 py-5">
-          <Link className="flex items-center" href={"mailto:email@email.com"}>
-            <IconMailFilled size={27} />
+          <Link
+            className="flex items-center gap-1"
+            href={"mailto:email@email.com"}
+          >
+            <IconMail size={27} />
             <span className="text-2xl">Contato</span>
           </Link>
         </Button>
