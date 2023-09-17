@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Header from "./header";
+import Header from "@/components/header";
 
 const HomeHeader = () => {
   const header = useRef<HTMLElement>(null);
@@ -37,12 +37,7 @@ const HomeHeader = () => {
     };
   }, []);
 
-  return (
-    <Header
-      ref={header}
-      className="z-20 bg-black/30  backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none"
-    />
-  );
+  return <Header variant={"default"} ref={header} />;
 };
 
 export default HomeHeader;

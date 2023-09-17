@@ -31,16 +31,16 @@ const Footer = forwardRef<HTMLElement, FooterProps>(
         {...props}
       >
         <div>
-          <Button variant={"ghost"} page={"footer"}>
+          <Button asChild variant={"ghost"} className="px-3 py-5 pl-2">
             <Link className="flex items-center gap-1" href={"/about"}>
-              <IconInfoSquareRounded size={28} />
+              <IconInfoSquareRounded size={27} />
               <span className="text-2xl">Sobre nós!</span>
             </Link>
           </Button>
         </div>
 
         <div className="ml-auto">
-          <Button asChild variant={"ghost"} page={"footer2"}>
+          <Button asChild variant={"ghost"} className="px-3 py-5">
             <Link
               className="flex items-center gap-1"
               href={"mailto:email@email.com"}
