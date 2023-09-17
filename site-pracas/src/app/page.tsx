@@ -1,9 +1,8 @@
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import HomeHeader from "@/components/homeHeader";
-import fotoPraca from "/public/fotoPraca.jpg";
 import Footer from "@/components/footer";
+import InfoSegment from "@/components/reusable/infoSegment";
 
 const Home = () => {
   return (
@@ -54,33 +53,40 @@ const Home = () => {
           </svg>
         </div>
 
-        <article className="flex flex-col items-center gap-20 p-10 pt-20 sm:p-32 xl:flex-row xl:items-start xl:justify-center">
-          <Image
-            src={fotoPraca}
-            alt="foto praça jf"
-            className="h-auto w-[100vw] -rotate-12 shadow-lg sm:w-[610px] sm:-translate-x-8"
-          />
-          <div className="mt-7 flex h-full max-w-md flex-col gap-1">
-            <h1 className="text-3xl font-bold">Mais texto sobre o projeto</h1>
-            <p>
-              Sunt voluptate exercitation do labore duis ipsum. Qui occaecat
-              labore labore dolore deserunt irure velit ut. Enim excepteur eu do
-              velit incididunt. Sunt adipisicing occaecat exercitation esse eu
-              duis sunt fugiat dolore est. Tempor commodo culpa exercitation
-              minim ipsum deserunt quis. Qui adipisicing nisi adipisicing mollit
-              laborum aliquip. Commodo minim nisi ea cupidatat tempor laborum
-              cillum nisi id ipsum. Culpa officia enim ut sit minim nostrud sunt
-              proident ex eiusmod.
-            </p>
-          </div>
-        </article>
+        <InfoSegment>
+          <h1 className="text-3xl font-bold">Mais texto sobre o projeto</h1>
+          <p>
+            Sunt voluptate exercitation do labore duis ipsum. Qui occaecat
+            labore labore dolore deserunt irure velit ut. Enim excepteur eu do
+            velit incididunt. Sunt adipisicing occaecat exercitation esse eu
+            duis sunt fugiat dolore est. Tempor commodo culpa exercitation minim
+            ipsum deserunt quis. Qui adipisicing nisi adipisicing mollit laborum
+            aliquip. Commodo minim nisi ea cupidatat tempor laborum cillum nisi
+            id ipsum. Culpa officia enim ut sit minim nostrud sunt proident ex
+            eiusmod.
+          </p>
+        </InfoSegment>
+
+        <InfoSegment rightJustify>
+          <h1 className="text-3xl font-bold">Mais texto sobre o projeto</h1>
+          <p>
+            Sunt voluptate exercitation do labore duis ipsum. Qui occaecat
+            labore labore dolore deserunt irure velit ut. Enim excepteur eu do
+            velit incididunt. Sunt adipisicing occaecat exercitation esse eu
+            duis sunt fugiat dolore est. Tempor commodo culpa exercitation minim
+            ipsum deserunt quis. Qui adipisicing nisi adipisicing mollit laborum
+            aliquip. Commodo minim nisi ea cupidatat tempor laborum cillum nisi
+            id ipsum. Culpa officia enim ut sit minim nostrud sunt proident ex
+            eiusmod.
+          </p>
+        </InfoSegment>
 
         <div className="flex justify-center">
           <IconSeeding className="text-gray-400" size={70} />
         </div>
       </div>
 
-      <Footer />
+      <Footer variant={"default"} />
     </main>
   );
 };

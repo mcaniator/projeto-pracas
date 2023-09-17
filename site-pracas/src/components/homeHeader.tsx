@@ -11,7 +11,6 @@ const HomeHeader = () => {
       if (header.current != null) {
         if (window.scrollY > window.innerHeight * 0.85) {
           header.current.style.color = "black";
-          console.log(window.innerHeight);
 
           if (window.innerWidth < 1024)
             header.current.style.backgroundColor = "rgb(255 255 255 / 0.3)";

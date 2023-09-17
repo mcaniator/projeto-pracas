@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   return (
-    <main className="to-imperial-red flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue">
-      <Header className="top-0" />
+    <main className="flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue to-imperial-red">
+      <Header variant="fixed" />
 
       <section className="m-10 flex h-full w-full flex-col items-center justify-center gap-2 sm:m-0 sm:gap-4">
         <div className="text-center font-bold text-white">
@@ -20,7 +20,7 @@ const NotFound = () => {
         </Button>
       </section>
 
-      <Footer className="fixed bottom-0 w-full text-white" />
+      <Footer variant={"fixed"} />
     </main>
   );
 };
