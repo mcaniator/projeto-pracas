@@ -1,3 +1,12 @@
+# README sendo refatorada
+
+Por enquanto instale as dependências usando npm ou pnpm (preferencialmente o pnpm) e rode o projeto no diretório principal com um dos seguintes comandos:
+
+```
+npm run dev
+pnpm dev
+```
+
 # Projeto Praças
 
 Projeto sendo realizado em conjunto da Arquitetura e o GETComp (GET Ciência da Computação) da UFJF. Tem o objetivo de criar um sistema capaz de fazer avaliações de praças.
