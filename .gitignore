@@ -103,3 +103,5 @@ typings/
 .tool-versions
 
 .turbo
+
+.vscode/
