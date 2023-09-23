@@ -1,8 +1,14 @@
 "use client";
 
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { categoriesJSONSchema, questionType } from "@/app/types";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -13,24 +19,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const formSchema = z.object({
-  type: z.enum(["text", "numeric", "option"]),
+  type: z.string(),
   question: z.object({
     name: z.string(),
     category_id: z.number(),
@@ -46,25 +47,22 @@ const formSchema = z.object({
     .nullable(),
   field: z.union([
     z.object({
-      char_limit: z.number(),
+      char_limit: z.coerce.number(),
     }),
     z.object({
-      id_field: z.number(),
-      min: z.number(),
-      max: z.number(),
+      id_field: z.coerce.number(),
+      min: z.coerce.number(),
+      max: z.coerce.number(),
     }),
     z.object({
-      option_limit: z.number(),
-      total_options: z.number(),
-      visual_preference: z.number(),
+      option_limit: z.coerce.number(),
+      total_options: z.coerce.number(),
+      visual_preference: z.coerce.number(),
     }),
   ]),
 });
 
-const questionType: {
-  value: "text" | "numeric" | "option";
-  label: string;
-}[] = [
+const questionType: questionType[] = [
   {
     value: "text",
     label: "text",
@@ -79,14 +77,18 @@ const questionType: {
   },
 ];
 
-export function QuestionForm() {
+export function QuestionForm({
+  categories,
+}: {
+  categories: categoriesJSONSchema[];
+}) {
   const [currentSelection, setCurrentSelection] = React.useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       question: {
-        category_id: 1,
+        name: "teste",
         active: true,
         optional: false,
       },
@@ -120,6 +122,57 @@ export function QuestionForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="">
         <FormField
           control={form.control}
+          name="question.category_id"
+          render={({ field }) => (
+            <FormItem>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      {field.value
+                        ? categories.find((type) => type.id === field.value)
+                            ?.name
+                        : "Select language"}
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search framework..."
+                      className="h-9"
+                    />
+                    <CommandEmpty>No framework found.</CommandEmpty>
+                    <CommandGroup>
+                      {categories.map((type) => (
+                        <CommandItem
+                          value={type.name}
+                          key={type.id}
+                          onSelect={() => {
+                            form.setValue("question.category_id", type.id);
+                          }}
+                        >
+                          {type.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </FormItem>
+          )}
+        />
+
+        {/* Question input */}
+        <FormField
+          control={form.control}
           name="question.name"
           render={({ field }) => (
             <FormItem>
@@ -132,6 +185,7 @@ export function QuestionForm() {
           )}
         />
 
+        {/* Question type selector */}
         <FormField
           control={form.control}
           name="type"
@@ -193,7 +247,7 @@ export function QuestionForm() {
           <FormField
             control={form.control}
             name="field.char_limit"
-            render={(field) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Limite de caracteres</FormLabel>
                 <FormControl>
@@ -204,7 +258,8 @@ export function QuestionForm() {
             )}
           />
         )}
-        {currentSelection == "numeric" && (
+
+        {/* {currentSelection == "numeric" && (
           <div>
             <FormField
               control={form.control}
@@ -247,7 +302,7 @@ export function QuestionForm() {
             />
           </div>
         )}
-        {currentSelection == "option" && <p>oi</p>}
+        {currentSelection == "option" && <p>oi</p>} */}
 
         <Button type="submit">Submit</Button>
       </form>

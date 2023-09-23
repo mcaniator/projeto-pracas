@@ -7,7 +7,6 @@
     "db:migrate": "npx sequelize db:migrate"
   },
   "dependencies": {
-    "@types/react": "^17.0.39",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "pg": "^8.5.1",

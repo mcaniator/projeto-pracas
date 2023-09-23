@@ -6,9 +6,6 @@
     "dev": "turbo run dev",
     "build": "turbo build"
   },
-  "workspaces": [
-    "apps/*"
-  ],
   "devDependencies": {
     "eslint": "^8.48.0",
     "eslint-config-prettier": "^9.0.0",

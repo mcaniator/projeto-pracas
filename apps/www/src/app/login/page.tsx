@@ -8,7 +8,7 @@ import Link from "next/link";
 const Login = () => {
   return (
     <main className="flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue to-vista-blue">
-      <Header className="top-0" isLogin />
+      <Header className="top-0" />
 
       <section className="flex aspect-video h-[38vw] gap-10 rounded-2.5xl bg-off-white p-12 shadow-lg">
         <div className="flex basis-1/2 flex-col gap-5">
