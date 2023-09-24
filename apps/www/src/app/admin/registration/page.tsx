@@ -1,4 +1,4 @@
-import { categoriesJSONSchema } from "@/app/types";
+import { availableCategories, categoriesJSONSchema } from "@/app/types";
 import { ProfileForm } from "@/components/categoryForm";
 import { QuestionForm } from "@/components/questionForm";
 
@@ -10,6 +10,12 @@ const AdminRoot = async () => {
     return response.json();
   });
 
+  const availableCategories: availableCategories[] = categoriesJSON.map(
+    (result) => {
+      return { id: result.id, label: result.name };
+    },
+  );
+
   return (
     <main className="flex">
       <div className="flex flex-col">
@@ -19,7 +25,7 @@ const AdminRoot = async () => {
             <ProfileForm />
           </div>
           <div>
-            <QuestionForm categories={categoriesJSON} />
+            <QuestionForm availableCategories={availableCategories} />
           </div>
         </div>
       </div>

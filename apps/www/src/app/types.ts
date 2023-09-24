@@ -42,3 +42,8 @@ export interface questionType {
   value: string;
   label: string;
 }
+
+export interface availableCategories {
+  id: number;
+  label: string;
+}
