@@ -61,15 +61,39 @@ const questionSchema = z.object({
         (schema) => schema.max > schema.min,
         () => ({ message: "Min is bigger than max" }),
       ),
-    z.object({
-      option_limit: z.coerce.number(),
-      total_options: z.coerce.number(),
-      visual_preference: z.coerce.number(),
-    }),
+    z
+      .object({
+        option_limit: z.coerce.number(),
+        total_options: z.coerce.number(),
+        visual_preference: z.coerce.number(),
+      })
+      .refine((schema) => schema.option_limit <= schema.total_options),
   ]),
 });
 
 const questionSubmit = async (formData: FormData) => {
+  const options = formData.getAll("options").map((value) => {
+    return { name: value };
+  });
+  const visualPreference = formData.get("visualPreference");
+
+  let optionLimit: number | null | FormDataEntryValue = 0;
+
+  if (visualPreference != undefined) {
+    if (visualPreference == "2") {
+      optionLimit = formData.get("optionLimit");
+    } else {
+      optionLimit = options.length;
+    }
+  }
+
+  if (optionLimit != null) {
+    optionLimit =
+      parseInt(optionLimit as string) > options.length
+        ? options.length
+        : optionLimit;
+  }
+
   const questionField =
     formData.get("inputType") == "text"
       ? {
@@ -88,14 +112,10 @@ const questionSubmit = async (formData: FormData) => {
           },
         }
       : {
-          options: [
-            formData.getAll("options").map((value) => {
-              return { name: value };
-            }),
-          ],
+          options: options,
           field: {
-            option_limit: formData.get("amountSelectable"),
-            total_options: formData.get("amountOptions"),
+            option_limit: optionLimit,
+            total_options: options.length,
             visual_preference: formData.get("visualPreference"),
           },
         };
@@ -111,14 +131,13 @@ const questionSubmit = async (formData: FormData) => {
     ...questionField,
   });
 
-  console.log(parse);
-  // fetch("http://localhost:3333/form_field", {
-  //   method: "POST",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //   },
-  //   body: JSON.stringify(parse),
-  // });
+  fetch("http://localhost:3333/form_field", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(parse),
+  });
 };
 
 export { categorySubmit, questionSubmit };

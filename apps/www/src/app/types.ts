@@ -1,4 +1,4 @@
-export interface categoriesJSONSchema {
+interface categoriesJSONSchema {
   id: number;
   name: string;
   optional: boolean;
@@ -7,7 +7,7 @@ export interface categoriesJSONSchema {
   updatedAt: string;
 }
 
-export interface JSONSchema {
+interface JSONSchema {
   id: number;
   name: string;
   FormsFields: [
@@ -38,12 +38,9 @@ export interface JSONSchema {
   ];
 }
 
-export interface questionType {
-  value: string;
-  label: string;
-}
-
-export interface availableCategories {
+interface availableCategories {
   id: number;
   label: string;
 }
+
+export type { JSONSchema, availableCategories, categoriesJSONSchema };
