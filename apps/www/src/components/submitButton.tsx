@@ -1,13 +1,19 @@
 "use client";
 
+import { ButtonHTMLAttributes } from "react";
 import { experimental_useFormStatus as useFormStatus } from "react-dom";
+
 import { Button } from "./ui/button";
 
-const SubmitButton = () => {
+const SubmitButton = ({
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement>) => {
   const { pending } = useFormStatus();
 
   return (
-    <Button disabled={pending}>{pending ? "Submitting..." : "Submit"}</Button>
+    <Button aria-disabled={pending} type="submit" className={"w-24"} {...props}>
+      {pending ? "Enviando..." : "Enviar"}
+    </Button>
   );
 };
 

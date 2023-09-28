@@ -1,39 +1,58 @@
 "use server";
 
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const categorySchema = z.object({
   category: z
     .object({
-      name: z.string(),
+      name: z.string().nonempty(),
       optional: z.boolean(),
       active: z.boolean(),
     })
     .array(),
 });
 
-const categorySubmit = async (formData: FormData) => {
-  const parse = categorySchema.parse({
-    category: [
-      {
-        name: formData.get("name"),
-        optional: false,
-        active: true,
-      },
-    ],
-  });
+const categorySubmit = async (prevState: any, formData: FormData) => {
+  let parse;
+  try {
+    parse = categorySchema.parse({
+      category: [
+        {
+          name: formData.get("name"),
+          optional: false,
+          active: true,
+        },
+      ],
+    });
+  } catch (e) {
+    return {
+      message: "erro de tipagem",
+    };
+  }
 
-  fetch("http://localhost:3333/category", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(parse),
-  });
+  try {
+    await fetch("http://localhost:3333/category", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(parse),
+    });
+  } catch (e) {
+    return {
+      message: "erro do servidor",
+    };
+  }
+
+  revalidateTag("category");
+  return {
+    message: "nenhum erro",
+  };
 };
 
 const questionSchema = z.object({
-  type: z.string(),
+  type: z.enum(["text", "numeric", "option"]),
   question: z.object({
     name: z.string(),
     category_id: z.coerce.number(),
@@ -71,7 +90,7 @@ const questionSchema = z.object({
   ]),
 });
 
-const questionSubmit = async (formData: FormData) => {
+const questionSubmit = async (prevState: any, formData: FormData) => {
   const options = formData.getAll("options").map((value) => {
     return { name: value };
   });
@@ -120,24 +139,40 @@ const questionSubmit = async (formData: FormData) => {
           },
         };
 
-  const parse = questionSchema.parse({
-    type: formData.get("inputType"),
-    question: {
-      name: formData.get("name"),
-      category_id: formData.get("select"),
-      active: true,
-      optional: false,
-    },
-    ...questionField,
-  });
+  let parse;
+  try {
+    parse = questionSchema.parse({
+      type: formData.get("inputType"),
+      question: {
+        name: formData.get("name"),
+        category_id: formData.get("select"),
+        active: true,
+        optional: false,
+      },
+      ...questionField,
+    });
+  } catch (e) {
+    return { message: "erro de tipagem" };
+  }
 
-  fetch("http://localhost:3333/form_field", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(parse),
-  });
+  try {
+    await fetch("http://localhost:3333/form_field", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(parse),
+    });
+  } catch (e) {
+    return {
+      message: "erro do servidor",
+    };
+  }
+
+  revalidatePath("/admin/registration");
+  return {
+    message: "nenhum erro",
+  };
 };
 
 export { categorySubmit, questionSubmit };

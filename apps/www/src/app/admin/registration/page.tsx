@@ -5,7 +5,7 @@ import { QuestionForm } from "@/components/questionForm";
 const AdminRoot = async () => {
   const categoriesJSON: categoriesJSONSchema[] = await fetch(
     "http://localhost:3333/category",
-    { cache: "no-store" },
+    { next: { tags: ["category"] } },
   ).then((response) => {
     return response.json();
   });
@@ -17,19 +17,21 @@ const AdminRoot = async () => {
   );
 
   return (
-    <main className="flex">
-      <div className="flex flex-col">
-        <h2>Criação de Componente</h2>
-        <div className="flex flex-col">
-          <div>
+    <main className="flex h-full">
+      <div className="flex flex-col gap-5 p-5 text-white">
+        <h2 className="text-3xl font-bold">Criação de Componentes</h2>
+        <div className="flex h-full gap-5 flex-col">
+          <div className={"flex flex-col gap-1"}>
+            <h3 className={"text-2xl font-semibold"}>Criação de Categorias</h3>
             <ProfileForm />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
+            <h3 className={"text-2xl font-semibold"}>Criação de Perguntas</h3>
             <QuestionForm availableCategories={availableCategories} />
           </div>
         </div>
+        <div></div>
       </div>
-      <div></div>
     </main>
   );
 };
