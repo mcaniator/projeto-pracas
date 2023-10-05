@@ -1,11 +1,11 @@
 import { titillium_web } from "@/app/fonts";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { IconTree } from "@tabler/icons-react";
-import { HTMLAttributes, forwardRef } from "react";
 import LoginButton from "@/components/loginButton";
-import clsx from "clsx";
+import { Button } from "@/components/ui/button";
+import { IconTree } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
+import clsx from "clsx";
+import Link from "next/link";
+import { HTMLAttributes, forwardRef } from "react";
 
 const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
   variants: {

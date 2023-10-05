@@ -1,5 +1,6 @@
 "use server";
 
+import { localsResponse } from "@/app/types";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -54,7 +55,7 @@ const categorySubmit = async (prevState: any, formData: FormData) => {
 const questionSchema = z.object({
   type: z.enum(["text", "numeric", "option"]),
   question: z.object({
-    name: z.string(),
+    name: z.string().nonempty(),
     category_id: z.coerce.number(),
     active: z.boolean(),
     optional: z.boolean(),
@@ -62,7 +63,7 @@ const questionSchema = z.object({
   options: z
     .array(
       z.object({
-        name: z.string(),
+        name: z.string().nonempty(),
       }),
     )
     .nullable(),
@@ -175,4 +176,100 @@ const questionSubmit = async (prevState: any, formData: FormData) => {
   };
 };
 
-export { categorySubmit, questionSubmit };
+/* IMPORTANT: atualmente não é o servidor que fornece o id do polígono, sendo calculado
+ *  no cliente através das informações recebidas dos outros ids de praça, isso é um
+ *  péssimo jeito de fazer isso já que caso dois requests sejam processados ao mesmo
+ *  tempo mais de um item terá o mesmo ID.
+ *  URGENTEMENTE mudar isso */
+const mapPolygonSchema = z.object({
+  comments: z.string().nonempty(),
+  common_name: z.string().nonempty(),
+  free_space_category: z.coerce.number(),
+  id: z.coerce.number(),
+  name: z.string().nonempty(),
+  polygon: z.object({
+    coordinates: z
+      .number()
+      .array()
+      .array()
+      .refine(
+        (schema) => {
+          let isCorrect = true;
+          schema.forEach((num) => {
+            if (num.length != 2) {
+              isCorrect = false;
+            }
+          });
+          return isCorrect;
+        },
+        () => ({ message: "number of coordinates is incorrect" }),
+      ),
+    type: z.string().nonempty(),
+  }),
+  type: z.coerce.number(),
+});
+
+const addressesSchema = z.object({
+  addresses: z
+    .object({
+      city: z.string().nonempty(),
+      locals_id: z.number(),
+      neighborhood: z.string().nonempty(),
+      number: z.number(),
+      street: z.string().nonempty(),
+      UF: z.string().nonempty(),
+    })
+    .array(),
+});
+
+const mapSubmition = async () => {
+  const parkData: localsResponse[] = await fetch(
+    "http://localhost:3333/locals",
+    { cache: "no-store", next: { tags: ["locals"] } }, // REMEMBERME: Lembrar de remover no-store
+  ).then((res) => res.json());
+
+  const usedIDs: number[] = parkData.map((values) => values.id);
+
+  const curID = (() => {
+    let returnValue: number | undefined = undefined;
+    let aux = 0;
+    while (returnValue == undefined) {
+      if (!usedIDs.includes(aux)) {
+        returnValue = aux;
+      }
+
+      aux++;
+    }
+    return returnValue;
+  })();
+
+  const parsed = mapPolygonSchema.parse({
+    comments: z.string().nonempty(),
+    common_name: z.string().nonempty(),
+    free_space_category: z.coerce.number(),
+    id: z.coerce.number(),
+    name: z.string().nonempty(),
+    polygon: z.object({
+      coordinates: z
+        .number()
+        .array()
+        .array()
+        .refine(
+          (schema) => {
+            let isCorrect = true;
+            schema.forEach((num) => {
+              if (num.length != 2) {
+                isCorrect = false;
+              }
+            });
+            return isCorrect;
+          },
+          () => ({ message: "number of coordinates is incorrect" }),
+        ),
+      type: z.string().nonempty(),
+    }),
+    type: z.coerce.number(),
+  });
+};
+
+export { categorySubmit, questionSubmit, mapSubmition };
