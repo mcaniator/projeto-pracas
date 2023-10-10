@@ -76,9 +76,23 @@ interface localsResponse {
   updatedAt: Date;
 }
 
+interface addressResponse {
+  id: number;
+  UF: string;
+  locals_id: number;
+  city: string;
+  neighborhood: string;
+  street: string;
+  number: number;
+  planning_region_id: null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type {
   JSONSchema,
   availableCategories,
   categoriesJSONSchema,
   localsResponse,
+  addressResponse,
 };

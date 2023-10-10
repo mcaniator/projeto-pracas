@@ -41,7 +41,6 @@ const Header = forwardRef<HTMLElement, headerProps>(
             </Link>
           </Button>
         </div>
-
         <LoginButton />
       </header>
     );

@@ -77,7 +77,7 @@ const QuestionForm = ({
               ))}
             </select>
             <div className={"relative flex items-center -ml-7"}>
-              <ChevronsUpDownIcon className={"absolute -"} />
+              <ChevronsUpDownIcon className={"absolute"} />
             </div>
           </div>
         </div>

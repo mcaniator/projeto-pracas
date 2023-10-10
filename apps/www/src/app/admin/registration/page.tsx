@@ -1,5 +1,5 @@
 import { availableCategories, categoriesJSONSchema } from "@/app/types";
-import { ProfileForm } from "@/components/categoryForm";
+import { CategoryForm } from "@/components/categoryForm";
 import { QuestionForm } from "@/components/questionForm";
 
 const AdminRoot = async () => {
@@ -23,7 +23,7 @@ const AdminRoot = async () => {
         <div className="flex h-full gap-5 flex-col">
           <div className={"flex flex-col gap-1"}>
             <h3 className={"text-2xl font-semibold"}>Criação de Categorias</h3>
-            <ProfileForm />
+            <CategoryForm />
           </div>
           <div className="flex flex-col gap-1">
             <h3 className={"text-2xl font-semibold"}>Criação de Perguntas</h3>

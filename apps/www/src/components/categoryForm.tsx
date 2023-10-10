@@ -11,7 +11,7 @@ const initialState = {
   message: null,
 };
 
-export function ProfileForm() {
+export function CategoryForm() {
   const [state, formAction] = useFormState(categorySubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
