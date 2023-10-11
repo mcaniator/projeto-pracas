@@ -1,6 +1,6 @@
+import { CategoryForm } from "@/app/admin/registration/elements/categoryForm";
+import { QuestionForm } from "@/app/admin/registration/elements/questionForm";
 import { availableCategories, categoriesJSONSchema } from "@/app/types";
-import { CategoryForm } from "@/components/categoryForm";
-import { QuestionForm } from "@/components/questionForm";
 
 const AdminRoot = async () => {
   const categoriesJSON: categoriesJSONSchema[] = await fetch(

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import RadioButton from "@/components/ui/radio-button";
 import { ChevronsUpDownIcon } from "lucide-react";
 import { useRef, useState } from "react";
-import { useFormState } from "react-dom";
+// @ts-expect-error
+import { experimental_useFormState as useFormState } from "react-dom";
 
 interface optionSetter {
   name: string;

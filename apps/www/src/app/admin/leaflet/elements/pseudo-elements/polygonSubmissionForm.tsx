@@ -21,7 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useContext, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+// @ts-expect-error
+import { experimental_useFormState as useFormState } from "react-dom";
 
 const PolygonSubmissionForm = () => {
   const { setDrawingContext } = useContext(DrawingContext);
