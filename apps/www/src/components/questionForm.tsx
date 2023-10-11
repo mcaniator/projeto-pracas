@@ -1,6 +1,6 @@
 "use client";
 
-import { questionSubmit } from "@/actions/submition";
+import { questionSubmit } from "@/actions/submission";
 import { availableCategories } from "@/app/types";
 import SubmitButton from "@/components/submitButton";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import RadioButton from "@/components/ui/radio-button";
 import { ChevronsUpDownIcon } from "lucide-react";
 import { useRef, useState } from "react";
-// @ts-expect-error
-import { experimental_useFormState as useFormState } from "react-dom";
+import { useFormState } from "react-dom";
 
 interface optionSetter {
   name: string;

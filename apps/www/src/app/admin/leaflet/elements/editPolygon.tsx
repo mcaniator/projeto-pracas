@@ -3,8 +3,19 @@
 import { DrawingContext } from "@/app/admin/leaflet/elements/leafletProvider";
 import { PolygonEditForm } from "@/app/admin/leaflet/elements/pseudo-elements/polygonEditForm";
 import { addressResponse, localsResponse } from "@/app/types";
-import { useContext } from "react";
-import { Polygon, Popup, Tooltip } from "react-leaflet";
+import { LatLngExpression } from "leaflet";
+import L from "leaflet";
+import { useContext, useState } from "react";
+import { Polygon, Popup, Tooltip, useMap } from "react-leaflet";
+
+const FlySelection = ({ polygon }: { polygon: LatLngExpression[] }) => {
+  const map = useMap();
+  const park = L.polygon(polygon != undefined ? polygon : [{ lat: 0, lng: 0 }]);
+  map.flyTo(park.getBounds().getCenter());
+
+  park.remove();
+  return null;
+};
 
 const EditPolygon = ({
   parkData,
@@ -13,7 +24,9 @@ const EditPolygon = ({
   parkData: localsResponse[];
   addressData: addressResponse[];
 }) => {
+  const [polygon, setPolygon] = useState<LatLngExpression[]>();
   const { drawingContext } = useContext(DrawingContext);
+  const [value, setValue] = useState(-1);
 
   return (
     <div>
@@ -38,6 +51,44 @@ const EditPolygon = ({
           ))}
         </div>
       ))}
+
+      <div className={"relative z-[10000]"}>
+        <select
+          className={
+            "h-10 appearance-none rounded-lg pl-3 pt-1 absolute right-0"
+          }
+          value={value}
+          onBlur={(value) => {
+            console.log(value.target.value);
+            if (parseInt(value.target.value) != -1) {
+              const temp = parkData
+                .find(
+                  (individualData) =>
+                    individualData.id == parseInt(value.target.value),
+                )
+                ?.polygon.coordinates.map((value) => value);
+
+              setPolygon(temp != undefined ? temp[0] : undefined);
+            }
+
+            setValue(parseInt(value.target.value));
+          }}
+          onFocus={() => {
+            setValue(-1);
+            setPolygon(undefined);
+          }}
+        >
+          <option value={-1} />
+          {parkData.map((value, index) => (
+            <option key={index} value={value.id}>
+              {value.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {polygon != undefined && !drawingContext && (
+        <FlySelection polygon={polygon} />
+      )}
     </div>
   );
 };

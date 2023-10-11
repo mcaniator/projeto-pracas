@@ -1,4 +1,6 @@
-import { mapSubmission } from "@/actions/submition";
+"use client";
+
+import { mapSubmission } from "@/actions/submission";
 import { PolygonContext } from "@/app/admin/leaflet/elements/createPolygon";
 import { DrawingContext } from "@/app/admin/leaflet/elements/leafletProvider";
 import {
@@ -19,8 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useContext, useRef, useState } from "react";
-// @ts-expect-error
-import { experimental_useFormState as useFormState } from "react-dom";
+import { useFormState } from "react-dom";
 
 const PolygonSubmissionForm = () => {
   const { setDrawingContext } = useContext(DrawingContext);

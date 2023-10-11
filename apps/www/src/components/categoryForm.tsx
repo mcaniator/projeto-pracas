@@ -1,11 +1,10 @@
 "use client";
 
-import { categorySubmit } from "@/actions/submition";
+import { categorySubmit } from "@/actions/submission";
 import SubmitButton from "@/components/submitButton";
 import { Input } from "@/components/ui/input";
 import { useRef } from "react";
-// @ts-expect-error
-import { experimental_useFormState as useFormState } from "react-dom";
+import { useFormState } from "react-dom";
 
 const initialState = {
   message: null,

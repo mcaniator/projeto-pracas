@@ -75,8 +75,6 @@ const CreatePolygon = () => {
             </Button>
           )}
         </Control>
-
-        <Control position={"topright"}></Control>
       </div>
 
       {drawingContext && (

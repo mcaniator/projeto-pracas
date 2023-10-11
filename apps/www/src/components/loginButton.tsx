@@ -1,12 +1,13 @@
-import { IconLogin } from "@tabler/icons-react";
-import { Button } from "./ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IconLogin } from "@tabler/icons-react";
 import Link from "next/link";
+
+import { Button } from "./ui/button";
 
 const LoginButton = () => {
   return (
@@ -26,7 +27,7 @@ const LoginButton = () => {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="mr-7 rounded-2xl border-0 bg-white/20 backdrop-blur-lg">
+      <PopoverContent className="mr-7 rounded-2xl border-0 bg-white/20 backdrop-blur-lg z-[10000000]">
         <Tabs defaultValue="login">
           <TabsList className="bg-transparent">
             <TabsTrigger value="login">
