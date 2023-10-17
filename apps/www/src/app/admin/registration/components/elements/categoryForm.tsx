@@ -1,7 +1,7 @@
 "use client";
 
 import { categorySubmit } from "@/actions/submission";
-import SubmitButton from "@/components/submitButton";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRef } from "react";
 // @ts-expect-error
@@ -11,10 +11,11 @@ const initialState = {
   message: null,
 };
 
-export function CategoryForm() {
+const CategoryForm = () => {
   const [state, formAction] = useFormState(categorySubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // TODO: add error handling
   return (
     <form
       ref={formRef}
@@ -30,8 +31,11 @@ export function CategoryForm() {
         <label htmlFor={"name"}>Nome da categoria:</label>
         <Input type="text" name="name" required id={"name"} />
       </div>
-      <SubmitButton />
-      <p>{state?.message}</p>
+      <Button buttonColor={"amethyst"} type="submit" className={"w-24"}>
+        Enviar
+      </Button>
     </form>
   );
-}
+};
+
+export { CategoryForm };

@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useContext, useRef, useState } from "react";
 // @ts-expect-error
@@ -80,33 +81,21 @@ const PolygonSubmissionForm = () => {
               <label htmlFor={"comments"}>Comentários</label>
               <Input type={"text"} name={"comments"} />
 
-              <select
-                name={"parkTypes"}
-                className={
-                  "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                }
-                required
-              >
+              <Select name={"parkTypes"}>
                 {parkTypes.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
-              <select
-                name={"parkCategories"}
-                className={
-                  "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                }
-                required
-              >
+              <Select name={"parkCategories"}>
                 {parkCategories.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <Input
                 type={"hidden"}
@@ -182,19 +171,13 @@ const PolygonSubmissionForm = () => {
                         <label htmlFor={`addresses[${index}][state]`}>
                           Estado
                         </label>
-                        <select
-                          name={`addresses[${index}][state]`}
-                          className={
-                            "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                          }
-                          required
-                        >
+                        <Select name={`addresses[${index}][state]`}>
                           {brazillianStates.map((value, index) => (
                             <option value={value} key={index}>
                               {value}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                       {index == 0 ? (
                         <Button

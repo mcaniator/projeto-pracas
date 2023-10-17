@@ -21,6 +21,8 @@ module.exports = {
         "temporario-bg": "url(/bg7.jpg)",
       },
       colors: {
+        amethyst: "#9d6fe1",
+        "amethyst-dark": "#8C68C2",
         "bice-blue": "#056B9E",
         "indigo-dye": "#034363",
         "cambridge-blue": "#8FBC94",

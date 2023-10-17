@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 // @ts-expect-error
@@ -106,35 +107,24 @@ const PolygonEditForm = ({
                 defaultValue={parkData.comments ? parkData.comments : undefined}
               />
 
-              <select
-                name={"parkTypes"}
-                className={
-                  "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                }
-                defaultValue={parkData.type}
-                required
-              >
+              <Select name={"parkTypes"} defaultValue={parkData.type}>
                 {parkTypes.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
-              <select
+              <Select
                 name={"parkCategories"}
-                className={
-                  "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                }
                 defaultValue={parkData.free_space_category}
-                required
               >
                 {parkCategories.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               {/* Não acho que isso seja o melhor jeito de renderizar um elemento n número de vezes, muito
                   menos remover ele
@@ -192,20 +182,16 @@ const PolygonEditForm = ({
                         <label htmlFor={`addresses[${index}][state]`}>
                           Estado
                         </label>
-                        <select
+                        <Select
                           name={`addresses[${index}][state]`}
-                          className={
-                            "h-10 w-full appearance-none rounded-lg pl-3 bg-gray-400/30 pt-1"
-                          }
                           defaultValue={curMapData[index]?.UF}
-                          required
                         >
                           {brazillianStates.map((value, index) => (
                             <option value={value} key={index}>
                               {value}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                       {index == 0 ? (
                         <Button
