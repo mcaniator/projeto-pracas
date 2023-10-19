@@ -71,42 +71,49 @@ const QuestionForm = ({ availableCategories }: { availableCategories: availableC
 
         <div className={"flex flex-col"}>
           <label htmlFor={"text"}>Tipo de pergunta:</label>
-          <RadioButton
-            type="radio"
-            id="text"
-            value="text"
-            name="inputType"
-            onClick={() => {
-              setSelectedType("text");
-            }}
-            required
-          >
-            Texto
-          </RadioButton>
-          <RadioButton
-            type="radio"
-            id="numeric"
-            value="numeric"
-            name="inputType"
-            onClick={() => {
-              setSelectedType("numeric");
-            }}
-            required
-          >
-            Numérico
-          </RadioButton>
-          <RadioButton
-            type="radio"
-            id="option"
-            value="option"
-            name="inputType"
-            onClick={() => {
-              setSelectedType("option");
-            }}
-            required
-          >
-            Opção
-          </RadioButton>
+          <div className={"rounded-lg border-2 border-gray-500/40 bg-gray-400/50 px-2 py-1"}>
+            <RadioButton
+              type="radio"
+              id="text"
+              value="text"
+              name="inputType"
+              onClick={() => {
+                setSelectedType("text");
+                setAddedOptions(undefined);
+              }}
+              className={"border-white"}
+              required
+            >
+              Texto
+            </RadioButton>
+            <RadioButton
+              type="radio"
+              id="numeric"
+              value="numeric"
+              name="inputType"
+              onClick={() => {
+                setSelectedType("numeric");
+                setAddedOptions(undefined);
+              }}
+              className={"border-white"}
+              required
+            >
+              Numérico
+            </RadioButton>
+            <RadioButton
+              type="radio"
+              id="option"
+              value="option"
+              name="inputType"
+              onClick={() => {
+                setSelectedType("option");
+              }}
+              className={"border-white"}
+              required
+            >
+              Opção
+            </RadioButton>
+          </div>
         </div>
       </div>
 
@@ -180,7 +187,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: availableC
 
             {currentVariant == 2 && (
               <div>
-                <label htmlFor={"optionLimit"}>Número máximo de seleções:</label>
+                <label htmlFor={"optionLimit"}>Máximo de seleções:</label>
                 <Input type="number" name="optionLimit" id={"optionLimit"} required />
               </div>
             )}
@@ -201,7 +208,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: availableC
             <div>
               {addedOptions.map((value, index) => (
                 <div key={index} className={"flex items-center"}>
-                  <p>{value.name}</p>
+                  <p className={"-mb-1"}>{value.name}</p>
                   <Button
                     variant={"ghost"}
                     size={"icon"}
@@ -212,7 +219,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: availableC
                       else setAddedOptions(addedOptions.toSpliced(index, 1));
                     }}
                   >
-                    <IconTrashX />
+                    <IconTrashX size={20} />
                   </Button>
                   <input type="hidden" name="options" value={value.name} />
                 </div>
