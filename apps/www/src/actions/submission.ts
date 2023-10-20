@@ -1,30 +1,25 @@
 "use server";
 
 import { localsResponse } from "@/app/types";
+import { PrismaClient } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const categorySchema = z.object({
-  category: z
-    .object({
-      name: z.string().min(1),
-      optional: z.boolean(),
-      active: z.boolean(),
-    })
-    .array(),
+  name: z.string().min(1),
+  optional: z.boolean(),
+  active: z.boolean(),
 });
 
 const categorySubmit = async (prevState: any, formData: FormData) => {
+  const prisma = new PrismaClient();
+
   let parse;
   try {
     parse = categorySchema.parse({
-      category: [
-        {
-          name: formData.get("name"),
-          optional: false,
-          active: true,
-        },
-      ],
+      name: formData.get("name"),
+      optional: false,
+      active: true,
     });
   } catch (e) {
     return {
@@ -33,20 +28,15 @@ const categorySubmit = async (prevState: any, formData: FormData) => {
   }
 
   try {
-    await fetch("http://localhost:3333/category", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(parse),
-    });
+    const post = await prisma.category.create({ data: parse });
   } catch (e) {
     return {
       message: "erro do servidor",
     };
   }
 
-  revalidateTag("category");
+  prisma.$disconnect();
+  revalidatePath("/admin/registration/components");
   return {
     message: "nenhum erro",
   };
@@ -111,10 +101,7 @@ const questionSubmit = async (prevState: any, formData: FormData) => {
   }
 
   if (optionLimit != null) {
-    optionLimit =
-      parseInt(optionLimit as string) > options.length
-        ? options.length
-        : optionLimit;
+    optionLimit = parseInt(optionLimit as string) > options.length ? options.length : optionLimit;
   }
 
   const questionField =
@@ -231,10 +218,7 @@ const addressesSchema = z.object({
 const mapSubmission = async (prevState: any, formData: FormData) => {
   console.log("post received");
 
-  const parkData: localsResponse[] = await fetch(
-    "http://localhost:3333/locals",
-    { next: { tags: ["locals"] } },
-  ).then((res) => res.json());
+  const parkData: localsResponse[] = await fetch("http://localhost:3333/locals", { next: { tags: ["locals"] } }).then((res) => res.json());
 
   const usedIDs: number[] = parkData.map((values) => values.id);
 
@@ -299,20 +283,9 @@ const mapSubmission = async (prevState: any, formData: FormData) => {
     let i = 0;
     while (i < parseInt(pointsAmount)) {
       if (buffer != null) {
-        buffer = [
-          ...buffer,
-          [
-            formData.get(`points[${i}][lat]`),
-            formData.get(`points[${i}][lng]`),
-          ],
-        ];
+        buffer = [...buffer, [formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
       } else {
-        buffer = [
-          [
-            formData.get(`points[${i}][lat]`),
-            formData.get(`points[${i}][lng]`),
-          ],
-        ];
+        buffer = [[formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
       }
 
       i++;
@@ -361,9 +334,7 @@ const mapSubmission = async (prevState: any, formData: FormData) => {
 };
 
 const mapEdit = async (prevState: any, formData: FormData) => {
-  console.log(
-    "o servidor recebeu o request mas não sabe o que fazer com ele por enquanto",
-  );
+  console.log("o servidor recebeu o request mas não sabe o que fazer com ele por enquanto");
 };
 
 export { categorySubmit, questionSubmit, mapSubmission, mapEdit };

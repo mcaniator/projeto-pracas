@@ -1,0 +1,198 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = "postgresql://postgres:02Ago1962@localhost:5432/square_project"
+  extensions = [postgis(version: "3.4.0")]
+}
+
+model SequelizeMeta {
+  name String @id @db.VarChar(255)
+}
+
+model addresses {
+  id                 Int      @id @default(autoincrement())
+  UF                 String?  @db.VarChar(255)
+  locals_id          Int
+  city               String?  @db.VarChar(255)
+  neighborhood       String?  @db.VarChar(255)
+  street             String?  @db.VarChar(255)
+  number             String?  @db.VarChar(255)
+  planning_region_id Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  locals             locals   @relation(fields: [locals_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model category {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  optional     Boolean
+  active       Boolean
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  forms_fields forms_fields[]
+}
+
+model coutings {
+  id                 Int       @id @default(autoincrement())
+  name               String?   @db.VarChar(255)
+  init_date_time     DateTime? @db.Timestamptz(6)
+  end_date_time      DateTime? @db.Timestamptz(6)
+  count_animals      Int?
+  temperature        Int?
+  sky                String?   @db.VarChar(255)
+  person_on_local_id Int?
+  local_id           String?   @db.VarChar(255)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model evaluations {
+  id        Int      @id @default(autoincrement())
+  name      String?  @db.VarChar(255)
+  type      Int?
+  email     String?  @db.VarChar(255)
+  password  String?  @db.VarChar(255)
+  user_id   Int?
+  createdAt DateTime @default(now())
+  answers   Json?    @db.Json
+  updatedAt DateTime @updatedAt
+  forms_id  Int
+  forms     forms    @relation(fields: [forms_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model form_structure {
+  id              Int          @id @default(autoincrement())
+  id_forms_fields Int
+  id_forms        Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  forms_fields    forms_fields @relation(fields: [id_forms_fields], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  forms           forms        @relation(fields: [id_forms], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("form-structure")
+}
+
+model forms {
+  id             Int              @id @default(autoincrement())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  evaluations    evaluations[]
+  form_structure form_structure[]
+}
+
+model forms_fields {
+  id             Int              @id @default(autoincrement())
+  category_id    Int
+  name           String           @db.VarChar(255)
+  optional       Boolean
+  active         Boolean
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  form_structure form_structure[]
+  category       category         @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  numericfield   numericfield[]
+  optionfield    optionfield[]
+  textfield      textfield[]
+
+  @@map("forms-fields")
+}
+
+model locals {
+  id                  Int                      @id
+  name                String                   @db.VarChar(255)
+  polygon             Unsupported("geometry")?
+  common_name         String                   @db.VarChar(255)
+  type                Int
+  free_space_category Int
+  comments            String?
+  creation_year       String?                  @db.VarChar(255)
+  reform_year         String?                  @db.VarChar(255)
+  mayor_creation      String?                  @db.VarChar(255)
+  legislation         String?                  @db.VarChar(255)
+  useful_area         Int?
+  area_pjf            Int?
+  angle_inclination   Int?
+  urban_region        Boolean?
+  inactive_not_found  Boolean?
+  address_id          Int?
+  createdAt           DateTime?                @default(now())
+  updatedAt           DateTime?                @updatedAt
+  addresses           addresses[]
+}
+
+model numericfield {
+  id           Int          @id @default(autoincrement())
+  min          Float?
+  max          Float?
+  id_field     Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  forms_fields forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model option {
+  id             Int         @id @default(autoincrement())
+  name           String?     @db.VarChar(255)
+  id_optionfield Int
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  optionfield    optionfield @relation(fields: [id_optionfield], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model optionfield {
+  id                Int          @id @default(autoincrement())
+  option_limit      Int
+  total_options     Int
+  visual_preference Int
+  id_field          Int
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  option            option[]
+  forms_fields      forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model person_category {
+  id                Int      @id @default(autoincrement())
+  age_rating        Int?
+  physical_activity Boolean?
+  deficiency_person Boolean?
+  illegal_activity  Boolean?
+  homeless          Boolean?
+  quantity          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// Não sei para que essa tabela é usada
+// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+model textfield {
+  id           Int          @id @default(autoincrement())
+  char_limit   Int?
+  id_field     Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  forms_fields forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  type         Int
+  phone_number String   @db.VarChar(255)
+  email        String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
