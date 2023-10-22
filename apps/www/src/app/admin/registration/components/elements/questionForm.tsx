@@ -1,7 +1,6 @@
 "use client";
 
 import { questionSubmit } from "@/actions/submission";
-import { availableCategories } from "@/app/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import RadioButton from "@/components/ui/radioButton";
@@ -15,8 +14,8 @@ const initialState = {
   message: null,
 };
 
-const QuestionForm = ({ availableCategories }: { availableCategories: availableCategories[] }) => {
-  const [state, formAction] = useFormState(questionSubmit, initialState);
+const QuestionForm = ({ availableCategories }: { availableCategories: { id: number; name: string }[] }) => {
+  const [, formAction] = useFormState(questionSubmit, initialState);
 
   const [selectedType, setSelectedType] = useState("");
   const [currentVariant, setCurrentVariant] = useState(0);
@@ -58,7 +57,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: availableC
           <Select name="select" id={"categorias"}>
             {availableCategories.map((value, index) => (
               <option key={index} value={value.id}>
-                {value.label}
+                {value.name}
               </option>
             ))}
           </Select>
