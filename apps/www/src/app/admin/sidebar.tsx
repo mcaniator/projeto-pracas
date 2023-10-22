@@ -1,6 +1,7 @@
 "use client";
 
 import { titillium_web } from "@/app/fonts";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   IconBug,
@@ -13,7 +14,6 @@ import {
   IconMapSearch,
   IconUserCog,
 } from "@tabler/icons-react";
-import { Button } from "./ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,60 +21,27 @@ const Sidebar = () => {
   const currentLocation = usePathname();
 
   return (
-    <nav
-      className={cn(
-        "flex h-full w-64 flex-col p-5 text-xl text-white",
-        titillium_web.className,
-      )}
-    >
+    <nav className={cn("flex h-full w-64 flex-col p-5 text-xl text-white", titillium_web.className)}>
       <div className="flex flex-col gap-1">
-        <Button
-          variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/home" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
-          asChild
-        >
+        <Button variant={"ghost"} className={cn(currentLocation == "/admin/home" && "bg-transparent/5", "justify-start gap-1 px-1 py-5")} asChild>
           <Link href={"/admin/home"}>
             <IconHome size={34} />
             <p className="-mb-1">Início</p>
           </Link>
         </Button>
-        <Button
-          variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/parks" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
-          asChild
-        >
+        <Button variant={"ghost"} className={cn(currentLocation == "/admin/parks" && "bg-transparent/5", "justify-start gap-1 px-1 py-5")} asChild>
           <Link href={"/admin/parks"}>
             <IconFountain size={34} />
             <p className="-mb-1">Praças</p>
           </Link>
         </Button>
-        <Button
-          variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/users" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
-          asChild
-        >
+        <Button variant={"ghost"} className={cn(currentLocation == "/admin/users" && "bg-transparent/5", "justify-start gap-1 px-1 py-5")} asChild>
           <Link href={"/admin/users"}>
             <IconUserCog size={34} />
             <p className="-mb-1">Usuários</p>
           </Link>
         </Button>
-        <Button
-          variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/leaflet" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
-          asChild
-        >
+        <Button variant={"ghost"} className={cn(currentLocation == "/admin/leaflet" && "bg-transparent/5", "justify-start gap-1 px-1 py-5")} asChild>
           <Link href={"/admin/leaflet"}>
             <IconMapSearch size={34} />
             <p className="-mb-1">Leaflet</p>
@@ -82,10 +49,7 @@ const Sidebar = () => {
         </Button>
         <Button
           variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/registration" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
+          className={cn(currentLocation.includes("/admin/registration") && "bg-transparent/5", "justify-start gap-1 px-1 py-5")}
           asChild
         >
           <Link href={"/admin/registration"}>
@@ -93,14 +57,7 @@ const Sidebar = () => {
             <p className="-mb-1">Cadastro</p>
           </Link>
         </Button>
-        <Button
-          variant={"ghost"}
-          className={cn(
-            currentLocation == "/admin/forms" && "bg-transparent/5",
-            "justify-start gap-1 px-1 py-5",
-          )}
-          asChild
-        >
+        <Button variant={"ghost"} className={cn(currentLocation == "/admin/forms" && "bg-transparent/5", "justify-start gap-1 px-1 py-5")} asChild>
           <Link href={"/admin/forms"}>
             <IconListCheck size={34} />
             <p className="-mb-1">Formulários</p>

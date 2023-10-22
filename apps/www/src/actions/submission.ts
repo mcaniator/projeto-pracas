@@ -66,6 +66,9 @@ const questionSchema = z.object({
         name: z.string().min(1),
       }),
     )
+    .refine((value) => {
+      return value.length != 0;
+    })
     .nullable(),
   field: z.union([
     z.object({

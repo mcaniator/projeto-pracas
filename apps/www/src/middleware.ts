@@ -9,6 +9,13 @@ const middleware = (request: NextRequest) => {
     return NextResponse.redirect(url);
   }
 
+  if (request.nextUrl.pathname == "/admin/registration") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/registration/components";
+
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 };
 

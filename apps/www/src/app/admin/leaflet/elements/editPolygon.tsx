@@ -3,6 +3,7 @@
 import { DrawingContext } from "@/app/admin/leaflet/elements/leafletProvider";
 import { PolygonEditForm } from "@/app/admin/leaflet/elements/pseudo-elements/polygonEditForm";
 import { addressResponse, localsResponse } from "@/app/types";
+import { Select } from "@/components/ui/select";
 import { LatLngExpression } from "leaflet";
 import L from "leaflet";
 import { useContext, useState } from "react";
@@ -53,10 +54,7 @@ const EditPolygon = ({
       ))}
 
       <div className={"relative z-[10000]"}>
-        <select
-          className={
-            "h-10 appearance-none rounded-lg pl-3 pt-1 absolute right-0"
-          }
+        <Select
           value={value}
           onBlur={(value) => {
             console.log(value.target.value);
@@ -84,7 +82,7 @@ const EditPolygon = ({
               {value.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       {polygon != undefined && !drawingContext && (
         <FlySelection polygon={polygon} />

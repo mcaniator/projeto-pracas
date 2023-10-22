@@ -102,7 +102,12 @@ typings/
 #ASDF config
 .tool-versions
 
+# Turbo cache
 .turbo
 
+# IDE config
 .vscode/
 .idea/
+
+# macOS metadata
+.DS_STORE
