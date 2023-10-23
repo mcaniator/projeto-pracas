@@ -1,6 +1,6 @@
 "use client";
 
-import { questionSubmit } from "@/actions/submission";
+import { questionSubmit } from "@/actions/questionSubmit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import RadioButton from "@/components/ui/radioButton";
@@ -32,7 +32,6 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
   }, [selectedType]);
 
   useEffect(() => {
-    console.log("hello");
     setDisabled(addedOptions == undefined);
   }, [addedOptions]);
 
@@ -53,8 +52,8 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
     >
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
         <div>
-          <label htmlFor={"categorias"}>Categoria</label>
-          <Select name="select" id={"categorias"}>
+          <label htmlFor={"categories"}>Categoria</label>
+          <Select name="categoryID" id={"categories"}>
             {availableCategories.map((value, index) => (
               <option key={index} value={value.id}>
                 {value.name}
@@ -74,7 +73,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             <RadioButton
               type="radio"
               id="text"
-              value="text"
+              value={0}
               name="inputType"
               onClick={() => {
                 setSelectedType("text");
@@ -88,7 +87,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             <RadioButton
               type="radio"
               id="numeric"
-              value="numeric"
+              value={1}
               name="inputType"
               onClick={() => {
                 setSelectedType("numeric");
@@ -102,7 +101,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             <RadioButton
               type="radio"
               id="option"
-              value="option"
+              value={2}
               name="inputType"
               onClick={() => {
                 setSelectedType("option");

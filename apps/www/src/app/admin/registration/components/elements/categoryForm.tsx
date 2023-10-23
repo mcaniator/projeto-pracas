@@ -1,6 +1,6 @@
 "use client";
 
-import { categorySubmit } from "@/actions/submission";
+import { categorySubmit } from "@/actions/categorySubmit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRef } from "react";
