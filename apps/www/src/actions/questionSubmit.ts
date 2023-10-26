@@ -3,31 +3,34 @@
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
-const formsField = z.object({
+const formsFieldSchema = z.object({
   category_id: z.coerce.number().int(),
   name: z.string().trim().min(1),
   optional: z.boolean(),
   active: z.boolean(),
 });
 
-const textField = z.object({
-  char_limit: z.number().int(),
+const textFieldSchema = z.object({
+  char_limit: z.coerce
+    .number()
+    .int()
+    .refine((value) => value > 0),
   id_field: z.number().int(),
 });
 
-const numericField = z
+const numericFieldSchema = z
   .object({
-    min: z.number().int(),
-    max: z.number().int(),
+    min: z.coerce.number().int(),
+    max: z.coerce.number().int(),
     id_field: z.number().int(),
   })
   .refine((value) => value.min < value.max);
 
-const optionField = z
+const optionFieldSchema = z
   .object({
-    option_limit: z.number().int(),
+    option_limit: z.coerce.number().int(),
     total_options: z.number().int(),
-    visual_preference: z
+    visual_preference: z.coerce
       .number()
       .int()
       .refine((value) => value >= 0 && value <= 2),
@@ -35,10 +38,10 @@ const optionField = z
   })
   .refine((value) => value.option_limit <= value.total_options);
 
-const options = z
+const optionsSchema = z
   .object({
     name: z.string().min(1),
-    option_id: z.number().int(),
+    id_optionfield: z.number().int(),
   })
   .array()
   .nonempty();
@@ -49,103 +52,117 @@ const questionSubmit = async (_prevState: any, formData: FormData) => {
   const inputType = formData.get("inputType");
   if (inputType == null || inputType instanceof File) return;
 
-  const form = formsField.parse({
+  const formsField = formsFieldSchema.parse({
     category_id: formData.get("categoryID"),
     name: formData.get("name"),
     optional: false,
     active: true,
   });
 
-  const formResponse = await prisma.forms_fields.create({ data: form });
+  let formResponse;
+  try {
+    formResponse = await prisma.forms_fields.create({ data: formsField });
+  } catch (e) {
+    console.log("erro ao enviar a primeira parte para o servidor, revertendo mudanças! - ", e);
+    await prisma.forms_fields.delete({ where: { id: formResponse?.id } });
+    prisma.$disconnect();
+    return;
+  }
 
   switch (parseInt(inputType)) {
     case 0:
+      let textResponse;
+      try {
+        const text = textFieldSchema.parse({
+          char_limit: formData.get("charLimit"),
+          id_field: formResponse.id,
+        });
+
+        textResponse = await prisma.textfield.create({ data: text });
+      } catch (e) {
+        console.log("erro ao enviar a segunda parte para o servidor (mais provável) ou erro de tipagem, revertendo mudanças! - ", e);
+        try {
+          await prisma.forms_fields.delete({ where: { id: formResponse.id } });
+          if (textResponse?.id) {
+            await prisma.textfield.delete({
+              where: {
+                id: textResponse.id,
+              },
+            });
+          }
+        } catch (e) {
+          console.log("ou o valor não existe (mais provável) ou erro ao comunicar com a base de dados - ", e);
+        }
+      }
       break;
+
     case 1:
+      let numberResponse;
+      try {
+        const number = numericFieldSchema.parse({
+          min: formData.get("min"),
+          max: formData.get("max"),
+          id_field: formResponse.id,
+        });
+
+        numberResponse = await prisma.numericfield.create({ data: number });
+      } catch (e) {
+        console.log("erro ao enviar a segunda parte para o servidor (mais provável) ou erro de tipagem, revertendo mudanças! - ", e);
+        try {
+          await prisma.forms_fields.delete({ where: { id: formResponse.id } });
+          if (numberResponse?.id) {
+            await prisma.textfield.delete({
+              where: {
+                id: numberResponse.id,
+              },
+            });
+          }
+        } catch (e) {
+          console.log("ou o valor não existe (mais provável) ou erro ao comunicar com a base de dados - ", e);
+        }
+      }
       break;
+
     case 2:
+      const optionsName = formData.getAll("options").map((value) => {
+        return { name: value };
+      });
+      const visualPreference = formData.get("visualPreference");
+
+      const optionLimit = (() => {
+        if (visualPreference == "2") return formData.get("optionLimit");
+        else return optionsName.length;
+      })();
+
+      let optionFieldResponse: any;
+      let optionsResponse;
+      try {
+        const optionField = optionFieldSchema.parse({
+          id_field: formResponse.id,
+          option_limit: optionLimit,
+          total_options: optionsName.length,
+          visual_preference: visualPreference,
+        });
+
+        optionFieldResponse = await prisma.optionfield.create({ data: optionField });
+
+        const options = optionsSchema.parse(
+          optionsName.map((value) => {
+            return { ...value, id_optionfield: optionFieldResponse.id };
+          }),
+        );
+
+        optionsResponse = await prisma.option.createMany({ data: options });
+      } catch (e) {
+        console.log("erro ao enviar a segunda parte para o servidor, revertendo mudanças! - ", e);
+        await prisma.forms_fields.delete({ where: { id: formResponse.id } });
+        if (optionFieldResponse.id) await prisma.textfield.delete({ where: { id: optionFieldResponse.id } });
+        if (optionsResponse != undefined) await prisma.option.deleteMany({ where: { id_optionfield: optionFieldResponse.id } });
+      }
       break;
   }
 
-  // const options = formData.getAll("options").map((value) => {
-  //   return { name: value };
-  // });
-  // const visualPreference = formData.get("visualPreference");
-  //
-  // let optionLimit: number | null | FormDataEntryValue = 0;
-  //
-  // if (visualPreference != undefined) {
-  //   if (visualPreference == "2") {
-  //     optionLimit = formData.get("optionLimit");
-  //   } else {
-  //     optionLimit = options.length;
-  //   }
-  // }
-  //
-  // if (optionLimit != null) {
-  //   optionLimit = parseInt(optionLimit as string) > options.length ? options.length : optionLimit;
-  // }
-  //
-  // const questionField =
-  //   formData.get("inputType") == "text"
-  //     ? {
-  //         options: null,
-  //         field: {
-  //           char_limit: formData.get("charLimit"),
-  //         },
-  //       }
-  //     : formData.get("inputType") == "numeric"
-  //     ? {
-  //         options: null,
-  //         field: {
-  //           id_field: -1,
-  //           min: formData.get("min"),
-  //           max: formData.get("max"),
-  //         },
-  //       }
-  //     : {
-  //         options: options,
-  //         field: {
-  //           option_limit: optionLimit,
-  //           total_options: options.length,
-  //           visual_preference: formData.get("visualPreference"),
-  //         },
-  //       };
-  //
-  // let parse;
-  // try {
-  //   parse = questionSchema.parse({
-  //     type: formData.get("inputType"),
-  //     question: {
-  //       name: formData.get("name"),
-  //       category_id: formData.get("select"),
-  //       active: true,
-  //       optional: false,
-  //     },
-  //     ...questionField,
-  //   });
-  // } catch (e) {
-  //   return { message: "erro de tipagem" };
-  // }
-  //
-  // try {
-  //   await fetch("http://localhost:3333/form_field", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(parse),
-  //   });
-  // } catch (e) {
-  //   return {
-  //     message: "erro do servidor",
-  //   };
-  // }
-  //
-  // revalidatePath("/admin/registration");
-  // return {
-  //   message: "nenhum erro",
-  // };
+  prisma.$disconnect();
 };
 
 export { questionSubmit };

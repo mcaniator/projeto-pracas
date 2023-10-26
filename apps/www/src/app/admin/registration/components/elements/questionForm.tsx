@@ -15,7 +15,7 @@ const initialState = {
 };
 
 const QuestionForm = ({ availableCategories }: { availableCategories: { id: number; name: string }[] }) => {
-  const [, formAction] = useFormState(questionSubmit, initialState);
+  const [state, formAction] = useFormState(questionSubmit, initialState);
 
   const [selectedType, setSelectedType] = useState("");
   const [currentVariant, setCurrentVariant] = useState(0);
