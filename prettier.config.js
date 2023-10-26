@@ -9,6 +9,6 @@ module.exports = {
   tabWidth: 2,
   useTabs: false,
   tailwindFunctions: ["cva", "clsx", "cn"],
-  tailwindConfig: "./apps/www/tailwind.config.ts",
+  tailwindConfig: "tailwind.config.ts",
   plugins: ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
 };
