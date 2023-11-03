@@ -106,7 +106,7 @@ CREATE TABLE "forms-fields" (
 CREATE TABLE "locals" (
     "id" INTEGER NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "polygon" geometry,
+    "polygon" Geometry(MultiPolygon, 4326),
     "common_name" VARCHAR(255) NOT NULL,
     "type" INTEGER NOT NULL,
     "free_space_category" INTEGER NOT NULL,

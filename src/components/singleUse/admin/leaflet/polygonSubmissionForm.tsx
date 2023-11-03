@@ -1,6 +1,5 @@
 "use client";
 
-import { mapSubmission } from "@/actions/submission";
 import { PolygonContext } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { brazillianStates, parkCategories, parkTypes } from "@/components/singleUse/admin/leaflet/data";
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
@@ -9,10 +8,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { josefin_sans } from "@/lib/fonts";
+import { mapSubmission } from "@/lib/serverActions/parkSubmit";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useContext, useRef, useState } from "react";
-// @ts-expect-error
-import { experimental_useFormState as useFormState } from "react-dom";
+import { useFormState } from "react-dom";
 
 const PolygonSubmissionForm = () => {
   const { setDrawingContext } = useContext(DrawingContext);

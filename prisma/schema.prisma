@@ -9,19 +9,15 @@ datasource db {
   extensions = [postgis(version: "3.4.0")]
 }
 
-model SequelizeMeta {
-  name String @id @db.VarChar(255)
-}
-
 model addresses {
   id                 Int      @id @default(autoincrement())
-  UF                 String?  @db.VarChar(255)
+  UF                 String?  @db.VarChar(255) // enums!!!!!!!!!!!!!!
   locals_id          Int
   city               String?  @db.VarChar(255)
   neighborhood       String?  @db.VarChar(255)
   street             String?  @db.VarChar(255)
-  number             String?  @db.VarChar(255)
-  planning_region_id Int?
+  number             String?  @db.VarChar(255) // string???
+  planning_region_id Int? // q q é isso?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   locals             locals   @relation(fields: [locals_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -103,23 +99,23 @@ model forms_fields {
 }
 
 model locals {
-  id                  Int                      @id
+  id                  Int                      @id @default(autoincrement())
   name                String                   @db.VarChar(255)
-  polygon             Unsupported("geometry")?
+  polygon             Unsupported("Geometry(MultiPolygon, 4326)")?
   common_name         String                   @db.VarChar(255)
-  type                Int
-  free_space_category Int
+  type                Int // enums!!!!
+  free_space_category Int // enum!
   comments            String?
   creation_year       String?                  @db.VarChar(255)
   reform_year         String?                  @db.VarChar(255)
-  mayor_creation      String?                  @db.VarChar(255)
+  mayor_creation      String?                  @db.VarChar(255) // ? o q q é isso
   legislation         String?                  @db.VarChar(255)
-  useful_area         Int?
-  area_pjf            Int?
-  angle_inclination   Int?
-  urban_region        Boolean?
-  inactive_not_found  Boolean?
-  address_id          Int?
+  useful_area         Int?  // isso aqui nn devia ser um float?
+  area_pjf            Int?  // mesma coisa
+  angle_inclination   Int?  // aqui também
+  urban_region        Boolean? // isso aqui devia ser um enum
+  inactive_not_found  Boolean? // ? o q q é isso
+  address_id          Int? // não faz sentido ter um id ligando os dois msm pq pode ter mais de um endereço relacionado à um lugar só
   createdAt           DateTime?                @default(now())
   updatedAt           DateTime?                @updatedAt
   addresses           addresses[]

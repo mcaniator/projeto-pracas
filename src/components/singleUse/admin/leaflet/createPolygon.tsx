@@ -81,4 +81,4 @@ const CreatePolygon = () => {
   );
 };
 
-export default CreatePolygon;
+export { CreatePolygon };

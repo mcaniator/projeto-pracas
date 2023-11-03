@@ -4,6 +4,34 @@ import { localsResponse } from "@/app/types";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
+const localsSchema = z.object({
+  name: z.string(),
+  polygon: z.string(), // temp
+  common_name: z.string(),
+  type: z.coerce.number().int(),
+  free_space_category: z.coerce.number().int(),
+  comments: z.string(),
+  creation_year: z.string(), // temp
+  reform_year: z.string(), // temp
+  mayor_creation: z.string(),
+  legislation: z.string(),
+  useful_area: z.coerce.number(),
+  area_pjf: z.coerce.number(),
+  angle_inclination: z.coerce.number(),
+  urban_region: z.boolean(),
+  inactive_not_found: z.boolean(),
+});
+
+const addressesSchema = z.object({
+  UF: z.string(),
+  locals_id: z.coerce.number().int(),
+  city: z.string(),
+  neighborhood: z.string(),
+  street: z.string(),
+  number: z.string(), // é para ser um número msm
+  planning_region_id: z.number(),
+});
+
 /* IMPORTANT: atualmente não é o servidor que fornece o id do polígono, sendo calculado
  * no cliente através das informações recebidas dos outros ids de praça, isso é um
  * péssimo jeito de fazer isso já que caso de dois requests serem processados ao mesmo
@@ -40,7 +68,7 @@ const mapPolygonSchema = z.object({
   type: z.coerce.number(),
 });
 
-const addressesSchema = z.object({
+const tempSchema = z.object({
   addresses: z
     .object({
       city: z.string().min(1),
@@ -54,8 +82,6 @@ const addressesSchema = z.object({
 });
 
 const mapSubmission = async (prevState: any, formData: FormData) => {
-  console.log("post received");
-
   const parkData: localsResponse[] = await fetch("http://localhost:3333/locals", { next: { tags: ["locals"] } }).then((res) => res.json());
 
   const usedIDs: number[] = parkData.map((values) => values.id);
@@ -147,8 +173,6 @@ const mapSubmission = async (prevState: any, formData: FormData) => {
   const parsedAddress = addressesSchema.parse({
     addresses: addresses,
   });
-
-  console.log(parsedMap.polygon);
 
   try {
     await fetch("http://localhost:3333/locals", {
