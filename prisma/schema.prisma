@@ -1,194 +1,366 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+    provider        = "prisma-client-js"
+    previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = "postgresql://postgres:02Ago1962@localhost:5432/square_project"
-  extensions = [postgis(version: "3.4.0")]
+    provider   = "postgresql"
+    url        = "postgresql://postgres:02Ago1962@localhost:5432/square_project"
+    extensions = [postgis(version: "3.4.0")]
 }
 
-model addresses {
-  id                 Int      @id @default(autoincrement())
-  UF                 String?  @db.VarChar(255) // enums!!!!!!!!!!!!!!
-  locals_id          Int
-  city               String?  @db.VarChar(255)
-  neighborhood       String?  @db.VarChar(255)
-  street             String?  @db.VarChar(255)
-  number             String?  @db.VarChar(255) // string???
-  planning_region_id Int? // q q é isso?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  locals             locals   @relation(fields: [locals_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model acessibilidade {
+    id                         Int        @id @default(autoincrement())
+    avalicao                   avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id               Int?       @unique
+    calcadaEntornoFaixaLivre   Boolean?
+    calcadaEntornoFaixaServico Boolean?
+    alturaLivre                Boolean?
+    travessiaRebaixamento      Boolean?
+    ausenciaObstaculos         Boolean?
+    inclinacaoMax              Boolean?
+    inclinacaoLongitudinal     Boolean?
+    sinalizacaoTatil           Boolean?
+    revestimentoPiso           Boolean?
+    vagasPCD                   Int?
+    vagasIdosos                Int?
+    rotaAcessivel              Boolean?
+    equipamentoAdaptado        Boolean?
+    created_at                 DateTime   @default(now())
+    updated_at                 DateTime?  @updatedAt
 }
 
-model category {
-  id           Int            @id @default(autoincrement())
-  name         String         @db.VarChar(255)
-  optional     Boolean
-  active       Boolean
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  forms_fields forms_fields[]
+model areaAtividades {
+    id           Int        @id @default(autoincrement())
+    avalicao     avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id Int?       @unique
+    categoria    Int?
+    sombraMinima Boolean?
+    iluminacao   Boolean?
+    cercado      Boolean?
+    bancos       Boolean?
+    conservacao  Int?
+    descricao    String?    @db.Text
+    created_at   DateTime   @default(now())
+    updated_at   DateTime?  @updatedAt
 }
 
-model coutings {
-  id                 Int       @id @default(autoincrement())
-  name               String?   @db.VarChar(255)
-  init_date_time     DateTime? @db.Timestamptz(6)
-  end_date_time      DateTime? @db.Timestamptz(6)
-  count_animals      Int?
-  temperature        Int?
-  sky                String?   @db.VarChar(255)
-  person_on_local_id Int?
-  local_id           String?   @db.VarChar(255)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+model avaliacao {
+    id                             Int       @id @default(autoincrement())
+    local_id                       Int?
+    local                          local?    @relation(fields: [local_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    usuario_id                     Int?      @unique //Como pegar o id de todos os usuarios?
+    data                           DateTime? @db.Date
+    diaSemana                      Dia? //<- USAR ENUM?
+    inicio                         DateTime? @db.Time(0)
+    fim                            DateTime? @db.Time(0)
+    alteracaoLimites               Boolean?
+    calcadaPavimentada             Boolean?
+    conservacaoCalcada             Int?
+    wifi                           Boolean?
+    qtdLixeiras                    Int?
+    conservacaoLixeiras            Int?
+    qtdBanheiro                    Int?
+    conservacaoBanheiro            Int?
+    qtdTelefonePublico             Int?
+    conservacaoTelefonePublico     Int?
+    qtdBededouro                   Int?
+    conservacaoBededouro           Int?
+    qtdObraArte                    Int?
+    conservacaoObraArte            Int?
+    qtdPaisagismoPlanejado         Int?
+    conservacaoPaisagismoPlanejado Int?
+    qtdCadeiraMoveis               Int?
+    conservacaoCadeiraMoveis       Int?
+    created_at                     DateTime? @default(now())
+    updated_at                     DateTime? @updatedAt
+
+    acessibilidade         acessibilidade?
+    acessoEntorno          acessoEntorno?
+    areaAtividades         areaAtividades?
+    contagem               contagem?
+    depredacao             depredacao?
+    elementosPaisagisticos elementosPaisagisticos?
+    espacosAssento         espacosAssento?
+    feira                  feira[]
+    ruido                  ruido?
+    segurancaViaria        segurancaViaria?
+    usoDensidadeEntorno    usoDensidadeEntorno?
+    vigilancia             vigilancia?
+    avalicao_usuario       avalicao_usuario[]
 }
 
-model evaluations {
-  id        Int      @id @default(autoincrement())
-  name      String?  @db.VarChar(255)
-  type      Int?
-  email     String?  @db.VarChar(255)
-  password  String?  @db.VarChar(255)
-  user_id   Int?
-  createdAt DateTime @default(now())
-  answers   Json?    @db.Json
-  updatedAt DateTime @updatedAt
-  forms_id  Int
-  forms     forms    @relation(fields: [forms_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model acessoEntorno {
+    id                        Int        @id @default(autoincrement())
+    avalicao                  avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id              Int?       @unique
+    cercaHorarioFuncionamento Boolean?
+    placaIdentificacao        Boolean?
+    baiasOnibus               Int?
+    vagasTaxi                 Int?
+    vagasCarro                Int?
+    vagasMoto                 Int?
+    ciclovia                  Boolean?
+    created_at                DateTime?  @default(now())
+    updated_at                DateTime?  @updatedAt
 }
 
-model form_structure {
-  id              Int          @id @default(autoincrement())
-  id_forms_fields Int
-  id_forms        Int
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  forms_fields    forms_fields @relation(fields: [id_forms_fields], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  forms           forms        @relation(fields: [id_forms], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model contagem {
+    id           Int        @id @default(autoincrement())
+    avaliacao    avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id Int?       @unique
+    data         DateTime?  @db.Date
+    inicio       DateTime?
+    fim          DateTime?
+    qtdAnimais   Int?
+    temperatura  Float?
+    condicaoCeu  Int?
+    created_at   DateTime?  @default(now())
+    updated_at   DateTime?  @updatedAt
 
-  @@map("form-structure")
+    pessoaNoLocal pessoaNoLocal[]
 }
 
-model forms {
-  id             Int              @id @default(autoincrement())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  evaluations    evaluations[]
-  form_structure form_structure[]
+model depredacao {
+    id            Int        @id @default(autoincrement())
+    avaliacao     avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id  Int?       @unique
+    nivelPichacao Int?
+    nivelAbandono Int?
+    created_at    DateTime?  @default(now())
+    updated_at    DateTime?  @updatedAt
 }
 
-model forms_fields {
-  id             Int              @id @default(autoincrement())
-  category_id    Int
-  name           String           @db.VarChar(255)
-  optional       Boolean
-  active         Boolean
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  form_structure form_structure[]
-  category       category         @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  numericfield   numericfield[]
-  optionfield    optionfield[]
-  textfield      textfield[]
-
-  @@map("forms-fields")
+model elementosPaisagisticos {
+    id           Int        @id @default(autoincrement())
+    avaliacao    avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id Int?       @unique
+    categoria    Int?
+    sombraMinima Boolean?
+    iluminacao   Boolean?
+    cercado      Boolean?
+    bancos       Boolean?
+    conservacao  Int?
+    descricao    String?    @db.Text
+    created_at   DateTime?  @default(now())
+    updated_at   DateTime?  @updatedAt
 }
 
-model locals {
-  id                  Int                      @id @default(autoincrement())
-  name                String                   @db.VarChar(255)
-  polygon             Unsupported("Geometry(MultiPolygon, 4326)")?
-  common_name         String                   @db.VarChar(255)
-  type                Int // enums!!!!
-  free_space_category Int // enum!
-  comments            String?
-  creation_year       String?                  @db.VarChar(255)
-  reform_year         String?                  @db.VarChar(255)
-  mayor_creation      String?                  @db.VarChar(255) // ? o q q é isso
-  legislation         String?                  @db.VarChar(255)
-  useful_area         Int?  // isso aqui nn devia ser um float?
-  area_pjf            Int?  // mesma coisa
-  angle_inclination   Int?  // aqui também
-  urban_region        Boolean? // isso aqui devia ser um enum
-  inactive_not_found  Boolean? // ? o q q é isso
-  address_id          Int? // não faz sentido ter um id ligando os dois msm pq pode ter mais de um endereço relacionado à um lugar só
-  createdAt           DateTime?                @default(now())
-  updatedAt           DateTime?                @updatedAt
-  addresses           addresses[]
+model endereco {
+    id            Int         @id @default(autoincrement())
+    local_id      Int?
+    local         local?      @relation(fields: [local_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    UF            UFederacao? // enums!!!!!!!!!!!!!!
+    cidade_tabela cidade?     @relation(fields: [cidade], references: [nome])
+    cidade        String?
+    bairro        String?     @db.VarChar(255)
+    rua           String?     @db.VarChar(255)
+    CEP           String?     @db.VarChar(255) // q q é isso?
+    numero        Int? // string???
+    createdAt     DateTime?   @default(now())
+    updatedAt     DateTime?   @updatedAt
 }
 
-model numericfield {
-  id           Int          @id @default(autoincrement())
-  min          Float?
-  max          Float?
-  id_field     Int
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  forms_fields forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model espacosAssento {
+    id           Int        @id @default(autoincrement())
+    avaliacao    avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id Int?       @unique
+    categoria    Int?
+    sombraMinima Boolean?
+    iluminacao   Boolean?
+    cercado      Boolean?
+    bancos       Boolean?
+    conservacao  Int?
+    createdAt    DateTime?  @default(now())
+    updatedAt    DateTime?  @updatedAt
 }
 
-model option {
-  id             Int         @id @default(autoincrement())
-  name           String?     @db.VarChar(255)
-  id_optionfield Int
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  optionfield    optionfield @relation(fields: [id_optionfield], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model feira {
+    id                  Int        @id @default(autoincrement())
+    avaliacao           avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id        Int?       @unique
+    frequenciaUltimoAno Int?
+    categoria           Int?
+    nomeResponsavel     String?    @db.VarChar(255)
+    createdAt           DateTime?  @default(now())
+    updatedAt           DateTime?  @updatedAt
 }
 
-model optionfield {
-  id                Int          @id @default(autoincrement())
-  option_limit      Int
-  total_options     Int
-  visual_preference Int
-  id_field          Int
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  option            option[]
-  forms_fields      forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model local {
+    id                   Int                                          @id @default(autoincrement())
+    nome                 String?                                      @db.VarChar(255)
+    //common_name         String                   @db.VarChar(255)
+    tipo                 Tipos_local?
+    categoriaEspacoLivre CategoriasEspacoLivre?
+    observacoes          String?
+    anoCriacao           String?                                      @db.VarChar(255)
+    anoReforma           String?                                      @db.VarChar(255)
+    prefeitoCriacao      String?                                      @db.VarChar(255)
+    legislacao           String?                                      @db.VarChar(255)
+    areaUtil             Float?
+    areaPrefeitura       Float?
+    inclinacao           Float?
+    regiaoUrbana         String?                                      @db.VarChar(255) // Usar regioes possiveis no modelo cidade
+    inativoNaoLocalizado Boolean?
+    poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
+    poligonoArea         Float?
+    createdAt            DateTime?                                    @default(now())
+    updatedAt            DateTime?                                    @updatedAt
+
+    endereco  endereco[]
+    avaliacao avaliacao[]
 }
 
-model person_category {
-  id                Int      @id @default(autoincrement())
-  age_rating        Int?
-  physical_activity Boolean?
-  deficiency_person Boolean?
-  illegal_activity  Boolean?
-  homeless          Boolean?
-  quantity          Int?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+model pessoaNoLocal {
+    id                  Int       @id @default(autoincrement())
+    contagem            contagem? @relation(fields: [contagem_id], references: [id])
+    contagem_id         Int?
+    classificacaoEtaria Int?
+    genero              Int?
+    atividadeFisica     Int?
+    passando            Boolean?
+    pessoaDeficiente    Boolean?
+    atividadeIlicita    Boolean?
+    situacaoRua         Boolean?
+    createdAt           DateTime? @default(now())
+    updatedAt           DateTime? @updatedAt
 }
 
-// Não sei para que essa tabela é usada
-// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model spatial_ref_sys {
-  srid      Int     @id
-  auth_name String? @db.VarChar(256)
-  auth_srid Int?
-  srtext    String? @db.VarChar(2048)
-  proj4text String? @db.VarChar(2048)
+model ruido {
+    id           Int        @id @default(autoincrement())
+    avaliacao    avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id Int?       @unique
+    nivelDb      Float?
+    categoria    String?    @db.VarChar(255)
+    created_at   DateTime?  @default(now())
+    updated_at   DateTime?  @updatedAt
 }
 
-model textfield {
-  id           Int          @id @default(autoincrement())
-  char_limit   Int?
-  id_field     Int
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  forms_fields forms_fields @relation(fields: [id_field], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model segurancaViaria {
+    id               Int        @id @default(autoincrement())
+    avaliacao        avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id     Int?       @unique
+    faixaPedestre    Boolean?
+    semaforo         Boolean?
+    placasVelocidade Boolean?
+    created_at       DateTime?  @default(now())
+    updated_at       DateTime?  @updatedAt
 }
 
-model users {
-  id           Int      @id @default(autoincrement())
-  name         String   @db.VarChar(255)
-  type         Int
-  phone_number String   @db.VarChar(255)
-  email        String   @db.VarChar(255)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model usoDensidadeEntorno {
+    id             Int        @id @default(autoincrement())
+    avaliacao      avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id   Int?       @unique
+    usoEdificacoes String?    @db.Text
+    created_at     DateTime?  @default(now())
+    updated_at     DateTime?  @updatedAt
+}
+
+model usuario {
+    id         Int            @id @default(autoincrement())
+    nome       String?        @db.VarChar(255)
+    tipo       Tipos_usuario?
+    email      String?        @db.VarChar(255)
+    senha      String?        @db.VarChar(255)
+    created_at DateTime?      @default(now())
+    updated_at DateTime?      @updatedAt
+
+    avalicao_usuario avalicao_usuario[]
+}
+
+model vigilancia {
+    id                Int        @id @default(autoincrement())
+    avaliacao         avaliacao? @relation(fields: [avaliacao_id], references: [id])
+    avaliacao_id      Int?       @unique
+    cameras           Boolean?
+    postoPolicial     Boolean?
+    nivelVisibilidade Int?
+    created_at        DateTime?  @default(now())
+    updated_at        DateTime?  @updatedAt
+}
+
+enum Dia {
+    DOMINGO
+    SEGUNDA_FEIRA
+    TERCA_FEIRA
+    QUARTA_FEIRA
+    QUINTA_FEIRA
+    SEXTA_FEIRA
+    SABADO
+}
+
+enum UFederacao {
+    AC
+    AL
+    AP
+    AM
+    BA
+    CE
+    DF
+    ES
+    GO
+    MA
+    MT
+    MS
+    MG
+    PA
+    PB
+    PR
+    PE
+    PI
+    RJ
+    RN
+    RS
+    RO
+    RR
+    SC
+    SP
+    SE
+    TO
+}
+
+enum Tipos_local {
+    PRACA
+}
+
+enum Tipos_usuario {
+    ADMIN
+    PESQUISADOR
+}
+
+enum CategoriasEspacoLivre {
+    ESPACO_LIVRE_PUBLICO_USO_COLETIVO
+}
+
+model cidade {
+    id            Int            @id @default(autoincrement())
+    nome          String?        @unique @db.VarChar(255)
+    endereco      endereco[]
+    regioes       String[]
+    cidade_regiao cidade_regiao?
+}
+
+model avalicao_usuario {
+    avaliacao_usuario_id Int
+    avaliacao            avaliacao @relation(fields: [avaliacao_usuario_id], references: [usuario_id])
+
+    usuario_id Int
+    usuario    usuario @relation(fields: [usuario_id], references: [id])
+
+    @@id([avaliacao_usuario_id, usuario_id])
+}
+
+model regiao {
+    id            Int            @id @default(autoincrement())
+    regiao        String
+    cidade_regiao cidade_regiao?
+}
+
+model cidade_regiao {
+    cidade_id Int    @unique
+    cidade    cidade @relation(fields: [cidade_id], references: [id])
+    regiao_id Int    @unique
+    regiao    regiao @relation(fields: [regiao_id], references: [id])
+
+    @@id([cidade_id, regiao_id])
 }
