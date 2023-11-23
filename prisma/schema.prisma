@@ -151,8 +151,8 @@ model endereco {
     local_id      Int?
     local         local?      @relation(fields: [local_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
     UF            UFederacao? // enums!!!!!!!!!!!!!!
-    cidade_tabela cidade?     @relation(fields: [cidade], references: [nome])
-    cidade        String?
+    cidade_tabela cidade?     @relation(fields: [cidade_id], references: [id])
+    cidade_id     Int?
     bairro        String?     @db.VarChar(255)
     rua           String?     @db.VarChar(255)
     CEP           String?     @db.VarChar(255) // q q é isso?
@@ -200,7 +200,7 @@ model local {
     areaUtil             Float?
     areaPrefeitura       Float?
     inclinacao           Float?
-    regiaoUrbana         String?                                      @db.VarChar(255) // Usar regioes possiveis no modelo cidade
+    regiaoUrbana         String?                                      @db.VarChar(255)
     inativoNaoLocalizado Boolean?
     poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
     poligonoArea         Float?
@@ -336,7 +336,6 @@ model cidade {
     id            Int            @id @default(autoincrement())
     nome          String?        @unique @db.VarChar(255)
     endereco      endereco[]
-    regioes       String[]
     cidade_regiao cidade_regiao?
 }
 
