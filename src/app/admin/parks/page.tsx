@@ -1,17 +1,15 @@
 "use client";
 
-import { useState } from "react";
-
-import cadastrar from "./cadastrar";
+import { cadastrar } from "@/lib/serverActions/cadastrar";
 
 const AdminRoot = () => {
-  const [content, setContent] = useState({
+  let content = {
     nome: "nome da praca",
     endereco: {},
     avaliacao: {},
     tipo: "PRACA",
     categoriaEspacoLivre: "ESPACO_LIVRE_PUBLICO_USO_COLETIVO",
-  });
+  };
 
   return (
     <div>
@@ -19,7 +17,7 @@ const AdminRoot = () => {
       {
         <button
           onClick={() =>
-            setContent({
+            (content = {
               nome: "praça sao matheus",
               endereco: {},
               avaliacao: {},
