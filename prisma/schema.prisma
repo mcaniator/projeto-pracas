@@ -85,24 +85,24 @@ enum CategoriasEspacoLivre {
 //  ------------------------------------------------------------------------------------------------------------
 
 model Local {
-  id                   Int      @id @default(autoincrement())
-  nome                 String   @db.VarChar(255)
+  id                   Int       @id @default(autoincrement())
+  nome                 String    @db.VarChar(255)
   // common_name         String                   @db.VarChar(255)
-  observacoes          String?  @db.Text
-  anoCriacao           DateTime @map("ano_criacao") @db.Date
-  anoReforma           DateTime @map("ano_reforma") @db.Date
-  prefeitoCriacao      String   @map("prefeito_criacao") @db.VarChar(255)
-  legislacao           String?  @db.VarChar(255) // o que que é isso?
-  areaUtil             Float    @map("area_util")
-  areaPrefeitura       Float?   @map("area_prefeitura")
+  observacoes          String?   @db.Text
+  anoCriacao           DateTime? @map("ano_criacao") @db.Date
+  anoReforma           DateTime? @map("ano_reforma") @db.Date
+  prefeitoCriacao      String?   @map("prefeito_criacao") @db.VarChar(255)
+  legislacao           String?   @db.VarChar(255) // o que que é isso?
+  areaUtil             Float?    @map("area_util")
+  areaPrefeitura       Float?    @map("area_prefeitura")
   inclinacao           Float?
-  regiaoUrbana         String   @map("regiao_urbana") @db.VarChar(255)
-  inativoNaoLocalizado Boolean  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
-  poligonoArea         Float    @map("poligono_area")
+  regiaoUrbana         String?   @map("regiao_urbana") @db.VarChar(255)
+  inativoNaoLocalizado Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
+  poligonoArea         Float?    @map("poligono_area")
 
-  tipo                 TiposLocal
+  tipo                 TiposLocal?
   poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
-  categoriaEspacoLivre CategoriasEspacoLivre                       @map("categoria_espaco_livre")
+  categoriaEspacoLivre CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
   endereco             Endereco[]
   avaliacao            Avaliacao[]
 
