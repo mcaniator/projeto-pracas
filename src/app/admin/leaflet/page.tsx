@@ -4,6 +4,7 @@
    está mal feito, mas porque não há um jeito melhor de fazer o que está sendo feito. */
 import { CreatePolygon } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { EditPolygon } from "@/components/singleUse/admin/leaflet/editPolygon";
+import { fetchPolygons } from "@/lib/managePolygons";
 import { prisma } from "@/lib/prisma";
 import dynamic from "next/dynamic";
 
@@ -13,14 +14,12 @@ const LeafletProvider = dynamic(() => import("@/components/singleUse/admin/leafl
 });
 
 const LeafletRoot = async () => {
-  const localsData = await prisma.locals.findMany();
+  const localsData = await prisma.local.findMany();
+  const polygons = await fetchPolygons();
 
-  const polygons: { type: string; coordinates: [number, number][][] }[] = await prisma.$queryRaw<
-    { st_asgeojson: string }[]
-  >`SELECT ST_AsGeoJSON(polygon) FROM locals`.then((result) => result.map((value) => JSON.parse(value.st_asgeojson)));
-
+  console.log(polygons);
   const parkData = localsData.map((value, index) => ({ polygon: polygons[index].coordinates[0], ...value }));
-  const addressData = await prisma.addresses.findMany();
+  const addressData = await prisma.endereco.findMany();
 
   return (
     <LeafletProvider>
