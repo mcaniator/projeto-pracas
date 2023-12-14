@@ -101,6 +101,7 @@ enum CategoriasEspacoLivre {
 model Local {
   id                   Int       @id @default(autoincrement())
   nome                 String    @db.VarChar(255)
+  ePraca               Boolean?  @map("e_praca")
   // common_name         String                   @db.VarChar(255)
   observacoes          String?   @db.Text
   anoCriacao           DateTime? @map("ano_criacao") @db.Date
@@ -114,11 +115,14 @@ model Local {
   inativoNaoLocalizado Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
   poligonoArea         Float?    @map("poligono_area")
 
-  tipo                 TiposLocal?
-  poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
-  categoriaEspacoLivre CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
-  endereco             Endereco[]
-  avaliacao            Avaliacao[]
+  tipo                      TiposLocal?
+  poligono                  Unsupported("Geometry(MultiPolygon, 4326)")?
+  categoriaEspacoLivre      CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
+  endereco                  Endereco[]
+  avaliacao                 Avaliacao[]
+  delimitacaoAdministrativa DelimitacaoAdministrativa[]
+  contagem                  Contagem[]
+  ruido                     Ruido[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -169,6 +173,19 @@ model Regiao {
   @@map("regiao")
 }
 
+model DelimitacaoAdministrativa {
+  id                            Int     @id @default(autoincrement())
+  nomeDelimitacaoAdministrativa String  @map("nome_delimitacao_administrativa")
+  local                         Local[]
+
+  @@map("delimitacao_administrativa")
+}
+
+//*model LocalDelimitacaoAdministrativa{
+//  id Int @id@default(autoincrement())
+
+//}
+
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
@@ -206,13 +223,13 @@ model Avaliacao {
   acessibilidade         Acessibilidade?
   acessoEntorno          AcessoEntorno?
   areaAtividades         AreaAtividades?
-  contagem               Contagem?
+  //contagem               Contagem?
   depredacao             Depredacao?
   elementosPaisagisticos ElementosPaisagisticos?
   espacosAssento         EspacosAssento?
   // acho que feitas e eventos são rezumidos em um registro só
   eventos                Eventos[]
-  ruido                  Ruido?
+  //ruido                  Ruido?
   segurancaViaria        SegurancaViaria?
   usoDensidadeEntorno    UsoDensidadeEntorno?
   vigilancia             Vigilancia?
@@ -305,46 +322,6 @@ model AreaAtividades {
   @@map("area_atividades")
 }
 
-model Contagem {
-  id                Int      @id @default(autoincrement())
-  data              DateTime @db.Date
-  inicio            DateTime @db.Timestamptz(0)
-  fim               DateTime @db.Timestamptz(0)
-  quantidadeAnimais Int      @map("quantidade_animais")
-  temperatura       Float
-  condicaoCeu       String   @map("condicao_ceu")
-
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  avaliacaoId Int       @unique @map("avaliacao_id")
-
-  pessoaNoLocal PessoaNoLocal[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("contagem")
-}
-
-// Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
-model PessoaNoLocal {
-  id                  Int     @id @default(autoincrement())
-  classificacaoEtaria Int     @map("classificacao_etaria")
-  genero              Int
-  atividadeFisica     Int     @map("atividade_fisica")
-  passando            Boolean
-  pessoaDeficiente    Boolean @map("pessoa_deficiente")
-  atividadeIlicita    Boolean @map("atividade_ilicita")
-  situacaoRua         Boolean @map("situacao_rua")
-
-  contagem   Contagem @relation(fields: [contagemId], references: [id])
-  contagemId Int      @map("contagem_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("pessoa_no_local")
-}
-
 model Depredacao {
   id            Int @id @default(autoincrement())
   nivelPichacao Int @map("nivel_pichacao")
@@ -414,20 +391,6 @@ model Eventos {
   @@map("eventos")
 }
 
-model Ruido {
-  id        Int    @id @default(autoincrement())
-  nivelDb   Float  @map("nivel_db")
-  categoria String @db.VarChar(255)
-
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  avaliacaoId Int       @unique @map("avaliacao_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("ruido")
-}
-
 model SegurancaViaria {
   id               Int     @id @default(autoincrement())
   faixaPedestre    Boolean @map("faixa_pedestre")
@@ -469,4 +432,66 @@ model Vigilancia {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("vigilancia")
+}
+
+//  ------------------------------------------------------------------------------------------------------------
+//  Campos das Avaliações não relacionadas à avaliação física-- ordem alfabética exceto por pessoa no local por ser relacionado à contagem
+//  ------------------------------------------------------------------------------------------------------------
+
+model Contagem {
+  id                Int       @id @default(autoincrement())
+  data              DateTime? @db.Date
+  inicio            DateTime? @db.Timestamptz(0)
+  fim               DateTime? @db.Timestamptz(0)
+  quantidadeAnimais Int?      @map("quantidade_animais")
+  temperatura       Float?
+  condicaoCeu       String?   @map("condicao_ceu")
+
+  local   Local @relation(fields: [localId], references: [id])
+  localId Int   @unique @map("local_id")
+  //avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  //avaliacaoId Int       @unique @map("avaliacao_id")
+
+  pessoaNoLocal PessoaNoLocal[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("contagem")
+}
+
+// Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
+model PessoaNoLocal {
+  id                  Int      @id @default(autoincrement())
+  classificacaoEtaria Int?     @map("classificacao_etaria")
+  genero              Int?
+  atividadeFisica     Int?     @map("atividade_fisica")
+  passando            Boolean?
+  pessoaDeficiente    Boolean? @map("pessoa_deficiente")
+  atividadeIlicita    Boolean? @map("atividade_ilicita")
+  situacaoRua         Boolean? @map("situacao_rua")
+
+  contagem   Contagem @relation(fields: [contagemId], references: [id])
+  contagemId Int      @map("contagem_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("pessoa_no_local")
+}
+
+model Ruido {
+  id        Int    @id @default(autoincrement())
+  nivelDb   Float  @map("nivel_db")
+  categoria String @db.VarChar(255)
+
+  local   Local @relation(fields: [localId], references: [id])
+  localId Int   @unique @map("local_id")
+  //avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  //avaliacaoId Int       @unique @map("avaliacao_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ruido")
 }

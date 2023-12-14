@@ -2,7 +2,7 @@
 
 import { prisma } from "../prisma";
 
-const consultar = async (id: any) => {
+const consultarLocal = async (id: any) => {
   try {
     let pracaConsultada = await prisma.local.findUnique({
       where: {
@@ -15,4 +15,4 @@ const consultar = async (id: any) => {
   }
 };
 
-export { consultar };
+export { consultarLocal };

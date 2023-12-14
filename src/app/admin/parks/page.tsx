@@ -1,5 +1,5 @@
 import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
-import { cadastrar } from "@/lib/serverActions/cadastrar";
+import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
 
 const AdminRoot = () => {
   return (
