@@ -34,11 +34,11 @@ model Form {
 enum DiaSemana {
   DOMINGO       @map("Domingo")
   SEGUNDA_FEIRA @map("Segunda Feira")
-  TERCA_FEIRA   @map("Terça Feira")
+  TERCA_FEIRA   @map("Terca Feira")
   QUARTA_FEIRA  @map("Quarta Feira")
   QUINTA_FEIRA  @map("Quinta Feira")
   SEXTA_FEIRA   @map("Sexta Feira")
-  SABADO        @map("Sábado")
+  SABADO        @map("Sabado")
 
   @@map("dia_semana")
 }
@@ -46,29 +46,29 @@ enum DiaSemana {
 enum Estados {
   ACRE                @map("Acre")
   ALAGOAS             @map("Alagoas")
-  AMAPA               @map("Amapá")
+  AMAPA               @map("Amapa")
   AMAZONAS            @map("Amazonas")
   BAHIA               @map("Bahia")
-  CEARA               @map("Ceará")
+  CEARA               @map("Ceara")
   DISTRITO_FEDERAL    @map("Distrito Federal")
-  ESPIRITO_SANTO      @map("Espírito Santo")
-  GOIAS               @map("Goiás")
-  MARANHAO            @map("Maranhão")
+  ESPIRITO_SANTO      @map("Espirito Santo")
+  GOIAS               @map("Goias")
+  MARANHAO            @map("Maranhao")
   MATO_GROSSO         @map("Matro Grosso")
   MATO_GROSSO_DO_SUL  @map("Mato Grosso do Sul")
   MINAS_GERAIS        @map("Minas Gerais")
-  PARA                @map("Pará")
-  PARAIBA             @map("Paraíba")
-  PARANA              @map("Paraná")
+  PARA                @map("Para")
+  PARAIBA             @map("Paraiba")
+  PARANA              @map("Parana")
   PERNAMBUCO          @map("Pernambuco")
-  PIAUI               @map("Piauí")
+  PIAUI               @map("Piaui")
   RIO_DE_JANEIRO      @map("Rio de Janeiro")
   RIO_GRANDE_DO_NORTE @map("Rio Grande do Norte")
   RIO_GRANDE_DO_SUL   @map("Rio Grande do Sul")
-  RONDONIA            @map("Rondônia")
+  RONDONIA            @map("Rondonia")
   RORAIMA             @map("Roraima")
   SANTA_CATARINA      @map("Santa Catarina")
-  SAO_PAULO           @map("São Paulo")
+  SAO_PAULO           @map("Sao Paulo")
   SERGIPE             @map("Sergipe")
   TOCANTINS           @map("Tocantins")
 
@@ -76,7 +76,17 @@ enum Estados {
 }
 
 enum TiposLocal {
-  PRACA
+  CANTEIROS_CENTRAIS_E_LATERAIS_DE_PORTE                          @map("Canteiros Centrais e Laterais de Porte")
+  CANTOS_DE_QUADRA                                                @map("Cantos de Quadra")
+  JARDIM                                                          @map("Jardim")
+  LARGO                                                           @map("Largo")
+  MIRANTE                                                         @map("Mirante")
+  PRACA                                                           @map("Praca")
+  PRACA_CERCADA                                                   @map("Praca Cercada")
+  TERRENA_NAO_OCUPADO                                             @map("Terreno Não Ocupado")
+  TERRENOS_REMANESCENTES_DE_SISTEMA_VIARIO_E_PARCELAMENTO_DE_SOLO @map("Terrenos Remanescentes de Sistema Viario/Parcelamento de Solo")
+  ROTATORIO                                                       @map("Rotatorio")
+  TREVO                                                           @map("Trevo")
 
   @@map("tipos_local")
 }
@@ -89,7 +99,8 @@ enum TiposUsuario {
 }
 
 enum CategoriasEspacoLivre {
-  ESPACO_LIVRE_PUBLICO_USO_COLETIVO
+  DE_PRATICAS_SOCIAIS                  @map("de Praticas Sociais")
+  ESPACO_LIVRE_PRIVADO_DE_USO_COLETIVO @map("Espaco Livre Privado de Uso Coletivo")
 
   @@map("categorias_espaco_livre")
 }
@@ -115,7 +126,7 @@ model Local {
   inativoNaoLocalizado Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
   poligonoArea         Float?    @map("poligono_area")
 
-  tipo                      TiposLocal?
+  tipo                      TiposLocal
   poligono                  Unsupported("Geometry(MultiPolygon, 4326)")?
   categoriaEspacoLivre      CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
   endereco                  Endereco[]
@@ -223,13 +234,13 @@ model Avaliacao {
   acessibilidade         Acessibilidade?
   acessoEntorno          AcessoEntorno?
   areaAtividades         AreaAtividades?
-  //contagem               Contagem?
+  // contagem               Contagem?
   depredacao             Depredacao?
   elementosPaisagisticos ElementosPaisagisticos?
   espacosAssento         EspacosAssento?
   // acho que feitas e eventos são rezumidos em um registro só
   eventos                Eventos[]
-  //ruido                  Ruido?
+  // ruido                  Ruido?
   segurancaViaria        SegurancaViaria?
   usoDensidadeEntorno    UsoDensidadeEntorno?
   vigilancia             Vigilancia?
@@ -449,8 +460,8 @@ model Contagem {
 
   local   Local @relation(fields: [localId], references: [id])
   localId Int   @unique @map("local_id")
-  //avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  //avaliacaoId Int       @unique @map("avaliacao_id")
+  // avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  // avaliacaoId Int       @unique @map("avaliacao_id")
 
   pessoaNoLocal PessoaNoLocal[]
 
@@ -487,8 +498,8 @@ model Ruido {
 
   local   Local @relation(fields: [localId], references: [id])
   localId Int   @unique @map("local_id")
-  //avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  //avaliacaoId Int       @unique @map("avaliacao_id")
+  // avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  // avaliacaoId Int       @unique @map("avaliacao_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
