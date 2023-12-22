@@ -21,7 +21,7 @@ const NavBar = () => {
             href={"/admin/registration/questions"}
             className={"-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"}
           >
-            Criação de Componentes
+            Criação de Perguntas
           </Link>
           <h2 className={"-mb-1 text-3xl font-bold text-white"}>Criação de Formulários</h2>
         </>

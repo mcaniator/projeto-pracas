@@ -1,12 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -21,11 +16,14 @@ module.exports = {
         "temporario-bg": "url(/bg7.jpg)",
       },
       colors: {
-        amethyst: "#9d6fe1",
-        "amethyst-dark": "#8C68C2",
-        "bice-blue": "#056B9E",
-        "indigo-dye": "#034363",
+        redwood: "#A34C4C",
+        cordovan: "#893838",
+        purpureus: "#9B59B2",
+        eminence: "#7C4091",
+        "true-blue": "#4C6DA3",
+        "indigo-dye": "#2B4673",
         "cambridge-blue": "#8FBC94",
+        "sea-green": "#608E66",
         asparagus: "#6DA34D",
         "seasick-green": "#DDFBE133",
         "off-white": "#D9D9D9",

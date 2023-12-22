@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import RadioButton from "@/components/ui/radioButton";
+import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
 import { questionSubmit } from "@/lib/serverActions/questionSubmit";
 import { IconTrashX } from "@tabler/icons-react";
@@ -166,7 +166,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
               </div>
               <Button
                 type="button"
-                buttonColor={"amethyst"}
+                variant={"admin"}
                 disabled={(() => {
                   return currentOption == "";
                 })()}
@@ -192,7 +192,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
         )}
 
         {selectedType && (
-          <Button disabled={disabled} buttonColor={"amethyst"} type="submit" className={"w-24 transition-all"}>
+          <Button disabled={disabled} variant={"admin"} type="submit" className={"w-24 transition-all"}>
             Enviar
           </Button>
         )}

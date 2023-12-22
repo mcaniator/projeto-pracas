@@ -28,10 +28,10 @@ const CategoryForm = () => {
     >
       <div>
         <label htmlFor={"name"}>Nome da categoria:</label>
-        <Input type="text" name="name" required id={"name"} />
+        <Input type="text" name="name" required id={"name"} className={"w-[50%]"} />
       </div>
-      <Button buttonColor={"amethyst"} type="submit" className={"w-24"}>
-        Enviar
+      <Button variant={"admin"} type="submit" className={"w-min"}>
+        <span className={"-mb-1"}>Enviar</span>
       </Button>
     </form>
   );

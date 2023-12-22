@@ -1,5 +1,5 @@
 import Footer from "@/components/footer";
-import Header from "@/components/header";
+import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
@@ -11,11 +11,9 @@ const NotFound = () => {
         <div className="text-center font-bold text-white">
           <h1 className="-mb-1 text-7xl sm:-mb-4 sm:text-8xl">404</h1>
           <h2 className="text-2xl sm:text-7xl">Página não encontrada!</h2>
-          <p className="sm:text-3xl">
-            Ops, não era para você ter chegado aqui!
-          </p>
+          <p className="sm:text-3xl">Ops, não era para você ter chegado aqui!</p>
         </div>
-        <Button className="flex items-center justify-center" size={"lg"}>
+        <Button>
           <span className="-mb-1 font-bold">Denunciar Erro</span>
         </Button>
       </section>

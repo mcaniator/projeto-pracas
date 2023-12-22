@@ -26,21 +26,17 @@ const CreatePolygon = () => {
   return (
     <div>
       <div>
-        {/* Gambiarra para esconder o botão dependendo do estado
-            O React-Leaflet não expõe os componentes diretamente para a Virtual DOM do React, portanto
-            eles não podem ser dinamicamente removidos/inseridos, assim o children do elemento que
-            deve ser ocultado */}
         <Control position={"topleft"}>
-          {!drawingContext && (
-            <Button
-              onClick={() => {
-                setDrawingContext(true);
-              }}
-              className={josefin_sans.className}
-            >
-              Criar Polígono
-            </Button>
-          )}
+          <Button
+            variant={"admin"}
+            onClick={() => {
+              setDrawingContext(!drawingContext);
+              if (!drawingContext) setCurrentPolygon(null);
+            }}
+            className={josefin_sans.className + " text-white"}
+          >
+            <span className={"-mb-1"}>{!drawingContext ? "Criar Polígono" : "Descartar Polígono"}</span>
+          </Button>
         </Control>
 
         <PolygonContext.Provider
@@ -49,22 +45,12 @@ const CreatePolygon = () => {
             setPolygonContext: setCurrentPolygon,
           }}
         >
+          {/* Gambiarra para esconder o botão dependendo do estado
+            O React-Leaflet não expõe os componentes diretamente para a Virtual DOM do React, portanto
+            eles não podem ser dinamicamente removidos/inseridos, assim o children do elemento que
+            deve ser ocultado */}
           <Control position={"topleft"}>{drawingContext && <PolygonSubmissionForm />}</Control>
         </PolygonContext.Provider>
-
-        <Control position={"topleft"}>
-          {drawingContext && (
-            <Button
-              onClick={() => {
-                setDrawingContext(false);
-                setCurrentPolygon(null);
-              }}
-              className={josefin_sans.className}
-            >
-              Descartar Polígono
-            </Button>
-          )}
-        </Control>
       </div>
 
       {drawingContext && (

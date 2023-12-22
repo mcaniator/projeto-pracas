@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formSubmit } from "@/lib/serverActions/formSubmit";
-import { mapEdit } from "@/lib/serverActions/parkSubmit";
 import { useRef } from "react";
 import { useFormState } from "react-dom";
 
@@ -31,8 +30,8 @@ const FormForm = () => {
         <label htmlFor={"name"}>Nome do formulário:</label>
         <Input type="text" name="name" required id={"name"} />
       </div>
-      <Button buttonColor={"amethyst"} type="submit" className={"w-24"}>
-        Enviar
+      <Button variant={"admin"} type="submit" className={"w-min"}>
+        <span className={"-mb-1"}>Enviar</span>
       </Button>
     </form>
   );

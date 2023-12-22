@@ -1,10 +1,10 @@
-import Header from "@/components/header";
+import { Header } from "@/components/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
 import { ReactNode } from "react";
 
 const AdminRoot = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-cambridge-blue to-mauve ">
+    <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-cambridge-blue to-mauve">
       <Header variant={"static"} />
       <div className="flex min-h-0 flex-grow">
         <Sidebar />

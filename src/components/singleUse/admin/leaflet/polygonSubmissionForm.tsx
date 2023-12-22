@@ -20,9 +20,9 @@ const PolygonSubmissionForm = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   const initialState = {
-    message: null,
+    message: "",
   };
-  const [state, formAction] = useFormState(mapSubmission, initialState);
+  const [state, formAction] = useFormState<{ message: string }, FormData>(mapSubmission, initialState);
 
   const submitHandler = () => {
     // for some reason this timeout is needed otherwise the inputs are cleared before they're sent to the server
@@ -35,14 +35,15 @@ const PolygonSubmissionForm = () => {
 
   return (
     <Dialog>
-      <DialogTrigger asChild disabled={polygonContext?.length == undefined || polygonContext?.length <= 2}>
+      <DialogTrigger asChild aria-disabled={polygonContext?.length == undefined || polygonContext?.length <= 2}>
         <Button
-          className={josefin_sans.className}
+          variant={"admin"}
+          className={josefin_sans.className + " text-white"}
           onClick={() => {
             setAddressAmount([true]);
           }}
         >
-          Salvar Polígono
+          <span className={"-mb-1"}>Salvar Polígono</span>
         </Button>
       </DialogTrigger>
 

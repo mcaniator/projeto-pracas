@@ -1,5 +1,5 @@
 import Footer from "@/components/footer";
-import HomeHeader from "@/components/singleUse/homeHeader";
+import { HomeHeader } from "@/components/singleUse/homeHeader";
 import InfoSegment from "@/components/singleUse/infoSegment";
 import { Button } from "@/components/ui/button";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
