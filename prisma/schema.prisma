@@ -118,7 +118,7 @@ model Local {
   anoCriacao           DateTime? @map("ano_criacao") @db.Date
   anoReforma           DateTime? @map("ano_reforma") @db.Date
   prefeitoCriacao      String?   @map("prefeito_criacao") @db.VarChar(255)
-  legislacao           String?   @db.VarChar(255) // o que que é isso?
+  legislacao           String?   @db.VarChar(255)
   areaUtil             Float?    @map("area_util")
   areaPrefeitura       Float?    @map("area_prefeitura")
   inclinacao           Float?
