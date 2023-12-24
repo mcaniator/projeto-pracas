@@ -14,20 +14,6 @@ datasource db {
 }
 
 //  ------------------------------------------------------------------------------------------------------------
-//  Formulários
-//  ------------------------------------------------------------------------------------------------------------
-
-model Form {
-  id   Int    @id @default(autoincrement())
-  nome String @db.VarChar(255)
-
-  createdAt DateTime? @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("form")
-}
-
-//  ------------------------------------------------------------------------------------------------------------
 //  Enums
 //  ------------------------------------------------------------------------------------------------------------
 
@@ -105,35 +91,145 @@ enum CategoriasEspacoLivre {
   @@map("categorias_espaco_livre")
 }
 
+enum QuestionTypes {
+  TEXT    @map("Text")
+  NUMERIC @map("Numeric")
+  OPTIONS @map("Options")
+
+  @@map("question_types")
+}
+
+enum OptionTypes {
+  SELECTION @map("selection")
+  RADIO     @map("radio")
+  CHECKBOX  @map("checkbox")
+
+  @@map("option_types")
+}
+
+//  ------------------------------------------------------------------------------------------------------------
+//  Formulários
+//  ------------------------------------------------------------------------------------------------------------
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.VarChar(255)
+  optional Boolean    @default(false)
+  active   Boolean    @default(true)
+  question Question[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("category")
+}
+
+model Question {
+  id       Int           @id @default(autoincrement())
+  name     String        @db.VarChar(255)
+  optional Boolean       @default(false)
+  active   Boolean       @default(true)
+  type     QuestionTypes
+
+  TextQuestion    TextQuestion?
+  NumericQuestion NumericQuestion?
+  OptionsQuestion OptionsQuestion?
+
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("question")
+}
+
+model TextQuestion {
+  id        Int @id @default(autoincrement())
+  charLimit Int @map("char_limit")
+
+  questionId Int      @unique @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@map("text_question")
+}
+
+model NumericQuestion {
+  id  Int  @id @default(autoincrement())
+  min Int?
+  max Int?
+
+  questionId Int      @unique @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@map("numeric_question")
+}
+
+model OptionsQuestion {
+  id         Int         @id @default(autoincrement())
+  optionType OptionTypes @map("option_type")
+
+  // Should only have a value if optionType == CHECKBOX
+  maximumSelections Int? @map("maximum_selections")
+
+  questionId Int      @unique @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  options Option[]
+
+  @@map("options_question")
+}
+
+model Option {
+  id   Int    @id @default(autoincrement())
+  text String @db.VarChar(255)
+
+  optionsQuestionId Int             @map("options_question_id")
+  OptionsQuestion   OptionsQuestion @relation(fields: [optionsQuestionId], references: [id])
+
+  @@map("option")
+}
+
+model Form {
+  id   Int    @id @default(autoincrement())
+  nome String @db.VarChar(255)
+
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("form")
+}
+
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
 
 model Local {
-  id                   Int       @id @default(autoincrement())
-  nome                 String    @db.VarChar(255)
-  ePraca               Boolean?  @map("e_praca")
+  id                                  Int       @id @default(autoincrement())
+  nome                                String    @db.VarChar(255)
+  ePraca                              Boolean?  @map("e_praca")
   // common_name         String                   @db.VarChar(255)
-  observacoes          String?   @db.Text
-  anoCriacao           DateTime? @map("ano_criacao") @db.Date
-  anoReforma           DateTime? @map("ano_reforma") @db.Date
-  prefeitoCriacao      String?   @map("prefeito_criacao") @db.VarChar(255)
-  legislacao           String?   @db.VarChar(255)
-  areaUtil             Float?    @map("area_util")
-  areaPrefeitura       Float?    @map("area_prefeitura")
-  inclinacao           Float?
-  regiaoUrbana         String?   @map("regiao_urbana") @db.VarChar(255)
-  inativoNaoLocalizado Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
-  poligonoArea         Float?    @map("poligono_area")
+  observacoes                         String?   @db.Text
+  anoCriacao                          DateTime? @map("ano_criacao") @db.Date
+  anoReforma                          DateTime? @map("ano_reforma") @db.Date
+  prefeitoCriacao                     String?   @map("prefeito_criacao") @db.VarChar(255)
+  legislacao                          String?   @db.VarChar(255)
+  areaUtil                            Float?    @map("area_util")
+  areaPrefeitura                      Float?    @map("area_prefeitura")
+  inclinacao                          Float?
+  regiaoUrbana                        String?   @map("regiao_urbana") @db.VarChar(255)
+  inativoNaoLocalizado                Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
+  poligonoArea                        Float?    @map("poligono_area")
+  delimitacaoAdministrativaMenosAmpla String?   @map("delimitacao_administrativa_menos_ampla")
+  delimitacaoAdministrativaMaisAmpla  String?   @map("delimitacao_administrativa_mais_ampla")
 
-  tipo                      TiposLocal
-  poligono                  Unsupported("Geometry(MultiPolygon, 4326)")?
-  categoriaEspacoLivre      CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
-  endereco                  Endereco[]
-  avaliacao                 Avaliacao[]
-  delimitacaoAdministrativa DelimitacaoAdministrativa[]
-  contagem                  Contagem[]
-  ruido                     Ruido[]
+  tipo                 TiposLocal
+  poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
+  categoriaEspacoLivre CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
+  endereco             Endereco[]
+  avaliacao            Avaliacao[]
+  contagem             Contagem[]
+  ruido                Ruido[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -183,19 +279,6 @@ model Regiao {
 
   @@map("regiao")
 }
-
-model DelimitacaoAdministrativa {
-  id                            Int     @id @default(autoincrement())
-  nomeDelimitacaoAdministrativa String  @map("nome_delimitacao_administrativa")
-  local                         Local[]
-
-  @@map("delimitacao_administrativa")
-}
-
-//*model LocalDelimitacaoAdministrativa{
-//  id Int @id@default(autoincrement())
-
-//}
 
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações das Avaliações

@@ -1,40 +1,38 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const categorySchema = z.object({
   name: z.string().min(1),
-  optional: z.boolean(),
-  active: z.boolean(),
+  optional: z.boolean().optional(),
+  active: z.boolean().optional(),
 });
 
-const categorySubmit = async (prevState: any, formData: FormData) => {
+const categorySubmit = async (prevState: { statusCode: number }, formData: FormData) => {
   let parse;
   try {
     parse = categorySchema.parse({
       name: formData.get("name"),
-      optional: false,
-      active: true,
     });
   } catch (e) {
     return {
-      message: "erro de tipagem",
+      statusCode: 1,
     };
   }
 
   try {
-    const categories = await prisma.category.create({ data: parse });
+    await prisma.category.create({ data: parse });
   } catch (e) {
     return {
-      message: "erro do servidor",
+      statusCode: 2,
     };
   }
 
-  revalidatePath("/admin/registration/questions");
+  revalidateTag("category");
   return {
-    message: "nenhum erro",
+    statusCode: 0,
   };
 };
 

@@ -7,11 +7,11 @@ import { useRef } from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
-  message: null,
+  statusCode: 0,
 };
 
 const CategoryForm = () => {
-  const [state, formAction] = useFormState(categorySubmit, initialState);
+  const [, formAction] = useFormState(categorySubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   // TODO: add error handling

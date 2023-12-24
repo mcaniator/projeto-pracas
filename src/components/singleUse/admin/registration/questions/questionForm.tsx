@@ -10,29 +10,25 @@ import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
-  message: null,
+  statusCode: 0,
 };
 
 const QuestionForm = ({ availableCategories }: { availableCategories: { id: number; name: string }[] }) => {
-  const [state, formAction] = useFormState(questionSubmit, initialState);
+  const [, formAction] = useFormState(questionSubmit, initialState);
 
-  const [selectedType, setSelectedType] = useState("");
-  const [currentVariant, setCurrentVariant] = useState(0);
+  const [type, setType] = useState("");
+  const [optionType, setOptionType] = useState("SELECTION");
 
   const [currentOption, setCurrentOption] = useState("");
-  const [addedOptions, setAddedOptions] = useState<{ name: string }[]>();
+  const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
 
   const formRef = useRef<HTMLFormElement>(null);
 
   const [disabled, setDisabled] = useState(false);
 
   useEffect(() => {
-    setDisabled(selectedType == "option");
-  }, [selectedType]);
-
-  useEffect(() => {
-    setDisabled(addedOptions == undefined);
-  }, [addedOptions]);
+    setDisabled(addedOptions == undefined && type == "option");
+  }, [addedOptions, type]);
 
   // TODO: add error handling
   return (
@@ -44,7 +40,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
         // for some reason this timeout is needed otherwise the inputs are cleared before they're sent to the server
         setTimeout(() => {
           formRef.current?.reset();
-          setSelectedType("");
+          setType("");
           setAddedOptions(undefined);
         }, 1)
       }
@@ -52,7 +48,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
         <div>
           <label htmlFor={"categories"}>Categoria</label>
-          <Select name="categoryID" id={"categories"}>
+          <Select name="categoryId" id={"categories"}>
             {availableCategories.map((value, index) => (
               <option key={index} value={value.id}>
                 {value.name}
@@ -68,14 +64,15 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
 
         <div className={"flex flex-col"}>
           <label htmlFor={"text"}>Tipo de pergunta:</label>
-          <div className={"rounded-lg border-2 border-gray-500/40 bg-gray-400/50 px-2 py-1"}>
+          <div className={"flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"}>
             <RadioButton
-              type="radio"
-              id="text"
-              value={0}
-              name="inputType"
+              type={"radio"}
+              variant={"admin"}
+              id={"text"}
+              value={"TEXT"}
+              name="questionType"
               onClick={() => {
-                setSelectedType("text");
+                setType("text");
                 setAddedOptions(undefined);
               }}
               className={"border-white"}
@@ -85,11 +82,12 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             </RadioButton>
             <RadioButton
               type="radio"
+              variant={"admin"}
               id="numeric"
-              value={1}
-              name="inputType"
+              value={"NUMERIC"}
+              name="questionType"
               onClick={() => {
-                setSelectedType("numeric");
+                setType("numeric");
                 setAddedOptions(undefined);
               }}
               className={"border-white"}
@@ -99,11 +97,12 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             </RadioButton>
             <RadioButton
               type="radio"
+              variant={"admin"}
               id="option"
-              value={2}
-              name="inputType"
+              value={"OPTIONS"}
+              name="questionType"
               onClick={() => {
-                setSelectedType("option");
+                setType("option");
               }}
               className={"border-white"}
               required
@@ -115,40 +114,40 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
       </div>
 
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
-        {selectedType == "text" && (
+        {type == "text" && (
           <div>
             <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name="charLimit" id={"charLimit"} required />
+            <Input type="number" name={"charLimit"} id={"charLimit"} required />
           </div>
         )}
 
-        {selectedType == "numeric" && (
+        {type == "numeric" && (
           <>
             <div>
               <label htmlFor={"min"}>Valor mínimo:</label>
-              <Input type="number" name="min" id={"min"} required />
+              <Input type="number" name={"min"} id={"min"} required />
             </div>
             <div>
               <label htmlFor={"max"}>Valor máximo:</label>
-              <Input type="number" name="max" id={"max"} required />
+              <Input type="number" name={"max"} id={"max"} required />
             </div>
           </>
         )}
 
-        {selectedType == "option" && (
+        {type == "option" && (
           <>
             <div>
               <label htmlFor={"tipoSelecao"}>Tipo de seleção:</label>
               <Select
-                name="visualPreference"
+                name={"optionType"}
                 onChange={(e) => {
-                  setCurrentVariant(parseInt(e.target.value));
+                  setOptionType(e.target.value);
                 }}
                 id={"tipoSelecao"}
               >
-                <option value={0}>Caixa de Seleção</option>
-                <option value={1}>Botões Radias</option>
-                <option value={2}>Caixa de Checagem</option>
+                <option value={"SELECTION"}>Caixa de Seleção</option>
+                <option value={"RADIO"}>Botões Radias</option>
+                <option value={"CHECKBOX"}>Caixa de Checagem</option>
               </Select>
             </div>
 
@@ -167,12 +166,12 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
               <Button
                 type="button"
                 variant={"admin"}
-                disabled={(() => {
+                aria-disabled={(() => {
                   return currentOption == "";
                 })()}
                 onClick={() => {
-                  if (addedOptions != undefined) setAddedOptions([...addedOptions, { name: currentOption }]);
-                  else setAddedOptions([{ name: currentOption }]);
+                  if (addedOptions != undefined) setAddedOptions([...addedOptions, { text: currentOption }]);
+                  else setAddedOptions([{ text: currentOption }]);
 
                   setCurrentOption("");
                 }}
@@ -182,17 +181,17 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
               </Button>
             </div>
 
-            {currentVariant == 2 && (
+            {optionType == "CHECKBOX" && (
               <div>
                 <label htmlFor={"optionLimit"}>Máximo de seleções:</label>
-                <Input type="number" name="optionLimit" id={"optionLimit"} required />
+                <Input type="number" name="maximumSelection" id={"optionLimit"} required />
               </div>
             )}
           </>
         )}
 
-        {selectedType && (
-          <Button disabled={disabled} variant={"admin"} type="submit" className={"w-24 transition-all"}>
+        {type && (
+          <Button aria-disabled={disabled} variant={"admin"} type="submit" className={"w-24 transition-all"}>
             Enviar
           </Button>
         )}
@@ -205,7 +204,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             <div>
               {addedOptions.map((value, index) => (
                 <div key={index} className={"flex items-center"}>
-                  <p className={"-mb-1"}>{value.name}</p>
+                  <p className={"-mb-1"}>{value.text}</p>
                   <Button
                     variant={"ghost"}
                     size={"icon"}
@@ -218,7 +217,7 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
                   >
                     <IconTrashX size={20} />
                   </Button>
-                  <input type="hidden" name="options" value={value.name} />
+                  <input type="hidden" name="options" value={value.text} />
                 </div>
               ))}
             </div>
