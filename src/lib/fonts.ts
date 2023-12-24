@@ -1,4 +1,4 @@
-import { Titillium_Web, Josefin_Sans } from "next/font/google";
+import { Josefin_Sans, Titillium_Web } from "next/font/google";
 
 const titillium_web = Titillium_Web({
   weight: "700",

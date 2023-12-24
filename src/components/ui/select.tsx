@@ -7,16 +7,16 @@ const Select = ({ ...props }: selectProps) => {
   const { name, id, children, className } = props;
 
   return (
-    <div className={"w-full flex"}>
+    <div className={"flex w-full"}>
       <select
         name={name}
         id={id}
-        className={cn(className, "w-full appearance-none rounded-lg px-3 py-1 border-gray-500/40 border-2 bg-gray-400/50 text-lg")}
+        className={cn(className, "w-full appearance-none rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-3 py-1 text-lg shadow-md")}
         {...props}
       >
         {children}
       </select>
-      <div className={"relative flex items-center -ml-7 pointer-events-none"}>
+      <div className={"pointer-events-none relative -ml-7 flex items-center"}>
         <ChevronsUpDownIcon className={"absolute"} />
       </div>
     </div>

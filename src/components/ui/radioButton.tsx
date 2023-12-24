@@ -23,7 +23,7 @@ const RadioButton = forwardRef<HTMLInputElement, RadioButtonProps>(({ variant, c
   return (
     <label className={"flex w-fit select-none items-center gap-1"}>
       <input type="radio" className={cn(radioButtonVariants({ variant, className }))} {...attributes} ref={ref} />
-      <p className={"-mb-1 text-lg"}>{children}</p>
+      <span className={"-mb-1 text-lg"}>{children}</span>
     </label>
   );
 });
