@@ -19,7 +19,7 @@ const CenterButton = () => {
                 map.flyTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
               },
               (err) => {
-                console.log(`erro: ${err}`);
+                console.log(`erro: ${err.code}`);
               },
               { enableHighAccuracy: false, maximumAge: Infinity, timeout: 60000 },
             );
