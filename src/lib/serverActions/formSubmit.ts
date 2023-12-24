@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -21,14 +21,14 @@ const formSubmit = async (prevState: { message: string }, formData: FormData) =>
   }
 
   try {
-    const categories = await prisma.form.create({ data: parse });
+    await prisma.form.create({ data: parse });
   } catch (e) {
     return {
       message: "erro do servidor",
     };
   }
 
-  revalidatePath("/admin/registration/form");
+  revalidateTag("form");
   return {
     message: "nenhum erro",
   };

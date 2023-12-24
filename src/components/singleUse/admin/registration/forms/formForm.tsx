@@ -11,7 +11,7 @@ const initialState = {
 };
 
 const FormForm = () => {
-  const [state, formAction] = useFormState<{ message: string }, FormData>(formSubmit, initialState);
+  const [, formAction] = useFormState(formSubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   // TODO: add error handling
