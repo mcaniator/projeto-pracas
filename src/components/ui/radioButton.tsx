@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { VariantProps, cva } from "class-variance-authority";
 import { InputHTMLAttributes, forwardRef } from "react";
 
@@ -29,5 +29,5 @@ const RadioButton = forwardRef<HTMLInputElement, RadioButtonProps>(({ variant, c
 });
 RadioButton.displayName = "RadioButton";
 
-export type { RadioButtonProps };
 export { RadioButton, radioButtonVariants };
+export type { RadioButtonProps };

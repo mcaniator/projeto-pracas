@@ -1,7 +1,7 @@
 import LoginButton from "@/components/loginButton";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { IconTree } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import Link from "next/link";

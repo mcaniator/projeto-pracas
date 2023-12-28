@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { IconCheck } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import { InputHTMLAttributes, forwardRef } from "react";
@@ -38,5 +38,5 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(({ className, varia
 });
 Checkbox.displayName = "Checkbox";
 
-export type { CheckboxProps };
 export { Checkbox, checkboxVariant };
+export type { CheckboxProps };

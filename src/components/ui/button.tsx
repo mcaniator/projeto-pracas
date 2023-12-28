@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import { ButtonHTMLAttributes, forwardRef } from "react";
@@ -40,5 +40,5 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant,
 });
 Button.displayName = "Button";
 
-export type { ButtonProps };
 export { Button, buttonVariants };
+export type { ButtonProps };
