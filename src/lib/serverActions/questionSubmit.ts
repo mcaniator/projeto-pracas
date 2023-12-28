@@ -1,42 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { numericQuestionSchema, optionSchema, optionsQuestionSchema, questionSchema, textQuestionSchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
-import { z } from "zod";
-
-const questionSchema = z.object({
-  name: z.string(),
-  optional: z.boolean().optional(),
-  active: z.boolean().optional(),
-  type: z.enum(["TEXT", "NUMERIC", "OPTIONS"]),
-  categoryId: z.coerce.number(),
-});
-
-const textQuestionSchema = z.object({
-  charLimit: z.coerce.number(),
-});
-
-const numericQuestionSchema = z
-  .object({
-    min: z.coerce.number().optional(),
-    max: z.coerce.number().optional(),
-  })
-  .refine((value) => {
-    if (value.min == undefined || value.max == undefined) return true;
-    return value.min < value.max;
-  });
-
-const optionsQuestionSchema = z.object({
-  optionType: z.enum(["SELECTION", "RADIO", "CHECKBOX"]),
-  maximumSelections: z.coerce.number().optional(),
-});
-
-const optionSchema = z
-  .object({
-    text: z.string(),
-  })
-  .array()
-  .nonempty();
 
 const questionSubmit = async (prevState: { statusCode: number }, formData: FormData) => {
   const questionType = formData.get("questionType");
@@ -112,17 +78,15 @@ const questionSubmit = async (prevState: { statusCode: number }, formData: FormD
     case "OPTIONS": {
       const optionType = formData.get("optionType");
 
-      let optionsQuestionObject;
-      if (optionType == "CHECKBOX") {
-        optionsQuestionObject = {
-          optionType: optionType,
-          maximumSelections: formData.get("maximumSelection"),
-        };
-      } else {
-        optionsQuestionObject = {
-          optionType: optionType,
-        };
-      }
+      const optionsQuestionObject =
+        optionType == "CHECKBOX"
+          ? {
+              optionType: optionType,
+              maximumSelections: formData.get("maximumSelection"),
+            }
+          : {
+              optionType: optionType,
+            };
 
       let optionsQuestionParsed;
       try {
@@ -133,6 +97,15 @@ const questionSubmit = async (prevState: { statusCode: number }, formData: FormD
       }
 
       const options = formData.getAll("options").map((value) => ({ text: value }));
+
+      try {
+        if (optionsQuestionParsed.maximumSelections != undefined && optionsQuestionParsed.maximumSelections > options.length)
+          throw new Error("Number of maximum selections is bigger than the amount of options");
+      } catch (err) {
+        console.log(err);
+        return { statusCode: 3 };
+      }
+
       let optionsParsed;
       try {
         optionsParsed = optionSchema.parse(options);

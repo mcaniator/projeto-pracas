@@ -1,14 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { categorySchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
-import { z } from "zod";
-
-const categorySchema = z.object({
-  name: z.string().min(1),
-  optional: z.boolean().optional(),
-  active: z.boolean().optional(),
-});
 
 const categorySubmit = async (prevState: { statusCode: number }, formData: FormData) => {
   let parse;

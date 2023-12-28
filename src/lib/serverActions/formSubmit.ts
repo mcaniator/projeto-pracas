@@ -1,12 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { formSchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
-import { z } from "zod";
-
-const formSchema = z.object({
-  nome: z.string().min(1),
-});
 
 const formSubmit = async (prevState: { message: string }, formData: FormData) => {
   let parse;

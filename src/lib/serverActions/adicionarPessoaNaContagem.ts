@@ -1,36 +1,23 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { pessoaNoLocalType } from "@/lib/zodValidators";
 
-const adicionarPessoaNaContagem = async (localId: number, contagemId: number, content: any) => {
+const adicionarPessoaNaContagem = async (localId: number, contagemId: number, content: pessoaNoLocalType) => {
   try {
-    let contagemValida = await prisma.contagem.findMany({
+    const contagemValida = await prisma.contagem.findMany({
       where: {
         localId: localId,
         id: contagemId,
       },
     });
     console.log(contagemValida);
-    if (contagemValida.length == 0) {
-      console.log("Esta contagem nao pertence a esta praça!");
-      return;
-    }
+
+    if (contagemValida.length == 0) console.log("Esta contagem nao pertence a esta praça!");
 
     await prisma.pessoaNoLocal.create({
-      data: {
-        classificacaoEtaria: content.classificacaoEtaria,
-        genero: content.genero,
-        atividadeFisica: content.atividadeFisica,
-        passando: content.passando,
-        pessoaDeficiente: content.pessoaDeficiente,
-        atividadeIlicita: content.atividadeIlicita,
-        situacaoRua: content.situacaoRua,
-        contagem: {
-          connect: {
-            id: contagemId,
-          },
-        },
-      },
+      // ! é melhor fazer isso com um nested write ao invés de separar assim
+      data: content,
     });
   } catch (error) {
     console.error(error);

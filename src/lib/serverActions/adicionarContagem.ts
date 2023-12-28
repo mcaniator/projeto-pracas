@@ -1,23 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { contagemType } from "@/lib/zodValidators";
 
-const adicionarContagem = async (localId: number, content: any) => {
+const adicionarContagem = async (localId: number, content: contagemType) => {
   try {
     await prisma.contagem.create({
-      data: {
-        data: content.data,
-        inicio: content.inicio,
-        fim: content.fim,
-        quantidadeAnimais: content.quantidadeAnimais,
-        temperatura: content.temperatura,
-        condicaoCeu: content.condicaoCeu,
-        local: {
-          connect: {
-            id: localId,
-          },
-        },
-      },
+      data: content,
     });
   } catch (error) {
     console.error(error);
