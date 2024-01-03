@@ -1,3 +1,5 @@
+import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
+
 const AdminRoot = () => {
   return (
     <div>
