@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   printWidth: 150,
   trailingComma: "all",
   semi: true,
@@ -11,4 +11,7 @@ module.exports = {
   tailwindFunctions: ["cva", "clsx", "cn"],
   tailwindConfig: "tailwind.config.ts",
   plugins: ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
+  experimentalTernaries: true,
 };
+
+export default config;
