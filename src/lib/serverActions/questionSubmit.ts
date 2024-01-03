@@ -79,14 +79,14 @@ const questionSubmit = async (prevState: { statusCode: number }, formData: FormD
       const optionType = formData.get("optionType");
 
       const optionsQuestionObject =
-        optionType == "CHECKBOX"
-          ? {
-              optionType: optionType,
-              maximumSelections: formData.get("maximumSelection"),
-            }
-          : {
-              optionType: optionType,
-            };
+        optionType == "CHECKBOX" ?
+          {
+            optionType: optionType,
+            maximumSelections: formData.get("maximumSelection"),
+          }
+        : {
+            optionType: optionType,
+          };
 
       let optionsQuestionParsed;
       try {

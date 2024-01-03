@@ -8,15 +8,14 @@ const NavBar = () => {
 
   return (
     <div className={"flex gap-3 p-5 pb-0"}>
-      {isComponents ? (
+      {isComponents ?
         <>
           <h2 className={"-mb-1 text-3xl font-bold text-white"}>Criação de Perguntas</h2>
           <Link href={"/admin/registration/forms"} className={"-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"}>
             Criação de Formulários
           </Link>
         </>
-      ) : (
-        <>
+      : <>
           <Link
             href={"/admin/registration/questions"}
             className={"-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"}
@@ -25,7 +24,7 @@ const NavBar = () => {
           </Link>
           <h2 className={"-mb-1 text-3xl font-bold text-white"}>Criação de Formulários</h2>
         </>
-      )}
+      }
     </div>
   );
 };

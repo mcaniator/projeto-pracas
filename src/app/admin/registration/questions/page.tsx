@@ -35,14 +35,12 @@ const QuestionFormRenderer = async () => {
 
   return (
     <Suspense fallback={<p>Loading</p>}>
-      {categories.length <= 0 ? (
+      {categories.length <= 0 ?
         <div>
           <p>Crie sua primeira categorias acima antes de criar uma pergunta!</p>
           <p>Já criou uma categoria previamente? Verifique o status do servidor aqui!</p>
         </div>
-      ) : (
-        <QuestionForm availableCategories={categories} />
-      )}
+      : <QuestionForm availableCategories={categories} />}
     </Suspense>
   );
 };
