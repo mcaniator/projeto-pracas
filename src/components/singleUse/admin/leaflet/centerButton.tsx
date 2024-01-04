@@ -26,6 +26,7 @@ const CenterButton = () => {
           }}
           size={"icon"}
           className={"text-white"}
+          name={"Center on user"}
         >
           <IconLocationPin />
         </Button>

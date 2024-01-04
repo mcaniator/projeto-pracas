@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { Dispatch, ReactNode, SetStateAction, createContext, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 
-export const DrawingContext = createContext<{
+const DrawingContext = createContext<{
   drawingContext: boolean;
   setDrawingContext: Dispatch<SetStateAction<boolean>>;
 }>({ drawingContext: false, setDrawingContext: () => false });
@@ -40,4 +40,5 @@ const LeafletProvider = ({ children }: { children?: ReactNode }) => {
   );
 };
 
+export { DrawingContext };
 export default LeafletProvider;

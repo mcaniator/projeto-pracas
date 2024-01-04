@@ -1,7 +1,9 @@
-/* O Leaflet não foi feito para ser usado com React e o adaptador sendo usado nesse projeto
-   não faz um trabalho bom o suficiente para fazer o código integrar com o ambiente do React,
-   por isso esse código está bem confuso e cheio de gambiarra, não necessariamente porque ele
-   está mal feito, mas porque não há um jeito melhor de fazer o que está sendo feito. */
+/**
+ * O Leaflet não foi feito para ser usado com React e o adaptador sendo usado nesse projeto
+ * não faz um trabalho bom o suficiente para fazer o código integrar com o ambiente do React,
+ * por isso esse código está bem confuso e cheio de gambiarra, não necessariamente porque ele
+ * está mal feito, mas porque não há um jeito melhor de fazer o que está sendo feito.
+ **/
 import { CenterButton } from "@/components/singleUse/admin/leaflet/centerButton";
 import { CreatePolygon } from "@/components/singleUse/admin/leaflet/createPolygon";
 import dynamic from "next/dynamic";
@@ -11,7 +13,7 @@ const LeafletProvider = dynamic(() => import("@/components/singleUse/admin/leafl
   ssr: false,
 });
 
-const LeafletRoot = async () => {
+const LeafletRoot = () => {
   // const localsData = await prisma.local.findMany();
   // const polygons = await fetchPolygons();
   //

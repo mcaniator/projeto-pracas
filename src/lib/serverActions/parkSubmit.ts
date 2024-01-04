@@ -1,202 +1,148 @@
 "use server";
 
-import { localsResponse } from "@/app/types";
-import { revalidateTag } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { cidadeSchema, enderecoSchema, localSchema } from "@/lib/zodValidators";
 import { z } from "zod";
 
-const localsSchema = z.object({
-  name: z.string(),
-  polygon: z.string(), // temp
-  common_name: z.string(),
-  type: z.coerce.number().int(),
-  free_space_category: z.coerce.number().int(),
-  comments: z.string(),
-  creation_year: z.string(), // temp
-  reform_year: z.string(), // temp
-  mayor_creation: z.string(),
-  legislation: z.string(),
-  useful_area: z.coerce.number(),
-  area_pjf: z.coerce.number(),
-  angle_inclination: z.coerce.number(),
-  urban_region: z.boolean(),
-  inactive_not_found: z.boolean(),
-});
-
-const addressesSchema = z.object({
-  UF: z.string(),
-  locals_id: z.coerce.number().int(),
-  city: z.string(),
-  neighborhood: z.string(),
-  street: z.string(),
-  number: z.string(), // é para ser um número msm
-  planning_region_id: z.number(),
-});
-
-/* IMPORTANT: atualmente não é o servidor que fornece o id do polígono, sendo calculado
- * no cliente através das informações recebidas dos outros ids de praça, isso é um
- * péssimo jeito de fazer isso já que caso de dois requests serem processados ao mesmo
- * tempo mais de um item terá o mesmo ID.
- * URGENTEMENTE mudar isso */
-const mapPolygonSchema = z.object({
-  comments: z.string().min(1),
-  common_name: z.string().min(1),
-  free_space_category: z.coerce.number(),
-  id: z.coerce.number(),
-  name: z.string().min(1),
-  polygon: z.object({
-    coordinates: z.coerce
-      .number()
-      .array()
-      .array()
-      .array()
-      .refine(
-        (schema) => {
-          let isCorrect = true;
-          schema.forEach((num) => {
-            num.forEach((nums) => {
-              if (nums.length != 2) {
-                isCorrect = false;
-              }
-            });
-          });
-          return isCorrect;
-        },
-        () => ({ message: "number of coordinates is incorrect" }),
-      ),
-    type: z.string().min(1),
-  }),
-  type: z.coerce.number(),
-});
-
-const tempSchema = z.object({
-  addresses: z
-    .object({
-      city: z.string().min(1),
-      locals_id: z.number(),
-      neighborhood: z.string().min(1),
-      number: z.coerce.number(),
-      street: z.string().min(1),
-      UF: z.string().min(1),
-    })
-    .array(),
-});
-
-const mapSubmission = async (prevState: any, formData: FormData) => {
-  const parkData: localsResponse[] = await fetch("http://localhost:3333/locals", { next: { tags: ["locals"] } }).then((res) => res.json());
-
-  const usedIDs: number[] = parkData.map((values) => values.id);
-
-  const curID = (() => {
-    let returnValue: number | undefined = undefined;
-    let aux = 0;
-    while (returnValue == undefined) {
-      if (!usedIDs.includes(aux)) {
-        returnValue = aux;
-      }
-
-      aux++;
-    }
-    return returnValue;
-  })();
-
+const mapSubmission = async (prevState: { statusCode: number }, formData: FormData) => {
   const addressAmount = formData.get("addressAmount");
   const addresses = (() => {
-    if (addressAmount == null || addressAmount instanceof File) return [];
+    const aux: z.infer<typeof enderecoSchema>[] = [];
 
-    let buffer = null;
-    let i = 0;
-    while (i < parseInt(addressAmount)) {
-      if (formData.get(`addresses[${i}][city]`) != null) {
-        if (buffer != null) {
-          buffer = [
-            ...buffer,
-            {
-              city: formData.get(`addresses[${i}][city]`),
-              locals_id: curID,
-              neighborhood: formData.get(`addresses[${i}][neighborhood]`),
-              number: formData.get(`addresses[${i}][number]`),
-              street: formData.get(`addresses[${i}][street]`),
-              UF: formData.get(`addresses[${i}][state]`),
-            },
-          ];
-        } else {
-          buffer = [
-            {
-              city: formData.get(`addresses[${i}][city]`),
-              locals_id: curID,
-              neighborhood: formData.get(`addresses[${i}][neighborhood]`),
-              number: formData.get(`addresses[${i}][number]`),
-              street: formData.get(`addresses[${i}][street]`),
-              UF: formData.get(`addresses[${i}][state]`),
-            },
-          ];
-        }
-      }
+    if (addressAmount == null || addressAmount instanceof File) return aux;
 
-      i++;
+    // cache so it doesn't have to recalculate for every for loop
+    const addressAmountInt = parseInt(addressAmount);
+    const getInfo = (fetchString: string) => {
+      const buffer = formData.get(fetchString);
+
+      if (buffer == null || buffer instanceof File) return "";
+      else return buffer;
+    };
+    for (let i = 0; i < addressAmountInt; i++) {
+      const neighborhood = getInfo(`addresses[${i}][neighborhood]`);
+      const number = getInfo(`addresses[${i}][number]`);
+      const CEP = "";
+      const rua = "";
+      const estado = "MINAS_GERAIS";
+      const localId = 0;
+      const cidadeId = 0;
+
+      aux.push({
+        localId: localId,
+        cidadeId: cidadeId,
+        bairro: neighborhood,
+        numero: parseInt(number),
+        cep: CEP,
+        rua: rua,
+        estado: estado,
+      });
     }
 
-    return buffer;
+    return aux;
   })();
 
-  const pointsAmount = formData.get("pointsAmount");
-  const points = (() => {
-    if (pointsAmount == null || pointsAmount instanceof File) return [];
-
-    let buffer = null;
-    let i = 0;
-    while (i < parseInt(pointsAmount)) {
-      if (buffer != null) {
-        buffer = [...buffer, [formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
-      } else {
-        buffer = [[formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
-      }
-
-      i++;
-    }
-
-    return buffer;
-  })();
-
-  const parsedMap = mapPolygonSchema.parse({
-    comments: formData.get("comments"),
-    common_name: formData.get("commonName"),
-    free_space_category: formData.get("parkCategories"),
-    id: curID,
-    name: formData.get("name"),
-    polygon: {
-      coordinates: [points],
-      type: "Polygon",
-    },
-    type: formData.get("parkTypes"),
-  });
-  const parsedAddress = addressesSchema.parse({
-    addresses: addresses,
-  });
+  console.log(addresses);
 
   try {
-    await fetch("http://localhost:3333/locals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(parsedMap),
+    const parsedLocal = localSchema.parse({ nome: "cidade teste", tipo: "JARDIM", categoriaEspacoLivre: "DE_PRATICAS_SOCIAIS" });
+    const parsedEndereco = enderecoSchema.parse({ bairro: "bairro teste", rua: "rua de teste", cep: "00000000", numero: 0, estado: "MINAS_GERAIS" });
+    const parsedCidade = cidadeSchema.parse({ nome: "test" });
+
+    const cidade = await prisma.cidade.upsert({
+      where: parsedCidade,
+      update: {},
+      create: parsedCidade,
     });
 
-    await fetch("http://localhost:3333/addresses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    await prisma.local.create({
+      data: {
+        ...parsedLocal,
+        endereco: {
+          createMany: {
+            data: [
+              {
+                ...parsedEndereco,
+                cidadeId: cidade.id,
+              },
+            ],
+          },
+        },
       },
-      body: JSON.stringify(parsedAddress),
     });
-  } catch (e) {}
+  } catch (e) {
+    console.log(e);
+  }
 
-  revalidateTag("locals");
+  return { statusCode: 1 };
 };
 
-const mapEdit = async (prevState: any, formData: FormData) => {
-  console.log("o servidor recebeu o request mas não sabe o que fazer com ele por enquanto");
+// const mapSubmission = async (prevState: { message: string }, formData: FormData) => {
+//   const addressAmount = formData.get("addressAmount");
+//   const addresses = (() => {
+//     if (addressAmount == null || addressAmount instanceof File) return [];
+//
+//     let buffer = null;
+//     let i = 0;
+//     while (i < parseInt(addressAmount)) {
+//       if (formData.get(`addresses[${i}][city]`) != null) {
+//         if (buffer != null) {
+//           buffer = [
+//             ...buffer,
+//             {
+//               city: formData.get(`addresses[${i}][city]`),
+//               locals_id: curID,
+//               neighborhood: formData.get(`addresses[${i}][neighborhood]`),
+//               number: formData.get(`addresses[${i}][number]`),
+//               street: formData.get(`addresses[${i}][street]`),
+//               UF: formData.get(`addresses[${i}][state]`),
+//             },
+//           ];
+//         } else {
+//           buffer = [
+//             {
+//               city: formData.get(`addresses[${i}][city]`),
+//               locals_id: curID,
+//               neighborhood: formData.get(`addresses[${i}][neighborhood]`),
+//               number: formData.get(`addresses[${i}][number]`),
+//               street: formData.get(`addresses[${i}][street]`),
+//               UF: formData.get(`addresses[${i}][state]`),
+//             },
+//           ];
+//         }
+//       }
+//
+//       i++;
+//     }
+//
+//     return buffer;
+//   })();
+//
+//   const pointsAmount = formData.get("pointsAmount");
+//   const points = (() => {
+//     if (pointsAmount == null || pointsAmount instanceof File) return [];
+//
+//     let buffer = null;
+//     let i = 0;
+//     while (i < parseInt(pointsAmount)) {
+//       if (buffer != null) {
+//         buffer = [...buffer, [formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
+//       } else {
+//         buffer = [[formData.get(`points[${i}][lat]`), formData.get(`points[${i}][lng]`)]];
+//       }
+//
+//       i++;
+//     }
+//
+//     return buffer;
+//   })();
+//
+//   return prevState;
+// };
+
+const mapEdit = (prevState: { message: string }, formData: FormData) => {
+  console.log(`o servidor recebeu o request mas não sabe o que fazer com ele por enquanto ${prevState.message} ${typeof formData.get("temp")}`);
+  return { message: "Not implemented" };
 };
 
-export { mapSubmission, mapEdit };
+export { mapEdit, mapSubmission };
