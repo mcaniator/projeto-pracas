@@ -67,9 +67,9 @@ const AdminRoot = () => {
         </div>
       </div>
       <div className={"flex flex-col gap-2 "}>
-        <Input variant={"neutral"} />
-        <Input variant={"constructive"} />
-        <Input variant={"destructive"} />
+        <Input state={"neutral"} />
+        <Input state={"constructive"} />
+        <Input state={"destructive"} />
       </div>
     </div>
   );
