@@ -1,10 +1,10 @@
 "use server";
 
-import { prisma } from "../prisma";
+import { prisma } from "@/lib/prisma";
 
-const consultarLocal = async (id: any) => {
+const consultarLocal = async (id: number) => {
   try {
-    let pracaConsultada = await prisma.local.findUnique({
+    const pracaConsultada = await prisma.local.findUnique({
       where: {
         id: id,
       },
