@@ -1,5 +1,5 @@
 -- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "postgis" WITH VERSION "3.4.0";
+CREATE EXTENSION IF NOT EXISTS "postgis" WITH VERSION "3.4.1";
 
 -- CreateEnum
 CREATE TYPE "dia_semana" AS ENUM ('Domingo', 'Segunda Feira', 'Terca Feira', 'Quarta Feira', 'Quinta Feira', 'Sexta Feira', 'Sabado');
@@ -21,6 +21,24 @@ CREATE TYPE "question_types" AS ENUM ('Text', 'Numeric', 'Options');
 
 -- CreateEnum
 CREATE TYPE "option_types" AS ENUM ('selection', 'radio', 'checkbox');
+
+-- CreateEnum
+CREATE TYPE "maintenance" AS ENUM ('terrible', 'poor', 'good', 'great');
+
+-- CreateEnum
+CREATE TYPE "upkeep" AS ENUM ('small interference', 'medium interference', 'great interference');
+
+-- CreateEnum
+CREATE TYPE "visibility" AS ENUM ('up to 25%', 'up to 50%', 'up to 75%', 'up to 100%');
+
+-- CreateEnum
+CREATE TYPE "age_group" AS ENUM ('child', 'teen', 'adult', 'elderly');
+
+-- CreateEnum
+CREATE TYPE "atividade" AS ENUM ('sedentario', 'walking', 'strenuous');
+
+-- CreateEnum
+CREATE TYPE "sex" AS ENUM ('male', 'female');
 
 -- CreateTable
 CREATE TABLE "category" (
@@ -122,9 +140,9 @@ CREATE TABLE "local" (
     "poligono_area" DOUBLE PRECISION,
     "delimitacao_administrativa_menos_ampla" TEXT,
     "delimitacao_administrativa_mais_ampla" TEXT,
-    "tipo" "tipos_local" NOT NULL,
-    "poligono" Geometry(MultiPolygon, 4326),
+    "tipo" "tipos_local",
     "categoria_espaco_livre" "categorias_espaco_livre",
+    "poligono" Geometry(MultiPolygon, 4326),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -138,9 +156,9 @@ CREATE TABLE "endereco" (
     "rua" VARCHAR(255) NOT NULL,
     "cep" VARCHAR(255) NOT NULL,
     "numero" INTEGER NOT NULL,
+    "estado" "estados" NOT NULL,
     "local_id" INTEGER NOT NULL,
     "cidade_id" INTEGER NOT NULL,
-    "estado" "estados" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -160,7 +178,7 @@ CREATE TABLE "cidade" (
 -- CreateTable
 CREATE TABLE "regiao" (
     "id" SERIAL NOT NULL,
-    "regiao" TEXT NOT NULL,
+    "regiao" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -170,28 +188,26 @@ CREATE TABLE "regiao" (
 -- CreateTable
 CREATE TABLE "avaliacao" (
     "id" SERIAL NOT NULL,
-    "data" DATE NOT NULL,
-    "dia_semana" "dia_semana" NOT NULL,
-    "inicio" TIMETZ(0) NOT NULL,
-    "fim" TIMETZ(0) NOT NULL,
+    "data_inicio" TIMESTAMPTZ NOT NULL,
+    "data_fim" TIMESTAMPTZ NOT NULL,
     "alteracao_limites" BOOLEAN,
-    "calcada_pavimentada" BOOLEAN NOT NULL,
-    "conservacao_calcada" INTEGER NOT NULL,
     "wifi" BOOLEAN NOT NULL,
-    "quantidade_lixeiras" INTEGER NOT NULL,
-    "conservacao_lixeiras" INTEGER NOT NULL,
+    "calcada_pavimentada" BOOLEAN NOT NULL,
+    "quantidade_lixeira" INTEGER NOT NULL,
     "quantidade_banheiro" INTEGER NOT NULL,
-    "conservacao_banheiro" INTEGER NOT NULL,
     "quantidade_telefone_publico" INTEGER NOT NULL,
-    "conservacao_telefone_publico" INTEGER NOT NULL,
     "quantidade_bebedouro" INTEGER NOT NULL,
-    "conservacao_bebedouro" INTEGER NOT NULL,
     "quantidade_obra_arte" INTEGER NOT NULL,
-    "conservacao_obra_arte" INTEGER NOT NULL,
     "quantidade_paisagismo_planejado" INTEGER NOT NULL,
-    "conservacao_paisagismo_planejado" INTEGER NOT NULL,
-    "quantidade_cadeira_moveis" INTEGER NOT NULL,
-    "conservacao_cadeira_moveis" INTEGER NOT NULL,
+    "quantidade_cadeira_movel" INTEGER NOT NULL,
+    "conservacao_calcada" "maintenance" NOT NULL,
+    "conservacao_lixeira" "maintenance" NOT NULL,
+    "conservacao_banheiro" "maintenance" NOT NULL,
+    "conservacao_telefone_publico" "maintenance" NOT NULL,
+    "conservacao_bebedouro" "maintenance" NOT NULL,
+    "conservacao_obra_arte" "maintenance" NOT NULL,
+    "conservacao_paisagismo_planejado" "maintenance" NOT NULL,
+    "conservacao_cadeira_movel" "maintenance" NOT NULL,
     "local_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -260,7 +276,7 @@ CREATE TABLE "area_atividades" (
     "iluminacao" BOOLEAN NOT NULL,
     "cercado" BOOLEAN NOT NULL,
     "bancos" BOOLEAN NOT NULL,
-    "conservacao" INTEGER NOT NULL,
+    "conservacao" "maintenance" NOT NULL,
     "descricao" TEXT,
     "avaliacao_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -272,8 +288,8 @@ CREATE TABLE "area_atividades" (
 -- CreateTable
 CREATE TABLE "depredacao" (
     "id" SERIAL NOT NULL,
-    "nivel_pichacao" INTEGER NOT NULL,
-    "nivel_abandono" INTEGER NOT NULL,
+    "nivel_pichacao" "upkeep" NOT NULL,
+    "nivel_abandono" "upkeep" NOT NULL,
     "avaliacao_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -356,7 +372,7 @@ CREATE TABLE "vigilancia" (
     "id" SERIAL NOT NULL,
     "cameras" BOOLEAN NOT NULL,
     "posto_policial" BOOLEAN NOT NULL,
-    "nivel_visibilidade" INTEGER NOT NULL,
+    "nivel_visibilidade" "visibility" NOT NULL,
     "avaliacao_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -372,7 +388,7 @@ CREATE TABLE "contagem" (
     "fim" TIMESTAMPTZ(0),
     "quantidade_animais" INTEGER,
     "temperatura" DOUBLE PRECISION,
-    "condicao_ceu" TEXT,
+    "condicao_ceu" VARCHAR(255),
     "local_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -383,13 +399,13 @@ CREATE TABLE "contagem" (
 -- CreateTable
 CREATE TABLE "pessoa_no_local" (
     "id" SERIAL NOT NULL,
-    "classificacao_etaria" INTEGER,
-    "genero" INTEGER,
-    "atividade_fisica" INTEGER,
-    "passando" BOOLEAN,
-    "pessoa_deficiente" BOOLEAN,
-    "atividade_ilicita" BOOLEAN,
-    "situacao_rua" BOOLEAN,
+    "classificacao_etaria" "age_group" NOT NULL,
+    "sexo" "sex" NOT NULL,
+    "atividade_fisica" "atividade" NOT NULL,
+    "passando" BOOLEAN NOT NULL,
+    "pessoa_deficiente" BOOLEAN NOT NULL,
+    "atividade_ilicita" BOOLEAN NOT NULL,
+    "situacao_rua" BOOLEAN NOT NULL,
     "contagem_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,

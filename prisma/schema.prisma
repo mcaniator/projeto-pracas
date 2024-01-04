@@ -11,7 +11,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = "postgresql://postgres:02Ago1962@localhost:5432/square_project"
-  extensions = [postgis(version: "3.4.0")]
+  extensions = [postgis(version: "3.4.1")]
 }
 
 // #endregion
