@@ -1,5 +1,5 @@
 -- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "postgis" WITH VERSION "3.4.1";
+CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- CreateEnum
 CREATE TYPE "dia_semana" AS ENUM ('Domingo', 'Segunda Feira', 'Terca Feira', 'Quarta Feira', 'Quinta Feira', 'Sexta Feira', 'Sabado');
