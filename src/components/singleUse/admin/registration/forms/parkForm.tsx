@@ -2,15 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { revalidate, searchLocals } from "@/lib/serverActions/localUtil";
+import { revalidate, searchLocations } from "@/lib/serverActions/locationUtil";
 import { Form } from "@prisma/client";
 import { Dispatch, SetStateAction, Suspense, createContext, use, useDeferredValue, useEffect, useState } from "react";
 
 import { LocalComponent } from "../../parks/localComponent";
-
-const initialState = {
-  message: "",
-};
 
 const ChangedContext = createContext<{
   changedContext: number;
@@ -22,7 +18,7 @@ const LocalList = ({ localsPromise }: { localsPromise?: Promise<Form[]> }) => {
   const locals = use(localsPromise);
   return (
     <div className="w-full text-black">
-      {locals.length > 0 && locals.map((local) => <LocalComponent key={local.id} id={local.id} nome={local.nome} />)}
+      {locals.length > 0 && locals.map((local) => <LocalComponent key={local.id} id={local.id} nome={local.name} />)}
     </div>
   );
 };
@@ -32,7 +28,7 @@ const ParkForm = () => {
   const [targetLocal, setTargetLocal] = useState("");
   const [foundLocals, setFoundLocals] = useState<Promise<Form[]>>();
   useEffect(() => {
-    setFoundLocals(searchLocals(targetLocal));
+    setFoundLocals(searchLocations(targetLocal));
   }, [targetLocal, changed]);
   const deferredFoundLocals = useDeferredValue(foundLocals);
   //   const isStale = foundLocals !== deferredFoundLocals;
@@ -64,4 +60,4 @@ const ParkForm = () => {
   );
 };
 
-export { ParkForm, LocalList, ChangedContext };
+export { ChangedContext, LocalList, ParkForm };

@@ -21,19 +21,19 @@ datasource db {
 //  Enums
 //  ------------------------------------------------------------------------------------------------------------
 
-enum DiaSemana {
-  DOMINGO       @map("Domingo")
-  SEGUNDA_FEIRA @map("Segunda Feira")
-  TERCA_FEIRA   @map("Terca Feira")
-  QUARTA_FEIRA  @map("Quarta Feira")
-  QUINTA_FEIRA  @map("Quinta Feira")
-  SEXTA_FEIRA   @map("Sexta Feira")
-  SABADO        @map("Sabado")
+enum WeekDays {
+  SUNDAY    @map("Sunday")
+  MONDAY    @map("Monday")
+  TUESDAY   @map("Tuesday")
+  WEDNESDAY @map("Wednesday")
+  THURSDAY  @map("Thursday")
+  FRIDAY    @map("Friday")
+  SATURDAY  @map("Saturday")
 
-  @@map("dia_semana")
+  @@map("week_days")
 }
 
-enum Estados {
+enum BrazilianStates {
   ACRE                @map("Acre")
   ALAGOAS             @map("Alagoas")
   AMAPA               @map("Amapa")
@@ -62,37 +62,37 @@ enum Estados {
   SERGIPE             @map("Sergipe")
   TOCANTINS           @map("Tocantins")
 
-  @@map("estados")
+  @@map("brazilian_states")
 }
 
-enum TiposLocal {
-  CANTEIROS_CENTRAIS_E_LATERAIS_DE_PORTE                          @map("Canteiros Centrais e Laterais de Porte")
-  CANTOS_DE_QUADRA                                                @map("Cantos de Quadra")
-  JARDIM                                                          @map("Jardim")
-  LARGO                                                           @map("Largo")
-  MIRANTE                                                         @map("Mirante")
-  PRACA                                                           @map("Praca")
-  PRACA_CERCADA                                                   @map("Praca Cercada")
-  TERRENA_NAO_OCUPADO                                             @map("Terreno Não Ocupado")
-  TERRENOS_REMANESCENTES_DE_SISTEMA_VIARIO_E_PARCELAMENTO_DE_SOLO @map("Terrenos Remanescentes de Sistema Viario/Parcelamento de Solo")
-  ROTATORIO                                                       @map("Rotatorio")
-  TREVO                                                           @map("Trevo")
+enum LocationTypes {
+  CENTRAL_AND_LARGE_FLOWERBEDS                    @map("Central and Large Flowerbeds")
+  COURT_EDGE                                      @map("Court Edges")
+  GARDEN                                          @map("Garden")
+  SQUARE                                          @map("Square")
+  OVERLOOK                                        @map("Overlook")
+  PARK                                            @map("Park")
+  FENCED_PARK                                     @map("Fenced Park")
+  UNOCCUPIED_PLOT                                 @map("Unoccupied Plot")
+  REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION @map("Remnants of Road Construction/Land Division")
+  ROUNDABOUTS                                     @map("Roundabouts") // não achei nenhuma informação sobre o que são rotatórios então considerei que eram rotatórias
+  INTERCHANGE                                     @map("Interchange")
 
-  @@map("tipos_local")
+  @@map("location_types")
 }
 
-enum TiposUsuario {
-  ADMIN
-  PESQUISADOR
+enum UserTypes {
+  ADMIN      @map("Admin")
+  RESEARCHER @map("Researcher")
 
-  @@map("tipos_usuario")
+  @@map("user_types")
 }
 
-enum CategoriasEspacoLivre {
-  DE_PRATICAS_SOCIAIS                  @map("de Praticas Sociais")
-  ESPACO_LIVRE_PRIVADO_DE_USO_COLETIVO @map("Espaco Livre Privado de Uso Coletivo")
+enum CategoryTypes {
+  FOR_SOCIAL_PRACTICES              @map("for Social Practices")
+  OPEN_SPACE_FOR_NON_COLLECTIVE_USE @map("Open Space for non-Collective Use")
 
-  @@map("categorias_espaco_livre")
+  @@map("category_types")
 }
 
 enum QuestionTypes {
@@ -111,7 +111,7 @@ enum OptionTypes {
   @@map("option_types")
 }
 
-enum Maintenance {
+enum Condition {
   TERRIBLE @map("terrible")
   POOR     @map("poor")
   GOOD     @map("good")
@@ -120,19 +120,19 @@ enum Maintenance {
   @@map("maintenance")
 }
 
-enum Upkeep {
-  SMALL_INTEFERENCE   @map("small interference")
-  MEDIUM_INTERFERENCE @map("medium interference")
-  GREAT_INTERFERENCE  @map("great interference")
+enum Interference {
+  SMALL  @map("small")
+  MEDIUM @map("medium")
+  GREAT  @map("great")
 
-  @@map("upkeep")
+  @@map("interference")
 }
 
 enum Visibility {
-  UPTO_25  @map("up to 25%")
-  UPTO_50  @map("up to 50%")
-  UPTO_75  @map("up to 75%")
-  UPTO_100 @map("up to 100%")
+  UP_TO_25  @map("up to 25%")
+  UP_TO_50  @map("up to 50%")
+  UP_TO_75  @map("up to 75%")
+  UP_TO_100 @map("up to 100%")
 
   @@map("visibility")
 }
@@ -147,7 +147,7 @@ enum AgeGroup {
 }
 
 enum Activity {
-  SEDENTARY @map("sedentario")
+  SEDENTARY @map("sedentary")
   WALKING   @map("walking")
   STRENUOUS @map("strenuous")
 
@@ -268,7 +268,7 @@ model Option {
 model Form {
   id Int @id @default(autoincrement())
 
-  nome String @db.VarChar(255)
+  name String @db.VarChar(255)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -283,87 +283,86 @@ model Form {
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
 
-model Local {
+model Location {
   id Int @id @default(autoincrement())
 
-  nome                                String    @db.VarChar(255)
-  ePraca                              Boolean?  @map("e_praca") // ? não sei o que que é isso
-  // common_name         String                   @db.VarChar(255)
-  observacoes                         String?   @db.Text
-  anoCriacao                          DateTime? @map("ano_criacao") @db.Date
-  anoReforma                          DateTime? @map("ano_reforma") @db.Date
-  prefeitoCriacao                     String?   @map("prefeito_criacao") @db.VarChar(255)
-  legislacao                          String?   @db.VarChar(255)
-  areaUtil                            Float?    @map("area_util")
-  areaPrefeitura                      Float?    @map("area_prefeitura")
-  inclinacao                          Float?
-  regiaoUrbana                        String?   @map("regiao_urbana") @db.VarChar(255) // ? não sei o que que é isso
-  inativoNaoLocalizado                Boolean?  @map("invativo_nao_localizado") // ? isso não seria por avaliação ao invés de por praça?
-  poligonoArea                        Float?    @map("poligono_area")
-  delimitacaoAdministrativaMenosAmpla String?   @map("delimitacao_administrativa_menos_ampla")
-  delimitacaoAdministrativaMaisAmpla  String?   @map("delimitacao_administrativa_mais_ampla")
+  name                String    @db.VarChar(255)
+  isPark              Boolean?  @map("is_park")
+  notes               String?   @db.Text
+  creationYear        DateTime? @map("creation_year") @db.Date
+  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date
+  overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
+  legislation         String?   @db.VarChar(255)
+  usableArea          Float?    @map("usable_area")
+  legalArea           Float?    @map("legal_area")
+  incline             Float?
+  urbanRegion         String?   @map("urban_region") @db.VarChar(255) // ? não sei o que que é isso
+  inactiveNotFound    Boolean?  @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
+  polygonArea         Float?    @map("polygon_area")
+  narrowBorough       String?   @map("narrow_region")
+  broadBorough        String?   @map("broad_region")
 
-  tipo                 TiposLocal?
-  categoriaEspacoLivre CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
-  poligono             Unsupported("Geometry(MultiPolygon, 4326)")?
+  type     LocationTypes?
+  category CategoryTypes?                               @map("category")
+  polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
 
-  endereco  Endereco[]
-  avaliacao Avaliacao[]
-  contagem  Contagem[]
-  ruido     Ruido[]
+  address    Address[]
+  assessment Assessment[]
+  tally      Tally[]
+  noise      Noise[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("local")
+  @@map("location")
 }
 
-model Endereco {
+model Address {
   id Int @id @default(autoincrement())
 
-  bairro String @db.VarChar(255)
-  rua    String @db.VarChar(255)
-  cep    String @db.VarChar(255)
-  numero Int
+  neighborhood String @db.VarChar(255)
+  street       String @db.VarChar(255)
+  postalCode   String @map("postal_code") @db.VarChar(255)
+  identifier   Int
 
-  estado Estados
+  state BrazilianStates
 
-  localId  Int    @map("local_id")
-  local    Local  @relation(fields: [localId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  cidadeId Int    @map("cidade_id")
-  cidade   Cidade @relation(fields: [cidadeId], references: [id])
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+  cityId     Int      @map("city_id")
+  city       City     @relation(fields: [cityId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("endereco")
+  @@map("address")
 }
 
-model Cidade {
+model City {
   id Int @id @default(autoincrement())
 
-  nome String @unique @db.VarChar(255)
+  name String @unique @db.VarChar(255)
 
-  endereco Endereco[]
-  regiao   Regiao[]
+  address Address[]
+  region  Region[]
 
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
-  @@map("cidade")
+  @@map("city")
 }
 
-model Regiao {
+model Region {
   id Int @id @default(autoincrement())
 
-  regiao String @db.VarChar(255)
+  region String @db.VarChar(255)
 
-  cidade Cidade[]
+  city City[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("regiao")
+  @@map("region")
 }
 
 // #endregion
@@ -373,69 +372,68 @@ model Regiao {
 //  Informações das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-model Avaliacao {
+model Assessment {
   id Int @id @default(autoincrement())
 
-  dataInicio       DateTime @map("data_inicio") @db.Timestamptz()
-  dataFim          DateTime @map("data_fim") @db.Timestamptz()
-  alteracaoLimites Boolean? @map("alteracao_limites") // ? o que é alteração limites?
-  wifi             Boolean
+  startDate DateTime @map("start_date") @db.Timestamptz()
+  endDate   DateTime @map("end_date") @db.Timestamptz()
+  user      User[]
 
-  calcadaPavimentada            Boolean @map("calcada_pavimentada")
-  quantidadeLixeira             Int     @map("quantidade_lixeira")
-  quantidadeBanheiro            Int     @map("quantidade_banheiro")
-  quantidadeTelefonePublico     Int     @map("quantidade_telefone_publico")
-  quantidadeBededouro           Int     @map("quantidade_bebedouro")
-  quantidadeObraArte            Int     @map("quantidade_obra_arte")
-  quantidadePaisagismoPlanejado Int     @map("quantidade_paisagismo_planejado")
-  quantidadeCadeiraMovel        Int     @map("quantidade_cadeira_movel")
+  changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
+  wifi                Boolean
 
-  conservacaoCalcada             Maintenance @map("conservacao_calcada")
-  conservacaoLixeira             Maintenance @map("conservacao_lixeira")
-  conservacaoBanheiro            Maintenance @map("conservacao_banheiro")
-  conservacaoTelefonePublico     Maintenance @map("conservacao_telefone_publico")
-  conservacaoBededouro           Maintenance @map("conservacao_bebedouro")
-  conservacaoObraArte            Maintenance @map("conservacao_obra_arte")
-  conservacaoPaisagismoPlanejado Maintenance @map("conservacao_paisagismo_planejado")
-  conservacaoCadeiraMovel        Maintenance @map("conservacao_cadeira_movel")
+  pavedSidewalk            Boolean @map("paved_sidewalk")
+  trashCanAmount           Int     @map("trash_can_amount")
+  bathroomAmount           Int     @map("bathroom_amount")
+  payphoneAmount           Int     @map("payphone_amount")
+  drinkingFountainAmount   Int     @map("drinking_fountain_amount")
+  artworkAmount            Int     @map("artwork_amount")
+  plannedLandscapingAmount Int     @map("planned_landscaping_amount")
+  movableSeatsAmount       Int     @map("movable_seats_amount")
 
-  acessibilidade         Acessibilidade?
-  acessoEntorno          AcessoEntorno?
-  areaAtividades         AreaAtividades?
-  // contagem               Contagem?
-  depredacao             Depredacao?
-  elementosPaisagisticos ElementosPaisagisticos?
-  espacosAssento         EspacosAssento?
-  evento                 Evento[]
-  // ruido                  Ruido?
-  segurancaViaria        SegurancaViaria?
-  usoDensidadeEntorno    UsoDensidadeEntorno?
-  vigilancia             Vigilancia?
-  usuario                Usuario[]
+  sidewalkCondition           Condition @map("sidewalk_condition")
+  trashCanCondition           Condition @map("trash_can_condition")
+  bathroomCondition           Condition @map("bathroom_condition")
+  payphoneCondition           Condition @map("payphone_condition")
+  drinkingFountainCondition   Condition @map("drinking_fountain_condition")
+  artworkCondition            Condition @map("artwork_condition")
+  plannedLandscapingCondition Condition @map("planned_landscaping_condition")
+  movableSeatsCondition       Condition @map("movable_seats_condition")
 
-  localId Int   @map("local_id")
-  local   Local @relation(fields: [localId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accessibility       Accessibility?
+  parkAccess          SurroundingArea?
+  activitiesArea      ActivitiesArea[]
+  destruction         Destruction?
+  landscaping         Landscaping[]
+  seating             Seating[]
+  event               Events?
+  trafficSafety       TrafficSafety?
+  surroundingActivity SurroundingActivity?
+  security            Security?
+
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("avaliacao")
+  @@map("Assessment")
 }
 
-model Usuario {
+model User {
   id Int @id @default(autoincrement())
 
-  nome  String       @db.VarChar(255)
-  tipo  TiposUsuario
-  email String       @db.VarChar(255)
-  senha String       @db.VarChar(255)
+  name     String    @db.VarChar(255)
+  type     UserTypes
+  email    String    @db.VarChar(255)
+  password String    @db.VarChar(255)
 
-  avaliacao Avaliacao[]
+  assessment Assessment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("usuario")
+  @@map("user")
 }
 
 // #endregion
@@ -445,188 +443,190 @@ model Usuario {
 //  Campos das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-model Acessibilidade {
+model Accessibility {
   id Int @id @default(autoincrement())
 
-  calcadaEntornoFaixaLivre   Boolean @map("calcada_entorno_faixa_livre")
-  calcadaEntornoFaixaServico Boolean @map("calcada_entrono_faixa_servico")
-  alturaLivre                Boolean @map("altura_livre")
-  travessiaRebaixamento      Boolean @map("travessia_rebaixamento")
-  ausenciaObstaculos         Boolean @map("ausencia_obstaculos")
-  inclinacaoMax              Boolean @map("iclinacao_max")
-  inclinacaoLongitudinal     Boolean @map("inclinacao_longitudinal")
-  sinalizacaoTatil           Boolean @map("sinalizacao_tatil")
-  revestimentoPiso           Boolean @map("revestimento_piso")
-  vagasPcd                   Int     @map("vagas_pcd")
-  vagasIdosos                Int     @map("vagas_idosos")
-  rotaAcessivel              Boolean @map("rota_acessivel")
-  equipamentoAdaptado        Boolean @map("equipamento_adaptado")
+  surroundingSidewalkUnrestrictedLane Boolean @map("surrounding_sidewalk_unrestricted_lane")
+  surroundingSidewalkServiceLane      Boolean @map("surrounding_sidewalk_service_lane")
+  ampleHeight                         Boolean @map("ample_height")
+  signaledCrosswalk                   Boolean @map("signaled_crosswalk")
+  clearPaths                          Boolean @map("clear_paths")
+  maximumIncline                      Boolean @map("maximum_incline")
+  longitudinalIncline                 Boolean @map("longitudinal_incline")
+  tactileSignage                      Boolean @map("tactile_signage")
+  safetyCoatedFlooring                Boolean @map("safety_coated_flooring")
+  impairedParkingAmount               Int     @map("impaired_parking_amount")
+  elderlyParkingAmount                Int     @map("elderly_parking_amount")
+  accessibleRoute                     Boolean @map("accessible_route")
+  accessibleEquipment                 Boolean @map("accessible_equipment")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("acessibilidade")
+  @@map("accessibility")
 }
 
-model AcessoEntorno {
+model SurroundingArea {
   id Int @id @default(autoincrement())
 
-  cercaHorarioFuncionamento Boolean @map("cerca_horario_funcionamento")
-  placaIdentificacao        Boolean @map("placa_identificacao")
-  baiasOnibus               Int     @map("baias_onibus")
-  vagasTaxi                 Int     @map("vagas_taxi")
-  vagasCarro                Int     @map("vagas_carro")
-  vagasMoto                 Int     @map("vagas_moto")
-  ciclovia                  Boolean
+  fencedWithOperatingHours Boolean @map("fenced_with_operating_hours")
+  nameplate                Boolean
+  busStandsAmount          Int     @map("bus_stands_amount")
+  taxiParkingAmount        Int     @map("taxi_parking_amount")
+  carParkingAmount         Int     @map("car_parking_amount")
+  motorcycleParkingAmount  Int     @map("motorcycle_parking_amount")
+  bikeLane                 Boolean @map("bike_lane")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("acesso_entorno")
+  @@map("surrounding_area")
 }
 
-model AreaAtividades {
+model ActivitiesArea {
   id Int @id @default(autoincrement())
 
-  categoria    Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  sombraMinima Boolean     @map("sombra_minima")
-  iluminacao   Boolean
-  cercado      Boolean
-  bancos       Boolean
-  conservacao  Maintenance
-  descricao    String?     @db.Text
+  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
+  requiredShade Boolean   @map("required_shade")
+  lighting      Boolean
+  fencing       Boolean
+  benches       Boolean
+  condition     Condition
+  report        String?   @db.Text
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("area_atividades")
+  @@map("activities_area")
 }
 
-model Depredacao {
+model Destruction {
   id Int @id @default(autoincrement())
 
-  nivelPichacao Upkeep @map("nivel_pichacao")
-  nivelAbandono Upkeep @map("nivel_abandono")
+  graffitiInterferenceLevel Interference @map("graffiti_interference_level")
+  neglectInterferenceLevel  Interference @map("neglect_interference_level")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("depredacao")
+  @@map("destruction")
 }
 
-model ElementosPaisagisticos {
+model Landscaping {
   id Int @id @default(autoincrement())
 
-  categoria    Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  sombraMinima Boolean @map("sombra_minima")
-  iluminacao   Boolean
-  cercado      Boolean
-  bancos       Boolean
-  conservacao  Int
-  descricao    String? @db.Text
+  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
+  requiredShade Boolean   @map("required_shade")
+  lighting      Boolean
+  fencing       Boolean
+  benches       Boolean
+  condition     Condition
+  report        String?   @db.Text
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("elementos_paisagisticos")
+  @@map("landscaping")
 }
 
 // ↑ condensar esses dois em um modelo só? ↓
-model EspacosAssento {
+model Seating {
   id Int @id @default(autoincrement())
 
-  categoria    Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  sombraMinima Boolean @map("sombra_minima")
-  iluminacao   Boolean
-  cercado      Boolean
-  bancos       Boolean
-  conservacao  Int
+  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
+  requiredShade Boolean   @map("required_shade")
+  lighting      Boolean
+  fencing       Boolean
+  benches       Boolean
+  condition     Condition
+  report        String?   @db.Text
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("espacos_assento")
+  @@map("seating")
 }
 
-model Evento {
+model Events {
   id Int @id @default(autoincrement())
 
-  frequenciaUltimoAno Int    @map("frequencia_ultimo_ano")
-  categoria           Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  nomeResponsavel     String @map("nome_responsavel") @db.VarChar(255) // pelo que entendi seria o nome do responsável pela praça, não por evento
+  yearlyIncidence Int @map("yearly_incidence")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  // TODO mudar para refletir o que o Klaus falou na reunião
+  category   Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
+  maintainer String @db.VarChar(255) // pelo que entendi seria o nome do responsável pela praça, não por evento
+
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("eventos")
+  @@map("events")
 }
 
-model SegurancaViaria {
+model TrafficSafety {
   id Int @id @default(autoincrement())
 
-  faixaPedestre    Boolean @map("faixa_pedestre")
-  semaforo         Boolean
-  placasVelocidade Boolean @map("placas_velocidade")
+  crosswalk    Boolean
+  trafficLight Boolean @map("traffic_light")
+  speedSignage Boolean @map("speed_signage")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("seguranca_viaria")
+  @@map("traffic_safety")
 }
 
-// ? o que que é isso?
-model UsoDensidadeEntorno {
+model SurroundingActivity {
   id Int @id @default(autoincrement())
 
-  usoEdificacoes String @map("uso_edificacoes") @db.Text
+  surroundingEstablishments String @map("surrounding_establishments") @db.Text
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("uso_densidade_entorno")
+  @@map("surrounding_activity")
 }
 
-model Vigilancia {
+model Security {
   id Int @id @default(autoincrement())
 
-  cameras           Boolean
-  postoPolicial     Boolean    @map("posto_policial")
-  nivelVisibilidade Visibility @map("nivel_visibilidade")
+  cameras         Boolean
+  policeStation   Boolean    @map("police_station")
+  visibilityLevel Visibility @map("visibility_level")
 
-  avaliacaoId Int       @unique @map("avaliacao_id")
-  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
+  assessmentId Int        @unique @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("vigilancia")
+  @@map("security")
 }
 
 // #endregion
@@ -636,66 +636,63 @@ model Vigilancia {
 //  Campos das Avaliações Não Relacionadas à Avaliação Física
 //  ------------------------------------------------------------------------------------------------------------
 
-model Contagem {
+model Tally {
   id Int @id @default(autoincrement())
 
-  data              DateTime? @db.Date
-  inicio            DateTime? @db.Timestamptz(0)
-  fim               DateTime? @db.Timestamptz(0)
-  quantidadeAnimais Int?      @map("quantidade_animais")
-  temperatura       Float?
-  condicaoCeu       String?   @map("condicao_ceu") @db.VarChar(255)
+  // não é meio redundante armazenar a data separada?
+  date      DateTime? @db.Date
+  startDate DateTime? @db.Timestamptz(0)
+  endDate   DateTime? @db.Timestamptz(0)
 
-  // avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  // avaliacaoId Int       @unique @map("avaliacao_id")
+  animalsAmount    Int?    @map("animals_amount")
+  temperature      Float?
+  weatherCondition String? @map("weather_condition") @db.VarChar(255)
 
-  pessoaNoLocal PessoaNoLocal[]
+  people Person[]
 
-  localId Int   @unique @map("local_id")
-  local   Local @relation(fields: [localId], references: [id])
+  locationId Int      @unique @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("contagem")
+  @@map("tally")
 }
 
 // Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
-model PessoaNoLocal {
+model Person {
   id Int @id @default(autoincrement())
 
-  classificacaoEtaria AgeGroup @map("classificacao_etaria")
-  sexo                Sex
-  atividadeFisica     Activity @map("atividade_fisica")
-  passando            Boolean
-  pessoaDeficiente    Boolean  @map("pessoa_deficiente")
-  atividadeIlicita    Boolean  @map("atividade_ilicita")
-  situacaoRua         Boolean  @map("situacao_rua")
+  ageGroup                    AgeGroup @map("age_group")
+  sex                         Sex
+  activity                    Activity @map("activity")
+  isTraversing                Boolean  @map("is_traversing")
+  isImpairedPerson            Boolean  @map("is_impaired_person")
+  isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
+  isPersonWithoutHousing      Boolean  @map("is_person_without_housing")
 
-  contagemId Int      @map("contagem_id")
-  contagem   Contagem @relation(fields: [contagemId], references: [id])
+  tallyId Int   @map("tally_id")
+  tally   Tally @relation(fields: [tallyId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("pessoa_no_local")
+  @@map("person")
 }
 
-model Ruido {
+model Noise {
   id Int @id @default(autoincrement())
 
-  nivelDb   Float  @map("nivel_db")
-  categoria String @db.VarChar(255) // ? se eu entendi isso certo essa categoria devia ser um enum, não?
+  category   String @db.VarChar(255) // ? se eu entendi isso certo essa categoria devia ser um enum, não?
+  soundLevel Float  @map("sound_level")
 
-  localId Int   @unique @map("local_id")
-  local   Local @relation(fields: [localId], references: [id])
-  // avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
-  // avaliacaoId Int       @unique @map("avaliacao_id")
+  locationId Int      @unique @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("ruido")
+  @@map("noise")
 }
 
 // #endregion

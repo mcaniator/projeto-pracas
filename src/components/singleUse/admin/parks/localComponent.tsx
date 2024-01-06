@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { handleDelete } from "@/lib/serverActions/localUtil";
-import { useContext } from "react";
+import { handleDelete } from "@/lib/serverActions/locationUtil";
+import { use, useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";
 
@@ -23,7 +23,7 @@ const LocalComponent = ({ id, nome }: FormProps) => {
       <div>
         <Button
           onClick={() => {
-            handleDelete(id);
+            use(handleDelete(id));
             setChangedContext(changedContext + 1);
           }}
           variant="destructive"

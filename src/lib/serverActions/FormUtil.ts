@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 const handleDelete = async (formID: number) => {
@@ -17,19 +18,22 @@ const handleDelete = async (formID: number) => {
 };
 
 const fetchForms = async () => {
-  let forms;
+  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({ select: { id: true, name: true } });
+
+  let forms: Prisma.UserGetPayload<typeof formsType>[] = [];
+
   try {
     forms = await prisma.form.findMany({
       select: {
         id: true,
-        nome: true,
+        name: true,
       },
     });
-    return forms;
   } catch (error) {
     console.error(`Erro ao recuperar formulários`, error);
-    forms = [];
   }
+
+  return forms;
 };
 
-export { handleDelete, fetchForms };
+export { fetchForms, handleDelete };

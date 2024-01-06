@@ -3,17 +3,17 @@
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
 import { PolygonEditForm } from "@/components/singleUse/admin/leaflet/polygonEditForm";
 import { Select } from "@/components/ui/select";
-import type { Endereco, Local } from "@prisma/client";
+import type { Address, Location } from "@prisma/client";
 import L, { LatLngExpression } from "leaflet";
 import { useContext, useState } from "react";
 import { Polygon, Popup, Tooltip, useMap } from "react-leaflet";
 import Control from "react-leaflet-custom-control";
 
-interface localsPolygon extends Local {
+interface localsPolygon extends Location {
   polygon: [number, number][];
 }
 
-const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; addressData: Endereco[] }) => {
+const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; addressData: Address[] }) => {
   const [polygon, setPolygon] = useState<LatLngExpression[]>();
   const { drawingContext } = useContext(DrawingContext);
   const [value, setValue] = useState(-1);
@@ -37,12 +37,12 @@ const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; add
           <Polygon positions={value.polygon as LatLngExpression[]} color={"#8FBC94"}>
             {!drawingContext && (
               <Popup>
-                <PolygonEditForm parkData={value} addressData={addressData.filter((aux) => aux.localId == value.id)} />
+                <PolygonEditForm parkData={value} addressData={addressData.filter((aux) => aux.locationId == value.id)} />
               </Popup>
             )}
 
             <Tooltip className={"bg-blue-800to"} permanent>
-              {value.nome}
+              {value.name}
             </Tooltip>
           </Polygon>
         </div>
@@ -65,7 +65,7 @@ const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; add
             <option value={-1} />
             {parkData.map((value, index) => (
               <option key={index} value={value.id}>
-                {value.nome}
+                {value.name}
               </option>
             ))}
           </Select>

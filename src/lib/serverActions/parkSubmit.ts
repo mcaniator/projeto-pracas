@@ -1,13 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { cidadeSchema, enderecoSchema, localSchema } from "@/lib/zodValidators";
+import { addressSchema, citySchema, locationSchema } from "@/lib/zodValidators";
 import { z } from "zod";
 
 const mapSubmission = async (prevState: { statusCode: number }, formData: FormData) => {
   const addressAmount = formData.get("addressAmount");
   const addresses = (() => {
-    const aux: z.infer<typeof enderecoSchema>[] = [];
+    const aux: z.infer<typeof addressSchema>[] = [];
 
     if (addressAmount == null || addressAmount instanceof File) return aux;
 
@@ -21,21 +21,21 @@ const mapSubmission = async (prevState: { statusCode: number }, formData: FormDa
     };
     for (let i = 0; i < addressAmountInt; i++) {
       const neighborhood = getInfo(`addresses[${i}][neighborhood]`);
-      const number = getInfo(`addresses[${i}][number]`);
-      const CEP = "";
-      const rua = "";
-      const estado = "MINAS_GERAIS";
-      const localId = 0;
-      const cidadeId = 0;
+      const identifier = getInfo(`addresses[${i}][number]`);
+      const postalCode = "";
+      const street = "";
+      const state = "MINAS_GERAIS";
+      const locationId = 0;
+      const cityId = 0;
 
       aux.push({
-        localId: localId,
-        cidadeId: cidadeId,
-        bairro: neighborhood,
-        numero: parseInt(number),
-        cep: CEP,
-        rua: rua,
-        estado: estado,
+        locationId: locationId,
+        cityId: cityId,
+        neighborhood: neighborhood,
+        identifier: parseInt(identifier),
+        postalCode: postalCode,
+        street: street,
+        state: state,
       });
     }
 
@@ -45,25 +45,31 @@ const mapSubmission = async (prevState: { statusCode: number }, formData: FormDa
   console.log(addresses);
 
   try {
-    const parsedLocal = localSchema.parse({ nome: "cidade teste", tipo: "JARDIM", categoriaEspacoLivre: "DE_PRATICAS_SOCIAIS" });
-    const parsedEndereco = enderecoSchema.parse({ bairro: "bairro teste", rua: "rua de teste", cep: "00000000", numero: 0, estado: "MINAS_GERAIS" });
-    const parsedCidade = cidadeSchema.parse({ nome: "test" });
+    const parsedLocation = locationSchema.parse({ name: "cidade teste", type: "JARDIM", category: "DE_PRATICAS_SOCIAIS" });
+    const parsedAddress = addressSchema.parse({
+      neighborhood: "bairro teste",
+      street: "rua de teste",
+      postalCode: "00000000",
+      identifier: 0,
+      state: "MINAS_GERAIS",
+    });
+    const parsedCity = citySchema.parse({ name: "test" });
 
-    const cidade = await prisma.cidade.upsert({
-      where: parsedCidade,
+    const city = await prisma.city.upsert({
+      where: parsedCity,
       update: {},
-      create: parsedCidade,
+      create: parsedCity,
     });
 
-    await prisma.local.create({
+    await prisma.location.create({
       data: {
-        ...parsedLocal,
-        endereco: {
+        ...parsedLocation,
+        address: {
           createMany: {
             data: [
               {
-                ...parsedEndereco,
-                cidadeId: cidade.id,
+                ...parsedAddress,
+                cityId: city.id,
               },
             ],
           },

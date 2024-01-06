@@ -1,10 +1,9 @@
 import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
 import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
-import { Form } from "@prisma/client";
 
 // import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
 
-const AdminRoot = async () => {
+const AdminRoot = () => {
   return (
     <div>
       <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
@@ -15,9 +14,8 @@ const AdminRoot = async () => {
           </div>
         </div>
       </div>
-      {/* <div>
-        <ButtonWrapper />
-      </div> */}
+
+      <ButtonWrapper />
     </div>
   );
 };

@@ -23,7 +23,7 @@ const AdminRoot = async () => {
       {forms !== null ?
         <div className="w-full">
           {forms.map((form) => (
-            <FormComponent key={form.id} id={form.id} nome={form.nome} />
+            <FormComponent key={form.id} id={form.id} nome={form.name} />
           ))}
         </div>
       : <p>Loading forms...</p>}

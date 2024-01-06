@@ -1,6 +1,7 @@
 "use client";
 
-import { handleDelete } from "@/lib/serverActions/FormUtil";
+import { handleDelete } from "@/lib/serverActions/formUtil";
+import { use } from "react";
 
 interface FormProps {
   id: number;
@@ -14,7 +15,7 @@ const FormComponent = ({ id, nome }: FormProps) => {
         <h4 className="text-lg font-semibold">{nome}</h4>
       </div>
       <div>
-        <button onClick={() => handleDelete(id)} className="text-red-500 hover:text-red-700">
+        <button onClick={() => use(handleDelete(id))} className="text-red-500 hover:text-red-700">
           Deletar
         </button>
       </div>
