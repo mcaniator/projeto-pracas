@@ -115,14 +115,19 @@ model Local {
   inativoNaoLocalizado Boolean?  @map("invativo_nao_localizado") // isso não seria por avaliação ao invés de por praça?
   poligonoArea         Float?    @map("poligono_area")
 
-  tipo                      TiposLocal?
-  poligono                  Unsupported("Geometry(MultiPolygon, 4326)")?
-  categoriaEspacoLivre      CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
-  endereco                  Endereco[]
-  avaliacao                 Avaliacao[]
-  delimitacaoAdministrativa DelimitacaoAdministrativa[]
-  contagem                  Contagem[]
-  ruido                     Ruido[]
+  tipo                         TiposLocal?
+  poligono                     Unsupported("Geometry(MultiPolygon, 4326)")?
+  categoriaEspacoLivre         CategoriasEspacoLivre?                       @map("categoria_espaco_livre")
+  endereco                     Endereco[]
+  avaliacao                    Avaliacao[]
+  delimitacaoAdministrativa1   DelimitacaoAdministrativa1                   @relation(fields: [delimitacaoAdministrativa1Id], references: [id])
+  delimitacaoAdministrativa1Id Int                                          @map("delimitacao_administrativa_1_id")
+  delimitacaoAdministrativa2   DelimitacaoAdministrativa2                   @relation(fields: [delimitacaoAdministrativa2Id], references: [id])
+  delimitacaoAdministrativa2Id Int                                          @map("delimitacao_administrativa_2_id")
+  delimitacaoAdministrativa3   DelimitacaoAdministrativa3                   @relation(fields: [delimitacaoAdministrativa3Id], references: [id])
+  delimitacaoAdministrativa3Id Int                                          @map("delimitacao_administrativa_3_id")
+  contagem                     Contagem[]
+  ruido                        Ruido[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -173,12 +178,28 @@ model Regiao {
   @@map("regiao")
 }
 
-model DelimitacaoAdministrativa {
-  id                            Int     @id @default(autoincrement())
-  nomeDelimitacaoAdministrativa String  @map("nome_delimitacao_administrativa")
-  local                         Local[]
+model DelimitacaoAdministrativa1 {
+  id                             Int     @id @default(autoincrement())
+  nomeDelimitacaoAdministrativa1 String  @unique @map("nome_delimitacao_administrativa1")
+  local                          Local[]
 
-  @@map("delimitacao_administrativa")
+  @@map("delimitacao_administrativa_1")
+}
+
+model DelimitacaoAdministrativa2 {
+  id                             Int     @id @default(autoincrement())
+  nomeDelimitacaoAdministrativa2 String  @unique @map("nome_delimitacao_administrativa2")
+  local                          Local[]
+
+  @@map("delimitacao_administrativa_2")
+}
+
+model DelimitacaoAdministrativa3 {
+  id                             Int     @id @default(autoincrement())
+  nomeDelimitacaoAdministrativa3 String  @unique @map("nome_delimitacao_administrativa3")
+  local                          Local[]
+
+  @@map("delimitacao_administrativa_3")
 }
 
 //*model LocalDelimitacaoAdministrativa{
@@ -443,16 +464,40 @@ model Contagem {
   data              DateTime? @db.Date
   inicio            DateTime? @db.Timestamptz(0)
   fim               DateTime? @db.Timestamptz(0)
-  quantidadeAnimais Int?      @map("quantidade_animais")
-  temperatura       Float?
-  condicaoCeu       String?   @map("condicao_ceu")
+  quantidadeAnimais Int       @default(0) @map("quantidade_animais")
+  temperatura       Float     @default(0)
+  condicaoCeu       String    @default("Nao informado") @map("condicao_ceu")
 
   local   Local @relation(fields: [localId], references: [id])
   localId Int   @unique @map("local_id")
   //avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id])
   //avaliacaoId Int       @unique @map("avaliacao_id")
 
-  pessoaNoLocal PessoaNoLocal[]
+  //pessoaNoLocal PessoaNoLocal[]
+
+  adultos  Int @default(0)
+  idosos   Int @default(0)
+  criancas Int @default(0)
+  jovens   Int @default(0)
+  pets     Int @default(0)
+
+  homens   Int @default(0)
+  mulheres Int @default(0)
+
+  sedentarios Int @default(0)
+  caminhanho  Int @default(0)
+  vigoroso    Int @default(0)
+
+  passando         Int @default(0)
+  deficientes      Int @default(0)
+  atividadeIlicita Int @default(0) @map("atividade_ilicita")
+  situacaoRua      Int @default(0) @map("situacao_rua")
+
+  //chaveGenero  Int
+  //chaveIdoso   Int
+  //chaveAdulto  Int
+  //chaveCrianca Int
+  //chaveJovem   Int
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -461,24 +506,24 @@ model Contagem {
 }
 
 // Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
-model PessoaNoLocal {
-  id                  Int      @id @default(autoincrement())
-  classificacaoEtaria Int?     @map("classificacao_etaria")
-  genero              Int?
-  atividadeFisica     Int?     @map("atividade_fisica")
-  passando            Boolean?
-  pessoaDeficiente    Boolean? @map("pessoa_deficiente")
-  atividadeIlicita    Boolean? @map("atividade_ilicita")
-  situacaoRua         Boolean? @map("situacao_rua")
+//model PessoaNoLocal {
+//  id                  Int      @id @default(autoincrement())
+//  classificacaoEtaria Int?     @map("classificacao_etaria")
+//  genero              Int?
+//  atividadeFisica     Int?     @map("atividade_fisica")
+//  passando            Boolean?
+//  pessoaDeficiente    Boolean? @map("pessoa_deficiente")
+//  atividadeIlicita    Boolean? @map("atividade_ilicita")
+//  situacaoRua         Boolean? @map("situacao_rua")
 
-  contagem   Contagem @relation(fields: [contagemId], references: [id])
-  contagemId Int      @map("contagem_id")
+//  contagem   Contagem @relation(fields: [contagemId], references: [id])
+//  contagemId Int      @map("contagem_id")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+//  createdAt DateTime @default(now()) @map("created_at")
+//  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("pessoa_no_local")
-}
+//  @@map("pessoa_no_local")
+//}
 
 model Ruido {
   id        Int    @id @default(autoincrement())

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { Local } from "@prisma/client";
 
-const cadastrarLocal = async (content: any, delimitacoes: any) => {
+const cadastrarLocal = async (content: any, delimitacao1: any, delimitacao2: any, delimitacao3: any) => {
   try {
     await prisma.local.create({
       data: {
@@ -19,13 +19,35 @@ const cadastrarLocal = async (content: any, delimitacoes: any) => {
         inclinacao: content.inclinacao,
         inativoNaoLocalizado: content.inativoNaoLocalizado,
         poligonoArea: content.poligonoArea,
-        delimitacaoAdministrativa: {
-          connectOrCreate: delimitacoes.map((delimitacao: any) => {
-            return {
-              where: { nomeDelimitacaoAdministrativa: delimitacao },
-              create: { nomeDelimitacaoAdministrativa: delimitacao },
-            };
-          }),
+        delimitacaoAdministrativa1: {
+          connectOrCreate: {
+            where: {
+              nomeDelimitacaoAdministrativa1: delimitacao1,
+            },
+            create: {
+              nomeDelimitacaoAdministrativa1: delimitacao1,
+            },
+          },
+        },
+        delimitacaoAdministrativa2: {
+          connectOrCreate: {
+            where: {
+              nomeDelimitacaoAdministrativa2: delimitacao2,
+            },
+            create: {
+              nomeDelimitacaoAdministrativa2: delimitacao2,
+            },
+          },
+        },
+        delimitacaoAdministrativa3: {
+          connectOrCreate: {
+            where: {
+              nomeDelimitacaoAdministrativa3: delimitacao3,
+            },
+            create: {
+              nomeDelimitacaoAdministrativa3: delimitacao3,
+            },
+          },
         },
       },
     });

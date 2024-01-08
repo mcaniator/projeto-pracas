@@ -11,6 +11,8 @@ const ButtonWrapper = () => {
     nome: "nome da praca",
     endereco: {},
     avaliacao: {},
+    contagem: {},
+    ruido: {},
     tipo: "PRACA",
     categoriaEspacoLivre: "ESPACO_LIVRE_PUBLICO_USO_COLETIVO",
   };
@@ -36,6 +38,8 @@ const ButtonWrapper = () => {
             nome: "praça são matheus",
             endereco: {},
             avaliacao: {},
+            contagem: {},
+            ruido: {},
             tipo: "PRACA",
             categoriaEspacoLivre: "ESPACO_LIVRE_PUBLICO_USO_COLETIVO",
           })
@@ -43,7 +47,7 @@ const ButtonWrapper = () => {
       >
         Mudar nome
       </Button>
-      <Button onClick={() => cadastrarLocal(content, {})}>Cadastrar</Button>
+      <Button onClick={() => cadastrarLocal(content, "delimitacao1", "del2", "del3")}>Cadastrar</Button>
       <Button onClick={() => consultarLocal(idConsulta)}>Consultar</Button>
       <br></br>
       <label htmlFor="id_contagem">Id da praça para a contagem: </label>
@@ -77,7 +81,7 @@ const ButtonWrapper = () => {
       <Button
         type="submit"
         onClick={() => {
-          adicionarPessoaNaContagem(localId, contagemId, { classificacaoEtaria: 3, genero: 2, atividadeFisica: 0 });
+          adicionarPessoaNaContagem(localId, contagemId, { adultos: 1, criancas: 3 });
         }}
       >
         Adicionar pessoa
