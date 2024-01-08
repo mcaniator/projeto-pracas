@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { categorySubmit } from "@/serverActions/categorySubmit";
+import { formSubmit } from "@/serverActions/formSubmit";
 import { useRef } from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
-  statusCode: 0,
+  message: "",
 };
 
-const CategoryForm = () => {
-  const [, formAction] = useFormState(categorySubmit, initialState);
+const FormForm = () => {
+  const [, formAction] = useFormState(formSubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   // TODO: add error handling
@@ -27,8 +27,8 @@ const CategoryForm = () => {
       }
     >
       <div>
-        <label htmlFor={"name"}>Nome da categoria:</label>
-        <Input type="text" name="name" required id={"name"} className={"w-[50%]"} />
+        <label htmlFor={"name"}>Nome do formulário:</label>
+        <Input type="text" name="name" required id={"name"} />
       </div>
       <Button variant={"admin"} type="submit" className={"w-min"}>
         <span className={"-mb-1"}>Enviar</span>
@@ -37,4 +37,4 @@ const CategoryForm = () => {
   );
 };
 
-export { CategoryForm };
+export { FormForm };

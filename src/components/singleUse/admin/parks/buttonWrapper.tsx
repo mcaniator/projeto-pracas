@@ -1,92 +1,94 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { adicionarContagem } from "@/lib/serverActions/adicionarContagem";
-import { adicionarPessoaNaContagem } from "@/lib/serverActions/adicionarPessoaNaContagem";
-import { cadastrarLocal } from "@/lib/serverActions/cadastrarLocal";
-import { consultarLocal } from "@/lib/serverActions/consultarLocal";
+import { Input } from "@/components/ui/input";
+import { locationType } from "@/lib/zodValidators";
+import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
+import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
+import { use, useState } from "react";
 
 const ButtonWrapper = () => {
-  let content = {
-    nome: "nome da praca",
-    endereco: {},
-    avaliacao: {},
-    contagem: {},
-    ruido: {},
-    tipo: "PRACA",
-    categoriaEspacoLivre: "ESPACO_LIVRE_PUBLICO_USO_COLETIVO",
+  const content: locationType = {
+    name: "nome da praca",
+    type: "PARK",
+    category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE",
   };
 
-  let idConsulta = 5;
-  let localId: number = 0;
-  let contagemId: number = 0;
-  const handleAddContagem = (event: any) => {
-    event.preventDefault();
-    adicionarContagem(localId, { quantidadeAnimais: 0, temperatura: 30.0, pessoaNoLocal: {} });
-  };
+  const fetchId = 5;
 
-  const handleAddPessoa = (event: any) => {
-    event.preventDefault();
-    adicionarPessoaNaContagem(localId, contagemId, { classificacaoEtaria: 3, genero: 2, atividadeFisica: 0 });
-  };
+  const [locationId, setLocationId] = useState(0);
+  const [tallyId, setTallyId] = useState(0);
 
   return (
-    <>
-      <Button
-        onClick={() =>
-          (content = {
-            nome: "praça são matheus",
-            endereco: {},
-            avaliacao: {},
-            contagem: {},
-            ruido: {},
-            tipo: "PRACA",
-            categoriaEspacoLivre: "ESPACO_LIVRE_PUBLICO_USO_COLETIVO",
-          })
-        }
-      >
-        Mudar nome
-      </Button>
-      <Button onClick={() => cadastrarLocal(content, "delimitacao1", "del2", "del3")}>Cadastrar</Button>
-      <Button onClick={() => consultarLocal(idConsulta)}>Consultar</Button>
-      <br></br>
-      <label htmlFor="id_contagem">Id da praça para a contagem: </label>
+    <div className="ml-5 flex flex-col gap-5 text-white">
+      <div>
+        <p>Criação de Locais:</p>
+        <div className="flex gap-2">
+          <Button variant="admin" onClick={() => (content.name = "praça são mateus")}>
+            <span className="-mb-1">Mudar nome</span>
+          </Button>
+          <Button variant="admin" onClick={() => use(createLocation(content))}>
+            <span className="-mb-1">Cadastrar</span>
+          </Button>
+        </div>
+      </div>
 
-      <input
-        type="number"
-        name="localIdInput"
-        onChange={(e) => {
-          localId = parseInt(e.target.value);
-        }}
-      />
-      <Button
-        type="submit"
-        onClick={() => {
-          adicionarContagem(localId, { quantidadeAnimais: 0, temperatura: 30.0, pessoaNoLocal: {} });
-        }}
-      >
-        Adicionar contagem
-      </Button>
+      <div>
+        <p>Consulta de Locais:</p>
+        <Button variant="admin" onClick={() => console.log(fetchLocation(fetchId))}>
+          <span className="-mb-1">Consultar</span>
+        </Button>
+      </div>
 
-      <br></br>
-      <label>Id da contagem:</label>
+      <div className="flex gap-2">
+        <div>
+          <label htmlFor="locationId">ID da praça para a contagem: </label>
+          <Input
+            type="number"
+            id="locationId"
+            name="Location ID Input"
+            onChange={(e) => setLocationId(parseInt(e.target.value))}
+            value={locationId}
+          />
+        </div>
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => use(createTally({ locationId: locationId, animalsAmount: 0, temperature: 30.0 }, []))}
+        >
+          <span className="-mb-1">Adicionar contagem</span>
+        </Button>
+      </div>
 
-      <input
-        type="number"
-        name="ContagemIdInput"
-        onChange={(e) => {
-          contagemId = parseInt(e.target.value);
-        }}
-      />
-      <Button
-        type="submit"
-        onClick={() => {
-          adicionarPessoaNaContagem(localId, contagemId, { adultos: 1, criancas: 3 });
-        }}
-      >
-        Adicionar pessoa
-      </Button>
-    </>
+      <div className="flex gap-2">
+        <div>
+          <label htmlFor="tallyId">ID da contagem:</label>
+          <Input type="number" id="tallyId" name="Tally ID Input" onChange={(e) => setTallyId(parseInt(e.target.value))} value={tallyId} />
+        </div>
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() =>
+            use(
+              addPersonToTally({
+                ageGroup: "CHILD",
+                sex: "MALE",
+                activity: "WALKING",
+                isTraversing: true,
+                isImpairedPerson: true,
+                isInApparentIllicitActivity: false,
+                isPersonWithoutHousing: false,
+                tallyId: tallyId,
+              }),
+            )
+          }
+        >
+          <span className="-mb-1">Adicionar pessoa</span>
+        </Button>
+      </div>
+    </div>
   );
 };
 

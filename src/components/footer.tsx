@@ -46,4 +46,4 @@ const Footer = forwardRef<HTMLElement, FooterProps>(({ variant, ...props }, ref)
 });
 Footer.displayName = "Footer";
 
-export default Footer;
+export { Footer };

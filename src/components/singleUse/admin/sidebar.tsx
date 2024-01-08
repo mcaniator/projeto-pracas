@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import {
   IconBug,
   IconFountain,

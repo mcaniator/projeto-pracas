@@ -6,19 +6,19 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { josefin_sans } from "@/lib/fonts";
-import { mapEdit } from "@/lib/serverActions/parkSubmit";
-import { addresses, locals } from "@prisma/client";
+import { mapEdit } from "@/serverActions/parkSubmit";
+import { Address, Location } from "@prisma/client";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
-interface localsPolygon extends locals {
+interface localsPolygon extends Location {
   polygon: [number, number][];
 }
 
-const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; addressData: addresses[] }) => {
+const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; addressData: Address[] }) => {
   const initialState = {
-    message: null,
+    message: "",
   };
   const [state, formAction] = useFormState(mapEdit, initialState);
 
@@ -51,12 +51,12 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
               <Input type={"text"} name={"name"} defaultValue={parkData.name} required />
 
               <label htmlFor={"commonName"}>Nome popular</label>
-              <Input type={"text"} name={"commonName"} defaultValue={parkData.common_name ? parkData.common_name : undefined} />
+              <Input type={"text"} name={"commonName"} defaultValue={parkData.name} />
 
               <label htmlFor={"comments"}>Comentários</label>
-              <Input type={"text"} name={"comments"} defaultValue={parkData.comments ? parkData.comments : undefined} />
+              <Input type={"text"} name={"comments"} defaultValue={parkData.notes!} />
 
-              <Select name={"parkTypes"} defaultValue={parkData.type}>
+              <Select name={"parkTypes"} defaultValue={parkData.type!}>
                 {parkTypes.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
@@ -64,7 +64,7 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                 ))}
               </Select>
 
-              <Select name={"parkCategories"} defaultValue={parkData.free_space_category}>
+              <Select name={"parkCategories"} defaultValue={parkData.category!}>
                 {parkCategories.map((value, index) => (
                   <option key={index} value={value.id}>
                     {value.name}
@@ -77,47 +77,31 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                   <div key={index} className={"flex"}>
                     <div>
                       <label htmlFor={`addresses[${index}][street]`}>Rua</label>
-                      <Input
-                        name={`addresses[${index}][street]`}
-                        className={"w-72"}
-                        defaultValue={value.street ? value.street : undefined}
-                        required
-                      />
+                      <Input name={`addresses[${index}][street]`} className={"w-72"} defaultValue={value.street} required />
                     </div>
                     <div>
                       <label htmlFor={`addresses[${index}][number]`}>Número</label>
-                      <Input
-                        type={"number"}
-                        name={`addresses[${index}][number]`}
-                        className={"w-72"}
-                        defaultValue={value.number ? value.number : undefined}
-                        required
-                      />
+                      <Input type={"number"} name={`addresses[${index}][number]`} className={"w-72"} defaultValue={value.identifier} required />
                     </div>
                     <div>
                       <label htmlFor={`addresses[${index}][city]`}>Cidade</label>
-                      <Input name={`addresses[${index}][city]`} className={"w-72"} defaultValue={value.city ? value.city : undefined} required />
+                      <Input name={`addresses[${index}][city]`} className={"w-72"} defaultValue={value.cityId} required />
                     </div>
                     <div>
                       <label htmlFor={`addresses[${index}][neighborhood]`}>Bairro</label>
-                      <Input
-                        name={`addresses[${index}][neighborhood]`}
-                        className={"w-72"}
-                        defaultValue={value.neighborhood ? value.neighborhood : undefined}
-                        required
-                      />
+                      <Input name={`addresses[${index}][neighborhood]`} className={"w-72"} defaultValue={value.neighborhood} required />
                     </div>
                     <div>
                       <label htmlFor={`addresses[${index}][state]`}>Estado</label>
-                      <Select name={`addresses[${index}][state]`} defaultValue={value.UF ? value.UF : undefined}>
+                      <Select name={`addresses[${index}][state]`} defaultValue={value.state}>
                         {brazillianStates.map((value, index) => (
-                          <option value={value} key={index}>
-                            {value}
+                          <option value={value.id} key={index}>
+                            {value.name}
                           </option>
                         ))}
                       </Select>
                     </div>
-                    {index == 0 ? (
+                    {index == 0 ?
                       <Button
                         onClick={() => setNewAddressInfo(newAddressInfo != undefined ? [...newAddressInfo, { state: "Acre" }] : [{ state: "Acre" }])}
                         variant={"ghost"}
@@ -125,11 +109,10 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                       >
                         <IconSquareRoundedPlus />
                       </Button>
-                    ) : (
-                      <Button onClick={() => setAddressInfo(addressInfo.splice(index, 1))} variant={"ghost"} type={"button"}>
+                    : <Button onClick={() => setAddressInfo(addressInfo.splice(index, 1))} variant={"ghost"} type={"button"}>
                         <IconTrashX />
                       </Button>
-                    )}
+                    }
                   </div>
                 );
               })}
@@ -143,7 +126,7 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                       <Input
                         name={`newAddresses[${index}][street]`}
                         className={"w-72"}
-                        value={value.street ? value.street : undefined}
+                        value={value.street}
                         onChange={(input) => (value.street = input.target.value)}
                         required
                       />
@@ -154,7 +137,7 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                         type={"number"}
                         name={`newAddresses[${index}][number]`}
                         className={"w-72"}
-                        value={value.number ? value.number : undefined}
+                        value={value.number}
                         onChange={(input) => (value.number = parseInt(input.target.value))}
                         required
                       />
@@ -164,7 +147,7 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                       <Input
                         name={`newAddresses[${index}][city]`}
                         className={"w-72"}
-                        value={value.city ? value.city : undefined}
+                        value={value.city}
                         onChange={(input) => (value.city = input.target.value)}
                         required
                       />
@@ -174,31 +157,26 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                       <Input
                         name={`newAddresses[${index}][neighborhood]`}
                         className={"w-72"}
-                        value={value.neighborhood ? value.neighborhood : undefined}
+                        value={value.neighborhood}
                         onChange={(input) => (value.neighborhood = input.target.value)}
                         required
                       />
                     </div>
                     <div>
                       <label htmlFor={`newAddresses[${index}][state]`}>Estado</label>
-                      <Select
-                        name={`newAddresses[${index}][state]`}
-                        value={value.state ? value.state : undefined}
-                        onChange={(input) => (value.state = input.target.value)}
-                      >
+                      <Select name={`newAddresses[${index}][state]`} value={value.state} onChange={(input) => (value.state = input.target.value)}>
                         {brazillianStates.map((value, index) => (
-                          <option value={value} key={index}>
-                            {value}
+                          <option value={value.id} key={index}>
+                            {value.name}
                           </option>
                         ))}
                       </Select>
                     </div>
-                    {addressInfo.length <= 0 && index == 0 ? (
+                    {addressInfo.length <= 0 && index == 0 ?
                       <Button onClick={() => setNewAddressInfo([...newAddressInfo, { state: "Acre" }])} variant={"ghost"} type={"button"}>
                         <IconSquareRoundedPlus />
                       </Button>
-                    ) : (
-                      <Button
+                    : <Button
                         onClick={() => {
                           if (newAddressInfo?.length == 1) setNewAddressInfo(undefined);
                           else setNewAddressInfo(newAddressInfo?.toSpliced(index, 1));
@@ -208,7 +186,7 @@ const PolygonEditForm = ({ parkData, addressData }: { parkData: localsPolygon; a
                       >
                         <IconTrashX />
                       </Button>
-                    )}
+                    }
                   </div>
                 );
               })}

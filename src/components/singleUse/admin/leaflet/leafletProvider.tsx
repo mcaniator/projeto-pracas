@@ -1,16 +1,10 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  createContext,
-  useState,
-} from "react";
+import { Dispatch, ReactNode, SetStateAction, createContext, useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 
-export const DrawingContext = createContext<{
+const DrawingContext = createContext<{
   drawingContext: boolean;
   setDrawingContext: Dispatch<SetStateAction<boolean>>;
 }>({ drawingContext: false, setDrawingContext: () => false });
@@ -32,6 +26,7 @@ const LeafletProvider = ({ children }: { children?: ReactNode }) => {
           scrollWheelZoom={true}
           className={"h-full w-full rounded-tl-3xl shadow-lg"}
           touchZoom={true}
+          zoomControl={false}
         >
           {children}
 
@@ -45,4 +40,5 @@ const LeafletProvider = ({ children }: { children?: ReactNode }) => {
   );
 };
 
+export { DrawingContext };
 export default LeafletProvider;
