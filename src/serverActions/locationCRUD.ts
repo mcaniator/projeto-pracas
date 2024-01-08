@@ -20,10 +20,49 @@ const fetchLocation = async (id: number) => {
   return currentPark;
 };
 
-const createLocation = async (content: locationType) => {
+const createLocation = async (content: any) => {
+  const dataToCreate: any = {};
+  Object.entries(content).forEach(([key, value]) => {
+    if (key == "administrativeDelimitation1") {
+      dataToCreate[key] = {
+        connectOrCreate: {
+          where: {
+            administrativeDelimitation1Name: value,
+          },
+          create: {
+            administrativeDelimitation1Name: value,
+          },
+        },
+      };
+    } else if (key == "administrativeDelimitation2") {
+      dataToCreate[key] = {
+        connectOrCreate: {
+          where: {
+            administrativeDelimitation2Name: value,
+          },
+          create: {
+            administrativeDelimitation2Name: value,
+          },
+        },
+      };
+    } else if (key == "administrativeDelimitation3") {
+      dataToCreate[key] = {
+        connectOrCreate: {
+          where: {
+            administrativeDelimitation3Name: value,
+          },
+          create: {
+            administrativeDelimitation3Name: value,
+          },
+        },
+      };
+    } else {
+      dataToCreate[key] = value;
+    }
+  });
   try {
     await prisma.location.create({
-      data: content,
+      data: dataToCreate,
     });
   } catch (error) {
     console.log(error);

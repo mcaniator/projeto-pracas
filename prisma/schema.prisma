@@ -286,12 +286,12 @@ model Form {
 model Location {
   id Int @id @default(autoincrement())
 
-  delimitacaoAdministrativa1   DelimitacaoAdministrativa1 @relation(fields: [delimitacaoAdministrativa1Id], references: [id])
-  delimitacaoAdministrativa1Id Int                        @map("delimitacao_administrativa_1_id")
-  delimitacaoAdministrativa2   DelimitacaoAdministrativa2 @relation(fields: [delimitacaoAdministrativa2Id], references: [id])
-  delimitacaoAdministrativa2Id Int                        @map("delimitacao_administrativa_2_id")
-  delimitacaoAdministrativa3   DelimitacaoAdministrativa3 @relation(fields: [delimitacaoAdministrativa3Id], references: [id])
-  delimitacaoAdministrativa3Id Int                        @map("delimitacao_administrativa_3_id")
+  administrativeDelimitation1   AdministrativeDelimitation1 @relation(fields: [administrativeDelimitation1Id], references: [id])
+  administrativeDelimitation1Id Int                         @map("administrative_delimitation_1_id")
+  administrativeDelimitation2   AdministrativeDelimitation2 @relation(fields: [administrativeDelimitation2Id], references: [id])
+  administrativeDelimitation2Id Int                         @map("administrative_delimitation_2_id")
+  administrativeDelimitation3   AdministrativeDelimitation3 @relation(fields: [administrativeDelimitation3Id], references: [id])
+  administrativeDelimitation3Id Int                         @map("administrative_delimitation_3_id")
 
   name                String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
@@ -372,28 +372,28 @@ model Region {
   @@map("region")
 }
 
-model DelimitacaoAdministrativa1 {
-  id                             Int        @id @default(autoincrement())
-  nomeDelimitacaoAdministrativa1 String     @unique @map("nome_delimitacao_administrativa1")
-  local                          Location[]
+model AdministrativeDelimitation1 {
+  id                              Int        @id @default(autoincrement())
+  administrativeDelimitation1Name String     @unique @map("administrative_delimitation_1_name")
+  location                        Location[]
 
-  @@map("delimitacao_administrativa_1")
+  @@map("administrative_delimitation_1")
 }
 
-model DelimitacaoAdministrativa2 {
-  id                             Int        @id @default(autoincrement())
-  nomeDelimitacaoAdministrativa2 String     @unique @map("nome_delimitacao_administrativa2")
-  local                          Location[]
+model AdministrativeDelimitation2 {
+  id                              Int        @id @default(autoincrement())
+  administrativeDelimitation2Name String     @unique @map("administrative_delimitation_2_name")
+  location                        Location[]
 
-  @@map("delimitacao_administrativa_2")
+  @@map("administrative_delimitation_2")
 }
 
-model DelimitacaoAdministrativa3 {
-  id                             Int        @id @default(autoincrement())
-  nomeDelimitacaoAdministrativa3 String     @unique @map("nome_delimitacao_administrativa3")
-  local                          Location[]
+model AdministrativeDelimitation3 {
+  id                              Int        @id @default(autoincrement())
+  administrativeDelimitation3Name String     @unique @map("administrative_delimitation_3_name")
+  location                        Location[]
 
-  @@map("delimitacao_administrativa_3")
+  @@map("administrative_delimitation_3")
 }
 
 //*model LocalDelimitacaoAdministrativa{
@@ -681,23 +681,23 @@ model Tally {
 
   //pessoaNoLocal PessoaNoLocal[]
 
-  adultos  Int @default(0)
-  idosos   Int @default(0)
-  criancas Int @default(0)
-  jovens   Int @default(0)
-  pets     Int @default(0)
+  adults    Int @default(0)
+  elders    Int @default(0)
+  children  Int @default(0)
+  juveniles Int @default(0)
+  pets      Int @default(0)
 
-  homens   Int @default(0)
-  mulheres Int @default(0)
+  men   Int @default(0)
+  women Int @default(0)
 
-  sedentarios Int @default(0)
-  caminhanho  Int @default(0)
-  vigoroso    Int @default(0)
+  sedentary Int @default(0)
+  walking   Int @default(0)
+  vigorous  Int @default(0)
 
-  passando         Int @default(0)
-  deficientes      Int @default(0)
-  atividadeIlicita Int @default(0) @map("atividade_ilicita")
-  situacaoRua      Int @default(0) @map("situacao_rua")
+  traversing              Int @default(0)
+  impaired                Int @default(0)
+  apparentIllicitActivity Int @default(0) @map("apparent_illicit_activity")
+  homeless                Int @default(0)
 
   //chaveGenero  Int
   //chaveIdoso   Int

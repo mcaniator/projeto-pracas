@@ -8,9 +8,6 @@ const createTally = async (content: tallyType, people: personType[]) => {
     await prisma.tally.create({
       data: {
         ...content,
-        people: {
-          createMany: { data: people },
-        },
       },
     });
   } catch (error) {
@@ -18,14 +15,37 @@ const createTally = async (content: tallyType, people: personType[]) => {
   }
 };
 
-const addPersonToTally = async (content: personType) => {
+const addPersonToTally = async (locationId: number, tallyId: number, content: any) => {
+  console.log(locationId);
+  console.log(tallyId);
+  const dataToUpdate: any = {};
+  Object.entries(content).forEach(([key, value]) => {
+    dataToUpdate[key] = { increment: value };
+  });
+  //console.log(dataToUpdate);
   try {
-    await prisma.person.create({
-      data: content,
+    let validTally = await prisma.tally.findMany({
+      where: {
+        locationId: locationId,
+        id: tallyId,
+      },
+    });
+    //console.log(contagemValida);
+    if (validTally.length == 0) {
+      console.log("Esta contagem nao pertence a esta praça!");
+      return;
+    }
+
+    await prisma.tally.update({
+      where: {
+        id: tallyId,
+      },
+      data: dataToUpdate,
     });
   } catch (error) {
     console.error(error);
   }
+  //console.log("Contagem id: ", contagemId);
 };
 
 export { addPersonToTally, createTally };

@@ -125,6 +125,9 @@ CREATE TABLE "form" (
 -- CreateTable
 CREATE TABLE "location" (
     "id" SERIAL NOT NULL,
+    "administrative_delimitation_1_id" INTEGER NOT NULL,
+    "administrative_delimitation_2_id" INTEGER NOT NULL,
+    "administrative_delimitation_3_id" INTEGER NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "is_park" BOOLEAN,
     "notes" TEXT,
@@ -183,6 +186,30 @@ CREATE TABLE "region" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "region_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "administrative_delimitation_1" (
+    "id" SERIAL NOT NULL,
+    "administrative_delimitation_1_name" TEXT NOT NULL,
+
+    CONSTRAINT "administrative_delimitation_1_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "administrative_delimitation_2" (
+    "id" SERIAL NOT NULL,
+    "administrative_delimitation_2_name" TEXT NOT NULL,
+
+    CONSTRAINT "administrative_delimitation_2_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "administrative_delimitation_3" (
+    "id" SERIAL NOT NULL,
+    "administrative_delimitation_3_name" TEXT NOT NULL,
+
+    CONSTRAINT "administrative_delimitation_3_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -317,7 +344,7 @@ CREATE TABLE "landscaping" (
 -- CreateTable
 CREATE TABLE "seating" (
     "id" SERIAL NOT NULL,
-    "categoria" INTEGER NOT NULL,
+    "category" INTEGER NOT NULL,
     "required_shade" BOOLEAN NOT NULL,
     "lighting" BOOLEAN NOT NULL,
     "fencing" BOOLEAN NOT NULL,
@@ -387,6 +414,20 @@ CREATE TABLE "tally" (
     "date" DATE,
     "startDate" TIMESTAMPTZ(0),
     "endDate" TIMESTAMPTZ(0),
+    "adults" INTEGER NOT NULL DEFAULT 0,
+    "elders" INTEGER NOT NULL DEFAULT 0,
+    "children" INTEGER NOT NULL DEFAULT 0,
+    "juveniles" INTEGER NOT NULL DEFAULT 0,
+    "pets" INTEGER NOT NULL DEFAULT 0,
+    "men" INTEGER NOT NULL DEFAULT 0,
+    "women" INTEGER NOT NULL DEFAULT 0,
+    "sedentary" INTEGER NOT NULL DEFAULT 0,
+    "walking" INTEGER NOT NULL DEFAULT 0,
+    "vigorous" INTEGER NOT NULL DEFAULT 0,
+    "traversing" INTEGER NOT NULL DEFAULT 0,
+    "impaired" INTEGER NOT NULL DEFAULT 0,
+    "apparent_illicit_activity" INTEGER NOT NULL DEFAULT 0,
+    "homeless" INTEGER NOT NULL DEFAULT 0,
     "animals_amount" INTEGER,
     "temperature" DOUBLE PRECISION,
     "weather_condition" VARCHAR(255),
@@ -395,23 +436,6 @@ CREATE TABLE "tally" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "tally_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "person" (
-    "id" SERIAL NOT NULL,
-    "age_group" "age_group" NOT NULL,
-    "sex" "sex" NOT NULL,
-    "activity" "atividade" NOT NULL,
-    "is_traversing" BOOLEAN NOT NULL,
-    "is_impaired_person" BOOLEAN NOT NULL,
-    "is_in_apparent_illicit_activity" BOOLEAN NOT NULL,
-    "is_person_without_housing" BOOLEAN NOT NULL,
-    "tally_id" INTEGER NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "person_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -449,6 +473,15 @@ CREATE UNIQUE INDEX "options_question_question_id_key" ON "options_question"("qu
 
 -- CreateIndex
 CREATE UNIQUE INDEX "city_name_key" ON "city"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "administrative_delimitation_1_administrative_delimitation_1_key" ON "administrative_delimitation_1"("administrative_delimitation_1_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "administrative_delimitation_2_administrative_delimitation_2_key" ON "administrative_delimitation_2"("administrative_delimitation_2_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "administrative_delimitation_3_administrative_delimitation_3_key" ON "administrative_delimitation_3"("administrative_delimitation_3_name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "accessibility_assessment_id_key" ON "accessibility"("assessment_id");
@@ -505,6 +538,15 @@ ALTER TABLE "options_question" ADD CONSTRAINT "options_question_question_id_fkey
 ALTER TABLE "option" ADD CONSTRAINT "option_options_question_id_fkey" FOREIGN KEY ("options_question_id") REFERENCES "options_question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_1_id_fkey" FOREIGN KEY ("administrative_delimitation_1_id") REFERENCES "administrative_delimitation_1"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_2_id_fkey" FOREIGN KEY ("administrative_delimitation_2_id") REFERENCES "administrative_delimitation_2"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_3_id_fkey" FOREIGN KEY ("administrative_delimitation_3_id") REFERENCES "administrative_delimitation_3"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "address" ADD CONSTRAINT "address_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -545,9 +587,6 @@ ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "tally" ADD CONSTRAINT "tally_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "person" ADD CONSTRAINT "person_tally_id_fkey" FOREIGN KEY ("tally_id") REFERENCES "tally"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "noise" ADD CONSTRAINT "noise_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
