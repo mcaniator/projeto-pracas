@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { handleDelete } from "@/lib/serverActions/locationUtil";
+import { handleDelete } from "@/serverActions/locationUtil";
 import { use, useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";

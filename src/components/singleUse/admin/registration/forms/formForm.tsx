@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formSubmit } from "@/lib/serverActions/formSubmit";
+import { formSubmit } from "@/serverActions/formSubmit";
 import { useRef } from "react";
 import { useFormState } from "react-dom";
 

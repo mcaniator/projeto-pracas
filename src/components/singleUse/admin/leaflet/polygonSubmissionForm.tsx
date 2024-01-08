@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { josefin_sans, titillium_web } from "@/lib/fonts";
-import { mapSubmission } from "@/lib/serverActions/parkSubmit";
+import { mapSubmission } from "@/serverActions/parkSubmit";
 import { IconX } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react";

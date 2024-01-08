@@ -1,6 +1,6 @@
 "use client";
 
-import { handleDelete } from "@/lib/serverActions/formUtil";
+import { handleDelete } from "@/serverActions/formUtil";
 import { use } from "react";
 
 interface FormProps {

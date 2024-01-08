@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { josefin_sans } from "@/lib/fonts";
-import { mapEdit } from "@/lib/serverActions/parkSubmit";
+import { mapEdit } from "@/serverActions/parkSubmit";
 import { Address, Location } from "@prisma/client";
 import { IconSquareRoundedPlus, IconTrashX } from "@tabler/icons-react";
 import { useRef, useState } from "react";

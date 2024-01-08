@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
-import { questionSubmit } from "@/lib/serverActions/questionSubmit";
+import { questionSubmit } from "@/serverActions/questionSubmit";
 import { IconTrashX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";

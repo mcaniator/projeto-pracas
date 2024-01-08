@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createLocation, fetchLocation } from "@/lib/serverActions/locationCRUD";
-import { addPersonToTally, createTally } from "@/lib/serverActions/tallyCRUD";
 import { locationType } from "@/lib/zodValidators";
+import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
+import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { use, useState } from "react";
 
 const ButtonWrapper = () => {

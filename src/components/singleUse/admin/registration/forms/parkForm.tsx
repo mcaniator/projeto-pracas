@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { revalidate, searchLocations } from "@/lib/serverActions/locationUtil";
+import { revalidate, searchLocations } from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
 import { Dispatch, SetStateAction, Suspense, createContext, use, useDeferredValue, useEffect, useState } from "react";
 
