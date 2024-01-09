@@ -20,7 +20,7 @@ const fetchLocation = async (id: number) => {
   return currentPark;
 };
 
-const createLocation = async (content: any) => {
+const createLocation = async (content: locationType) => {
   const dataToCreate: any = {};
   Object.entries(content).forEach(([key, value]) => {
     if (key == "administrativeDelimitation1") {

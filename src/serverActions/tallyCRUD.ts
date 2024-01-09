@@ -15,7 +15,7 @@ const createTally = async (content: tallyType, people: personType[]) => {
   }
 };
 
-const addPersonToTally = async (locationId: number, tallyId: number, content: any) => {
+const addPersonToTally = async (locationId: number, tallyId: number, content: personType) => {
   console.log(locationId);
   console.log(tallyId);
   const dataToUpdate: any = {};
