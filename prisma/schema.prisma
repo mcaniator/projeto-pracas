@@ -745,6 +745,8 @@ model Noise {
 
   category   String @db.VarChar(255) // ? se eu entendi isso certo essa categoria devia ser um enum, não?
   soundLevel Float  @map("sound_level")
+  latitude   Float
+  longitude  Float
 
   locationId Int      @unique @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])

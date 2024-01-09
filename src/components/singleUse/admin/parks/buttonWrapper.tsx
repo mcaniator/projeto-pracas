@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { locationType } from "@/lib/zodValidators";
 import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
+import { createNoiseMeasure } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { use, useState } from "react";
 
@@ -45,7 +46,7 @@ const ButtonWrapper = () => {
 
       <div className="flex gap-2">
         <div>
-          <label htmlFor="locationId">ID da praça para a contagem: </label>
+          <label htmlFor="locationId">ID da praça para a contagem e ruído: </label>
           <Input
             type="number"
             id="locationId"
@@ -76,6 +77,17 @@ const ButtonWrapper = () => {
           onClick={() => use(addPersonToTally(locationId, tallyId, { adults: 1, children: 3 }))}
         >
           <span className="-mb-1">Adicionar pessoa</span>
+        </Button>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => use(createNoiseMeasure({ locationId: locationId, latitude: 15.0, longitude: 30.0, category: "UNKNOWN", soundLevel: 70.5 }))}
+        >
+          <span className="-mb-1">Adicionar ruído</span>
         </Button>
       </div>
     </div>
