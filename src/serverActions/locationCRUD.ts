@@ -20,16 +20,20 @@ const fetchLocation = async (id: number) => {
   return currentPark;
 };
 
-const createLocation = async (content: locationType) => {
+const createLocation = async (content: locationType, cityID: Number) => {
   const dataToCreate: any = {};
   Object.entries(content).forEach(([key, value]) => {
     if (key == "administrativeDelimitation1") {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            administrativeDelimitation1Name: value,
+            cityId_administrativeDelimitation1Name: {
+              cityId: cityID,
+              administrativeDelimitation1Name: value,
+            },
           },
           create: {
+            cityId: cityID,
             administrativeDelimitation1Name: value,
           },
         },
@@ -38,9 +42,13 @@ const createLocation = async (content: locationType) => {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            administrativeDelimitation2Name: value,
+            cityId_administrativeDelimitation2Name: {
+              cityId: cityID,
+              administrativeDelimitation2Name: value,
+            },
           },
           create: {
+            cityId: cityID,
             administrativeDelimitation2Name: value,
           },
         },
@@ -49,9 +57,13 @@ const createLocation = async (content: locationType) => {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            administrativeDelimitation3Name: value,
+            cityId_administrativeDelimitation3Name: {
+              cityId: cityID,
+              administrativeDelimitation3Name: value,
+            },
           },
           create: {
+            cityId: cityID,
             administrativeDelimitation3Name: value,
           },
         },

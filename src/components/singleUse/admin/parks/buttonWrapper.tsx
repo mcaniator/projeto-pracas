@@ -15,7 +15,7 @@ const ButtonWrapper = () => {
     category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE",
     administrativeDelimitation1: "del1",
     administrativeDelimitation2: "del2",
-    administrativeDelimitation3: "del3",
+    administrativeDelimitation3: "del4",
   };
 
   const fetchId = 5;
@@ -31,7 +31,7 @@ const ButtonWrapper = () => {
           <Button variant="admin" onClick={() => (content.name = "praça são mateus")}>
             <span className="-mb-1">Mudar nome</span>
           </Button>
-          <Button variant="admin" onClick={() => use(createLocation(content))}>
+          <Button variant="admin" onClick={() => use(createLocation(content, 2))}>
             <span className="-mb-1">Cadastrar</span>
           </Button>
         </div>
@@ -46,7 +46,7 @@ const ButtonWrapper = () => {
 
       <div className="flex gap-2">
         <div>
-          <label htmlFor="locationId">ID da praça para a contagem e ruído: </label>
+          <label htmlFor="locationId">ID da praça para a contagem: </label>
           <Input
             type="number"
             id="locationId"
@@ -74,7 +74,22 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => use(addPersonToTally(locationId, tallyId, { adults: 1, children: 3 }))}
+          onClick={() =>
+            use(
+              addPersonToTally(locationId, tallyId, [
+                {
+                  ageGroup: "ADULT",
+                  sex: "MALE",
+                  activity: "SEDENTARY",
+                  isTraversing: true,
+                  isImpaired: true,
+                  isInApparentIllicitActivity: true,
+                  isHomeless: true,
+                  tallyId: tallyId,
+                },
+              ]),
+            )
+          }
         >
           <span className="-mb-1">Adicionar pessoa</span>
         </Button>
@@ -85,7 +100,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => use(createNoiseMeasure({ locationId: locationId, latitude: 15.0, longitude: 30.0, category: "UNKNOWN", soundLevel: 70.5 }))}
+          onClick={() => use(createNoiseMeasure({ assesmentId: 1, category: "UNKNOWN", soundLevel: 70.5 }, { x: 266, y: 1530 }))}
         >
           <span className="-mb-1">Adicionar ruído</span>
         </Button>

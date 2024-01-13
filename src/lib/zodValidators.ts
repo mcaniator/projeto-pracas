@@ -6,6 +6,7 @@ import {
   Condition,
   Interference,
   LocationTypes,
+  NoiseCategories,
   OptionTypes,
   QuestionTypes,
   Sex,
@@ -113,6 +114,9 @@ const locationSchema = z
     broadBorough: z.string().trim().min(1).max(255).optional(),
     type: z.nativeEnum(LocationTypes).optional(),
     category: z.nativeEnum(CategoryTypes).optional(),
+    administrativeDelimitation1: z.string().trim().min(1).max(255),
+    administrativeDelimitation2: z.string().trim().min(1).max(255),
+    administrativeDelimitation3: z.string().trim().min(1).max(255),
   })
   .refine((value) => {
     if (value.creationYear != undefined && value.lastMaintenanceYear != undefined) return value.lastMaintenanceYear >= value.creationYear;
@@ -362,24 +366,30 @@ const personSchema = z.object({
   sex: z.nativeEnum(Sex),
   activity: z.nativeEnum(Activity),
   isTraversing: z.boolean(),
-  isImpairedPerson: z.boolean(),
+  isImpaired: z.boolean(),
   isInApparentIllicitActivity: z.boolean(),
-  isPersonWithoutHousing: z.boolean(),
+  isHomeless: z.boolean(),
 
   tallyId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const noiseSchema = z.object({
-  category: z.string().trim().min(1).max(255),
+  category: z.nativeEnum(NoiseCategories),
   soundLevel: z.coerce.number().finite().nonnegative(),
 
-  locationId: z.coerce.number().int().finite().nonnegative(),
+  assesmentId: z.coerce.number().int().finite().nonnegative(),
+});
+
+const pointSchema = z.object({
+  x: z.coerce.number().finite(),
+  y: z.coerce.number().finite(),
 });
 
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
+type pointType = z.infer<typeof pointSchema>;
 
-export { noiseSchema, personSchema, tallySchema };
-export type { noiseType, personType, tallyType };
+export { noiseSchema, personSchema, tallySchema, pointSchema };
+export type { noiseType, personType, tallyType, pointType };
 // #endregion

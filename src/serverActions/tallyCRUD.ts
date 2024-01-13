@@ -15,13 +15,13 @@ const createTally = async (content: tallyType, people: personType[]) => {
   }
 };
 
-const addPersonToTally = async (locationId: number, tallyId: number, content: personType) => {
-  console.log(locationId);
+const addPersonToTally = async (locationId: number, tallyId: number, content: personType[]) => {
+  /*console.log(locationId);
   console.log(tallyId);
   const dataToUpdate: any = {};
   Object.entries(content).forEach(([key, value]) => {
     dataToUpdate[key] = { increment: value };
-  });
+  });*/
   //console.log(dataToUpdate);
   try {
     let validTally = await prisma.tally.findMany({
@@ -36,11 +36,8 @@ const addPersonToTally = async (locationId: number, tallyId: number, content: pe
       return;
     }
 
-    await prisma.tally.update({
-      where: {
-        id: tallyId,
-      },
-      data: dataToUpdate,
+    await prisma.people.createMany({
+      data: content,
     });
   } catch (error) {
     console.error(error);

@@ -161,6 +161,13 @@ enum Sex {
   @@map("sex")
 }
 
+enum NoiseCategories {
+  UNKNOWN @map("unknown")
+  CARS    @map("cars")
+
+  @@map("noise_categories")
+}
+
 // #endregion
 
 // #region Formulários
@@ -316,7 +323,6 @@ model Location {
   address    Address[]
   assessment Assessment[]
   tally      Tally[]
-  noise      Noise[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -336,8 +342,6 @@ model Address {
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
-  cityId     Int      @map("city_id")
-  city       City     @relation(fields: [cityId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -348,10 +352,11 @@ model Address {
 model City {
   id Int @id @default(autoincrement())
 
-  name String @unique @db.VarChar(255)
-
-  address Address[]
-  region  Region[]
+  name                        String                        @unique @db.VarChar(255)
+  region                      Region[]
+  administrativeDelimitation1 AdministrativeDelimitation1[]
+  administrativeDelimitation2 AdministrativeDelimitation2[]
+  administrativeDelimitation3 AdministrativeDelimitation3[]
 
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -374,25 +379,34 @@ model Region {
 
 model AdministrativeDelimitation1 {
   id                              Int        @id @default(autoincrement())
-  administrativeDelimitation1Name String     @unique @map("administrative_delimitation_1_name")
+  administrativeDelimitation1Name String     @map("administrative_delimitation_1_name")
+  city                            City?      @relation(fields: [cityId], references: [id])
   location                        Location[]
+  cityId                          Int?
 
+  @@unique([cityId, administrativeDelimitation1Name])
   @@map("administrative_delimitation_1")
 }
 
 model AdministrativeDelimitation2 {
   id                              Int        @id @default(autoincrement())
-  administrativeDelimitation2Name String     @unique @map("administrative_delimitation_2_name")
+  administrativeDelimitation2Name String     @map("administrative_delimitation_2_name")
+  city                            City?      @relation(fields: [cityId], references: [id])
   location                        Location[]
+  cityId                          Int?
 
+  @@unique([cityId, administrativeDelimitation2Name])
   @@map("administrative_delimitation_2")
 }
 
 model AdministrativeDelimitation3 {
   id                              Int        @id @default(autoincrement())
-  administrativeDelimitation3Name String     @unique @map("administrative_delimitation_3_name")
+  administrativeDelimitation3Name String     @map("administrative_delimitation_3_name")
+  city                            City?      @relation(fields: [cityId], references: [id])
   location                        Location[]
+  cityId                          Int?
 
+  @@unique([cityId, administrativeDelimitation3Name])
   @@map("administrative_delimitation_3")
 }
 
@@ -445,6 +459,7 @@ model Assessment {
   trafficSafety       TrafficSafety?
   surroundingActivity SurroundingActivity?
   security            Security?
+  noise               Noise[]
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
@@ -681,23 +696,23 @@ model Tally {
 
   //pessoaNoLocal PessoaNoLocal[]
 
-  adults    Int @default(0)
-  elders    Int @default(0)
-  children  Int @default(0)
-  juveniles Int @default(0)
-  pets      Int @default(0)
+  //adults    Int @default(0)
+  //elders    Int @default(0)
+  //children  Int @default(0)
+  //juveniles Int @default(0)
+  //pets      Int @default(0)
 
-  men   Int @default(0)
-  women Int @default(0)
+  //men   Int @default(0)
+  //women Int @default(0)
 
-  sedentary Int @default(0)
-  walking   Int @default(0)
-  vigorous  Int @default(0)
+  //sedentary Int @default(0)
+  //walking   Int @default(0)
+  //vigorous  Int @default(0)
 
-  traversing              Int @default(0)
-  impaired                Int @default(0)
-  apparentIllicitActivity Int @default(0) @map("apparent_illicit_activity")
-  homeless                Int @default(0)
+  //traversing              Int @default(0)
+  //impaired                Int @default(0)
+  //apparentIllicitActivity Int @default(0) @map("apparent_illicit_activity")
+  //homeless                Int @default(0)
 
   //chaveGenero  Int
   //chaveIdoso   Int
@@ -710,8 +725,9 @@ model Tally {
 
   //people Person[]
 
-  locationId Int      @unique @map("location_id")
+  locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
+  people     People[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -720,40 +736,40 @@ model Tally {
 }
 
 // Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
-//model Person {
-//  id Int @id @default(autoincrement())
-
-//  ageGroup                    AgeGroup @map("age_group")
-//  sex                         Sex
-//  activity                    Activity @map("activity")
-//  isTraversing                Boolean  @map("is_traversing")
-//  isImpairedPerson            Boolean  @map("is_impaired_person")
-//  isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
-//  isPersonWithoutHousing      Boolean  @map("is_person_without_housing")
-
-//  tallyId Int   @map("tally_id")
-//  tally   Tally @relation(fields: [tallyId], references: [id])
-
-//  createdAt DateTime @default(now()) @map("created_at")
-//  updatedAt DateTime @updatedAt @map("updated_at")
-
-//@@map("person")
-//}
-
-model Noise {
+model People {
   id Int @id @default(autoincrement())
 
-  category   String @db.VarChar(255) // ? se eu entendi isso certo essa categoria devia ser um enum, não?
-  soundLevel Float  @map("sound_level")
-  latitude   Float
-  longitude  Float
+  ageGroup                    AgeGroup @map("age_group")
+  sex                         Sex
+  activity                    Activity @map("activity")
+  isTraversing                Boolean  @map("is_traversing")
+  isImpaired                  Boolean  @map("is_impaired_person")
+  isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
+  isHomeless                  Boolean  @map("is_homeless")
 
-  locationId Int      @unique @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
+  tallyId Int   @map("tally_id")
+  tally   Tally @relation(fields: [tallyId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@map("people")
+}
+
+model Noise {
+  id Int @id @default(autoincrement())
+
+  category   NoiseCategories // ? se eu entendi isso certo essa categoria devia ser um enum, não?
+  soundLevel Float                                 @map("sound_level")
+  point      Unsupported("Geometry(Point, 4326)")?
+
+  assesmentId Int        @map("assesment_id")
+  assesment   Assessment @relation(fields: [assesmentId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([point], name: "location_idx", type: Gist)
   @@map("noise")
 }
 
