@@ -20,7 +20,7 @@ const fetchLocation = async (id: number) => {
   return currentPark;
 };
 
-const createLocation = async (content: locationType, cityID: Number) => {
+const createLocation = async (content: locationType, cityID: Number, polygonContent: string) => {
   const dataToCreate: any = {};
   Object.entries(content).forEach(([key, value]) => {
     if (key == "administrativeDelimitation1") {
@@ -73,9 +73,15 @@ const createLocation = async (content: locationType, cityID: Number) => {
     }
   });
   try {
-    await prisma.location.create({
+    let locationCreated = await prisma.location.create({
       data: dataToCreate,
     });
+    if (polygonContent != null) {
+      polygonContent = "MULTIPOLYGON" + polygonContent;
+      await prisma.$executeRaw`UPDATE location
+    SET polygon = ST_GeomFromText(${polygonContent},4326)
+    WHERE id = ${locationCreated.id}`;
+    }
   } catch (error) {
     console.log(error);
   }
