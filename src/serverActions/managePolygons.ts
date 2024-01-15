@@ -32,6 +32,7 @@ const fetchSpecificPolygon = async (localId: number) => {
   return polygons;
 };
 
+// ! This function only works with MultiPolygon types
 const polygonObjectToString = (polygons: { id: number; type: string; coordinates: [number, number][][] }) => {
   const coordinates = polygons.coordinates;
   const text = coordinates.map((value) => {
@@ -43,17 +44,17 @@ const polygonObjectToString = (polygons: { id: number; type: string; coordinates
   });
   const joined = `(${text.join("), (")})`;
 
-  return `POLYGON(${joined})`;
+  return `${polygons.type}(${joined})`;
 };
 
 const addPolygons = async (polygons: { id: number; type: string; coordinates: [number, number][][] }) => {
   // TODO com certeza tem um jeito melhor de fazer isso, mas eu preciso de alguém melhor em SQL para resolver
   const aux = await fetchSpecificPolygon(polygons.id);
-  const isNull = aux?.coordinates == null || aux == undefined;
+  const isNull = aux == undefined || aux.coordinates == null;
 
   if (isNull) {
     const geometry = polygonObjectToString(polygons);
-    await prisma.$executeRaw`UPDATE local SET poligono = st_geomfromtext(${geometry}, 4326) WHERE id = ${polygons.id}`;
+    await prisma.$executeRaw`UPDATE location SET polygon = st_geomfromtext(${geometry}, 4326) WHERE id = ${polygons.id}`;
   } else {
     throw new Error("Square already has a registered polygon");
   }
@@ -65,4 +66,4 @@ const editPolygons = async (polygons: { id: number; type: string; coordinates: [
   await prisma.$executeRaw`UPDATE local SET poligono = st_geomfromtext(${geometry}, 4326) WHERE id = ${polygons.id}`;
 };
 
-export { fetchPolygons, fetchSpecificPolygon, addPolygons, editPolygons };
+export { addPolygons, editPolygons, fetchPolygons, fetchSpecificPolygon };
