@@ -8,10 +8,10 @@ import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { useState } from "react";
 
 const ButtonWrapper = () => {
-  const content: any = {
+  const content = {
     name: "nome da praca",
-    type: "PARK",
-    category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE",
+    type: "PARK" as const,
+    category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE" as const,
     administrativeDelimitation1: "del1",
     administrativeDelimitation2: "del2",
     administrativeDelimitation3: "del4",
@@ -67,7 +67,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createTally({ locationId: locationId, animalsAmount: 0, temperature: 30.0 }, [])}
+          onClick={() => void createTally({ locationId: locationId, animalsAmount: 0, temperature: 30.0 })}
         >
           <span className="-mb-1">Adicionar contagem</span>
         </Button>
@@ -83,15 +83,15 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void addPersonToTally(locationId, tallyId, [
+            void addPersonToTally(tallyId, [
               {
-                ageGroup: "ADULT",
-                sex: "MALE",
-                activity: "SEDENTARY",
+                ageGroup: "ADULT" as const,
+                gender: "MALE" as const,
+                activity: "SEDENTARY" as const,
                 isTraversing: true,
-                isImpaired: true,
+                isPersonWithImpairment: true,
                 isInApparentIllicitActivity: true,
-                isHomeless: true,
+                isPersonWithoutHousing: true,
                 tallyId: tallyId,
               },
             ])
