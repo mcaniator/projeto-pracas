@@ -4,12 +4,12 @@ import {
   BrazilianStates,
   CategoryTypes,
   Condition,
+  Gender,
   Interference,
   LocationTypes,
-  NoiseCategories,
+  NoiseLocation,
   OptionTypes,
   QuestionTypes,
-  Sex,
   UserTypes,
   Visibility,
 } from "@prisma/client";
@@ -107,16 +107,15 @@ const locationSchema = z
     usableArea: z.coerce.number().finite().nonnegative().optional(),
     legalArea: z.coerce.number().finite().nonnegative().optional(),
     incline: z.coerce.number().finite().nonnegative().optional(),
-    urbanRegion: z.string().trim().min(1).max(255).optional(),
     inactiveNotFound: z.boolean().optional(),
     polygonArea: z.coerce.number().finite().nonnegative().optional(),
-    narrowBorough: z.string().trim().min(1).max(255).optional(),
-    broadBorough: z.string().trim().min(1).max(255).optional(),
+
     type: z.nativeEnum(LocationTypes).optional(),
     category: z.nativeEnum(CategoryTypes).optional(),
-    administrativeDelimitation1: z.string().trim().min(1).max(255),
-    administrativeDelimitation2: z.string().trim().min(1).max(255),
-    administrativeDelimitation3: z.string().trim().min(1).max(255),
+
+    narrowAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
+    intermediateAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
+    broadAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
   })
   .refine((value) => {
     if (value.creationYear != undefined && value.lastMaintenanceYear != undefined) return value.lastMaintenanceYear >= value.creationYear;
@@ -135,20 +134,21 @@ const addressSchema = z.object({
 });
 
 const citySchema = z.object({
-  name: z.string().min(1).max(255),
+  name: z.string().trim().min(1).max(255),
 });
 
-const regionSchema = z.object({
-  region: z.string().trim().min(1).max(255),
+const administrativeUnitsSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  cityId: z.coerce.number().int().finite().nonnegative(),
 });
 
 type locationType = z.infer<typeof locationSchema>;
 type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
-type regionType = z.infer<typeof regionSchema>;
+type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
 
-export { addressSchema, citySchema, locationSchema, regionSchema };
-export type { addressType, cityType, locationType, regionType };
+export { addressSchema, administrativeUnitsSchema, citySchema, locationSchema };
+export type { addressType, administrativeUnitsType, cityType, locationType };
 // #endregion
 
 // #region Informações das Avaliações
@@ -161,7 +161,7 @@ const assessmentSchema = z
     startDate: z.date(),
     endDate: z.date(),
     changedDelimitation: z.boolean().optional(),
-    wifi: z.boolean(),
+    hasWifi: z.boolean(),
 
     pavedSidewalk: z.boolean(),
     trashCanAmount: z.coerce.number().int().finite().nonnegative(),
@@ -363,33 +363,27 @@ const tallySchema = z.object({
 
 const personSchema = z.object({
   ageGroup: z.nativeEnum(AgeGroup),
-  sex: z.nativeEnum(Sex),
+  gender: z.nativeEnum(Gender),
   activity: z.nativeEnum(Activity),
   isTraversing: z.boolean(),
-  isImpaired: z.boolean(),
+  isPersonWithImpairment: z.boolean(),
   isInApparentIllicitActivity: z.boolean(),
-  isHomeless: z.boolean(),
+  isPersonWithoutHousing: z.boolean(),
 
   tallyId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const noiseSchema = z.object({
-  category: z.nativeEnum(NoiseCategories),
+  location: z.nativeEnum(NoiseLocation),
   soundLevel: z.coerce.number().finite().nonnegative(),
 
-  assesmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const pointSchema = z.object({
-  x: z.coerce.number().finite(),
-  y: z.coerce.number().finite(),
+  assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
-type pointType = z.infer<typeof pointSchema>;
 
-export { noiseSchema, personSchema, tallySchema, pointSchema };
-export type { noiseType, personType, tallyType, pointType };
+export { noiseSchema, personSchema, tallySchema };
+export type { noiseType, personType, tallyType };
 // #endregion

@@ -1,14 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { noiseType, pointType } from "@/lib/zodValidators";
+import { noiseType } from "@/lib/zodValidators";
 
-const createNoiseMeasure = async (content: noiseType, point: pointType) => {
+const createNoiseMeasurement = async (content: noiseType, point: { x: number; y: number }) => {
   try {
     const createdNoise = await prisma.noise.create({
-      data: {
-        ...content,
-      },
+      data: content,
     });
     await prisma.$executeRaw`UPDATE noise
     SET point = point(${point.x},${point.y})
@@ -18,4 +16,4 @@ const createNoiseMeasure = async (content: noiseType, point: pointType) => {
   }
 };
 
-export { createNoiseMeasure };
+export { createNoiseMeasurement };
