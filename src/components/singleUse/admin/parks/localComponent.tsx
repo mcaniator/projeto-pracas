@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { handleDelete } from "@/serverActions/locationUtil";
-import { use, useContext } from "react";
+import { useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";
 
@@ -23,7 +23,7 @@ const LocalComponent = ({ id, nome }: FormProps) => {
       <div>
         <Button
           onClick={() => {
-            use(handleDelete(id));
+            void handleDelete(id);
             setChangedContext(changedContext + 1);
           }}
           variant="destructive"
