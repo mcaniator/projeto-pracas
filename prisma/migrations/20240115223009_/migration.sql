@@ -38,7 +38,10 @@ CREATE TYPE "age_group" AS ENUM ('child', 'teen', 'adult', 'elderly');
 CREATE TYPE "atividade" AS ENUM ('sedentary', 'walking', 'strenuous');
 
 -- CreateEnum
-CREATE TYPE "sex" AS ENUM ('male', 'female');
+CREATE TYPE "gender" AS ENUM ('male', 'female', 'non-binary');
+
+-- CreateEnum
+CREATE TYPE "noise_categories" AS ENUM ('center', 'surroundings');
 
 -- CreateTable
 CREATE TABLE "category" (
@@ -125,9 +128,6 @@ CREATE TABLE "form" (
 -- CreateTable
 CREATE TABLE "location" (
     "id" SERIAL NOT NULL,
-    "administrative_delimitation_1_id" INTEGER NOT NULL,
-    "administrative_delimitation_2_id" INTEGER NOT NULL,
-    "administrative_delimitation_3_id" INTEGER NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "is_park" BOOLEAN,
     "notes" TEXT,
@@ -138,14 +138,14 @@ CREATE TABLE "location" (
     "usable_area" DOUBLE PRECISION,
     "legal_area" DOUBLE PRECISION,
     "incline" DOUBLE PRECISION,
-    "urban_region" VARCHAR(255),
     "inactive_not_found" BOOLEAN,
     "polygon_area" DOUBLE PRECISION,
-    "narrow_region" TEXT,
-    "broad_region" TEXT,
     "type" "location_types",
     "category" "category_types",
     "polygon" Geometry(MultiPolygon, 4326),
+    "narrowAdministrativeUnitId" INTEGER,
+    "intermediateAdministrativeUnitId" INTEGER,
+    "broadAdministrativeUnitId" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -161,7 +161,6 @@ CREATE TABLE "address" (
     "identifier" INTEGER NOT NULL,
     "state" "brazilian_states" NOT NULL,
     "location_id" INTEGER NOT NULL,
-    "city_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -179,37 +178,30 @@ CREATE TABLE "city" (
 );
 
 -- CreateTable
-CREATE TABLE "region" (
+CREATE TABLE "narrow_administrative_unit" (
     "id" SERIAL NOT NULL,
-    "region" VARCHAR(255) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "name" TEXT NOT NULL,
+    "city_id" INTEGER NOT NULL,
 
-    CONSTRAINT "region_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "narrow_administrative_unit_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "administrative_delimitation_1" (
+CREATE TABLE "intermediate_administrative_unit" (
     "id" SERIAL NOT NULL,
-    "administrative_delimitation_1_name" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "city_id" INTEGER NOT NULL,
 
-    CONSTRAINT "administrative_delimitation_1_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "intermediate_administrative_unit_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "administrative_delimitation_2" (
+CREATE TABLE "broad_administrative_unit" (
     "id" SERIAL NOT NULL,
-    "administrative_delimitation_2_name" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "city_id" INTEGER NOT NULL,
 
-    CONSTRAINT "administrative_delimitation_2_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "administrative_delimitation_3" (
-    "id" SERIAL NOT NULL,
-    "administrative_delimitation_3_name" TEXT NOT NULL,
-
-    CONSTRAINT "administrative_delimitation_3_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "broad_administrative_unit_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -218,7 +210,7 @@ CREATE TABLE "Assessment" (
     "start_date" TIMESTAMPTZ NOT NULL,
     "end_date" TIMESTAMPTZ NOT NULL,
     "changed_delimitation" BOOLEAN,
-    "wifi" BOOLEAN NOT NULL,
+    "has_wifi" BOOLEAN NOT NULL,
     "paved_sidewalk" BOOLEAN NOT NULL,
     "trash_can_amount" INTEGER NOT NULL,
     "bathroom_amount" INTEGER NOT NULL,
@@ -414,20 +406,6 @@ CREATE TABLE "tally" (
     "date" DATE,
     "startDate" TIMESTAMPTZ(0),
     "endDate" TIMESTAMPTZ(0),
-    "adults" INTEGER NOT NULL DEFAULT 0,
-    "elders" INTEGER NOT NULL DEFAULT 0,
-    "children" INTEGER NOT NULL DEFAULT 0,
-    "juveniles" INTEGER NOT NULL DEFAULT 0,
-    "pets" INTEGER NOT NULL DEFAULT 0,
-    "men" INTEGER NOT NULL DEFAULT 0,
-    "women" INTEGER NOT NULL DEFAULT 0,
-    "sedentary" INTEGER NOT NULL DEFAULT 0,
-    "walking" INTEGER NOT NULL DEFAULT 0,
-    "vigorous" INTEGER NOT NULL DEFAULT 0,
-    "traversing" INTEGER NOT NULL DEFAULT 0,
-    "impaired" INTEGER NOT NULL DEFAULT 0,
-    "apparent_illicit_activity" INTEGER NOT NULL DEFAULT 0,
-    "homeless" INTEGER NOT NULL DEFAULT 0,
     "animals_amount" INTEGER,
     "temperature" DOUBLE PRECISION,
     "weather_condition" VARCHAR(255),
@@ -439,21 +417,33 @@ CREATE TABLE "tally" (
 );
 
 -- CreateTable
+CREATE TABLE "person" (
+    "id" SERIAL NOT NULL,
+    "age_group" "age_group" NOT NULL,
+    "gender" "gender" NOT NULL,
+    "activity" "atividade" NOT NULL,
+    "is_traversing" BOOLEAN NOT NULL,
+    "is_person_with_impairment" BOOLEAN NOT NULL,
+    "is_in_apparent_illicit_activity" BOOLEAN NOT NULL,
+    "is_person_without_housing" BOOLEAN NOT NULL,
+    "tally_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "person_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "noise" (
     "id" SERIAL NOT NULL,
-    "category" VARCHAR(255) NOT NULL,
+    "location" "noise_categories" NOT NULL,
     "sound_level" DOUBLE PRECISION NOT NULL,
-    "location_id" INTEGER NOT NULL,
+    "point" Geometry(Point, 4326),
+    "assessment_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "noise_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "_CityToRegion" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
 );
 
 -- CreateTable
@@ -475,13 +465,13 @@ CREATE UNIQUE INDEX "options_question_question_id_key" ON "options_question"("qu
 CREATE UNIQUE INDEX "city_name_key" ON "city"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "administrative_delimitation_1_administrative_delimitation_1_key" ON "administrative_delimitation_1"("administrative_delimitation_1_name");
+CREATE UNIQUE INDEX "narrow_administrative_unit_city_id_name_key" ON "narrow_administrative_unit"("city_id", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "administrative_delimitation_2_administrative_delimitation_2_key" ON "administrative_delimitation_2"("administrative_delimitation_2_name");
+CREATE UNIQUE INDEX "intermediate_administrative_unit_city_id_name_key" ON "intermediate_administrative_unit"("city_id", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "administrative_delimitation_3_administrative_delimitation_3_key" ON "administrative_delimitation_3"("administrative_delimitation_3_name");
+CREATE UNIQUE INDEX "broad_administrative_unit_city_id_name_key" ON "broad_administrative_unit"("city_id", "name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "accessibility_assessment_id_key" ON "accessibility"("assessment_id");
@@ -505,16 +495,7 @@ CREATE UNIQUE INDEX "surrounding_activity_assessment_id_key" ON "surrounding_act
 CREATE UNIQUE INDEX "security_assessment_id_key" ON "security"("assessment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "tally_location_id_key" ON "tally"("location_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "noise_location_id_key" ON "noise"("location_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_CityToRegion_AB_unique" ON "_CityToRegion"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_CityToRegion_B_index" ON "_CityToRegion"("B");
+CREATE INDEX "location_idx" ON "noise" USING GIST ("point");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_AssessmentToUser_AB_unique" ON "_AssessmentToUser"("A", "B");
@@ -538,19 +519,25 @@ ALTER TABLE "options_question" ADD CONSTRAINT "options_question_question_id_fkey
 ALTER TABLE "option" ADD CONSTRAINT "option_options_question_id_fkey" FOREIGN KEY ("options_question_id") REFERENCES "options_question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_1_id_fkey" FOREIGN KEY ("administrative_delimitation_1_id") REFERENCES "administrative_delimitation_1"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "location" ADD CONSTRAINT "location_narrowAdministrativeUnitId_fkey" FOREIGN KEY ("narrowAdministrativeUnitId") REFERENCES "narrow_administrative_unit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_2_id_fkey" FOREIGN KEY ("administrative_delimitation_2_id") REFERENCES "administrative_delimitation_2"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "location" ADD CONSTRAINT "location_intermediateAdministrativeUnitId_fkey" FOREIGN KEY ("intermediateAdministrativeUnitId") REFERENCES "intermediate_administrative_unit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "location" ADD CONSTRAINT "location_administrative_delimitation_3_id_fkey" FOREIGN KEY ("administrative_delimitation_3_id") REFERENCES "administrative_delimitation_3"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "location" ADD CONSTRAINT "location_broadAdministrativeUnitId_fkey" FOREIGN KEY ("broadAdministrativeUnitId") REFERENCES "broad_administrative_unit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "address" ADD CONSTRAINT "address_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "address" ADD CONSTRAINT "address_city_id_fkey" FOREIGN KEY ("city_id") REFERENCES "city"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "narrow_administrative_unit" ADD CONSTRAINT "narrow_administrative_unit_city_id_fkey" FOREIGN KEY ("city_id") REFERENCES "city"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "intermediate_administrative_unit" ADD CONSTRAINT "intermediate_administrative_unit_city_id_fkey" FOREIGN KEY ("city_id") REFERENCES "city"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "broad_administrative_unit" ADD CONSTRAINT "broad_administrative_unit_city_id_fkey" FOREIGN KEY ("city_id") REFERENCES "city"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Assessment" ADD CONSTRAINT "Assessment_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -589,13 +576,10 @@ ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY 
 ALTER TABLE "tally" ADD CONSTRAINT "tally_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "noise" ADD CONSTRAINT "noise_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "person" ADD CONSTRAINT "person_tally_id_fkey" FOREIGN KEY ("tally_id") REFERENCES "tally"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_CityToRegion" ADD CONSTRAINT "_CityToRegion_A_fkey" FOREIGN KEY ("A") REFERENCES "city"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_CityToRegion" ADD CONSTRAINT "_CityToRegion_B_fkey" FOREIGN KEY ("B") REFERENCES "region"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "noise" ADD CONSTRAINT "noise_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_AssessmentToUser" ADD CONSTRAINT "_AssessmentToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Assessment"("id") ON DELETE CASCADE ON UPDATE CASCADE;

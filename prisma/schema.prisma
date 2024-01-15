@@ -154,16 +154,19 @@ enum Activity {
   @@map("atividade")
 }
 
-enum Sex {
-  MALE   @map("male")
-  FEMALE @map("female")
+// Don't really like naming this gender since you can't really tell someones gender based on the way they look
+// but since they're going to be needing this data we might as well be as inclusive as possible
+enum Gender {
+  MALE       @map("male")
+  FEMALE     @map("female")
+  NON_BINARY @map("non-binary")
 
-  @@map("sex")
+  @@map("gender")
 }
 
-enum NoiseCategories {
-  UNKNOWN @map("unknown")
-  CARS    @map("cars")
+enum NoiseLocation {
+  CENTER       @map("center")
+  SURROUNDINGS @map("surroundings")
 
   @@map("noise_categories")
 }
@@ -293,13 +296,6 @@ model Form {
 model Location {
   id Int @id @default(autoincrement())
 
-  administrativeDelimitation1   AdministrativeDelimitation1 @relation(fields: [administrativeDelimitation1Id], references: [id])
-  administrativeDelimitation1Id Int                         @map("administrative_delimitation_1_id")
-  administrativeDelimitation2   AdministrativeDelimitation2 @relation(fields: [administrativeDelimitation2Id], references: [id])
-  administrativeDelimitation2Id Int                         @map("administrative_delimitation_2_id")
-  administrativeDelimitation3   AdministrativeDelimitation3 @relation(fields: [administrativeDelimitation3Id], references: [id])
-  administrativeDelimitation3Id Int                         @map("administrative_delimitation_3_id")
-
   name                String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
@@ -310,15 +306,19 @@ model Location {
   usableArea          Float?    @map("usable_area")
   legalArea           Float?    @map("legal_area")
   incline             Float?
-  urbanRegion         String?   @map("urban_region") @db.VarChar(255) // ? não sei o que que é isso
   inactiveNotFound    Boolean?  @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
   polygonArea         Float?    @map("polygon_area")
-  narrowBorough       String?   @map("narrow_region")
-  broadBorough        String?   @map("broad_region")
 
   type     LocationTypes?
   category CategoryTypes?                               @map("category")
   polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
+
+  narrowAdministrativeUnitId       Int?
+  narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
+  intermediateAdministrativeUnitId Int?
+  intermediateAdministrativeUnit   IntermediateAdministrativeUnit? @relation(fields: [intermediateAdministrativeUnitId], references: [id])
+  broadAdministrativeUnitId        Int?
+  broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   address    Address[]
   assessment Assessment[]
@@ -352,11 +352,11 @@ model Address {
 model City {
   id Int @id @default(autoincrement())
 
-  name                        String                        @unique @db.VarChar(255)
-  region                      Region[]
-  administrativeDelimitation1 AdministrativeDelimitation1[]
-  administrativeDelimitation2 AdministrativeDelimitation2[]
-  administrativeDelimitation3 AdministrativeDelimitation3[]
+  name String @unique @db.VarChar(255)
+
+  narrowAdministrativeUnit       NarrowAdministrativeUnit[]
+  intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
+  broadAdministrativeUnit        BroadAdministrativeUnit[]
 
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
@@ -364,56 +364,48 @@ model City {
   @@map("city")
 }
 
-model Region {
+model NarrowAdministrativeUnit {
   id Int @id @default(autoincrement())
 
-  region String @db.VarChar(255)
+  name String
 
-  city City[]
+  location Location[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  cityId Int  @map("city_id")
+  city   City @relation(fields: [cityId], references: [id])
 
-  @@map("region")
+  @@unique([cityId, name])
+  @@map("narrow_administrative_unit")
 }
 
-model AdministrativeDelimitation1 {
-  id                              Int        @id @default(autoincrement())
-  administrativeDelimitation1Name String     @map("administrative_delimitation_1_name")
-  city                            City?      @relation(fields: [cityId], references: [id])
-  location                        Location[]
-  cityId                          Int?
+model IntermediateAdministrativeUnit {
+  id Int @id @default(autoincrement())
 
-  @@unique([cityId, administrativeDelimitation1Name])
-  @@map("administrative_delimitation_1")
+  name String
+
+  location Location[]
+
+  cityId Int  @map("city_id")
+  city   City @relation(fields: [cityId], references: [id])
+
+  @@unique([cityId, name])
+  @@map("intermediate_administrative_unit")
 }
 
-model AdministrativeDelimitation2 {
-  id                              Int        @id @default(autoincrement())
-  administrativeDelimitation2Name String     @map("administrative_delimitation_2_name")
-  city                            City?      @relation(fields: [cityId], references: [id])
-  location                        Location[]
-  cityId                          Int?
+model BroadAdministrativeUnit {
+  id Int @id @default(autoincrement())
 
-  @@unique([cityId, administrativeDelimitation2Name])
-  @@map("administrative_delimitation_2")
+  name String
+
+  location Location[]
+
+  cityId Int  @map("city_id")
+  city   City @relation(fields: [cityId], references: [id])
+
+  @@unique([cityId, name])
+  @@map("broad_administrative_unit")
 }
 
-model AdministrativeDelimitation3 {
-  id                              Int        @id @default(autoincrement())
-  administrativeDelimitation3Name String     @map("administrative_delimitation_3_name")
-  city                            City?      @relation(fields: [cityId], references: [id])
-  location                        Location[]
-  cityId                          Int?
-
-  @@unique([cityId, administrativeDelimitation3Name])
-  @@map("administrative_delimitation_3")
-}
-
-//*model LocalDelimitacaoAdministrativa{
-//  id Int @id@default(autoincrement())
-
-//}
 // #endregion
 
 // #region Informações das Avaliações
@@ -429,7 +421,7 @@ model Assessment {
   user      User[]
 
   changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
-  wifi                Boolean
+  hasWifi             Boolean  @map("has_wifi")
 
   pavedSidewalk            Boolean @map("paved_sidewalk")
   trashCanAmount           Int     @map("trash_can_amount")
@@ -694,40 +686,13 @@ model Tally {
   startDate DateTime? @db.Timestamptz(0)
   endDate   DateTime? @db.Timestamptz(0)
 
-  //pessoaNoLocal PessoaNoLocal[]
-
-  //adults    Int @default(0)
-  //elders    Int @default(0)
-  //children  Int @default(0)
-  //juveniles Int @default(0)
-  //pets      Int @default(0)
-
-  //men   Int @default(0)
-  //women Int @default(0)
-
-  //sedentary Int @default(0)
-  //walking   Int @default(0)
-  //vigorous  Int @default(0)
-
-  //traversing              Int @default(0)
-  //impaired                Int @default(0)
-  //apparentIllicitActivity Int @default(0) @map("apparent_illicit_activity")
-  //homeless                Int @default(0)
-
-  //chaveGenero  Int
-  //chaveIdoso   Int
-  //chaveAdulto  Int
-  //chaveCrianca Int
-  //chaveJovem   Int
   animalsAmount    Int?    @map("animals_amount")
   temperature      Float?
   weatherCondition String? @map("weather_condition") @db.VarChar(255)
 
-  //people Person[]
-
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
-  people     People[]
+  people     Person[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -735,17 +700,16 @@ model Tally {
   @@map("tally")
 }
 
-// Não acho que a gente deveria ter uma linha por pessoa, dá para condensar isso em ints dentro de contagem
-model People {
+model Person {
   id Int @id @default(autoincrement())
 
   ageGroup                    AgeGroup @map("age_group")
-  sex                         Sex
+  gender                      Gender
   activity                    Activity @map("activity")
   isTraversing                Boolean  @map("is_traversing")
-  isImpaired                  Boolean  @map("is_impaired_person")
+  isPersonWithImpairment      Boolean  @map("is_person_with_impairment") // * Inclusive language
   isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
-  isHomeless                  Boolean  @map("is_homeless")
+  isPersonWithoutHousing      Boolean  @map("is_person_without_housing") // * Inclusive language
 
   tallyId Int   @map("tally_id")
   tally   Tally @relation(fields: [tallyId], references: [id])
@@ -753,18 +717,18 @@ model People {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("people")
+  @@map("person")
 }
 
 model Noise {
   id Int @id @default(autoincrement())
 
-  category   NoiseCategories // ? se eu entendi isso certo essa categoria devia ser um enum, não?
+  location   NoiseLocation
   soundLevel Float                                 @map("sound_level")
   point      Unsupported("Geometry(Point, 4326)")?
 
-  assesmentId Int        @map("assesment_id")
-  assesment   Assessment @relation(fields: [assesmentId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
