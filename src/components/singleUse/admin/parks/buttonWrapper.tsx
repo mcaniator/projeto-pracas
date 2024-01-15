@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
-import { createNoiseMeasure } from "@/serverActions/noiseCRUD";
+import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { useState } from "react";
 
@@ -85,9 +85,9 @@ const ButtonWrapper = () => {
           onClick={() =>
             void addPersonToTally(tallyId, [
               {
-                ageGroup: "ADULT" as const,
-                gender: "MALE" as const,
-                activity: "SEDENTARY" as const,
+                ageGroup: "ADULT",
+                gender: "MALE",
+                activity: "SEDENTARY",
                 isTraversing: true,
                 isPersonWithImpairment: true,
                 isInApparentIllicitActivity: true,
@@ -106,7 +106,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createNoiseMeasure({ assesmentId: 1, category: "UNKNOWN", soundLevel: 70.5 }, { x: 266, y: 1530 })}
+          onClick={() => void createNoiseMeasurement({ assessmentId: 1, location: "CENTER", soundLevel: 70.5 }, { x: 266, y: 1530 })}
         >
           <span className="-mb-1">Adicionar ruído</span>
         </Button>
