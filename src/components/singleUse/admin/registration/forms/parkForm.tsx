@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { revalidate, searchLocations } from "@/serverActions/locationUtil";
+import { revalidate, searchLocationsByName } from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
 import { Dispatch, SetStateAction, Suspense, createContext, use, useDeferredValue, useEffect, useState } from "react";
 
@@ -28,7 +28,7 @@ const ParkForm = () => {
   const [targetLocal, setTargetLocal] = useState("");
   const [foundLocals, setFoundLocals] = useState<Promise<Form[]>>();
   useEffect(() => {
-    setFoundLocals(searchLocations(targetLocal));
+    setFoundLocals(searchLocationsByName(targetLocal));
   }, [targetLocal, changed]);
   const deferredFoundLocals = useDeferredValue(foundLocals);
   //   const isStale = foundLocals !== deferredFoundLocals;

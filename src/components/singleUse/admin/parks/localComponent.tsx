@@ -5,6 +5,7 @@ import { handleDelete } from "@/serverActions/locationUtil";
 import { useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";
+import Link from "next/link";
 
 interface FormProps {
   id: number;
@@ -15,10 +16,8 @@ const LocalComponent = ({ id, nome }: FormProps) => {
   const { changedContext, setChangedContext } = useContext(ChangedContext);
   return (
     <div key={id} className="mb-2 flex items-center justify-between rounded bg-white p-2">
-      <div
-      //   onClick={() => handleRedirect(id)}
-      >
-        <h4 className="text-lg font-semibold">{nome}</h4>
+      <div>
+        <Link className="text-lg font-semibold" href={`/admin/parks/${id}`}>{nome}</Link>
       </div>
       <div>
         <Button

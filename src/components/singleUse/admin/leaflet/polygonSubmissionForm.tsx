@@ -3,13 +3,27 @@
 import { PolygonContext } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { josefin_sans, titillium_web } from "@/lib/fonts";
 import { mapSubmission } from "@/serverActions/parkSubmit";
 import { IconX } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Dispatch, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
 const PolygonSubmissionForm = () => {
@@ -56,9 +70,16 @@ const PolygonSubmissionForm = () => {
                   " cursor-pointer text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
                 }
                 onClick={() => {
-                  if (!isDirty || window.confirm("Os dados não foram enviados.\nGostaria de sair mesmo assim?")) {
+                  if (
+                    !isDirty ||
+                    window.confirm(
+                      "Os dados não foram enviados.\nGostaria de sair mesmo assim?",
+                    )
+                  ) {
                     setIsDirty(false);
-                    router.replace(pathname + "?" + createQueryString("tab", "basic"));
+                    router.replace(
+                      pathname + "?" + createQueryString("tab", "basic"),
+                    );
                   }
                 }}
                 aria-disabled={currentTab == "basic" || currentTab == undefined}
@@ -71,9 +92,16 @@ const PolygonSubmissionForm = () => {
                   " cursor-pointer text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
                 }
                 onClick={() => {
-                  if (!isDirty || window.confirm("Os dados não foram enviados.\nGostaria de sair mesmo assim?")) {
+                  if (
+                    !isDirty ||
+                    window.confirm(
+                      "Os dados não foram enviados.\nGostaria de sair mesmo assim?",
+                    )
+                  ) {
                     setIsDirty(false);
-                    router.replace(pathname + "?" + createQueryString("tab", "extra"));
+                    router.replace(
+                      pathname + "?" + createQueryString("tab", "extra"),
+                    );
                   }
                 }}
                 aria-disabled={currentTab == "extra"}
@@ -86,10 +114,16 @@ const PolygonSubmissionForm = () => {
                 variant={"ghost"}
                 size={"icon"}
                 onClick={() => {
-                  if (!isDirty || window.confirm("Os dados não foram enviados.\nGostaria de fechar mesmo assim?")) {
+                  if (
+                    !isDirty ||
+                    window.confirm(
+                      "Os dados não foram enviados.\nGostaria de fechar mesmo assim?",
+                    )
+                  ) {
                     setIsDirty(false);
                     setOpen(false);
-                    if (polygonContext.length === 0) setTimeout(() => setDrawingContext(false), 100);
+                    if (polygonContext.length === 0)
+                      setTimeout(() => setDrawingContext(false), 100);
                   }
                 }}
               >
@@ -105,7 +139,11 @@ const PolygonSubmissionForm = () => {
         </DialogHeader>
 
         {currentTab == "basic" || currentTab == undefined ?
-          <BasicForm polygonContext={polygonContext} setPolygonContext={setPolygonContext} setIsDirty={setIsDirty} />
+          <BasicForm
+            polygonContext={polygonContext}
+            setPolygonContext={setPolygonContext}
+            setIsDirty={setIsDirty}
+          />
         : <ExtraForm setIsDirty={setIsDirty} />}
       </DialogContent>
     </Dialog>
@@ -118,7 +156,9 @@ const SubmitButton = (props: {
     statusCode: number;
   };
 }) => {
-  const [submitButtonState, setSubmitButtonState] = useState<"admin" | "constructive" | "destructive">("admin");
+  const [submitButtonState, setSubmitButtonState] = useState<
+    "admin" | "constructive" | "destructive"
+  >("admin");
   const { pending } = useFormStatus();
   const hasSent = useRef(false);
   const { statusCode } = props.state;
@@ -134,7 +174,12 @@ const SubmitButton = (props: {
   }, [pending, statusCode]);
 
   return (
-    <Button variant={submitButtonState} className={"text-white"} form={props.form} aria-disabled={pending}>
+    <Button
+      variant={submitButtonState}
+      className={"text-white"}
+      form={props.form}
+      aria-disabled={pending}
+    >
       <span className={"-mb-1"}>Enviar</span>
     </Button>
   );
@@ -165,9 +210,18 @@ const BasicForm = (props: {
     firstStreet: "",
     secondStreet: "",
   });
-  const isDirtyReferenceValue = useRef({ name: "", firstStreet: "", secondStreet: "" });
+  const isDirtyReferenceValue = useRef({
+    name: "",
+    firstStreet: "",
+    secondStreet: "",
+  });
   useEffect(() => {
-    setIsDirty(!(JSON.stringify(isDirtyReferenceValue.current) === JSON.stringify(formState)));
+    setIsDirty(
+      !(
+        JSON.stringify(isDirtyReferenceValue.current) ===
+        JSON.stringify(formState)
+      ),
+    );
   }, [formState, setIsDirty]);
 
   return (
@@ -199,7 +253,9 @@ const BasicForm = (props: {
             id={"name"}
             autoComplete={"off"}
             variant={"white"}
-            onChange={(event) => setFormState({ ...formState, name: event.target.value })}
+            onChange={(event) =>
+              setFormState({ ...formState, name: event.target.value })
+            }
             value={formState.name}
             required
           />
@@ -207,14 +263,16 @@ const BasicForm = (props: {
 
         <div className={"flex flex-col"}>
           <div className={"translate-y-1"}>
-            <label htmlFor={"firstStreet"}>Primeira Rua</label>{" "}
+            <label htmlFor={"firstStreet"}>Primeira Rua</label>
           </div>
           <Input
             type={"text"}
             name={"firstStreet"}
             id={"firstStreet"}
             variant={"white"}
-            onChange={(event) => setFormState({ ...formState, firstStreet: event.target.value })}
+            onChange={(event) =>
+              setFormState({ ...formState, firstStreet: event.target.value })
+            }
             value={formState.firstStreet}
             required
           />
@@ -222,25 +280,39 @@ const BasicForm = (props: {
 
         <div>
           <div className={"translate-y-1"}>
-            <label htmlFor={"secondStreet"}>Segunda Rua</label>{" "}
+            <label htmlFor={"secondStreet"}>Segunda Rua</label>
           </div>
           <Input
             type={"text"}
             name={"secontStreet"}
             id={"secondStreet"}
             variant={"white"}
-            onChange={(event) => setFormState({ ...formState, secondStreet: event.target.value })}
+            onChange={(event) =>
+              setFormState({ ...formState, secondStreet: event.target.value })
+            }
             value={formState.secondStreet}
             required
           />
         </div>
 
         <div className="hidden">
-          <Input type={"hidden"} value={props.polygonContext.length} name={"amountPoints"} />
+          <Input
+            type={"hidden"}
+            value={props.polygonContext.length}
+            name={"amountPoints"}
+          />
           {props.polygonContext.map((value, index) => (
             <div key={index}>
-              <Input value={value.lat} name={`points[${index}].lat`} type={"hidden"} />
-              <Input value={value.lng} name={`points[${index}].lng`} type={"hidden"} />
+              <Input
+                value={value.lat}
+                name={`points[${index}].lat`}
+                type={"hidden"}
+              />
+              <Input
+                value={value.lng}
+                name={`points[${index}].lng`}
+                type={"hidden"}
+              />
             </div>
           ))}
         </div>
@@ -251,7 +323,9 @@ const BasicForm = (props: {
   );
 };
 
-const ExtraForm = (props: { setIsDirty: Dispatch<SetStateAction<boolean>> }) => {
+const ExtraForm = (props: {
+  setIsDirty: Dispatch<SetStateAction<boolean>>;
+}) => {
   props.setIsDirty(false);
   return <span>tchau</span>;
 };
