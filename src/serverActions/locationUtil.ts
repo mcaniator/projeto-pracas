@@ -18,7 +18,9 @@ const handleDelete = async (parkID: number) => {
 };
 
 const fetchLocations = async () => {
-  const locationsType = Prisma.validator<Prisma.LocationDefaultArgs>()({ select: { id: true, name: true } });
+  const locationsType = Prisma.validator<Prisma.LocationDefaultArgs>()({
+    select: { id: true, name: true },
+  });
 
   let locations: Prisma.LocationGetPayload<typeof locationsType>[] = [];
 

@@ -14,7 +14,10 @@ interface FormProps {
 const LocalComponent = ({ id, nome }: FormProps) => {
   const { changedContext, setChangedContext } = useContext(ChangedContext);
   return (
-    <div key={id} className="mb-2 flex items-center justify-between rounded bg-white p-2">
+    <div
+      key={id}
+      className="mb-2 flex items-center justify-between rounded bg-white p-2"
+    >
       <div
       //   onClick={() => handleRedirect(id)}
       >

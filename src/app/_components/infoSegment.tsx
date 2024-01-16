@@ -4,8 +4,15 @@ import { ReactNode } from "react";
 
 import fotoPraca from "/public/fotoPraca.jpg";
 
-const InfoSegment = ({ children, rightJustify = false }: { children: ReactNode; rightJustify?: boolean }) => {
-  const randomRotation = (rightJustify ? "-" : "") + (Math.floor(Math.random() * (13 - 8)) + 8);
+const InfoSegment = ({
+  children,
+  rightJustify = false,
+}: {
+  children: ReactNode;
+  rightJustify?: boolean;
+}) => {
+  const randomRotation =
+    (rightJustify ? "-" : "") + (Math.floor(Math.random() * (13 - 8)) + 8);
 
   return (
     <article
@@ -19,9 +26,15 @@ const InfoSegment = ({ children, rightJustify = false }: { children: ReactNode; 
         src={fotoPraca}
         alt="foto praça jf"
         style={{ transform: `rotate(${randomRotation}deg)` }}
-        className={clsx("h-auto w-[100vw] shadow-lg sm:w-[610px]", rightJustify && "sm:translate-x-8", !rightJustify && "sm:-translate-x-8")}
+        className={clsx(
+          "h-auto w-[100vw] shadow-lg sm:w-[610px]",
+          rightJustify && "sm:translate-x-8",
+          !rightJustify && "sm:-translate-x-8",
+        )}
       />
-      <div className="mt-7 flex h-full max-w-md flex-col gap-1 self-center">{children}</div>
+      <div className="mt-7 flex h-full max-w-md flex-col gap-1 self-center">
+        {children}
+      </div>
     </article>
   );
 };

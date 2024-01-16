@@ -28,7 +28,13 @@ const CategoryForm = () => {
     >
       <div>
         <label htmlFor={"name"}>Nome da categoria:</label>
-        <Input type="text" name="name" required id={"name"} className={"w-[50%]"} />
+        <Input
+          type="text"
+          name="name"
+          required
+          id={"name"}
+          className={"w-[50%]"}
+        />
       </div>
       <Button variant={"admin"} type="submit" className={"w-min"}>
         <span className={"-mb-1"}>Enviar</span>

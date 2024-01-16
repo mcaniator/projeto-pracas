@@ -8,7 +8,9 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
       <Header variant={"static"} />
       <div className="flex min-h-0 flex-grow">
         <Sidebar />
-        <div className="w-full rounded-tl-3xl bg-gray-700/10 shadow-inner">{children}</div>
+        <div className="w-full rounded-tl-3xl bg-gray-700/10 shadow-inner">
+          {children}
+        </div>
       </div>
     </div>
   );

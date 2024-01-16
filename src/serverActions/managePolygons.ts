@@ -6,17 +6,29 @@ import { prisma } from "@/lib/prisma";
 
 // Prisma não apresenta suporte nativo para tipos geométricos, portanto é usada uma raw query para buscar os dados
 const fetchPolygons = async () => {
-  const polygons: { id: number; type: string; coordinates: [number, number][][] }[] = await prisma.$queryRaw<
+  const polygons: {
+    id: number;
+    type: string;
+    coordinates: [number, number][][];
+  }[] = await prisma.$queryRaw<
     { st_asgeojson: string; id: number }[]
   >`SELECT ST_AsGeoJSON(poligono), id FROM local`.then((result) =>
-    result.map((value) => ({ id: value.id, ...(JSON.parse(value.st_asgeojson) as { type: string; coordinates: [number, number][][] }) })),
+    result.map((value) => ({
+      id: value.id,
+      ...(JSON.parse(value.st_asgeojson) as {
+        type: string;
+        coordinates: [number, number][][];
+      }),
+    })),
   );
 
   return polygons;
 };
 
 const fetchSpecificPolygon = async (localId: number) => {
-  const polygons: { id: number; type: string; coordinates: [number, number][][] } | undefined = await prisma.$queryRaw<
+  const polygons:
+    | { id: number; type: string; coordinates: [number, number][][] }
+    | undefined = await prisma.$queryRaw<
     {
       st_asgeojson: string;
       id: number;
@@ -25,7 +37,10 @@ const fetchSpecificPolygon = async (localId: number) => {
     (result) =>
       result.map((value) => ({
         id: value.id,
-        ...(JSON.parse(value.st_asgeojson) as { type: string; coordinates: [number, number][][] }),
+        ...(JSON.parse(value.st_asgeojson) as {
+          type: string;
+          coordinates: [number, number][][];
+        }),
       }))[0],
   );
 
@@ -33,7 +48,11 @@ const fetchSpecificPolygon = async (localId: number) => {
 };
 
 // ! This function only works with MultiPolygon types
-const polygonObjectToString = (polygons: { id: number; type: string; coordinates: [number, number][][] }) => {
+const polygonObjectToString = (polygons: {
+  id: number;
+  type: string;
+  coordinates: [number, number][][];
+}) => {
   const coordinates = polygons.coordinates;
   const text = coordinates.map((value) => {
     return value
@@ -47,7 +66,11 @@ const polygonObjectToString = (polygons: { id: number; type: string; coordinates
   return `${polygons.type}(${joined})`;
 };
 
-const addPolygons = async (polygons: { id: number; type: string; coordinates: [number, number][][] }) => {
+const addPolygons = async (polygons: {
+  id: number;
+  type: string;
+  coordinates: [number, number][][];
+}) => {
   // TODO com certeza tem um jeito melhor de fazer isso, mas eu preciso de alguém melhor em SQL para resolver
   const aux = await fetchSpecificPolygon(polygons.id);
   const isNull = aux == undefined || aux.coordinates == null;
@@ -61,7 +84,11 @@ const addPolygons = async (polygons: { id: number; type: string; coordinates: [n
 };
 
 // Separado em outra função para garantir que não estaremos editando polígonos já existentes acidentalmente
-const editPolygons = async (polygons: { id: number; type: string; coordinates: [number, number][][] }) => {
+const editPolygons = async (polygons: {
+  id: number;
+  type: string;
+  coordinates: [number, number][][];
+}) => {
   const geometry = polygonObjectToString(polygons);
   await prisma.$executeRaw`UPDATE local SET poligono = st_geomfromtext(${geometry}, 4326) WHERE id = ${polygons.id}`;
 };

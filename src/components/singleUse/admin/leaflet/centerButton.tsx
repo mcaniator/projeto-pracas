@@ -16,12 +16,19 @@ const CenterButton = () => {
           onClick={() => {
             navigator.geolocation.getCurrentPosition(
               (pos) => {
-                map.flyTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                map.flyTo({
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude,
+                });
               },
               (err) => {
                 console.log(`erro: ${err.code}`);
               },
-              { enableHighAccuracy: false, maximumAge: Infinity, timeout: 60000 },
+              {
+                enableHighAccuracy: false,
+                maximumAge: Infinity,
+                timeout: 60000,
+              },
             );
           }}
           size={"icon"}

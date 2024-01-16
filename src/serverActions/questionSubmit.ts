@@ -1,10 +1,19 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { numericQuestionSchema, optionSchema, optionsQuestionSchema, questionSchema, textQuestionSchema } from "@/lib/zodValidators";
+import {
+  numericQuestionSchema,
+  optionSchema,
+  optionsQuestionSchema,
+  questionSchema,
+  textQuestionSchema,
+} from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
 
-const questionSubmit = async (prevState: { statusCode: number }, formData: FormData) => {
+const questionSubmit = async (
+  prevState: { statusCode: number },
+  formData: FormData,
+) => {
   const questionType = formData.get("questionType");
 
   let questionParsed;
@@ -90,17 +99,26 @@ const questionSubmit = async (prevState: { statusCode: number }, formData: FormD
 
       let optionsQuestionParsed;
       try {
-        optionsQuestionParsed = optionsQuestionSchema.parse(optionsQuestionObject);
+        optionsQuestionParsed = optionsQuestionSchema.parse(
+          optionsQuestionObject,
+        );
       } catch (err) {
         console.log(err);
         return { statusCode: 1 };
       }
 
-      const options = formData.getAll("options").map((value) => ({ text: value }));
+      const options = formData
+        .getAll("options")
+        .map((value) => ({ text: value }));
 
       try {
-        if (optionsQuestionParsed.maximumSelections != undefined && optionsQuestionParsed.maximumSelections > options.length)
-          throw new Error("Number of maximum selections is bigger than the amount of options");
+        if (
+          optionsQuestionParsed.maximumSelections != undefined &&
+          optionsQuestionParsed.maximumSelections > options.length
+        )
+          throw new Error(
+            "Number of maximum selections is bigger than the amount of options",
+          );
       } catch (err) {
         console.log(err);
         return { statusCode: 3 };

@@ -4,7 +4,13 @@ import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProv
 import { PolygonSubmissionForm } from "@/components/singleUse/admin/leaflet/polygonSubmissionForm";
 import { Button } from "@/components/ui/button";
 import { josefin_sans } from "@/lib/fonts";
-import { Dispatch, SetStateAction, createContext, useContext, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useState,
+} from "react";
 import { Polygon, useMapEvents } from "react-leaflet";
 import Control from "react-leaflet-custom-control";
 
@@ -24,7 +30,10 @@ const CreatePolygon = () => {
 
   useMapEvents({
     click: (mouseEvent) => {
-      setCurrentPolygon([...currentPolygon, { lat: mouseEvent.latlng.lat, lng: mouseEvent.latlng.lng }]);
+      setCurrentPolygon([
+        ...currentPolygon,
+        { lat: mouseEvent.latlng.lat, lng: mouseEvent.latlng.lng },
+      ]);
     },
   });
 
@@ -40,7 +49,9 @@ const CreatePolygon = () => {
             }}
             className={josefin_sans.className + " text-white"}
           >
-            <span className={"-mb-1"}>{!drawingContext ? "Criar Polígono" : "Descartar Polígono"}</span>
+            <span className={"-mb-1"}>
+              {!drawingContext ? "Criar Polígono" : "Descartar Polígono"}
+            </span>
           </Button>
         </Control>
 
@@ -56,7 +67,9 @@ const CreatePolygon = () => {
            * eles não podem ser dinamicamente removidos/inseridos, assim o children do elemento que
            * deve ser ocultado
            **/}
-          <Control position={"topleft"}>{drawingContext && <PolygonSubmissionForm />}</Control>
+          <Control position={"topleft"}>
+            {drawingContext && <PolygonSubmissionForm />}
+          </Control>
         </PolygonContext.Provider>
       </div>
 

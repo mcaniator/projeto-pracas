@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 
-const Form = ({ children, action }: { children: React.ReactNode; action: string }) => {
+const Form = ({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action: string;
+}) => {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<null | string>(null);
   return (

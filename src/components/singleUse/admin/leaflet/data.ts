@@ -1,5 +1,8 @@
 const parkTypes = [
-  { name: "Canteiros centrais e laterais de porte", id: "CANTEIROS_CENTRAIS_E_LATERAIS_DE_PORTE" },
+  {
+    name: "Canteiros centrais e laterais de porte",
+    id: "CANTEIROS_CENTRAIS_E_LATERAIS_DE_PORTE",
+  },
   { name: "Cantos de quadra", id: "CANTOS_DE_QUADRA" },
   { name: "Jardim", id: "JARDIM" },
   { name: "Largo", id: "LARGO" },
@@ -17,7 +20,10 @@ const parkTypes = [
 
 const parkCategories = [
   { name: "de práticas sociais", id: "DE_PRATICAS_SOCIAIS" },
-  { name: "espaços livres privados de uso coletivo", id: "ESPACO_LIVRE_PRIVADO_DE_USO_COLETIVO" },
+  {
+    name: "espaços livres privados de uso coletivo",
+    id: "ESPACO_LIVRE_PRIVADO_DE_USO_COLETIVO",
+  },
 ];
 
 const brazillianStates = [
