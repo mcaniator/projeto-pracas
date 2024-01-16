@@ -13,7 +13,11 @@ const initialState = {
   statusCode: 0,
 };
 
-const QuestionForm = ({ availableCategories }: { availableCategories: { id: number; name: string }[] }) => {
+const QuestionForm = ({
+  availableCategories,
+}: {
+  availableCategories: { id: number; name: string }[];
+}) => {
   const [, formAction] = useFormState(questionSubmit, initialState);
 
   const [type, setType] = useState("");
@@ -64,7 +68,11 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
 
         <div className={"flex flex-col"}>
           <label htmlFor={"text"}>Tipo de pergunta:</label>
-          <div className={"flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"}>
+          <div
+            className={
+              "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+            }
+          >
             <RadioButton
               type={"radio"}
               variant={"admin"}
@@ -170,7 +178,8 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
                   return currentOption == "";
                 })()}
                 onClick={() => {
-                  if (addedOptions != undefined) setAddedOptions([...addedOptions, { text: currentOption }]);
+                  if (addedOptions != undefined)
+                    setAddedOptions([...addedOptions, { text: currentOption }]);
                   else setAddedOptions([{ text: currentOption }]);
 
                   setCurrentOption("");
@@ -184,14 +193,24 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
             {optionType == "CHECKBOX" && (
               <div>
                 <label htmlFor={"optionLimit"}>Máximo de seleções:</label>
-                <Input type="number" name="maximumSelection" id={"optionLimit"} required />
+                <Input
+                  type="number"
+                  name="maximumSelection"
+                  id={"optionLimit"}
+                  required
+                />
               </div>
             )}
           </>
         )}
 
         {type && (
-          <Button aria-disabled={disabled} variant={"admin"} type="submit" className={"w-24 transition-all"}>
+          <Button
+            aria-disabled={disabled}
+            variant={"admin"}
+            type="submit"
+            className={"w-24 transition-all"}
+          >
             Enviar
           </Button>
         )}
@@ -200,7 +219,11 @@ const QuestionForm = ({ availableCategories }: { availableCategories: { id: numb
       {addedOptions && addedOptions.length != 0 && (
         <div className={"flex basis-1/3 flex-col"}>
           <p>Opções atuais:</p>
-          <div className={"max-h-full w-full overflow-scroll rounded-lg border-2 border-gray-500/40 bg-gray-400/50 py-1 pl-3 pr-2 text-lg"}>
+          <div
+            className={
+              "max-h-full w-full overflow-scroll rounded-lg border-2 border-gray-500/40 bg-gray-400/50 py-1 pl-3 pr-2 text-lg"
+            }
+          >
             <div>
               {addedOptions.map((value, index) => (
                 <div key={index} className={"flex items-center"}>

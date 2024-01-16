@@ -9,9 +9,12 @@ import { CreatePolygon } from "@/components/singleUse/admin/leaflet/createPolygo
 import dynamic from "next/dynamic";
 
 // Tem que ser importado dinamicamente sem SSR para que ele não tente acessar o elemento Window no servidor
-const LeafletProvider = dynamic(() => import("@/components/singleUse/admin/leaflet/leafletProvider"), {
-  ssr: false,
-});
+const LeafletProvider = dynamic(
+  () => import("@/components/singleUse/admin/leaflet/leafletProvider"),
+  {
+    ssr: false,
+  },
+);
 
 const LeafletRoot = () => {
   // const localsData = await prisma.local.findMany();

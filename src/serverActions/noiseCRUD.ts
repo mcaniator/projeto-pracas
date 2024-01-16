@@ -3,7 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { noiseType } from "@/lib/zodValidators";
 
-const createNoiseMeasurement = async (content: noiseType, point: { x: number; y: number }) => {
+const createNoiseMeasurement = async (
+  content: noiseType,
+  point: { x: number; y: number },
+) => {
   try {
     const createdNoise = await prisma.noise.create({
       data: content,

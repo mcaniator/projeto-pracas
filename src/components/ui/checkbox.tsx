@@ -20,22 +20,33 @@ const checkboxVariant = cva(
   },
 );
 
-interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement>, VariantProps<typeof checkboxVariant> {}
+interface CheckboxProps
+  extends InputHTMLAttributes<HTMLInputElement>,
+    VariantProps<typeof checkboxVariant> {}
 
-const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(({ className, variant, ...props }, ref) => {
-  const { children, ...attributes } = props;
-  return (
-    <label className={"flex w-fit select-none gap-1"}>
-      <input type="checkbox" className={cn(checkboxVariant({ variant, className }))} {...attributes} ref={ref} />
-      <IconCheck
-        className={"absolute translate-x-[5px] translate-y-[7px] text-white opacity-0 transition-all peer-checked:opacity-100"}
-        size={10}
-        stroke={5}
-      />
-      <span className={"-mb-1 self-center text-lg"}>{children}</span>
-    </label>
-  );
-});
+const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
+  ({ className, variant, ...props }, ref) => {
+    const { children, ...attributes } = props;
+    return (
+      <label className={"flex w-fit select-none gap-1"}>
+        <input
+          type="checkbox"
+          className={cn(checkboxVariant({ variant, className }))}
+          {...attributes}
+          ref={ref}
+        />
+        <IconCheck
+          className={
+            "absolute translate-x-[5px] translate-y-[7px] text-white opacity-0 transition-all peer-checked:opacity-100"
+          }
+          size={10}
+          stroke={5}
+        />
+        <span className={"-mb-1 self-center text-lg"}>{children}</span>
+      </label>
+    );
+  },
+);
 Checkbox.displayName = "Checkbox";
 
 export { Checkbox, checkboxVariant };

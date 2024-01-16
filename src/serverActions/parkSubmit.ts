@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { addressSchema, citySchema, locationSchema } from "@/lib/zodValidators";
 import { z } from "zod";
 
-const mapSubmission = async (prevState: { statusCode: number }, formData: FormData) => {
+const mapSubmission = async (
+  prevState: { statusCode: number },
+  formData: FormData,
+) => {
   const addressAmount = formData.get("addressAmount");
   const addresses = (() => {
     const aux: z.infer<typeof addressSchema>[] = [];
@@ -45,7 +48,11 @@ const mapSubmission = async (prevState: { statusCode: number }, formData: FormDa
   console.log(addresses);
 
   try {
-    const parsedLocation = locationSchema.parse({ name: "cidade teste", type: "JARDIM", category: "DE_PRATICAS_SOCIAIS" });
+    const parsedLocation = locationSchema.parse({
+      name: "cidade teste",
+      type: "JARDIM",
+      category: "DE_PRATICAS_SOCIAIS",
+    });
     const parsedAddress = addressSchema.parse({
       neighborhood: "bairro teste",
       street: "rua de teste",
@@ -147,7 +154,9 @@ const mapSubmission = async (prevState: { statusCode: number }, formData: FormDa
 // };
 
 const mapEdit = (prevState: { message: string }, formData: FormData) => {
-  console.log(`o servidor recebeu o request mas não sabe o que fazer com ele por enquanto ${prevState.message} ${typeof formData.get("temp")}`);
+  console.log(
+    `o servidor recebeu o request mas não sabe o que fazer com ele por enquanto ${prevState.message} ${typeof formData.get("temp")}`,
+  );
   return { message: "Not implemented" };
 };
 

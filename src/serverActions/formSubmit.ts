@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
 
-const formSubmit = async (prevState: { message: string }, formData: FormData) => {
+const formSubmit = async (
+  prevState: { message: string },
+  formData: FormData,
+) => {
   let parse;
   try {
     parse = formSchema.parse({
