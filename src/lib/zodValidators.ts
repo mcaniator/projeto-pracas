@@ -15,24 +15,6 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
-// #region Auth
-//  ------------------------------------------------------------------------------------------------------------
-//  Auth
-//  ------------------------------------------------------------------------------------------------------------
-
-const userSchema = z.object({
-  email: z.string().trim().email().optional(),
-  username: z.string().trim().toLowerCase().min(1).max(255),
-  type: z.nativeEnum(UserTypes),
-});
-
-type userType = z.infer<typeof userSchema>;
-
-export { userSchema };
-export type { userType };
-
-// #endregion
-
 // #region Fomulários
 //  ------------------------------------------------------------------------------------------------------------
 //  Formulários
@@ -74,20 +56,13 @@ const numericQuestionSchema = z
 const optionsQuestionSchema = z
   .object({
     optionType: z.nativeEnum(OptionTypes),
-    maximumSelections: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
+    maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
 
     questionId: z.coerce.number().int().finite().nonnegative(),
   })
   .refine((value) => {
-    if (value.optionType == "CHECKBOX" && value.maximumSelections == undefined)
-      return false;
-    if (value.optionType != "CHECKBOX" && value.maximumSelections != undefined)
-      return false;
+    if (value.optionType == "CHECKBOX" && value.maximumSelections == undefined) return false;
+    if (value.optionType != "CHECKBOX" && value.maximumSelections != undefined) return false;
     return true;
   });
 
@@ -111,23 +86,8 @@ type numericQuestionType = z.infer<typeof numericQuestionSchema>;
 type optionsQuestionType = z.infer<typeof optionsQuestionSchema>;
 type formType = z.infer<typeof formSchema>;
 
-export {
-  categorySchema,
-  formSchema,
-  numericQuestionSchema,
-  optionSchema,
-  optionsQuestionSchema,
-  questionSchema,
-  textQuestionSchema,
-};
-export type {
-  categoryType,
-  formType,
-  numericQuestionType,
-  optionsQuestionType,
-  questionType,
-  textQuestionType,
-};
+export { categorySchema, formSchema, numericQuestionSchema, optionSchema, optionsQuestionSchema, questionSchema, textQuestionSchema };
+export type { categoryType, formType, numericQuestionType, optionsQuestionType, questionType, textQuestionType };
 // #endregion
 
 // #region Informações da Praça
@@ -153,31 +113,12 @@ const locationSchema = z
     type: z.nativeEnum(LocationTypes).optional(),
     category: z.nativeEnum(CategoryTypes).optional(),
 
-    narrowAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
-    intermediateAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
-    broadAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
+    narrowAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
+    intermediateAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
+    broadAdministrativeUnitId: z.coerce.number().int().finite().nonnegative().optional(),
   })
   .refine((value) => {
-    if (
-      value.creationYear != undefined &&
-      value.lastMaintenanceYear != undefined
-    )
-      return value.lastMaintenanceYear >= value.creationYear;
+    if (value.creationYear != undefined && value.lastMaintenanceYear != undefined) return value.lastMaintenanceYear >= value.creationYear;
     return true;
   });
 
@@ -244,10 +185,18 @@ const assessmentSchema = z
   })
   .refine((value) => value.endDate >= value.startDate);
 
-type assessmentType = z.infer<typeof assessmentSchema>;
+const userSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  type: z.nativeEnum(UserTypes),
+  email: z.string().trim().email(),
+  password: z.string().trim().min(1).max(255),
+});
 
-export { assessmentSchema };
-export type { assessmentType };
+type assessmentType = z.infer<typeof assessmentSchema>;
+type userType = z.infer<typeof userSchema>;
+
+export { assessmentSchema, userSchema };
+export type { assessmentType, userType };
 // #endregion
 
 // #region Campos das Avaliações

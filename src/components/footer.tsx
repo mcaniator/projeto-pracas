@@ -5,7 +5,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef } from "react";
 
-import { Button } from "../../components/ui/button";
+import { Button } from "./ui/button";
 
 const footerVariants = cva("flex px-7 pb-5", {
   variants: {

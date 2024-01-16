@@ -1,6 +1,6 @@
 "use client";
 
-import { Header } from "@/app/_components/header";
+import { Header } from "@/components/header";
 import { useEffect, useRef } from "react";
 
 const HomeHeader = () => {
