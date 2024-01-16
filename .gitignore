@@ -78,10 +78,6 @@ typings/
 # Next.js build output
 .next
 
-# Nuxt.js build / generate output
-.nuxt
-dist
-
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and *not* Next.js
@@ -105,3 +101,43 @@ dist
 
 #ASDF config
 .tool-versions
+
+# Turbo cache
+.turbo
+
+# IDE config
+.vscode/
+.idea/
+
+# macOS metadata
+.DS_STORE
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+../../next-env.d.ts
