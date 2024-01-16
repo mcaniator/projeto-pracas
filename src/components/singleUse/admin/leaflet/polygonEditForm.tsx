@@ -42,16 +42,15 @@ const PolygonEditForm = ({
   const formRef = useRef<HTMLFormElement>(null);
 
   const [addressInfo, setAddressInfo] = useState(addressData);
-  const [newAddressInfo, setNewAddressInfo] =
-    useState<
-      {
-        street?: string;
-        number?: number;
-        city?: string;
-        neighborhood?: string;
-        state?: string;
-      }[]
-    >();
+  const [newAddressInfo, setNewAddressInfo] = useState<
+    {
+      street?: string;
+      number?: number;
+      city?: string;
+      neighborhood?: string;
+      state?: string;
+    }[]
+  >();
 
   return (
     <Dialog>
