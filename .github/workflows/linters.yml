@@ -35,4 +35,7 @@ jobs:
         with:
           auto_fix: true
           eslint: true
+          eslint_args: "-c ../.eslintrc.json"
+          eslint_dir: src/
+          eslint_extensions: js,ts
           prettier: true 
