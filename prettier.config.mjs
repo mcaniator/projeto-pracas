@@ -1,5 +1,4 @@
 const config = {
-  printWidth: 150,
   trailingComma: "all",
   semi: true,
   importOrder: ["^@core/(.*)$", "^@server/(.*)$", "^@ui/(.*)$", "^[./]"],
