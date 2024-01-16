@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { revalidate, searchLocationsByName } from "@/serverActions/locationUtil";
+import {
+  revalidate,
+  searchLocationsByName,
+} from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
 import {
   Dispatch,

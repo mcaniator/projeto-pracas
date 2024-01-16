@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { handleDelete } from "@/serverActions/locationUtil";
+import Link from "next/link";
 import { useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";
-import Link from "next/link";
 
 interface FormProps {
   id: number;
@@ -15,9 +15,14 @@ interface FormProps {
 const LocalComponent = ({ id, nome }: FormProps) => {
   const { changedContext, setChangedContext } = useContext(ChangedContext);
   return (
-    <div key={id} className="mb-2 flex items-center justify-between rounded bg-white p-2">
+    <div
+      key={id}
+      className="mb-2 flex items-center justify-between rounded bg-white p-2"
+    >
       <div>
-        <Link className="text-lg font-semibold" href={`/admin/parks/${id}`}>{nome}</Link>
+        <Link className="text-lg font-semibold" href={`/admin/parks/${id}`}>
+          {nome}
+        </Link>
       </div>
       <div>
         <Button
