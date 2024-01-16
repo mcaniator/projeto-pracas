@@ -1,4 +1,4 @@
-name: linters
+name: prettier
 
 on:
   push:
@@ -9,8 +9,8 @@ on:
     - cron: '21 3 * * 4'
 
 jobs:
-  run-linters:
-    name: Run linters
+  run-prettier:
+    name: Run prettier
     runs-on: ubuntu-latest
 
     steps:
@@ -28,9 +28,11 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Node.js dependencies
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm dlx prisma generate
 
-      - name: Run linters
+      - name: Run prettier
         uses: wearerequired/lint-action@v2
         with:
           auto_fix: true
