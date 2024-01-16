@@ -1,4 +1,4 @@
-import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
+// import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
 import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
 
 // import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
@@ -18,8 +18,7 @@ const AdminRoot = () => {
           </div>
         </div>
       </div>
-
-      <ButtonWrapper />
+      {/* <ButtonWrapper /> */}
     </div>
   );
 };

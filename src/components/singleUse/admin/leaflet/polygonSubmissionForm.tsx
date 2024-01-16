@@ -263,7 +263,7 @@ const BasicForm = (props: {
 
         <div className={"flex flex-col"}>
           <div className={"translate-y-1"}>
-            <label htmlFor={"firstStreet"}>Primeira Rua</label>{" "}
+            <label htmlFor={"firstStreet"}>Primeira Rua</label>
           </div>
           <Input
             type={"text"}
@@ -280,7 +280,7 @@ const BasicForm = (props: {
 
         <div>
           <div className={"translate-y-1"}>
-            <label htmlFor={"secondStreet"}>Segunda Rua</label>{" "}
+            <label htmlFor={"secondStreet"}>Segunda Rua</label>
           </div>
           <Input
             type={"text"}

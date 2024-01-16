@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { handleDelete } from "@/serverActions/locationUtil";
+import Link from "next/link";
 import { useContext } from "react";
 
 import { ChangedContext } from "../registration/forms/parkForm";
@@ -18,10 +19,10 @@ const LocalComponent = ({ id, nome }: FormProps) => {
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
     >
-      <div
-      //   onClick={() => handleRedirect(id)}
-      >
-        <h4 className="text-lg font-semibold">{nome}</h4>
+      <div>
+        <Link className="text-lg font-semibold" href={`/admin/parks/${id}`}>
+          {nome}
+        </Link>
       </div>
       <div>
         <Button
