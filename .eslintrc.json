@@ -4,6 +4,9 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended-type-checked"
   ],
+  "rules": {
+    "no-console": "error"
+  },
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "ignorePatterns": ["/*", "!/src"],
