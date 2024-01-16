@@ -17,13 +17,18 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Set up Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 21
+          cache: 'pnpm'
 
       - name: Install Node.js dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Run linters
         uses: wearerequired/lint-action@v2
