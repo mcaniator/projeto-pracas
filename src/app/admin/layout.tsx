@@ -1,4 +1,4 @@
-import { Header } from "@/components/header";
+import { Header } from "@/app/_components/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
 import { ReactNode } from "react";
 
