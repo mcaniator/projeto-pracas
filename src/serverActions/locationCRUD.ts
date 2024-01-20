@@ -27,48 +27,48 @@ const createLocation = async (
 ) => {
   const dataToCreate: any = {};
   Object.entries(content).forEach(([key, value]) => {
-    if (key == "administrativeDelimitation1") {
+    if (key == "narrowAdministrativeUnit") {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            cityId_administrativeDelimitation1Name: {
+            cityId_narrowUnitName: {
               cityId: cityID,
-              administrativeDelimitation1Name: value,
+              name: value,
             },
           },
           create: {
             cityId: cityID,
-            administrativeDelimitation1Name: value,
+            name: value,
           },
         },
       };
-    } else if (key == "administrativeDelimitation2") {
+    } else if (key == "intermediateAdministrativeUnit") {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            cityId_administrativeDelimitation2Name: {
+            cityId_intermediateUnitName: {
               cityId: cityID,
-              administrativeDelimitation2Name: value,
+              name: value,
             },
           },
           create: {
             cityId: cityID,
-            administrativeDelimitation2Name: value,
+            name: value,
           },
         },
       };
-    } else if (key == "administrativeDelimitation3") {
+    } else if (key == "broadAdministrativeUnit") {
       dataToCreate[key] = {
         connectOrCreate: {
           where: {
-            cityId_administrativeDelimitation3Name: {
+            cityId_broadUnitName: {
               cityId: cityID,
-              administrativeDelimitation3Name: value,
+              name: value,
             },
           },
           create: {
             cityId: cityID,
-            administrativeDelimitation3Name: value,
+            name: value,
           },
         },
       };

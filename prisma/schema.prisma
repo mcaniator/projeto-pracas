@@ -419,7 +419,7 @@ model NarrowAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_narrowUnitName")
   @@map("narrow_administrative_unit")
 }
 
@@ -433,7 +433,7 @@ model IntermediateAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_intermediateUnitName")
   @@map("intermediate_administrative_unit")
 }
 
@@ -447,7 +447,7 @@ model BroadAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_broadUnitName")
   @@map("broad_administrative_unit")
 }
 
