@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
+import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { useState } from "react";
@@ -16,8 +16,6 @@ const ButtonWrapper = () => {
     intermediateAdministrativeUnit: "del2",
     broadAdministrativeUnit: "del4",
   };
-
-  const fetchId = 5;
 
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
@@ -46,16 +44,6 @@ const ButtonWrapper = () => {
             <span className="-mb-1">Cadastrar</span>
           </Button>
         </div>
-      </div>
-
-      <div>
-        <p>Consulta de Locais:</p>
-        <Button
-          variant="admin"
-          onClick={() => console.log(fetchLocation(fetchId))}
-        >
-          <span className="-mb-1">Consultar</span>
-        </Button>
       </div>
 
       <div className="flex gap-2">
@@ -101,7 +89,7 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void addPersonToTally(tallyId, [
+            void addPersonToTally([
               {
                 ageGroup: "ADULT",
                 gender: "MALE",

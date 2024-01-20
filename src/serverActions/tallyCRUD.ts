@@ -9,17 +9,23 @@ const createTally = async (content: tallyType) => {
       data: content,
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating tally",
+    };
   }
 };
 
-const addPersonToTally = async (tallyId: number, content: personType[]) => {
+const addPersonToTally = async (content: personType[]) => {
   try {
     await prisma.person.createMany({
       data: content,
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating 1 or more people entries",
+    };
   }
 };
 

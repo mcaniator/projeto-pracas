@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { locationType } from "@/lib/zodValidators";
+import { locationDataToCreateType } from "@/lib/zodValidators";
 import { Location } from "@prisma/client";
 
 const fetchLocation = async (id: number) => {
@@ -14,7 +15,7 @@ const fetchLocation = async (id: number) => {
       },
     });
   } catch (error) {
-    console.log(error);
+    return { statusCode: 1, errorMessage: "Error fetching location id" };
   }
 
   return currentPark;
@@ -22,10 +23,10 @@ const fetchLocation = async (id: number) => {
 
 const createLocation = async (
   content: locationType,
-  cityID: Number,
+  cityID: number,
   polygonContent: string,
 ) => {
-  const dataToCreate: any = {};
+  const dataToCreate: locationDataToCreateType = {};
   Object.entries(content).forEach(([key, value]) => {
     if (key == "narrowAdministrativeUnit") {
       dataToCreate[key] = {
@@ -77,7 +78,7 @@ const createLocation = async (
     }
   });
   try {
-    let locationCreated = await prisma.location.create({
+    const locationCreated = await prisma.location.create({
       data: dataToCreate,
     });
     if (polygonContent != null) {
@@ -87,7 +88,7 @@ const createLocation = async (
     WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
-    console.log(error);
+    return { statusCode: 2, errorMessage: "Error creating new location" };
   }
 };
 
