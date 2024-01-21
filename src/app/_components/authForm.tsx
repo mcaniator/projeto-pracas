@@ -6,7 +6,7 @@ import { titillium_web } from "@/lib/fonts";
 import { login, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
 const AuthForm = () => {
@@ -51,9 +51,7 @@ const AuthForm = () => {
 };
 
 const Login = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(login, { statusCode: 0 });
-
-  useEffect(() => console.log(state), [state]);
+  const [, formAction] = useFormState(login, { statusCode: 0 });
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -92,9 +90,7 @@ const Login = (props: { username: MutableRefObject<string> }) => {
 };
 
 const Signup = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(signup, { statusCode: 0 });
-
-  useEffect(() => console.log(state), [state]);
+  const [, formAction] = useFormState(signup, { statusCode: 0 });
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

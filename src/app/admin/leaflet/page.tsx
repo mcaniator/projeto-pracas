@@ -17,13 +17,6 @@ const LeafletProvider = dynamic(
 );
 
 const LeafletRoot = () => {
-  // const localsData = await prisma.local.findMany();
-  // const polygons = await fetchPolygons();
-  //
-  // console.log(polygons);
-  // const parkData = localsData.map((value, index) => ({ polygon: polygons[index]?.coordinates[0], ...value }));
-  // const addressData = await prisma.endereco.findMany();
-
   return (
     <LeafletProvider>
       <CreatePolygon />
