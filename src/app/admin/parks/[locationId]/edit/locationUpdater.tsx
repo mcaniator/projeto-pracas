@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { categorySubmit } from "@/serverActions/categorySubmit";
+import { updateLocation } from "@/serverActions/locationUtil";
 import { Location } from "@prisma/client";
 import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
@@ -12,7 +12,7 @@ const initialState = {
   statusCode: 0,
 };
 const LocationUpdater = ({ location }: { location: Location }) => {
-  const [state, formAction] = useFormState(categorySubmit, initialState);
+  const [state, formAction] = useFormState(updateLocation, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     console.log(state);
@@ -73,11 +73,11 @@ const LocationUpdater = ({ location }: { location: Location }) => {
           name="creationYear"
           id={"creationYear"}
           className={"w-[50%]"}
-          // defaultValue={
-          //   location?.creationYear == undefined ?
-          //     ""
-          //   : location.creationYear.toISOString()
-          // }
+          defaultValue={
+            location?.creationYear == undefined ?
+              ""
+            : new Date(location.creationYear).toISOString().split("T")[0]
+          }
         />
 
         <label htmlFor={"lastMaintenanceYear"}>
@@ -128,7 +128,13 @@ const LocationUpdater = ({ location }: { location: Location }) => {
           defaultValue={location?.incline == undefined ? "" : location.incline}
         />
 
-        <Input type="hidden" name="id" id={"id"} className={"hidden"} />
+        <Input
+          type="hidden"
+          name="locationId"
+          id={"locationId"}
+          className={"hidden"}
+          value={location.id.toString()}
+        />
       </div>
       <Button variant={"admin"} type="submit" className={"w-min"}>
         <span className={"-mb-1"}>Enviar</span>
