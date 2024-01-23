@@ -114,19 +114,24 @@ const updateLocation = async (
   try {
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
-      // isPark: formData.get("isPark"),
-      // notes: formData.get("notes"),
-      // creationYear: formData.get("creationYear"),
-      // lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      // overseeingMayor: formData.get("overseeingMayor"),
-      // legislation: formData.get("legislation"),
-      // usableArea: formData.get("usableArea"),
-      // legalArea: formData.get("legalArea"),
-      // incline: formData.get("incline"),
-      // inactiveNotFound: formData.get("inactiveNotFound"),
+      inactiveNotFound: formData.get("inactiveNotFound") === "on",
+      isPark: formData.get("isPark") === "on",
+      notes: formData.get("notes"),
+      creationYear:
+        formData.get("creationYear") ?
+          new Date(formData.get("creationYear") as string).toISOString()
+        : null,
+      lastMaintenanceYear:
+        formData.get("lastMaintenanceYear") ?
+          new Date(formData.get("lastMaintenanceYear") as string).toISOString()
+        : null,
+      overseeingMayor: formData.get("overseeingMayor"),
+      legislation: formData.get("legislation"),
+      usableArea: formData.get("usableArea"),
+      legalArea: formData.get("legalArea"),
+      incline: formData.get("incline"),
     });
   } catch (e) {
-    console.log("erro durante o parse");
     return {
       statusCode: 1,
     };

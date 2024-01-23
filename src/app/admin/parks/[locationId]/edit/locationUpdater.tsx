@@ -14,9 +14,7 @@ const initialState = {
 const LocationUpdater = ({ location }: { location: Location }) => {
   const [state, formAction] = useFormState(updateLocation, initialState);
   const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
+  useEffect(() => {}, [state]);
 
   // TODO: add error handling
   return (
@@ -45,14 +43,14 @@ const LocationUpdater = ({ location }: { location: Location }) => {
           <Checkbox
             name="inactiveNotFound"
             id={"inactiveNotFound"}
-            defaultChecked={location?.inactiveNotFound == true}
+            defaultChecked={location?.inactiveNotFound === true}
           >
             Inativo ou não encontrado
           </Checkbox>
           <Checkbox
             name="isPark"
             id={"isPark"}
-            defaultChecked={location?.isPark == true}
+            defaultChecked={location?.isPark === true}
           >
             É Praça:
           </Checkbox>
@@ -88,11 +86,11 @@ const LocationUpdater = ({ location }: { location: Location }) => {
           name="lastMaintenanceYear"
           id={"lastMaintenanceYear"}
           className={"w-[50%]"}
-          // defaultValue={
-          //   location?.creationYear == undefined ?
-          //     ""
-          //   : location.creationYear.toISOString()
-          // }
+          defaultValue={
+            location?.lastMaintenanceYear == undefined ?
+              ""
+            : new Date(location.lastMaintenanceYear).toISOString().split("T")[0]
+          }
         />
 
         <label htmlFor={"overseeingMayor"}>Prefeito Inaugurador:</label>
@@ -118,7 +116,26 @@ const LocationUpdater = ({ location }: { location: Location }) => {
             location?.legislation == undefined ? "" : location.legislation
           }
         />
-
+        <label htmlFor={"usableArea"}>Área Útil:</label>
+        <Input
+          type="number"
+          name="usableArea"
+          id={"usableArea"}
+          className={"w-[50%]"}
+          defaultValue={
+            location?.usableArea == undefined ? "" : location.usableArea
+          }
+        />
+        <label htmlFor={"legalArea"}>Área Prefeitura:</label>
+        <Input
+          type="number"
+          name="legalArea"
+          id={"legalArea"}
+          className={"w-[50%]"}
+          defaultValue={
+            location?.legalArea == undefined ? "" : location.legalArea
+          }
+        />
         <label htmlFor={"incline"}>Inclinação:</label>
         <Input
           type="number"
