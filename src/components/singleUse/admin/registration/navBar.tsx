@@ -10,19 +10,30 @@ const NavBar = () => {
     <div className={"flex gap-3 p-5 pb-0"}>
       {isComponents ?
         <>
-          <h2 className={"-mb-1 text-3xl font-bold text-white"}>Criação de Perguntas</h2>
-          <Link href={"/admin/registration/forms"} className={"-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"}>
+          <h2 className={"-mb-1 text-3xl font-bold text-white"}>
+            Criação de Perguntas
+          </h2>
+          <Link
+            href={"/admin/registration/forms"}
+            className={
+              "-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"
+            }
+          >
             Criação de Formulários
           </Link>
         </>
       : <>
           <Link
             href={"/admin/registration/questions"}
-            className={"-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"}
+            className={
+              "-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"
+            }
           >
             Criação de Perguntas
           </Link>
-          <h2 className={"-mb-1 text-3xl font-bold text-white"}>Criação de Formulários</h2>
+          <h2 className={"-mb-1 text-3xl font-bold text-white"}>
+            Criação de Formulários
+          </h2>
         </>
       }
     </div>

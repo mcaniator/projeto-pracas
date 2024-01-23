@@ -18,7 +18,9 @@ const handleDelete = async (formID: number) => {
 };
 
 const fetchForms = async () => {
-  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({ select: { id: true, name: true } });
+  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({
+    select: { id: true, name: true },
+  });
 
   let forms: Prisma.FormGetPayload<typeof formsType>[] = [];
 

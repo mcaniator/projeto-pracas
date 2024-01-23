@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { categorySchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
 
-const categorySubmit = async (prevState: { statusCode: number }, formData: FormData) => {
+const categorySubmit = async (
+  prevState: { statusCode: number },
+  formData: FormData,
+) => {
   let parse;
   try {
     parse = categorySchema.parse({

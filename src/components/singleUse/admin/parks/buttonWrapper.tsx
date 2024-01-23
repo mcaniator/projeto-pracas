@@ -27,7 +27,10 @@ const ButtonWrapper = () => {
       <div>
         <p>Criação de Locais:</p>
         <div className="flex gap-2">
-          <Button variant="admin" onClick={() => (content.name = "praça são mateus")}>
+          <Button
+            variant="admin"
+            onClick={() => (content.name = "praça são mateus")}
+          >
             <span className="-mb-1">Mudar nome</span>
           </Button>
           <Button
@@ -47,7 +50,10 @@ const ButtonWrapper = () => {
 
       <div>
         <p>Consulta de Locais:</p>
-        <Button variant="admin" onClick={() => console.log(fetchLocation(fetchId))}>
+        <Button
+          variant="admin"
+          onClick={() => console.log(fetchLocation(fetchId))}
+        >
           <span className="-mb-1">Consultar</span>
         </Button>
       </div>
@@ -67,7 +73,13 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createTally({ locationId: locationId, animalsAmount: 0, temperature: 30.0 })}
+          onClick={() =>
+            void createTally({
+              locationId: locationId,
+              animalsAmount: 0,
+              temperature: 30.0,
+            })
+          }
         >
           <span className="-mb-1">Adicionar contagem</span>
         </Button>
@@ -76,7 +88,13 @@ const ButtonWrapper = () => {
       <div className="flex gap-2">
         <div>
           <label htmlFor="tallyId">ID da contagem:</label>
-          <Input type="number" id="tallyId" name="Tally ID Input" onChange={(e) => setTallyId(parseInt(e.target.value))} value={tallyId} />
+          <Input
+            type="number"
+            id="tallyId"
+            name="Tally ID Input"
+            onChange={(e) => setTallyId(parseInt(e.target.value))}
+            value={tallyId}
+          />
         </div>
         <Button
           variant={"admin"}
@@ -106,7 +124,12 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createNoiseMeasurement({ assessmentId: 1, location: "CENTER", soundLevel: 70.5 }, { x: 266, y: 1530 })}
+          onClick={() =>
+            void createNoiseMeasurement(
+              { assessmentId: 1, location: "CENTER", soundLevel: 70.5 },
+              { x: 266, y: 1530 },
+            )
+          }
         >
           <span className="-mb-1">Adicionar ruído</span>
         </Button>

@@ -2,9 +2,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { revalidate, searchLocationsByName } from "@/serverActions/locationUtil";
+import {
+  revalidate,
+  searchLocationsByName,
+} from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
-import { Dispatch, SetStateAction, Suspense, createContext, use, useDeferredValue, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  Suspense,
+  createContext,
+  use,
+  useDeferredValue,
+  useEffect,
+  useState,
+} from "react";
 
 import { LocalComponent } from "../../parks/localComponent";
 
@@ -18,7 +30,10 @@ const LocalList = ({ localsPromise }: { localsPromise?: Promise<Form[]> }) => {
   const locals = use(localsPromise);
   return (
     <div className="w-full text-black">
-      {locals.length > 0 && locals.map((local) => <LocalComponent key={local.id} id={local.id} nome={local.name} />)}
+      {locals.length > 0 &&
+        locals.map((local) => (
+          <LocalComponent key={local.id} id={local.id} nome={local.name} />
+        ))}
     </div>
   );
 };
@@ -48,11 +63,18 @@ const ParkForm = () => {
           onChange={(e) => setTargetLocal(e.target.value)}
         />
       </div>
-      <Button variant={"admin"} type="submit" className={"w-min"} onClick={() => revalidate()}>
+      <Button
+        variant={"admin"}
+        type="submit"
+        className={"w-min"}
+        onClick={() => revalidate()}
+      >
         <span className={"-mb-1"}>Revalidar</span>
       </Button>
       <Suspense>
-        <ChangedContext.Provider value={{ changedContext: changed, setChangedContext: setChanged }}>
+        <ChangedContext.Provider
+          value={{ changedContext: changed, setChangedContext: setChanged }}
+        >
           <LocalList localsPromise={deferredFoundLocals} />
         </ChangedContext.Provider>
       </Suspense>

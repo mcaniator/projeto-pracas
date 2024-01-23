@@ -13,7 +13,13 @@ interface localsPolygon extends Location {
   polygon: [number, number][];
 }
 
-const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; addressData: Address[] }) => {
+const EditPolygon = ({
+  parkData,
+  addressData,
+}: {
+  parkData: localsPolygon[];
+  addressData: Address[];
+}) => {
   const [polygon, setPolygon] = useState<LatLngExpression[]>();
   const { drawingContext } = useContext(DrawingContext);
   const [value, setValue] = useState(-1);
@@ -34,10 +40,18 @@ const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; add
     <div>
       {parkData.map((value, index) => (
         <div key={index}>
-          <Polygon positions={value.polygon as LatLngExpression[]} color={"#8FBC94"}>
+          <Polygon
+            positions={value.polygon as LatLngExpression[]}
+            color={"#8FBC94"}
+          >
             {!drawingContext && (
               <Popup>
-                <PolygonEditForm parkData={value} addressData={addressData.filter((aux) => aux.locationId == value.id)} />
+                <PolygonEditForm
+                  parkData={value}
+                  addressData={addressData.filter(
+                    (aux) => aux.locationId == value.id,
+                  )}
+                />
               </Popup>
             )}
 
@@ -54,7 +68,12 @@ const EditPolygon = ({ parkData, addressData }: { parkData: localsPolygon[]; add
             value={value}
             onChange={(value) => {
               if (parseInt(value.target.value) != -1) {
-                const temp = parkData.find((individualData) => individualData.id == parseInt(value.target.value))?.polygon.map((value) => value);
+                const temp = parkData
+                  .find(
+                    (individualData) =>
+                      individualData.id == parseInt(value.target.value),
+                  )
+                  ?.polygon.map((value) => value);
 
                 setPolygon(temp! as LatLngExpression[]);
               }

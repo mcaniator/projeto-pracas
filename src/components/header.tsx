@@ -10,7 +10,8 @@ import { HTMLAttributes, forwardRef } from "react";
 const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
   variants: {
     variant: {
-      default: "fixed z-20 bg-black/30  backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+      default:
+        "fixed z-20 bg-black/30  backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
       fixed: "fixed top-0",
       static: "static",
     },
@@ -20,21 +21,29 @@ const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
   },
 });
 
-interface headerProps extends HTMLAttributes<HTMLElement>, VariantProps<typeof headerVariants> {}
+interface headerProps
+  extends HTMLAttributes<HTMLElement>,
+    VariantProps<typeof headerVariants> {}
 
-const Header = forwardRef<HTMLElement, headerProps>(({ variant, ...props }, ref) => {
-  return (
-    <header className={cn(titillium_web.className, headerVariants({ variant }))} ref={ref} {...props}>
-      <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
-        <Link className="flex items-center" href={"/"}>
-          <IconTree size={34} />
-          <span className="text-2xl sm:text-3xl">Projeto Praças</span>
-        </Link>
-      </Button>
-      <LoginButton />
-    </header>
-  );
-});
+const Header = forwardRef<HTMLElement, headerProps>(
+  ({ variant, ...props }, ref) => {
+    return (
+      <header
+        className={cn(titillium_web.className, headerVariants({ variant }))}
+        ref={ref}
+        {...props}
+      >
+        <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
+          <Link className="flex items-center" href={"/"}>
+            <IconTree size={34} />
+            <span className="text-2xl sm:text-3xl">Projeto Praças</span>
+          </Link>
+        </Button>
+        <LoginButton />
+      </header>
+    );
+  },
+);
 Header.displayName = "Header";
 
 export { Header };
