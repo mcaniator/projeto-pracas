@@ -15,7 +15,7 @@ const handleDelete = async (parkID: number) => {
     });
     revalidateTag("location");
   } catch (err) {
-    console.error(`Erro ao excluir o local: ${parkID}`, err);
+    // console.error(`Erro ao excluir o local: ${parkID}`, err);
   }
 };
 
@@ -34,7 +34,7 @@ const fetchLocations = async () => {
       },
     });
   } catch (err) {
-    console.error(`Erro ao recuperar locais`, err);
+    // console.error(`Erro ao recuperar locais`, err);
   }
 
   return locations;
@@ -57,7 +57,7 @@ const searchLocationsByName = async (name: string) => {
           },
         });
       } catch (err) {
-        console.error(err);
+        // console.error(err);
       }
 
       return foundLocations;
@@ -80,7 +80,7 @@ const searchLocationsById = async (id: number) => {
           },
         });
       } catch (err) {
-        console.error(err);
+        // console.error(err);
       }
 
       return foundLocation;
@@ -104,7 +104,7 @@ const updateLocation = async (
       .int()
       .finite()
       .nonnegative()
-      .parse(formData.get("id"));
+      .parse(formData.get("locationId"));
   } catch (e) {
     return {
       statusCode: 1,
@@ -114,21 +114,24 @@ const updateLocation = async (
   try {
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
-      isPark: formData.get("isPark"),
+      inactiveNotFound: formData.get("inactiveNotFound") === "on",
+      isPark: formData.get("isPark") === "on",
       notes: formData.get("notes"),
-      creationYear: formData.get("creationYear"),
-      lastMaintenanceYear: formData.get("lastMaintenanceYear"),
+      creationYear:
+        formData.get("creationYear") ?
+          new Date(formData.get("creationYear") as string).toISOString()
+        : null,
+      lastMaintenanceYear:
+        formData.get("lastMaintenanceYear") ?
+          new Date(formData.get("lastMaintenanceYear") as string).toISOString()
+        : null,
       overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
       usableArea: formData.get("usableArea"),
       legalArea: formData.get("legalArea"),
       incline: formData.get("incline"),
-      inactiveNotFound: formData.get("inactiveNotFound"),
     });
-    console.log(locationToUpdate);
   } catch (e) {
-    console.log(locationToUpdate);
-
     return {
       statusCode: 1,
     };

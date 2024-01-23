@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  revalidate,
+  // revalidate,
   searchLocationsByName,
 } from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
@@ -63,14 +63,9 @@ const ParkForm = () => {
           onChange={(e) => setTargetLocal(e.target.value)}
         />
       </div>
-      <Button
-        variant={"admin"}
-        type="submit"
-        className={"w-min"}
-        onClick={() => revalidate()}
-      >
+      {/* <Button variant={"admin"} type="submit" className={"w-min"} onClick={() => revalidate()}>
         <span className={"-mb-1"}>Revalidar</span>
-      </Button>
+      </Button> */}
       <Suspense>
         <ChangedContext.Provider
           value={{ changedContext: changed, setChangedContext: setChanged }}
