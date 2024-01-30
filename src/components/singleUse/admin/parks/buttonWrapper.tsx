@@ -96,7 +96,7 @@ const ButtonWrapper = () => {
               isTraversing: false,
               isPersonWithImpairment: false,
               isInApparentIllicitActivity: false,
-              isPersonWithoutHousing: false,
+              isPersonWithoutHousing: true,
             })
           }
         >

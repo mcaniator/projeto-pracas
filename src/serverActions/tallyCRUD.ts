@@ -22,15 +22,47 @@ const addPersonToTally = async (
   person: personType,
 ) => {
   try {
-    const databasePerson = await prisma.person.upsert({
+    let databasePerson = await prisma.person.findUnique({
       where: {
         person_characteristics: person,
       },
-      update: person,
-      create: person,
     });
+    if (!databasePerson) {
+      databasePerson = await prisma.person.create({
+        data: person,
+      });
+    }
 
-    await prisma.tallyPerson.upsert({
+    const databaseTallyPerson = await prisma.tallyPerson.findUnique({
+      where: {
+        tally_id_person_id: {
+          tallyId: tallyId,
+          personId: databasePerson.id,
+        },
+      },
+    });
+    if (!databaseTallyPerson) {
+      await prisma.tallyPerson.create({
+        data: {
+          tallyId: tallyId,
+          personId: databasePerson.id,
+          quantity: quantity,
+        },
+      });
+    } else {
+      await prisma.tallyPerson.update({
+        where: {
+          tally_id_person_id: {
+            tallyId: tallyId,
+            personId: databasePerson.id,
+          },
+        },
+        data: {
+          quantity: { increment: quantity },
+        },
+      });
+    }
+    /*await prisma.tallyPerson.upsert({
       where: {
         tally_id_person_id: {
           tallyId: tallyId,
@@ -43,7 +75,7 @@ const addPersonToTally = async (
         personId: databasePerson.id,
         quantity: quantity,
       },
-    });
+    });*/
   } catch (error) {
     return {
       statusCode: 2,
