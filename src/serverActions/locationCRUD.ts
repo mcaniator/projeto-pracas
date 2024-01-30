@@ -88,7 +88,8 @@ const createLocation = async (
     WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
-    return { statusCode: 2, errorMessage: "Error creating new location" };
+    //return { statusCode: 2, errorMessage: "Error creating new location" };
+    console.log(error);
   }
 };
 

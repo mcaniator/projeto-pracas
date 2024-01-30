@@ -16,16 +16,40 @@ const createTally = async (content: tallyType) => {
   }
 };
 
-const addPersonToTally = async (content: personType[]) => {
+const addPersonToTally = async (
+  tallyId: number,
+  quantity: number,
+  person: personType,
+) => {
   try {
-    await prisma.person.createMany({
-      data: content,
+    const databasePerson = await prisma.person.upsert({
+      where: {
+        person_characteristics: person,
+      },
+      update: person,
+      create: person,
+    });
+
+    await prisma.tallyPerson.upsert({
+      where: {
+        tally_id_person_id: {
+          tallyId: tallyId,
+          personId: databasePerson.id,
+        },
+      },
+      update: { quantity: { increment: quantity } },
+      create: {
+        tallyId: tallyId,
+        personId: databasePerson.id,
+        quantity: quantity,
+      },
     });
   } catch (error) {
     return {
       statusCode: 2,
       errorMessage: "Error creating 1 or more people entries",
     };
+    //console.log(error);
   }
 };
 

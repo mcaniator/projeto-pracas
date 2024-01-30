@@ -493,8 +493,6 @@ const personSchema = z.object({
   isPersonWithImpairment: z.boolean(),
   isInApparentIllicitActivity: z.boolean(),
   isPersonWithoutHousing: z.boolean(),
-
-  tallyId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const noiseSchema = z.object({
