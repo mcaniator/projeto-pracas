@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createLocation, fetchLocation } from "@/serverActions/locationCRUD";
+import { getPolygonFromShp } from "@/serverActions/getPolygonFromShp";
+import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
 import { useState } from "react";
@@ -16,8 +17,6 @@ const ButtonWrapper = () => {
     administrativeDelimitation2: "del2",
     administrativeDelimitation3: "del4",
   };
-
-  const fetchId = 5;
 
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
@@ -46,16 +45,6 @@ const ButtonWrapper = () => {
             <span className="-mb-1">Cadastrar</span>
           </Button>
         </div>
-      </div>
-
-      <div>
-        <p>Consulta de Locais:</p>
-        <Button
-          variant="admin"
-          onClick={() => console.log(fetchLocation(fetchId))}
-        >
-          <span className="-mb-1">Consultar</span>
-        </Button>
       </div>
 
       <div className="flex gap-2">
@@ -133,6 +122,17 @@ const ButtonWrapper = () => {
         >
           <span className="-mb-1">Adicionar ruído</span>
         </Button>
+      </div>
+      <div className="flex gap-2">
+        <form action={getPolygonFromShp}>
+          <p>
+            <label htmlFor="shpFile">Enviar arquivo shapefile: </label>
+            <input id="shpFile" name="shpFile" type="file" accept=".shp" />
+          </p>
+          <Button variant={"admin"} className="mb-[2px] self-end" type="submit">
+            Enviar
+          </Button>
+        </form>
       </div>
     </div>
   );
