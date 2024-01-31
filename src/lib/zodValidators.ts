@@ -202,48 +202,54 @@ const administrativeUnitsSchema = z.object({
 });
 
 const locationDataToCreateSchema = z.object({
-  narrowAdministrativeUnit: z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_narrowUnitName: z.object({
+  narrowAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_narrowUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
           name: z.string().trim().min(1).max(255),
           cityId: z.coerce.number().int().finite().nonnegative(),
         }),
       }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
-  intermediateAdministrativeUnit: z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_intermediateUnitName: z.object({
+    })
+    .optional(),
+  intermediateAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_intermediateUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
           name: z.string().trim().min(1).max(255),
           cityId: z.coerce.number().int().finite().nonnegative(),
         }),
       }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
-  broadAdministrativeUnit: z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_broadUnitName: z.object({
+    })
+    .optional(),
+  broadAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_broadUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
           name: z.string().trim().min(1).max(255),
           cityId: z.coerce.number().int().finite().nonnegative(),
         }),
       }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
+    })
+    .optional(),
   name: z.string().trim().min(1).max(255),
   isPark: z.boolean().optional(),
   notes: z.string().trim().min(1).optional(),
