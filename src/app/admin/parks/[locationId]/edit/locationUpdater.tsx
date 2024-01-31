@@ -5,16 +5,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { Location } from "@prisma/client";
-import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { useRef } from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
   statusCode: 0,
 };
 const LocationUpdater = ({ location }: { location: Location }) => {
-  const [state, formAction] = useFormState(updateLocation, initialState);
+  const [, formAction] = useFormState(updateLocation, initialState);
   const formRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {}, [state]);
 
   // TODO: add error handling
   return (
@@ -42,7 +42,7 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="name"
                 required
                 id={"name"}
-                defaultValue={location?.name == undefined ? "" : location.name}
+                defaultValue={location.name === null ? "" : location.name}
               />
 
               <label htmlFor={"notes"}>Notas:</label>
@@ -50,9 +50,7 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 type="text"
                 name="notes"
                 id={"notes"}
-                defaultValue={
-                  location?.notes == undefined ? "" : location.notes
-                }
+                defaultValue={location.notes === null ? "" : location.notes}
               />
 
               <label htmlFor={"creationYear"}>Data de Criação:</label>
@@ -61,7 +59,7 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="creationYear"
                 id={"creationYear"}
                 defaultValue={
-                  location?.creationYear == undefined ?
+                  location.creationYear === null ?
                     ""
                   : new Date(location.creationYear).toISOString().split("T")[0]
                 }
@@ -75,7 +73,7 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="lastMaintenanceYear"
                 id={"lastMaintenanceYear"}
                 defaultValue={
-                  location?.lastMaintenanceYear == undefined ?
+                  location.lastMaintenanceYear === null ?
                     ""
                   : new Date(location.lastMaintenanceYear)
                       .toISOString()
@@ -89,7 +87,7 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="overseeingMayor"
                 id={"overseeingMayor"}
                 defaultValue={
-                  location?.overseeingMayor == undefined ?
+                  location.overseeingMayor === null ?
                     ""
                   : location.overseeingMayor
                 }
@@ -101,35 +99,36 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="legislation"
                 id={"legislation"}
                 defaultValue={
-                  location?.legislation == undefined ? "" : location.legislation
+                  location.legislation === null ? "" : location.legislation
                 }
               />
+
               <label htmlFor={"usableArea"}>Área Útil:</label>
               <Input
                 type="number"
                 name="usableArea"
                 id={"usableArea"}
                 defaultValue={
-                  location?.usableArea == undefined ? "" : location.usableArea
+                  location.usableArea === null ? "" : location.usableArea
                 }
               />
+
               <label htmlFor={"legalArea"}>Área Prefeitura:</label>
               <Input
                 type="number"
                 name="legalArea"
                 id={"legalArea"}
                 defaultValue={
-                  location?.legalArea == undefined ? "" : location.legalArea
+                  location.legalArea === null ? "" : location.legalArea
                 }
               />
+
               <label htmlFor={"incline"}>Inclinação:</label>
               <Input
                 type="number"
                 name="incline"
                 id={"incline"}
-                defaultValue={
-                  location?.incline == undefined ? "" : location.incline
-                }
+                defaultValue={location.incline === null ? "" : location.incline}
               />
 
               <Input
@@ -137,39 +136,42 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="locationId"
                 id={"locationId"}
                 className={"hidden"}
-                value={location.id.toString()}
+                defaultValue={location.id}
               />
+
               <div className="ml-auto flex gap-9">
                 <Checkbox
                   name="isPark"
                   id={"isPark"}
-                  defaultChecked={location?.isPark === true}
+                  defaultChecked={location.isPark === true}
                 >
                   É Praça:
                 </Checkbox>
+
                 <Checkbox
                   name="inactiveNotFound"
                   id={"inactiveNotFound"}
-                  defaultChecked={location?.inactiveNotFound === true}
+                  defaultChecked={location.inactiveNotFound === true}
                 >
                   Inativo ou não encontrado
                 </Checkbox>
               </div>
             </div>
-            <div className="mb-2 flex items-center justify-between rounded  p-2">
+
+            <div className="mb-2 flex items-center justify-between rounded p-2">
               <Button variant={"admin"} type="submit" className={"w-min"}>
                 <span className={"-mb-1"}>Enviar</span>
               </Button>
-              <Button
-                variant={"destructive"}
-                onClick={() => {
-                  void handleDelete(location.id);
-                  window.location.href = "/admin/parks";
-                }}
-                className={"w-min"}
-              >
-                <span className={"-mb-1"}>Deletar</span>
-              </Button>
+
+              <Link href={"/admin/parks"}>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => void handleDelete(location.id)}
+                  className={"w-min"}
+                >
+                  <span className={"-mb-1"}>Deletar</span>
+                </Button>
+              </Link>
             </div>
           </form>
         </div>
@@ -178,4 +180,4 @@ const LocationUpdater = ({ location }: { location: Location }) => {
   );
 };
 
-export default LocationUpdater;
+export { LocationUpdater };

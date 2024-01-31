@@ -1,52 +1,56 @@
 "use client";
 
-// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  // revalidate,
-  searchLocationsByName,
-} from "@/serverActions/locationUtil";
+import { searchLocationsByName } from "@/serverActions/locationUtil";
 import { Form } from "@prisma/client";
-import {
-  Dispatch,
-  SetStateAction,
-  Suspense,
-  createContext,
-  use,
-  useDeferredValue,
-  useEffect,
-  useState,
-} from "react";
+import { IconLink } from "@tabler/icons-react";
+import Link from "next/link";
+import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
-import { LocalComponent } from "../../parks/localComponent";
-
-const ChangedContext = createContext<{
-  changedContext: number;
-  setChangedContext: Dispatch<SetStateAction<number>>;
-}>({ changedContext: 0, setChangedContext: () => 0 });
-
-const LocalList = ({ localsPromise }: { localsPromise?: Promise<Form[]> }) => {
-  if (localsPromise === undefined) return null;
-  const locals = use(localsPromise);
+const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
   return (
-    <div className="w-full text-black">
-      {locals.length > 0 &&
-        locals.map((local) => (
-          <LocalComponent key={local.id} id={local.id} nome={local.name} />
-        ))}
-    </div>
+    <Link
+      key={id}
+      className="mb-2 flex items-center justify-between rounded bg-white p-2"
+      href={`/admin/parks/${id}`}
+    >
+      {nome}
+      <IconLink size={24} />
+    </Link>
   );
 };
 
+const LocationList = ({
+  locationsPromise,
+}: {
+  locationsPromise?: Promise<Form[]>;
+}) => {
+  if (locationsPromise === undefined) return null;
+  const locations = use(locationsPromise);
+
+  return locations === undefined || locations.length === 0 ?
+      null
+    : <div className="w-full text-black">
+        {locations.length > 0 &&
+          locations.map((location) => (
+            <LocationComponent
+              key={location.id}
+              id={location.id}
+              nome={location.name}
+            />
+          ))}
+      </div>;
+};
+
 const ParkForm = () => {
-  const [changed, setChanged] = useState(0);
-  const [targetLocal, setTargetLocal] = useState("");
-  const [foundLocals, setFoundLocals] = useState<Promise<Form[]>>();
+  const [targetLocation, setTargetLocation] = useState("");
+
+  const [foundLocations, setFoundLocations] = useState<Promise<Form[]>>();
   useEffect(() => {
-    setFoundLocals(searchLocationsByName(targetLocal));
-  }, [targetLocal, changed]);
-  const deferredFoundLocals = useDeferredValue(foundLocals);
-  //   const isStale = foundLocals !== deferredFoundLocals;
+    setFoundLocations(searchLocationsByName(targetLocation));
+  }, [targetLocation]);
+
+  const deferredFoundLocations = useDeferredValue(foundLocations);
 
   // TODO: add error handling
   return (
@@ -59,22 +63,15 @@ const ParkForm = () => {
           required
           id={"name"}
           autoComplete={"none"}
-          value={targetLocal}
-          onChange={(e) => setTargetLocal(e.target.value)}
+          value={targetLocation}
+          onChange={(e) => setTargetLocation(e.target.value)}
         />
       </div>
-      {/* <Button variant={"admin"} type="submit" className={"w-min"} onClick={() => revalidate()}>
-        <span className={"-mb-1"}>Revalidar</span>
-      </Button> */}
       <Suspense>
-        <ChangedContext.Provider
-          value={{ changedContext: changed, setChangedContext: setChanged }}
-        >
-          <LocalList localsPromise={deferredFoundLocals} />
-        </ChangedContext.Provider>
+        <LocationList locationsPromise={deferredFoundLocations} />
       </Suspense>
     </>
   );
 };
 
-export { ChangedContext, LocalList, ParkForm };
+export { ParkForm };

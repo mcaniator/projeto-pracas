@@ -96,7 +96,6 @@ const updateLocation = async (
   prevState: { statusCode: number },
   formData: FormData,
 ) => {
-  let locationToUpdate;
   let parseId;
   try {
     parseId = z.coerce
@@ -111,19 +110,23 @@ const updateLocation = async (
     };
   }
 
+  let locationToUpdate;
   try {
+    const lastMaintenanceYear = formData.get("lastMaintenanceYear");
+    const creationYear = formData.get("creationYear");
+
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
       inactiveNotFound: formData.get("inactiveNotFound") === "on",
       isPark: formData.get("isPark") === "on",
       notes: formData.get("notes"),
       creationYear:
-        formData.get("creationYear") ?
-          new Date(formData.get("creationYear") as string).toISOString()
+        creationYear !== null && !(creationYear instanceof File) ?
+          new Date(creationYear).toISOString()
         : null,
       lastMaintenanceYear:
-        formData.get("lastMaintenanceYear") ?
-          new Date(formData.get("lastMaintenanceYear") as string).toISOString()
+        lastMaintenanceYear !== null && !(lastMaintenanceYear instanceof File) ?
+          new Date(lastMaintenanceYear).toISOString()
         : null,
       overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
@@ -154,15 +157,10 @@ const updateLocation = async (
   };
 };
 
-const revalidate = () => {
-  revalidateTag("location");
-};
-
 export {
   fetchLocations,
   handleDelete,
-  revalidate,
-  searchLocationsByName,
   searchLocationsById,
+  searchLocationsByName,
   updateLocation,
 };
