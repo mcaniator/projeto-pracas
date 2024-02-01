@@ -4,69 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { locationType } from "@/lib/zodValidators";
 import { locationDataToCreateType } from "@/lib/zodValidators";
 import { Location } from "@prisma/client";
-import { LocationTypes } from "@prisma/client";
-import { CategoryTypes } from "@prisma/client";
 import { z } from "zod";
-
-//Definindo verificação de tipagem com ZOD
-//const locationTypesEnum = z.nativeEnum(LocationTypes);
-//const categoryTypesEnum = z.nativeEnum(CategoryTypes);
-const nonAdministrativeUnitTypes = z.union([
-  z.boolean().optional(),
-  z.string().trim().min(1).max(255),
-  z.string().trim().min(1).optional(),
-  z.coerce.date().optional(),
-  z.string().trim().min(1).max(255).optional(),
-  z.coerce.number().finite().nonnegative().optional(),
-  z.nativeEnum(LocationTypes).optional(),
-  z.nativeEnum(CategoryTypes).optional(),
-
-  z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_narrowUnitName: z.object({
-          name: z.string().trim().min(1).max(255),
-          cityId: z.coerce.number().int().finite().nonnegative(),
-        }),
-      }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
-
-  z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_intermediateUnitName: z.object({
-          name: z.string().trim().min(1).max(255),
-          cityId: z.coerce.number().int().finite().nonnegative(),
-        }),
-      }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
-
-  z.object({
-    connectOrCreate: z.object({
-      where: z.object({
-        cityId_broadUnitName: z.object({
-          name: z.string().trim().min(1).max(255),
-          cityId: z.coerce.number().int().finite().nonnegative(),
-        }),
-      }),
-      create: z.object({
-        name: z.string().trim().min(1).max(255),
-        cityId: z.coerce.number().int().finite().nonnegative(),
-      }),
-    }),
-  }),
-]);
-//Fim de definições
 
 const fetchLocation = async (id: number) => {
   let currentPark: Location | null = null;
@@ -137,7 +75,29 @@ const createLocation = async (
         },
       };
     } else {
-      dataToCreate[key] = nonAdministrativeUnitTypes.parse(value);
+      if (
+        key == "name" ||
+        key == "notes" ||
+        key == "overseeingMayor" ||
+        key == "legislation"
+      ) {
+        dataToCreate[key] = z.string().trim().min(1).max(255).parse(value);
+      } else if (key == "isPark" || key == "inactiveNotFound") {
+        dataToCreate[key] = z.boolean().parse(value);
+      } else if (
+        key == "usableArea" ||
+        key == "legalArea" ||
+        key == "incline" ||
+        key == "polygonArea"
+      ) {
+        dataToCreate[key] = z.coerce
+          .number()
+          .finite()
+          .nonnegative()
+          .parse(value);
+      } else if (key == "creationYear") {
+        dataToCreate[key] = z.coerce.date().parse(value);
+      }
     }
   });
   try {
@@ -151,8 +111,7 @@ const createLocation = async (
     WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
-    //return { statusCode: 2, errorMessage: "Error creating new location" };
-    console.log(error);
+    return { statusCode: 2, errorMessage: "Error creating new location" };
   }
 };
 
