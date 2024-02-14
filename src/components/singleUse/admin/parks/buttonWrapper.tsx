@@ -89,12 +89,12 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void addPersonToTally(tallyId, 6, {
+            void addPersonToTally(tallyId, 2, {
               ageGroup: "ADULT",
-              gender: "MALE",
+              gender: "FEMALE",
               activity: "SEDENTARY",
-              isTraversing: false,
-              isPersonWithImpairment: false,
+              isTraversing: true,
+              isPersonWithImpairment: true,
               isInApparentIllicitActivity: false,
               isPersonWithoutHousing: true,
             })
