@@ -201,13 +201,92 @@ const administrativeUnitsSchema = z.object({
   cityId: z.coerce.number().int().finite().nonnegative(),
 });
 
+const locationDataToCreateSchema = z.object({
+  narrowAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_narrowUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
+          name: z.string().trim().min(1).max(255),
+          cityId: z.coerce.number().int().finite().nonnegative(),
+        }),
+      }),
+    })
+    .optional(),
+  intermediateAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_intermediateUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
+          name: z.string().trim().min(1).max(255),
+          cityId: z.coerce.number().int().finite().nonnegative(),
+        }),
+      }),
+    })
+    .optional(),
+  broadAdministrativeUnit: z
+    .object({
+      connectOrCreate: z.object({
+        where: z.object({
+          cityId_broadUnitName: z.object({
+            name: z.string().trim().min(1).max(255),
+            cityId: z.coerce.number().int().finite().nonnegative(),
+          }),
+        }),
+        create: z.object({
+          name: z.string().trim().min(1).max(255),
+          cityId: z.coerce.number().int().finite().nonnegative(),
+        }),
+      }),
+    })
+    .optional(),
+  name: z.string().trim().min(1).max(255),
+  isPark: z.boolean().optional(),
+  notes: z.string().trim().min(1).optional(),
+  creationYear: z.coerce.date().optional(),
+  lastMaintenanceYear: z.coerce.date().optional(),
+  overseeingMayor: z.string().trim().min(1).max(255).optional(),
+  legislation: z.string().trim().min(1).max(255).optional(),
+  usableArea: z.coerce.number().finite().nonnegative().optional(),
+  legalArea: z.coerce.number().finite().nonnegative().optional(),
+  incline: z.coerce.number().finite().nonnegative().optional(),
+  inactiveNotFound: z.boolean().optional(),
+  polygonArea: z.coerce.number().finite().nonnegative().optional(),
+
+  type: z.nativeEnum(LocationTypes).optional(),
+  category: z.nativeEnum(CategoryTypes).optional(),
+});
+
 type locationType = z.infer<typeof locationSchema>;
 type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
+type locationDataToCreateType = z.infer<typeof locationDataToCreateSchema>;
 
-export { addressSchema, administrativeUnitsSchema, citySchema, locationSchema };
-export type { addressType, administrativeUnitsType, cityType, locationType };
+export {
+  addressSchema,
+  administrativeUnitsSchema,
+  citySchema,
+  locationSchema,
+  locationDataToCreateSchema,
+};
+export type {
+  addressType,
+  administrativeUnitsType,
+  cityType,
+  locationType,
+  locationDataToCreateType,
+};
 // #endregion
 
 // #region Informações das Avaliações
@@ -420,8 +499,6 @@ const personSchema = z.object({
   isPersonWithImpairment: z.boolean(),
   isInApparentIllicitActivity: z.boolean(),
   isPersonWithoutHousing: z.boolean(),
-
-  tallyId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const noiseSchema = z.object({
