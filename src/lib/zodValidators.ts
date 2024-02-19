@@ -267,11 +267,25 @@ const locationDataToCreateSchema = z.object({
   category: z.nativeEnum(CategoryTypes).optional(),
 });
 
+const coordinatesArraySchema = z.array(z.number()).length(2);
+const coordinatesRingSchema = z.array(coordinatesArraySchema);
+const coordinatesPolygonSchema = z.object({
+  bbox: z.array(z.number()).length(4),
+  type: z.string(),
+  coordinates: z.array(coordinatesRingSchema),
+});
+
+const geoJSONFromShpSchema = z.array(coordinatesPolygonSchema);
+
 type locationType = z.infer<typeof locationSchema>;
 type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
 type locationDataToCreateType = z.infer<typeof locationDataToCreateSchema>;
+type coordinatesArrayType = z.infer<typeof coordinatesArraySchema>;
+type coordinatesRingType = z.infer<typeof coordinatesRingSchema>;
+type coordinatesPolygonType = z.infer<typeof coordinatesPolygonSchema>;
+type geoJSONFromShpType = z.infer<typeof geoJSONFromShpSchema>;
 
 export {
   addressSchema,
@@ -279,6 +293,10 @@ export {
   citySchema,
   locationSchema,
   locationDataToCreateSchema,
+  coordinatesArraySchema,
+  coordinatesRingSchema,
+  coordinatesPolygonSchema,
+  geoJSONFromShpSchema,
 };
 export type {
   addressType,
@@ -286,6 +304,10 @@ export type {
   cityType,
   locationType,
   locationDataToCreateType,
+  coordinatesArrayType,
+  coordinatesRingType,
+  coordinatesPolygonType,
+  geoJSONFromShpType,
 };
 // #endregion
 

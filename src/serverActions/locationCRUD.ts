@@ -30,10 +30,9 @@ const createLocation = async (
   polygonContent: string,
   shpFileForm: FormData,
 ) => {
-  if (shpFileForm != null) {
-    if (shpFileForm.get("shpFile").size != 0) {
-      polygonContent = await getPolygonFromShp(shpFileForm);
-    }
+  const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
+  if (shpFile != null && shpFile.size !== 0) {
+    polygonContent = await getPolygonFromShp(shpFileForm);
   }
 
   const dataToCreate: locationDataToCreateType = { name: "" };
@@ -113,7 +112,7 @@ const createLocation = async (
       }
     }
   });
-  console.log(content.type);
+
   try {
     const locationCreated = await prisma.location.create({
       data: dataToCreate,
