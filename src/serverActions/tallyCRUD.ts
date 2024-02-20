@@ -27,9 +27,7 @@ const addPersonToTally = async (
         person_characteristics: person,
       },
       update: {},
-      create: {
-        ...person,
-      },
+      create: person,
     });
 
     await prisma.tallyPerson.upsert({
