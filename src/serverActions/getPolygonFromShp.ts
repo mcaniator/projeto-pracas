@@ -6,13 +6,11 @@ import { coordinatesPolygonType } from "@/lib/zodValidators";
 import { geoJSONFromShpType } from "@/lib/zodValidators";
 import { parseShp } from "shpjs";
 
-const getPolygonFromShp = async (formData: FormData) => {
-  const file = formData.get("shpFile");
-  if (true) {
-    const arrayBuffer: ArrayBuffer = await file.arrayBuffer();
+const getPolygonFromShp = async (shpFile: File) => {
+  if (shpFile.name.toLowerCase().endsWith(".shp")) {
+    const arrayBuffer: ArrayBuffer = await shpFile.arrayBuffer();
 
     const geoJSON: geoJSONFromShpType = parseShp(arrayBuffer);
-    console.log(geoJSON);
     const polygons = geoJSON.map(
       (polygon: coordinatesPolygonType) =>
         `(${polygon.coordinates
@@ -27,7 +25,7 @@ const getPolygonFromShp = async (formData: FormData) => {
 
     return polygonsString;
   } else {
-    return "";
+    return null;
   }
 };
 

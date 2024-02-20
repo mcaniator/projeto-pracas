@@ -27,12 +27,14 @@ const fetchLocation = async (id: number) => {
 const createLocation = async (
   content: locationType,
   cityID: number,
-  polygonContent: string,
-  shpFileForm: FormData,
+  polygonContent: string | null,
+  shpFileForm: FormData | null,
 ) => {
-  const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
-  if (shpFile != null && shpFile.size !== 0) {
-    polygonContent = await getPolygonFromShp(shpFileForm);
+  if (shpFileForm) {
+    const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
+    if (shpFile && typeof shpFile === "object" && shpFile.size !== 0) {
+      polygonContent = await getPolygonFromShp(shpFile);
+    }
   }
 
   const dataToCreate: locationDataToCreateType = { name: "" };
@@ -117,7 +119,7 @@ const createLocation = async (
     const locationCreated = await prisma.location.create({
       data: dataToCreate,
     });
-    if (polygonContent != null) {
+    if (polygonContent) {
       //polygonContent = "MULTIPOLYGON" + polygonContent;
       await prisma.$executeRaw`UPDATE location
     SET polygon = ST_GeomFromText(${polygonContent},4326)
