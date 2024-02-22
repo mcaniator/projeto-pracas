@@ -34,8 +34,10 @@ const createLocation = async (
     const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
     if (
       shpFile &&
+      typeof shpFile !== "string" &&
       shpFile instanceof Blob &&
       shpFile.name &&
+      shpFile.lastModified &&
       shpFile.size !== 0
     ) {
       polygonContent = await getPolygonFromShp(shpFile);
