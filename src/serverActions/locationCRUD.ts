@@ -32,7 +32,12 @@ const createLocation = async (
 ) => {
   if (shpFileForm) {
     const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
-    if (shpFile && typeof shpFile === "object" && shpFile.size !== 0) {
+    if (
+      shpFile &&
+      shpFile instanceof Blob &&
+      shpFile.name &&
+      shpFile.size !== 0
+    ) {
       polygonContent = await getPolygonFromShp(shpFile);
     }
   }
