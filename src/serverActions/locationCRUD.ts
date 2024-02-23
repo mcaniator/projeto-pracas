@@ -24,7 +24,7 @@ const createLocation = async (
   content: locationType,
   administrativeUnits: administrativeUnitsType,
   cityID: number,
-  polygonContent: string,
+  polygonContent: string | null,
 ) => {
   try {
     const locationCreated = await prisma.location.create({
