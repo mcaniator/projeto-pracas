@@ -6,7 +6,7 @@ import { locationDataToCreateType } from "@/lib/zodValidators";
 import { CategoryTypes, Location, LocationTypes } from "@prisma/client";
 import { z } from "zod";
 
-import { getPolygonFromShp } from "./getPolygonFromShp";
+import { getPolygonsFromShp } from "./getPolygonsFromShp";
 
 const fetchLocation = async (id: number) => {
   let currentPark: Location | null = null;
@@ -33,14 +33,12 @@ const createLocation = async (
   if (shpFileForm) {
     const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
     if (
-      shpFile &&
-      typeof shpFile !== "string" &&
       shpFile instanceof Blob &&
       shpFile.name &&
       shpFile.lastModified &&
-      shpFile.size !== 0
+      shpFile.size != 0
     ) {
-      polygonContent = await getPolygonFromShp(shpFile);
+      polygonContent = await getPolygonsFromShp(shpFile);
     }
   }
 
