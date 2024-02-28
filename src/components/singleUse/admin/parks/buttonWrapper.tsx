@@ -21,7 +21,17 @@ const ButtonWrapper = () => {
   const [tallyId, setTallyId] = useState(0);
 
   const handleLocationSubmit = (e: FormData) => {
-    void createLocation(content, 1, "null", e);
+    void createLocation(
+      content,
+      {
+        narrowAdministrativeUnit: "del1.3",
+        intermediateAdministrativeUnit: "del2.4",
+        broadAdministrativeUnit: "del4.3",
+      },
+      1,
+      "null",
+      e,
+    );
   };
 
   return (

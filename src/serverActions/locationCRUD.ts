@@ -1,10 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { locationType } from "@/lib/zodValidators";
-import { locationDataToCreateType } from "@/lib/zodValidators";
-import { CategoryTypes, Location, LocationTypes } from "@prisma/client";
-import { z } from "zod";
+import { administrativeUnitsType, locationType } from "@/lib/zodValidators";
+import { Location } from "@prisma/client";
 
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 
@@ -26,6 +24,7 @@ const fetchLocation = async (id: number) => {
 
 const createLocation = async (
   content: locationType,
+  administrativeUnits: administrativeUnitsType,
   cityID: number,
   polygonContent: string | null,
   shpFileForm: FormData | null,
@@ -42,87 +41,62 @@ const createLocation = async (
     }
   }
 
-  const dataToCreate: locationDataToCreateType = { name: "" };
-  Object.entries(content).forEach(([key, value]) => {
-    if (key == "narrowAdministrativeUnit") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_narrowUnitName: {
-              cityId: cityID,
-              name: z.string().parse(value),
-            },
-          },
-          create: {
-            cityId: cityID,
-            name: z.string().parse(value),
-          },
-        },
-      };
-    } else if (key == "intermediateAdministrativeUnit") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_intermediateUnitName: {
-              cityId: cityID,
-              name: z.string().parse(value),
-            },
-          },
-          create: {
-            cityId: cityID,
-            name: z.string().parse(value),
-          },
-        },
-      };
-    } else if (key == "broadAdministrativeUnit") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_broadUnitName: {
-              cityId: cityID,
-              name: z.string().parse(value),
-            },
-          },
-          create: {
-            cityId: cityID,
-            name: z.string().parse(value),
-          },
-        },
-      };
-    } else {
-      if (
-        key == "name" ||
-        key == "notes" ||
-        key == "overseeingMayor" ||
-        key == "legislation"
-      ) {
-        dataToCreate[key] = z.string().trim().min(1).max(255).parse(value);
-      } else if (key == "isPark" || key == "inactiveNotFound") {
-        dataToCreate[key] = z.boolean().parse(value);
-      } else if (
-        key == "usableArea" ||
-        key == "legalArea" ||
-        key == "incline" ||
-        key == "polygonArea"
-      ) {
-        dataToCreate[key] = z.coerce
-          .number()
-          .finite()
-          .nonnegative()
-          .parse(value);
-      } else if (key == "creationYear") {
-        dataToCreate[key] = z.coerce.date().parse(value);
-      } else if (key == "type") {
-        dataToCreate[key] = z.nativeEnum(LocationTypes).parse(value);
-      } else if (key == "category") {
-        dataToCreate[key] = z.nativeEnum(CategoryTypes).parse(value);
-      }
-    }
-  });
-
   try {
     const locationCreated = await prisma.location.create({
-      data: dataToCreate,
+      data: {
+        ...content,
+        narrowAdministrativeUnit: {
+          connectOrCreate:
+            administrativeUnits.narrowAdministrativeUnit ?
+              {
+                where: {
+                  cityId_narrowUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.narrowAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.narrowAdministrativeUnit,
+                },
+              }
+            : undefined,
+        },
+        intermediateAdministrativeUnit:
+          administrativeUnits.intermediateAdministrativeUnit ?
+            {
+              connectOrCreate: {
+                where: {
+                  cityId_intermediateUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.intermediateAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.intermediateAdministrativeUnit,
+                },
+              },
+            }
+          : undefined,
+        broadAdministrativeUnit:
+          administrativeUnits.broadAdministrativeUnit ?
+            {
+              connectOrCreate: {
+                where: {
+                  cityId_broadUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.broadAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.broadAdministrativeUnit,
+                },
+              },
+            }
+          : undefined,
+      },
     });
     if (polygonContent) {
       //polygonContent = "MULTIPOLYGON" + polygonContent;
