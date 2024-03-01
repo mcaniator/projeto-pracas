@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { exportTallyToCSV, exportToCSV } from "@/serverActions/exportToCSV";
 import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
@@ -131,6 +132,16 @@ const ButtonWrapper = () => {
             Cadastrar local
           </Button>
         </form>
+      </div>
+      <div>
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => void exportTallyToCSV([3, 4, 5, 6, 7, 8, 9])}
+        >
+          Exportar contagem para CSV
+        </Button>
       </div>
     </div>
   );
