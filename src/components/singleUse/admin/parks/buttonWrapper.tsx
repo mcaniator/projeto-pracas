@@ -67,6 +67,7 @@ const ButtonWrapper = () => {
           onClick={() =>
             void createTally({
               locationId: locationId,
+              weatherCondition: "SUNNY",
               animalsAmount: 0,
               temperature: 30.0,
             })
@@ -94,7 +95,7 @@ const ButtonWrapper = () => {
           onClick={() =>
             void addPersonToTally(tallyId, 2, {
               ageGroup: "ADULT",
-              gender: "FEMALE",
+              gender: "MALE",
               activity: "SEDENTARY",
               isTraversing: true,
               isPersonWithImpairment: true,
@@ -138,7 +139,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void exportTallyToCSV([3, 4, 5, 6, 7, 8, 9])}
+          onClick={() => void exportTallyToCSV([10, 11, 12, 13, 14])}
         >
           Exportar contagem para CSV
         </Button>

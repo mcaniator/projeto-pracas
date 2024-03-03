@@ -12,6 +12,7 @@ import {
   QuestionTypes,
   UserTypes,
   Visibility,
+  WeatherConditions,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -389,7 +390,7 @@ const tallySchema = z.object({
 
   animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.string().trim().min(1).max(255).optional(),
+  weatherCondition: z.nativeEnum(WeatherConditions).optional(),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
