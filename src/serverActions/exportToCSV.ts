@@ -18,7 +18,7 @@ const exportToCSV = async () => {
 
 const exportTallyToCSV = async (tallysIds: number[]) => {
   let CSVstring =
-    "Identificador;Nome da Praça;Observador;Data;Início;Duração;Temperatura;Com sol/Nublado;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
+    "Identificador;Nome da Praça;Observador;Dia;Data;Início;Duração;Temperatura;Com sol/Nublado;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
   let tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -55,6 +55,9 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
   );
   CSVstring += tallys
     .map((tally) => {
+      const weatherConditionMap = new Map();
+      weatherConditionMap.set("SUNNY", "Com sol");
+      weatherConditionMap.set("CLOUDY", "Nublado");
       const tallyMap = new Map();
       const genders = ["MALE", "FEMALE"];
       const ageGroups = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
@@ -161,8 +164,34 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
           );
         }
       }
-      console.log(tallyMap);
-      return `${tally.id};${tally.location.name};${tally.observer};${tally.date};${tally.startDate};${tally.endDate};${tally.temperature};${tally.weatherCondition};${[...tallyMap.values()].join(";")}`;
+      let startDateTime;
+      let date;
+      let duration;
+      const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        weekday: "short",
+      });
+      if (tally.endDate && tally.startDate) {
+        startDateTime = hourFormatter.format(tally.startDate);
+        date = dateFormatter.format(tally.startDate);
+        const durationTimestampMs =
+          tally.endDate.getTime() - tally.startDate.getTime();
+        const durationHrs = Math.floor(durationTimestampMs / (1000 * 60 * 60));
+        const durationMin = Math.floor(
+          (durationTimestampMs % (1000 * 60 * 60)) / (1000 * 60),
+        );
+        duration = `${String(durationHrs).padStart(2, "0")}:${String(durationMin).padStart(2, "0")}`;
+      }
+      return `${tally.id};${tally.location.name};${tally.observer};${date};${startDateTime};${duration};${tally.temperature};${weatherConditionMap.get(tally.weatherCondition)};${[...tallyMap.values()].join(";")}`;
     })
     .join("\n");
   console.log(CSVstring);
