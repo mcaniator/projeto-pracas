@@ -125,8 +125,10 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
         if (tallyMap.get("Tot-H&M") != 0) {
           tallyMap.set(
             `%${gender}`,
-            (tallyMap.get(`Tot-${gender}`) / tallyMap.get("Tot-H&M")) * 100 +
-              "%",
+            (
+              (tallyMap.get(`Tot-${gender}`) / tallyMap.get("Tot-H&M")) *
+              100
+            ).toFixed(2) + "%",
           );
         }
       }
@@ -142,7 +144,7 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
           }
           tallyMap.set(
             `%${ageGroup}`,
-            (totalAgeGroup / tallyMap.get("Tot-H&M")) * 100 + "%",
+            ((totalAgeGroup / tallyMap.get("Tot-H&M")) * 100).toFixed(2) + "%",
           );
         } else {
           tallyMap.set(`%${ageGroup}`, 0);
@@ -160,7 +162,7 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
           }
           tallyMap.set(
             `%${activity}`,
-            (activityTotal / tallyMap.get(`Tot-H&M`)) * 100 + "%",
+            ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
           );
         }
       }
