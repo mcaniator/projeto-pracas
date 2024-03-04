@@ -384,13 +384,15 @@ export type {
 //  ------------------------------------------------------------------------------------------------------------
 
 const tallySchema = z.object({
-  date: z.coerce.date().optional(),
-  startDate: z.coerce.date().optional(),
+  startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
-
-  animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
+  observer: z.coerce
+    .string()
+    .trim()
+    .refine((value) => !value.includes("\n")),
+  animalsAmount: z.coerce.number().int().finite().nonnegative(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.nativeEnum(WeatherConditions).optional(),
+  weatherCondition: z.nativeEnum(WeatherConditions),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
@@ -412,10 +414,33 @@ const noiseSchema = z.object({
   assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
+const tallyDataToProcessSchema = z.object({
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  observer: z.coerce
+    .string()
+    .trim()
+    .refine((value) => !value.includes("\n")),
+  animalsAmount: z.coerce.number().int().finite().nonnegative(),
+  temperature: z.coerce.number().finite().nullable(),
+  weatherCondition: z.nativeEnum(WeatherConditions),
+
+  locationId: z.coerce.number().int().finite().nonnegative(),
+  location: z.object({
+    name: z.string().trim(),
+  }),
+  tallyPerson: z.array(
+    z.object({
+      person: personSchema,
+      quantity: z.coerce.number().int().finite().nonnegative(),
+    }),
+  ),
+});
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
+type tallyDataToProcessType = z.infer<typeof tallyDataToProcessSchema>;
 
-export { noiseSchema, personSchema, tallySchema };
-export type { noiseType, personType, tallyType };
+export { noiseSchema, personSchema, tallySchema, tallyDataToProcessSchema };
+export type { noiseType, personType, tallyType, tallyDataToProcessType };
 // #endregion
