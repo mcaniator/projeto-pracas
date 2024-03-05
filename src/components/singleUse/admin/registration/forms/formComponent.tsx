@@ -1,20 +1,22 @@
 "use client";
 
 import { handleDelete } from "@/serverActions/formUtil";
+import Link from "next/link";
 
 interface FormProps {
   id: number;
-  nome: string;
+  name: string;
 }
 
-const FormComponent = ({ id, nome }: FormProps) => {
+const FormComponent = ({ id, name }: FormProps) => {
   return (
-    <div
+    <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
+      href={`/admin/forms/${id}`}
     >
       <div>
-        <h4 className="text-lg font-semibold">{nome}</h4>
+        <h4 className="text-lg font-semibold">{name}</h4>
       </div>
       <div>
         <button
@@ -24,7 +26,7 @@ const FormComponent = ({ id, nome }: FormProps) => {
           Deletar
         </button>
       </div>
-    </div>
+    </Link>
   );
 };
 

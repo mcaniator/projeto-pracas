@@ -8,7 +8,8 @@ import {
   questionSchema,
   textQuestionSchema,
 } from "@/lib/zodValidators";
-import { revalidateTag } from "next/cache";
+import { Question, QuestionsOnForms } from "@prisma/client";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 const questionSubmit = async (
   prevState: { statusCode: number },
@@ -24,7 +25,7 @@ const questionSubmit = async (
       categoryId: formData.get("categoryId"),
     });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return { statusCode: 1 };
   }
 
@@ -36,7 +37,7 @@ const questionSubmit = async (
           charLimit: formData.get("charLimit"),
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -50,7 +51,7 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 2 };
       }
 
@@ -64,7 +65,7 @@ const questionSubmit = async (
           max: formData.get("max"),
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -78,7 +79,7 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 2 };
       }
 
@@ -103,7 +104,7 @@ const questionSubmit = async (
           optionsQuestionObject,
         );
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -120,7 +121,7 @@ const questionSubmit = async (
             "Number of maximum selections is bigger than the amount of options",
           );
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 3 };
       }
 
@@ -128,7 +129,7 @@ const questionSubmit = async (
       try {
         optionsParsed = optionSchema.parse(options);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -149,7 +150,7 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
+        // console.log(err);
         return { statusCode: 2 };
       }
 
@@ -161,4 +162,45 @@ const questionSubmit = async (
   return { statusCode: 0 };
 };
 
-export { questionSubmit };
+const searchQuestionsByFormId = async (id: number) => {
+  const cachedQuestions = unstable_cache(
+    async (id: number): Promise<Question[]> => {
+      let foundQuestionsOnForms: QuestionsOnForms[] = [];
+      let foundQuestions: Question[] = [];
+
+      try {
+        foundQuestionsOnForms = await prisma.questionsOnForms.findMany({
+          where: {
+            formId: id,
+          },
+        });
+      } catch (err) {
+        // console.error(err);
+      }
+
+      try {
+        const foundQuestionsIds = foundQuestionsOnForms.map(
+          (questionOnForm) => questionOnForm.questionId,
+        );
+
+        foundQuestions = await prisma.question.findMany({
+          where: {
+            id: {
+              in: foundQuestionsIds,
+            },
+          },
+        });
+      } catch (err) {
+        // console.error(err);
+      }
+
+      return foundQuestions;
+    },
+    ["searchQuestionsByFormIdCache"],
+    { tags: ["question"] },
+  );
+
+  return await cachedQuestions(id);
+};
+
+export { questionSubmit, searchQuestionsByFormId };

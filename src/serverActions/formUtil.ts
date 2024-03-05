@@ -1,8 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { Form, Prisma } from "@prisma/client";
+import { revalidatePath, unstable_cache } from "next/cache";
 
 const handleDelete = async (formID: number) => {
   try {
@@ -38,4 +38,27 @@ const fetchForms = async () => {
   return forms;
 };
 
-export { fetchForms, handleDelete };
+const searchFormsById = async (id: number) => {
+  const cachedForms = unstable_cache(
+    async (id: number): Promise<Form | undefined | null> => {
+      let foundForm;
+      try {
+        foundForm = await prisma.form.findUnique({
+          where: {
+            id: id,
+          },
+        });
+      } catch (err) {
+        // console.error(err);
+      }
+
+      return foundForm;
+    },
+    ["searchLocationsByIdCache"],
+    { tags: ["location"] },
+  );
+
+  return await cachedForms(id);
+};
+
+export { fetchForms, handleDelete, searchFormsById };

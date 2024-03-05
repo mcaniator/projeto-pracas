@@ -240,17 +240,17 @@ model Category {
 model Question {
   id Int @id @default(autoincrement())
 
-  name     String        @db.VarChar(255)
-  optional Boolean       @default(false)
-  active   Boolean       @default(true)
+  name     String             @db.VarChar(255)
+  optional Boolean            @default(false)
+  active   Boolean            @default(true)
   type     QuestionTypes
+  forms    QuestionsOnForms[]
 
   TextQuestion    TextQuestion?
   NumericQuestion NumericQuestion?
   OptionsQuestion OptionsQuestion?
-
-  categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId      Int              @map("category_id")
+  category        Category         @relation(fields: [categoryId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -323,12 +323,24 @@ model Option {
 model Form {
   id Int @id @default(autoincrement())
 
-  name String @db.VarChar(255)
+  name      String             @db.VarChar(255)
+  questions QuestionsOnForms[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("form")
+}
+
+model QuestionsOnForms {
+  id Int @id @default(autoincrement())
+
+  formId     Int      @map("form_id")
+  form       Form     @relation(fields: [formId], references: [id])
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@map("questions_on_forms")
 }
 
 // #endregion

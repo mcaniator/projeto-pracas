@@ -11,7 +11,7 @@ const formSubmit = async (
   let parse;
   try {
     parse = formSchema.parse({
-      nome: formData.get("name"),
+      name: formData.get("name"),
     });
   } catch (e) {
     return {

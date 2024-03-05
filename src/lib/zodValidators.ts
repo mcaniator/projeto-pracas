@@ -53,6 +53,11 @@ const questionSchema = z.object({
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });
 
+const questionsOnFormsSchema = z.object({
+  formId: z.coerce.number().int().finite().nonnegative(),
+  questionId: z.coerce.number().int().finite().nonnegative(),
+});
+
 const textQuestionSchema = z.object({
   charLimit: z.coerce.number().int().finite().nonnegative().optional(),
 
@@ -435,6 +440,6 @@ type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
 
-export { noiseSchema, personSchema, tallySchema };
+export { noiseSchema, personSchema, tallySchema, questionsOnFormsSchema };
 export type { noiseType, personType, tallyType };
 // #endregion

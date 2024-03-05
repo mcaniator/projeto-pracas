@@ -7,14 +7,14 @@ import { IconLink } from "@tabler/icons-react";
 import Link from "next/link";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
-const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
+const LocationComponent = ({ id, name }: { id: number; name: string }) => {
   return (
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/parks/${id}`}
     >
-      {nome}
+      {name}
       <IconLink size={24} />
     </Link>
   );
@@ -36,7 +36,7 @@ const LocationList = ({
             <LocationComponent
               key={location.id}
               id={location.id}
-              nome={location.name}
+              name={location.name}
             />
           ))}
       </div>;
