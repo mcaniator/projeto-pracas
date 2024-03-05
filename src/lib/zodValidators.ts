@@ -422,6 +422,7 @@ const tallyDataToProcessSchema = z.object({
     .trim()
     .refine((value) => !value.includes("\n")),
   animalsAmount: z.coerce.number().int().finite().nonnegative(),
+  groups: z.coerce.number().int().finite().nonnegative(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions),
 

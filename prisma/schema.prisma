@@ -725,6 +725,7 @@ model Tally {
   animalsAmount    Int               @map("animals_amount")
   temperature      Float?
   weatherCondition WeatherConditions @map("weather_condition")
+  groups           Int
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])

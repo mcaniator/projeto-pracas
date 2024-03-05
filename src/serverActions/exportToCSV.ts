@@ -19,13 +19,16 @@ const exportToCSV = async () => {
     })
     .join("\n");
 
-  let CSVstring =
-    "Identificador;Nome da Praça;Avaliada?;Categorias;Tipo;Obs;Nome popular;Endereço;Ano criação;Ano reforma;Prefeito;Legislação;Bairro;Densidade;Renda;Área útil;Classificação;Homens;Mulheres;Pop Total;Domicílios Ocupados;Densidade;Inclinação%;Canto;Centro;Isolada;Dividida;4m;6m;8m;10m;20m;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua;Densidade;Residencial;ResindencialMultifamiliar;Comercial;Comercial de alimentação;Serviço;Institucional;SOMA Residencial;SOMA Comercial;% residencial;Vazio;TOTAL DE USOS;Índice de Diversidade de Simpson";
+  let CSVstring = "";
   //console.log(locationsString);
 };
 
 const exportTallyToCSV = async (tallysIds: number[]) => {
   let CSVstring =
+    "IDENTIFICAÇÃO PRAÇA,,IDENTIFICAÇÃO LEVANTAMENTO,,,,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+  CSVstring +=
+    ",,,,,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+  CSVstring +=
     "Identificador;Nome da Praça;Observador;Dia;Data;Início;Duração;Temperatura;Com sol/Nublado;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
   let tallys = await prisma.tally.findMany({
     where: {
@@ -65,7 +68,7 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
       return b.locationId - a.locationId;
     }
   });
-  console.log(tallys);
+
   CSVstring += tallys
     .map((tally) => {
       let startDateTime;
@@ -102,7 +105,7 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
       );
     })
     .join("\n");
-  console.log(CSVstring);
+  return CSVstring;
 };
 
 const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
@@ -110,6 +113,10 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
   const genders = ["MALE", "FEMALE"];
   const ageGroups = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
   const acitvities = ["SEDENTARY", "WALKING", "STRENUOUS"];
+  const otherPropertiesToCalcualtePercentage = [
+    "isInApparentIllicitActivity",
+    "isPersonWithoutHousing",
+  ];
   const booleanPersonProperties: (keyof personType)[] = [
     "isPersonWithImpairment",
     "isTraversing",
@@ -136,12 +143,12 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
     tallyMap.set(`%${activity}`, 0);
   }
   tallyMap.set("isPersonWithImpairment", 0);
-  tallyMap.set("Groups", 0); //?? o que é isso?
+  tallyMap.set("Groups", tally.groups); //?? o que é isso?
   tallyMap.set("Pets", tally.animalsAmount);
   tallyMap.set("isTraversing", 0);
   tallyMap.set("Itinerant commercial activities", 0);
   tallyMap.set("isInApparentIllicitActivity", 0);
-  tallyMap.set("%IllicitActivities", 0);
+  tallyMap.set("%isInApparentIllicitActivity", 0);
   tallyMap.set("isPersonWithoutHousing", 0);
   tallyMap.set("%isPersonWithoutHousing", 0);
 
@@ -206,7 +213,16 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
       );
     }
   }
-
+  for (const property of otherPropertiesToCalcualtePercentage) {
+    if (tallyMap.get("Tot-H&M") != 0) {
+      tallyMap.set(
+        `%${property}`,
+        ((tallyMap.get(`${property}`) / tallyMap.get("Tot-H&M")) * 100).toFixed(
+          2,
+        ) + "%",
+      );
+    }
+  }
   return {
     tallyString: `${[...tallyMap.values()].join(";")}`,
     totalPeople: z.number().parse(tallyMap.get("Tot-H&M")),

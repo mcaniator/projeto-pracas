@@ -21,6 +21,22 @@ const ButtonWrapper = () => {
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
 
+  const handleTallyCSVDownload = async () => {
+    try {
+      const blobStr = await exportTallyToCSV([10, 11, 12, 13, 14]);
+      const blobData = new Blob([blobStr]);
+      const url = URL.createObjectURL(blobData);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "export.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const handleLocationSubmit = (e: FormData) => {
     void createLocation(
       content,
@@ -138,10 +154,10 @@ const ButtonWrapper = () => {
         <Button
           variant={"admin"}
           className="mb-[2px] self-end"
-          type="submit"
-          onClick={() => void exportTallyToCSV([10, 11, 12, 13, 14])}
+          type="button"
+          onClick={handleTallyCSVDownload}
         >
-          Exportar contagem para CSV
+          Baixar CSV das contagens
         </Button>
       </div>
     </div>
