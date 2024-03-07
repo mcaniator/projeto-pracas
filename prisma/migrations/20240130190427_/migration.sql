@@ -44,6 +44,36 @@ CREATE TYPE "gender" AS ENUM ('male', 'female', 'non-binary');
 CREATE TYPE "noise_categories" AS ENUM ('center', 'surroundings');
 
 -- CreateTable
+CREATE TABLE "user" (
+    "id" TEXT NOT NULL,
+    "email" VARCHAR(255),
+    "username" VARCHAR(255) NOT NULL,
+    "type" "user_types" NOT NULL,
+    "assessment_id" INTEGER,
+
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "active_expires" BIGINT NOT NULL,
+    "idle_expires" BIGINT NOT NULL,
+    "user_id" TEXT NOT NULL,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Key" (
+    "id" TEXT NOT NULL,
+    "hashed_password" TEXT,
+    "user_id" TEXT NOT NULL,
+
+    CONSTRAINT "Key_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "category" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
@@ -235,19 +265,6 @@ CREATE TABLE "Assessment" (
 );
 
 -- CreateTable
-CREATE TABLE "user" (
-    "id" SERIAL NOT NULL,
-    "name" VARCHAR(255) NOT NULL,
-    "type" "user_types" NOT NULL,
-    "email" VARCHAR(255) NOT NULL,
-    "password" VARCHAR(255) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "accessibility" (
     "id" SERIAL NOT NULL,
     "surrounding_sidewalk_unrestricted_lane" BOOLEAN NOT NULL,
@@ -417,6 +434,16 @@ CREATE TABLE "tally" (
 );
 
 -- CreateTable
+CREATE TABLE "tally_person" (
+    "id" SERIAL NOT NULL,
+    "tally_id" INTEGER NOT NULL,
+    "person_id" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL,
+
+    CONSTRAINT "tally_person_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "person" (
     "id" SERIAL NOT NULL,
     "age_group" "age_group" NOT NULL,
@@ -426,7 +453,6 @@ CREATE TABLE "person" (
     "is_person_with_impairment" BOOLEAN NOT NULL,
     "is_in_apparent_illicit_activity" BOOLEAN NOT NULL,
     "is_person_without_housing" BOOLEAN NOT NULL,
-    "tally_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -446,11 +472,20 @@ CREATE TABLE "noise" (
     CONSTRAINT "noise_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "_AssessmentToUser" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "user_id_key" ON "user"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_id_key" ON "Session"("id");
+
+-- CreateIndex
+CREATE INDEX "Session_user_id_idx" ON "Session"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Key_id_key" ON "Key"("id");
+
+-- CreateIndex
+CREATE INDEX "Key_user_id_idx" ON "Key"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "text_question_question_id_key" ON "text_question"("question_id");
@@ -495,13 +530,22 @@ CREATE UNIQUE INDEX "surrounding_activity_assessment_id_key" ON "surrounding_act
 CREATE UNIQUE INDEX "security_assessment_id_key" ON "security"("assessment_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "tally_person_tally_id_person_id_key" ON "tally_person"("tally_id", "person_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "person_age_group_gender_activity_is_traversing_is_person_wi_key" ON "person"("age_group", "gender", "activity", "is_traversing", "is_person_with_impairment", "is_in_apparent_illicit_activity", "is_person_without_housing");
+
+-- CreateIndex
 CREATE INDEX "location_idx" ON "noise" USING GIST ("point");
 
--- CreateIndex
-CREATE UNIQUE INDEX "_AssessmentToUser_AB_unique" ON "_AssessmentToUser"("A", "B");
+-- AddForeignKey
+ALTER TABLE "user" ADD CONSTRAINT "user_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "_AssessmentToUser_B_index" ON "_AssessmentToUser"("B");
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Key" ADD CONSTRAINT "Key_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "question" ADD CONSTRAINT "question_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -576,13 +620,10 @@ ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY 
 ALTER TABLE "tally" ADD CONSTRAINT "tally_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "person" ADD CONSTRAINT "person_tally_id_fkey" FOREIGN KEY ("tally_id") REFERENCES "tally"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tally_person" ADD CONSTRAINT "tally_person_tally_id_fkey" FOREIGN KEY ("tally_id") REFERENCES "tally"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tally_person" ADD CONSTRAINT "tally_person_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "person"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "noise" ADD CONSTRAINT "noise_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_AssessmentToUser" ADD CONSTRAINT "_AssessmentToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Assessment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_AssessmentToUser" ADD CONSTRAINT "_AssessmentToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

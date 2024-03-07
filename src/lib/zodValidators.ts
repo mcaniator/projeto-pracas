@@ -152,25 +152,6 @@ const locationSchema = z
 
     type: z.nativeEnum(LocationTypes).optional(),
     category: z.nativeEnum(CategoryTypes).optional(),
-
-    narrowAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
-    intermediateAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
-    broadAdministrativeUnitId: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .optional(),
   })
   .refine((value) => {
     if (
@@ -197,8 +178,9 @@ const citySchema = z.object({
 });
 
 const administrativeUnitsSchema = z.object({
-  name: z.string().trim().min(1).max(255),
-  cityId: z.coerce.number().int().finite().nonnegative(),
+  narrowAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
+  intermediateAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
+  broadAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
 });
 
 type locationType = z.infer<typeof locationSchema>;
@@ -420,8 +402,6 @@ const personSchema = z.object({
   isPersonWithImpairment: z.boolean(),
   isInApparentIllicitActivity: z.boolean(),
   isPersonWithoutHousing: z.boolean(),
-
-  tallyId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const noiseSchema = z.object({
