@@ -15,7 +15,10 @@ const createNoiseMeasurement = async (
     SET point = point(${point.x},${point.y})
     WHERE  id = ${createdNoise.id};`;
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating new noise measurement",
+    };
   }
 };
 
