@@ -45,6 +45,23 @@ const ButtonWrapper = () => {
           >
             <span className="-mb-1">Mudar nome</span>
           </Button>
+          <Button
+            variant="admin"
+            onClick={() =>
+              void createLocation(
+                content,
+                {
+                  narrowAdministrativeUnit: "del1.3",
+                  intermediateAdministrativeUnit: "del2.4",
+                  broadAdministrativeUnit: "del4.3",
+                },
+                1,
+                null,
+              )
+            }
+          >
+            <span className="-mb-1">Cadastrar</span>
+          </Button>
         </div>
       </div>
 
