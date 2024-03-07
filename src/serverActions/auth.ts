@@ -53,7 +53,6 @@ const signup = async (
       type: "ADMIN", // ! lembrar de tirar
     });
   } catch (err) {
-    console.log(err);
     return {
       statusCode: 1,
     };

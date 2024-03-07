@@ -45,8 +45,6 @@ const mapSubmission = async (
     return aux;
   })();
 
-  console.log(addresses);
-
   try {
     const parsedLocation = locationSchema.parse({
       name: "cidade teste",
@@ -83,8 +81,8 @@ const mapSubmission = async (
         },
       },
     });
-  } catch (e) {
-    console.log(e);
+  } catch (err) {
+    return { statusCode: 99 };
   }
 
   return { statusCode: 1 };

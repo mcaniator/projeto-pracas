@@ -24,7 +24,6 @@ const questionSubmit = async (
       categoryId: formData.get("categoryId"),
     });
   } catch (err) {
-    console.log(err);
     return { statusCode: 1 };
   }
 
@@ -36,7 +35,6 @@ const questionSubmit = async (
           charLimit: formData.get("charLimit"),
         });
       } catch (err) {
-        console.log(err);
         return { statusCode: 1 };
       }
 
@@ -50,7 +48,6 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
         return { statusCode: 2 };
       }
 
@@ -64,7 +61,6 @@ const questionSubmit = async (
           max: formData.get("max"),
         });
       } catch (err) {
-        console.log(err);
         return { statusCode: 1 };
       }
 
@@ -78,7 +74,6 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
         return { statusCode: 2 };
       }
 
@@ -103,7 +98,6 @@ const questionSubmit = async (
           optionsQuestionObject,
         );
       } catch (err) {
-        console.log(err);
         return { statusCode: 1 };
       }
 
@@ -120,7 +114,6 @@ const questionSubmit = async (
             "Number of maximum selections is bigger than the amount of options",
           );
       } catch (err) {
-        console.log(err);
         return { statusCode: 3 };
       }
 
@@ -128,7 +121,6 @@ const questionSubmit = async (
       try {
         optionsParsed = optionSchema.parse(options);
       } catch (err) {
-        console.log(err);
         return { statusCode: 1 };
       }
 
@@ -149,7 +141,6 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        console.log(err);
         return { statusCode: 2 };
       }
 
