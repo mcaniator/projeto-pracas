@@ -21,9 +21,7 @@ const CenterButton = () => {
                   lng: pos.coords.longitude,
                 });
               },
-              (err) => {
-                console.log(`erro: ${err.code}`);
-              },
+              null,
               {
                 enableHighAccuracy: false,
                 maximumAge: Infinity,

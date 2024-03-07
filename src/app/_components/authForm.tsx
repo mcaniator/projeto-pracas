@@ -56,7 +56,7 @@ const Login = (props: { username: MutableRefObject<string> }) => {
   useEffect(() => {
     if (state.statusCode === 0) redirect("/admin");
   }, [state]);
-
+    
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
