@@ -2,10 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { administrativeUnitsType, locationType } from "@/lib/zodValidators";
-import { Location } from "@prisma/client";
 
 const fetchLocation = async (id: number) => {
-  let currentPark: Location | null = null;
+  let currentPark;
 
   try {
     currentPark = await prisma.location.findUnique({
@@ -24,7 +23,7 @@ const createLocation = async (
   content: locationType,
   administrativeUnits: administrativeUnitsType,
   cityID: number,
-  polygonContent: string | null,
+  polygons?: string | null,
 ) => {
   try {
     const locationCreated = await prisma.location.create({
@@ -83,14 +82,15 @@ const createLocation = async (
           : undefined,
       },
     });
-    if (polygonContent) {
-      await prisma.$executeRaw`UPDATE location
-    SET polygon = ST_GeomFromText(${polygonContent},4326)
-    WHERE id = ${locationCreated.id}`;
+
+    if (polygons) {
+      await prisma.$executeRaw`UPDATE location SET polygon = ST_GeomFromText(${polygons}, 4326) WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
     return { statusCode: 2, errorMessage: "Error creating new location" };
   }
+
+  return { statusCode: 0, errorMessage: "No error" };
 };
 
 export { createLocation, fetchLocation };
