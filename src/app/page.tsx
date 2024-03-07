@@ -2,12 +2,15 @@ import { Footer } from "@/app/_components/footer";
 import { HomeHeader } from "@/app/_components/homeHeader";
 import { InfoSegment } from "@/app/_components/infoSegment";
 import { Button } from "@/components/ui/button";
+import { validateRequest } from "@/lib/lucia";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 
-const Home = () => {
+const Home = async () => {
+  const { user } = await validateRequest();
+
   return (
     <main className="bg-off-white">
-      <HomeHeader />
+      <HomeHeader user={user} />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">

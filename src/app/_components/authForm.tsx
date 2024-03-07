@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { titillium_web } from "@/lib/fonts";
-import { login, signup } from "@/serverActions/auth";
+import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
@@ -51,9 +51,11 @@ const AuthForm = () => {
 };
 
 const Login = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(login, { statusCode: 0 });
+  const [state, formAction] = useFormState(signin, { statusCode: -1 });
 
-  useEffect(() => console.log(state), [state]);
+  useEffect(() => {
+    if (state.statusCode === 0) redirect("/admin");
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -78,11 +80,6 @@ const Login = (props: { username: MutableRefObject<string> }) => {
       </div>
 
       <div className="ml-auto flex gap-1">
-        <Link href={"/admin"}>
-          <Button className="text-white" variant={"destructive"}>
-            <span className="-mb-1">Ir para admin</span>
-          </Button>
-        </Link>
         <Button className="text-white">
           <span className="-mb-1">Entrar</span>
         </Button>
@@ -92,9 +89,11 @@ const Login = (props: { username: MutableRefObject<string> }) => {
 };
 
 const Signup = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(signup, { statusCode: 0 });
+  const [state, formAction] = useFormState(signup, { statusCode: -1 });
 
-  useEffect(() => console.log(state), [state]);
+  useEffect(() => {
+    if (state.statusCode === 0) redirect("/admin");
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -126,11 +125,6 @@ const Signup = (props: { username: MutableRefObject<string> }) => {
       </div>
 
       <div className="ml-auto flex gap-1">
-        <Link href={"/admin"}>
-          <Button className="text-white" variant={"destructive"}>
-            <span className="-mb-1">Ir para admin</span>
-          </Button>
-        </Link>
         <Button className="text-white">
           <span className="-mb-1">Criar</span>
         </Button>

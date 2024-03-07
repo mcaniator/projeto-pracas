@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.1",
-    "@lucia-auth/adapter-prisma": "^3.0.2",
-    "@prisma/client": "^5.8.1",
+    "@lucia-auth/adapter-prisma": "^4.0.0",
+    "@prisma/client": "5.8.1",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -32,9 +32,10 @@
     "cmdk": "^0.2.0",
     "eslint-config-next": "14.0.4",
     "leaflet": "^1.9.4",
-    "lucia": "^2.7.6",
+    "lucia": "^3.0.1",
     "lucide-react": "^0.309.0",
     "next": "14.0.4",
+    "oslo": "^1.0.3",
     "postcss": "8.4.33",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -55,6 +56,6 @@
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.2.2",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "prisma": "^5.8.1"
+    "prisma": "5.8.1"
   }
 }
