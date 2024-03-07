@@ -4,8 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { administrativeUnitsType, locationType } from "@/lib/zodValidators";
 import { Location } from "@prisma/client";
 
-import { getPolygonsFromShp } from "./getPolygonsFromShp";
-
 const fetchLocation = async (id: number) => {
   let currentPark: Location | null = null;
 
@@ -27,20 +25,7 @@ const createLocation = async (
   administrativeUnits: administrativeUnitsType,
   cityID: number,
   polygonContent: string | null,
-  shpFileForm: FormData | null,
 ) => {
-  if (shpFileForm) {
-    const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
-    if (
-      shpFile instanceof Blob &&
-      shpFile.name &&
-      shpFile.lastModified &&
-      shpFile.size != 0
-    ) {
-      polygonContent = await getPolygonsFromShp(shpFile);
-    }
-  }
-
   try {
     const locationCreated = await prisma.location.create({
       data: {
