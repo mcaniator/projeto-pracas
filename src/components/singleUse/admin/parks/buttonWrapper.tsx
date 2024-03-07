@@ -12,10 +12,27 @@ const ButtonWrapper = () => {
     name: "nome da praca",
     type: "PARK" as const,
     category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE" as const,
+    narrowAdministrativeUnit: "del1",
+    intermediateAdministrativeUnit: "del2",
+    broadAdministrativeUnit: "del4",
   };
 
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
+
+  const handleLocationSubmit = (e: FormData) => {
+    void createLocation(
+      content,
+      {
+        narrowAdministrativeUnit: "del1.3",
+        intermediateAdministrativeUnit: "del2.4",
+        broadAdministrativeUnit: "del4.3",
+      },
+      1,
+      "null",
+      e,
+    );
+  };
 
   return (
     <div className="ml-5 flex flex-col gap-5 text-white">
@@ -120,6 +137,17 @@ const ButtonWrapper = () => {
         >
           <span className="-mb-1">Adicionar ruído</span>
         </Button>
+      </div>
+      <div className="flex gap-2">
+        <form action={handleLocationSubmit}>
+          <p>
+            <label htmlFor="shpFile">Enviar arquivo shapefile: </label>
+            <input id="shpFile" name="shpFile" type="file" accept=".shp" />
+          </p>
+          <Button variant={"admin"} className="mb-[2px] self-end" type="submit">
+            Cadastrar local
+          </Button>
+        </form>
       </div>
     </div>
   );
