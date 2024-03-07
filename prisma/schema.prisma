@@ -409,7 +409,7 @@ model NarrowAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_narrowUnitName")
   @@map("narrow_administrative_unit")
 }
 
@@ -423,7 +423,7 @@ model IntermediateAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_intermediateUnitName")
   @@map("intermediate_administrative_unit")
 }
 
@@ -437,7 +437,7 @@ model BroadAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_broadUnitName")
   @@map("broad_administrative_unit")
 }
 
@@ -711,12 +711,28 @@ model Tally {
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
-  people     Person[]
+
+  tallyPerson TallyPerson[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("tally")
+}
+
+model TallyPerson {
+  id Int @id @default(autoincrement())
+
+  tally   Tally @relation(fields: [tallyId], references: [id])
+  tallyId Int   @map("tally_id")
+
+  person   Person @relation(fields: [personId], references: [id])
+  personId Int    @map("person_id")
+
+  quantity Int
+
+  @@unique([tallyId, personId], name: "tally_id_person_id")
+  @@map("tally_person")
 }
 
 model Person {
@@ -730,12 +746,12 @@ model Person {
   isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
   isPersonWithoutHousing      Boolean  @map("is_person_without_housing") // * Inclusive language
 
-  tallyId Int   @map("tally_id")
-  tally   Tally @relation(fields: [tallyId], references: [id])
+  TallyPerson TallyPerson[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "person_characteristics")
   @@map("person")
 }
 
