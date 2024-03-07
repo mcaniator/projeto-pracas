@@ -2,12 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { administrativeUnitsType, locationType } from "@/lib/zodValidators";
-import { Location } from "@prisma/client";
-
-import { getPolygonsFromShp } from "./getPolygonsFromShp";
 
 const fetchLocation = async (id: number) => {
-  let currentPark: Location | null = null;
+  let currentPark;
 
   try {
     currentPark = await prisma.location.findUnique({
@@ -26,21 +23,8 @@ const createLocation = async (
   content: locationType,
   administrativeUnits: administrativeUnitsType,
   cityID: number,
-  polygonContent: string | null,
-  shpFileForm: FormData | null,
+  polygons?: string | null,
 ) => {
-  if (shpFileForm) {
-    const shpFile: FormDataEntryValue | null = shpFileForm.get("shpFile");
-    if (
-      shpFile instanceof Blob &&
-      shpFile.name &&
-      shpFile.lastModified &&
-      shpFile.size != 0
-    ) {
-      polygonContent = await getPolygonsFromShp(shpFile);
-    }
-  }
-
   try {
     const locationCreated = await prisma.location.create({
       data: {
@@ -98,14 +82,15 @@ const createLocation = async (
           : undefined,
       },
     });
-    if (polygonContent) {
-      await prisma.$executeRaw`UPDATE location
-    SET polygon = ST_GeomFromText(${polygonContent},4326)
-    WHERE id = ${locationCreated.id}`;
+
+    if (polygons) {
+      await prisma.$executeRaw`UPDATE location SET polygon = ST_GeomFromText(${polygons}, 4326) WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
     return { statusCode: 2, errorMessage: "Error creating new location" };
   }
+
+  return { statusCode: 0, errorMessage: "No error" };
 };
 
 export { createLocation, fetchLocation };
