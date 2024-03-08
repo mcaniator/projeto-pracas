@@ -49,6 +49,7 @@ CREATE TABLE "user" (
     "email" VARCHAR(255),
     "username" VARCHAR(255) NOT NULL,
     "type" "user_types" NOT NULL,
+    "hashed_password" TEXT NOT NULL,
     "assessment_id" INTEGER,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
@@ -57,20 +58,10 @@ CREATE TABLE "user" (
 -- CreateTable
 CREATE TABLE "Session" (
     "id" TEXT NOT NULL,
-    "active_expires" BIGINT NOT NULL,
-    "idle_expires" BIGINT NOT NULL,
+    "expires_at" TIMESTAMP(3) NOT NULL,
     "user_id" TEXT NOT NULL,
 
     CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Key" (
-    "id" TEXT NOT NULL,
-    "hashed_password" TEXT,
-    "user_id" TEXT NOT NULL,
-
-    CONSTRAINT "Key_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -476,16 +467,16 @@ CREATE TABLE "noise" (
 CREATE UNIQUE INDEX "user_id_key" ON "user"("id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
+
+-- CreateIndex
+CREATE INDEX "user_username_idx" ON "user"("username");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Session_id_key" ON "Session"("id");
 
 -- CreateIndex
 CREATE INDEX "Session_user_id_idx" ON "Session"("user_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Key_id_key" ON "Key"("id");
-
--- CreateIndex
-CREATE INDEX "Key_user_id_idx" ON "Key"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "text_question_question_id_key" ON "text_question"("question_id");
@@ -543,9 +534,6 @@ ALTER TABLE "user" ADD CONSTRAINT "user_assessment_id_fkey" FOREIGN KEY ("assess
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Key" ADD CONSTRAINT "Key_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "question" ADD CONSTRAINT "question_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
