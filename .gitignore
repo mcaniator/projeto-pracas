@@ -108,6 +108,7 @@ typings/
 # IDE config
 .vscode/
 .idea/
+*.code-workspace
 
 # macOS metadata
 .DS_STORE
