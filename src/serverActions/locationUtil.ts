@@ -63,7 +63,7 @@ const searchLocationsByName = async (name: string) => {
       return foundLocations;
     },
     ["searchLocationsByNameCache"],
-    { tags: ["location"] },
+    { tags: ["location", "database"] },
   );
 
   return await cachedLocations(name);
@@ -86,7 +86,7 @@ const searchLocationsById = async (id: number) => {
       return foundLocation;
     },
     ["searchLocationsByIdCache"],
-    { tags: ["location"] },
+    { tags: ["location", "database"] },
   );
 
   return await cachedLocations(id);

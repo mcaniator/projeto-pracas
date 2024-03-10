@@ -36,7 +36,7 @@ const QuestionFormRenderer = async () => {
     ["all-categories"],
     {
       revalidate: 120,
-      tags: ["category"],
+      tags: ["category", "database"],
     },
   );
   const categories = await getCacheCategories();

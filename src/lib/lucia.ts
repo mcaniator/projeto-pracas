@@ -34,29 +34,34 @@ const validateRequest = unstable_cache(
 
     const result = await lucia.validateSession(sessionId);
 
-    if (result.session && result.session.fresh) {
-      const sessionCookie = lucia.createSessionCookie(result.session.id);
-      cookies().set(
-        sessionCookie.name,
-        sessionCookie.value,
-        sessionCookie.attributes,
-      );
-    }
+    try {
+      if (result.session && result.session.fresh) {
+        const sessionCookie = lucia.createSessionCookie(result.session.id);
+        cookies().set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        );
+      }
 
-    if (!result.session) {
-      const sessionCookie = lucia.createBlankSessionCookie();
-      cookies().set(
-        sessionCookie.name,
-        sessionCookie.value,
-        sessionCookie.attributes,
-      );
+      if (!result.session) {
+        const sessionCookie = lucia.createBlankSessionCookie();
+        cookies().set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        );
+      }
+    } catch {
+      /* empty */
     }
 
     return result;
   },
   ["requestValidation"],
-  { tags: ["user", "session"] },
+  { tags: ["user", "session", "database"] },
 );
+
 declare module "lucia" {
   interface Register {
     Lucia: typeof lucia;
