@@ -416,7 +416,7 @@ const noiseSchema = z.object({
 
 const tallyDataToProcessSchema = z.object({
   startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
+  endDate: z.coerce.date(),
   observer: z.coerce
     .string()
     .trim()
@@ -437,6 +437,7 @@ const tallyDataToProcessSchema = z.object({
     }),
   ),
 });
+
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;

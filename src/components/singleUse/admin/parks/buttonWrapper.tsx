@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { exportTallyToCSV, exportToCSV } from "@/serverActions/exportToCSV";
+import {
+  exportAllTallysToCsv,
+  exportTallyToCSV,
+  exportToCSV,
+} from "@/serverActions/exportToCSV";
 import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
@@ -24,6 +28,22 @@ const ButtonWrapper = () => {
   const handleTallyCSVDownload = async () => {
     try {
       const blobStr = await exportTallyToCSV([10, 11, 12, 13, 14]);
+      const blobData = new Blob([blobStr]);
+      const url = URL.createObjectURL(blobData);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "export.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleAllTallyCSVDownload = async () => {
+    try {
+      const blobStr = await exportAllTallysToCsv([1, 2, 3, 4, 5]);
       const blobData = new Blob([blobStr]);
       const url = URL.createObjectURL(blobData);
       const a = document.createElement("a");
@@ -158,6 +178,16 @@ const ButtonWrapper = () => {
           onClick={handleTallyCSVDownload}
         >
           Baixar CSV das contagens
+        </Button>
+      </div>
+      <div>
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="button"
+          onClick={handleAllTallyCSVDownload}
+        >
+          Baixar Todas as contagens em CSV
         </Button>
       </div>
     </div>
