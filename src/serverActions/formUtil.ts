@@ -1,8 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { z } from "zod";
 
 const handleDelete = async (formID: number) => {
   try {
@@ -13,7 +15,7 @@ const handleDelete = async (formID: number) => {
     });
     revalidatePath("/admin/forms");
   } catch (error) {
-    console.error(`Erro ao excluir o formulário:${formID}`, error);
+    // console.error(`Erro ao excluir o formulário:${formID}`, error);
   }
 };
 
@@ -32,7 +34,7 @@ const fetchForms = async () => {
       },
     });
   } catch (error) {
-    console.error(`Erro ao recuperar formulários`, error);
+    // console.error(`Erro ao recuperar formulários`, error);
   }
 
   return forms;
@@ -55,10 +57,107 @@ const searchFormsById = async (id: number) => {
       return foundForm;
     },
     ["searchLocationsByIdCache"],
-    { tags: ["location"] },
+    { tags: ["location", "form"] },
   );
 
   return await cachedForms(id);
 };
 
-export { fetchForms, handleDelete, searchFormsById };
+const updateForm = async (
+  prevState: { statusCode: number },
+  formData: FormData,
+) => {
+  let parseId;
+  try {
+    parseId = z.coerce
+      .number()
+      .int()
+      .finite()
+      .nonnegative()
+      .parse(formData.get("formId"));
+  } catch (e) {
+    return {
+      statusCode: 1,
+    };
+  }
+
+  let formToUpdate;
+  try {
+    formToUpdate = formSchema.parse({
+      name: formData.get("name"),
+    });
+  } catch (e) {
+    // console.log(e);
+    return {
+      statusCode: 1,
+    };
+  }
+
+  try {
+    await prisma.form.update({
+      where: { id: parseId },
+      data: formToUpdate,
+    });
+  } catch (e) {
+    return {
+      statusCode: 2,
+    };
+  }
+
+  revalidateTag("form");
+  return {
+    statusCode: 0,
+  };
+};
+
+const addQuestion = async (
+  formId?: number,
+  questionId?: number,
+  // prevState?: { statusCode: number },
+  // formData?: FormData,
+) => {
+  // let parseFormId;
+  // try {
+  //   parseFormId = z.coerce
+  //     .number()
+  //     .int()
+  //     .finite()
+  //     .nonnegative()
+  //     .parse(formData.get("formId"));
+  // } catch (e) {
+  //   return {
+  //     statusCode: 1,
+  //   };
+  // }
+
+  // let parseQuestionId;
+  // try {
+  //   parseQuestionId = z.coerce
+  //     .number()
+  //     .int()
+  //     .finite()
+  //     .nonnegative()
+  //     .parse(formData.get("questionId"));
+  // } catch (e) {
+  //   return {
+  //     statusCode: 1,
+  //   };
+  // }
+
+  try {
+    await prisma.questionsOnForms.create({
+      // data: { formId: parseFormId, questionId: parseQuestionId },
+      data: { formId: formId, questionId: questionId },
+    });
+  } catch (err) {
+    // console.log(err);
+    return { statusCode: 2 };
+  }
+
+  revalidateTag("questionOnForm");
+  return {
+    statusCode: 0,
+  };
+};
+
+export { fetchForms, handleDelete, searchFormsById, updateForm, addQuestion };

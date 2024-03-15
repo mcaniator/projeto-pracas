@@ -22,21 +22,24 @@ const Page = async ({ params }: { params: { formId: string } }) => {
                   Informações de {form?.name}
                 </h3>
                 <Link
-                  href={`/admin/parks/${formIdNumber}/edit`}
+                  href={`/admin/forms/${formIdNumber}/edit`}
                   className="ml-auto"
                 >
                   <Button>Editar</Button>
                 </Link>
               </div>
               <span>Nome: {form?.name}</span>
-              <ul>Perguntas</ul>
+              <div>Perguntas do formulário:</div>
               {questions !== null ?
-                <div className="w-full">
+                <ol className="list-disc p-3 ">
                   {questions.map((question) => (
-                    <div key={question.id}>{question.name}</div>
+                    <li key={question.id}>{question.name}</li>
                   ))}
+                </ol>
+              : <div className="text-redwood">
+                  Ainda não há perguntas no formulário
                 </div>
-              : <p>Loading forms...</p>}
+              }
             </div>
           </div>
         </div>

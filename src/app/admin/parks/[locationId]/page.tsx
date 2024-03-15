@@ -33,7 +33,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 <span>Inativo ou não encontrado: Falso</span>
               : <span>
                   Inativo ou não encontrado:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.isPark ?
@@ -41,13 +41,13 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
               : location.isPark === false ?
                 <span>É Praça: Falso</span>
               : <span>
-                  É Praça: <span className="text-redwood">Não preenchido</span>
+                  É Praça: <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.notes ?
                 <span>Notas: {location?.notes}</span>
               : <span>
-                  Notas: <span className="text-redwood">Não preenchido</span>
+                  Notas: <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.creationYear ?
@@ -56,7 +56,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 </span>
               : <span>
                   Data de Criação:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.lastMaintenanceYear ?
@@ -66,7 +66,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 </span>
               : <span>
                   Data da Última Manutenção:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.overseeingMayor ?
@@ -75,35 +75,35 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 </span>
               : <span>
                   Prefeito Inaugurador:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.legislation ?
                 <span>Legislação: {location?.legislation}</span>
               : <span>
                   Legislação:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.usableArea ?
                 <span>Área Útil: {location?.usableArea}</span>
               : <span>
                   Área Útil:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.legalArea ?
                 <span>Área Prefeitura: {location?.legalArea}</span>
               : <span>
                   Área Prefeitura:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
               {location.incline ?
                 <span>Inclinação: {location?.incline}</span>
               : <span>
                   Inclinação:
-                  <span className="text-redwood">Não preenchido</span>
+                  <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
             </div>

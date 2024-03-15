@@ -19,7 +19,8 @@ const AdminRoot = async () => {
             <FormComponent key={form.id} id={form.id} name={form.name} />
           ))}
         </div>
-      : <p>Loading forms...</p>}
+      : <div className="text-redwood">Ainda não há perguntas no formulário</div>
+      }
     </div>
   );
 };

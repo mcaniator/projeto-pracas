@@ -1,15 +1,16 @@
 import { FormForm } from "@/components/singleUse/admin/registration/forms/formForm";
-import { prisma } from "@/lib/prisma";
-import { Form } from "@prisma/client";
 
-const AdminRoot = async () => {
-  let forms: Form[];
-  try {
-    forms = await prisma.form.findMany();
-  } catch (e) {
-    console.error(e);
-    forms = [];
-  }
+// import { prisma } from "@/lib/prisma";
+// import { Form } from "@prisma/client";
+
+const AdminRoot = () => {
+  // let forms: Form[];
+  // try {
+  //   forms = await prisma.form.findMany();
+  // } catch (e) {
+  //   console.error(e);
+  //   forms = [];
+  // }
 
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>

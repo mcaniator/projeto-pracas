@@ -197,10 +197,11 @@ const searchQuestionsByFormId = async (id: number) => {
       return foundQuestions;
     },
     ["searchQuestionsByFormIdCache"],
-    { tags: ["question"] },
+    { tags: ["question", "questionOnForm", "form"] },
   );
 
-  return await cachedQuestions(id);
+  if ((await cachedQuestions(id)).length === 0) return null;
+  else return await cachedQuestions(id);
 };
 
 export { questionSubmit, searchQuestionsByFormId };
