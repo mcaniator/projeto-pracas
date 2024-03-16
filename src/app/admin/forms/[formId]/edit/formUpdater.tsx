@@ -74,14 +74,19 @@ const FormUpdater = async ({ form }: { form: Form }) => {
           </form>
           <div>Perguntas no formulário:</div>
           {questions !== null && questions !== undefined ?
-            <div className="b-4 mb-2 items-center justify-between rounded bg-white p-2 text-black">
+            <ul className=" list-disc p-5">
               {questions.map((question) => (
-                <div key={question.id}>
-                  <Button>Remover do Formulário</Button>
-                  {question.name}
-                </div>
+                <li
+                  key={question.id}
+                  className="flex w-full flex-row items-center  justify-between "
+                >
+                  <span className="p-2">{question.name}</span>
+                  <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                    Remover
+                  </Button>
+                </li>
               ))}
-            </div>
+            </ul>
           : <div className="text-redwood">
               Ainda não há perguntas no formulário
             </div>

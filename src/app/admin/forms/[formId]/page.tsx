@@ -31,11 +31,11 @@ const Page = async ({ params }: { params: { formId: string } }) => {
               <span>Nome: {form?.name}</span>
               <div>Perguntas do formulário:</div>
               {questions !== null ?
-                <ol className="list-disc p-3 ">
+                <ul className="list-disc p-3 ">
                   {questions.map((question) => (
                     <li key={question.id}>{question.name}</li>
                   ))}
-                </ol>
+                </ul>
               : <div className="text-redwood">
                   Ainda não há perguntas no formulário
                 </div>
