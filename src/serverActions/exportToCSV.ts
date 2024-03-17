@@ -103,16 +103,16 @@ const createBlock1 = (location) => {
   let addressString = "";
   for (let i = 0; i < location.address.length; i++) {
     if (location.address[i]) {
-      if (location.address[i].street)
-        addressString += location.address[i].street;
-      if (location.address[i].neighborhood)
-        addressString += ` - ${location.address[i].neighborhood}`;
-      if (location.address[i].city && location.address[i].city.name)
-        addressString += ` - ${location.address[i].city.name}`;
-      if (location.address[i].state)
-        addressString += ` - ${location.address[i].state}`;
+      addressString += location.address[i].street;
+      addressString += ` - ${location.address[i].neighborhood}`;
       if (location.address[i + 1]) addressString += " / ";
     }
+  }
+  if (location.address[0]) {
+    if (location.address[0].city)
+      addressString += ` - ${location.address[0].city.name}`;
+    if (location.address[0].state)
+      addressString += ` - ${location.address[0].state}`;
   }
 
   let totalStatisticsPeople;
