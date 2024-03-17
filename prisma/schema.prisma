@@ -216,6 +216,13 @@ enum NoiseLocation {
   @@map("noise_categories")
 }
 
+enum Morphology {
+  CORNER
+  CENTER
+  ISOLATED
+  DIVIDED
+}
+
 // #endregion
 
 // #region Formulários
@@ -351,6 +358,7 @@ model Location {
   name                String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
+  popularName         String?   @db.VarChar(255)
   creationYear        DateTime? @map("creation_year") @db.Date
   lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date
   overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
@@ -372,6 +380,23 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
+  //Statistics data
+  householdDensity   String? @map("household_density") @db.VarChar(255)
+  income             String? @db.VarChar(255)
+  men                Int?
+  women              Int?
+  occupiedHouseholds Int?    @map("occupied_households")
+
+  //Morphology
+  morphology Morphology?
+
+  //Street typology
+  streets4mWide  Int? @map("streets_4m_wide")
+  streets6mWide  Int? @map("streets_6m_wide")
+  streets8mWide  Int? @map("streets_8m_wide")
+  streets10mWide Int? @map("streets_10m_wide")
+  streets20mWide Int? @map("streets_20m_wide")
+
   address    Address[]
   assessment Assessment[]
   tally      Tally[]
@@ -385,10 +410,12 @@ model Location {
 model Address {
   id Int @id @default(autoincrement())
 
-  neighborhood String @db.VarChar(255)
-  street       String @db.VarChar(255)
-  postalCode   String @map("postal_code") @db.VarChar(255)
-  identifier   Int
+  cityId       Int
+  city         City    @relation(fields: [cityId], references: [id])
+  neighborhood String  @db.VarChar(255)
+  street       String  @db.VarChar(255)
+  postalCode   String? @map("postal_code") @db.VarChar(255)
+  identifier   Int? //qual a função disso?
 
   state BrazilianStates
 
@@ -406,6 +433,7 @@ model City {
 
   name String @unique @db.VarChar(255)
 
+  address                        Address[]
   narrowAdministrativeUnit       NarrowAdministrativeUnit[]
   intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
   broadAdministrativeUnit        BroadAdministrativeUnit[]
@@ -468,30 +496,30 @@ model BroadAdministrativeUnit {
 model Assessment {
   id Int @id @default(autoincrement())
 
-  startDate DateTime @map("start_date") @db.Timestamptz()
-  endDate   DateTime @map("end_date") @db.Timestamptz()
+  startDate DateTime? @map("start_date") @db.Timestamptz()
+  endDate   DateTime? @map("end_date") @db.Timestamptz()
   user      User[]
 
   changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
-  hasWifi             Boolean  @map("has_wifi")
+  hasWifi             Boolean? @map("has_wifi")
 
-  pavedSidewalk            Boolean @map("paved_sidewalk")
-  trashCanAmount           Int     @map("trash_can_amount")
-  bathroomAmount           Int     @map("bathroom_amount")
-  payphoneAmount           Int     @map("payphone_amount")
-  drinkingFountainAmount   Int     @map("drinking_fountain_amount")
-  artworkAmount            Int     @map("artwork_amount")
-  plannedLandscapingAmount Int     @map("planned_landscaping_amount")
-  movableSeatsAmount       Int     @map("movable_seats_amount")
+  pavedSidewalk            Boolean? @map("paved_sidewalk")
+  trashCanAmount           Int?     @map("trash_can_amount")
+  bathroomAmount           Int?     @map("bathroom_amount")
+  payphoneAmount           Int?     @map("payphone_amount")
+  drinkingFountainAmount   Int?     @map("drinking_fountain_amount")
+  artworkAmount            Int?     @map("artwork_amount")
+  plannedLandscapingAmount Int?     @map("planned_landscaping_amount")
+  movableSeatsAmount       Int?     @map("movable_seats_amount")
 
-  sidewalkCondition           Condition @map("sidewalk_condition")
-  trashCanCondition           Condition @map("trash_can_condition")
-  bathroomCondition           Condition @map("bathroom_condition")
-  payphoneCondition           Condition @map("payphone_condition")
-  drinkingFountainCondition   Condition @map("drinking_fountain_condition")
-  artworkCondition            Condition @map("artwork_condition")
-  plannedLandscapingCondition Condition @map("planned_landscaping_condition")
-  movableSeatsCondition       Condition @map("movable_seats_condition")
+  sidewalkCondition           Condition? @map("sidewalk_condition")
+  trashCanCondition           Condition? @map("trash_can_condition")
+  bathroomCondition           Condition? @map("bathroom_condition")
+  payphoneCondition           Condition? @map("payphone_condition")
+  drinkingFountainCondition   Condition? @map("drinking_fountain_condition")
+  artworkCondition            Condition? @map("artwork_condition")
+  plannedLandscapingCondition Condition? @map("planned_landscaping_condition")
+  movableSeatsCondition       Condition? @map("movable_seats_condition")
 
   accessibility       Accessibility?
   parkAccess          SurroundingArea?
@@ -508,8 +536,8 @@ model Assessment {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("Assessment")
 }

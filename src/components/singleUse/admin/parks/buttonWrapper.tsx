@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   exportAllTallysToCsv,
+  exportFullSpreadsheetToCSV,
   exportTallyToCSV,
-  exportToCSV,
 } from "@/serverActions/exportToCSV";
 import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
@@ -180,7 +180,7 @@ const ButtonWrapper = () => {
           Baixar CSV das contagens
         </Button>
       </div>
-      <div>
+      <div className="flex gap-2">
         <Button
           variant={"admin"}
           className="mb-[2px] self-end"
@@ -188,6 +188,16 @@ const ButtonWrapper = () => {
           onClick={handleAllTallyCSVDownload}
         >
           Baixar Todas as contagens em CSV
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => void exportFullSpreadsheetToCSV([1, 2])}
+        >
+          <span className="-mb-1">FULL CSV</span>
         </Button>
       </div>
     </div>

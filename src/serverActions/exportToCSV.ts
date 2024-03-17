@@ -2,12 +2,58 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType, tallyDataToProcessType } from "@/lib/zodValidators";
-import { z } from "zod";
+import { number, z } from "zod";
 
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
 ]);
+const locationCategoriesMap = new Map([
+  ["FOR_SOCIAL_PRACTICES", "espaços livres públicos de uso coletivo"],
+  [
+    "OPEN_SPACE_FOR_NON_COLLECTIVE_USE",
+    "espaços livres públicos de uso não coletivo",
+  ],
+]);
+const LocationTypesMap = new Map([
+  ["CENTRAL_AND_LARGE_FLOWERBEDS", "Cantos de flores"],
+  ["COURT_EDGE", "Borda de quadra"],
+  ["GARDEN", "Jardim"],
+  ["SQUARE", "Praça"],
+  ["OVERLOOK", "OVERLOOK"],
+  ["PARK", "Parque"],
+  ["FENCED_PARK", "FENCED_PARK"],
+  ["UNOCCUPIED_PLOT", "UNOCCUPIED_PLOT"],
+  [
+    "REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION",
+    "REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION",
+  ],
+  ["ROUNDABOUTS", "ROUNDABOUTS"],
+  ["INTERCHANGE", "INTERCHANGE"],
+]);
+/*const block1Map = new Map([
+  ["location.id", "Identificador"],
+  ["location.name","Nome"],
+  ["evaluated","Avaliada?"],
+  ["location.category","Categorias"],
+  ["location.type","Tipo"],
+  ["location.notes","Obs"],
+  ["location.popularName","Nome popular"],
+  ["location.address","Endereço"],
+  ["location.creationYear","Ano criação"],
+  ["location.lastMaintenanceYear","Ano reforma"],
+  ["location.overseeingMayor","Prefeito"],
+  ["location.legislation","Legislação"]
+])*/
+const maxPSize = 1000;
+const maxMSize = 1400;
+const streetSizes = [
+  "streets4mWide",
+  "streets6mWide",
+  "streets8mWide",
+  "streets10mWide",
+  "streets20mWide",
+];
 const genders = ["MALE", "FEMALE"];
 const ageGroups = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
 const acitvities = ["SEDENTARY", "WALKING", "STRENUOUS"];
@@ -22,19 +68,118 @@ const booleanPersonProperties: (keyof personType)[] = [
   "isPersonWithoutHousing",
 ];
 
-const exportToCSV = async () => {
-  const locations = await prisma.location.findMany();
+const exportFullSpreadsheetToCSV = async (locationsIds: number[]) => {
+  let block1CSVString =
+    "IDENTIFICAÇÃO PRAÇA,,,IDENTIFICAÇÃO,,,,,DADOS HISTÓRICOS,,,,DADOS DE PLANEJAMENTO,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,,\n";
+  block1CSVString +=
+    ",,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,,\n";
+  block1CSVString +=
+    "Identificador,Nome da Praça,Avaliada?,Categorias,Tipo,Observações,Nome popular,Endereço,Ano criação,Ano reforma,Prefeito,Legislação,Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,inclinação (%),canto,centro,isolada,dividida,VIAS (número),4m,6m,8m,10m,20m,\n";
 
-  const locationsString = locations
-    .slice()
-    .map((cont) => {
-      return Object.values(cont).join(";");
-    })
+  const locations = await prisma.location.findMany({
+    where: {
+      id: {
+        in: locationsIds,
+      },
+    },
+    include: {
+      assessment: true,
+      address: true,
+    },
+  });
+  block1CSVString += locations
+    .map((location) => createBlock1(location))
     .join("\n");
-
-  let CSVstring = "";
-  //console.log(locationsString);
+  console.log(block1CSVString);
 };
+const createBlock1 = (location) => {
+  interface StreetsJsonType {
+    [key: string]: string;
+  }
+  let evaluated = "N";
+  if (location.assessment) {
+    evaluated = "S";
+  }
+  let addressString = "";
+  for (let i = 0; i < location.address.length; i++) {
+    if (location.address[i]) {
+      if (location.address[i].street)
+        addressString += location.address[i].street;
+      if (location.address[i].neighborhood)
+        addressString += ` - ${location.address[i].neighborhood}`;
+      if (location.address[i].city && location.address[i].city.name)
+        addressString += ` - ${location.address[i].city.name}`;
+      if (location.address[i].state)
+        addressString += ` - ${location.address[i].state}`;
+      if (location.address[i + 1]) addressString += " / ";
+    }
+  }
+
+  let totalStatisticsPeople;
+  location.men && location.women ?
+    (totalStatisticsPeople = location.men + location.women)
+  : location.men ? (totalStatisticsPeople = location.men)
+  : location.women ? (totalStatisticsPeople = location.women)
+  : (totalStatisticsPeople = 0);
+
+  let totalStreets = 0;
+  let streetsJson: StreetsJsonType = {};
+  for (const streetSize of streetSizes) {
+    if (location[streetSize] !== null) {
+      totalStreets += location[streetSize];
+      streetsJson[streetSize] = location[streetSize].toString();
+    } else {
+      streetsJson[streetSize] = "";
+    }
+  }
+  //const block1String = `${location.id},${location.name},${evaluated},${locationCategoriesMap.get(location.category)},${location.type},${location.notes},${location.popularName},${location.address.street}-${location.address.neighborhood}-${location.address.city.name}-${location.address.state},${location.creationYear},${location.lastMaintenanceYear},${location.overseeingMayor},${location.legislation}`;
+  const block1String = [
+    location.id ? location.id : "",
+    location.name ? location.name : "",
+    evaluated ? evaluated : "",
+    locationCategoriesMap.has(location.category) ?
+      locationCategoriesMap.get(location.category)
+    : "",
+    location.type ? LocationTypesMap.get(location.type) : "",
+    location.notes ? location.notes : "",
+    location.popularName ? location.popularName : "",
+    addressString,
+    location.creationYear ? location.creationYear : "",
+    location.lastMaintenanceYear ? location.lastMaintenanceYear : "",
+    location.overseeingMayor ? location.overseeingMayor : "",
+    location.legislation ? location.legislation : "",
+    location.address[0] ?
+      location.address[0].neighborhood ?
+        location.address[0].neighborhood
+      : ""
+    : "",
+    location.householdDensity ? location.householdDensity : "",
+    location.income ? location.income : "",
+    location.usableArea ? location.usableArea : "",
+    location.usableArea ?
+      location.usableArea < maxPSize ? "P"
+      : location.usableArea < maxMSize ? "M"
+      : "G"
+    : "",
+    location.men ? location.men : "",
+    location.women ? location.women : "",
+    totalStatisticsPeople,
+    location.occupiedHouseholds ? location.occupiedHouseholds : "",
+    location.usableArea ?
+      (totalStatisticsPeople / location.usableArea) * 100
+    : "",
+    location.incline ? location.incline : "",
+    location.morphology && location.morphology === "CORNER" ? 1 : "",
+    location.morphology && location.morphology === "CENTER" ? 1 : "",
+    location.morphology && location.morphology === "ISOLATED" ? 1 : "",
+    location.morphology && location.morphology === "DIVIDED" ? 1 : "",
+    totalStreets,
+    streetsJson ? Object.values(streetsJson).join(",") : "",
+  ].join(",");
+  //console.log(block1String);
+  return block1String;
+};
+
 const exportAllTallysToCsv = async (locationsIds: number[]) => {
   const locations = await prisma.location.findMany({
     where: {
@@ -265,4 +410,4 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
     totalPeople: totalPeople,
   };
 };
-export { exportToCSV, exportTallyToCSV, exportAllTallysToCsv };
+export { exportFullSpreadsheetToCSV, exportTallyToCSV, exportAllTallysToCsv };
