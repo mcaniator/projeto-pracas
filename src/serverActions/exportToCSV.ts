@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType, tallyDataToProcessType } from "@/lib/zodValidators";
-import { number, z } from "zod";
+import { z } from "zod";
 
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
@@ -31,20 +31,7 @@ const LocationTypesMap = new Map([
   ["ROUNDABOUTS", "ROUNDABOUTS"],
   ["INTERCHANGE", "INTERCHANGE"],
 ]);
-/*const block1Map = new Map([
-  ["location.id", "Identificador"],
-  ["location.name","Nome"],
-  ["evaluated","Avaliada?"],
-  ["location.category","Categorias"],
-  ["location.type","Tipo"],
-  ["location.notes","Obs"],
-  ["location.popularName","Nome popular"],
-  ["location.address","Endereço"],
-  ["location.creationYear","Ano criação"],
-  ["location.lastMaintenanceYear","Ano reforma"],
-  ["location.overseeingMayor","Prefeito"],
-  ["location.legislation","Legislação"]
-])*/
+
 const maxPSize = 1000;
 const maxMSize = 1400;
 const streetSizes = [
@@ -68,7 +55,10 @@ const booleanPersonProperties: (keyof personType)[] = [
   "isPersonWithoutHousing",
 ];
 
-const exportFullSpreadsheetToCSV = async (locationsIds: number[]) => {
+const exportFullSpreadsheetToCSV = async (
+  locationsIds: number[],
+  tallysIds: number[],
+) => {
   let block1CSVString =
     "IDENTIFICAÇÃO PRAÇA,,,IDENTIFICAÇÃO,,,,,DADOS HISTÓRICOS,,,,DADOS DE PLANEJAMENTO,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,,\n";
   block1CSVString +=
@@ -85,14 +75,56 @@ const exportFullSpreadsheetToCSV = async (locationsIds: number[]) => {
     include: {
       assessment: true,
       address: true,
+      tally: {
+        where: {
+          id: {
+            in: tallysIds,
+          },
+        },
+        take: 1,
+        include: {
+          location: {
+            select: {
+              name: true,
+            },
+          },
+          tallyPerson: {
+            select: {
+              person: {
+                select: {
+                  ageGroup: true,
+                  gender: true,
+                  activity: true,
+                  isTraversing: true,
+                  isPersonWithImpairment: true,
+                  isInApparentIllicitActivity: true,
+                  isPersonWithoutHousing: true,
+                },
+              },
+              quantity: true,
+            },
+          },
+        },
+      },
     },
   });
+
   block1CSVString += locations
-    .map((location) => createBlock1(location))
+    .map((location) => createBlock1Line(location))
     .join("\n");
-  console.log(block1CSVString);
+
+  let block2CSVString =
+    "CONTAGEM DE PESSOAS DIAS DE SEMANA + FINAIS DE SEMANA,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+  block2CSVString +=
+    "HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,,DENSIDADE\n";
+  block2CSVString +=
+    "HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Atvidades comerciais intinerantes (Qtde),Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,%Pessoas em situação de rua,DENSIDADE\n";
+  block2CSVString += `${locations
+    .map((location) => createBlock2Line(location))
+    .join("\n")}`;
+  console.log(block2CSVString);
 };
-const createBlock1 = (location) => {
+const createBlock1Line = (location) => {
   interface StreetsJsonType {
     [key: string]: string;
   }
@@ -176,10 +208,22 @@ const createBlock1 = (location) => {
     totalStreets,
     streetsJson ? Object.values(streetsJson).join(",") : "",
   ].join(",");
-  //console.log(block1String);
+
   return block1String;
 };
 
+const createBlock2Line = (location) => {
+  if (!location.tally[0])
+    return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+  const processedData = processAndFormatTallyData(location.tally[0]);
+  if (location.usableArea)
+    return (
+      processedData.tallyString +
+      "," +
+      ((processedData.totalPeople / location.usableArea) * 100).toFixed(2)
+    );
+  else return processedData.tallyString + ",";
+};
 const exportAllTallysToCsv = async (locationsIds: number[]) => {
   const locations = await prisma.location.findMany({
     where: {
@@ -315,6 +359,12 @@ const createExclusiveTallyString = (tallys: tallyDataToProcessType[]) => {
 };
 
 const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
+  if (!tally.tallyPerson) {
+    return {
+      tallyString: ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+      totalPeople: 0,
+    };
+  }
   const tallyMap = new Map();
   for (const gender of genders) {
     for (const ageGroup of ageGroups) {
@@ -364,8 +414,8 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
       }
     });
   });
-
-  const totalPeople = z.number().parse(tallyMap.get("Tot-H&M"));
+  let totalPeople = 0;
+  totalPeople = z.number().parse(tallyMap.get("Tot-H&M"));
   if (totalPeople != 0) {
     for (const gender of genders) {
       tallyMap.set(

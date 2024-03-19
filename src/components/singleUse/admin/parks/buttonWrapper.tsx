@@ -195,7 +195,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void exportFullSpreadsheetToCSV([1, 2])}
+          onClick={() => void exportFullSpreadsheetToCSV([1, 2], [13, 14])}
         >
           <span className="-mb-1">FULL CSV</span>
         </Button>
