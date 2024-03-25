@@ -106,6 +106,12 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
+              <Link
+                href={`/admin/parks/${locationIdNumber}/evaluation`}
+                className="ml-auto"
+              >
+                <Button>Avaliar</Button>
+              </Link>
             </div>
           </div>
         </div>
