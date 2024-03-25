@@ -252,10 +252,29 @@ model Question {
   categoryId      Int              @map("category_id")
   category        Category         @relation(fields: [categoryId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  response  Response[]
 
   @@map("question")
+}
+
+model Response {
+  id Int @id @default(autoincrement())
+
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  response  String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("response")
 }
 
 model TextQuestion {
@@ -325,6 +344,7 @@ model Form {
 
   name      String             @db.VarChar(255)
   questions QuestionsOnForms[]
+  response  Response[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -377,6 +397,7 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
+  response   Response[]
   address    Address[]
   assessment Assessment[]
   tally      Tally[]
