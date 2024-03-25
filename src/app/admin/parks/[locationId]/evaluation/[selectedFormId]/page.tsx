@@ -27,24 +27,7 @@ const Responses = async ({
         </h3>
         {questions !== null && form !== null && form !== undefined ?
           <ul className="list-disc p-3 ">
-            {questions.map((question) => (
-              <ResponseComponent
-                key={question.id}
-                locationId={location.id}
-                formId={form.id}
-                questionId={question.id}
-                questionName={question.name}
-              />
-            ))}
-            {/* {questions.map((question) => (
-              <div key={question.id}>
-                <div>a chave é: {question.id}</div>
-                <div>o id do local é: {location.id}</div>
-                <div>o id do formulário é: {form.id}</div>
-                <div>o id da pergunta é: {question.id}</div>
-                <div>o enunciado da pergunta é: {question.name}</div>
-              </div>
-            ))} */}
+            <ResponseComponent locationId={location.id} formId={form.id} />
           </ul>
         : <div className="text-redwood">
             Ainda não há perguntas no formulário

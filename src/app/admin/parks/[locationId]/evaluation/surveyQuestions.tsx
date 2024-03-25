@@ -16,7 +16,6 @@ const SurveyQuestions = async ({ location }: { location: Location }) => {
   return (
     <div>
       <div>Escolha o formulário da avaliação</div>
-      {/* <div>Clique no formulário para responder</div> */}
       {forms !== null ?
         <div className="w-full">
           {forms.map((form) => (

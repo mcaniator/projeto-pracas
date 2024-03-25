@@ -12,7 +12,7 @@ const AdminRoot = async () => {
   }
   return (
     <div>
-      <div>Clique no formulário para preencher</div>
+      <div>Clique no formulário para visualizar</div>
       {forms !== null ?
         <div className="w-full">
           {forms.map((form) => (

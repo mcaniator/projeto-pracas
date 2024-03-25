@@ -20,10 +20,6 @@ const addResponses = async (
     });
   } catch (err) {
     console.log(err);
-    console.log("o id do local é: " + locationId);
-    console.log("o id do formulário é: " + formId);
-    console.log("o id da pergunta é: " + questionId);
-    console.log("a resposta é: " + response);
     return { statusCode: 2 };
   }
 
