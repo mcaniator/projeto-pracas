@@ -5,19 +5,7 @@ import { Input } from "@/components/ui/input";
 import { addQuestion } from "@/serverActions/formUtil";
 import { searchQuestionsByStatement } from "@/serverActions/questionUtil";
 import { Form } from "@prisma/client";
-import {
-  Suspense,
-  use,
-  useDeferredValue,
-  useEffect, //   useRef,
-  useState,
-} from "react";
-
-// import { useFormState } from "react-dom";
-
-// const initialState = {
-//   statusCode: 0,
-// };
+import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
 const QuestionComponent = ({
   id,
@@ -28,37 +16,11 @@ const QuestionComponent = ({
   name: string;
   formId?: number;
 }) => {
-  //   const formRef = useRef<HTMLFormElement>(null);
-  //   const [, formAction] = useFormState(addQuestion, initialState);
   return (
-    // <form
-    //   ref={formRef}
-    //   action={formAction}
-    //   className={"flex min-h-0 flex-grow text-lg"}
-    //   onSubmit={() =>
-    //     setTimeout(() => {
-    //       formRef.current?.reset();
-    //     }, 1)
-    //   }
-    // >
     <div
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
     >
-      {/* <Input
-        type="hidden"
-        name="formId"
-        id={"formId"}
-        className={"hidden"}
-        defaultValue={formId}
-      />
-      <Input
-        type="hidden"
-        name="questionId"
-        id={"questionId"}
-        className={"hidden"}
-        defaultValue={id}
-      /> */}
       <Button
         variant={"admin"}
         type="submit"
@@ -71,7 +33,6 @@ const QuestionComponent = ({
       <div>o id do formulário é: {formId}</div>
       <div>o id da pergunta é:{id}</div>
     </div>
-    // </form>
   );
 };
 

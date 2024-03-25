@@ -17,17 +17,6 @@ const FormComponent = ({ id, name }: FormProps) => {
       href={`/admin/forms/${id}`}
     >
       {name}
-      {/* <div>
-        <h4 className="text-lg font-semibold">{name}</h4>
-      </div> */}
-      {/* <div>
-        <button
-          onClick={() => void handleDelete(id)}
-          className="text-red-500 hover:text-red-700"
-        >
-          Deletar
-        </button>
-      </div> */}
       <IconLink size={24} />
     </Link>
   );

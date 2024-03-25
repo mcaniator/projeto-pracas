@@ -110,43 +110,9 @@ const updateForm = async (
   };
 };
 
-const addQuestion = async (
-  formId?: number,
-  questionId?: number,
-  // prevState?: { statusCode: number },
-  // formData?: FormData,
-) => {
-  // let parseFormId;
-  // try {
-  //   parseFormId = z.coerce
-  //     .number()
-  //     .int()
-  //     .finite()
-  //     .nonnegative()
-  //     .parse(formData.get("formId"));
-  // } catch (e) {
-  //   return {
-  //     statusCode: 1,
-  //   };
-  // }
-
-  // let parseQuestionId;
-  // try {
-  //   parseQuestionId = z.coerce
-  //     .number()
-  //     .int()
-  //     .finite()
-  //     .nonnegative()
-  //     .parse(formData.get("questionId"));
-  // } catch (e) {
-  //   return {
-  //     statusCode: 1,
-  //   };
-  // }
-
+const addQuestion = async (formId?: number, questionId?: number) => {
   try {
     await prisma.questionsOnForms.create({
-      // data: { formId: parseFormId, questionId: parseQuestionId },
       data: { formId: formId, questionId: questionId },
     });
   } catch (err) {
