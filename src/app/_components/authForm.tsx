@@ -51,11 +51,14 @@ const AuthForm = () => {
 };
 
 const Login = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(signin, { statusCode: -1 });
+  const [state, formAction] = useFormState(signin, { statusCode: 0 });
+  const errorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (state.statusCode === 0) redirect("/admin");
-  }, [state]);
+  if (errorRef.current !== null && state.statusCode !== 0) {
+    errorRef.current.style.opacity = "1";
+    const copy = errorRef.current;
+    setTimeout(() => (copy.style.opacity = "0"), 5000);
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -79,8 +82,15 @@ const Login = (props: { username: MutableRefObject<string> }) => {
         </div>
       </div>
 
-      <div className="ml-auto flex gap-1">
-        <Button className="text-white">
+      <div className="flex items-center gap-1">
+        <div ref={errorRef} className="opacity-0 transition-opacity">
+          <div className="rounded-2xl border-4 border-redwood px-2 py-1">
+            <p className={"-mb-1 self-end font-semibold text-redwood"}>
+              Dados incorretos!
+            </p>
+          </div>
+        </div>
+        <Button className="ml-auto text-white">
           <span className="-mb-1">Entrar</span>
         </Button>
       </div>
