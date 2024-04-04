@@ -131,7 +131,7 @@ const UserInfo = ({ user }: { user: User }) => {
         <Button
           variant={"destructive"}
           className="w-full basis-1/2 text-white"
-          onClick={() => revalidateAllCache()}
+          onClick={void revalidateAllCache()}
         >
           <span className="-mb-1">Resetar cache</span>
         </Button>
