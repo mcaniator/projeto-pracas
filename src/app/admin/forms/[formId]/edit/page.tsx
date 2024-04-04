@@ -1,3 +1,4 @@
+import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { searchFormsById } from "@/serverActions/formUtil";
 
 import { FormUpdater } from "./formUpdater";
@@ -8,6 +9,13 @@ const Edit = async ({ params }: { params: { formId: string } }) => {
   // TODO: add error handling
   return form == null ?
       <div>Formulário não encontrado</div>
-    : <FormUpdater form={form} />;
+    : <div className="flex">
+        <div className="w-1/2">
+          <FormUpdater form={form} />
+        </div>
+        <div className="w-1/2">
+          <QuestionForm formId={form.id} />
+        </div>
+      </div>;
 };
 export default Edit;

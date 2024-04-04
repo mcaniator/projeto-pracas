@@ -1,6 +1,5 @@
 "use client";
 
-import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { handleDelete, updateForm } from "@/serverActions/formUtil";
@@ -20,8 +19,8 @@ const FormUpdater = async ({ form }: { form: Form }) => {
 
   // TODO: add error handling
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-3/5 flex-col gap-5 text-white">
+    <div className={"flex min-h-0  flex-grow gap-5 p-5"}>
+      <div className="flex basis-full flex-col gap-5 text-white">
         <div
           className={
             "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
@@ -91,18 +90,6 @@ const FormUpdater = async ({ form }: { form: Form }) => {
               Ainda não há perguntas no formulário
             </div>
           }
-        </div>
-      </div>
-      <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-        <div className="flex basis-3/5 flex-col gap-5 text-white">
-          <div
-            className={
-              "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
-            }
-          >
-            <h3 className={"text-2xl font-semibold"}>Busca de Perguntas</h3>
-            <QuestionForm formId={form.id} />
-          </div>
         </div>
       </div>
     </div>
