@@ -22,45 +22,48 @@ const lucia = new Lucia(prismaAdapter, {
   },
 });
 
-const validateRequest = unstable_cache(
-  async () => {
-    const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
-    if (!sessionId) {
-      return {
-        user: null,
-        session: null,
-      };
-    }
+const validateRequest = async () => {
+  const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+  if (!sessionId) {
+    return {
+      user: null,
+      session: null,
+    };
+  }
 
-    const result = await lucia.validateSession(sessionId);
+  const validateFunction = unstable_cache(
+    async (sessionId: string) => {
+      const result = await lucia.validateSession(sessionId);
 
-    try {
-      if (result.session && result.session.fresh) {
-        const sessionCookie = lucia.createSessionCookie(result.session.id);
-        cookies().set(
-          sessionCookie.name,
-          sessionCookie.value,
-          sessionCookie.attributes,
-        );
+      try {
+        if (result.session && result.session.fresh) {
+          const sessionCookie = lucia.createSessionCookie(result.session.id);
+          cookies().set(
+            sessionCookie.name,
+            sessionCookie.value,
+            sessionCookie.attributes,
+          );
+        }
+
+        if (!result.session) {
+          const sessionCookie = lucia.createBlankSessionCookie();
+          cookies().set(
+            sessionCookie.name,
+            sessionCookie.value,
+            sessionCookie.attributes,
+          );
+        }
+      } catch {
+        /* empty */
       }
 
-      if (!result.session) {
-        const sessionCookie = lucia.createBlankSessionCookie();
-        cookies().set(
-          sessionCookie.name,
-          sessionCookie.value,
-          sessionCookie.attributes,
-        );
-      }
-    } catch {
-      /* empty */
-    }
-
-    return result;
-  },
-  ["requestValidation"],
-  { tags: ["user", "session", "database"] },
-);
+      return result;
+    },
+    ["requestValidation"],
+    { tags: ["user", "session", "database"] },
+  );
+  return await validateFunction(sessionId);
+};
 
 declare module "lucia" {
   interface Register {
