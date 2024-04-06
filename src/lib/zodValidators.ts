@@ -135,7 +135,7 @@ export type {
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
-
+const SortOrderSchema = z.array(z.enum(["id", "name", "date"])).length(3);
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
@@ -184,13 +184,26 @@ const administrativeUnitsSchema = z.object({
   broadAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
 });
 
+type SortOrderType = z.infer<typeof SortOrderSchema>;
 type locationType = z.infer<typeof locationSchema>;
 type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
 
-export { addressSchema, administrativeUnitsSchema, citySchema, locationSchema };
-export type { addressType, administrativeUnitsType, cityType, locationType };
+export {
+  SortOrderSchema,
+  addressSchema,
+  administrativeUnitsSchema,
+  citySchema,
+  locationSchema,
+};
+export type {
+  SortOrderType,
+  addressType,
+  administrativeUnitsType,
+  cityType,
+  locationType,
+};
 // #endregion
 
 // #region Informações das Avaliações

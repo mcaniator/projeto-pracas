@@ -1,8 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { personType, tallyDataToProcessType } from "@/lib/zodValidators";
-import { z } from "zod";
+import {
+  SortOrderType,
+  personType,
+  tallyDataToProcessType,
+} from "@/lib/zodValidators";
+import { number, z } from "zod";
 
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
@@ -58,24 +62,91 @@ const booleanPersonProperties: (keyof personType)[] = [
 const exportFullSpreadsheetToCSV = async (
   locationsIds: number[],
   tallysIds: number[],
+  assessmentsIds: number[],
+  sortCriteriaOrder: SortOrderType,
 ) => {
-  let block1CSVString =
-    "IDENTIFICAÇÃO PRAÇA,,,IDENTIFICAÇÃO,,,,,DADOS HISTÓRICOS,,,,DADOS DE PLANEJAMENTO,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,,\n";
-  block1CSVString +=
-    ",,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,,\n";
-  block1CSVString +=
-    "Identificador,Nome da Praça,Avaliada?,Categorias,Tipo,Observações,Nome popular,Endereço,Ano criação,Ano reforma,Prefeito,Legislação,Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,inclinação (%),canto,centro,isolada,dividida,VIAS (número),4m,6m,8m,10m,20m,\n";
-
-  const locations = await prisma.location.findMany({
+  const classifications = await prisma.classification.findMany({
+    include: {
+      childs: {
+        include: {
+          questions: true,
+          answers: true,
+        },
+      },
+      parent: true,
+      questions: true,
+      answers: true,
+    },
+  });
+  let locations = await prisma.location.findMany({
     where: {
       id: {
         in: locationsIds,
       },
     },
     include: {
-      assessment: true,
-      address: true,
-      tally: {
+      assessments: {
+        where: {
+          id: {
+            in: assessmentsIds,
+          },
+        },
+        select: {
+          id: true,
+          form: {
+            select: {
+              classifications: {
+                select: {
+                  id: true,
+                  parentId: true,
+                  parent: true,
+                  childs: {
+                    select: {
+                      id: true,
+                      name: true,
+                      questions: {
+                        select: {
+                          id: true,
+                          name: true,
+                          answers: {
+                            select: {
+                              id: true,
+                              content: true,
+                              assessmentId: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  questions: {
+                    select: {
+                      id: true,
+                      name: true,
+                      answers: {
+                        select: {
+                          content: true,
+                          assessmentId: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      address: {
+        include: {
+          city: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      tallys: {
         where: {
           id: {
             in: tallysIds,
@@ -109,27 +180,339 @@ const exportFullSpreadsheetToCSV = async (
     },
   });
 
+  locations = locations.sort((a, b) => {
+    for (const criteria of sortCriteriaOrder) {
+      switch (criteria) {
+        case "name":
+          return a.name.localeCompare(b.name);
+          break;
+        case "id":
+          return a.id - b.id;
+          break;
+        case "date":
+          return a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        default:
+          return 0;
+      }
+    }
+    return 0;
+  });
+
+  let block1CSVString =
+    "IDENTIFICAÇÃO PRAÇA,,,IDENTIFICAÇÃO,,,,,DADOS HISTÓRICOS,,,,DADOS DE PLANEJAMENTO,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,\n";
+  block1CSVString +=
+    ",,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
+  block1CSVString +=
+    "Identificador,Nome da Praça,Avaliada?,Categorias,Tipo,Observações,Nome popular,Endereço,Ano criação,Ano reforma,Prefeito,Legislação,Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,inclinação (%),canto,centro,isolada,dividida,VIAS (número),4m,6m,8m,10m,20m\n";
+
   block1CSVString += locations
-    .map((location) => createBlock1Line(location))
+    .map((location) => {
+      let locationLines = "";
+      let block1Line = null;
+      for (let i = 0; i < location.assessments.length; i++) {
+        if (!block1Line) block1Line = `${createBlock1Line(location)}`;
+        locationLines += `${block1Line}`;
+        if (i + 1 !== location.assessments.length) locationLines += "\n";
+      }
+      return locationLines;
+    })
     .join("\n");
+  //locations.map((location) => console.log(location));
 
   let block2CSVString =
-    "CONTAGEM DE PESSOAS DIAS DE SEMANA + FINAIS DE SEMANA,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+    "CONTAGEM DE PESSOAS DIAS DE SEMANA + FINAIS DE SEMANA,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
   block2CSVString +=
     "HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,,DENSIDADE\n";
   block2CSVString +=
     "HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Atvidades comerciais intinerantes (Qtde),Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,%Pessoas em situação de rua,DENSIDADE\n";
   block2CSVString += `${locations
-    .map((location) => createBlock2Line(location))
+    .map((location) => {
+      let locationLines = "";
+      for (let i = 0; i < location.assessments.length; i++) {
+        locationLines += `${createBlock2Line(location, i)}`;
+        if (i + 1 !== location.assessments.length) locationLines += "\n";
+      }
+      return locationLines;
+    })
     .join("\n")}`;
-  console.log(block2CSVString);
+
+  const classificationsAdded: number[] = [];
+  let block3CSVString = "";
+  const block3Array: string[][] = []; // -> [[LINE, LINE, ...],[LINE, LINE,...]] each array is an classification's content
+
+  classifications.map((classification) => {
+    const linesWithoutAnswers: number[] = [];
+    let lineIndex = 0;
+    if (classification.childs.length === 0 && !classification.parent) {
+      //Here classifications without subclassifications are processed
+      block3Array.push(["", "", ""]); //Adds header lines for this classification
+      if (classification.questions) {
+        locations.map((location) => {
+          location.assessments.map((assessment) => {
+            if (assessment.form?.classifications) {
+              block3Array[block3Array.length - 1]?.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
+              if (!classificationsAdded.includes(classification.id)) {
+                //Here the header will be created (if this classification is found)
+                for (const formClassification of assessment.form
+                  ?.classifications) {
+                  if (formClassification.id === classification.id) {
+                    classificationsAdded.push(classification.id);
+                    let addedFirstQuestion = false;
+                    block3Array[block3Array.length - 1][0] =
+                      `,${classification.name}`; //Adds classification name to the header
+                    block3Array[block3Array.length - 1][1] = `,`; //Adds a comma to the subclassification line (this classification doesn't have a classification)
+                    for (const question of classification.questions) {
+                      if (addedFirstQuestion)
+                        block3Array[block3Array.length - 1][0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
+                      if (addedFirstQuestion)
+                        block3Array[block3Array.length - 1][1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
+                      block3Array[block3Array.length - 1][2] +=
+                        `,${question.name}`; //Adds question name to the header
+                      addedFirstQuestion = true;
+                    }
+                    break;
+                  }
+                }
+              }
+
+              if (classificationsAdded.includes(classification.id)) {
+                //Will only enter this block if this classification has already been found within assessments
+                for (const formClassification of assessment.form
+                  ?.classifications) {
+                  if (formClassification.id === classification.id) {
+                    for (const question of formClassification.questions) {
+                      let answerFound = false;
+                      for (const answer of question.answers) {
+                        if (answer.assessmentId === assessment.id) {
+                          block3Array[block3Array.length - 1][
+                            block3Array[block3Array.length - 1]?.length - 1
+                          ] += `,${answer.content}`; //Adds answer content to the last line of the current classification array
+                          answerFound = true;
+                        }
+                      }
+                      if (!answerFound)
+                        block3Array[block3Array.length - 1][
+                          block3Array[block3Array.length - 1]?.length - 1
+                        ] += `,`; //Adds an empty collumn if the answer wasn't found
+                    }
+                  }
+                }
+              } else {
+                linesWithoutAnswers.push(lineIndex); //If the classification hasn't been found yet, this line's index is stored to add commas to it in case the classification is found
+              }
+            }
+
+            lineIndex++;
+          });
+        });
+        if (classificationsAdded.includes(classification.id)) {
+          //Here empty collumns will be added to assessments whitch were processed before the classification was found
+          for (const line of linesWithoutAnswers) {
+            for (let i = 0; i < classification.questions.length; i++) {
+              block3Array[block3Array.length][line] += ",";
+            }
+          }
+        }
+      }
+    } else if (!classification.parent && classification.childs.length > 0) {
+      block3Array.push(["", "", ""]); //Adds header lines for this classification
+      //Here subclassifications and it's parents are processed
+      const subclassificationsAdded: number[] = [];
+      const linesWithoutAnswersSubclassification: number[][] = []; //[[SubclassificationId, SubclassificationIndexWithinClassification , LineIndex],...]
+      locations.map((location) => {
+        location.assessments.map((assessment) => {
+          if (assessment.form?.classifications) {
+            block3Array[block3Array.length - 1]?.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
+            for (const formClassification of assessment.form.classifications) {
+              if (formClassification.id === classification.id) {
+                //CLASSIFICATION
+                if (!classificationsAdded.includes(classification.id)) {
+                  classificationsAdded.push(classification.id);
+                  block3Array[block3Array.length - 1][0] =
+                    `;${classification.name}`; //Adds classification name to the header
+                }
+                if (classificationsAdded.includes(classification.id)) {
+                  let SubclassificationIndexWithinClassification = 0;
+                  for (const child of classification.childs) {
+                    for (const formSubclassification of formClassification.childs) {
+                      if (
+                        !subclassificationsAdded.includes(child.id) &&
+                        formSubclassification.id === child.id
+                      ) {
+                        //Here the questions of the subclassification are added to the header
+                        subclassificationsAdded.push(child.id);
+                        let addedFirstQuestion = false;
+                        block3Array[block3Array.length - 1][1] +=
+                          `;${child.name}`; //Adds subclassification name to the header
+                        for (const question of child.questions) {
+                          if (addedFirstQuestion)
+                            block3Array[block3Array.length - 1][0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
+                          if (addedFirstQuestion)
+                            block3Array[block3Array.length - 1][1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
+                          block3Array[block3Array.length - 1][2] +=
+                            `,${question.name}`; //Adds question name to the header
+                          addedFirstQuestion = true;
+                        }
+                      }
+
+                      SubclassificationIndexWithinClassification++;
+                    }
+                    if (subclassificationsAdded.includes(child.id)) {
+                      //If the subclassification has been found, here the answers for it are going to be searched
+                      let firstAnswerProcessed = false;
+
+                      let formSubclassificationFound;
+                      for (const formSubclassification of formClassification.childs) {
+                        if (child.id === formSubclassification.id) {
+                          formSubclassificationFound = formSubclassification;
+                        }
+                      }
+                      if (formSubclassificationFound) {
+                        for (const question of formSubclassificationFound.questions) {
+                          let answerFound = false;
+                          for (const answer of question.answers) {
+                            if (answer.assessmentId === assessment.id) {
+                              if (!firstAnswerProcessed) {
+                                //Separates the answers from different subclassifications with ";" instead of ","
+                                block3Array[block3Array.length - 1][
+                                  block3Array[block3Array.length - 1]?.length -
+                                    1
+                                ] += `;${answer.content}`; //Adds answer content to the last line of the current classification array
+                                answerFound = true;
+                                firstAnswerProcessed = true;
+                              } else {
+                                block3Array[block3Array.length - 1][
+                                  block3Array[block3Array.length - 1]?.length -
+                                    1
+                                ] += `,${answer.content}`; //Adds answer content to the last line of the current classification array
+                                answerFound = true;
+                                firstAnswerProcessed = true;
+                              }
+                            }
+                          }
+                          if (!answerFound)
+                            if (!firstAnswerProcessed) {
+                              //Separates the answers from different subclassifications with ";" instead of ","
+                              block3Array[block3Array.length - 1][
+                                block3Array[block3Array.length - 1]?.length - 1
+                              ] += `;`; //Adds an empty collumn if the answer wasn't found
+                              firstAnswerProcessed = true;
+                            } else {
+                              block3Array[block3Array.length - 1][
+                                block3Array[block3Array.length - 1]?.length - 1
+                              ] += `,`; //Adds an empty collumn if the answer wasn't found
+                            }
+                        }
+                      } else {
+                        for (let i = 0; i < child.questions.length; i++) {
+                          let firstCommaAdded = false;
+                          if (firstCommaAdded)
+                            block3Array[block3Array.length - 1][
+                              block3Array[block3Array.length - 1]?.length - 1
+                            ] += ",";
+                          else
+                            block3Array[block3Array.length - 1][
+                              block3Array[block3Array.length - 1]?.length - 1
+                            ] += ";";
+                        }
+                      }
+                    } else {
+                      block3Array[block3Array.length - 1][
+                        block3Array[block3Array.length - 1]?.length - 1
+                      ] += `;`; //Temporarily adds an space to answers for this subclassifcation. In case the subclassification is added later, we can add the corresponding number of "," in this line, in the correct place
+                      linesWithoutAnswersSubclassification.push([
+                        child.id,
+                        SubclassificationIndexWithinClassification,
+                        lineIndex,
+                      ]);
+                    }
+                  }
+                } else {
+                  linesWithoutAnswers.push(lineIndex);
+                }
+              }
+            }
+          }
+          lineIndex++;
+        });
+      });
+
+      if (classificationsAdded.includes(classification.id)) {
+        for (const line of linesWithoutAnswers) {
+          //Here empty collumns will be added to assessments whitch were processed before the classification was found
+          for (const subclassification of classification.childs) {
+            for (const subclassificationId of subclassificationsAdded) {
+              if (subclassificationId === subclassification.id) {
+                for (let j = 0; j < subclassification.questions.length; j++) {
+                  block3Array[block3Array.length - 1][line] += ",";
+                }
+              }
+            }
+          }
+        }
+        for (const subclassification of classification.childs) {
+          //Here empty collumns will be added to assessments whitch were processed before the subclassification was found
+          if (subclassificationsAdded.includes(subclassification.id)) {
+            for (const line of linesWithoutAnswersSubclassification) {
+              if (subclassification.id === line[0]) {
+                const subClassificationIndex = line[1];
+                const lineIndex = line[2];
+                const lineSplitBetweenSubclassifcations =
+                  block3Array[block3Array.length - 1][lineIndex]?.split(";"); //Splits the line without answers for this subclassification
+                for (let i = 0; subclassification.questions.length - 1; i++) {
+                  lineSplitBetweenSubclassifcations[subClassificationIndex] +=
+                    ",";
+                }
+                lineSplitBetweenSubclassifcations.join("");
+                block3Array[block3Array.length - 1][lineIndex] =
+                  lineSplitBetweenSubclassifcations; // Adds back the line to the array, but with the correct ammout of "," for this subclassification
+              }
+            }
+          }
+        }
+      }
+    }
+    for (let i = 0; i < block3Array[block3Array.length - 1]?.length; i++) {
+      // Removes collumns of subclassifications that were never added
+      block3Array[block3Array.length - 1][i] = block3Array[
+        block3Array.length - 1
+      ][i]?.replace(/;+/g, ";");
+      block3Array[block3Array.length - 1][i] = block3Array[
+        block3Array.length - 1
+      ][i].replace(/;$/, "");
+    }
+  });
+  if (block3Array) {
+    for (let j = 0; j < block3Array[0]?.length; j++) {
+      for (let i = 0; i < block3Array.length; i++) {
+        block3CSVString += `${block3Array[i][j]}`;
+      }
+      block3CSVString += "\n";
+    }
+  }
+  const block1Lines = block1CSVString.split("\n");
+  const block2Lines = block2CSVString.split("\n");
+  const resultArray: string[] = [];
+  for (let i = 0; i < block1Lines.length; i++) {
+    const linePt1 = block1Lines[i];
+    const linePt2 = block2Lines[i];
+    let linePt3 = "";
+    for (let j = 0; j < block3Array.length; j++) {
+      linePt3 += `${block3Array[j][i]}`;
+    }
+    resultArray.push(`${linePt1},${linePt2} ${linePt3}`);
+  }
+  const result = resultArray.join("\n");
+  console.log(result);
 };
+
 const createBlock1Line = (location) => {
   interface StreetsJsonType {
     [key: string]: string;
   }
   let evaluated = "N";
-  if (location.assessment) {
+  if (location.assessments.length > 0) {
     evaluated = "S";
   }
   let addressString = "";
@@ -198,7 +581,7 @@ const createBlock1Line = (location) => {
     totalStatisticsPeople,
     location.occupiedHouseholds ? location.occupiedHouseholds : "",
     location.usableArea ?
-      (totalStatisticsPeople / location.usableArea) * 100
+      ((totalStatisticsPeople / location.usableArea) * 100).toFixed(2)
     : "",
     location.incline ? location.incline : "",
     location.morphology && location.morphology === "CORNER" ? 1 : "",
@@ -212,19 +595,24 @@ const createBlock1Line = (location) => {
   return block1String;
 };
 
-const createBlock2Line = (location) => {
-  if (!location.tally[0])
+const createBlock2Line = (location, tallyIndex: number) => {
+  if (!location.tallys[tallyIndex])
     return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-  const processedData = processAndFormatTallyData(location.tally[0]);
-  if (location.usableArea)
+  const processedData = processAndFormatTallyData(location.tallys[tallyIndex]);
+
+  if (location.usableArea) {
     return (
       processedData.tallyString +
       "," +
       ((processedData.totalPeople / location.usableArea) * 100).toFixed(2)
     );
-  else return processedData.tallyString + ",";
+  } else return processedData.tallyString + ",";
 };
-const exportAllTallysToCsv = async (locationsIds: number[]) => {
+
+const exportAllTallysToCsv = async (
+  locationsIds: number[],
+  sortCriteriaOrder: SortOrderType,
+) => {
   const locations = await prisma.location.findMany({
     where: {
       id: {
@@ -232,7 +620,7 @@ const exportAllTallysToCsv = async (locationsIds: number[]) => {
       },
     },
     select: {
-      tally: {
+      tallys: {
         include: {
           location: {
             select: {
@@ -261,12 +649,15 @@ const exportAllTallysToCsv = async (locationsIds: number[]) => {
   });
   const allTallys = locations
     .map((location) => {
-      return location.tally;
+      return location.tallys;
     })
     .flat();
-  return createExclusiveTallyString(allTallys);
+  return createExclusiveTallyString(allTallys, sortCriteriaOrder);
 };
-const exportTallyToCSV = async (tallysIds: number[]) => {
+const exportTallyToCSV = async (
+  tallysIds: number[],
+  sortCriteriaOrder: SortOrderType,
+) => {
   const tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -298,19 +689,30 @@ const exportTallyToCSV = async (tallysIds: number[]) => {
     },
   });
 
-  return createExclusiveTallyString(tallys);
+  return createExclusiveTallyString(tallys, sortCriteriaOrder);
 };
 
-const createExclusiveTallyString = (tallys: tallyDataToProcessType[]) => {
+const createExclusiveTallyString = (
+  tallys: tallyDataToProcessType[],
+  sortCriteriaOrder: SortOrderType,
+) => {
   tallys = tallys.sort((a, b) => {
-    const nameComparison = a.location.name.localeCompare(b.location.name);
-    if (nameComparison != 0) {
-      return nameComparison;
-    } else if (a.locationId != b.locationId) {
-      return a.locationId - b.locationId;
-    } else {
-      return a.startDate.getTime() - b.startDate.getTime();
+    for (const criteria of sortCriteriaOrder) {
+      switch (criteria) {
+        case "name":
+          return a.location.name.localeCompare(b.location.name);
+          break;
+        case "id":
+          return a.locationId - b.locationId;
+          break;
+        case "date":
+          return a.startDate.getTime() - b.startDate.getTime();
+          break;
+        default:
+          return 0;
+      }
     }
+    return 0;
   });
   let CSVstring =
     "IDENTIFICAÇÃO PRAÇA,,IDENTIFICAÇÃO LEVANTAMENTO,,,,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";

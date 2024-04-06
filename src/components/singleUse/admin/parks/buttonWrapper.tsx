@@ -3,6 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  createAnswer,
+  createAssessment,
+  createClassification,
+  createForm,
+  createSubclassification,
+} from "@/serverActions/assessmentCRUD";
+import {
   exportAllTallysToCsv,
   exportFullSpreadsheetToCSV,
   exportTallyToCSV,
@@ -22,12 +29,22 @@ const ButtonWrapper = () => {
     broadAdministrativeUnit: "del4",
   };
 
+  const startDate = new Date("December 17, 1995 03:24:00");
+  const endDate = new Date("December 17, 1995 09:00:00");
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
+  let locationIdToAssessment: number;
+  let formIdToAssessment: number;
+  let classificationName: string;
+  let classificationId: number;
+  let subclassificationName: string;
 
   const handleTallyCSVDownload = async () => {
     try {
-      const blobStr = await exportTallyToCSV([10, 11, 12, 13, 14]);
+      const blobStr = await exportTallyToCSV(
+        [10, 11, 12, 13, 14],
+        ["date", "id", "name"],
+      );
       const blobData = new Blob([blobStr]);
       const url = URL.createObjectURL(blobData);
       const a = document.createElement("a");
@@ -43,7 +60,10 @@ const ButtonWrapper = () => {
   };
   const handleAllTallyCSVDownload = async () => {
     try {
-      const blobStr = await exportAllTallysToCsv([1, 2, 3, 4, 5]);
+      const blobStr = await exportAllTallysToCsv(
+        [1, 2, 3, 4, 5],
+        ["name", "id", "date"],
+      );
       const blobData = new Blob([blobStr]);
       const url = URL.createObjectURL(blobData);
       const a = document.createElement("a");
@@ -195,9 +215,101 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void exportFullSpreadsheetToCSV([1, 2], [13, 14])}
+          onClick={() =>
+            void exportFullSpreadsheetToCSV(
+              [1, 2, 3],
+              [13, 14],
+              [2, 3, 4, 5],
+              ["id", "name", "date"],
+            )
+          }
         >
           <span className="-mb-1">FULL CSV</span>
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => void createClassification("Vigilância", [])}
+        >
+          Criar Classificação
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() =>
+            void createSubclassification("Passiva", 4, [
+              "Visibilidade",
+              "Fach Perm",
+              "Fach Ativ",
+              "Soma passiva",
+            ])
+          }
+        >
+          Criar subclassificação
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant={"admin"}
+          className="mb-[2px] self-end"
+          type="submit"
+          onClick={() => void createForm("Form 1", [2, 3, 4, 5, 6])}
+        >
+          Criar form
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <div>
+          <label htmlFor="locationIdToAssessment">
+            ID da praça para a criação de avaliação:
+          </label>
+          <Input
+            type="number"
+            id="locationIdToAssessment"
+            name="location ID to assessment Input"
+            onChange={(e) =>
+              (locationIdToAssessment = parseInt(e.target.value))
+            }
+            value={locationId}
+          />
+          <label htmlFor="formIdToAssessment">
+            Id do form para criar avaliação:
+          </label>
+          <Input
+            type="number"
+            id="formIdToAssessment"
+            name="form ID to assessment Input"
+            onChange={(e) => (formIdToAssessment = parseInt(e.target.value))}
+            value={locationId}
+          />
+          <Button
+            variant={"admin"}
+            className="mb-[2px] self-end"
+            type="submit"
+            onClick={() =>
+              void createAssessment(
+                "Nome da avaliacao",
+                1,
+                1,
+                "R1D1",
+                startDate,
+                endDate,
+              )
+            }
+          >
+            Criar avaliação
+          </Button>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={() => void createAnswer("BOA", 10, 1, 1, 2, 6)}>
+          Criar resposta
         </Button>
       </div>
     </div>
