@@ -243,7 +243,7 @@ const exportFullSpreadsheetToCSV = async (
 
   classifications.map((classification) => {
     const linesWithoutAnswers: number[] = [];
-    let lineIndex = 0;
+    let lineIndex = 3;
     if (classification.childs.length === 0 && !classification.parent) {
       //Here classifications without subclassifications are processed
       block3Array.push(["", "", ""]); //Adds header lines for this classification
@@ -278,9 +278,11 @@ const exportFullSpreadsheetToCSV = async (
 
               if (classificationsAdded.includes(classification.id)) {
                 //Will only enter this block if this classification has already been found within assessments
+                let classificationAddedPreviouslyFound = false;
                 for (const formClassification of assessment.form
                   ?.classifications) {
                   if (formClassification.id === classification.id) {
+                    classificationAddedPreviouslyFound = true;
                     for (const question of formClassification.questions) {
                       let answerFound = false;
                       for (const answer of question.answers) {
@@ -298,6 +300,13 @@ const exportFullSpreadsheetToCSV = async (
                     }
                   }
                 }
+                if (!classificationAddedPreviouslyFound) {
+                  for (let i = 0; i < classification.questions.length; i++) {
+                    block3Array[block3Array.length - 1][
+                      block3Array[block3Array.length - 1]?.length - 1
+                    ] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
+                  }
+                }
               } else {
                 linesWithoutAnswers.push(lineIndex); //If the classification hasn't been found yet, this line's index is stored to add commas to it in case the classification is found
               }
@@ -310,7 +319,7 @@ const exportFullSpreadsheetToCSV = async (
           //Here empty collumns will be added to assessments whitch were processed before the classification was found
           for (const line of linesWithoutAnswers) {
             for (let i = 0; i < classification.questions.length; i++) {
-              block3Array[block3Array.length][line] += ",";
+              block3Array[block3Array.length - 1][line] += ",";
             }
           }
         }
@@ -324,112 +333,159 @@ const exportFullSpreadsheetToCSV = async (
         location.assessments.map((assessment) => {
           if (assessment.form?.classifications) {
             block3Array[block3Array.length - 1]?.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
-            for (const formClassification of assessment.form.classifications) {
-              if (formClassification.id === classification.id) {
-                //CLASSIFICATION
-                if (!classificationsAdded.includes(classification.id)) {
-                  classificationsAdded.push(classification.id);
-                  block3Array[block3Array.length - 1][0] =
-                    `;${classification.name}`; //Adds classification name to the header
+            if (
+              !assessment.form.classifications.some(
+                (item) => item.id === classification.id,
+              )
+            ) {
+              //Will enter here if this form dont have this classification
+              let SubclassificationIndexWithinClassification = 0;
+              for (const subclassifcation of classification.childs) {
+                let firstCommaAdded = true;
+                if (!subclassificationsAdded.includes(subclassifcation.id)) {
+                  block3Array[block3Array.length - 1][
+                    block3Array[block3Array.length - 1]?.length - 1
+                  ] += `;`; //Temporarily adds an space to answers for this subclassifcation. In case the subclassification is added later, we can add the corresponding number of "," in this line, in the correct place
+                  linesWithoutAnswersSubclassification.push([
+                    subclassifcation.id,
+                    SubclassificationIndexWithinClassification,
+                    lineIndex,
+                  ]);
+                  SubclassificationIndexWithinClassification++;
+                  continue;
+                } else {
+                  for (let i = 0; i < subclassifcation.questions.length; i++) {
+                    if (!firstCommaAdded) {
+                      block3Array[block3Array.length - 1][
+                        block3Array[block3Array.length - 1]?.length - 1
+                      ] += ";";
+                      firstCommaAdded = true;
+                    } else
+                      block3Array[block3Array.length - 1][
+                        block3Array[block3Array.length - 1]?.length - 1
+                      ] += ",";
+                  }
+                  SubclassificationIndexWithinClassification++;
                 }
-                if (classificationsAdded.includes(classification.id)) {
-                  let SubclassificationIndexWithinClassification = 0;
-                  for (const child of classification.childs) {
-                    for (const formSubclassification of formClassification.childs) {
-                      if (
-                        !subclassificationsAdded.includes(child.id) &&
-                        formSubclassification.id === child.id
-                      ) {
-                        //Here the questions of the subclassification are added to the header
-                        subclassificationsAdded.push(child.id);
-                        let addedFirstQuestion = false;
-                        block3Array[block3Array.length - 1][1] +=
-                          `;${child.name}`; //Adds subclassification name to the header
-                        for (const question of child.questions) {
-                          if (addedFirstQuestion)
-                            block3Array[block3Array.length - 1][0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
-                          if (addedFirstQuestion)
-                            block3Array[block3Array.length - 1][1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
-                          block3Array[block3Array.length - 1][2] +=
-                            `,${question.name}`; //Adds question name to the header
-                          addedFirstQuestion = true;
-                        }
-                      }
+              }
+            } else {
+              for (const formClassification of assessment.form
+                .classifications) {
+                if (formClassification.id === classification.id) {
+                  //CLASSIFICATION
+                  if (!classificationsAdded.includes(classification.id)) {
+                    classificationsAdded.push(classification.id);
+                    block3Array[block3Array.length - 1][0] =
+                      `;${classification.name}`; //Adds classification name to the header
+                  }
+                  if (classificationsAdded.includes(classification.id)) {
+                    let SubclassificationIndexWithinClassification = 0;
+                    let addedFirstQuestionOfClassification = false;
 
-                      SubclassificationIndexWithinClassification++;
-                    }
-                    if (subclassificationsAdded.includes(child.id)) {
-                      //If the subclassification has been found, here the answers for it are going to be searched
-                      let firstAnswerProcessed = false;
-
-                      let formSubclassificationFound;
+                    for (const child of classification.childs) {
+                      //SUBCLASSIFICATIONS
                       for (const formSubclassification of formClassification.childs) {
-                        if (child.id === formSubclassification.id) {
-                          formSubclassificationFound = formSubclassification;
+                        //console.log(formSubclassification);
+                        if (
+                          !subclassificationsAdded.includes(child.id) &&
+                          formSubclassification.id === child.id &&
+                          assessment.form.classifications.some(
+                            (item) => item.id === formSubclassification.id,
+                          )
+                        ) {
+                          subclassificationsAdded.push(child.id);
+                          let addedFirstQuestion = false;
+                          block3Array[block3Array.length - 1][1] +=
+                            `;${child.name}`; //Adds subclassification name to the header
+                          for (const question of child.questions) {
+                            if (addedFirstQuestionOfClassification)
+                              block3Array[block3Array.length - 1][0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
+                            if (addedFirstQuestion)
+                              block3Array[block3Array.length - 1][1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
+                            block3Array[block3Array.length - 1][2] +=
+                              `,${question.name}`; //Adds question name to the header
+                            addedFirstQuestion = true;
+                            addedFirstQuestionOfClassification = true;
+                          }
                         }
+
+                        SubclassificationIndexWithinClassification++;
                       }
-                      if (formSubclassificationFound) {
-                        for (const question of formSubclassificationFound.questions) {
-                          let answerFound = false;
-                          for (const answer of question.answers) {
-                            if (answer.assessmentId === assessment.id) {
+                      if (subclassificationsAdded.includes(child.id)) {
+                        //If the subclassification has been found, here the answers for it are going to be searched
+                        let firstAnswerProcessed = false;
+
+                        let formSubclassificationFound;
+                        for (const formSubclassification of formClassification.childs) {
+                          if (child.id === formSubclassification.id) {
+                            formSubclassificationFound = formSubclassification;
+                          }
+                        }
+                        if (formSubclassificationFound) {
+                          for (const question of formSubclassificationFound.questions) {
+                            let answerFound = false;
+                            for (const answer of question.answers) {
+                              if (answer.assessmentId === assessment.id) {
+                                if (!firstAnswerProcessed) {
+                                  //Separates the answers from different subclassifications with ";" instead of ","
+                                  block3Array[block3Array.length - 1][
+                                    block3Array[block3Array.length - 1]
+                                      ?.length - 1
+                                  ] += `;${answer.content}`; //Adds answer content to the last line of the current classification array
+                                  answerFound = true;
+                                  firstAnswerProcessed = true;
+                                } else {
+                                  block3Array[block3Array.length - 1][
+                                    block3Array[block3Array.length - 1]
+                                      ?.length - 1
+                                  ] += `,${answer.content}`; //Adds answer content to the last line of the current classification array
+                                  answerFound = true;
+                                  firstAnswerProcessed = true;
+                                }
+                              }
+                            }
+                            if (!answerFound)
                               if (!firstAnswerProcessed) {
                                 //Separates the answers from different subclassifications with ";" instead of ","
                                 block3Array[block3Array.length - 1][
                                   block3Array[block3Array.length - 1]?.length -
                                     1
-                                ] += `;${answer.content}`; //Adds answer content to the last line of the current classification array
-                                answerFound = true;
+                                ] += `;`; //Adds an empty collumn if the answer wasn't found
                                 firstAnswerProcessed = true;
                               } else {
                                 block3Array[block3Array.length - 1][
                                   block3Array[block3Array.length - 1]?.length -
                                     1
-                                ] += `,${answer.content}`; //Adds answer content to the last line of the current classification array
-                                answerFound = true;
-                                firstAnswerProcessed = true;
+                                ] += `,`; //Adds an empty collumn if the answer wasn't found
                               }
-                            }
                           }
-                          if (!answerFound)
-                            if (!firstAnswerProcessed) {
-                              //Separates the answers from different subclassifications with ";" instead of ","
+                        } else {
+                          for (let i = 0; i < child.questions.length; i++) {
+                            let firstCommaAdded = false;
+                            if (firstCommaAdded)
                               block3Array[block3Array.length - 1][
                                 block3Array[block3Array.length - 1]?.length - 1
-                              ] += `;`; //Adds an empty collumn if the answer wasn't found
-                              firstAnswerProcessed = true;
-                            } else {
+                              ] += ",";
+                            else
                               block3Array[block3Array.length - 1][
                                 block3Array[block3Array.length - 1]?.length - 1
-                              ] += `,`; //Adds an empty collumn if the answer wasn't found
-                            }
+                              ] += ";";
+                          }
                         }
                       } else {
-                        for (let i = 0; i < child.questions.length; i++) {
-                          let firstCommaAdded = false;
-                          if (firstCommaAdded)
-                            block3Array[block3Array.length - 1][
-                              block3Array[block3Array.length - 1]?.length - 1
-                            ] += ",";
-                          else
-                            block3Array[block3Array.length - 1][
-                              block3Array[block3Array.length - 1]?.length - 1
-                            ] += ";";
-                        }
+                        block3Array[block3Array.length - 1][
+                          block3Array[block3Array.length - 1]?.length - 1
+                        ] += `;`; //Temporarily adds an space to answers for this subclassifcation. In case the subclassification is added later, we can add the corresponding number of "," in this line, in the correct place
+                        linesWithoutAnswersSubclassification.push([
+                          child.id,
+                          SubclassificationIndexWithinClassification,
+                          lineIndex,
+                        ]);
                       }
-                    } else {
-                      block3Array[block3Array.length - 1][
-                        block3Array[block3Array.length - 1]?.length - 1
-                      ] += `;`; //Temporarily adds an space to answers for this subclassifcation. In case the subclassification is added later, we can add the corresponding number of "," in this line, in the correct place
-                      linesWithoutAnswersSubclassification.push([
-                        child.id,
-                        SubclassificationIndexWithinClassification,
-                        lineIndex,
-                      ]);
                     }
+                  } else {
+                    linesWithoutAnswers.push(lineIndex);
                   }
-                } else {
-                  linesWithoutAnswers.push(lineIndex);
                 }
               }
             }
@@ -455,18 +511,30 @@ const exportFullSpreadsheetToCSV = async (
           //Here empty collumns will be added to assessments whitch were processed before the subclassification was found
           if (subclassificationsAdded.includes(subclassification.id)) {
             for (const line of linesWithoutAnswersSubclassification) {
-              if (subclassification.id === line[0]) {
+              if (
+                subclassification.id === line[0] &&
+                typeof line[1] === "number" &&
+                typeof line[2] === "number"
+              ) {
                 const subClassificationIndex = line[1];
                 const lineIndex = line[2];
-                const lineSplitBetweenSubclassifcations =
+                console.log(block3Array[block3Array.length - 1]);
+                let lineSplitBetweenSubclassifcations =
                   block3Array[block3Array.length - 1][lineIndex]?.split(";"); //Splits the line without answers for this subclassification
-                for (let i = 0; subclassification.questions.length - 1; i++) {
+                lineSplitBetweenSubclassifcations =
+                  lineSplitBetweenSubclassifcations?.slice(1);
+                for (
+                  let i = 0;
+                  i < subclassification.questions.length - 1;
+                  i++
+                ) {
                   lineSplitBetweenSubclassifcations[subClassificationIndex] +=
                     ",";
                 }
+
                 lineSplitBetweenSubclassifcations.join("");
                 block3Array[block3Array.length - 1][lineIndex] =
-                  lineSplitBetweenSubclassifcations; // Adds back the line to the array, but with the correct ammout of "," for this subclassification
+                  `;${lineSplitBetweenSubclassifcations?.join(";")}`; // Adds back the line to the array, but with the correct ammout of "," for this subclassification
               }
             }
           }
@@ -503,8 +571,9 @@ const exportFullSpreadsheetToCSV = async (
     }
     resultArray.push(`${linePt1},${linePt2} ${linePt3}`);
   }
+
   const result = resultArray.join("\n");
-  console.log(result);
+  return result;
 };
 
 const createBlock1Line = (location) => {
@@ -597,7 +666,7 @@ const createBlock1Line = (location) => {
 
 const createBlock2Line = (location, tallyIndex: number) => {
   if (!location.tallys[tallyIndex])
-    return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+    return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
   const processedData = processAndFormatTallyData(location.tallys[tallyIndex]);
 
   if (location.usableArea) {

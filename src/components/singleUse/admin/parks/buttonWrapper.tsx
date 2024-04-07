@@ -77,6 +77,27 @@ const ButtonWrapper = () => {
       console.error(error);
     }
   };
+  const handleFullCSVDownload = async () => {
+    try {
+      const blobStr = await exportFullSpreadsheetToCSV(
+        [1, 2, 3],
+        [13, 14],
+        [2, 3, 4, 5, 7, 8],
+        ["id", "name", "date"],
+      );
+      const blobData = new Blob([blobStr]);
+      const url = URL.createObjectURL(blobData);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "export.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const handleLocationSubmit = (e: FormData) => {
     void createLocation(
       content,
@@ -215,14 +236,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() =>
-            void exportFullSpreadsheetToCSV(
-              [1, 2, 3],
-              [13, 14],
-              [2, 3, 4, 5],
-              ["id", "name", "date"],
-            )
-          }
+          onClick={handleFullCSVDownload}
         >
           <span className="-mb-1">FULL CSV</span>
         </Button>
@@ -232,7 +246,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createClassification("Vigilância", [])}
+          onClick={() => void createClassification("EVENTOS", ["Frequência"])}
         >
           Criar Classificação
         </Button>
@@ -243,11 +257,9 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void createSubclassification("Passiva", 4, [
-              "Visibilidade",
-              "Fach Perm",
-              "Fach Ativ",
-              "Soma passiva",
+            void createSubclassification("NAO DWEVE ENTRAR", 12, [
+              "S=1/N=0",
+              "Tipo",
             ])
           }
         >
@@ -259,7 +271,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createForm("Form 1", [2, 3, 4, 5, 6])}
+          onClick={() => void createForm("Form 3", [7, 9, 11, 14])}
         >
           Criar form
         </Button>
@@ -294,9 +306,9 @@ const ButtonWrapper = () => {
             type="submit"
             onClick={() =>
               void createAssessment(
-                "Nome da avaliacao",
+                "Avaliação 3",
                 1,
-                1,
+                3,
                 "R1D1",
                 startDate,
                 endDate,
@@ -308,7 +320,9 @@ const ButtonWrapper = () => {
         </div>
       </div>
       <div className="flex gap-2">
-        <Button onClick={() => void createAnswer("BOA", 10, 1, 1, 2, 6)}>
+        <Button
+          onClick={() => void createAnswer("pav sup form 3", 17, 3, 1, 8, 9)}
+        >
           Criar resposta
         </Button>
       </div>
