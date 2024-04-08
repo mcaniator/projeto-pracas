@@ -33,11 +33,6 @@ const ButtonWrapper = () => {
   const endDate = new Date("December 17, 1995 09:00:00");
   const [locationId, setLocationId] = useState(0);
   const [tallyId, setTallyId] = useState(0);
-  let locationIdToAssessment: number;
-  let formIdToAssessment: number;
-  let classificationName: string;
-  let classificationId: number;
-  let subclassificationName: string;
 
   const handleTallyCSVDownload = async () => {
     try {
@@ -81,8 +76,8 @@ const ButtonWrapper = () => {
     try {
       const blobStr = await exportFullSpreadsheetToCSV(
         [1, 2, 3],
-        [13, 14],
-        [2, 3, 4, 5, 7, 8],
+        [13, 16, 14],
+        [2, 3, 4, 5, 7, 8, 9, 10],
         ["id", "name", "date"],
       );
       const blobData = new Blob([blobStr]);
@@ -143,7 +138,8 @@ const ButtonWrapper = () => {
           type="submit"
           onClick={() =>
             void createTally({
-              locationId: locationId,
+              locationId: 2,
+              observer: "Guilherme",
               weatherCondition: "SUNNY",
               animalsAmount: 0,
               temperature: 30.0,
@@ -170,14 +166,14 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void addPersonToTally(tallyId, 2, {
-              ageGroup: "ADULT",
+            void addPersonToTally(16, 100, {
+              ageGroup: "CHILD",
               gender: "MALE",
               activity: "SEDENTARY",
-              isTraversing: true,
-              isPersonWithImpairment: true,
+              isTraversing: false,
+              isPersonWithImpairment: false,
               isInApparentIllicitActivity: false,
-              isPersonWithoutHousing: true,
+              isPersonWithoutHousing: false,
             })
           }
         >
@@ -257,9 +253,10 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void createSubclassification("NAO DWEVE ENTRAR", 12, [
-              "S=1/N=0",
-              "Tipo",
+            void createSubclassification("Nova tipo de vigilancia", 4, [
+              "Questao v1",
+              "Questao v2",
+              "Questão v3",
             ])
           }
         >
@@ -271,7 +268,9 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createForm("Form 3", [7, 9, 11, 14])}
+          onClick={() =>
+            void createForm("Form 5", [4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 17])
+          }
         >
           Criar form
         </Button>
@@ -306,9 +305,9 @@ const ButtonWrapper = () => {
             type="submit"
             onClick={() =>
               void createAssessment(
-                "Avaliação 3",
-                1,
-                3,
+                "Avaliação LOCATION 2",
+                2,
+                5,
                 "R1D1",
                 startDate,
                 endDate,
@@ -321,7 +320,9 @@ const ButtonWrapper = () => {
       </div>
       <div className="flex gap-2">
         <Button
-          onClick={() => void createAnswer("pav sup form 3", 17, 3, 1, 8, 9)}
+          onClick={() =>
+            void createAnswer("Uso térreo residencial form 4", 14, 4, 1, 9, 8)
+          }
         >
           Criar resposta
         </Button>

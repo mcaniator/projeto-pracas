@@ -397,15 +397,16 @@ export type {
 //  ------------------------------------------------------------------------------------------------------------
 
 const tallySchema = z.object({
-  startDate: z.coerce.date(),
+  startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
   observer: z.coerce
     .string()
     .trim()
     .refine((value) => !value.includes("\n")),
-  animalsAmount: z.coerce.number().int().finite().nonnegative(),
+  animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.nativeEnum(WeatherConditions),
+  weatherCondition: z.nativeEnum(WeatherConditions).optional(),
+  groups: z.coerce.number().finite().optional(),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
