@@ -229,10 +229,11 @@ const exportFullSpreadsheetToCSV = async (
   block2CSVString +=
     "HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Atvidades comerciais intinerantes (Qtde),Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,%Pessoas em situação de rua,DENSIDADE\n";
 
+  let includeTallys = false;
   block2CSVString += `${locations
     .map((location) => {
       let locationLines = "";
-
+      if (location.tallys.length > 0) includeTallys = true;
       for (let i = 0; i < location.assessments.length; i++) {
         locationLines += `${createBlock2Line(location, i)}`;
         if (i + 1 !== location.assessments.length) locationLines += "\n";
@@ -428,16 +429,6 @@ const exportFullSpreadsheetToCSV = async (
         }
       }
     }
-
-    /*for (let i = 0; i < block3Array[block3Array.length - 1]?.length; i++) {
-      // Removes collumns of subclassifications that were never added
-      block3Array[block3Array.length - 1][i] = block3Array[
-        block3Array.length - 1
-      ][i]?.replace(/;+/g, ";");
-      block3Array[block3Array.length - 1][i] = block3Array[
-        block3Array.length - 1
-      ][i].replace(/;$/, "");
-    }*/
   });
   if (block3Array) {
     for (let j = 0; j < block3Array[0]?.length; j++) {
@@ -457,7 +448,8 @@ const exportFullSpreadsheetToCSV = async (
     for (let j = 0; j < block3Array.length; j++) {
       linePt3 += `${block3Array[j][i]}`;
     }
-    resultArray.push(`${linePt1},${linePt2} ${linePt3}`);
+    if (includeTallys) resultArray.push(`${linePt1},${linePt2}${linePt3}`);
+    else resultArray.push(`${linePt1}${linePt3}`);
   }
   //console.log(block3Array);
   const result = resultArray.join("\n");
