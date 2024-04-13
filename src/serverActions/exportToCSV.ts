@@ -6,7 +6,7 @@ import {
   personType,
   tallyDataToProcessType,
 } from "@/lib/zodValidators";
-import { number, z } from "zod";
+import { z } from "zod";
 
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
@@ -400,24 +400,24 @@ const exportFullSpreadsheetToCSV = async (
     .join("\n")}`;
 
   const classificationsAdded: number[] = [];
-  let block3CSVString = "";
+
   const block3Array: string[][] = []; // -> [[LINE, LINE, ...],[LINE, LINE,...]] each array is an classification's content
 
-  classifications.map((classification) => {
+  for (const classification of classifications) {
     const linesWithoutAnswers: number[] = [];
     let lineIndex = 3;
     if (classification.childs.length === 0 && !classification.parent) {
       //Here classifications without subclassifications are processed
       block3Array.push(["", "", ""]); //Adds header lines for this classification
       if (classification.questions) {
-        locations.map((location) => {
-          location.assessments.map((assessment) => {
-            if (assessment.form?.classifications) {
+        for (const location of locations) {
+          for (const assessment of location.assessments) {
+            if (assessment.form && assessment.form.classifications) {
               block3Array[block3Array.length - 1]?.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
               if (!classificationsAdded.includes(classification.id)) {
                 //Here the header will be created (if this classification is found)
                 for (const formClassification of assessment.form
-                  ?.classifications) {
+                  .classifications) {
                   if (formClassification.id === classification.id) {
                     classificationsAdded.push(classification.id);
                     let addedFirstQuestion = false;
@@ -442,7 +442,7 @@ const exportFullSpreadsheetToCSV = async (
                 //Will only enter this block if this classification has already been found within assessments
                 let classificationAddedPreviouslyFound = false;
                 for (const formClassification of assessment.form
-                  ?.classifications) {
+                  .classifications) {
                   if (formClassification.id === classification.id) {
                     classificationAddedPreviouslyFound = true;
                     for (const question of formClassification.questions) {
@@ -475,8 +475,8 @@ const exportFullSpreadsheetToCSV = async (
             }
 
             lineIndex++;
-          });
-        });
+          }
+        }
         if (classificationsAdded.includes(classification.id)) {
           //Here empty collumns will be added to assessments whitch were processed before the classification was found
           for (const line of linesWithoutAnswers) {
@@ -490,35 +490,42 @@ const exportFullSpreadsheetToCSV = async (
       const subclassificationsAdded: number[] = [];
       block3Array.push(["", "", ""]); //Adds space to the header
       for (let i = 0; i < locations.length; i++) {
-        for (let j = 0; j < locations[i]?.assessments.length; j++) {
-          block3Array[block3Array.length - 1]?.push(""); //Adds space to each assessment's answers
+        if (locations[i]) {
+          const location = locations[i];
+          if (location) {
+            for (let j = 0; j < location.assessments.length; j++) {
+              block3Array[block3Array.length - 1]?.push(""); //Adds space to each assessment's answers
+            }
+          }
         }
       }
-      locations.map((location) => {
-        location.assessments.map((assessment) => {
-          assessment.form?.classifications.map((formClassification) => {
-            if (
-              !classificationsAdded.includes(classification.id) &&
-              formClassification.id === classification.id
-            ) {
-              //Process the classification
-              block3Array[block3Array.length - 1][0] +=
-                `;${classification.name}`; //Adds classification name to the header
-              classificationsAdded.push(classification.id);
-            }
-            if (
-              classificationsAdded.includes(classification.id) &&
-              !subclassificationsAdded.includes(formClassification.id)
-            ) {
-              for (const child of classification.childs) {
-                if (child.id === formClassification.id) {
-                  subclassificationsAdded.push(child.id);
+      for (const location of locations) {
+        for (const assessment of location.assessments) {
+          if (assessment.form && assessment.form.classifications) {
+            for (const formClassification of assessment.form.classifications) {
+              if (
+                !classificationsAdded.includes(classification.id) &&
+                formClassification.id === classification.id
+              ) {
+                //Process the classification
+                block3Array[block3Array.length - 1][0] +=
+                  `;${classification.name}`; //Adds classification name to the header
+                classificationsAdded.push(classification.id);
+              }
+              if (
+                classificationsAdded.includes(classification.id) &&
+                !subclassificationsAdded.includes(formClassification.id)
+              ) {
+                for (const child of classification.childs) {
+                  if (child.id === formClassification.id) {
+                    subclassificationsAdded.push(child.id);
+                  }
                 }
               }
             }
-          });
-        });
-      }); //Here all the subclassifications IDs that need to be added will be stored in subclassificationAdded
+          }
+        }
+      } //Here all the subclassifications IDs that need to be added will be stored in subclassificationAdded
       subclassificationsAdded.sort((a, b) => a - b);
       //console.log(subclassificationsAdded);
       let addSubclassificationComma = false;
@@ -548,37 +555,39 @@ const exportFullSpreadsheetToCSV = async (
               let lineIndex = 3;
               for (const location of locations) {
                 for (const assessment of location.assessments) {
-                  let answerFound = false;
-                  for (const formClassification of assessment.form
-                    ?.classifications) {
-                    if (classification.id === formClassification.id) {
-                      for (const formSubclassification of formClassification.childs) {
-                        if (formSubclassification.id === child.id) {
-                          for (const formQuestion of formSubclassification.questions) {
-                            if (formQuestion.id === question.id) {
-                              for (const answer of formQuestion.answers) {
-                                if (answer.assessmentId === assessment.id) {
-                                  block3Array[block3Array.length - 1][
-                                    lineIndex
-                                  ] += `,${answer.content}`;
-                                  answerFound = true;
-                                  break;
+                  if (assessment.form && assessment.form.classifications) {
+                    let answerFound = false;
+                    for (const formClassification of assessment.form
+                      .classifications) {
+                      if (classification.id === formClassification.id) {
+                        for (const formSubclassification of formClassification.childs) {
+                          if (formSubclassification.id === child.id) {
+                            for (const formQuestion of formSubclassification.questions) {
+                              if (formQuestion.id === question.id) {
+                                for (const answer of formQuestion.answers) {
+                                  if (answer.assessmentId === assessment.id) {
+                                    block3Array[block3Array.length - 1][
+                                      lineIndex
+                                    ] += `,${answer.content}`;
+                                    answerFound = true;
+                                    break;
+                                  }
+                                  if (answerFound) break;
                                 }
-                                if (answerFound) break;
                               }
+                              if (answerFound) break;
                             }
-                            if (answerFound) break;
                           }
+                          if (answerFound) break;
                         }
-                        if (answerFound) break;
                       }
+                      if (answerFound) break;
                     }
-                    if (answerFound) break;
+                    if (!answerFound) {
+                      block3Array[block3Array.length - 1][lineIndex] += `,`;
+                    }
+                    lineIndex++;
                   }
-                  if (!answerFound) {
-                    block3Array[block3Array.length - 1][lineIndex] += `,`;
-                  }
-                  lineIndex++;
                 }
               }
             }
@@ -586,15 +595,15 @@ const exportFullSpreadsheetToCSV = async (
         }
       }
     }
-  });
-  if (block3Array) {
+  }
+  /*if (block3Array) {
     for (let j = 0; j < block3Array[0]?.length; j++) {
       for (let i = 0; i < block3Array.length; i++) {
         block3CSVString += `${block3Array[i][j]}`;
       }
       block3CSVString += "\n";
     }
-  }
+  }*/
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
@@ -602,103 +611,22 @@ const exportFullSpreadsheetToCSV = async (
     const linePt1 = block1Lines[i];
     const linePt2 = block2Lines[i];
     let linePt3 = "";
-    for (let j = 0; j < block3Array.length; j++) {
-      linePt3 += `${block3Array[j][i]}`;
+    if (block3Array) {
+      for (let j = 0; j < block3Array.length; j++) {
+        const block3ArrayElement = block3Array[j];
+        if (block3ArrayElement) {
+          const block3ArrayInnerElement = block3ArrayElement[i];
+          linePt3 += `${block3ArrayInnerElement}`;
+        }
+      }
     }
+
     if (includeTallys) resultArray.push(`${linePt1},${linePt2}${linePt3}`);
     else resultArray.push(`${linePt1}${linePt3}`);
   }
   //console.log(block3Array);
   const result = resultArray.join("\n");
   return result;
-};
-
-const createBlock1Line = (location) => {
-  interface StreetsJsonType {
-    [key: string]: string;
-  }
-  let evaluated = "N";
-  if (location.assessments.length > 0) {
-    evaluated = "S";
-  }
-  let addressString = "";
-  for (let i = 0; i < location.address.length; i++) {
-    if (location.address[i]) {
-      addressString += location.address[i].street;
-      addressString += ` - ${location.address[i].neighborhood}`;
-      if (location.address[i + 1]) addressString += " / ";
-    }
-  }
-  if (location.address[0]) {
-    if (location.address[0].city)
-      addressString += ` - ${location.address[0].city.name}`;
-    if (location.address[0].state)
-      addressString += ` - ${location.address[0].state}`;
-  }
-
-  let totalStatisticsPeople;
-  location.men && location.women ?
-    (totalStatisticsPeople = location.men + location.women)
-  : location.men ? (totalStatisticsPeople = location.men)
-  : location.women ? (totalStatisticsPeople = location.women)
-  : (totalStatisticsPeople = 0);
-
-  let totalStreets = 0;
-  let streetsJson: StreetsJsonType = {};
-  for (const streetSize of streetSizes) {
-    if (location[streetSize] !== null) {
-      totalStreets += location[streetSize];
-      streetsJson[streetSize] = location[streetSize].toString();
-    } else {
-      streetsJson[streetSize] = "";
-    }
-  }
-  //const block1String = `${location.id},${location.name},${evaluated},${locationCategoriesMap.get(location.category)},${location.type},${location.notes},${location.popularName},${location.address.street}-${location.address.neighborhood}-${location.address.city.name}-${location.address.state},${location.creationYear},${location.lastMaintenanceYear},${location.overseeingMayor},${location.legislation}`;
-  const block1String = [
-    location.id ? location.id : "",
-    location.name ? location.name : "",
-    evaluated ? evaluated : "",
-    locationCategoriesMap.has(location.category) ?
-      locationCategoriesMap.get(location.category)
-    : "",
-    location.type ? LocationTypesMap.get(location.type) : "",
-    location.notes ? location.notes : "",
-    location.popularName ? location.popularName : "",
-    addressString,
-    location.creationYear ? location.creationYear : "",
-    location.lastMaintenanceYear ? location.lastMaintenanceYear : "",
-    location.overseeingMayor ? location.overseeingMayor : "",
-    location.legislation ? location.legislation : "",
-    location.address[0] ?
-      location.address[0].neighborhood ?
-        location.address[0].neighborhood
-      : ""
-    : "",
-    location.householdDensity ? location.householdDensity : "",
-    location.income ? location.income : "",
-    location.usableArea ? location.usableArea : "",
-    location.usableArea ?
-      location.usableArea < maxPSize ? "P"
-      : location.usableArea < maxMSize ? "M"
-      : "G"
-    : "",
-    location.men ? location.men : "",
-    location.women ? location.women : "",
-    totalStatisticsPeople,
-    location.occupiedHouseholds ? location.occupiedHouseholds : "",
-    location.usableArea ?
-      ((totalStatisticsPeople / location.usableArea) * 100).toFixed(2)
-    : "",
-    location.incline ? location.incline : "",
-    location.morphology && location.morphology === "CORNER" ? 1 : "",
-    location.morphology && location.morphology === "CENTER" ? 1 : "",
-    location.morphology && location.morphology === "ISOLATED" ? 1 : "",
-    location.morphology && location.morphology === "DIVIDED" ? 1 : "",
-    totalStreets,
-    streetsJson ? Object.values(streetsJson).join(",") : "",
-  ].join(",");
-
-  return block1String;
 };
 
 const createBlock2Line = (location) => {
