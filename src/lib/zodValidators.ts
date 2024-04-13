@@ -429,16 +429,22 @@ const noiseSchema = z.object({
 });
 
 const tallyDataToProcessSchema = z.object({
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
+  startDate: z.coerce.date().nullable(),
+  endDate: z.coerce.date().nullable(),
   observer: z.coerce
     .string()
     .trim()
     .refine((value) => !value.includes("\n")),
-  animalsAmount: z.coerce.number().int().finite().nonnegative(),
-  groups: z.coerce.number().int().finite().nonnegative(),
+  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
+  groups: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions),
+  commercialActivities: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullable(),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
   location: z.object({

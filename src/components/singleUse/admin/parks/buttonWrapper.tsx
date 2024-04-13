@@ -11,6 +11,7 @@ import {
 } from "@/serverActions/assessmentCRUD";
 import {
   exportAllTallysToCsv,
+  exportDailyTally,
   exportFullSpreadsheetToCSV,
   exportTallyToCSV,
 } from "@/serverActions/exportToCSV";
@@ -36,9 +37,10 @@ const ButtonWrapper = () => {
 
   const handleTallyCSVDownload = async () => {
     try {
-      const blobStr = await exportTallyToCSV(
-        [10, 11, 12, 13, 14],
-        ["date", "id", "name"],
+      const blobStr = await exportDailyTally(
+        [1, 2, 3, 4, 5],
+        [10, 11, 12, 13, 14, 15, 16, 18, 19],
+        ["id", "name", "date"],
       );
       const blobData = new Blob([blobStr]);
       const url = URL.createObjectURL(blobData);
@@ -75,8 +77,8 @@ const ButtonWrapper = () => {
   const handleFullCSVDownload = async () => {
     try {
       const blobStr = await exportFullSpreadsheetToCSV(
-        [1, 2, 3],
-        [13, 16, 14],
+        [1, 2, 3, 4, 5],
+        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
         [2, 3, 4, 5, 7, 8, 9, 10],
         ["id", "name", "date"],
       );
@@ -214,7 +216,7 @@ const ButtonWrapper = () => {
           type="button"
           onClick={handleTallyCSVDownload}
         >
-          Baixar CSV das contagens
+          Baixar CSV das contagens em um dia
         </Button>
       </div>
       <div className="flex gap-2">

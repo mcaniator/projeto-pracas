@@ -139,6 +139,21 @@ const exportFullSpreadsheetToCSV = async (
           },
         },
       },
+      broadAdministrativeUnit: {
+        select: {
+          name: true,
+        },
+      },
+      intermediateAdministrativeUnit: {
+        select: {
+          name: true,
+        },
+      },
+      narrowAdministrativeUnit: {
+        select: {
+          name: true,
+        },
+      },
       address: {
         include: {
           city: {
@@ -202,22 +217,165 @@ const exportFullSpreadsheetToCSV = async (
   });
 
   let block1CSVString =
-    "IDENTIFICAÇÃO PRAÇA,,,IDENTIFICAÇÃO,,,,,DADOS HISTÓRICOS,,,,DADOS DE PLANEJAMENTO,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,\n";
+    "IDENTIFICAÇÃO PRAÇA,,,,,,,,IDENTIFICAÇÃO LEVANTAMENTO,,,,DADOS HISTÓRICOS,,,,DADOS ADMINISTRATIVOS,,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,SOMBRA,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,\n";
   block1CSVString +=
-    ",,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
+    ",,,,,,,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
   block1CSVString +=
-    "Identificador,Nome da Praça,Avaliada?,Categorias,Tipo,Observações,Nome popular,Endereço,Ano criação,Ano reforma,Prefeito,Legislação,Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,inclinação (%),canto,centro,isolada,dividida,VIAS (número),4m,6m,8m,10m,20m\n";
+    "Identificador,Avaliada?,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Observador(es),Data ,Início,Duração,Ano criação,Ano reforma,Prefeito,Legislação,Distrito/Regiã,Subdistrito/Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,% inclinação,% área de sombra,canto,centro,isolada,dividida?,VIAS (número),4m,6m,8m,10m,20m\n";
 
   block1CSVString += locations
     .map((location) => {
-      let locationLines = "";
-      let block1Line = null;
-      for (let i = 0; i < location.assessments.length; i++) {
-        if (!block1Line) block1Line = `${createBlock1Line(location)}`;
-        locationLines += `${block1Line}`;
-        if (i + 1 !== location.assessments.length) locationLines += "\n";
+      interface StreetsJsonType {
+        [key: string]: string;
       }
-      return locationLines;
+      let evaluated = "N";
+      if (location.assessments.length > 0) {
+        evaluated = "S";
+      }
+      let addressString = "";
+      location.address.sort((a, b) => {
+        if (a.neighborhood < b.neighborhood) {
+          return -1;
+        }
+        if (a.neighborhood > b.neighborhood) {
+          return 1;
+        }
+        return 0;
+      });
+      for (let i = 0; i < location.address.length; i++) {
+        if (location.address[i]) {
+          addressString += location.address[i]?.street;
+          if (
+            location.address[i + 1]?.neighborhood !==
+            location.address[i]?.neighborhood
+          )
+            addressString += ` - ${location.address[i]?.neighborhood}`;
+          if (location.address[i + 1]) addressString += " / ";
+        }
+      }
+      if (location.address[0]) {
+        if (location.address[0].city)
+          addressString += ` - ${location.address[0].city.name}`;
+        if (location.address[0].state)
+          addressString += ` - ${location.address[0].state}`;
+      }
+
+      let totalStatisticsPeople;
+      location.men && location.women ?
+        (totalStatisticsPeople = location.men + location.women)
+      : location.men ? (totalStatisticsPeople = location.men)
+      : location.women ? (totalStatisticsPeople = location.women)
+      : (totalStatisticsPeople = 0);
+
+      let totalStreets = 0;
+      const streetsJson: StreetsJsonType = {};
+      for (const streetSize of streetSizes) {
+        const streetsWithSizeValue =
+          location[streetSize as keyof typeof location];
+        if (typeof streetsWithSizeValue === "number") {
+          totalStreets += streetsWithSizeValue;
+          streetsJson[streetSize] = streetsWithSizeValue.toString();
+        } else {
+          streetsJson[streetSize] = "";
+        }
+      }
+      let locationCategory = "";
+      if (location.category) {
+        locationCategory = location.category;
+      }
+      let observers = "";
+      const observersArray: string[] = [];
+
+      observers = location.tallys
+        .map((tally) => {
+          if (!observersArray.includes(tally.observer)) {
+            observersArray.push(tally.observer);
+            return tally.observer;
+          }
+        })
+        .join(" / ");
+      if (observersArray.length === 1)
+        observers = observers.trim().replace(/\/\s*$/, "");
+
+      let startDateTime;
+      let date;
+      let duration;
+      const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      if (location.tallys[0]?.endDate && location.tallys[0].startDate) {
+        startDateTime = hourFormatter.format(location.tallys[0].startDate);
+        date = dateFormatter.format(location.tallys[0].startDate);
+        const durationTimestampMs =
+          location.tallys[0].endDate.getTime() -
+          location.tallys[0].startDate.getTime();
+        const durationHrs = Math.floor(durationTimestampMs / (1000 * 60 * 60));
+        const durationMin = Math.floor(
+          (durationTimestampMs % (1000 * 60 * 60)) / (1000 * 60),
+        );
+        duration = `${String(durationHrs).padStart(2, "0")}:${String(durationMin).padStart(2, "0")}`;
+      }
+
+      const block1String = [
+        location.id ? location.id : "",
+        evaluated ? evaluated : "",
+        location.name ? location.name : "",
+        location.popularName ? location.popularName : "",
+        locationCategoriesMap.has(locationCategory) ?
+          locationCategoriesMap.get(locationCategory)
+        : "",
+        location.type ? LocationTypesMap.get(location.type) : "",
+        location.notes ? location.notes : "",
+        addressString,
+        observers,
+        date ? date : "",
+        startDateTime ? startDateTime : "",
+        duration ? duration : "",
+        location.creationYear ? location.creationYear : "",
+        location.lastMaintenanceYear ? location.lastMaintenanceYear : "",
+        location.overseeingMayor ? location.overseeingMayor : "",
+        location.legislation ? location.legislation : "",
+        location.broadAdministrativeUnit?.name ?
+          location.broadAdministrativeUnit.name
+        : "",
+        location.intermediateAdministrativeUnit?.name ?
+          location.intermediateAdministrativeUnit?.name
+        : "",
+        "???",
+        location.income ? location.income : "",
+        location.usableArea ? location.usableArea : "",
+        location.usableArea ?
+          location.usableArea < maxPSize ? "P"
+          : location.usableArea < maxMSize ? "M"
+          : "G"
+        : "",
+        location.men ? location.men : "",
+        location.women ? location.women : "",
+        totalStatisticsPeople ? totalStatisticsPeople : "",
+        location.occupiedHouseholds ? location.occupiedHouseholds : "",
+        location.usableArea ?
+          ((totalStatisticsPeople / location.usableArea) * 100).toFixed(2)
+        : "",
+        location.incline ? location.incline + "%" : "",
+        location.shadowArea ? location.shadowArea + "%" : "",
+        location.morphology && location.morphology === "CORNER" ? 1 : "",
+        location.morphology && location.morphology === "CENTER" ? 1 : "",
+        location.morphology && location.morphology === "ISOLATED" ? 1 : "",
+        location.morphology && location.morphology === "DIVIDED" ? 1 : "",
+        totalStreets ? totalStreets : "",
+        streetsJson ? Object.values(streetsJson).join(",") : "",
+      ].join(",");
+
+      return block1String;
     })
     .join("\n");
   //locations.map((location) => console.log(location));
@@ -234,10 +392,9 @@ const exportFullSpreadsheetToCSV = async (
     .map((location) => {
       let locationLines = "";
       if (location.tallys.length > 0) includeTallys = true;
-      for (let i = 0; i < location.assessments.length; i++) {
-        locationLines += `${createBlock2Line(location, i)}`;
-        if (i + 1 !== location.assessments.length) locationLines += "\n";
-      }
+
+      locationLines += `${createBlock2Line(location)}`;
+
       return locationLines;
     })
     .join("\n")}`;
@@ -544,10 +701,12 @@ const createBlock1Line = (location) => {
   return block1String;
 };
 
-const createBlock2Line = (location, tallyIndex: number) => {
-  if (!location.tallys[tallyIndex])
+const createBlock2Line = (location) => {
+  if (location.tallys.length === 0)
     return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-  const processedData = processAndFormatTallyData(location.tallys[tallyIndex]);
+  const processedData = processAndFormatTallyDataLineWithAddedContent(
+    location.tallys,
+  );
 
   if (location.usableArea) {
     return (
@@ -602,6 +761,216 @@ const exportAllTallysToCsv = async (
     })
     .flat();
   return createExclusiveTallyString(allTallys, sortCriteriaOrder);
+};
+const exportDailyTally = async (
+  locationsIds: number[],
+  tallysIds: number[],
+  sortCriteriaOrder: SortOrderType,
+) => {
+  //This function must revceive locations and it's tallys whitch were made in the same day (Currently 4 max).
+  let locations = await prisma.location.findMany({
+    where: {
+      id: {
+        in: locationsIds,
+      },
+    },
+    include: {
+      tallys: {
+        where: {
+          id: {
+            in: tallysIds,
+          },
+        },
+        include: {
+          location: {
+            select: {
+              name: true,
+            },
+          },
+          tallyPerson: {
+            select: {
+              person: {
+                select: {
+                  ageGroup: true,
+                  gender: true,
+                  activity: true,
+                  isTraversing: true,
+                  isPersonWithImpairment: true,
+                  isInApparentIllicitActivity: true,
+                  isPersonWithoutHousing: true,
+                },
+              },
+              quantity: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  locations = locations.sort((a, b) => {
+    for (const criteria of sortCriteriaOrder) {
+      switch (criteria) {
+        case "name":
+          return a.name.localeCompare(b.name);
+          break;
+        case "id":
+          return a.id - b.id;
+          break;
+        case "date":
+          return a.createdAt.getTime() - b.createdAt.getTime();
+          break;
+        default:
+          return 0;
+      }
+    }
+    return 0;
+  });
+  let CSVstring =
+    "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+  CSVstring +=
+    ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+  CSVstring +=
+    "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
+  CSVstring += locations
+    .map((location) => {
+      const observersArray: string[] = [];
+      let observers = location.tallys
+        .map((tally) => {
+          if (!observersArray.includes(tally.observer)) {
+            observersArray.push(tally.observer);
+            return tally.observer;
+          }
+        })
+        .join(" / ");
+      if (observersArray.length === 1)
+        observers = observers.trim().replace(/\/\s*$/, "");
+      let fourTallys = 0;
+      if (location.tallys.length == 4) fourTallys = 1;
+      const dataLine = processAndFormatTallyDataLineWithAddedContent(
+        location.tallys,
+      ).tallyString;
+      return `${location.id},${location.name},${observers},${fourTallys},${dataLine}`;
+    })
+    .join("\n");
+  return CSVstring;
+};
+
+const processAndFormatTallyDataLineWithAddedContent = (
+  tallys: tallyDataToProcessType[],
+) => {
+  if (tallys.length === 0)
+    return {
+      tallyString: ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+      totalPeople: 0,
+    };
+  const tallyMap = new Map();
+  for (const gender of genders) {
+    for (const ageGroup of ageGroups) {
+      for (const activity of acitvities) {
+        tallyMap.set(`${gender}-${ageGroup}-${activity}`, 0);
+      }
+      tallyMap.set(`Tot-${gender}-${ageGroup}`, 0);
+    }
+    tallyMap.set(`Tot-${gender}`, 0);
+  }
+  tallyMap.set("Tot-H&M", 0);
+  tallyMap.set("%MALE", "0.00%");
+  tallyMap.set("%FEMALE", "0.00%");
+  for (const ageGroup of ageGroups) {
+    tallyMap.set(`%${ageGroup}`, "0.00%");
+  }
+  for (const activity of acitvities) {
+    tallyMap.set(`%${activity}`, "0.00%");
+  }
+  tallyMap.set("isPersonWithImpairment", 0);
+  tallyMap.set("Groups", 0); //?? o que é isso?
+  tallyMap.set("Pets", 0);
+  tallyMap.set("isTraversing", 0);
+  tallyMap.set("commercialActivities", 0);
+  tallyMap.set("isInApparentIllicitActivity", 0);
+  tallyMap.set("%isInApparentIllicitActivity", "0.00%");
+  tallyMap.set("isPersonWithoutHousing", 0);
+  tallyMap.set("%isPersonWithoutHousing", "0.00%");
+  for (const tally of tallys) {
+    if (tally.groups) {
+      tallyMap.set("Groups", tallyMap.get("Groups") + tally.groups);
+    }
+    if (tally.animalsAmount) {
+      tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
+    }
+    if (tally.commercialActivities) {
+      tallyMap.set(
+        "commercialActivities",
+        tallyMap.get("commercialActivities") + tally.commercialActivities,
+      );
+    }
+
+    for (const tallyPerson of tally.tallyPerson) {
+      const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;
+      tallyMap.set(key, tallyMap.get(key) + tallyPerson.quantity);
+      tallyMap.set(
+        `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
+        tallyMap.get(
+          `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
+        ) + tallyPerson.quantity,
+      );
+      tallyMap.set(
+        `Tot-${tallyPerson.person.gender}`,
+        tallyMap.get(`Tot-${tallyPerson.person.gender}`) + tallyPerson.quantity,
+      );
+      tallyMap.set("Tot-H&M", tallyMap.get("Tot-H&M") + tallyPerson.quantity);
+      booleanPersonProperties.map((property) => {
+        if (tallyPerson.person[property]) {
+          tallyMap.set(property, tallyMap.get(property) + tallyPerson.quantity);
+        }
+      });
+    }
+  }
+  //Calculating data
+  let totalPeople = 0;
+  totalPeople = z.number().parse(tallyMap.get("Tot-H&M"));
+  if (totalPeople != 0) {
+    for (const gender of genders) {
+      tallyMap.set(
+        `%${gender}`,
+        ((tallyMap.get(`Tot-${gender}`) / totalPeople) * 100).toFixed(2) + "%",
+      );
+    }
+    for (const ageGroup of ageGroups) {
+      let totalAgeGroup = 0;
+      for (const gender of genders) {
+        for (const activity of acitvities) {
+          totalAgeGroup += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
+        }
+      }
+      tallyMap.set(
+        `%${ageGroup}`,
+        ((totalAgeGroup / totalPeople) * 100).toFixed(2) + "%",
+      );
+    }
+    for (const activity of acitvities) {
+      let activityTotal = 0;
+      for (const gender of genders) {
+        for (const ageGroup of ageGroups) {
+          activityTotal += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
+        }
+      }
+      tallyMap.set(
+        `%${activity}`,
+        ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
+      );
+    }
+    for (const property of otherPropertiesToCalcualtePercentage) {
+      tallyMap.set(
+        `%${property}`,
+        ((tallyMap.get(`${property}`) / totalPeople) * 100).toFixed(2) + "%",
+      );
+    }
+  }
+  return {
+    tallyString: `${[...tallyMap.values()].join(";")}`,
+    totalPeople: totalPeople,
+  };
 };
 const exportTallyToCSV = async (
   tallysIds: number[],
@@ -811,4 +1180,9 @@ const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
     totalPeople: totalPeople,
   };
 };
-export { exportFullSpreadsheetToCSV, exportTallyToCSV, exportAllTallysToCsv };
+export {
+  exportFullSpreadsheetToCSV,
+  exportTallyToCSV,
+  exportAllTallysToCsv,
+  exportDailyTally,
+};

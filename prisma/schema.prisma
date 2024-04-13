@@ -417,6 +417,7 @@ model Location {
   usableArea          Float?    @map("usable_area")
   legalArea           Float?    @map("legal_area")
   incline             Float?
+  shadowArea          Float?    @map("shadow_area")
   inactiveNotFound    Boolean?  @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
   polygonArea         Float?    @map("polygon_area")
 
@@ -785,10 +786,11 @@ model Tally {
   endDate   DateTime? @db.Timestamptz(0)
   observer  String    @db.VarChar(255)
 
-  animalsAmount    Int?              @map("animals_amount")
-  temperature      Float?
-  weatherCondition WeatherConditions @map("weather_condition")
-  groups           Int?
+  animalsAmount        Int?              @map("animals_amount")
+  temperature          Float?
+  weatherCondition     WeatherConditions @map("weather_condition")
+  groups               Int?
+  commercialActivities Int?              @map("commercial_activities")
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
