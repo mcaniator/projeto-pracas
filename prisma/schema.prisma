@@ -782,15 +782,16 @@ model Tally {
   id Int @id @default(autoincrement())
 
   // não é meio redundante armazenar a data separada?
-  startDate DateTime? @db.Timestamptz(0)
-  endDate   DateTime? @db.Timestamptz(0)
-  observer  String    @db.VarChar(255)
+  tallyGroup Int       @map("tally_group")
+  startDate  DateTime? @db.Timestamptz(0)
+  endDate    DateTime? @db.Timestamptz(0)
+  observer   String    @db.VarChar(255)
 
-  animalsAmount        Int?              @map("animals_amount")
+  animalsAmount        Int?               @map("animals_amount")
   temperature          Float?
-  weatherCondition     WeatherConditions @map("weather_condition")
+  weatherCondition     WeatherConditions? @map("weather_condition")
   groups               Int?
-  commercialActivities Int?              @map("commercial_activities")
+  commercialActivities Int?               @map("commercial_activities")
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])

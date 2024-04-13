@@ -9,7 +9,6 @@ const createTally = async (content: tallyType) => {
       data: content,
     });
   } catch (error) {
-    console.log(error);
     return {
       statusCode: 2,
       errorMessage: "Error creating tally",
@@ -46,7 +45,6 @@ const addPersonToTally = async (
       },
     });
   } catch (error) {
-    console.log(error);
     return {
       statusCode: 2,
       errorMessage: "Error creating 1 or more people entries",

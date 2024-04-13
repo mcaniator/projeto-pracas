@@ -403,6 +403,7 @@ const tallySchema = z.object({
     .string()
     .trim()
     .refine((value) => !value.includes("\n")),
+  tallyGroup: z.coerce.number().int().finite().nonnegative(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
   weatherCondition: z.nativeEnum(WeatherConditions).optional(),
@@ -438,7 +439,7 @@ const tallyDataToProcessSchema = z.object({
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   groups: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions),
+  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
   commercialActivities: z.coerce
     .number()
     .int()

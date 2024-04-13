@@ -10,10 +10,10 @@ import {
   createSubclassification,
 } from "@/serverActions/assessmentCRUD";
 import {
-  exportAllTallysToCsv,
+  exportAllIndividualTallysToCsv,
   exportDailyTally,
   exportFullSpreadsheetToCSV,
-  exportTallyToCSV,
+  exportIndividualTallysToCSV,
 } from "@/serverActions/exportToCSV";
 import { createLocation } from "@/serverActions/locationCRUD";
 import { createNoiseMeasurement } from "@/serverActions/noiseCRUD";
@@ -57,7 +57,7 @@ const ButtonWrapper = () => {
   };
   const handleAllTallyCSVDownload = async () => {
     try {
-      const blobStr = await exportAllTallysToCsv(
+      const blobStr = await exportAllIndividualTallysToCsv(
         [1, 2, 3, 4, 5],
         ["name", "id", "date"],
       );
@@ -78,7 +78,7 @@ const ButtonWrapper = () => {
     try {
       const blobStr = await exportFullSpreadsheetToCSV(
         [1, 2, 3, 4, 5],
-        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        [1, 2, 3, 4, 5],
         [2, 3, 4, 5, 7, 8, 9, 10],
         ["id", "name", "date"],
       );
@@ -145,6 +145,7 @@ const ButtonWrapper = () => {
               weatherCondition: "SUNNY",
               animalsAmount: 0,
               temperature: 30.0,
+              tallyGroup: 1,
             })
           }
         >
@@ -279,28 +280,6 @@ const ButtonWrapper = () => {
       </div>
       <div className="flex gap-2">
         <div>
-          <label htmlFor="locationIdToAssessment">
-            ID da praça para a criação de avaliação:
-          </label>
-          <Input
-            type="number"
-            id="locationIdToAssessment"
-            name="location ID to assessment Input"
-            onChange={(e) =>
-              (locationIdToAssessment = parseInt(e.target.value))
-            }
-            value={locationId}
-          />
-          <label htmlFor="formIdToAssessment">
-            Id do form para criar avaliação:
-          </label>
-          <Input
-            type="number"
-            id="formIdToAssessment"
-            name="form ID to assessment Input"
-            onChange={(e) => (formIdToAssessment = parseInt(e.target.value))}
-            value={locationId}
-          />
           <Button
             variant={"admin"}
             className="mb-[2px] self-end"

@@ -61,7 +61,7 @@ const booleanPersonProperties: (keyof personType)[] = [
 
 const exportFullSpreadsheetToCSV = async (
   locationsIds: number[],
-  tallysIds: number[],
+  tallysGroups: number[],
   assessmentsIds: number[],
   sortCriteriaOrder: SortOrderType,
 ) => {
@@ -165,8 +165,8 @@ const exportFullSpreadsheetToCSV = async (
       },
       tallys: {
         where: {
-          id: {
-            in: tallysIds,
+          tallyGroup: {
+            in: tallysGroups,
           },
         },
 
@@ -390,12 +390,21 @@ const exportFullSpreadsheetToCSV = async (
   let includeTallys = false;
   block2CSVString += `${locations
     .map((location) => {
-      let locationLines = "";
       if (location.tallys.length > 0) includeTallys = true;
 
-      locationLines += `${createBlock2Line(location)}`;
+      if (location.tallys.length === 0)
+        return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
 
-      return locationLines;
+      const processedData = processAndFormatTallyDataLineWithAddedContent(
+        location.tallys,
+      );
+      if (location.usableArea) {
+        return (
+          processedData.tallyString +
+          "," +
+          ((processedData.totalPeople / location.usableArea) * 100).toFixed(2)
+        );
+      } else return processedData.tallyString + ",";
     })
     .join("\n")}`;
 
@@ -406,14 +415,15 @@ const exportFullSpreadsheetToCSV = async (
   for (const classification of classifications) {
     const linesWithoutAnswers: number[] = [];
     let lineIndex = 3;
+    const linesArray: string[] = ["", "", ""]; //Adds header lines
     if (classification.childs.length === 0 && !classification.parent) {
       //Here classifications without subclassifications are processed
-      block3Array.push(["", "", ""]); //Adds header lines for this classification
+      //block3Array.push(["", "", ""]); //Adds header lines for this classification
       if (classification.questions) {
         for (const location of locations) {
           for (const assessment of location.assessments) {
             if (assessment.form && assessment.form.classifications) {
-              block3Array[block3Array.length - 1]?.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
+              linesArray.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
               if (!classificationsAdded.includes(classification.id)) {
                 //Here the header will be created (if this classification is found)
                 for (const formClassification of assessment.form
@@ -421,16 +431,12 @@ const exportFullSpreadsheetToCSV = async (
                   if (formClassification.id === classification.id) {
                     classificationsAdded.push(classification.id);
                     let addedFirstQuestion = false;
-                    block3Array[block3Array.length - 1][0] =
-                      `,${classification.name}`; //Adds classification name to the header
-                    block3Array[block3Array.length - 1][1] = `,`; //Adds a comma to the subclassification line (this classification doesn't have a classification)
+                    linesArray[0] = `,${classification.name}`; //Adds classification name to the header
+                    linesArray[1] = `,`; //Adds a comma to the subclassification line (this classification doesn't have a classification)
                     for (const question of classification.questions) {
-                      if (addedFirstQuestion)
-                        block3Array[block3Array.length - 1][0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
-                      if (addedFirstQuestion)
-                        block3Array[block3Array.length - 1][1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
-                      block3Array[block3Array.length - 1][2] +=
-                        `,${question.name}`; //Adds question name to the header
+                      if (addedFirstQuestion) linesArray[0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
+                      if (addedFirstQuestion) linesArray[1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
+                      linesArray[2] += `,${question.name}`; //Adds question name to the header
                       addedFirstQuestion = true;
                     }
                     break;
@@ -449,24 +455,19 @@ const exportFullSpreadsheetToCSV = async (
                       let answerFound = false;
                       for (const answer of question.answers) {
                         if (answer.assessmentId === assessment.id) {
-                          block3Array[block3Array.length - 1][
-                            block3Array[block3Array.length - 1]?.length - 1
-                          ] += `,${answer.content}`; //Adds answer content to the last line of the current classification array
+                          linesArray[linesArray.length - 1] +=
+                            `,${answer.content}`; //Adds answer content to the last line of the current classification array
                           answerFound = true;
                         }
                       }
                       if (!answerFound)
-                        block3Array[block3Array.length - 1][
-                          block3Array[block3Array.length - 1]?.length - 1
-                        ] += `,`; //Adds an empty collumn if the answer wasn't found
+                        linesArray[linesArray.length - 1] += `,`; //Adds an empty collumn if the answer wasn't found
                     }
                   }
                 }
                 if (!classificationAddedPreviouslyFound) {
                   for (let i = 0; i < classification.questions.length; i++) {
-                    block3Array[block3Array.length - 1][
-                      block3Array[block3Array.length - 1]?.length - 1
-                    ] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
+                    linesArray[linesArray.length - 1] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
                   }
                 }
               } else {
@@ -481,20 +482,19 @@ const exportFullSpreadsheetToCSV = async (
           //Here empty collumns will be added to assessments whitch were processed before the classification was found
           for (const line of linesWithoutAnswers) {
             for (let i = 0; i < classification.questions.length; i++) {
-              block3Array[block3Array.length - 1][line] += ",";
+              linesArray[line] += ",";
             }
           }
         }
       }
     } else if (!classification.parent && classification.childs.length > 0) {
       const subclassificationsAdded: number[] = [];
-      block3Array.push(["", "", ""]); //Adds space to the header
       for (let i = 0; i < locations.length; i++) {
         if (locations[i]) {
           const location = locations[i];
           if (location) {
             for (let j = 0; j < location.assessments.length; j++) {
-              block3Array[block3Array.length - 1]?.push(""); //Adds space to each assessment's answers
+              linesArray.push(""); //Adds space to each assessment's answers
             }
           }
         }
@@ -508,8 +508,7 @@ const exportFullSpreadsheetToCSV = async (
                 formClassification.id === classification.id
               ) {
                 //Process the classification
-                block3Array[block3Array.length - 1][0] +=
-                  `;${classification.name}`; //Adds classification name to the header
+                linesArray[0] += `;${classification.name}`; //Adds classification name to the header
                 classificationsAdded.push(classification.id);
               }
               if (
@@ -535,20 +534,18 @@ const exportFullSpreadsheetToCSV = async (
             //Adds this subclassification's related content to the array
 
             let addedFirstQuestion = false;
-            block3Array[block3Array.length - 1][1] += `;${child.name}`;
+            linesArray[1] += `;${child.name}`;
             for (const question of child.questions) {
               //The header is created below
               if (!addedFirstQuestion) {
-                if (addSubclassificationComma)
-                  block3Array[block3Array.length - 1][0] += ",";
-                block3Array[block3Array.length - 1][2] += `;${question.name}`;
+                if (addSubclassificationComma) linesArray[0] += ",";
+                linesArray[2] += `;${question.name}`;
                 addedFirstQuestion = true;
                 addSubclassificationComma = true;
               } else {
-                if (addSubclassificationComma)
-                  block3Array[block3Array.length - 1][0] += ",";
-                block3Array[block3Array.length - 1][1] += ",";
-                block3Array[block3Array.length - 1][2] += `,${question.name}`;
+                if (addSubclassificationComma) linesArray[0] += ",";
+                linesArray[1] += ",";
+                linesArray[2] += `,${question.name}`;
                 addSubclassificationComma = true;
               }
               //The answers are added below
@@ -566,9 +563,8 @@ const exportFullSpreadsheetToCSV = async (
                               if (formQuestion.id === question.id) {
                                 for (const answer of formQuestion.answers) {
                                   if (answer.assessmentId === assessment.id) {
-                                    block3Array[block3Array.length - 1][
-                                      lineIndex
-                                    ] += `,${answer.content}`;
+                                    linesArray[lineIndex] +=
+                                      `,${answer.content}`;
                                     answerFound = true;
                                     break;
                                   }
@@ -584,7 +580,7 @@ const exportFullSpreadsheetToCSV = async (
                       if (answerFound) break;
                     }
                     if (!answerFound) {
-                      block3Array[block3Array.length - 1][lineIndex] += `,`;
+                      linesArray[lineIndex] += `,`;
                     }
                     lineIndex++;
                   }
@@ -595,15 +591,9 @@ const exportFullSpreadsheetToCSV = async (
         }
       }
     }
+    block3Array.push(linesArray);
   }
-  /*if (block3Array) {
-    for (let j = 0; j < block3Array[0]?.length; j++) {
-      for (let i = 0; i < block3Array.length; i++) {
-        block3CSVString += `${block3Array[i][j]}`;
-      }
-      block3CSVString += "\n";
-    }
-  }*/
+
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
@@ -614,7 +604,7 @@ const exportFullSpreadsheetToCSV = async (
     if (block3Array) {
       for (let j = 0; j < block3Array.length; j++) {
         const block3ArrayElement = block3Array[j];
-        if (block3ArrayElement) {
+        if (block3ArrayElement && block3ArrayElement[i]) {
           const block3ArrayInnerElement = block3ArrayElement[i];
           linePt3 += `${block3ArrayInnerElement}`;
         }
@@ -624,28 +614,12 @@ const exportFullSpreadsheetToCSV = async (
     if (includeTallys) resultArray.push(`${linePt1},${linePt2}${linePt3}`);
     else resultArray.push(`${linePt1}${linePt3}`);
   }
-  //console.log(block3Array);
+
   const result = resultArray.join("\n");
   return result;
 };
 
-const createBlock2Line = (location) => {
-  if (location.tallys.length === 0)
-    return ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-  const processedData = processAndFormatTallyDataLineWithAddedContent(
-    location.tallys,
-  );
-
-  if (location.usableArea) {
-    return (
-      processedData.tallyString +
-      "," +
-      ((processedData.totalPeople / location.usableArea) * 100).toFixed(2)
-    );
-  } else return processedData.tallyString + ",";
-};
-
-const exportAllTallysToCsv = async (
+const exportAllIndividualTallysToCsv = async (
   locationsIds: number[],
   sortCriteriaOrder: SortOrderType,
 ) => {
@@ -688,7 +662,7 @@ const exportAllTallysToCsv = async (
       return location.tallys;
     })
     .flat();
-  return createExclusiveTallyString(allTallys, sortCriteriaOrder);
+  return createTallyStringWithoutAddedData(allTallys, sortCriteriaOrder);
 };
 const exportDailyTally = async (
   locationsIds: number[],
@@ -900,7 +874,7 @@ const processAndFormatTallyDataLineWithAddedContent = (
     totalPeople: totalPeople,
   };
 };
-const exportTallyToCSV = async (
+const exportIndividualTallysToCSV = async (
   tallysIds: number[],
   sortCriteriaOrder: SortOrderType,
 ) => {
@@ -935,10 +909,10 @@ const exportTallyToCSV = async (
     },
   });
 
-  return createExclusiveTallyString(tallys, sortCriteriaOrder);
+  return createTallyStringWithoutAddedData(tallys, sortCriteriaOrder);
 };
 
-const createExclusiveTallyString = (
+const createTallyStringWithoutAddedData = (
   tallys: tallyDataToProcessType[],
   sortCriteriaOrder: SortOrderType,
 ) => {
@@ -952,7 +926,9 @@ const createExclusiveTallyString = (
           return a.locationId - b.locationId;
           break;
         case "date":
-          return a.startDate.getTime() - b.startDate.getTime();
+          if (a.startDate && b.startDate)
+            return a.startDate.getTime() - b.startDate.getTime();
+          else return 0;
           break;
         default:
           return 0;
@@ -996,9 +972,122 @@ const createExclusiveTallyString = (
         );
         duration = `${String(durationHrs).padStart(2, "0")}:${String(durationMin).padStart(2, "0")}`;
       }
-      const tallyString = processAndFormatTallyData(tally).tallyString;
+      let tallyString = "";
+      if (!tally.tallyPerson) {
+        tallyString = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+      } else {
+        const tallyMap = new Map();
+        for (const gender of genders) {
+          for (const ageGroup of ageGroups) {
+            for (const activity of acitvities) {
+              tallyMap.set(`${gender}-${ageGroup}-${activity}`, 0);
+            }
+            tallyMap.set(`Tot-${gender}-${ageGroup}`, 0);
+          }
+          tallyMap.set(`Tot-${gender}`, 0);
+        }
+        tallyMap.set("Tot-H&M", 0);
+        tallyMap.set("%MALE", "0.00%");
+        tallyMap.set("%FEMALE", "0.00%");
+        for (const ageGroup of ageGroups) {
+          tallyMap.set(`%${ageGroup}`, "0.00%");
+        }
+        for (const activity of acitvities) {
+          tallyMap.set(`%${activity}`, "0.00%");
+        }
+        tallyMap.set("isPersonWithImpairment", 0);
+        tallyMap.set("Groups", tally.groups); //?? o que é isso?
+        tallyMap.set("Pets", tally.animalsAmount);
+        tallyMap.set("isTraversing", 0);
+        tallyMap.set("Itinerant commercial activities", 0);
+        tallyMap.set("isInApparentIllicitActivity", 0);
+        tallyMap.set("%isInApparentIllicitActivity", "0.00%");
+        tallyMap.set("isPersonWithoutHousing", 0);
+        tallyMap.set("%isPersonWithoutHousing", "0.00%");
+
+        tally.tallyPerson.map((tallyPerson) => {
+          const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;
+          tallyMap.set(key, tallyMap.get(key) + tallyPerson.quantity);
+          tallyMap.set(
+            `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
+            tallyMap.get(
+              `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
+            ) + tallyPerson.quantity,
+          );
+          tallyMap.set(
+            `Tot-${tallyPerson.person.gender}`,
+            tallyMap.get(`Tot-${tallyPerson.person.gender}`) +
+              tallyPerson.quantity,
+          );
+          tallyMap.set(
+            "Tot-H&M",
+            tallyMap.get("Tot-H&M") + tallyPerson.quantity,
+          );
+          booleanPersonProperties.map((property) => {
+            if (tallyPerson.person[property]) {
+              tallyMap.set(
+                property,
+                tallyMap.get(property) + tallyPerson.quantity,
+              );
+            }
+          });
+        });
+        let totalPeople = 0;
+        totalPeople = z.number().parse(tallyMap.get("Tot-H&M"));
+        if (totalPeople != 0) {
+          for (const gender of genders) {
+            tallyMap.set(
+              `%${gender}`,
+              ((tallyMap.get(`Tot-${gender}`) / totalPeople) * 100).toFixed(2) +
+                "%",
+            );
+          }
+          for (const ageGroup of ageGroups) {
+            let totalAgeGroup = 0;
+            for (const gender of genders) {
+              for (const activity of acitvities) {
+                totalAgeGroup += tallyMap.get(
+                  `${gender}-${ageGroup}-${activity}`,
+                );
+              }
+            }
+            tallyMap.set(
+              `%${ageGroup}`,
+              ((totalAgeGroup / totalPeople) * 100).toFixed(2) + "%",
+            );
+          }
+          for (const activity of acitvities) {
+            let activityTotal = 0;
+            for (const gender of genders) {
+              for (const ageGroup of ageGroups) {
+                activityTotal += tallyMap.get(
+                  `${gender}-${ageGroup}-${activity}`,
+                );
+              }
+            }
+            tallyMap.set(
+              `%${activity}`,
+              ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) +
+                "%",
+            );
+          }
+          for (const property of otherPropertiesToCalcualtePercentage) {
+            tallyMap.set(
+              `%${property}`,
+              ((tallyMap.get(`${property}`) / totalPeople) * 100).toFixed(2) +
+                "%",
+            );
+          }
+        }
+        tallyString = `${[...tallyMap.values()].join(";")}`;
+      }
+      let weatherCondition = "";
+      if (tally.weatherCondition) {
+        weatherCondition =
+          weatherConditionMap.get(tally.weatherCondition) || "";
+      }
       return (
-        `${tally.locationId};${tally.location.name};${tally.observer};${date};${startDateTime};${duration};${tally.temperature};${weatherConditionMap.get(tally.weatherCondition)};` +
+        `${tally.locationId};${tally.location.name};${tally.observer};${date};${startDateTime};${duration};${tally.temperature};${weatherCondition};` +
         tallyString
       );
     })
@@ -1006,111 +1095,9 @@ const createExclusiveTallyString = (
   return CSVstring;
 };
 
-const processAndFormatTallyData = (tally: tallyDataToProcessType) => {
-  if (!tally.tallyPerson) {
-    return {
-      tallyString: ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
-      totalPeople: 0,
-    };
-  }
-  const tallyMap = new Map();
-  for (const gender of genders) {
-    for (const ageGroup of ageGroups) {
-      for (const activity of acitvities) {
-        tallyMap.set(`${gender}-${ageGroup}-${activity}`, 0);
-      }
-      tallyMap.set(`Tot-${gender}-${ageGroup}`, 0);
-    }
-    tallyMap.set(`Tot-${gender}`, 0);
-  }
-  tallyMap.set("Tot-H&M", 0);
-  tallyMap.set("%MALE", "0.00%");
-  tallyMap.set("%FEMALE", "0.00%");
-  for (const ageGroup of ageGroups) {
-    tallyMap.set(`%${ageGroup}`, "0.00%");
-  }
-  for (const activity of acitvities) {
-    tallyMap.set(`%${activity}`, "0.00%");
-  }
-  tallyMap.set("isPersonWithImpairment", 0);
-  tallyMap.set("Groups", tally.groups); //?? o que é isso?
-  tallyMap.set("Pets", tally.animalsAmount);
-  tallyMap.set("isTraversing", 0);
-  tallyMap.set("Itinerant commercial activities", 0);
-  tallyMap.set("isInApparentIllicitActivity", 0);
-  tallyMap.set("%isInApparentIllicitActivity", "0.00%");
-  tallyMap.set("isPersonWithoutHousing", 0);
-  tallyMap.set("%isPersonWithoutHousing", "0.00%");
-
-  tally.tallyPerson.map((tallyPerson) => {
-    const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;
-    tallyMap.set(key, tallyMap.get(key) + tallyPerson.quantity);
-    tallyMap.set(
-      `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
-      tallyMap.get(
-        `Tot-${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}`,
-      ) + tallyPerson.quantity,
-    );
-    tallyMap.set(
-      `Tot-${tallyPerson.person.gender}`,
-      tallyMap.get(`Tot-${tallyPerson.person.gender}`) + tallyPerson.quantity,
-    );
-    tallyMap.set("Tot-H&M", tallyMap.get("Tot-H&M") + tallyPerson.quantity);
-    booleanPersonProperties.map((property) => {
-      if (tallyPerson.person[property]) {
-        tallyMap.set(property, tallyMap.get(property) + tallyPerson.quantity);
-      }
-    });
-  });
-  let totalPeople = 0;
-  totalPeople = z.number().parse(tallyMap.get("Tot-H&M"));
-  if (totalPeople != 0) {
-    for (const gender of genders) {
-      tallyMap.set(
-        `%${gender}`,
-        ((tallyMap.get(`Tot-${gender}`) / totalPeople) * 100).toFixed(2) + "%",
-      );
-    }
-    for (const ageGroup of ageGroups) {
-      let totalAgeGroup = 0;
-      for (const gender of genders) {
-        for (const activity of acitvities) {
-          totalAgeGroup += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
-        }
-      }
-      tallyMap.set(
-        `%${ageGroup}`,
-        ((totalAgeGroup / totalPeople) * 100).toFixed(2) + "%",
-      );
-    }
-    for (const activity of acitvities) {
-      let activityTotal = 0;
-      for (const gender of genders) {
-        for (const ageGroup of ageGroups) {
-          activityTotal += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
-        }
-      }
-      tallyMap.set(
-        `%${activity}`,
-        ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
-      );
-    }
-    for (const property of otherPropertiesToCalcualtePercentage) {
-      tallyMap.set(
-        `%${property}`,
-        ((tallyMap.get(`${property}`) / totalPeople) * 100).toFixed(2) + "%",
-      );
-    }
-  }
-
-  return {
-    tallyString: `${[...tallyMap.values()].join(";")}`,
-    totalPeople: totalPeople,
-  };
-};
 export {
   exportFullSpreadsheetToCSV,
-  exportTallyToCSV,
-  exportAllTallysToCsv,
+  exportIndividualTallysToCSV,
+  exportAllIndividualTallysToCsv,
   exportDailyTally,
 };
