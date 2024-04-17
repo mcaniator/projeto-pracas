@@ -2,7 +2,7 @@
 
 import { PolygonContext } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import {
   Dialog,
   DialogContent,

@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { titillium_web } from "@/lib/fonts";
 import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
@@ -20,7 +20,7 @@ const AuthForm = () => {
         <span
           className={
             titillium_web.className +
-            " cursor-pointer select-none text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+            " cursor-pointer select-none text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
           }
           aria-disabled={loginSelected}
           onClick={() => {
@@ -32,7 +32,7 @@ const AuthForm = () => {
         <span
           className={
             titillium_web.className +
-            " cursor-pointer select-none text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+            " cursor-pointer select-none text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
           }
           aria-disabled={!loginSelected}
           onClick={() => {
@@ -61,7 +61,7 @@ const Login = (props: { username: MutableRefObject<string> }) => {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-80 flex-col gap-3">
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <label htmlFor="username" className="-mb-1">
@@ -106,7 +106,7 @@ const Signup = (props: { username: MutableRefObject<string> }) => {
   }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-80 flex-col gap-3">
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <label htmlFor="username" className="-mb-1">

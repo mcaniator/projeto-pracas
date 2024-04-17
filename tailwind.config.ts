@@ -97,5 +97,8 @@ module.exports = {
       "2.5xl": "20px",
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-react-aria-components"),
+    require("tailwindcss-animate"),
+  ],
 };

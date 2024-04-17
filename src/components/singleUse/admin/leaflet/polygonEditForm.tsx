@@ -5,7 +5,7 @@ import {
   parkCategories,
   parkTypes,
 } from "@/components/singleUse/admin/leaflet/data";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import {
   Dialog,
   DialogContent,
