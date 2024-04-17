@@ -5,7 +5,6 @@ import {
   parkCategories,
   parkTypes,
 } from "@/components/singleUse/admin/leaflet/data";
-import { Button } from "@/components/ui/old-button";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { Select } from "@/components/ui/select";
 import { josefin_sans } from "@/lib/fonts";
 import { mapEdit } from "@/serverActions/parkSubmit";

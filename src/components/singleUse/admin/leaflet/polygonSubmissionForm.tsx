@@ -2,7 +2,6 @@
 
 import { PolygonContext } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
-import { Button } from "@/components/ui/old-button";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { josefin_sans, titillium_web } from "@/lib/fonts";
 import { mapSubmission } from "@/serverActions/parkSubmit";
 import { IconX } from "@tabler/icons-react";
@@ -67,7 +67,7 @@ const PolygonSubmissionForm = () => {
               <span
                 className={
                   titillium_web.className +
-                  " cursor-pointer text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+                  " cursor-pointer text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
                 }
                 onClick={() => {
                   if (
@@ -89,7 +89,7 @@ const PolygonSubmissionForm = () => {
               <span
                 className={
                   titillium_web.className +
-                  " cursor-pointer text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+                  " cursor-pointer text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
                 }
                 onClick={() => {
                   if (
