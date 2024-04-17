@@ -1,12 +1,7 @@
 "use client";
 
 import { AuthForm } from "@/app/_components/authForm";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import { signout } from "@/serverActions/auth";
@@ -25,6 +20,7 @@ import { VariantProps, cva } from "class-variance-authority";
 import { User } from "lucia";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
+import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 import { useFormState } from "react-dom";
 
 const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
@@ -57,49 +53,45 @@ const Header = forwardRef<HTMLElement, headerProps>(
         ref={ref}
         {...props}
       >
-        <Button asChild variant={"ghost"} className="px-3 py-6 pl-1">
-          <Link className="flex items-center" href={"/"}>
+        <Link className="flex items-center" href={"/"}>
+          <Button variant={"ghost"} className="px-3 py-6 pl-1">
             <IconTree size={34} />
             <span className="text-2xl sm:text-3xl">Projeto Praças</span>
-          </Link>
-        </Button>
-        <Popover>
-          <PopoverTrigger className="ml-auto" asChild>
-            {user !== null && user !== undefined ?
-              <Button
-                variant={"ghost"}
-                className="flex items-center px-3 py-6 pl-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl sm:text-3xl">{user.username}</span>
-                  <span className="h-8 w-8 rounded-lg bg-off-white" />
-                </div>
-              </Button>
-            : <Button
-                asChild
-                variant={"ghost"}
-                className="flex items-center px-3 py-6 pl-2"
-              >
-                <div>
-                  <IconLogin size={34} />
-                  <span className="pointer-events-none text-2xl sm:text-3xl">
-                    Login
-                  </span>
-                </div>
-              </Button>
-            }
-          </PopoverTrigger>
+          </Button>
+        </Link>
 
-          <PopoverContent
-            className={"mr-7 w-96 rounded-2xl border-0 bg-off-white"}
+        <DialogTrigger>
+          <Button
+            variant={"ghost"}
+            className="ml-auto flex items-center px-3 py-6 pl-2"
           >
-            <div ref={popupContentRef}>
-              {user !== null && user !== undefined ?
-                <UserInfo user={user} />
-              : <AuthForm />}
-            </div>
-          </PopoverContent>
-        </Popover>
+            {user !== null && user !== undefined ?
+              <div className="flex items-center gap-2">
+                <span className="text-2xl sm:text-3xl">{user.username}</span>
+                <span className="h-8 w-8 rounded-lg bg-off-white" />
+              </div>
+            : <div className={"flex"}>
+                <IconLogin size={34} />
+                <span className="pointer-events-none text-2xl sm:text-3xl">
+                  Login
+                </span>
+              </div>
+            }
+          </Button>
+          <Popover
+            className={
+              "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
+            }
+          >
+            <Dialog className={"outline-none"}>
+              <div ref={popupContentRef}>
+                {user !== null && user !== undefined ?
+                  <UserInfo user={user} />
+                : <AuthForm />}
+              </div>
+            </Dialog>
+          </Popover>
+        </DialogTrigger>
       </header>
     );
   },
@@ -130,8 +122,10 @@ const UserInfo = ({ user }: { user: User }) => {
         </Link>
         <Button
           variant={"destructive"}
-          className="w-full basis-1/2 text-white"
-          onClick={void revalidateAllCache()}
+          className="w-full basis-1/2 text-nowrap text-white"
+          onPress={() => {
+            void revalidateAllCache();
+          }}
         >
           <span className="-mb-1">Resetar cache</span>
         </Button>
@@ -143,7 +137,7 @@ const UserInfo = ({ user }: { user: User }) => {
         <Button
           variant={"ghost"}
           size={"icon"}
-          onClick={() => {
+          onPress={() => {
             setHighContrat(!highContrast);
           }}
         >
@@ -155,7 +149,7 @@ const UserInfo = ({ user }: { user: User }) => {
           <Button
             className={"hover:bg-redwood/20"}
             variant={"ghost"}
-            role="submit"
+            type="submit"
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">
               <IconLogin2 strokeWidth={3} /> Sair

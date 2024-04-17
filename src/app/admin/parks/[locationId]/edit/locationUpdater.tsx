@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { Location } from "@prisma/client";
 import Link from "next/link";

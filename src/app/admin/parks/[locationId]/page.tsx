@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import Link from "next/link";
 

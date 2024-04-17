@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {

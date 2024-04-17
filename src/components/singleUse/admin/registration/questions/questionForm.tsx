@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
 import { questionSubmit } from "@/serverActions/questionSubmit";

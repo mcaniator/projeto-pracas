@@ -1,6 +1,6 @@
 import { Footer } from "@/app/_components/footer";
 import { Header } from "@/app/_components/header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { validateRequest } from "@/lib/lucia";
 
 const NotFound = async () => {
