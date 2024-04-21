@@ -22,7 +22,10 @@ const createAssessment = async (
       },
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating assessment",
+    };
   }
 };
 
@@ -41,7 +44,10 @@ const createClassification = async (name: string, questionsNames: string[]) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating classification",
+    };
   }
 };
 
@@ -68,7 +74,10 @@ const createSubclassification = async (
       },
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating subclassification",
+    };
   }
 };
 
@@ -85,7 +94,10 @@ const createForm = async (name: string, classificationsIds: number[]) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating form",
+    };
   }
 };
 
@@ -109,7 +121,10 @@ const createAnswer = async (
       },
     });
   } catch (error) {
-    console.error(error);
+    return {
+      statusCode: 2,
+      errorMessage: "Error creating answer",
+    };
   }
 };
 

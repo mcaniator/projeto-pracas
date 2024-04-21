@@ -134,8 +134,8 @@ enum UserTypes {
 }
 
 enum CategoryTypes {
-  FOR_SOCIAL_PRACTICES              @map("for Social Practices")
-  OPEN_SPACE_FOR_NON_COLLECTIVE_USE @map("Open Space for non-Collective Use")
+  OPEN_SPACE_FOR_COLLECTIVE_USE                    @map("Open Spce for Collective Use")
+  OPEN_SPACE_FOR_COLLECTIVE_USE_IN_RESTRICTED_AREA @map("Open Space for Collective Use in Restricted Area")
 
   @@map("category_types")
 }
@@ -432,9 +432,10 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  //Statistics data
+  //IBGE data
   householdDensity   String? @map("household_density") @db.VarChar(255)
   income             String? @db.VarChar(255)
+  density            String? @db.VarChar(255)
   men                Int?
   women              Int?
   occupiedHouseholds Int?    @map("occupied_households")

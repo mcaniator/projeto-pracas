@@ -13,10 +13,10 @@ const weatherConditionMap = new Map([
   ["CLOUDY", "Nublado"],
 ]);
 const locationCategoriesMap = new Map([
-  ["FOR_SOCIAL_PRACTICES", "espaços livres públicos de uso coletivo"],
+  ["OPEN_SPACE_FOR_COLLECTIVE_USE", "ELP"],
   [
-    "OPEN_SPACE_FOR_NON_COLLECTIVE_USE",
-    "espaços livres públicos de uso não coletivo",
+    "OPEN_SPACE_FOR_COLLECTIVE_USE_IN_RESTRICTED_AREA",
+    "ELP em área de acesso restriro (condomínimos)",
   ],
 ]);
 const LocationTypesMap = new Map([
@@ -24,20 +24,51 @@ const LocationTypesMap = new Map([
   ["COURT_EDGE", "Borda de quadra"],
   ["GARDEN", "Jardim"],
   ["SQUARE", "Praça"],
-  ["OVERLOOK", "OVERLOOK"],
+  ["OVERLOOK", "Mirante"],
   ["PARK", "Parque"],
-  ["FENCED_PARK", "FENCED_PARK"],
-  ["UNOCCUPIED_PLOT", "UNOCCUPIED_PLOT"],
+  ["FENCED_PARK", "Parque cercado"],
+  ["UNOCCUPIED_PLOT", "Lote desocupado"],
   [
     "REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION",
-    "REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION",
+    "Restos de construção de ruas e divisão de terrenos",
   ],
-  ["ROUNDABOUTS", "ROUNDABOUTS"],
-  ["INTERCHANGE", "INTERCHANGE"],
+  ["ROUNDABOUTS", "Rotatórias"],
+  ["INTERCHANGE", "Interconexão"],
+]);
+const brazilianStatesMap = new Map([
+  ["ACRE", "Acre"],
+  ["ALAGOAS", "Alagoas"],
+  ["AMAPA", "Amapá"],
+  ["AMAZONAS", "Amazonas"],
+  ["BAHIA", "Bahia"],
+  ["CEARA", "Ceará"],
+  ["DISTRITO_FEDERAL", "Distrito Federal"],
+  ["ESPIRITO_SANTO", "Espirito Santo"],
+  ["GOIAS", "Goiás"],
+  ["MARANHAO", "Maranhão"],
+  ["MATO_GROSSO", "Mato Grosso"],
+  ["MATO_GROSSO_DO_SUL", "Mato Grosso do Sul"],
+  ["MINAS_GERAIS", "Minas Gerais"],
+  ["PARA", "Pará"],
+  ["PARAIBA", "Paraíba"],
+  ["PARANA", "Paraná"],
+  ["PERNAMBUCO", "Pernambuco"],
+  ["PIAUI", "Piauí"],
+  ["RIO_DE_JANEIRO", "Rio de Janeiro"],
+  ["RIO_GRANDE_DO_NORTE", "Rio Grande do Norte"],
+  ["RIO_GRANDE_DO_SUL", "Rio Grande do Sul"],
+  ["RONDONIA", "Rondônia"],
+  ["RORAIMA", "Roraima"],
+  ["SANTA_CATARINA", "Santa Catarina"],
+  ["SAO_PAULO", "São Paulo"],
+  ["SERGIPE", "Sergipe"],
+  ["TOCANTINS", "Tocantins"],
 ]);
 
-const maxPSize = 1000;
-const maxMSize = 1400;
+//These sizes are used to determine the location's classification (P,M,G)
+const maxPSize = 747;
+const maxMSize = 1392;
+//The arrays below are created to make sure that the algorithm will create the spreadsheet in the correct order, independently of the order in the database.
 const streetSizes = [
   "streets4mWide",
   "streets6mWide",
@@ -95,6 +126,8 @@ const exportFullSpreadsheetToCSV = async (
         },
         select: {
           id: true,
+          startDate: true,
+          endDate: true,
           form: {
             select: {
               classifications: {
@@ -222,7 +255,18 @@ const exportFullSpreadsheetToCSV = async (
     ",,,,,,,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
   block1CSVString +=
     "Identificador,Avaliada?,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Observador(es),Data ,Início,Duração,Ano criação,Ano reforma,Prefeito,Legislação,Distrito/Regiã,Subdistrito/Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,% inclinação,% área de sombra,canto,centro,isolada,dividida?,VIAS (número),4m,6m,8m,10m,20m\n";
-
+  const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
   block1CSVString += locations
     .map((location) => {
       interface StreetsJsonType {
@@ -257,7 +301,7 @@ const exportFullSpreadsheetToCSV = async (
         if (location.address[0].city)
           addressString += ` - ${location.address[0].city.name}`;
         if (location.address[0].state)
-          addressString += ` - ${location.address[0].state}`;
+          addressString += ` - ${brazilianStatesMap.get(location.address[0].state)}`;
       }
 
       let totalStatisticsPeople;
@@ -300,24 +344,16 @@ const exportFullSpreadsheetToCSV = async (
       let startDateTime;
       let date;
       let duration;
-      const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-      if (location.tallys[0]?.endDate && location.tallys[0].startDate) {
-        startDateTime = hourFormatter.format(location.tallys[0].startDate);
-        date = dateFormatter.format(location.tallys[0].startDate);
+
+      if (
+        location.assessments[0]?.endDate &&
+        location.assessments[0].startDate
+      ) {
+        startDateTime = hourFormatter.format(location.assessments[0].startDate);
+        date = dateFormatter.format(location.assessments[0].startDate);
         const durationTimestampMs =
-          location.tallys[0].endDate.getTime() -
-          location.tallys[0].startDate.getTime();
+          location.assessments[0].endDate.getTime() -
+          location.assessments[0].startDate.getTime();
         const durationHrs = Math.floor(durationTimestampMs / (1000 * 60 * 60));
         const durationMin = Math.floor(
           (durationTimestampMs % (1000 * 60 * 60)) / (1000 * 60),
@@ -350,7 +386,7 @@ const exportFullSpreadsheetToCSV = async (
         location.intermediateAdministrativeUnit?.name ?
           location.intermediateAdministrativeUnit?.name
         : "",
-        "???",
+        location.density ? location.density : "",
         location.income ? location.income : "",
         location.usableArea ? location.usableArea : "",
         location.usableArea ?
@@ -378,7 +414,6 @@ const exportFullSpreadsheetToCSV = async (
       return block1String;
     })
     .join("\n");
-  //locations.map((location) => console.log(location));
 
   let block2CSVString =
     "CONTAGEM DE PESSOAS DIAS DE SEMANA + FINAIS DE SEMANA,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
@@ -594,6 +629,63 @@ const exportFullSpreadsheetToCSV = async (
     block3Array.push(linesArray);
   }
 
+  const block4Array: string[] = [
+    "CONTROLE DE CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,",
+    "SEMANA 01,,,,SEMANA 02,,,,FIM SEMANA 01,,,,FIM SEMANA 02,,,",
+    "8:00,11:30,15:00,18:30,8:00,11:30,15:00,18:30,8:00,11:30,15:00,18:30,8:00,11:30,15:00,18:30",
+  ];
+
+  const dayFormatter = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+  });
+  for (const location of locations) {
+    const tallys = location.tallys;
+    const weekTallys = [tallys[0]];
+    const weekendTallys = [tallys[0]];
+    weekTallys.pop();
+    weekendTallys.pop();
+    for (const tally of tallys) {
+      if (
+        tally.startDate &&
+        (dayFormatter.format(tally.startDate) == "sáb." ||
+          dayFormatter.format(tally.startDate) == "dom.")
+      )
+        weekendTallys.push(tally);
+      else weekTallys.push(tally);
+    }
+    weekTallys.sort((a, b) => {
+      if (a?.startDate && b?.startDate) {
+        return b.startDate.getTime() - a.startDate.getTime();
+      } else return 0;
+    });
+    weekendTallys.sort((a, b) => {
+      if (a?.startDate && b?.startDate) {
+        return b.startDate.getTime() - a.startDate.getTime();
+      } else return 0;
+    });
+    let line: string = "";
+    let firstContentAdded = false;
+    for (const weekTally of weekTallys) {
+      if (firstContentAdded && weekTally)
+        line += `,${processAndFormatTallyDataLineWithAddedContent([weekTally]).totalPeople}`;
+      else {
+        if (weekTally)
+          line += `${processAndFormatTallyDataLineWithAddedContent([weekTally]).totalPeople}`;
+        firstContentAdded = true;
+      }
+    }
+    for (const weekendTally of weekendTallys) {
+      if (firstContentAdded && weekendTally)
+        line += `,${processAndFormatTallyDataLineWithAddedContent([weekendTally]).totalPeople}`;
+      else {
+        if (weekendTally)
+          line += `${processAndFormatTallyDataLineWithAddedContent([weekendTally]).totalPeople}`;
+        firstContentAdded = true;
+      }
+    }
+    block4Array.push(line);
+  }
+
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
@@ -611,7 +703,10 @@ const exportFullSpreadsheetToCSV = async (
       }
     }
 
-    if (includeTallys) resultArray.push(`${linePt1},${linePt2}${linePt3}`);
+    const linePt4 = block4Array[i];
+
+    if (includeTallys)
+      resultArray.push(`${linePt1},${linePt2}${linePt3},,${linePt4}`);
     else resultArray.push(`${linePt1}${linePt3}`);
   }
 
