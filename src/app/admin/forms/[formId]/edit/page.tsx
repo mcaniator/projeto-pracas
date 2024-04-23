@@ -1,21 +1,12 @@
-import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { searchFormsById } from "@/serverActions/formUtil";
+import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 
-import { FormUpdater } from "./formUpdater";
+import Client from "./client";
 
 const Edit = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormsById(parseInt(params.formId));
-
+  const questions = await searchQuestionsByFormId(parseInt(params.formId));
   // TODO: add error handling
-  return form == null ?
-      <div>Formulário não encontrado</div>
-    : <div className="flex">
-        <div className="w-1/2">
-          <FormUpdater form={form} />
-        </div>
-        <div className="w-1/2">
-          <QuestionForm formId={form.id} />
-        </div>
-      </div>;
+  return <Client form={form} questions={questions} />;
 };
 export default Edit;

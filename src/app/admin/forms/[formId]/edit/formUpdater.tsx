@@ -3,8 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { handleDelete, updateForm } from "@/serverActions/formUtil";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
-import { Form } from "@prisma/client";
+import { Form, Question } from "@prisma/client";
 import Link from "next/link";
 import { useRef } from "react";
 import { useFormState } from "react-dom";
@@ -12,10 +11,15 @@ import { useFormState } from "react-dom";
 const initialState = {
   statusCode: 0,
 };
-const FormUpdater = async ({ form }: { form: Form }) => {
+const FormUpdater = ({
+  form,
+  questions,
+}: {
+  form: Form;
+  questions: Question[] | null;
+}) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
-  const questions = await searchQuestionsByFormId(form.id);
 
   // TODO: add error handling
   return (
