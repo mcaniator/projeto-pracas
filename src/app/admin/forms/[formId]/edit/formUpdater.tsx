@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { handleDelete, updateForm } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import Link from "next/link";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
@@ -14,12 +14,16 @@ const initialState = {
 const FormUpdater = ({
   form,
   questions,
+  questionsToAddIds,
 }: {
   form: Form;
   questions: Question[] | null;
+  questionsToAddIds: number[];
 }) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {}, [questionsToAddIds.length]);
 
   // TODO: add error handling
   return (
@@ -94,6 +98,9 @@ const FormUpdater = ({
               Ainda não há perguntas no formulário
             </div>
           }
+          <div className="text-xl">
+            id das perguntas a serem adicionadas é :{questionsToAddIds}
+          </div>
         </div>
       </div>
     </div>
