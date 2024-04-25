@@ -1,5 +1,6 @@
 "use server";
 
+import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
@@ -110,7 +111,7 @@ const updateForm = async (
   };
 };
 
-const addQuestion = async (formId?: number, questionId?: number) => {
+const addQuestion = async (formId: number, questionId: number) => {
   try {
     await prisma.questionsOnForms.create({
       data: { formId: formId, questionId: questionId },
@@ -126,4 +127,32 @@ const addQuestion = async (formId?: number, questionId?: number) => {
   };
 };
 
-export { fetchForms, handleDelete, searchFormsById, updateForm, addQuestion };
+const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {
+  try {
+    const createManyParams = questions.map((question) => ({
+      formId: formId,
+      questionId: question.id,
+    }));
+
+    await prisma.questionsOnForms.createMany({
+      data: createManyParams,
+    });
+  } catch (err) {
+    // console.log(err);
+    return { statusCode: 2 };
+  }
+
+  revalidateTag("questionOnForm");
+  return {
+    statusCode: 0,
+  };
+};
+
+export {
+  fetchForms,
+  handleDelete,
+  searchFormsById,
+  updateForm,
+  addQuestion,
+  addQuestions,
+};

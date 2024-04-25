@@ -2,6 +2,7 @@
 
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { Button } from "@/components/ui/button";
+import { addQuestions } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
 
@@ -29,6 +30,11 @@ const Client = ({
     }
   };
 
+  const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
+    void addQuestions(formId, questions);
+    setQuestionsToAdd([]);
+  };
+
   return form == null ?
       <div>Formulário não encontrado</div>
     : <div className="grid grid-cols-5 gap-4">
@@ -48,7 +54,12 @@ const Client = ({
         </div>
         <div className="col-span-4 flex justify-center">
           {questionsToAdd.length > 0 && (
-            <Button variant={"admin"}>Criar nova versão</Button>
+            <Button
+              variant={"admin"}
+              onClick={() => handleAddQuestion(form.id, questionsToAdd)}
+            >
+              Criar nova versão
+            </Button>
           )}
         </div>
       </div>;
