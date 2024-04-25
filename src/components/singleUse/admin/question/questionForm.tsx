@@ -110,6 +110,7 @@ const QuestionComponent = ({
       key={questionId}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
     >
+      {name}
       <Button
         variant={"admin"}
         type="submit"
@@ -118,7 +119,6 @@ const QuestionComponent = ({
       >
         <span className={"-mb-1"}>Adicionar</span>
       </Button>
-      {name}
     </div>
   );
 };

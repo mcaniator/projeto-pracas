@@ -100,25 +100,24 @@ const FormUpdater = ({
               Ainda não há perguntas no formulário
             </div>
           }
-          <div>Perguntas a serem adicionadas no formulário:</div>
-          {questionsToAdd !== null && questionsToAdd !== undefined ?
-            <ul className=" list-disc p-5">
-              {questionsToAdd.map((question) => (
-                <li
-                  key={question.id}
-                  className="flex w-full flex-row items-center  justify-between "
-                >
-                  <span className="p-2">{question.name}</span>
-                  <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
-                    Cancelar
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          : <div className="text-redwood">
-              Ainda não há perguntas no formulário
+          {questionsToAdd.length > 0 && (
+            <div>
+              <div>Perguntas a serem adicionadas no formulário:</div>
+              <ul className="list-disc p-5">
+                {questionsToAdd.map((question) => (
+                  <li
+                    key={question.id}
+                    className="flex w-full flex-row items-center justify-between"
+                  >
+                    <span className="p-2">{question.name}</span>
+                    <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                      Cancelar
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             </div>
-          }
+          )}
         </div>
       </div>
     </div>
