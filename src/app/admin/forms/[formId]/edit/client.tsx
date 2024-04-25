@@ -6,6 +6,11 @@ import { useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
 
+interface DisplayQuestion {
+  id: number;
+  name: string;
+}
+
 const Client = ({
   form,
   questions,
@@ -13,12 +18,16 @@ const Client = ({
   form?: Form | null;
   questions: Question[] | null;
 }) => {
-  const [questionsToAddIds, setQuestionsToAddIds] = useState<number[]>([]);
-  const handleQuestionsToAdd = (questionId: number) => {
-    if (!questionsToAddIds.includes(questionId)) {
-      setQuestionsToAddIds([...questionsToAddIds, questionId]);
+  const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
+
+  const handleQuestionsToAdd = (questionId: number, questionName: string) => {
+    const questionExists = questionsToAdd.some((q) => q.id === questionId);
+    const newQuestion: DisplayQuestion = { id: questionId, name: questionName };
+    if (!questionExists) {
+      setQuestionsToAdd([...questionsToAdd, newQuestion]);
     }
   };
+
   return form == null ?
       <div>Formulário não encontrado</div>
     : <div className="flex">
@@ -26,16 +35,17 @@ const Client = ({
           <FormUpdater
             form={form}
             questions={questions}
-            questionsToAddIds={questionsToAddIds}
+            questionsToAdd={questionsToAdd}
           />
         </div>
         <div className="w-1/2">
           <QuestionForm
             formId={form.id}
             handleQuestionsToAdd={handleQuestionsToAdd}
-            questionsToAddIds={questionsToAddIds}
+            questionsToAdd={questionsToAdd}
           />
         </div>
       </div>;
 };
 export default Client;
+export type { DisplayQuestion };

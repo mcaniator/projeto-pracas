@@ -8,22 +8,24 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
 
+import { DisplayQuestion } from "./client";
+
 const initialState = {
   statusCode: 0,
 };
 const FormUpdater = ({
   form,
   questions,
-  questionsToAddIds,
+  questionsToAdd,
 }: {
   form: Form;
   questions: Question[] | null;
-  questionsToAddIds: number[];
+  questionsToAdd: DisplayQuestion[];
 }) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {}, [questionsToAddIds.length]);
+  useEffect(() => {}, [questionsToAdd.length]);
 
   // TODO: add error handling
   return (
@@ -98,8 +100,28 @@ const FormUpdater = ({
               Ainda não há perguntas no formulário
             </div>
           }
+          <div>Perguntas a serem adicionadas no formulário:</div>
+          {questionsToAdd !== null && questionsToAdd !== undefined ?
+            <ul className=" list-disc p-5">
+              {questionsToAdd.map((question) => (
+                <li
+                  key={question.id}
+                  className="flex w-full flex-row items-center  justify-between "
+                >
+                  <span className="p-2">{question.name}</span>
+                  <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                    Remover
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          : <div className="text-redwood">
+              Ainda não há perguntas no formulário
+            </div>
+          }
           <div className="text-xl">
-            id das perguntas a serem adicionadas é :{questionsToAddIds}
+            id das perguntas a serem adicionadas é :
+            {questionsToAdd.map((q) => q.id)}
           </div>
         </div>
       </div>

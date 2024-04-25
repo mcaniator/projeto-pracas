@@ -1,5 +1,6 @@
 "use client";
 
+import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import { addQuestion } from "@/serverActions/formUtil";
@@ -10,11 +11,11 @@ import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 const QuestionForm = ({
   formId,
   handleQuestionsToAdd,
-  questionsToAddIds,
+  questionsToAdd,
 }: {
   formId?: number;
-  handleQuestionsToAdd: (id: number) => void;
-  questionsToAddIds: number[];
+  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  questionsToAdd: DisplayQuestion[];
 }) => {
   const [targetQuestion, setTargetQuestion] = useState("");
 
@@ -52,7 +53,7 @@ const QuestionForm = ({
               questionPromise={deferredFoundQuestions}
               formId={formId}
               handleQuestionsToAdd={handleQuestionsToAdd}
-              questionsToAddIds={questionsToAddIds}
+              questionsToAdd={questionsToAdd}
             />
           </Suspense>
         </div>
@@ -65,14 +66,14 @@ const QuestionList = ({
   questionPromise,
   formId,
   handleQuestionsToAdd,
-  questionsToAddIds,
+  questionsToAdd,
 }: {
   questionPromise?: Promise<Form[]>;
   formId?: number;
-  handleQuestionsToAdd: (id: number) => void;
-  questionsToAddIds: number[];
+  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  questionsToAdd: DisplayQuestion[];
 }) => {
-  useEffect(() => {}, [questionsToAddIds.length]);
+  useEffect(() => {}, [questionsToAdd.length]);
   if (questionPromise === undefined) return null;
   const questions = use(questionPromise);
 
@@ -80,11 +81,12 @@ const QuestionList = ({
       null
     : <div className="w-full text-black">
         <div className="text-xl">
-          id das perguntas a serem adicionadas é :{questionsToAddIds}
+          id das perguntas a serem adicionadas é :
+          {questionsToAdd.map((q) => q.id)}
         </div>
         {questions.length > 0 &&
           questions.map((question) =>
-            !questionsToAddIds.includes(question.id) ?
+            !questionsToAdd.includes(question) ?
               <QuestionComponent
                 key={question.id}
                 questionId={question.id}
@@ -104,7 +106,7 @@ const QuestionComponent = ({
   formId,
 }: {
   questionId: number;
-  handleQuestionsToAdd: (id: number) => void;
+  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   name: string;
   formId?: number;
 }) => {
@@ -117,7 +119,7 @@ const QuestionComponent = ({
         variant={"admin"}
         type="submit"
         className={"w-min"}
-        onClick={() => handleQuestionsToAdd(questionId)}
+        onClick={() => handleQuestionsToAdd(questionId, name)}
       >
         <span className={"-mb-1"}>Adicionar</span>
       </Button>
