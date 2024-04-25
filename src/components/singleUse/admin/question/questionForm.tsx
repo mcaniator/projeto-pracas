@@ -86,7 +86,7 @@ const QuestionList = ({
         </div>
         {questions.length > 0 &&
           questions.map((question) =>
-            !questionsToAdd.includes(question) ?
+            !questionsToAdd.some((q) => q.id === question.id) ?
               <QuestionComponent
                 key={question.id}
                 questionId={question.id}
