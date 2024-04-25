@@ -110,7 +110,7 @@ const FormUpdater = ({
                 >
                   <span className="p-2">{question.name}</span>
                   <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
-                    Remover
+                    Cancelar
                   </Button>
                 </li>
               ))}
@@ -119,10 +119,6 @@ const FormUpdater = ({
               Ainda não há perguntas no formulário
             </div>
           }
-          <div className="text-xl">
-            id das perguntas a serem adicionadas é :
-            {questionsToAdd.map((q) => q.id)}
-          </div>
         </div>
       </div>
     </div>

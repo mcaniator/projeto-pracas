@@ -80,10 +80,6 @@ const QuestionList = ({
   return questions === undefined || questions.length === 0 ?
       null
     : <div className="w-full text-black">
-        <div className="text-xl">
-          id das perguntas a serem adicionadas é :
-          {questionsToAdd.map((q) => q.id)}
-        </div>
         {questions.length > 0 &&
           questions.map((question) =>
             !questionsToAdd.some((q) => q.id === question.id) ?
@@ -103,7 +99,6 @@ const QuestionComponent = ({
   questionId,
   handleQuestionsToAdd,
   name,
-  formId,
 }: {
   questionId: number;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
@@ -124,8 +119,6 @@ const QuestionComponent = ({
         <span className={"-mb-1"}>Adicionar</span>
       </Button>
       {name}
-      <div>o id do formulário é: {formId}</div>
-      <div>o id da pergunta é:{questionId}</div>
     </div>
   );
 };
