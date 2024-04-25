@@ -1,6 +1,7 @@
 "use client";
 
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
+import { Button } from "@/components/ui/button";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
 
@@ -30,20 +31,25 @@ const Client = ({
 
   return form == null ?
       <div>Formulário não encontrado</div>
-    : <div className="flex">
-        <div className="w-1/2">
+    : <div className="grid grid-cols-5 gap-4">
+        <div className="col-span-3">
           <FormUpdater
             form={form}
             questions={questions}
             questionsToAdd={questionsToAdd}
           />
         </div>
-        <div className="w-1/2">
+        <div className="col-span-2">
           <QuestionForm
             formId={form.id}
             handleQuestionsToAdd={handleQuestionsToAdd}
             questionsToAdd={questionsToAdd}
           />
+        </div>
+        <div className="col-span-4 flex justify-center">
+          {questionsToAdd.length > 0 && (
+            <Button variant={"admin"}>Criar nova versão</Button>
+          )}
         </div>
       </div>;
 };

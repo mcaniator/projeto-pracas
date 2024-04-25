@@ -81,7 +81,7 @@ const FormUpdater = ({
               </Link>
             </div>
           </form>
-          <div>Perguntas no formulário:</div>
+          <div>Perguntas nesse formulário:</div>
           {questions !== null && questions !== undefined ?
             <ul className=" list-disc p-5">
               {questions.map((question) => (
@@ -102,7 +102,7 @@ const FormUpdater = ({
           }
           {questionsToAdd.length > 0 && (
             <div>
-              <div>Perguntas a serem adicionadas no formulário:</div>
+              <div>Perguntas que serão adicionadas:</div>
               <ul className="list-disc p-5">
                 {questionsToAdd.map((question) => (
                   <li
