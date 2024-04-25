@@ -83,15 +83,17 @@ const QuestionList = ({
           id das perguntas a serem adicionadas é :{questionsToAddIds}
         </div>
         {questions.length > 0 &&
-          questions.map((question) => (
-            <QuestionComponent
-              key={question.id}
-              questionId={question.id}
-              name={question.name}
-              formId={formId}
-              handleQuestionsToAdd={handleQuestionsToAdd}
-            />
-          ))}
+          questions.map((question) =>
+            !questionsToAddIds.includes(question.id) ?
+              <QuestionComponent
+                key={question.id}
+                questionId={question.id}
+                name={question.name}
+                formId={formId}
+                handleQuestionsToAdd={handleQuestionsToAdd}
+              />
+            : null,
+          )}
       </div>;
 };
 
