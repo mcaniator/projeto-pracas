@@ -561,7 +561,6 @@ const exportFullSpreadsheetToCSV = async (
         }
       } //Here all the subclassifications IDs that need to be added will be stored in subclassificationAdded
       subclassificationsAdded.sort((a, b) => a - b);
-      //console.log(subclassificationsAdded);
       let addSubclassificationComma = false;
       for (const subclassificationAdded of subclassificationsAdded) {
         for (const child of classification.childs) {
@@ -655,32 +654,109 @@ const exportFullSpreadsheetToCSV = async (
     }
     weekTallys.sort((a, b) => {
       if (a?.startDate && b?.startDate) {
-        return b.startDate.getTime() - a.startDate.getTime();
+        return a.startDate.getTime() - b.startDate.getTime();
       } else return 0;
     });
     weekendTallys.sort((a, b) => {
       if (a?.startDate && b?.startDate) {
-        return b.startDate.getTime() - a.startDate.getTime();
+        return a.startDate.getTime() - b.startDate.getTime();
       } else return 0;
     });
-    let line: string = "";
-    let firstContentAdded = false;
-    for (const weekTally of weekTallys) {
-      if (firstContentAdded && weekTally)
-        line += `,${processAndFormatTallyDataLineWithAddedContent([weekTally]).totalPeople}`;
-      else {
-        if (weekTally)
-          line += `${processAndFormatTallyDataLineWithAddedContent([weekTally]).totalPeople}`;
-        firstContentAdded = true;
+    const initialWeekDay = dateFormatter.format(weekTallys[0]?.startDate);
+    const initialWeekendDay = dateFormatter.format(weekendTallys[0]?.startDate);
+    const weekday1Tallys = [tallys[0]];
+    const weekday2Tallys = [tallys[0]];
+    const weekendDay1Tallys = [tallys[0]];
+    const weekendDay2Tallys = [tallys[0]];
+    weekday1Tallys.pop();
+    weekday2Tallys.pop();
+    weekendDay1Tallys.pop();
+    weekendDay2Tallys.pop();
+    for (const tally of weekTallys) {
+      if (dateFormatter.format(tally?.startDate) === initialWeekDay) {
+        weekday1Tallys.push(tally);
+      } else {
+        weekday2Tallys.push(tally);
       }
     }
-    for (const weekendTally of weekendTallys) {
-      if (firstContentAdded && weekendTally)
-        line += `,${processAndFormatTallyDataLineWithAddedContent([weekendTally]).totalPeople}`;
-      else {
-        if (weekendTally)
-          line += `${processAndFormatTallyDataLineWithAddedContent([weekendTally]).totalPeople}`;
-        firstContentAdded = true;
+    for (const tally of weekendTallys) {
+      if (dateFormatter.format(tally?.startDate) === initialWeekendDay) {
+        weekendDay1Tallys.push(tally);
+      } else {
+        weekendDay2Tallys.push(tally);
+      }
+    }
+    let line: string = "";
+    const tallysMatrix = [
+      weekday1Tallys,
+      weekday2Tallys,
+      weekendDay1Tallys,
+      weekendDay2Tallys,
+    ];
+    let firstCollumnAdded = false;
+    for (const dayTallysArray of tallysMatrix) {
+      let tallyIndex = 0;
+      let analysedTally = dayTallysArray[tallyIndex];
+      let tallyHours = analysedTally?.startDate.getHours();
+
+      if (tallyHours === 7 || tallyHours === 8 || tallyHours === 9) {
+        if (analysedTally) {
+          if (!firstCollumnAdded) {
+            line += `${processAndFormatTallyDataLineWithAddedContent([analysedTally]).totalPeople}`;
+            firstCollumnAdded = true;
+          } else
+            line += `,${processAndFormatTallyDataLineWithAddedContent([analysedTally]).totalPeople}`;
+        }
+
+        tallyIndex++;
+        analysedTally = dayTallysArray[tallyIndex];
+        tallyHours = analysedTally?.startDate.getHours();
+      } else {
+        if (!firstCollumnAdded) {
+          line += "";
+          firstCollumnAdded = true;
+        } else {
+          line += ",";
+        }
+      }
+      if (
+        tallyHours === 10 ||
+        tallyHours === 11 ||
+        tallyHours === 12 ||
+        tallyHours === 13
+      ) {
+        if (analysedTally)
+          line += `,${processAndFormatTallyDataLineWithAddedContent([analysedTally]).totalPeople}`;
+        tallyIndex++;
+        analysedTally = dayTallysArray[tallyIndex];
+        tallyHours = analysedTally?.startDate.getHours();
+      } else {
+        line += ",";
+      }
+      if (
+        tallyHours === 13 ||
+        tallyHours === 14 ||
+        tallyHours === 15 ||
+        tallyHours === 16
+      ) {
+        if (analysedTally)
+          line += `,${processAndFormatTallyDataLineWithAddedContent([analysedTally]).totalPeople}`;
+        tallyIndex++;
+        analysedTally = dayTallysArray[tallyIndex];
+        tallyHours = analysedTally?.startDate.getHours();
+      } else {
+        line += ",";
+      }
+      if (
+        tallyHours === 17 ||
+        tallyHours === 18 ||
+        tallyHours === 19 ||
+        tallyHours === 20
+      ) {
+        if (analysedTally)
+          line += `,${processAndFormatTallyDataLineWithAddedContent([analysedTally]).totalPeople}`;
+      } else {
+        line += ",";
       }
     }
     block4Array.push(line);

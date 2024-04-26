@@ -784,7 +784,7 @@ model Tally {
 
   // não é meio redundante armazenar a data separada?
   tallyGroup Int       @map("tally_group")
-  startDate  DateTime? @db.Timestamptz(0)
+  startDate  DateTime  @db.Timestamptz(0)
   endDate    DateTime? @db.Timestamptz(0)
   observer   String    @db.VarChar(255)
 

@@ -397,7 +397,7 @@ export type {
 //  ------------------------------------------------------------------------------------------------------------
 
 const tallySchema = z.object({
-  startDate: z.coerce.date().optional(),
+  startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
   observer: z.coerce
     .string()
