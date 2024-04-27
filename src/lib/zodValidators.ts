@@ -5,7 +5,7 @@ import {
   CategoryTypes,
   Gender,
   LocationTypes,
-  NoiseLocation,
+  NoiseTypes,
   UserTypes,
   WeatherConditions,
 } from "@prisma/client";
@@ -157,7 +157,9 @@ const personSchema = z.object({
 });
 
 const noiseSchema = z.object({
-  location: z.nativeEnum(NoiseLocation),
+  date: z.coerce.date(),
+  noiseType: z.nativeEnum(NoiseTypes),
+  description: z.string().trim().optional(),
   soundLevel: z.coerce.number().finite().nonnegative(),
 
   assessmentId: z.coerce.number().int().finite().nonnegative(),

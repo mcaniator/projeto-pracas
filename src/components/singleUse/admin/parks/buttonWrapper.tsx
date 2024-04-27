@@ -192,7 +192,12 @@ const ButtonWrapper = () => {
           type="submit"
           onClick={() =>
             void createNoiseMeasurement(
-              { assessmentId: 1, location: "CENTER", soundLevel: 70.5 },
+              {
+                assessmentId: 1,
+                date: new Date("2024-03-25"),
+                noiseType: "HUMAN",
+                soundLevel: 70.5,
+              },
               { x: 266, y: 1530 },
             )
           }

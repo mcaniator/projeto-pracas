@@ -209,11 +209,12 @@ enum Gender {
   @@map("gender")
 }
 
-enum NoiseLocation {
-  CENTER       @map("center")
-  SURROUNDINGS @map("surroundings")
-
-  @@map("noise_categories")
+enum NoiseTypes {
+  TRAFFIC_OR_MACHINES @map("traffic_or_Machines")
+  HUMAN               @map("human")
+  BIOPHONY            @map("biophony")
+  GEOPHONY            @map("geophony")
+  OTHERS              @map("others")
 }
 
 enum Morphology {
@@ -648,15 +649,17 @@ model Person {
 model Noise {
   id Int @id @default(autoincrement())
 
-  location   NoiseLocation
-  soundLevel Float                                 @map("sound_level")
-  point      Unsupported("Geometry(Point, 4326)")?
+  date        DateTime
+  noiseType   NoiseTypes                            @map("noise_type")
+  description String?                               @db.VarChar(255)
+  soundLevel  Float                                 @map("sound_level")
+  point       Unsupported("Geometry(Point, 4326)")?
 
   assessmentId Int        @map("assessment_id")
   assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@index([point], name: "location_idx", type: Gist)
   @@map("noise")
