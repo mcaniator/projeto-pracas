@@ -8,6 +8,9 @@ import {
 } from "@/lib/zodValidators";
 import { z } from "zod";
 
+interface StreetsJsonType {
+  [key: string]: string;
+}
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
@@ -20,20 +23,17 @@ const locationCategoriesMap = new Map([
   ],
 ]);
 const LocationTypesMap = new Map([
-  ["CENTRAL_AND_LARGE_FLOWERBEDS", "Cantos de flores"],
-  ["COURT_EDGE", "Borda de quadra"],
-  ["GARDEN", "Jardim"],
+  ["MICRO_SQUARE", "Micro Praça (menor 500m²)"],
   ["SQUARE", "Praça"],
+  ["SPORTS_SQUARE ", "Praça de Esportes"],
   ["OVERLOOK", "Mirante"],
+  ["COURTYARD", "Pátio"],
+  ["GARDEN", "Jardim"],
+  ["CHURCHYARD", "Ardo/Largo de Igreja"],
   ["PARK", "Parque"],
-  ["FENCED_PARK", "Parque cercado"],
-  ["UNOCCUPIED_PLOT", "Lote desocupado"],
-  [
-    "REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION",
-    "Restos de construção de ruas e divisão de terrenos",
-  ],
-  ["ROUNDABOUTS", "Rotatórias"],
-  ["INTERCHANGE", "Interconexão"],
+  ["BOTANICAL_GARDEN", "Jardim Botânico"],
+  ["FOREST_GARDEN", "Horto Florestal"],
+  ["AMATEUR_SOCCER_FIELDS", "Campos de futebol de várzea"],
 ]);
 const brazilianStatesMap = new Map([
   ["ACRE", "Acre"],
@@ -235,13 +235,10 @@ const exportFullSpreadsheetToCSV = async (
       switch (criteria) {
         case "name":
           return a.name.localeCompare(b.name);
-          break;
         case "id":
           return a.id - b.id;
-          break;
         case "date":
           return a.createdAt.getTime() - b.createdAt.getTime();
-          break;
         default:
           return 0;
       }
@@ -269,9 +266,6 @@ const exportFullSpreadsheetToCSV = async (
   });
   block1CSVString += locations
     .map((location) => {
-      interface StreetsJsonType {
-        [key: string]: string;
-      }
       let evaluated = "N";
       if (location.assessments.length > 0) {
         evaluated = "S";
@@ -338,17 +332,14 @@ const exportFullSpreadsheetToCSV = async (
           }
         })
         .join(" / ");
-      if (observersArray.length === 1)
-        observers = observers.trim().replace(/\/\s*$/, "");
+
+      observers = observers.trim().replace(/\/\s*$/, "");
 
       let startDateTime;
       let date;
       let duration;
 
-      if (
-        location.assessments[0]?.endDate &&
-        location.assessments[0].startDate
-      ) {
+      if (location.assessments[0]?.endDate) {
         startDateTime = hourFormatter.format(location.assessments[0].startDate);
         date = dateFormatter.format(location.assessments[0].startDate);
         const durationTimestampMs =
@@ -453,7 +444,6 @@ const exportFullSpreadsheetToCSV = async (
     const linesArray: string[] = ["", "", ""]; //Adds header lines
     if (classification.childs.length === 0 && !classification.parent) {
       //Here classifications without subclassifications are processed
-      //block3Array.push(["", "", ""]); //Adds header lines for this classification
       if (classification.questions) {
         for (const location of locations) {
           for (const assessment of location.assessments) {
@@ -639,48 +629,37 @@ const exportFullSpreadsheetToCSV = async (
   });
   for (const location of locations) {
     const tallys = location.tallys;
-    const weekTallys = [tallys[0]];
-    const weekendTallys = [tallys[0]];
-    weekTallys.pop();
-    weekendTallys.pop();
+    const weekTallys: tallyDataToProcessType[] = [];
+    const weekendTallys: tallyDataToProcessType[] = [];
     for (const tally of tallys) {
       if (
-        tally.startDate &&
-        (dayFormatter.format(tally.startDate) == "sáb." ||
-          dayFormatter.format(tally.startDate) == "dom.")
+        dayFormatter.format(tally.startDate) == "sáb." ||
+        dayFormatter.format(tally.startDate) == "dom."
       )
         weekendTallys.push(tally);
       else weekTallys.push(tally);
     }
     weekTallys.sort((a, b) => {
-      if (a?.startDate && b?.startDate) {
-        return a.startDate.getTime() - b.startDate.getTime();
-      } else return 0;
+      return a.startDate.getTime() - b.startDate.getTime();
     });
     weekendTallys.sort((a, b) => {
-      if (a?.startDate && b?.startDate) {
-        return a.startDate.getTime() - b.startDate.getTime();
-      } else return 0;
+      return a.startDate.getTime() - b.startDate.getTime();
     });
     const initialWeekDay = dateFormatter.format(weekTallys[0]?.startDate);
     const initialWeekendDay = dateFormatter.format(weekendTallys[0]?.startDate);
-    const weekday1Tallys = [tallys[0]];
-    const weekday2Tallys = [tallys[0]];
-    const weekendDay1Tallys = [tallys[0]];
-    const weekendDay2Tallys = [tallys[0]];
-    weekday1Tallys.pop();
-    weekday2Tallys.pop();
-    weekendDay1Tallys.pop();
-    weekendDay2Tallys.pop();
+    const weekday1Tallys: tallyDataToProcessType[] = [];
+    const weekday2Tallys: tallyDataToProcessType[] = [];
+    const weekendDay1Tallys: tallyDataToProcessType[] = [];
+    const weekendDay2Tallys: tallyDataToProcessType[] = [];
     for (const tally of weekTallys) {
-      if (dateFormatter.format(tally?.startDate) === initialWeekDay) {
+      if (dateFormatter.format(tally.startDate) === initialWeekDay) {
         weekday1Tallys.push(tally);
       } else {
         weekday2Tallys.push(tally);
       }
     }
     for (const tally of weekendTallys) {
-      if (dateFormatter.format(tally?.startDate) === initialWeekendDay) {
+      if (dateFormatter.format(tally.startDate) === initialWeekendDay) {
         weekendDay1Tallys.push(tally);
       } else {
         weekendDay2Tallys.push(tally);
@@ -885,13 +864,10 @@ const exportDailyTally = async (
       switch (criteria) {
         case "name":
           return a.name.localeCompare(b.name);
-          break;
         case "id":
           return a.id - b.id;
-          break;
         case "date":
           return a.createdAt.getTime() - b.createdAt.getTime();
-          break;
         default:
           return 0;
       }
@@ -915,8 +891,8 @@ const exportDailyTally = async (
           }
         })
         .join(" / ");
-      if (observersArray.length === 1)
-        observers = observers.trim().replace(/\/\s*$/, "");
+
+      observers = observers.trim().replace(/\/\s*$/, "");
       let fourTallys = 0;
       if (location.tallys.length == 4) fourTallys = 1;
       const dataLine = processAndFormatTallyDataLineWithAddedContent(
@@ -1092,15 +1068,10 @@ const createTallyStringWithoutAddedData = (
       switch (criteria) {
         case "name":
           return a.location.name.localeCompare(b.location.name);
-          break;
         case "id":
           return a.locationId - b.locationId;
-          break;
         case "date":
-          if (a.startDate && b.startDate)
-            return a.startDate.getTime() - b.startDate.getTime();
-          else return 0;
-          break;
+          return a.startDate.getTime() - b.startDate.getTime();
         default:
           return 0;
       }
@@ -1132,7 +1103,7 @@ const createTallyStringWithoutAddedData = (
         year: "numeric",
         weekday: "short",
       });
-      if (tally.endDate && tally.startDate) {
+      if (tally.endDate) {
         startDateTime = hourFormatter.format(tally.startDate);
         date = dateFormatter.format(tally.startDate);
         const durationTimestampMs =
@@ -1258,7 +1229,7 @@ const createTallyStringWithoutAddedData = (
           weatherConditionMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId};${tally.location.name};${tally.observer};${date};${startDateTime};${duration};${tally.temperature};${weatherCondition};` +
+        `${tally.locationId},${tally.location.name},${tally.observer},${date},${startDateTime},${duration},${tally.temperature},${weatherCondition},` +
         tallyString
       );
     })
