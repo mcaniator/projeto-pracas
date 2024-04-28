@@ -30,6 +30,12 @@ const Client = ({
     }
   };
 
+  const cancelAddQuestion = (questionId: number) => {
+    setQuestionsToAdd((prevQuestionsToAdd) =>
+      prevQuestionsToAdd.filter((q) => q.id !== questionId),
+    );
+  };
+
   const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
     void addQuestions(formId, questions);
     setQuestionsToAdd([]);
@@ -43,6 +49,7 @@ const Client = ({
             form={form}
             questions={questions}
             questionsToAdd={questionsToAdd}
+            cancelAddQuestion={cancelAddQuestion}
           />
         </div>
         <div className="col-span-2">

@@ -17,10 +17,12 @@ const FormUpdater = ({
   form,
   questions,
   questionsToAdd,
+  cancelAddQuestion,
 }: {
   form: Form;
   questions: Question[] | null;
   questionsToAdd: DisplayQuestion[];
+  cancelAddQuestion: (questionId: number) => void;
 }) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -110,7 +112,10 @@ const FormUpdater = ({
                     className="flex w-full flex-row items-center justify-between"
                   >
                     <span className="p-2">{question.name}</span>
-                    <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <Button
+                      className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                      onClick={() => cancelAddQuestion(question.id)}
+                    >
                       Cancelar
                     </Button>
                   </li>
