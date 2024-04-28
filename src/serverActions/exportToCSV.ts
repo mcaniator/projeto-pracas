@@ -321,19 +321,11 @@ const exportFullSpreadsheetToCSV = async (
       if (location.category) {
         locationCategory = location.category;
       }
-      let observers = "";
-      const observersArray: string[] = [];
 
-      observers = location.tallys
-        .map((tally) => {
-          if (!observersArray.includes(tally.observer)) {
-            observersArray.push(tally.observer);
-            return tally.observer;
-          }
-        })
+      const observers = location.tallys
+        .map((tally) => tally.observer) // Mapeie apenas os observadores
+        .filter((observer, index, self) => self.indexOf(observer) === index) // Remova observadores duplicados
         .join(" / ");
-
-      observers = observers.trim().replace(/\/\s*$/, "");
 
       let startDateTime;
       let date;
@@ -882,17 +874,11 @@ const exportDailyTally = async (
     "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
   CSVstring += locations
     .map((location) => {
-      const observersArray: string[] = [];
-      let observers = location.tallys
-        .map((tally) => {
-          if (!observersArray.includes(tally.observer)) {
-            observersArray.push(tally.observer);
-            return tally.observer;
-          }
-        })
+      const observers = location.tallys
+        .map((tally) => tally.observer) // Mapeie apenas os observadores
+        .filter((observer, index, self) => self.indexOf(observer) === index) // Remova observadores duplicados
         .join(" / ");
 
-      observers = observers.trim().replace(/\/\s*$/, "");
       let fourTallys = 0;
       if (location.tallys.length == 4) fourTallys = 1;
       const dataLine = processAndFormatTallyDataLineWithAddedContent(
@@ -1087,9 +1073,6 @@ const createTallyStringWithoutAddedData = (
 
   CSVstring += tallys
     .map((tally) => {
-      let startDateTime;
-      let date;
-      let duration;
       const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
         timeZone: "America/Sao_Paulo",
         hour12: false,
@@ -1103,9 +1086,10 @@ const createTallyStringWithoutAddedData = (
         year: "numeric",
         weekday: "short",
       });
+      const startDateTime = hourFormatter.format(tally.startDate);
+      const date = dateFormatter.format(tally.startDate);
+      let duration = "Horário do fim da contagem não definido";
       if (tally.endDate) {
-        startDateTime = hourFormatter.format(tally.startDate);
-        date = dateFormatter.format(tally.startDate);
         const durationTimestampMs =
           tally.endDate.getTime() - tally.startDate.getTime();
         const durationHrs = Math.floor(durationTimestampMs / (1000 * 60 * 60));
