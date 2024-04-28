@@ -99,7 +99,6 @@ const createLocation = async (
       },
     });
     if (polygonContent) {
-      //polygonContent = "MULTIPOLYGON" + polygonContent;
       await prisma.$executeRaw`UPDATE location
     SET polygon = ST_GeomFromText(${polygonContent},4326)
     WHERE id = ${locationCreated.id}`;

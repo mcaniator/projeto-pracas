@@ -24,7 +24,7 @@ const ButtonWrapper = () => {
   const content = {
     name: "nome da praca",
     type: "PARK" as const,
-    category: "OPEN_SPACE_FOR_NON_COLLECTIVE_USE" as const,
+    category: "OPEN_SPACE_FOR_COLLECTIVE_USE" as const,
     narrowAdministrativeUnit: "del1",
     intermediateAdministrativeUnit: "del2",
     broadAdministrativeUnit: "del4",
@@ -193,7 +193,7 @@ const ButtonWrapper = () => {
           onClick={() =>
             void createNoiseMeasurement(
               {
-                assessmentId: 1,
+                assessmentId: 2,
                 date: new Date("2024-03-25"),
                 noiseType: "HUMAN",
                 soundLevel: 70.5,

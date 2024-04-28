@@ -9,7 +9,12 @@ const createNoiseMeasurement = async (
 ) => {
   try {
     const createdNoise = await prisma.noise.create({
-      data: content,
+      data: {
+        date: content.date,
+        noiseType: content.noiseType,
+        soundLevel: content.soundLevel,
+        assessment: { connect: { id: content.assessmentId } },
+      },
     });
     await prisma.$executeRaw`UPDATE noise
     SET point = point(${point.x},${point.y})
