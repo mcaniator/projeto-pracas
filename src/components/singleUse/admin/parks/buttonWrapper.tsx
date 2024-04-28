@@ -141,10 +141,10 @@ const ButtonWrapper = () => {
           onClick={() =>
             void createTally({
               locationId: 2,
-              observer: "Guilherme",
-              startDate: new Date("2024-04-26T11:07:00-03:00"),
+              observer: "Guilherme Pimenta",
+              startDate: new Date("2024-04-23T18:07:00-03:00"),
               weatherCondition: "SUNNY",
-              animalsAmount: 99,
+              animalsAmount: 80,
               temperature: 19.4,
               tallyGroup: 2,
             })

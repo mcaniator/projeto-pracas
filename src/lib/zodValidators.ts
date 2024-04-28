@@ -142,6 +142,13 @@ const tallySchema = z.object({
   temperature: z.coerce.number().finite().optional(),
   weatherCondition: z.nativeEnum(WeatherConditions).optional(),
   groups: z.coerce.number().finite().optional(),
+  commercialActivities: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .optional(),
+  commercialActivitiesDescription: z.coerce.string().trim().optional(),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });

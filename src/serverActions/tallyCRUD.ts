@@ -6,7 +6,22 @@ import { personType, tallyType } from "@/lib/zodValidators";
 const createTally = async (content: tallyType) => {
   try {
     await prisma.tally.create({
-      data: content,
+      data: {
+        startDate: content.startDate,
+        endDate: content.endDate,
+        observer: content.observer,
+        tallyGroup: content.tallyGroup,
+        animalsAmount: content.animalsAmount,
+        temperature: content.temperature,
+        weatherCondition: content.weatherCondition,
+        groups: content.groups,
+        commercialActivities: content.commercialActivities,
+        commercialActivitiesDescription:
+          content.commercialActivitiesDescription,
+        location: {
+          connect: { id: content.locationId },
+        },
+      },
     });
   } catch (error) {
     return {

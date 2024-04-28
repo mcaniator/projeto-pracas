@@ -932,7 +932,7 @@ const processAndFormatTallyDataLineWithAddedContent = (
     tallyMap.set(`%${activity}`, "0.00%");
   }
   tallyMap.set("isPersonWithImpairment", 0);
-  tallyMap.set("Groups", 0); //?? o que é isso?
+  tallyMap.set("Groups", 0);
   tallyMap.set("Pets", 0);
   tallyMap.set("isTraversing", 0);
   tallyMap.set("commercialActivities", 0);
@@ -1138,7 +1138,7 @@ const createTallyStringWithoutAddedData = (
           tallyMap.set(`%${activity}`, "0.00%");
         }
         tallyMap.set("isPersonWithImpairment", 0);
-        tallyMap.set("Groups", tally.groups); //?? o que é isso?
+        tallyMap.set("Groups", tally.groups);
         tallyMap.set("Pets", tally.animalsAmount);
         tallyMap.set("isTraversing", 0);
         tallyMap.set("Itinerant commercial activities", 0);
