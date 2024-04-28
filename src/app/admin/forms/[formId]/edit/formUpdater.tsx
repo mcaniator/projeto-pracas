@@ -18,11 +18,15 @@ const FormUpdater = ({
   questions,
   questionsToAdd,
   cancelAddQuestion,
+  questionsToRemove,
+  handleQuestionsToRemove,
 }: {
   form: Form;
   questions: Question[] | null;
   questionsToAdd: DisplayQuestion[];
   cancelAddQuestion: (questionId: number) => void;
+  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToRemove: (questionId: number) => void;
 }) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -84,24 +88,43 @@ const FormUpdater = ({
             </div>
           </form>
           <div>Perguntas nesse formulário:</div>
-          {questions !== null && questions !== undefined ?
-            <ul className=" list-disc p-5">
-              {questions.map((question) => (
-                <li
-                  key={question.id}
-                  className="flex w-full flex-row items-center  justify-between "
-                >
-                  <span className="p-2">{question.name}</span>
-                  <Button className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
-                    Remover
-                  </Button>
-                </li>
-              ))}
+          {(
+            questions !== null &&
+            questions !== undefined &&
+            questions.length > 0
+          ) ?
+            <ul className="list-disc p-5">
+              {questions.map((question) => {
+                // Verifica se o ID da pergunta está presente no array questionsToRemove
+                const isInToRemove = questionsToRemove.some(
+                  (q) => q.id === question.id,
+                );
+                if (!isInToRemove) {
+                  return (
+                    <li
+                      key={question.id}
+                      className="flex w-full flex-row items-center justify-between"
+                    >
+                      <span className="p-2">{question.name}</span>
+                      <Button
+                        className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                        onClick={() =>
+                          void handleQuestionsToRemove(question.id)
+                        }
+                      >
+                        Remover
+                      </Button>
+                    </li>
+                  );
+                }
+                return null; // Não renderiza a pergunta se estiver no questionsToRemove
+              })}
             </ul>
           : <div className="text-redwood">
               Ainda não há perguntas no formulário
             </div>
           }
+
           {questionsToAdd.length > 0 && (
             <div>
               <div>Perguntas que serão adicionadas:</div>

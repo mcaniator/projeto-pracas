@@ -2,7 +2,7 @@
 
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { Button } from "@/components/ui/button";
-import { addQuestions } from "@/serverActions/formUtil";
+import { addQuestions, removeQuestions } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
 
@@ -18,7 +18,7 @@ const Client = ({
   questions,
 }: {
   form?: Form | null;
-  questions: Question[] | null;
+  questions: Question[];
 }) => {
   const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
 
@@ -41,6 +41,33 @@ const Client = ({
     setQuestionsToAdd([]);
   };
 
+  const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
+    [],
+  );
+
+  const handleQuestionsToRemove = (questionId: number) => {
+    const questionToRemove = questions.find((q) => q.id === questionId);
+    if (questionToRemove) {
+      setQuestionsToRemove([...questionsToRemove, questionToRemove]);
+    }
+  };
+
+  const handleRemoveQuestions = (
+    formId: number,
+    questions: DisplayQuestion[],
+  ) => {
+    void removeQuestions(formId, questions);
+    setQuestionsToRemove([]);
+  };
+
+  const createNewVersion = (
+    formId: number,
+    questionsToAdd: DisplayQuestion[],
+    questionsToRemove: DisplayQuestion[],
+  ) => {
+    handleAddQuestion(formId, questionsToAdd);
+    handleRemoveQuestions(formId, questionsToRemove);
+  };
   return form == null ?
       <div>Formulário não encontrado</div>
     : <div className="grid grid-cols-5 gap-4">
@@ -50,6 +77,8 @@ const Client = ({
             questions={questions}
             questionsToAdd={questionsToAdd}
             cancelAddQuestion={cancelAddQuestion}
+            questionsToRemove={questionsToRemove}
+            handleQuestionsToRemove={handleQuestionsToRemove}
           />
         </div>
         <div className="col-span-2">
@@ -60,10 +89,12 @@ const Client = ({
           />
         </div>
         <div className="col-span-4 flex justify-center">
-          {questionsToAdd.length > 0 && (
+          {(questionsToAdd.length > 0 || questionsToRemove.length > 0) && (
             <Button
               variant={"admin"}
-              onClick={() => handleAddQuestion(form.id, questionsToAdd)}
+              onClick={() =>
+                createNewVersion(form.id, questionsToAdd, questionsToRemove)
+              }
             >
               Criar nova versão
             </Button>

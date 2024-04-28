@@ -148,6 +148,29 @@ const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {
   };
 };
 
+const removeQuestions = async (
+  formId: number,
+  questionIds: DisplayQuestion[],
+) => {
+  const questionsIds = questionIds.map((question) => question.id);
+  try {
+    await prisma.questionsOnForms.deleteMany({
+      where: {
+        formId: formId,
+        questionId: { in: questionsIds },
+      },
+    });
+  } catch (err) {
+    // console.log(err);
+    return { statusCode: 2 };
+  }
+
+  revalidateTag("questionOnForm");
+  return {
+    statusCode: 0,
+  };
+};
+
 export {
   fetchForms,
   handleDelete,
@@ -155,4 +178,5 @@ export {
   updateForm,
   addQuestion,
   addQuestions,
+  removeQuestions,
 };
