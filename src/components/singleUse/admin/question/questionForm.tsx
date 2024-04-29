@@ -4,15 +4,17 @@ import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { searchQuestionsByStatement } from "@/serverActions/questionUtil";
-import { Form } from "@prisma/client";
+import { Form, Question } from "@prisma/client";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
 const QuestionForm = ({
   formId,
+  initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
 }: {
   formId?: number;
+  initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   questionsToAdd: DisplayQuestion[];
 }) => {
@@ -51,6 +53,7 @@ const QuestionForm = ({
             <QuestionList
               questionPromise={deferredFoundQuestions}
               formId={formId}
+              initialQuestions={initialQuestions}
               handleQuestionsToAdd={handleQuestionsToAdd}
               questionsToAdd={questionsToAdd}
             />
@@ -64,11 +67,13 @@ const QuestionForm = ({
 const QuestionList = ({
   questionPromise,
   formId,
+  initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
 }: {
   questionPromise?: Promise<Form[]>;
   formId?: number;
+  initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   questionsToAdd: DisplayQuestion[];
 }) => {
@@ -76,22 +81,31 @@ const QuestionList = ({
   if (questionPromise === undefined) return null;
   const questions = use(questionPromise);
 
-  return questions === undefined || questions.length === 0 ?
-      null
-    : <div className="w-full text-black">
-        {questions.length > 0 &&
-          questions.map((question) =>
-            !questionsToAdd.some((q) => q.id === question.id) ?
-              <QuestionComponent
-                key={question.id}
-                questionId={question.id}
-                name={question.name}
-                formId={formId}
-                handleQuestionsToAdd={handleQuestionsToAdd}
-              />
-            : null,
-          )}
-      </div>;
+  return (
+    <div className="w-full text-black">
+      {questions.map((question) => {
+        const isQuestionInInitial = initialQuestions?.some(
+          (q) => q.id === question.id,
+        );
+        const isQuestionAdded = questionsToAdd.some(
+          (q) => q.id === question.id,
+        );
+
+        if (!isQuestionInInitial && !isQuestionAdded) {
+          return (
+            <QuestionComponent
+              key={question.id}
+              questionId={question.id}
+              name={question.name}
+              formId={formId}
+              handleQuestionsToAdd={handleQuestionsToAdd}
+            />
+          );
+        }
+        return null;
+      })}
+    </div>
+  );
 };
 
 const QuestionComponent = ({

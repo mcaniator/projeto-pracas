@@ -84,6 +84,7 @@ const Client = ({
         <div className="col-span-2">
           <QuestionForm
             formId={form.id}
+            initialQuestions={questions}
             handleQuestionsToAdd={handleQuestionsToAdd}
             questionsToAdd={questionsToAdd}
           />
