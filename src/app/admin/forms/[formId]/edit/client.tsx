@@ -87,6 +87,7 @@ const Client = ({
             initialQuestions={questions}
             handleQuestionsToAdd={handleQuestionsToAdd}
             questionsToAdd={questionsToAdd}
+            questionsToRemove={questionsToRemove}
           />
         </div>
         <div className="col-span-4 flex justify-center">

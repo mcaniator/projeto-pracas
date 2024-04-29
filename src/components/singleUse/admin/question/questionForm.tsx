@@ -12,11 +12,13 @@ const QuestionForm = ({
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
+  questionsToRemove,
 }: {
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
 }) => {
   const [targetQuestion, setTargetQuestion] = useState("");
 
@@ -56,6 +58,7 @@ const QuestionForm = ({
               initialQuestions={initialQuestions}
               handleQuestionsToAdd={handleQuestionsToAdd}
               questionsToAdd={questionsToAdd}
+              questionsToRemove={questionsToRemove}
             />
           </Suspense>
         </div>
@@ -70,40 +73,47 @@ const QuestionList = ({
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
+  questionsToRemove,
 }: {
   questionPromise?: Promise<Form[]>;
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
 }) => {
-  useEffect(() => {}, [questionsToAdd.length]);
+  useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
   if (questionPromise === undefined) return null;
   const questions = use(questionPromise);
 
+  // Atualiza questionsToRemove ao adicionar uma pergunta
+  const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
+    questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
+  );
+
+  const filteredQuestions = questions.filter((question) => {
+    const isQuestionInInitial = initialQuestions?.some(
+      (q) => q.id === question.id,
+    );
+    const isQuestionAdded = questionsToAdd.some((q) => q.id === question.id);
+    const isQuestionToRemove = updatedQuestionsToRemove.some(
+      (q) => q.id === question.id,
+    );
+
+    return (!isQuestionInInitial && !isQuestionAdded) || isQuestionToRemove;
+  });
+
   return (
     <div className="w-full text-black">
-      {questions.map((question) => {
-        const isQuestionInInitial = initialQuestions?.some(
-          (q) => q.id === question.id,
-        );
-        const isQuestionAdded = questionsToAdd.some(
-          (q) => q.id === question.id,
-        );
-
-        if (!isQuestionInInitial && !isQuestionAdded) {
-          return (
-            <QuestionComponent
-              key={question.id}
-              questionId={question.id}
-              name={question.name}
-              formId={formId}
-              handleQuestionsToAdd={handleQuestionsToAdd}
-            />
-          );
-        }
-        return null;
-      })}
+      {filteredQuestions.map((question) => (
+        <QuestionComponent
+          key={question.id}
+          questionId={question.id}
+          name={question.name}
+          formId={formId}
+          handleQuestionsToAdd={handleQuestionsToAdd}
+        />
+      ))}
     </div>
   );
 };
