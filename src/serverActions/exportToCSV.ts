@@ -124,6 +124,7 @@ const exportFullSpreadsheetToCSV = async (
             in: assessmentsIds,
           },
         },
+        take: 1,
         select: {
           id: true,
           startDate: true,
@@ -438,62 +439,70 @@ const exportFullSpreadsheetToCSV = async (
       //Here classifications without subclassifications are processed
       if (classification.questions) {
         for (const location of locations) {
-          for (const assessment of location.assessments) {
-            if (assessment.form && assessment.form.classifications) {
-              linesArray.push(""); //Adds an answers line for this assessment, even if the classification hasn't been found yet
-              if (!classificationsAdded.includes(classification.id)) {
-                //Here the header will be created (if this classification is found)
-                for (const formClassification of assessment.form
-                  .classifications) {
-                  if (formClassification.id === classification.id) {
-                    classificationsAdded.push(classification.id);
-                    let addedFirstQuestion = false;
-                    linesArray[0] = `,${classification.name}`; //Adds classification name to the header
-                    linesArray[1] = `,`; //Adds a comma to the subclassification line (this classification doesn't have a classification)
-                    for (const question of classification.questions) {
-                      if (addedFirstQuestion) linesArray[0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
-                      if (addedFirstQuestion) linesArray[1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
-                      linesArray[2] += `,${question.name}`; //Adds question name to the header
-                      addedFirstQuestion = true;
-                    }
-                    break;
+          const assessment = location.assessments[0];
+          linesArray.push(""); //Adds an answers line for this location, even if the classification hasn't been found yet, or even there isn't an assessment in this location
+          let classificationAddedPreviouslyFound = false;
+          if (assessment && assessment.form.classifications) {
+            if (!classificationsAdded.includes(classification.id)) {
+              //Here the header will be created (if this classification is found)
+              for (const formClassification of assessment.form
+                .classifications) {
+                if (formClassification.id === classification.id) {
+                  classificationsAdded.push(classification.id);
+                  let addedFirstQuestion = false;
+                  linesArray[0] = `,${classification.name}`; //Adds classification name to the header
+                  linesArray[1] = `,`; //Adds a comma to the subclassification line (this classification doesn't have a classification)
+                  for (const question of classification.questions) {
+                    if (addedFirstQuestion) linesArray[0] += ","; //Adds commas to make the classification line have the same ammount of collums as it's answers
+                    if (addedFirstQuestion) linesArray[1] += ","; //Adds commas to make the subclassification line have the same ammount of collums as it's answers
+                    linesArray[2] += `,${question.name}`; //Adds question name to the header
+                    addedFirstQuestion = true;
                   }
+                  break;
                 }
-              }
-
-              if (classificationsAdded.includes(classification.id)) {
-                //Will only enter this block if this classification has already been found within assessments
-                let classificationAddedPreviouslyFound = false;
-                for (const formClassification of assessment.form
-                  .classifications) {
-                  if (formClassification.id === classification.id) {
-                    classificationAddedPreviouslyFound = true;
-                    for (const question of formClassification.questions) {
-                      let answerFound = false;
-                      for (const answer of question.answers) {
-                        if (answer.assessmentId === assessment.id) {
-                          linesArray[linesArray.length - 1] +=
-                            `,${answer.content}`; //Adds answer content to the last line of the current classification array
-                          answerFound = true;
-                        }
-                      }
-                      if (!answerFound)
-                        linesArray[linesArray.length - 1] += `,`; //Adds an empty collumn if the answer wasn't found
-                    }
-                  }
-                }
-                if (!classificationAddedPreviouslyFound) {
-                  for (let i = 0; i < classification.questions.length; i++) {
-                    linesArray[linesArray.length - 1] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
-                  }
-                }
-              } else {
-                linesWithoutAnswers.push(lineIndex); //If the classification hasn't been found yet, this line's index is stored to add commas to it in case the classification is found
               }
             }
 
-            lineIndex++;
+            if (classificationsAdded.includes(classification.id)) {
+              //Will only enter this block if this classification has already been found within assessments
+
+              for (const formClassification of assessment.form
+                .classifications) {
+                if (formClassification.id === classification.id) {
+                  classificationAddedPreviouslyFound = true;
+                  for (const question of formClassification.questions) {
+                    let answerFound = false;
+                    for (const answer of question.answers) {
+                      if (answer.assessmentId === assessment.id) {
+                        linesArray[linesArray.length - 1] +=
+                          `,${answer.content}`; //Adds answer content to the last line of the current classification array
+                        answerFound = true;
+                      }
+                    }
+                    if (!answerFound) linesArray[linesArray.length - 1] += `,`; //Adds an empty collumn if the answer wasn't found
+                  }
+                }
+              }
+              if (!classificationAddedPreviouslyFound) {
+                for (let i = 0; i < classification.questions.length; i++) {
+                  linesArray[linesArray.length - 1] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
+                }
+              }
+            } else {
+              linesWithoutAnswers.push(lineIndex); //If the classification hasn't been found yet, this line's index is stored to add commas to it in case the classification is found
+            }
           }
+          if (!assessment) {
+            if (!classificationsAdded.includes(classification.id)) {
+              linesWithoutAnswers.push(lineIndex); //If the classification hasn't been found yet, this line's index is stored to add commas to it in case the classification is found
+            }
+            if (!classificationAddedPreviouslyFound) {
+              for (let i = 0; i < classification.questions.length; i++) {
+                linesArray[linesArray.length - 1] += `,`; //If the classification was found previously, but it isn't present in this assessment, commas will be added to fill the answers collumns
+              }
+            }
+          }
+          lineIndex++;
         }
         if (classificationsAdded.includes(classification.id)) {
           //Here empty collumns will be added to assessments whitch were processed before the classification was found
@@ -732,7 +741,7 @@ const exportFullSpreadsheetToCSV = async (
     }
     block4Array.push(line);
   }
-
+  console.log(block3Array);
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];

@@ -563,10 +563,12 @@ model Assessment {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
   answers    Answer[]
+  a          Int?
 
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
+  @@unique([id, locationId], name: "id_locationId")
   @@map("Assessment")
 }
 
