@@ -505,7 +505,7 @@ const exportFullSpreadsheetToCSV = async (
           lineIndex++;
         }
         if (classificationsAdded.includes(classification.id)) {
-          //Here empty collumns will be added to assessments whitch were processed before the classification was found
+          //Here empty collumns will be added to assessments which were processed before the classification was found
           for (const line of linesWithoutAnswers) {
             for (let i = 0; i < classification.questions.length; i++) {
               linesArray[line] += ",";
@@ -514,20 +514,15 @@ const exportFullSpreadsheetToCSV = async (
         }
       }
     } else if (!classification.parent && classification.childs.length > 0) {
+      //Here classifications with subclassifications are processed
       const subclassificationsAdded: number[] = [];
       for (let i = 0; i < locations.length; i++) {
-        if (locations[i]) {
-          const location = locations[i];
-          if (location) {
-            for (let j = 0; j < location.assessments.length; j++) {
-              linesArray.push(""); //Adds space to each assessment's answers
-            }
-          }
-        }
+        linesArray.push(""); //Adds space to each assessment's answers
       }
       for (const location of locations) {
-        for (const assessment of location.assessments) {
-          if (assessment.form && assessment.form.classifications) {
+        const assessment = location.assessments[0];
+        if (assessment) {
+          if (assessment.form.classifications) {
             for (const formClassification of assessment.form.classifications) {
               if (
                 !classificationsAdded.includes(classification.id) &&
@@ -561,6 +556,7 @@ const exportFullSpreadsheetToCSV = async (
             let addedFirstQuestion = false;
             linesArray[1] += `;${child.name}`;
             for (const question of child.questions) {
+              //Questions are processed here
               //The header is created below
               if (!addedFirstQuestion) {
                 if (addSubclassificationComma) linesArray[0] += ",";
@@ -576,8 +572,9 @@ const exportFullSpreadsheetToCSV = async (
               //The answers are added below
               let lineIndex = 3;
               for (const location of locations) {
-                for (const assessment of location.assessments) {
-                  if (assessment.form && assessment.form.classifications) {
+                const assessment = location.assessments[0];
+                if (assessment) {
+                  if (assessment.form.classifications) {
                     let answerFound = false;
                     for (const formClassification of assessment.form
                       .classifications) {
@@ -607,12 +604,21 @@ const exportFullSpreadsheetToCSV = async (
                     if (!answerFound) {
                       linesArray[lineIndex] += `,`;
                     }
-                    lineIndex++;
                   }
+                } else {
+                  linesArray[lineIndex] += ",";
                 }
+                lineIndex++;
               }
             }
           }
+        }
+      }
+      for (let i = 0; i < locations.length; i++) {
+        const location = locations[i];
+        if (location && !(location.assessments.length > 0)) {
+          const line = linesArray[i + 3];
+          if (line) linesArray[i + 3] = line.slice(0, -1); //Removes extra comma added to the line of the assessments which don't have assessments
         }
       }
     }
@@ -741,7 +747,6 @@ const exportFullSpreadsheetToCSV = async (
     }
     block4Array.push(line);
   }
-  console.log(block3Array);
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
@@ -820,7 +825,7 @@ const exportDailyTally = async (
   tallysIds: number[],
   sortCriteriaOrder: SortOrderType,
 ) => {
-  //This function must revceive locations and it's tallys whitch were made in the same day (Currently 4 max).
+  //This function must revceive locations and it's tallys which were made in the same day (Currently 4 max).
   let locations = await prisma.location.findMany({
     where: {
       id: {
