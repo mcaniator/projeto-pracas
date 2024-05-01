@@ -468,7 +468,6 @@ const exportFullSpreadsheetToCSV = async (
   const classificationsAdded: number[] = [];
 
   const block3Array: string[][] = []; // -> [[LINE, LINE, ...],[LINE, LINE,...]] each array is an classification's content
-  let numberOfClassificationsWithSubclassification = 0;
   for (const classification of classifications) {
     const linesWithoutAnswers: number[] = [];
     let lineIndex = 3;
@@ -553,7 +552,6 @@ const exportFullSpreadsheetToCSV = async (
       }
     } else if (!classification.parent && classification.childs.length > 0) {
       //Here classifications with subclassifications are processed
-      numberOfClassificationsWithSubclassification++;
       const subclassificationsAdded: number[] = [];
       for (let i = 0; i < locations.length; i++) {
         linesArray.push(""); //Adds space to each assessment's answers
@@ -635,19 +633,6 @@ const exportFullSpreadsheetToCSV = async (
                 lineIndex++;
               }
             }
-          }
-        }
-      }
-      for (let i = 0; i < locations.length; i++) {
-        const location = locations[i];
-        if (location && !(location.assessments.length > 0)) {
-          for (
-            let j = 0;
-            j < numberOfClassificationsWithSubclassification;
-            j++
-          ) {
-            const line = linesArray[i + 3];
-            //if (line) linesArray[i + 3] = line.slice(0, -1); //Removes extra comma added to the line of the assessments which don't have assessments
           }
         }
       }
@@ -777,7 +762,6 @@ const exportFullSpreadsheetToCSV = async (
     }
     block4Array.push(line);
   }
-  console.log(block3Array);
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
