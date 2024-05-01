@@ -81,7 +81,11 @@ const createSubclassification = async (
   }
 };
 
-const createForm = async (name: string, classificationsIds: number[]) => {
+const createForm = async (
+  name: string,
+  classificationsIds: number[],
+  questionsIds: number[],
+) => {
   try {
     await prisma.form.create({
       data: {
@@ -89,6 +93,11 @@ const createForm = async (name: string, classificationsIds: number[]) => {
         classifications: {
           connect: classificationsIds.map((classificationId) => ({
             id: classificationId,
+          })),
+        },
+        questions: {
+          connect: questionsIds.map((questionId) => ({
+            id: questionId,
           })),
         },
       },

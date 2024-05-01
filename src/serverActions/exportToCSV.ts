@@ -96,21 +96,6 @@ const exportFullSpreadsheetToCSV = async (
   assessmentsIds: number[],
   sortCriteriaOrder: SortOrderType,
 ) => {
-  const classifications = await prisma.classification.findMany({
-    include: {
-      childs: {
-        include: {
-          questions: true,
-          answers: true,
-        },
-      },
-      parent: true,
-      questions: true,
-      answers: true,
-    },
-  });
-  classifications.sort((a, b) => a.id - b.id);
-
   let locations = await prisma.location.findMany({
     where: {
       id: {
@@ -131,6 +116,12 @@ const exportFullSpreadsheetToCSV = async (
           endDate: true,
           form: {
             select: {
+              questions: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
               classifications: {
                 select: {
                   id: true,
@@ -140,31 +131,6 @@ const exportFullSpreadsheetToCSV = async (
                     select: {
                       id: true,
                       name: true,
-                      questions: {
-                        select: {
-                          id: true,
-                          name: true,
-                          answers: {
-                            select: {
-                              id: true,
-                              content: true,
-                              assessmentId: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                  questions: {
-                    select: {
-                      id: true,
-                      name: true,
-                      answers: {
-                        select: {
-                          content: true,
-                          assessmentId: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -247,6 +213,78 @@ const exportFullSpreadsheetToCSV = async (
     return 0;
   });
 
+  const classificationsIdsToFetch: number[] = [];
+  const questionsIdsToFetch: number[] = [];
+  for (const location of locations) {
+    const assessment = location.assessments[0];
+    if (assessment) {
+      for (const classification of assessment.form.classifications) {
+        if (!classificationsIdsToFetch.includes(classification.id)) {
+          classificationsIdsToFetch.push(classification.id);
+        }
+      }
+      for (const question of assessment.form.questions) {
+        if (!questionsIdsToFetch.includes(question.id)) {
+          questionsIdsToFetch.push(question.id);
+        }
+      }
+    }
+  }
+
+  const classifications = await prisma.classification.findMany({
+    where: {
+      id: {
+        in: classificationsIdsToFetch,
+      },
+    },
+    include: {
+      childs: {
+        include: {
+          questions: {
+            where: {
+              id: {
+                in: questionsIdsToFetch,
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              answers: {
+                select: {
+                  assessmentId: true,
+                  content: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      parent: {
+        select: {
+          id: true,
+        },
+      },
+      questions: {
+        where: {
+          id: {
+            in: questionsIdsToFetch,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          answers: {
+            select: {
+              assessmentId: true,
+              content: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  classifications.sort((a, b) => a.id - b.id);
+
   let block1CSVString =
     "IDENTIFICAÇÃO PRAÇA,,,,,,,,IDENTIFICAÇÃO LEVANTAMENTO,,,,DADOS HISTÓRICOS,,,,DADOS ADMINISTRATIVOS,,,,ÁREA,,POPULAÇÃO E DENSIDADE DO ENTORNO (400m),,,,,INCLIN,SOMBRA,MORFOLOGIA,,,,TIPOLOGIA DE VIAS,,,,,\n";
   block1CSVString +=
@@ -324,8 +362,8 @@ const exportFullSpreadsheetToCSV = async (
       }
 
       const observers = location.tallys
-        .map((tally) => tally.observer) // Mapeie apenas os observadores
-        .filter((observer, index, self) => self.indexOf(observer) === index) // Remova observadores duplicados
+        .map((tally) => tally.observer)
+        .filter((observer, index, self) => self.indexOf(observer) === index)
         .join(" / ");
 
       let startDateTime;
@@ -430,7 +468,7 @@ const exportFullSpreadsheetToCSV = async (
   const classificationsAdded: number[] = [];
 
   const block3Array: string[][] = []; // -> [[LINE, LINE, ...],[LINE, LINE,...]] each array is an classification's content
-
+  let numberOfClassificationsWithSubclassification = 0;
   for (const classification of classifications) {
     const linesWithoutAnswers: number[] = [];
     let lineIndex = 3;
@@ -470,7 +508,7 @@ const exportFullSpreadsheetToCSV = async (
                 .classifications) {
                 if (formClassification.id === classification.id) {
                   classificationAddedPreviouslyFound = true;
-                  for (const question of formClassification.questions) {
+                  for (const question of classification.questions) {
                     let answerFound = false;
                     for (const answer of question.answers) {
                       if (answer.assessmentId === assessment.id) {
@@ -515,6 +553,7 @@ const exportFullSpreadsheetToCSV = async (
       }
     } else if (!classification.parent && classification.childs.length > 0) {
       //Here classifications with subclassifications are processed
+      numberOfClassificationsWithSubclassification++;
       const subclassificationsAdded: number[] = [];
       for (let i = 0; i < locations.length; i++) {
         linesArray.push(""); //Adds space to each assessment's answers
@@ -574,32 +613,17 @@ const exportFullSpreadsheetToCSV = async (
               for (const location of locations) {
                 const assessment = location.assessments[0];
                 if (assessment) {
-                  if (assessment.form.classifications) {
+                  if (assessment.form.questions) {
                     let answerFound = false;
-                    for (const formClassification of assessment.form
-                      .classifications) {
-                      if (classification.id === formClassification.id) {
-                        for (const formSubclassification of formClassification.childs) {
-                          if (formSubclassification.id === child.id) {
-                            for (const formQuestion of formSubclassification.questions) {
-                              if (formQuestion.id === question.id) {
-                                for (const answer of formQuestion.answers) {
-                                  if (answer.assessmentId === assessment.id) {
-                                    linesArray[lineIndex] +=
-                                      `,${answer.content}`;
-                                    answerFound = true;
-                                    break;
-                                  }
-                                  if (answerFound) break;
-                                }
-                              }
-                              if (answerFound) break;
-                            }
+                    for (const formQuestion of assessment.form.questions) {
+                      if (formQuestion.id === question.id) {
+                        for (const answer of question.answers) {
+                          if (answer.assessmentId === assessment.id) {
+                            linesArray[lineIndex] += `,${answer.content}`;
+                            answerFound = true;
                           }
-                          if (answerFound) break;
                         }
                       }
-                      if (answerFound) break;
                     }
                     if (!answerFound) {
                       linesArray[lineIndex] += `,`;
@@ -617,8 +641,14 @@ const exportFullSpreadsheetToCSV = async (
       for (let i = 0; i < locations.length; i++) {
         const location = locations[i];
         if (location && !(location.assessments.length > 0)) {
-          const line = linesArray[i + 3];
-          if (line) linesArray[i + 3] = line.slice(0, -1); //Removes extra comma added to the line of the assessments which don't have assessments
+          for (
+            let j = 0;
+            j < numberOfClassificationsWithSubclassification;
+            j++
+          ) {
+            const line = linesArray[i + 3];
+            //if (line) linesArray[i + 3] = line.slice(0, -1); //Removes extra comma added to the line of the assessments which don't have assessments
+          }
         }
       }
     }
@@ -747,6 +777,7 @@ const exportFullSpreadsheetToCSV = async (
     }
     block4Array.push(line);
   }
+  console.log(block3Array);
   const block1Lines = block1CSVString.split("\n");
   const block2Lines = block2CSVString.split("\n");
   const resultArray: string[] = [];
@@ -765,7 +796,6 @@ const exportFullSpreadsheetToCSV = async (
     }
 
     const linePt4 = block4Array[i];
-
     if (includeTallys)
       resultArray.push(`${linePt1},${linePt2}${linePt3},,${linePt4}`);
     else resultArray.push(`${linePt1}${linePt3}`);
@@ -889,8 +919,8 @@ const exportDailyTally = async (
   CSVstring += locations
     .map((location) => {
       const observers = location.tallys
-        .map((tally) => tally.observer) // Mapeie apenas os observadores
-        .filter((observer, index, self) => self.indexOf(observer) === index) // Remova observadores duplicados
+        .map((tally) => tally.observer)
+        .filter((observer, index, self) => self.indexOf(observer) === index)
         .join(" / ");
 
       let fourTallys = 0;

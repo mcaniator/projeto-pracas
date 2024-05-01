@@ -79,7 +79,7 @@ const ButtonWrapper = () => {
       const blobStr = await exportFullSpreadsheetToCSV(
         [1, 2, 3, 4, 5],
         [1, 2, 3, 4, 5],
-        [2, 3, 4, 5, 7, 8, 9, 10],
+        [12, 13],
         ["id", "name", "date"],
       );
       const blobData = new Blob([blobStr]);
@@ -251,7 +251,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createClassification("EVENTOS", ["Frequência"])}
+          onClick={() => void createClassification("C3", [])}
         >
           Criar Classificação
         </Button>
@@ -262,10 +262,10 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void createSubclassification("Nova tipo de vigilancia", 4, [
-              "Questao v1",
-              "Questao v2",
-              "Questão v3",
+            void createSubclassification("S3", 20, [
+              "C3S3Q1",
+              "C3S3Q2",
+              "C3S3Q3",
             ])
           }
         >
@@ -278,7 +278,11 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void createForm("Form 5", [4, 5, 6, 7, 8, 9, 10, 11, 14, 15, 17])
+            void createForm(
+              "Form 7",
+              [19, 20, 21, 22],
+              [37, 39, 40, 42, 43, 44],
+            )
           }
         >
           Criar form
@@ -292,9 +296,9 @@ const ButtonWrapper = () => {
             type="submit"
             onClick={() =>
               void createAssessment(
-                "Avaliação LOCATION 2",
+                "Avaliação form 7",
                 2,
-                5,
+                7,
                 "R1D1",
                 startDate,
                 endDate,
@@ -306,11 +310,7 @@ const ButtonWrapper = () => {
         </div>
       </div>
       <div className="flex gap-2">
-        <Button
-          onClick={() =>
-            void createAnswer("Uso térreo residencial form 4", 14, 4, 1, 9, 8)
-          }
-        >
+        <Button onClick={() => void createAnswer("Loc C2Q2", 37, 7, 2, 13, 19)}>
           Criar resposta
         </Button>
       </div>
