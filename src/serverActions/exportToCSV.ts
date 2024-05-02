@@ -11,6 +11,25 @@ import { z } from "zod";
 interface StreetsJsonType {
   [key: string]: string;
 }
+const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  hour12: false,
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  weekday: "short",
+});
 const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
@@ -291,18 +310,7 @@ const exportFullSpreadsheetToCSV = async (
     ",,,,,,,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
   block1CSVString +=
     "Identificador,Avaliada?,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Observador(es),Data ,Início,Duração,Ano criação,Ano reforma,Prefeito,Legislação,Distrito/Regiã,Subdistrito/Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,% inclinação,% área de sombra,canto,centro,isolada,dividida?,VIAS (número),4m,6m,8m,10m,20m\n";
-  const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+
   block1CSVString += locations
     .map((location) => {
       let evaluated = "N";
@@ -789,51 +797,6 @@ const exportFullSpreadsheetToCSV = async (
   return result;
 };
 
-const exportAllIndividualTallysToCsv = async (
-  locationsIds: number[],
-  sortCriteriaOrder: SortOrderType,
-) => {
-  const locations = await prisma.location.findMany({
-    where: {
-      id: {
-        in: locationsIds,
-      },
-    },
-    select: {
-      tallys: {
-        include: {
-          location: {
-            select: {
-              name: true,
-            },
-          },
-          tallyPerson: {
-            select: {
-              person: {
-                select: {
-                  ageGroup: true,
-                  gender: true,
-                  activity: true,
-                  isTraversing: true,
-                  isPersonWithImpairment: true,
-                  isInApparentIllicitActivity: true,
-                  isPersonWithoutHousing: true,
-                },
-              },
-              quantity: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  const allTallys = locations
-    .map((location) => {
-      return location.tallys;
-    })
-    .flat();
-  return createTallyStringWithoutAddedData(allTallys, sortCriteriaOrder);
-};
 const exportDailyTally = async (
   locationsIds: number[],
   tallysIds: number[],
@@ -918,6 +881,92 @@ const exportDailyTally = async (
   return CSVstring;
 };
 
+//These 2 functions below are used to export tally content without combining data. They use old spreadsheet formation.
+const exportAllIndividualTallysToCsv = async (
+  locationsIds: number[],
+  sortCriteriaOrder: SortOrderType,
+) => {
+  const locations = await prisma.location.findMany({
+    where: {
+      id: {
+        in: locationsIds,
+      },
+    },
+    select: {
+      tallys: {
+        include: {
+          location: {
+            select: {
+              name: true,
+            },
+          },
+          tallyPerson: {
+            select: {
+              person: {
+                select: {
+                  ageGroup: true,
+                  gender: true,
+                  activity: true,
+                  isTraversing: true,
+                  isPersonWithImpairment: true,
+                  isInApparentIllicitActivity: true,
+                  isPersonWithoutHousing: true,
+                },
+              },
+              quantity: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  const allTallys = locations
+    .map((location) => {
+      return location.tallys;
+    })
+    .flat();
+  return createTallyStringWithoutAddedData(allTallys, sortCriteriaOrder);
+};
+
+const exportIndividualTallysToCSV = async (
+  tallysIds: number[],
+  sortCriteriaOrder: SortOrderType,
+) => {
+  const tallys = await prisma.tally.findMany({
+    where: {
+      id: {
+        in: tallysIds,
+      },
+    },
+    include: {
+      location: {
+        select: {
+          name: true,
+        },
+      },
+      tallyPerson: {
+        select: {
+          person: {
+            select: {
+              ageGroup: true,
+              gender: true,
+              activity: true,
+              isTraversing: true,
+              isPersonWithImpairment: true,
+              isInApparentIllicitActivity: true,
+              isPersonWithoutHousing: true,
+            },
+          },
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  return createTallyStringWithoutAddedData(tallys, sortCriteriaOrder);
+};
+
+//Functions below are used to process  and format tally content and are called by other functions
 const processAndFormatTallyDataLineWithAddedContent = (
   tallys: tallyDataToProcessType[],
 ) => {
@@ -1035,43 +1084,6 @@ const processAndFormatTallyDataLineWithAddedContent = (
     totalPeople: totalPeople,
   };
 };
-const exportIndividualTallysToCSV = async (
-  tallysIds: number[],
-  sortCriteriaOrder: SortOrderType,
-) => {
-  const tallys = await prisma.tally.findMany({
-    where: {
-      id: {
-        in: tallysIds,
-      },
-    },
-    include: {
-      location: {
-        select: {
-          name: true,
-        },
-      },
-      tallyPerson: {
-        select: {
-          person: {
-            select: {
-              ageGroup: true,
-              gender: true,
-              activity: true,
-              isTraversing: true,
-              isPersonWithImpairment: true,
-              isInApparentIllicitActivity: true,
-              isPersonWithoutHousing: true,
-            },
-          },
-          quantity: true,
-        },
-      },
-    },
-  });
-
-  return createTallyStringWithoutAddedData(tallys, sortCriteriaOrder);
-};
 
 const createTallyStringWithoutAddedData = (
   tallys: tallyDataToProcessType[],
@@ -1101,21 +1113,8 @@ const createTallyStringWithoutAddedData = (
 
   CSVstring += tallys
     .map((tally) => {
-      const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-        timeZone: "America/Sao_Paulo",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        weekday: "short",
-      });
       const startDateTime = hourFormatter.format(tally.startDate);
-      const date = dateFormatter.format(tally.startDate);
+      const date = dateWithWeekdayFormatter.format(tally.startDate);
       let duration = "Horário do fim da contagem não definido";
       if (tally.endDate) {
         const durationTimestampMs =

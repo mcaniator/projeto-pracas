@@ -52,7 +52,10 @@ const ButtonWrapper = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      return {
+        statusCode: 3,
+        errorMessage: "Erro ao criar arquivo",
+      };
     }
   };
   const handleAllTallyCSVDownload = async () => {
@@ -71,7 +74,10 @@ const ButtonWrapper = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      return {
+        statusCode: 3,
+        errorMessage: "Erro ao criar arquivo",
+      };
     }
   };
   const handleFullCSVDownload = async () => {
@@ -92,7 +98,10 @@ const ButtonWrapper = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(error);
+      return {
+        statusCode: 3,
+        errorMessage: "Erro ao criar arquivo",
+      };
     }
   };
   const handleLocationSubmit = (e: FormData) => {
