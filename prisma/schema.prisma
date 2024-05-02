@@ -67,13 +67,13 @@ model Key {
 //  ------------------------------------------------------------------------------------------------------------
 
 enum WeekDays {
-  SUNDAY    @map("Sunday")
-  MONDAY    @map("Monday")
-  TUESDAY   @map("Tuesday")
-  WEDNESDAY @map("Wednesday")
-  THURSDAY  @map("Thursday")
-  FRIDAY    @map("Friday")
-  SATURDAY  @map("Saturday")
+  SUNDAY    @map("sunday")
+  MONDAY    @map("monday")
+  TUESDAY   @map("tuesday")
+  WEDNESDAY @map("wednesday")
+  THURSDAY  @map("thursday")
+  FRIDAY    @map("friday")
+  SATURDAY  @map("saturday")
 
   @@map("week_days")
 }
@@ -111,17 +111,17 @@ enum BrazilianStates {
 }
 
 enum LocationTypes {
-  MICRO_SQUARE          @map("Micro Square")
-  SQUARE                @map("Square")
-  SPORTS_SQUARE         @map("Sports Square")
-  OVERLOOK              @map("Overlook")
-  COURTYARD             @map("Courtyard")
-  GARDEN                @map("Garden")
-  CHURCHYARD            @map("Churchyard")
-  PARK                  @map("Park")
-  BOTANICAL_GARDEN      @map("Botanical Garden")
-  FOREST_GARDEN         @map("Forest Garden")
-  AMATEUR_SOCCER_FIELDS @map("Amateur Soccer Fields")
+  MICRO_SQUARE          @map("micro_square")
+  SQUARE                @map("square")
+  SPORTS_SQUARE         @map("sports_square")
+  OVERLOOK              @map("overlook")
+  COURTYARD             @map("courtyard")
+  GARDEN                @map("garden")
+  CHURCHYARD            @map("churchyard")
+  PARK                  @map("park")
+  BOTANICAL_GARDEN      @map("botanical_garden")
+  FOREST_GARDEN         @map("forest_garden")
+  AMATEUR_SOCCER_FIELDS @map("amateur_soccer_fields")
 
   @@map("location_types")
 }
@@ -134,8 +134,8 @@ enum UserTypes {
 }
 
 enum CategoryTypes {
-  OPEN_SPACE_FOR_COLLECTIVE_USE                    @map("Open Spce for Collective Use")
-  OPEN_SPACE_FOR_COLLECTIVE_USE_IN_RESTRICTED_AREA @map("Open Space for Collective Use in Restricted Area")
+  OPEN_SPACE_FOR_COLLECTIVE_USE                    @map("open_space_for_collective_use")
+  OPEN_SPACE_FOR_COLLECTIVE_USE_IN_RESTRICTED_AREA @map("open_space_for_collective_use_in_restricted_area")
 
   @@map("category_types")
 }
@@ -162,7 +162,7 @@ enum Condition {
   GOOD     @map("good")
   GREAT    @map("great")
 
-  @@map("maintenance")
+  @@map("condition")
 }
 
 enum Interference {
@@ -196,7 +196,7 @@ enum Activity {
   WALKING   @map("walking")
   STRENUOUS @map("strenuous")
 
-  @@map("atividade")
+  @@map("activity")
 }
 
 // Don't really like naming this gender since you can't really tell someones gender based on the way they look
@@ -215,13 +215,17 @@ enum NoiseTypes {
   BIOPHONY            @map("biophony")
   GEOPHONY            @map("geophony")
   OTHERS              @map("others")
+
+  @@map("noise_type")
 }
 
 enum Morphology {
-  CORNER
-  CENTER
-  ISOLATED
-  DIVIDED
+  CORNER   @map("corner")
+  CENTER   @map("center")
+  ISOLATED @map("isolated")
+  DIVIDED  @map("divided")
+
+  @@map("morphology")
 }
 
 // #endregion
@@ -349,12 +353,15 @@ model Classification {
   id       Int              @id @default(autoincrement())
   name     String           @db.VarChar(255)
   childs   Classification[] @relation("children")
-  parentId Int?
+  parentId Int?             @map("parent_id")
   parent   Classification?  @relation("children", fields: [parentId], references: [id])
 
   questions Question[]
   answers   Answer[]
   forms     Form[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("classification")
 }
@@ -363,28 +370,34 @@ model Question {
   id   Int    @id @default(autoincrement())
   name String @db.VarChar(255)
 
-  classificationId Int
+  classificationId Int            @map("classification_id")
   classification   Classification @relation(fields: [classificationId], references: [id])
   forms            Form[]
   answers          Answer[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("question")
 }
 
 model Answer {
   id           Int        @id @default(autoincrement())
-  questionId   Int
+  questionId   Int        @map("question_id")
   question     Question   @relation(fields: [questionId], references: [id])
-  formId       Int
+  formId       Int        @map("form_id")
   form         Form       @relation(fields: [formId], references: [id])
-  locationId   Int
+  locationId   Int        @map("location_id")
   location     Location   @relation(fields: [locationId], references: [id])
-  assessmentId Int
+  assessmentId Int        @map("assessment_id")
   assessment   Assessment @relation(fields: [assessmentId], references: [id])
 
-  classificationId Int
+  classificationId Int            @map("classification_id")
   classification   Classification @relation(fields: [classificationId], references: [id])
   content          String         @db.VarChar(255)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@unique([questionId, assessmentId])
   @@map("answer")
@@ -423,14 +436,14 @@ model Location {
   polygonArea         Float?    @map("polygon_area")
 
   type     LocationTypes?
-  category CategoryTypes?                               @map("category")
+  category CategoryTypes?
   polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
 
-  narrowAdministrativeUnitId       Int?
+  narrowAdministrativeUnitId       Int?                            @map("narrow_administrative_unit_id")
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
-  intermediateAdministrativeUnitId Int?
+  intermediateAdministrativeUnitId Int?                            @map("intermediate_administrative_unit_id")
   intermediateAdministrativeUnit   IntermediateAdministrativeUnit? @relation(fields: [intermediateAdministrativeUnitId], references: [id])
-  broadAdministrativeUnitId        Int?
+  broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   //IBGE data
@@ -457,8 +470,8 @@ model Location {
   forms       Form[]
   answers     Answer[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("location")
 }
@@ -478,8 +491,8 @@ model Address {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("address")
 }
@@ -510,6 +523,9 @@ model NarrowAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
   @@unique([cityId, name], name: "cityId_narrowUnitName")
   @@map("narrow_administrative_unit")
 }
@@ -524,6 +540,9 @@ model IntermediateAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
   @@unique([cityId, name], name: "cityId_intermediateUnitName")
   @@map("intermediate_administrative_unit")
 }
@@ -537,6 +556,9 @@ model BroadAdministrativeUnit {
 
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@unique([cityId, name], name: "cityId_broadUnitName")
   @@map("broad_administrative_unit")
@@ -574,7 +596,7 @@ model Assessment {
   // SurroundingActivity SurroundingActivity?
   // Security            Security?
 
-  createdAt DateTime? @default(now()) @map("created_at")
+  createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@unique([id, locationId], name: "id_locationId")
@@ -744,8 +766,8 @@ model Tally {
   id Int @id @default(autoincrement())
 
   tallyGroup Int       @map("tally_group")
-  startDate  DateTime  @db.Timestamptz(0)
-  endDate    DateTime? @db.Timestamptz(0)
+  startDate  DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate    DateTime? @map("end_date") @db.Timestamptz(0)
   observer   String    @db.VarChar(255)
 
   animalsAmount                   Int?               @map("animals_amount")
@@ -760,7 +782,7 @@ model Tally {
 
   tallyPerson TallyPerson[]
 
-  createdAt DateTime? @default(now()) @map("created_at")
+  createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("tally")
@@ -776,6 +798,9 @@ model TallyPerson {
   personId Int    @map("person_id")
 
   quantity Int
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@unique([tallyId, personId], name: "tally_id_person_id")
   @@map("tally_person")
@@ -794,8 +819,8 @@ model Person {
 
   TallyPerson TallyPerson[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@unique([ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "person_characteristics")
   @@map("person")
