@@ -392,9 +392,9 @@ const exportFullSpreadsheetToCSV = async (
       }
 
       const block1String = [
-        location.id ? location.id : "",
-        evaluated ? evaluated : "",
-        location.name ? location.name : "",
+        location.id,
+        evaluated,
+        location.name,
         location.popularName ? location.popularName : "",
         locationCategoriesMap.has(locationCategory) ?
           locationCategoriesMap.get(locationCategory)
