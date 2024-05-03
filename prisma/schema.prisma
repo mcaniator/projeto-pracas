@@ -31,8 +31,7 @@ model User {
   auth_session Session[]
   key          Key[]
 
-  assessmentId Int?        @map("assessment_id")
-  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+  assessments Assessment[]
 
   @@map("user")
 }

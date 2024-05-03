@@ -22,8 +22,8 @@ import { useState } from "react";
 
 const ButtonWrapper = () => {
   const content = {
-    name: "nome da praca",
-    type: "PARK" as const,
+    name: "Praça Antonio Carlos",
+    type: "SQUARE" as const,
     category: "OPEN_SPACE_FOR_COLLECTIVE_USE" as const,
     narrowAdministrativeUnit: "del1",
     intermediateAdministrativeUnit: "del2",
@@ -105,17 +105,7 @@ const ButtonWrapper = () => {
     }
   };
   const handleLocationSubmit = (e: FormData) => {
-    void createLocation(
-      content,
-      {
-        narrowAdministrativeUnit: "del1.3",
-        intermediateAdministrativeUnit: "del2.4",
-        broadAdministrativeUnit: "del4.3",
-      },
-      1,
-      "null",
-      e,
-    );
+    void createLocation(content, {}, 1, null, e);
   };
 
   return (
@@ -149,9 +139,9 @@ const ButtonWrapper = () => {
           type="submit"
           onClick={() =>
             void createTally({
-              locationId: 2,
+              locationId: 4,
               observer: "Guilherme Pimenta",
-              startDate: new Date("2024-04-23T18:07:00-03:00"),
+              startDate: new Date("2025-04-23T18:07:00-03:00"),
               weatherCondition: "SUNNY",
               animalsAmount: 80,
               temperature: 19.4,
@@ -202,11 +192,11 @@ const ButtonWrapper = () => {
           onClick={() =>
             void createNoiseMeasurement(
               {
-                assessmentId: 2,
                 date: new Date("2024-03-25"),
                 noiseType: "HUMAN",
                 soundLevel: 70.5,
               },
+              3,
               { x: 266, y: 1530 },
             )
           }
@@ -230,7 +220,9 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="button"
-          onClick={handleTallyCSVDownload}
+          onClick={() => {
+            handleTallyCSVDownload();
+          }}
         >
           Baixar CSV das contagens em um dia
         </Button>
@@ -286,7 +278,7 @@ const ButtonWrapper = () => {
           variant={"admin"}
           className="mb-[2px] self-end"
           type="submit"
-          onClick={() => void createForm("Form 8", [20, 23], [46, 47])}
+          onClick={() => void createForm("Form 1", [], [])}
         >
           Criar form
         </Button>
@@ -299,9 +291,9 @@ const ButtonWrapper = () => {
             type="submit"
             onClick={() =>
               void createAssessment(
-                "Avaliação form 6",
-                4,
-                6,
+                "Avaliação form 1",
+                1,
+                1,
                 "R1D1",
                 startDate,
                 endDate,

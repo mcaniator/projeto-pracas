@@ -309,7 +309,7 @@ const exportFullSpreadsheetToCSV = async (
   block1CSVString +=
     ",,,,,,,,,,,,,,,,,,,,,,Fonte: http://mapasinterativos.ibge.gov.br/grade/default.html,,,,,,,posição na quadra - número de vias,,,,,LARGURA,,,,\n";
   block1CSVString +=
-    "Identificador,Avaliada?,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Observador(es),Data ,Início,Duração,Ano criação,Ano reforma,Prefeito,Legislação,Distrito/Regiã,Subdistrito/Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,% inclinação,% área de sombra,canto,centro,isolada,dividida?,VIAS (número),4m,6m,8m,10m,20m\n";
+    "Identificador,Avaliada?,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Observador(es),Data ,Início,Duração,Ano criação,Ano reforma,Prefeito,Legislação,Distrito/Região,Subdistrito/Bairro,Densidade ,Renda,Área útil,Classificação,Homens,Mulheres,Pop Total,Domicílios Ocupados,Densidade,% inclinação,% área de sombra,canto,centro,isolada,dividida?,VIAS (número),4m,6m,8m,10m,20m\n";
 
   block1CSVString += locations
     .map((location) => {

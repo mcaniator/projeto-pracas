@@ -5,15 +5,14 @@ import { noiseType } from "@/lib/zodValidators";
 
 const createNoiseMeasurement = async (
   content: noiseType,
+  assessmentId: number,
   point: { x: number; y: number },
 ) => {
   try {
     const createdNoise = await prisma.noise.create({
       data: {
-        date: content.date,
-        noiseType: content.noiseType,
-        soundLevel: content.soundLevel,
-        assessment: { connect: { id: content.assessmentId } },
+        ...content,
+        assessment: { connect: { id: assessmentId } },
       },
     });
     await prisma.$executeRaw`UPDATE noise

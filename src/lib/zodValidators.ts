@@ -435,8 +435,6 @@ const noiseSchema = z.object({
   noiseType: z.nativeEnum(NoiseTypes),
   description: z.string().trim().optional(),
   soundLevel: z.coerce.number().finite().nonnegative(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const tallyDataToProcessSchema = z.object({
