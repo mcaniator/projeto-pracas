@@ -416,8 +416,6 @@ const tallySchema = z.object({
     .nonnegative()
     .optional(),
   commercialActivitiesDescription: z.coerce.string().trim().optional(),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const personSchema = z.object({

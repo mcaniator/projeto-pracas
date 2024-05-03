@@ -138,15 +138,17 @@ const ButtonWrapper = () => {
           className="mb-[2px] self-end"
           type="submit"
           onClick={() =>
-            void createTally({
-              locationId: 4,
-              observer: "Guilherme Pimenta",
-              startDate: new Date("2025-04-23T18:07:00-03:00"),
-              weatherCondition: "SUNNY",
-              animalsAmount: 80,
-              temperature: 19.4,
-              tallyGroup: 2,
-            })
+            void createTally(
+              {
+                observer: "Guilherme Pimenta",
+                startDate: new Date("2025-04-23T18:07:00-03:00"),
+                weatherCondition: "SUNNY",
+                animalsAmount: 80,
+                temperature: 19.4,
+                tallyGroup: 2,
+              },
+              1,
+            )
           }
         >
           <span className="-mb-1">Adicionar contagem</span>
