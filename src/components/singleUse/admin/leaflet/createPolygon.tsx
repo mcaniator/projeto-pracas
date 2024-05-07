@@ -2,7 +2,7 @@
 
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
 import { PolygonSubmissionForm } from "@/components/singleUse/admin/leaflet/polygonSubmissionForm";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { josefin_sans } from "@/lib/fonts";
 import {
   Dispatch,

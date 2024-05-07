@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/old-button";
 import { titillium_web } from "@/lib/fonts";
-import { login, signup } from "@/serverActions/auth";
+import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
@@ -20,7 +20,7 @@ const AuthForm = () => {
         <span
           className={
             titillium_web.className +
-            " cursor-pointer select-none text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+            " cursor-pointer select-none text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
           }
           aria-disabled={loginSelected}
           onClick={() => {
@@ -32,7 +32,7 @@ const AuthForm = () => {
         <span
           className={
             titillium_web.className +
-            " cursor-pointer select-none text-4xl opacity-50 transition-all hover:opacity-80 aria-disabled:pointer-events-none aria-disabled:opacity-100 aria-disabled:hover:cursor-none"
+            " cursor-pointer select-none text-4xl opacity-50 transition-all aria-disabled:pointer-events-none aria-disabled:opacity-100 hover:opacity-80 aria-disabled:hover:cursor-none"
           }
           aria-disabled={!loginSelected}
           onClick={() => {
@@ -51,12 +51,17 @@ const AuthForm = () => {
 };
 
 const Login = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(login, { statusCode: 0 });
+  const [state, formAction] = useFormState(signin, { statusCode: 0 });
+  const errorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => console.log(state), [state]);
+  if (errorRef.current !== null && state.statusCode !== 0) {
+    errorRef.current.style.opacity = "1";
+    const copy = errorRef.current;
+    setTimeout(() => (copy.style.opacity = "0"), 5000);
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-80 flex-col gap-3">
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <label htmlFor="username" className="-mb-1">
@@ -77,13 +82,15 @@ const Login = (props: { username: MutableRefObject<string> }) => {
         </div>
       </div>
 
-      <div className="ml-auto flex gap-1">
-        <Link href={"/admin"}>
-          <Button className="text-white" variant={"destructive"}>
-            <span className="-mb-1">Ir para admin</span>
-          </Button>
-        </Link>
-        <Button className="text-white">
+      <div className="flex items-center gap-1">
+        <div ref={errorRef} className="opacity-0 transition-opacity">
+          <div className="rounded-2xl border-4 border-redwood px-2 py-1">
+            <p className={"-mb-1 self-end font-semibold text-redwood"}>
+              Dados incorretos!
+            </p>
+          </div>
+        </div>
+        <Button className="ml-auto text-white">
           <span className="-mb-1">Entrar</span>
         </Button>
       </div>
@@ -92,12 +99,14 @@ const Login = (props: { username: MutableRefObject<string> }) => {
 };
 
 const Signup = (props: { username: MutableRefObject<string> }) => {
-  const [state, formAction] = useFormState(signup, { statusCode: 0 });
+  const [state, formAction] = useFormState(signup, { statusCode: -1 });
 
-  useEffect(() => console.log(state), [state]);
+  useEffect(() => {
+    if (state.statusCode === 0) redirect("/admin");
+  }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex w-80 flex-col gap-3">
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <label htmlFor="username" className="-mb-1">
@@ -126,11 +135,6 @@ const Signup = (props: { username: MutableRefObject<string> }) => {
       </div>
 
       <div className="ml-auto flex gap-1">
-        <Link href={"/admin"}>
-          <Button className="text-white" variant={"destructive"}>
-            <span className="-mb-1">Ir para admin</span>
-          </Button>
-        </Link>
         <Button className="text-white">
           <span className="-mb-1">Criar</span>
         </Button>

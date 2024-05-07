@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import Link from "next/link";
 
@@ -27,6 +27,15 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 </Link>
               </div>
               <span>Nome: {location?.name}</span>
+              {location.inactiveNotFound ?
+                <span>Inativo ou não encontrado: Verdadeiro</span>
+              : location.inactiveNotFound === false ?
+                <span>Inativo ou não encontrado: Falso</span>
+              : <span>
+                  Inativo ou não encontrado:
+                  <span className="text-redwood">Não preenchido</span>
+                </span>
+              }
               {location.isPark ?
                 <span>É Praça: Verdadeiro</span>
               : location.isPark === false ?
@@ -94,15 +103,6 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 <span>Inclinação: {location?.incline}</span>
               : <span>
                   Inclinação:
-                  <span className="text-redwood">Não preenchido</span>
-                </span>
-              }
-              {location.inactiveNotFound ?
-                <span>Inativo ou não encontrado: Verdadeiro</span>
-              : location.inactiveNotFound === false ?
-                <span>Inativo ou não encontrado: Falso</span>
-              : <span>
-                  Inativo ou não encontrado:
                   <span className="text-redwood">Não preenchido</span>
                 </span>
               }

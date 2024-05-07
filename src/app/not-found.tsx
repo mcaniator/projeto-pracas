@@ -1,11 +1,14 @@
 import { Footer } from "@/app/_components/footer";
 import { Header } from "@/app/_components/header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
+import { validateRequest } from "@/lib/lucia";
 
-const NotFound = () => {
+const NotFound = async () => {
+  const { user } = await validateRequest();
+
   return (
     <main className="flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue to-imperial-red">
-      <Header variant="fixed" />
+      <Header variant="fixed" user={user} />
 
       <section className="m-10 flex h-full w-full flex-col items-center justify-center gap-2 sm:m-0 sm:gap-4">
         <div className="text-center font-bold text-white">
@@ -16,7 +19,7 @@ const NotFound = () => {
           </p>
         </div>
         <Button>
-          <span className="-mb-1 font-bold">Denunciar Erro</span>
+          <span className="-mb-1 text-white">Denunciar Erro</span>
         </Button>
       </section>
 

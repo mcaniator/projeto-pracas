@@ -16,50 +16,6 @@ datasource db {
 
 // #endregion
 
-// #region Auth
-//  ------------------------------------------------------------------------------------------------------------
-//  Auth
-//  ------------------------------------------------------------------------------------------------------------
-
-model User {
-  id String @id @unique
-
-  email    String?   @db.VarChar(255)
-  username String    @db.VarChar(255)
-  type     UserTypes
-
-  auth_session Session[]
-  key          Key[]
-
-  assessments Assessment[]
-
-  @@map("user")
-}
-
-model Session {
-  id String @id @unique
-
-  active_expires BigInt
-  idle_expires   BigInt
-
-  user_id String
-  user    User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
-}
-
-model Key {
-  id              String  @id @unique
-  hashed_password String?
-
-  user_id String
-  user    User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
-}
-
-// #endregion
-
 // #region Enums
 //  ------------------------------------------------------------------------------------------------------------
 //  Enums
@@ -225,6 +181,41 @@ enum Morphology {
   DIVIDED  @map("divided")
 
   @@map("morphology")
+}
+
+// #endregion
+
+// #region Auth
+//  ------------------------------------------------------------------------------------------------------------
+//  Auth
+//  ------------------------------------------------------------------------------------------------------------
+
+model User {
+  id String @id @unique
+
+  email           String?   @db.VarChar(255)
+  username        String    @unique @db.VarChar(255)
+  type            UserTypes
+  hashed_password String
+
+  auth_session Session[]
+
+  assessmentId Int?        @map("assessment_id")
+  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+
+  @@index([username])
+  @@map("user")
+}
+
+model Session {
+  id String @id @unique
+
+  expiresAt DateTime @map("expires_at")
+
+  userId String @map("user_id")
+  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // #endregion

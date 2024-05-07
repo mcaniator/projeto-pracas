@@ -1,9 +1,10 @@
 "use client";
 
 import { Header } from "@/app/_components/header";
+import { User } from "lucia";
 import { useEffect, useRef } from "react";
 
-const HomeHeader = () => {
+const HomeHeader = ({ user }: { user: User | null }) => {
   const header = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ const HomeHeader = () => {
     };
   }, []);
 
-  return <Header variant={"default"} ref={header} />;
+  return <Header variant={"default"} user={user} ref={header} />;
 };
 
 export { HomeHeader };

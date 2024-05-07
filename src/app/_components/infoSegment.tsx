@@ -1,8 +1,7 @@
+import fotoPraca from "@/../public/fotoPraca.jpg";
 import clsx from "clsx";
 import Image from "next/image";
 import { ReactNode } from "react";
-
-import fotoPraca from "/public/fotoPraca.jpg";
 
 const InfoSegment = ({
   children,

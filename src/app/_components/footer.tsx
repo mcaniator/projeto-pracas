@@ -1,11 +1,10 @@
+import { Button } from "@/components/ui/old-button";
 import { titillium_web } from "@/lib/fonts";
 import { IconInfoSquareRounded, IconMail } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import clsx from "clsx";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef } from "react";
-
-import { Button } from "../../components/ui/button";
 
 const footerVariants = cva("flex px-7 pb-5", {
   variants: {

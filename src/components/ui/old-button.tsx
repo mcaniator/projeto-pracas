@@ -4,16 +4,16 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg text-lg font-medium shadow transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring aria-disabled:cursor-not-allowed aria-disabled:select-none aria-disabled:text-opacity-50 aria-disabled:active:pointer-events-none",
+  "inline-flex items-center justify-center rounded-lg text-lg font-medium shadow transition-all aria-disabled:cursor-not-allowed aria-disabled:select-none aria-disabled:text-opacity-50 aria-disabled:active:pointer-events-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
   {
     variants: {
       variant: {
         default:
-          "bg-true-blue bg-blend-darken hover:bg-indigo-dye aria-disabled:bg-indigo-dye",
-        admin: "bg-purpureus hover:bg-eminence aria-disabled:bg-eminence",
+          "bg-true-blue bg-blend-darken aria-disabled:bg-indigo-dye hover:bg-indigo-dye",
+        admin: "bg-purpureus aria-disabled:bg-eminence hover:bg-eminence",
         constructive:
-          "bg-cambridge-blue hover:bg-sea-green aria-disabled:bg-sea-green",
-        destructive: "bg-redwood hover:bg-cordovan aria-disabled:bg-cordovan",
+          "bg-cambridge-blue aria-disabled:bg-sea-green hover:bg-sea-green",
+        destructive: "bg-redwood aria-disabled:bg-cordovan hover:bg-cordovan",
         outline:
           "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
         secondary:

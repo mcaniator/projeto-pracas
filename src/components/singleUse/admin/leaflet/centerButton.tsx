@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/old-button";
 import { IconLocationPin } from "@tabler/icons-react";
 import { useMap } from "react-leaflet";
 import Control from "react-leaflet-custom-control";
@@ -21,9 +21,7 @@ const CenterButton = () => {
                   lng: pos.coords.longitude,
                 });
               },
-              (err) => {
-                console.log(`erro: ${err.code}`);
-              },
+              null,
               {
                 enableHighAccuracy: false,
                 maximumAge: Infinity,
