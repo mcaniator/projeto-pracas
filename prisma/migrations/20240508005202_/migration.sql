@@ -44,6 +44,36 @@ CREATE TYPE "gender" AS ENUM ('male', 'female', 'non-binary');
 CREATE TYPE "noise_categories" AS ENUM ('center', 'surroundings');
 
 -- CreateTable
+CREATE TABLE "user" (
+    "id" TEXT NOT NULL,
+    "email" VARCHAR(255),
+    "username" VARCHAR(255) NOT NULL,
+    "type" "user_types" NOT NULL,
+    "assessment_id" INTEGER,
+
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "active_expires" BIGINT NOT NULL,
+    "idle_expires" BIGINT NOT NULL,
+    "user_id" TEXT NOT NULL,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Key" (
+    "id" TEXT NOT NULL,
+    "hashed_password" TEXT,
+    "user_id" TEXT NOT NULL,
+
+    CONSTRAINT "Key_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "category" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
@@ -67,6 +97,18 @@ CREATE TABLE "question" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "question_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "response" (
+    "id" SERIAL NOT NULL,
+    "location_id" INTEGER NOT NULL,
+    "form_id" INTEGER NOT NULL,
+    "question_id" INTEGER NOT NULL,
+    "response" VARCHAR(255),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "response_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -118,11 +160,21 @@ CREATE TABLE "option" (
 -- CreateTable
 CREATE TABLE "form" (
     "id" SERIAL NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "name" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "form_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "questions_on_forms" (
+    "id" SERIAL NOT NULL,
+    "form_id" INTEGER NOT NULL,
+    "question_id" INTEGER NOT NULL,
+
+    CONSTRAINT "questions_on_forms_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -232,19 +284,6 @@ CREATE TABLE "Assessment" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Assessment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "user" (
-    "id" SERIAL NOT NULL,
-    "name" VARCHAR(255) NOT NULL,
-    "type" "user_types" NOT NULL,
-    "email" VARCHAR(255) NOT NULL,
-    "password" VARCHAR(255) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -446,11 +485,20 @@ CREATE TABLE "noise" (
     CONSTRAINT "noise_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "_AssessmentToUser" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
+-- CreateIndex
+CREATE UNIQUE INDEX "user_id_key" ON "user"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Session_id_key" ON "Session"("id");
+
+-- CreateIndex
+CREATE INDEX "Session_user_id_idx" ON "Session"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Key_id_key" ON "Key"("id");
+
+-- CreateIndex
+CREATE INDEX "Key_user_id_idx" ON "Key"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "text_question_question_id_key" ON "text_question"("question_id");
@@ -497,14 +545,26 @@ CREATE UNIQUE INDEX "security_assessment_id_key" ON "security"("assessment_id");
 -- CreateIndex
 CREATE INDEX "location_idx" ON "noise" USING GIST ("point");
 
--- CreateIndex
-CREATE UNIQUE INDEX "_AssessmentToUser_AB_unique" ON "_AssessmentToUser"("A", "B");
+-- AddForeignKey
+ALTER TABLE "user" ADD CONSTRAINT "user_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "_AssessmentToUser_B_index" ON "_AssessmentToUser"("B");
+-- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Key" ADD CONSTRAINT "Key_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "question" ADD CONSTRAINT "question_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "response" ADD CONSTRAINT "response_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "response" ADD CONSTRAINT "response_form_id_fkey" FOREIGN KEY ("form_id") REFERENCES "form"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "response" ADD CONSTRAINT "response_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "text_question" ADD CONSTRAINT "text_question_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -517,6 +577,12 @@ ALTER TABLE "options_question" ADD CONSTRAINT "options_question_question_id_fkey
 
 -- AddForeignKey
 ALTER TABLE "option" ADD CONSTRAINT "option_options_question_id_fkey" FOREIGN KEY ("options_question_id") REFERENCES "options_question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "questions_on_forms" ADD CONSTRAINT "questions_on_forms_form_id_fkey" FOREIGN KEY ("form_id") REFERENCES "form"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "questions_on_forms" ADD CONSTRAINT "questions_on_forms_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "location" ADD CONSTRAINT "location_narrowAdministrativeUnitId_fkey" FOREIGN KEY ("narrowAdministrativeUnitId") REFERENCES "narrow_administrative_unit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -580,9 +646,3 @@ ALTER TABLE "person" ADD CONSTRAINT "person_tally_id_fkey" FOREIGN KEY ("tally_i
 
 -- AddForeignKey
 ALTER TABLE "noise" ADD CONSTRAINT "noise_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_AssessmentToUser" ADD CONSTRAINT "_AssessmentToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Assessment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_AssessmentToUser" ADD CONSTRAINT "_AssessmentToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

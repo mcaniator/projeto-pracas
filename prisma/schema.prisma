@@ -340,7 +340,8 @@ model Option {
 }
 
 model Form {
-  id Int @id @default(autoincrement())
+  id      Int @id @default(autoincrement())
+  version Int @default(0)
 
   name      String             @db.VarChar(255)
   questions QuestionsOnForms[]
