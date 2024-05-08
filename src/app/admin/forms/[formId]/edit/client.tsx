@@ -103,22 +103,31 @@ const Client = ({
     questionsToAdd: DisplayQuestion[],
     questionsToRemove: DisplayQuestion[],
   ) => {
-    const convertedQuestions: DisplayQuestion[] = oldQuestions.map(
-      (question) => ({
+    let convertedQuestions: DisplayQuestion[];
+    let allQuestions: DisplayQuestion[];
+    let filteredQuestions: DisplayQuestion[];
+
+    if (oldQuestions !== null) {
+      convertedQuestions = oldQuestions.map((question) => ({
         id: question.id,
         name: question.name,
-      }),
-    );
+      }));
+      allQuestions = convertedQuestions.concat(questionsToAdd);
+      filteredQuestions = allQuestions.filter(
+        (question) =>
+          !questionsToRemove.some(
+            (removeQuestion) => removeQuestion.id === question.id,
+          ),
+      );
+    } else {
+      filteredQuestions = questionsToAdd.filter(
+        (question) =>
+          !questionsToRemove.some(
+            (removeQuestion) => removeQuestion.id === question.id,
+          ),
+      );
+    }
 
-    const allQuestions: DisplayQuestion[] =
-      convertedQuestions.concat(questionsToAdd);
-
-    const filteredQuestions: DisplayQuestion[] = allQuestions.filter(
-      (question) =>
-        !questionsToRemove.some(
-          (removeQuestion) => removeQuestion.id === question.id,
-        ),
-    );
     void createVersion(formId, filteredQuestions);
   };
 
