@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/old-button";
+import { Button } from "@/components/button";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import Link from "next/link";
 
@@ -23,7 +23,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   href={`/admin/parks/${locationIdNumber}/edit`}
                   className="ml-auto"
                 >
-                  <Button>Editar</Button>
+                  <Button type="button">Editar</Button>
                 </Link>
               </div>
               <span>Nome: {location?.name}</span>

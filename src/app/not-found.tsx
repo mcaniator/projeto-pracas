@@ -1,6 +1,6 @@
 import { Footer } from "@/app/_components/footer";
 import { Header } from "@/app/_components/header";
-import { Button } from "@/components/ui/old-button";
+import { Button } from "@/components/button";
 import { validateRequest } from "@/lib/lucia";
 
 const NotFound = async () => {
@@ -18,7 +18,7 @@ const NotFound = async () => {
             Ops, não era para você ter chegado aqui!
           </p>
         </div>
-        <Button>
+        <Button type="button">
           <span className="-mb-1 text-white">Denunciar Erro</span>
         </Button>
       </section>

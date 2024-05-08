@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/old-button";
 import { titillium_web } from "@/lib/fonts";
 import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
@@ -90,7 +90,7 @@ const Login = (props: { username: MutableRefObject<string> }) => {
             </p>
           </div>
         </div>
-        <Button className="ml-auto text-white">
+        <Button type="submit" className="ml-auto text-white">
           <span className="-mb-1">Entrar</span>
         </Button>
       </div>
@@ -135,7 +135,7 @@ const Signup = (props: { username: MutableRefObject<string> }) => {
       </div>
 
       <div className="ml-auto flex gap-1">
-        <Button className="text-white">
+        <Button type="submit" className="text-white">
           <span className="-mb-1">Criar</span>
         </Button>
       </div>

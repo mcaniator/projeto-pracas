@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/button";
 import {
   brazillianStates,
   parkCategories,
@@ -14,7 +15,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/old-button";
 import { Select } from "@/components/ui/select";
 import { josefin_sans } from "@/lib/fonts";
 import { mapEdit } from "@/serverActions/parkSubmit";
@@ -55,7 +55,9 @@ const PolygonEditForm = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className={josefin_sans.className}>Editar</Button>
+        <Button type="button" className={josefin_sans.className}>
+          Editar
+        </Button>
       </DialogTrigger>
 
       <DialogContent className={"max-w-none"}>
@@ -172,7 +174,8 @@ const PolygonEditForm = ({
                     </div>
                     {index == 0 ?
                       <Button
-                        onClick={() =>
+                        type="button"
+                        onPress={() =>
                           setNewAddressInfo(
                             newAddressInfo != undefined ?
                               [...newAddressInfo, { state: "Acre" }]
@@ -180,16 +183,15 @@ const PolygonEditForm = ({
                           )
                         }
                         variant={"ghost"}
-                        type={"button"}
                       >
                         <IconSquareRoundedPlus />
                       </Button>
                     : <Button
-                        onClick={() =>
+                        type="button"
+                        onPress={() =>
                           setAddressInfo(addressInfo.splice(index, 1))
                         }
                         variant={"ghost"}
-                        type={"button"}
                       >
                         <IconTrashX />
                       </Button>
@@ -279,19 +281,20 @@ const PolygonEditForm = ({
                     </div>
                     {addressInfo.length <= 0 && index == 0 ?
                       <Button
-                        onClick={() =>
+                        type="button"
+                        onPress={() =>
                           setNewAddressInfo([
                             ...newAddressInfo,
                             { state: "Acre" },
                           ])
                         }
                         variant={"ghost"}
-                        type={"button"}
                       >
                         <IconSquareRoundedPlus />
                       </Button>
                     : <Button
-                        onClick={() => {
+                        type="button"
+                        onPress={() => {
                           if (newAddressInfo?.length == 1)
                             setNewAddressInfo(undefined);
                           else
@@ -300,7 +303,6 @@ const PolygonEditForm = ({
                             );
                         }}
                         variant={"ghost"}
-                        type={"button"}
                       >
                         <IconTrashX />
                       </Button>
@@ -314,15 +316,12 @@ const PolygonEditForm = ({
                 name={"newAddressAmount"}
               />
 
-              <Button
-                type={"button"}
-                onClick={() => console.log(newAddressInfo)}
-              >
+              <Button type="button" onPress={() => console.log(newAddressInfo)}>
                 imprimir
               </Button>
 
               <DialogTrigger>
-                <Button>Enviar</Button>
+                <Button type="submit">Enviar</Button>
               </DialogTrigger>
               <p>{state?.message}</p>
             </form>
