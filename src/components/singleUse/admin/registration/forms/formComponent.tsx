@@ -6,16 +6,17 @@ import Link from "next/link";
 interface FormProps {
   id: number;
   name: string;
+  version: number;
 }
 
-const FormComponent = ({ id, name }: FormProps) => {
+const FormComponent = ({ id, name, version }: FormProps) => {
   return (
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/forms/${id}`}
     >
-      {name}
+      {name} V{version}
       <IconLink size={24} />
     </Link>
   );

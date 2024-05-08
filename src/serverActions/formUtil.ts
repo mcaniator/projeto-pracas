@@ -127,6 +127,92 @@ const addQuestion = async (formId: number, questionId: number) => {
   };
 };
 
+const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
+  const formType = Prisma.validator<Prisma.FormDefaultArgs>()({
+    select: { id: true, name: true, version: true },
+  });
+  let form: Prisma.FormGetPayload<typeof formType> | null = null;
+  let newFormId: number | null = null;
+
+  try {
+    form = await prisma.form.findUnique({
+      where: {
+        id: formId,
+      },
+    });
+  } catch (error) {
+    // console.error(`Erro ao recuperar formulários`, error); //1
+  }
+
+  if (form === null) return { message: "erro do servidor" };
+
+  try {
+    const newForm = await prisma.form.create({
+      data: {
+        name: form.name,
+        version: form.version + 1,
+      },
+    });
+
+    // Armazenar o ID do novo formulário
+    newFormId = newForm.id;
+  } catch (e) {
+    return {
+      message: "erro do servidor",
+    };
+  }
+
+  try {
+    const createManyParams = questions.map((question) => ({
+      formId: newFormId,
+      questionId: question.id,
+    }));
+
+    await prisma.questionsOnForms.createMany({
+      data: createManyParams,
+    });
+  } catch (err) {
+    // console.log(err); //2
+    return { statusCode: 2 };
+  }
+
+  // const questionType = Prisma.validator<Prisma.QuestionsOnFormsDefaultArgs>()({
+  //   select: { id: true, formId: true, questionId: true },
+  // });
+
+  // let oldQuestions:
+  //   | Prisma.QuestionsOnFormsGetPayload<typeof questionType>[]
+  //   | null = null;
+  // try {
+  //   oldQuestions = await prisma.questionsOnForms.findMany({
+  //     where: {
+  //       formId: formId,
+  //     },
+  //   });
+  // } catch (err) {
+  //   // console.error(err); //3
+  // }
+  // if (oldQuestions === null) return { message: "erro do servidor" };
+  // try {
+  //   const createManyParams = oldQuestions.map((question) => ({
+  //     formId: newFormId,
+  //     questionId: question.id,
+  //   }));
+
+  //   await prisma.questionsOnForms.createMany({
+  //     data: createManyParams,
+  //   });
+  // } catch (err) {
+  //   // console.log(err); //4
+  //   return { statusCode: 2 };
+  // }
+
+  revalidateTag("questionOnForm");
+  return {
+    statusCode: 0,
+  };
+};
+
 const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {
   try {
     const createManyParams = questions.map((question) => ({
@@ -179,4 +265,5 @@ export {
   addQuestion,
   addQuestions,
   removeQuestions,
+  createVersion,
 };

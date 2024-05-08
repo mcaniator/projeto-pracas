@@ -2,7 +2,10 @@
 
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { Button } from "@/components/ui/button";
-import { addQuestions, removeQuestions } from "@/serverActions/formUtil";
+import {
+  createVersion, // addQuestions,
+  // removeQuestions,
+} from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
 
@@ -50,10 +53,10 @@ const Client = ({
     }
   };
 
-  const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
-    void addQuestions(formId, questions);
-    setQuestionsToAdd([]);
-  };
+  // const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
+  //   void addQuestions(formId, questions);
+  //   setQuestionsToAdd([]);
+  // };
 
   const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
     [],
@@ -67,24 +70,58 @@ const Client = ({
     }
   };
 
-  const handleRemoveQuestions = (
-    formId: number,
-    questions: DisplayQuestion[],
-  ) => {
-    void removeQuestions(formId, questions);
-    setQuestionsToRemove([]);
-  };
+  // const handleRemoveQuestions = (
+  //   formId: number,
+  //   questions: DisplayQuestion[],
+  // ) => {
+  //   void removeQuestions(formId, questions);
+  //   setQuestionsToRemove([]);
+  // };
 
   const createNewVersion = (
     formId: number,
+    oldQuestions: Question[],
     questionsToAdd: DisplayQuestion[],
     questionsToRemove: DisplayQuestion[],
   ) => {
-    handleAddQuestion(formId, questionsToAdd);
-    handleRemoveQuestions(formId, questionsToRemove);
-    updatedQuestions;
+    handleCreateVersion(
+      formId,
+      oldQuestions,
+      questionsToAdd,
+      questionsToRemove,
+    );
+    // handleAddQuestion(formId, questionsToAdd);
+    // handleRemoveQuestions(formId, questionsToRemove);
     setUpdatedQuestions([]);
+    setQuestionsToAdd([]);
+    setQuestionsToRemove([]);
   };
+
+  const handleCreateVersion = (
+    formId: number,
+    oldQuestions: Question[],
+    questionsToAdd: DisplayQuestion[],
+    questionsToRemove: DisplayQuestion[],
+  ) => {
+    const convertedQuestions: DisplayQuestion[] = oldQuestions.map(
+      (question) => ({
+        id: question.id,
+        name: question.name,
+      }),
+    );
+
+    const allQuestions: DisplayQuestion[] =
+      convertedQuestions.concat(questionsToAdd);
+
+    const filteredQuestions: DisplayQuestion[] = allQuestions.filter(
+      (question) =>
+        !questionsToRemove.some(
+          (removeQuestion) => removeQuestion.id === question.id,
+        ),
+    );
+    void createVersion(formId, filteredQuestions);
+  };
+
   return form == null ?
       <div>Formulário não encontrado</div>
     : <div className="grid grid-cols-5 gap-4">
@@ -112,7 +149,12 @@ const Client = ({
             <Button
               variant={"admin"}
               onClick={() =>
-                createNewVersion(form.id, questionsToAdd, questionsToRemove)
+                createNewVersion(
+                  form.id,
+                  questions,
+                  questionsToAdd,
+                  questionsToRemove,
+                )
               }
             >
               Criar nova versão

@@ -16,7 +16,12 @@ const AdminRoot = async () => {
       {forms !== null ?
         <div className="w-full">
           {forms.map((form) => (
-            <FormComponent key={form.id} id={form.id} name={form.name} />
+            <FormComponent
+              key={form.id}
+              id={form.id}
+              name={form.name}
+              version={form.version}
+            />
           ))}
         </div>
       : <div className="text-redwood">Ainda não há perguntas no formulário</div>
