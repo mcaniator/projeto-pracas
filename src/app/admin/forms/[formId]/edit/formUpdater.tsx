@@ -139,7 +139,7 @@ const FormUpdater = ({
                       className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
                       onClick={() => cancelAddQuestion(question.id)}
                     >
-                      Cancelar
+                      Remover
                     </Button>
                   </li>
                 ))}

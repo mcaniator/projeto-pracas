@@ -20,6 +20,10 @@ const Client = ({
   form?: Form | null;
   questions: Question[];
 }) => {
+  const [updatedQuestions, setUpdatedQuestions] = useState<DisplayQuestion[]>(
+    [],
+  );
+
   const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
 
   const handleQuestionsToAdd = (questionId: number, questionName: string) => {
@@ -27,6 +31,13 @@ const Client = ({
     const newQuestion: DisplayQuestion = { id: questionId, name: questionName };
     if (!questionExists) {
       setQuestionsToAdd([...questionsToAdd, newQuestion]);
+      if (questionsToRemove.some((q) => q.id === questionId)) {
+        setUpdatedQuestions(
+          updatedQuestions.filter((q) => q.id !== questionId),
+        );
+      } else {
+        setUpdatedQuestions([...updatedQuestions, newQuestion]);
+      }
     }
   };
 
@@ -34,6 +45,9 @@ const Client = ({
     setQuestionsToAdd((prevQuestionsToAdd) =>
       prevQuestionsToAdd.filter((q) => q.id !== questionId),
     );
+    if (questionsToAdd.some((q) => q.id === questionId)) {
+      setUpdatedQuestions(updatedQuestions.filter((q) => q.id !== questionId));
+    }
   };
 
   const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
@@ -49,6 +63,7 @@ const Client = ({
     const questionToRemove = questions.find((q) => q.id === questionId);
     if (questionToRemove) {
       setQuestionsToRemove([...questionsToRemove, questionToRemove]);
+      setUpdatedQuestions([...updatedQuestions, questionToRemove]);
     }
   };
 
@@ -91,7 +106,7 @@ const Client = ({
           />
         </div>
         <div className="col-span-4 flex justify-center">
-          {(questionsToAdd.length > 0 || questionsToRemove.length > 0) && (
+          {updatedQuestions.length !== 0 && (
             <Button
               variant={"admin"}
               onClick={() =>
