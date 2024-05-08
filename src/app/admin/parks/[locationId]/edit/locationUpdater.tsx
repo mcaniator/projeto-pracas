@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/old-button";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { Location } from "@prisma/client";
 import Link from "next/link";
@@ -165,8 +165,9 @@ const LocationUpdater = ({ location }: { location: Location }) => {
 
               <Link href={"/admin/parks"}>
                 <Button
+                  type="button"
                   variant={"destructive"}
-                  onClick={() => void handleDelete(location.id)}
+                  onPress={() => void handleDelete(location.id)}
                   className={"w-min"}
                 >
                   <span className={"-mb-1"}>Deletar</span>

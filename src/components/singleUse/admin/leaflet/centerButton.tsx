@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/old-button";
+import { Button } from "@/components/button";
 import { IconLocationPin } from "@tabler/icons-react";
 import { useMap } from "react-leaflet";
 import Control from "react-leaflet-custom-control";
@@ -12,8 +12,9 @@ const CenterButton = () => {
     <div>
       <Control position={"bottomleft"}>
         <Button
+          type="button"
           variant={"admin"}
-          onClick={() => {
+          onPress={() => {
             navigator.geolocation.getCurrentPosition(
               (pos) => {
                 map.flyTo({
@@ -31,7 +32,6 @@ const CenterButton = () => {
           }}
           size={"icon"}
           className={"text-white"}
-          name={"Center on user"}
         >
           <IconLocationPin />
         </Button>

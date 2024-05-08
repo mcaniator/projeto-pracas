@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { PolygonContext } from "@/components/singleUse/admin/leaflet/createPolygon";
 import { DrawingContext } from "@/components/singleUse/admin/leaflet/leafletProvider";
 import {
@@ -10,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/old-button";
 import { josefin_sans, titillium_web } from "@/lib/fonts";
 import { mapSubmission } from "@/serverActions/parkSubmit";
 import { IconX } from "@tabler/icons-react";
@@ -50,10 +50,11 @@ const PolygonSubmissionForm = () => {
   return (
     <Dialog open={open}>
       <Button
-        aria-disabled={polygonContext.length <= 2}
+        type="button"
+        isDisabled={polygonContext.length <= 2}
         variant={"admin"}
         className={josefin_sans.className + " text-white"}
-        onClick={() => {
+        onPress={() => {
           setOpen(true);
         }}
       >
@@ -111,9 +112,10 @@ const PolygonSubmissionForm = () => {
             </DialogTitle>
             <div className="ml-auto">
               <Button
+                type="button"
                 variant={"ghost"}
                 size={"icon"}
-                onClick={() => {
+                onPress={() => {
                   if (
                     !isDirty ||
                     window.confirm(
@@ -175,8 +177,10 @@ const SubmitButton = (props: {
 
   return (
     <Button
+      type="button"
       variant={submitButtonState}
       className={"text-white"}
+      // @ts-expect-error this will be refactored soon
       form={props.form}
       aria-disabled={pending}
     >
