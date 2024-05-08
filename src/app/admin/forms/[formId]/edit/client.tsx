@@ -82,6 +82,8 @@ const Client = ({
   ) => {
     handleAddQuestion(formId, questionsToAdd);
     handleRemoveQuestions(formId, questionsToRemove);
+    updatedQuestions;
+    setUpdatedQuestions([]);
   };
   return form == null ?
       <div>Formulário não encontrado</div>
