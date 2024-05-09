@@ -41,6 +41,30 @@ const fetchForms = async () => {
   return forms;
 };
 
+const fetchFormsLatest = async () => {
+  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({
+    select: { id: true, name: true, version: true },
+  });
+
+  let forms: Prisma.FormGetPayload<typeof formsType>[] = [];
+
+  try {
+    forms = await prisma.form.findMany({
+      select: {
+        id: true,
+        name: true,
+        version: true,
+      },
+      orderBy: { id: "asc", version: "desc" },
+      distinct: ["id"],
+    });
+  } catch (error) {
+    console.error(`Erro ao recuperar formulários`, error);
+  }
+
+  return forms;
+};
+
 const searchFormsById = async (id: number) => {
   const cachedForms = unstable_cache(
     async (id: number): Promise<Form | undefined | null> => {
@@ -266,4 +290,5 @@ export {
   addQuestions,
   removeQuestions,
   createVersion,
+  fetchFormsLatest,
 };

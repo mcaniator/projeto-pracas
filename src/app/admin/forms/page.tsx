@@ -5,7 +5,24 @@ import { Form } from "@prisma/client";
 const AdminRoot = async () => {
   let forms: Form[];
   try {
-    forms = await prisma.form.findMany();
+    forms = await prisma.form.findMany({
+      select: {
+        id: true,
+        name: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      distinct: ["name"],
+      orderBy: [
+        {
+          name: "asc",
+        },
+        {
+          version: "desc",
+        },
+      ],
+    });
   } catch (e) {
     // console.error(e);
     forms = [];
@@ -13,7 +30,7 @@ const AdminRoot = async () => {
   return (
     <div>
       <div>Clique no formulário para visualizar</div>
-      {forms !== null ?
+      {forms.length > 0 ?
         <div className="w-full">
           {forms.map((form) => (
             <FormComponent
