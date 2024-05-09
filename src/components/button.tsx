@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/cn";
 import { VariantProps, cva } from "class-variance-authority";
 import { AriaButtonProps } from "react-aria";
