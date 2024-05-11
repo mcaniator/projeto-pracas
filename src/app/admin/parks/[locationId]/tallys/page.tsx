@@ -1,0 +1,32 @@
+import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
+import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
+import { searchTallysByLocationId } from "@/serverActions/tallyUtil";
+import { Suspense } from "react";
+
+const AdminRoot = async () => {
+  const tallys = await searchTallysByLocationId(2);
+  return (
+    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
+      <div className="flex basis-3/5 flex-col gap-5 text-white">
+        <div
+          className={
+            "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+          }
+        >
+          <h3 className={"text-2xl font-semibold"}>Lista de contagens de </h3>
+          <Suspense>
+            <TallyList tallysPromise={tallys} />
+          </Suspense>
+        </div>
+      </div>
+      <div className={"basis-2/5 rounded-3xl bg-gray-300/30 p-3 shadow-md"}>
+        <div className="flex basis-3/5 flex-col gap-5 text-white">
+          <h3 className={"text-2xl font-semibold"}>Filtro</h3>
+          <TallyFilter></TallyFilter>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminRoot;
