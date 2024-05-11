@@ -42,26 +42,30 @@ const fetchForms = async () => {
 };
 
 const fetchFormsLatest = async () => {
-  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({
-    select: { id: true, name: true, version: true },
-  });
-
-  let forms: Prisma.FormGetPayload<typeof formsType>[] = [];
-
+  let forms: Form[];
   try {
     forms = await prisma.form.findMany({
       select: {
         id: true,
         name: true,
         version: true,
+        createdAt: true,
+        updatedAt: true,
       },
-      orderBy: { id: "asc", version: "desc" },
-      distinct: ["id"],
+      distinct: ["name"],
+      orderBy: [
+        {
+          name: "asc",
+        },
+        {
+          version: "desc",
+        },
+      ],
     });
-  } catch (error) {
-    console.error(`Erro ao recuperar formulários`, error);
+  } catch (e) {
+    console.error(e);
+    forms = [];
   }
-
   return forms;
 };
 
@@ -200,41 +204,8 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
     return { statusCode: 2 };
   }
 
-  // const questionType = Prisma.validator<Prisma.QuestionsOnFormsDefaultArgs>()({
-  //   select: { id: true, formId: true, questionId: true },
-  // });
-
-  // let oldQuestions:
-  //   | Prisma.QuestionsOnFormsGetPayload<typeof questionType>[]
-  //   | null = null;
-  // try {
-  //   oldQuestions = await prisma.questionsOnForms.findMany({
-  //     where: {
-  //       formId: formId,
-  //     },
-  //   });
-  // } catch (err) {
-  //   // console.error(err); //3
-  // }
-  // if (oldQuestions === null) return { message: "erro do servidor" };
-  // try {
-  //   const createManyParams = oldQuestions.map((question) => ({
-  //     formId: newFormId,
-  //     questionId: question.id,
-  //   }));
-
-  //   await prisma.questionsOnForms.createMany({
-  //     data: createManyParams,
-  //   });
-  // } catch (err) {
-  //   // console.log(err); //4
-  //   return { statusCode: 2 };
-  // }
-
   revalidateTag("questionOnForm");
-  return {
-    statusCode: 0,
-  };
+  return { statusCode: 0, newFormId };
 };
 
 const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {

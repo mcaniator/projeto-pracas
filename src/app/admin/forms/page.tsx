@@ -1,32 +1,10 @@
 import { FormComponent } from "@/components/singleUse/admin/registration/forms/formComponent";
-import { prisma } from "@/lib/prisma";
+import { fetchFormsLatest } from "@/serverActions/formUtil";
 import { Form } from "@prisma/client";
 
 const AdminRoot = async () => {
-  let forms: Form[];
-  try {
-    forms = await prisma.form.findMany({
-      select: {
-        id: true,
-        name: true,
-        version: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      distinct: ["name"],
-      orderBy: [
-        {
-          name: "asc",
-        },
-        {
-          version: "desc",
-        },
-      ],
-    });
-  } catch (e) {
-    // console.error(e);
-    forms = [];
-  }
+  const forms: Form[] = await fetchFormsLatest();
+
   return (
     <div>
       <div>Clique no formulário para visualizar</div>
