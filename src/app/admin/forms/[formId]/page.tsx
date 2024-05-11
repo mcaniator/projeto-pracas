@@ -28,7 +28,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
                   <Button>Editar</Button>
                 </Link>
               </div>
-              <span>Nome: {form?.name}</span>
+              <span>Versão: {form?.version}</span>
               <div>Perguntas do formulário:</div>
               {questions !== null ?
                 <ul className="list-disc p-3 ">

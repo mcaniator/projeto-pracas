@@ -60,7 +60,9 @@ const FormUpdater = ({
               defaultValue={form.id}
             />
 
-            <div>
+            <div
+            // className="flex items-center"
+            >
               <label htmlFor={"name"}>Nome:</label>
               <Input
                 type="text"
@@ -69,6 +71,11 @@ const FormUpdater = ({
                 id={"name"}
                 defaultValue={form.name === null ? "" : form.name}
               />
+              <div
+              // className="text-2xl"
+              >
+                Versão: {form.version}
+              </div>
             </div>
 
             <div className="mb-2 flex items-center justify-between rounded p-2">
@@ -95,7 +102,6 @@ const FormUpdater = ({
           ) ?
             <ul className="list-disc p-5">
               {questions.map((question) => {
-                // Verifica se o ID da pergunta está presente no array questionsToRemove
                 const isInToRemove = questionsToRemove.some(
                   (q) => q.id === question.id,
                 );
@@ -117,7 +123,7 @@ const FormUpdater = ({
                     </li>
                   );
                 }
-                return null; // Não renderiza a pergunta se estiver no questionsToRemove
+                return null;
               })}
             </ul>
           : <div className="text-redwood">
