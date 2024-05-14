@@ -1,16 +1,23 @@
-import { Button } from "@/components/button";
+"use client";
+
 import { createLocation } from "@/serverActions/locationCRUD";
 import { addPersonToTally, createTally } from "@/serverActions/tallyCRUD";
+import { useState } from "react";
 
 const Page = ({ params }: { params: { locationId: string } }) => {
+  const [time, setTime] = useState(1715649125000);
+  const createTallyHandler = async () => {
+    await createTally({
+      locationId: 1,
+      observer: "Guilherme Pimenta",
+      startDate: new Date(time),
+      weatherCondition: "CLOUDY",
+    });
+    setTime(time + 10000000000);
+  };
   return (
     <div>
-      <button onClick={void createLocation({ name: "Praca3" }, {}, 1)}>
-        Cadastrar local
-      </button>
-      <button onClick={void createTally({ locationId: 24 })}>
-        Criar contagem
-      </button>
+      <button onClick={createTallyHandler}>Criar contagem</button>
       <button
         onClick={
           void addPersonToTally(1, 1, {

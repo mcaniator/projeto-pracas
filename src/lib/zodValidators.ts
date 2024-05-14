@@ -12,6 +12,7 @@ import {
   QuestionTypes,
   UserTypes,
   Visibility,
+  WeatherConditions,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -384,12 +385,13 @@ export type {
 
 const tallySchema = z.object({
   date: z.coerce.date().optional(),
-  startDate: z.coerce.date().optional(),
+  startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
+  observer: z.coerce.string().trim().min(1).max(255),
 
   animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.string().trim().min(1).max(255).optional(),
+  weatherCondition: z.nativeEnum(WeatherConditions),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
