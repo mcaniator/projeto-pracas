@@ -240,21 +240,21 @@ model Category {
 model Question {
   id Int @id @default(autoincrement())
 
-  name     String             @db.VarChar(255)
-  optional Boolean            @default(false)
-  active   Boolean            @default(true)
-  type     QuestionTypes
-  forms    QuestionsOnForms[]
+  name              String             @db.VarChar(255)
+  optional          Boolean            @default(false)
+  active            Boolean            @default(true)
+  type              QuestionTypes
+  forms             QuestionsOnForms[]
+  response          Response[]
+  responseCharLimit Int?               @map("char_limit")
 
-  TextQuestion    TextQuestion?
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
   NumericQuestion NumericQuestion?
   OptionsQuestion OptionsQuestion?
-  categoryId      Int              @map("category_id")
-  category        Category         @relation(fields: [categoryId], references: [id])
-
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  response  Response[]
 
   @@map("question")
 }
@@ -275,20 +275,6 @@ model Response {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("response")
-}
-
-model TextQuestion {
-  id Int @id @default(autoincrement())
-
-  charLimit Int? @map("char_limit")
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("text_question")
 }
 
 model NumericQuestion {

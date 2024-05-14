@@ -125,7 +125,7 @@ const QuestionForm = ({
         {type == "text" && (
           <div>
             <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name={"charLimit"} id={"charLimit"} required />
+            <Input type="number" name={"charLimit"} id={"charLimit"} />
           </div>
         )}
 

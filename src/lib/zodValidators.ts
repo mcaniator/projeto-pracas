@@ -49,18 +49,13 @@ const questionSchema = z.object({
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
+  responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const questionsOnFormsSchema = z.object({
   formId: z.coerce.number().int().finite().nonnegative(),
-  questionId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const textQuestionSchema = z.object({
-  charLimit: z.coerce.number().int().finite().nonnegative().optional(),
-
   questionId: z.coerce.number().int().finite().nonnegative(),
 });
 
@@ -111,7 +106,7 @@ const formSchema = z.object({
 
 type categoryType = z.infer<typeof categorySchema>;
 type questionType = z.infer<typeof questionSchema>;
-type textQuestionType = z.infer<typeof textQuestionSchema>;
+// type textQuestionType = z.infer<typeof textQuestionSchema>;
 type numericQuestionType = z.infer<typeof numericQuestionSchema>;
 type optionsQuestionType = z.infer<typeof optionsQuestionSchema>;
 type formType = z.infer<typeof formSchema>;
@@ -123,7 +118,7 @@ export {
   optionSchema,
   optionsQuestionSchema,
   questionSchema,
-  textQuestionSchema,
+  // textQuestionSchema,
 };
 export type {
   categoryType,
@@ -131,7 +126,7 @@ export type {
   numericQuestionType,
   optionsQuestionType,
   questionType,
-  textQuestionType,
+  // textQuestionType,
 };
 // #endregion
 

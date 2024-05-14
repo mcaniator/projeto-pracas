@@ -2,11 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import {
-  numericQuestionSchema,
-  optionSchema,
-  optionsQuestionSchema,
-  questionSchema,
-  textQuestionSchema,
+  questionSchema, // optionSchema,
+  // textQuestionSchema,
+  // numericQuestionSchema,
+  // optionsQuestionSchema,
 } from "@/lib/zodValidators";
 import { Question, QuestionsOnForms } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
@@ -17,24 +16,15 @@ const questionSubmit = async (
 ) => {
   const questionType = formData.get("questionType");
 
-  let questionParsed;
-  try {
-    questionParsed = questionSchema.parse({
-      name: formData.get("name"),
-      type: questionType,
-      categoryId: formData.get("categoryId"),
-    });
-  } catch (err) {
-    // console.log(err);
-    return { statusCode: 1 };
-  }
-
   switch (questionType) {
     case "TEXT": {
       let textQuestionParsed;
       try {
-        textQuestionParsed = textQuestionSchema.parse({
-          charLimit: formData.get("charLimit"),
+        textQuestionParsed = questionSchema.parse({
+          name: formData.get("name"),
+          type: questionType,
+          categoryId: formData.get("categoryId"),
+          responseCharLimit: formData.get("charLimit"),
         });
       } catch (err) {
         // console.log(err);
@@ -44,10 +34,10 @@ const questionSubmit = async (
       try {
         await prisma.question.create({
           data: {
-            ...questionParsed,
-            TextQuestion: {
-              create: textQuestionParsed,
-            },
+            name: textQuestionParsed.name,
+            type: textQuestionParsed.type,
+            categoryId: textQuestionParsed.categoryId,
+            responseCharLimit: textQuestionParsed.responseCharLimit,
           },
         });
       } catch (err) {
@@ -57,105 +47,105 @@ const questionSubmit = async (
 
       break;
     }
-    case "NUMERIC": {
-      let numericQuestionParsed;
-      try {
-        numericQuestionParsed = numericQuestionSchema.parse({
-          min: formData.get("min"),
-          max: formData.get("max"),
-        });
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 1 };
-      }
+    // case "NUMERIC": {
+    //   let numericQuestionParsed;
+    //   try {
+    //     numericQuestionParsed = numericQuestionSchema.parse({
+    //       min: formData.get("min"),
+    //       max: formData.get("max"),
+    //     });
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 1 };
+    //   }
 
-      try {
-        await prisma.question.create({
-          data: {
-            ...questionParsed,
-            NumericQuestion: {
-              create: numericQuestionParsed,
-            },
-          },
-        });
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 2 };
-      }
+    //   try {
+    //     await prisma.question.create({
+    //       data: {
+    //         ...questionParsed,
+    //         NumericQuestion: {
+    //           create: numericQuestionParsed,
+    //         },
+    //       },
+    //     });
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 2 };
+    //   }
 
-      break;
-    }
-    case "OPTIONS": {
-      const optionType = formData.get("optionType");
+    //   break;
+    // }
+    // case "OPTIONS": {
+    //   const optionType = formData.get("optionType");
 
-      const optionsQuestionObject =
-        optionType == "CHECKBOX" ?
-          {
-            optionType: optionType,
-            maximumSelections: formData.get("maximumSelection"),
-          }
-        : {
-            optionType: optionType,
-          };
+    //   const optionsQuestionObject =
+    //     optionType == "CHECKBOX" ?
+    //       {
+    //         optionType: optionType,
+    //         maximumSelections: formData.get("maximumSelection"),
+    //       }
+    //     : {
+    //         optionType: optionType,
+    //       };
 
-      let optionsQuestionParsed;
-      try {
-        optionsQuestionParsed = optionsQuestionSchema.parse(
-          optionsQuestionObject,
-        );
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 1 };
-      }
+    //   let optionsQuestionParsed;
+    //   try {
+    //     optionsQuestionParsed = optionsQuestionSchema.parse(
+    //       optionsQuestionObject,
+    //     );
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 1 };
+    //   }
 
-      const options = formData
-        .getAll("options")
-        .map((value) => ({ text: value }));
+    //   const options = formData
+    //     .getAll("options")
+    //     .map((value) => ({ text: value }));
 
-      try {
-        if (
-          optionsQuestionParsed.maximumSelections != undefined &&
-          optionsQuestionParsed.maximumSelections > options.length
-        )
-          throw new Error(
-            "Number of maximum selections is bigger than the amount of options",
-          );
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 3 };
-      }
+    //   try {
+    //     if (
+    //       optionsQuestionParsed.maximumSelections != undefined &&
+    //       optionsQuestionParsed.maximumSelections > options.length
+    //     )
+    //       throw new Error(
+    //         "Number of maximum selections is bigger than the amount of options",
+    //       );
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 3 };
+    //   }
 
-      let optionsParsed;
-      try {
-        optionsParsed = optionSchema.parse(options);
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 1 };
-      }
+    //   let optionsParsed;
+    //   try {
+    //     optionsParsed = optionSchema.parse(options);
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 1 };
+    //   }
 
-      try {
-        await prisma.question.create({
-          data: {
-            ...questionParsed,
-            OptionsQuestion: {
-              create: {
-                ...optionsQuestionParsed,
-                options: {
-                  createMany: {
-                    data: optionsParsed,
-                  },
-                },
-              },
-            },
-          },
-        });
-      } catch (err) {
-        // console.log(err);
-        return { statusCode: 2 };
-      }
+    //   try {
+    //     await prisma.question.create({
+    //       data: {
+    //         ...questionParsed,
+    //         OptionsQuestion: {
+    //           create: {
+    //             ...optionsQuestionParsed,
+    //             options: {
+    //               createMany: {
+    //                 data: optionsParsed,
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     });
+    //   } catch (err) {
+    //     // console.log(err);
+    //     return { statusCode: 2 };
+    //   }
 
-      break;
-    }
+    // break;
+    // }
   }
 
   revalidateTag("question");
