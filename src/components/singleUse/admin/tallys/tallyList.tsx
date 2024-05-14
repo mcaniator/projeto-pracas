@@ -30,9 +30,13 @@ const TallyComponent = ({
 const TallyList = ({
   params,
   tallysPromise,
+  initialDate,
+  finalDate,
 }: {
   params: { locationId: string };
   tallysPromise?: Tally[];
+  initialDate: number;
+  finalDate: number;
 }) => {
   const tallys = tallysPromise;
 
@@ -40,15 +44,32 @@ const TallyList = ({
       <h3>Nenhuma contagem encontrada para este local!</h3>
     : <div className="w-full text-black">
         {tallys.length > 0 &&
-          tallys.map((tally) => (
-            <TallyComponent
-              key={tally.id}
-              id={tally.id}
-              startDate={tally.startDate.toString()}
-              observer={tally.observer}
-              locationId={params.locationId}
-            />
-          ))}
+          tallys
+            .filter((tally) => {
+              if (initialDate === 0 && finalDate === 0) {
+                return true;
+              } else if (initialDate === 0) {
+                if (tally.startDate.getTime() <= finalDate) return true;
+              } else if (finalDate === 0) {
+                if (tally.startDate.getTime() >= initialDate) return true;
+              } else {
+                if (
+                  tally.startDate.getTime() >= initialDate &&
+                  tally.startDate.getTime() <= finalDate
+                ) {
+                  return true;
+                }
+              }
+            })
+            .map((tally) => (
+              <TallyComponent
+                key={tally.id}
+                id={tally.id}
+                startDate={tally.startDate.toString()}
+                observer={tally.observer}
+                locationId={params.locationId}
+              />
+            ))}
       </div>;
 };
 
