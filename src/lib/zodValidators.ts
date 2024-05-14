@@ -50,6 +50,8 @@ const questionSchema = z.object({
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
   responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
+  minValue: z.coerce.number().finite().optional(),
+  maxValue: z.coerce.number().finite().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });

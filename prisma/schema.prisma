@@ -247,13 +247,14 @@ model Question {
   forms             QuestionsOnForms[]
   response          Response[]
   responseCharLimit Int?               @map("char_limit")
+  minValue          Int?
+  maxValue          Int?
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
 
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
-  NumericQuestion NumericQuestion?
   OptionsQuestion OptionsQuestion?
 
   @@map("question")
@@ -275,21 +276,6 @@ model Response {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("response")
-}
-
-model NumericQuestion {
-  id Int @id @default(autoincrement())
-
-  min Int?
-  max Int?
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("numeric_question")
 }
 
 model OptionsQuestion {

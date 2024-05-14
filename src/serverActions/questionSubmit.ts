@@ -47,34 +47,38 @@ const questionSubmit = async (
 
       break;
     }
-    // case "NUMERIC": {
-    //   let numericQuestionParsed;
-    //   try {
-    //     numericQuestionParsed = numericQuestionSchema.parse({
-    //       min: formData.get("min"),
-    //       max: formData.get("max"),
-    //     });
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 1 };
-    //   }
+    case "NUMERIC": {
+      let numericQuestionParsed;
+      try {
+        numericQuestionParsed = questionSchema.parse({
+          name: formData.get("name"),
+          type: questionType,
+          categoryId: formData.get("categoryId"),
+          min: formData.get("min"),
+          max: formData.get("max"),
+        });
+      } catch (err) {
+        // console.log(err);
+        return { statusCode: 1 };
+      }
 
-    //   try {
-    //     await prisma.question.create({
-    //       data: {
-    //         ...questionParsed,
-    //         NumericQuestion: {
-    //           create: numericQuestionParsed,
-    //         },
-    //       },
-    //     });
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 2 };
-    //   }
+      try {
+        await prisma.question.create({
+          data: {
+            name: numericQuestionParsed.name,
+            type: numericQuestionParsed.type,
+            categoryId: numericQuestionParsed.categoryId,
+            minValue: numericQuestionParsed.minValue,
+            maxValue: numericQuestionParsed.maxValue,
+          },
+        });
+      } catch (err) {
+        // console.log(err);
+        return { statusCode: 2 };
+      }
 
-    //   break;
-    // }
+      break;
+    }
     // case "OPTIONS": {
     //   const optionType = formData.get("optionType");
 
