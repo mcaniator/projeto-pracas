@@ -16,6 +16,15 @@ const TallyPage = ({
 }) => {
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
+  const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([
+    "dom.",
+    "seg.",
+    "ter.",
+    "qua.",
+    "qui.",
+    "sex.",
+    "sáb.",
+  ]);
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex basis-3/5 flex-col gap-5 text-white">
@@ -30,20 +39,19 @@ const TallyPage = ({
 
           <TallyList
             params={{ locationId: locationId }}
-            tallysPromise={tallys}
+            tallys={tallys}
             initialDate={initialDate}
             finalDate={finalDate}
+            weekdaysFilter={weekdaysFilter}
           />
         </div>
       </div>
-      <div className={"basis-2/5 rounded-3xl bg-gray-300/30 p-3 shadow-md"}>
-        <div className="flex basis-3/5 flex-col gap-5 text-white">
-          <h3 className={"text-2xl font-semibold"}>Filtro</h3>
-          <TallyFilter
-            setInitialDate={setInitialDate}
-            setFinalDate={setFinalDate}
-          ></TallyFilter>
-        </div>
+      <div className={"basis-1/4 rounded-3xl bg-gray-300/30 p-3 shadow-md"}>
+        <TallyFilter
+          setInitialDate={setInitialDate}
+          setFinalDate={setFinalDate}
+          setWeekDaysFilter={setWeekDaysFilter}
+        ></TallyFilter>
       </div>
     </div>
   );

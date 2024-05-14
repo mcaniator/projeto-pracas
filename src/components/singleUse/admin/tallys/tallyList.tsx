@@ -3,6 +3,11 @@
 import { Tally } from "@prisma/client";
 import Link from "next/link";
 
+const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  weekday: "short",
+});
+
 const TallyComponent = ({
   id,
   startDate,
@@ -21,7 +26,7 @@ const TallyComponent = ({
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/parks/${locationId}/tallys/${id}`}
     >
-      <span>{`${startD.getDate()}/${startD.getMonth() + 1}/${startD.getFullYear()} - ${startD.getHours()}:${startD.getMinutes()}`}</span>
+      <span>{`${weekdayFormatter.format(startD)}, ${startD.getDate()}/${startD.getMonth() + 1}/${startD.getFullYear()} - ${startD.getHours()}:${startD.getMinutes()}`}</span>
       <span className="ml-auto"> Observador(a): {observer}</span>
     </Link>
   );
@@ -29,23 +34,30 @@ const TallyComponent = ({
 
 const TallyList = ({
   params,
-  tallysPromise,
+  tallys,
   initialDate,
   finalDate,
+  weekdaysFilter,
 }: {
   params: { locationId: string };
-  tallysPromise?: Tally[];
+  tallys: Tally[];
   initialDate: number;
   finalDate: number;
+  weekdaysFilter: string[];
 }) => {
-  const tallys = tallysPromise;
-
   return tallys === undefined || tallys.length === 0 ?
       <h3>Nenhuma contagem encontrada para este local!</h3>
     : <div className="w-full text-black">
         {tallys.length > 0 &&
           tallys
             .filter((tally) => {
+              if (
+                !weekdaysFilter.includes(
+                  weekdayFormatter.format(tally.startDate),
+                )
+              ) {
+                return false;
+              }
               if (initialDate === 0 && finalDate === 0) {
                 return true;
               } else if (initialDate === 0) {
