@@ -73,7 +73,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"dom."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
           <div className="flex items-center">
@@ -85,7 +84,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"seg."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
 
@@ -98,7 +96,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"ter."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
 
@@ -111,7 +108,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"qua."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
 
@@ -124,7 +120,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"qui."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
 
@@ -137,7 +132,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"sex."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
 
@@ -150,7 +144,6 @@ const TallyFilter = ({
               type="checkbox"
               value={"sáb."}
               onChange={handleWeekdayChange}
-              defaultChecked
             />
           </div>
         </div>

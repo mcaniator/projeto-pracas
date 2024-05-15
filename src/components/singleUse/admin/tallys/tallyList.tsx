@@ -59,13 +59,16 @@ const TallyList = ({
         {tallys.length > 0 &&
           tallys
             .filter((tally) => {
-              if (
-                !weekdaysFilter.includes(
-                  weekdayFormatter.format(tally.startDate),
-                )
-              ) {
-                return false;
+              if (weekdaysFilter.length > 0) {
+                if (
+                  !weekdaysFilter.includes(
+                    weekdayFormatter.format(tally.startDate),
+                  )
+                ) {
+                  return false;
+                }
               }
+
               if (initialDate === 0 && finalDate === 0) {
                 return true;
               } else if (initialDate === 0) {

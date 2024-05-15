@@ -15,7 +15,7 @@ const searchTallysByLocationId = async (locationId: number) => {
   } catch (err) {
     // console.error(err);
   }
-  foundTallys.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  foundTallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return foundTallys;
 };
 

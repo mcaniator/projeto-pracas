@@ -16,17 +16,9 @@ const TallyPage = ({
 }) => {
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
-  const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([
-    "dom.",
-    "seg.",
-    "ter.",
-    "qua.",
-    "qui.",
-    "sex.",
-    "sáb.",
-  ]);
+  const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([]);
   return (
-    <div className={"flex max-h-screen min-h-0 gap-5 p-5"}>
+    <div className={"flex max-h-[calc(100vh-88px)] min-h-0 gap-5 p-5"}>
       <div
         className={
           "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
@@ -35,7 +27,7 @@ const TallyPage = ({
         <h3 className={"text-2xl font-semibold"}>
           {`Lista de contagens de ${locationName}`}
         </h3>
-        <div className="overflow-auto">
+        <div className="overflow-auto rounded">
           <TallyList
             params={{ locationId: locationId }}
             tallys={tallys}
