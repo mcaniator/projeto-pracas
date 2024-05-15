@@ -32,11 +32,10 @@ const TallyFilter = ({
       setWeekDaysFilter((prev) => prev.filter((day) => day !== e.target.value));
   };
   return (
-    <div className="flex  flex-col gap-5 text-white">
-      <h3 className={"text-2xl font-semibold"}>Filtros</h3>
+    <div className="flex flex-col gap-5">
       <div className="flex basis-1/5 flex-col">
         <h3 className="text-xl font-semibold">Filtro por data</h3>
-        <div className="flex-cols-2 flex gap-4">
+        <div className="flex-cols-2 flex gap-6">
           <div className="flex flex-row">
             <label htmlFor="initial-date" className="mr-2">
               De:
@@ -149,7 +148,7 @@ const TallyFilter = ({
             <Input
               id="sat"
               type="checkbox"
-              value={"sáb"}
+              value={"sáb."}
               onChange={handleWeekdayChange}
               defaultChecked
             />

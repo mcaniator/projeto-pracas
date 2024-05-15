@@ -26,17 +26,16 @@ const TallyPage = ({
     "sáb.",
   ]);
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-3/5 flex-col gap-5 text-white">
-        <div
-          className={
-            "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
-          }
-        >
-          <h3 className={"text-2xl font-semibold"}>
-            {`Lista de contagens de ${locationName}`}
-          </h3>
-
+    <div className={"flex max-h-screen min-h-0 gap-5 p-5"}>
+      <div
+        className={
+          "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+        }
+      >
+        <h3 className={"text-2xl font-semibold"}>
+          {`Lista de contagens de ${locationName}`}
+        </h3>
+        <div className="overflow-auto">
           <TallyList
             params={{ locationId: locationId }}
             tallys={tallys}
@@ -46,12 +45,20 @@ const TallyPage = ({
           />
         </div>
       </div>
-      <div className={"basis-1/4 rounded-3xl bg-gray-300/30 p-3 shadow-md"}>
-        <TallyFilter
-          setInitialDate={setInitialDate}
-          setFinalDate={setFinalDate}
-          setWeekDaysFilter={setWeekDaysFilter}
-        ></TallyFilter>
+
+      <div>
+        <div
+          className={
+            " flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+          }
+        >
+          <h3 className={"text-2xl font-semibold"}>Filtros</h3>
+          <TallyFilter
+            setInitialDate={setInitialDate}
+            setFinalDate={setFinalDate}
+            setWeekDaysFilter={setWeekDaysFilter}
+          ></TallyFilter>
+        </div>
       </div>
     </div>
   );

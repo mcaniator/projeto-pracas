@@ -7,7 +7,14 @@ const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   weekday: "short",
 });
-
+const dateWithHoursFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  day: "2-digit",
+  month: "2-digit",
+  year: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 const TallyComponent = ({
   id,
   startDate,
@@ -20,13 +27,14 @@ const TallyComponent = ({
   locationId: string;
 }) => {
   const startD = new Date(startDate);
+  const weekday = weekdayFormatter.format(startD);
   return (
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/parks/${locationId}/tallys/${id}`}
     >
-      <span>{`${weekdayFormatter.format(startD)}, ${startD.getDate()}/${startD.getMonth() + 1}/${startD.getFullYear()} - ${startD.getHours()}:${startD.getMinutes()}`}</span>
+      <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(startD)}`}</span>
       <span className="ml-auto"> Observador(a): {observer}</span>
     </Link>
   );
