@@ -396,6 +396,13 @@ const tallySchema = z.object({
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
 
+const tallyDataFetchedToTallyListSchema = z.object({
+  id: z.coerce.number().int().finite().nonnegative(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  observer: z.coerce.string().trim().min(1).max(255),
+});
+
 const personSchema = z.object({
   ageGroup: z.nativeEnum(AgeGroup),
   gender: z.nativeEnum(Gender),
@@ -416,7 +423,20 @@ const noiseSchema = z.object({
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
+type tallyDataFetchedToTallyListType = z.infer<
+  typeof tallyDataFetchedToTallyListSchema
+>;
 
-export { noiseSchema, personSchema, tallySchema };
-export type { noiseType, personType, tallyType };
+export {
+  noiseSchema,
+  personSchema,
+  tallySchema,
+  tallyDataFetchedToTallyListSchema,
+};
+export type {
+  noiseType,
+  personType,
+  tallyType,
+  tallyDataFetchedToTallyListType,
+};
 // #endregion

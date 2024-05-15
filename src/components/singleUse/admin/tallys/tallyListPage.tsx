@@ -2,9 +2,13 @@
 
 import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
-import { Tally } from "@prisma/client";
-import { useState } from "react";
+import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
+import { useEffect, useState } from "react";
 
+const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  weekday: "short",
+});
 const TallyPage = ({
   locationId,
   locationName,
@@ -12,11 +16,43 @@ const TallyPage = ({
 }: {
   locationId: string;
   locationName: string;
-  tallys: Tally[];
+  tallys: tallyDataFetchedToTallyListType[];
 }) => {
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
   const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([]);
+  const [activeTallysIds, setActiveTallysIds] = useState(
+    tallys.map((tally) => tally.id),
+  );
+
+  useEffect(() => {
+    const filteredTallys = tallys.filter((tally) => {
+      if (weekdaysFilter.length > 0) {
+        if (
+          !weekdaysFilter.includes(weekdayFormatter.format(tally.startDate))
+        ) {
+          return false;
+        }
+      }
+
+      if (initialDate === 0 && finalDate === 0) {
+        return true;
+      } else if (initialDate === 0) {
+        if (tally.startDate.getTime() <= finalDate) return true;
+      } else if (finalDate === 0) {
+        if (tally.startDate.getTime() >= initialDate) return true;
+      } else {
+        if (
+          tally.startDate.getTime() >= initialDate &&
+          tally.startDate.getTime() <= finalDate
+        ) {
+          return true;
+        }
+      }
+    });
+    setActiveTallysIds(filteredTallys.map((tally) => tally.id));
+  }, [initialDate, finalDate, weekdaysFilter, tallys]);
+  console.log(activeTallysIds);
   return (
     <div className={"flex max-h-[calc(100vh-88px)] min-h-0 gap-5 p-5"}>
       <div
@@ -49,6 +85,8 @@ const TallyPage = ({
             setInitialDate={setInitialDate}
             setFinalDate={setFinalDate}
             setWeekDaysFilter={setWeekDaysFilter}
+            locationId={parseInt(locationId)}
+            activeTallysIds={activeTallysIds}
           ></TallyFilter>
         </div>
       </div>

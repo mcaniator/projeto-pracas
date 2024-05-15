@@ -1,15 +1,21 @@
 "use client";
 
+import { Button } from "@/components/button";
+import Link from "next/link";
 import { Input } from "react-aria-components";
 
 const TallyFilter = ({
   setInitialDate,
   setFinalDate,
   setWeekDaysFilter,
+  locationId,
+  activeTallysIds,
 }: {
   setInitialDate: React.Dispatch<React.SetStateAction<number>>;
   setFinalDate: React.Dispatch<React.SetStateAction<number>>;
   setWeekDaysFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  locationId: number;
+  activeTallysIds: number[];
 }) => {
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -31,6 +37,8 @@ const TallyFilter = ({
     else
       setWeekDaysFilter((prev) => prev.filter((day) => day !== e.target.value));
   };
+
+  const activeTallysIdsString = `${activeTallysIds.join("-")}`;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex basis-1/5 flex-col">
@@ -146,6 +154,18 @@ const TallyFilter = ({
               onChange={handleWeekdayChange}
             />
           </div>
+        </div>
+      </div>
+      <div className="flex basis-1/5 flex-col">
+        <h3 className="text-xl font-semibold">Contagens Filtradas</h3>
+        <div>
+          <Button type="button">
+            <Link
+              href={`/admin/parks/${locationId}/tallys/${activeTallysIdsString}`}
+            >
+              Dados somados
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

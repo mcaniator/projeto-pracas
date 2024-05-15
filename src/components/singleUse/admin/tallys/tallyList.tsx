@@ -1,6 +1,6 @@
 "use client";
 
-import { Tally } from "@prisma/client";
+import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -48,7 +48,7 @@ const TallyList = ({
   weekdaysFilter,
 }: {
   params: { locationId: string };
-  tallys: Tally[];
+  tallys: tallyDataFetchedToTallyListType[];
   initialDate: number;
   finalDate: number;
   weekdaysFilter: string[];
@@ -56,43 +56,42 @@ const TallyList = ({
   return tallys === undefined || tallys.length === 0 ?
       <h3>Nenhuma contagem encontrada para este local!</h3>
     : <div className="w-full text-black">
-        {tallys.length > 0 &&
-          tallys
-            .filter((tally) => {
-              if (weekdaysFilter.length > 0) {
-                if (
-                  !weekdaysFilter.includes(
-                    weekdayFormatter.format(tally.startDate),
-                  )
-                ) {
-                  return false;
-                }
+        {tallys
+          .filter((tally) => {
+            if (weekdaysFilter.length > 0) {
+              if (
+                !weekdaysFilter.includes(
+                  weekdayFormatter.format(tally.startDate),
+                )
+              ) {
+                return false;
               }
+            }
 
-              if (initialDate === 0 && finalDate === 0) {
+            if (initialDate === 0 && finalDate === 0) {
+              return true;
+            } else if (initialDate === 0) {
+              if (tally.startDate.getTime() <= finalDate) return true;
+            } else if (finalDate === 0) {
+              if (tally.startDate.getTime() >= initialDate) return true;
+            } else {
+              if (
+                tally.startDate.getTime() >= initialDate &&
+                tally.startDate.getTime() <= finalDate
+              ) {
                 return true;
-              } else if (initialDate === 0) {
-                if (tally.startDate.getTime() <= finalDate) return true;
-              } else if (finalDate === 0) {
-                if (tally.startDate.getTime() >= initialDate) return true;
-              } else {
-                if (
-                  tally.startDate.getTime() >= initialDate &&
-                  tally.startDate.getTime() <= finalDate
-                ) {
-                  return true;
-                }
               }
-            })
-            .map((tally) => (
-              <TallyComponent
-                key={tally.id}
-                id={tally.id}
-                startDate={tally.startDate.toString()}
-                observer={tally.observer}
-                locationId={params.locationId}
-              />
-            ))}
+            }
+          })
+          .map((tally) => (
+            <TallyComponent
+              key={tally.id}
+              id={tally.id}
+              startDate={tally.startDate.toString()}
+              observer={tally.observer}
+              locationId={params.locationId}
+            />
+          ))}
       </div>;
 };
 
