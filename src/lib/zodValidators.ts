@@ -52,6 +52,8 @@ const questionSchema = z.object({
   responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
   minValue: z.coerce.number().finite().optional(),
   maxValue: z.coerce.number().finite().optional(),
+  optionType: z.nativeEnum(OptionTypes).optional(),
+  maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });
@@ -97,7 +99,7 @@ const optionSchema = z
   .object({
     text: z.string().trim().min(1).max(255),
 
-    optionsQuestionId: z.coerce.number().int().finite().nonnegative(),
+    questionId: z.coerce.number().int().finite().nonnegative(),
   })
   .array()
   .nonempty();

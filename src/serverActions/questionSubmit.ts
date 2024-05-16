@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import {
-  questionSchema, // optionSchema,
-  // textQuestionSchema,
+  optionSchema, // textQuestionSchema,
   // numericQuestionSchema,
   // optionsQuestionSchema,
+  questionSchema,
 } from "@/lib/zodValidators";
 import { Question, QuestionsOnForms } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
@@ -79,77 +79,79 @@ const questionSubmit = async (
 
       break;
     }
-    // case "OPTIONS": {
-    //   const optionType = formData.get("optionType");
+    case "OPTIONS": {
+      const optionType = formData.get("optionType");
+      const maximumSelections = formData.get("maximumSelection");
+      const name = formData.get("name");
+      const categoryId = formData.get("categoryId");
 
-    //   const optionsQuestionObject =
-    //     optionType == "CHECKBOX" ?
-    //       {
-    //         optionType: optionType,
-    //         maximumSelections: formData.get("maximumSelection"),
-    //       }
-    //     : {
-    //         optionType: optionType,
-    //       };
+      const optionsQuestionObject =
+        optionType === "CHECKBOX" ?
+          { optionType, maximumSelections }
+        : { optionType };
 
-    //   let optionsQuestionParsed;
-    //   try {
-    //     optionsQuestionParsed = optionsQuestionSchema.parse(
-    //       optionsQuestionObject,
-    //     );
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 1 };
-    //   }
+      let optionsQuestionParsed;
+      try {
+        optionsQuestionParsed = questionSchema.parse({
+          name,
+          type: questionType,
+          categoryId,
+          ...optionsQuestionObject,
+        });
+      } catch (err) {
+        console.error("Error parsing question schema:", err);
+        return { statusCode: 1 };
+      }
 
-    //   const options = formData
-    //     .getAll("options")
-    //     .map((value) => ({ text: value }));
+      if (
+        optionsQuestionParsed.maximumSelections !== undefined
+        //  &&
+        // optionsQuestionParsed.maximumSelections > options.length
+      ) {
+        console.error(
+          "Number of maximum selections is bigger than the amount of options",
+        );
+        return { statusCode: 3 };
+      }
 
-    //   try {
-    //     if (
-    //       optionsQuestionParsed.maximumSelections != undefined &&
-    //       optionsQuestionParsed.maximumSelections > options.length
-    //     )
-    //       throw new Error(
-    //         "Number of maximum selections is bigger than the amount of options",
-    //       );
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 3 };
-    //   }
+      try {
+        const newQuestion = await prisma.question.create({
+          data: {
+            name: optionsQuestionParsed.name,
+            type: questionType,
+            categoryId: optionsQuestionParsed.categoryId,
+            optionType: optionsQuestionParsed.optionType,
+            maximumSelections: optionsQuestionParsed.maximumSelections,
+          },
+        });
+        const options = formData.getAll("options").map((value) => ({
+          text: value,
+          questionId: newQuestion.id,
+        }));
 
-    //   let optionsParsed;
-    //   try {
-    //     optionsParsed = optionSchema.parse(options);
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 1 };
-    //   }
+        let optionsParsed;
+        try {
+          optionsParsed = optionSchema.parse(options);
+        } catch (err) {
+          console.error("Error parsing options schema:", err);
+          return { statusCode: 1 };
+        }
 
-    //   try {
-    //     await prisma.question.create({
-    //       data: {
-    //         ...questionParsed,
-    //         OptionsQuestion: {
-    //           create: {
-    //             ...optionsQuestionParsed,
-    //             options: {
-    //               createMany: {
-    //                 data: optionsParsed,
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     });
-    //   } catch (err) {
-    //     // console.log(err);
-    //     return { statusCode: 2 };
-    //   }
+        try {
+          await prisma.option.createMany({
+            data: optionsParsed,
+          });
+        } catch (err) {
+          console.error("Error creating question in database:", err);
+          return { statusCode: 2 };
+        }
+      } catch (err) {
+        console.error("Error creating question in database:", err);
+        return { statusCode: 2 };
+      }
 
-    // break;
-    // }
+      break;
+    }
   }
 
   revalidateTag("question");

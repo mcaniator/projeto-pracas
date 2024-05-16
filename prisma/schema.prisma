@@ -249,13 +249,16 @@ model Question {
   responseCharLimit Int?               @map("char_limit")
   minValue          Int?
   maxValue          Int?
+  optionType        OptionTypes?       @map("option_type")
+  // Should only have a value if optionType == CHECKBOX
+  maximumSelections Int?               @map("maximum_selections")
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
+  options    Option[]
 
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  OptionsQuestion OptionsQuestion?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("question")
 }
@@ -278,32 +281,13 @@ model Response {
   @@map("response")
 }
 
-model OptionsQuestion {
-  id Int @id @default(autoincrement())
-
-  optionType OptionTypes @map("option_type")
-
-  // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int? @map("maximum_selections")
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  options Option[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("options_question")
-}
-
 model Option {
   id Int @id @default(autoincrement())
 
   text String @db.VarChar(255)
 
-  optionsQuestionId Int             @map("options_question_id")
-  OptionsQuestion   OptionsQuestion @relation(fields: [optionsQuestionId], references: [id])
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
