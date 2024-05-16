@@ -52,9 +52,9 @@ const TallyPage = ({
     });
     setActiveTallysIds(filteredTallys.map((tally) => tally.id));
   }, [initialDate, finalDate, weekdaysFilter, tallys]);
-  console.log(activeTallysIds);
+
   return (
-    <div className={"flex max-h-[calc(100vh-88px)] min-h-0 gap-5 p-5"}>
+    <div className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5"}>
       <div
         className={
           "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
