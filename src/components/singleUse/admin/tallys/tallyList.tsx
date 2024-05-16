@@ -42,56 +42,23 @@ const TallyComponent = ({
 
 const TallyList = ({
   params,
-  tallys,
-  initialDate,
-  finalDate,
-  weekdaysFilter,
+  activeTallys,
 }: {
   params: { locationId: string };
-  tallys: tallyDataFetchedToTallyListType[];
-  initialDate: number;
-  finalDate: number;
-  weekdaysFilter: string[];
+  activeTallys: tallyDataFetchedToTallyListType[];
 }) => {
-  return tallys === undefined || tallys.length === 0 ?
+  return activeTallys === undefined || activeTallys.length === 0 ?
       <h3>Nenhuma contagem encontrada para este local!</h3>
     : <div className="w-full text-black">
-        {tallys
-          .filter((tally) => {
-            if (weekdaysFilter.length > 0) {
-              if (
-                !weekdaysFilter.includes(
-                  weekdayFormatter.format(tally.startDate),
-                )
-              ) {
-                return false;
-              }
-            }
-
-            if (initialDate === 0 && finalDate === 0) {
-              return true;
-            } else if (initialDate === 0) {
-              if (tally.startDate.getTime() <= finalDate) return true;
-            } else if (finalDate === 0) {
-              if (tally.startDate.getTime() >= initialDate) return true;
-            } else {
-              if (
-                tally.startDate.getTime() >= initialDate &&
-                tally.startDate.getTime() <= finalDate
-              ) {
-                return true;
-              }
-            }
-          })
-          .map((tally) => (
-            <TallyComponent
-              key={tally.id}
-              id={tally.id}
-              startDate={tally.startDate.toString()}
-              observer={tally.observer}
-              locationId={params.locationId}
-            />
-          ))}
+        {activeTallys.map((tally) => (
+          <TallyComponent
+            key={tally.id}
+            id={tally.id}
+            startDate={tally.startDate.toString()}
+            observer={tally.observer}
+            locationId={params.locationId}
+          />
+        ))}
       </div>;
 };
 

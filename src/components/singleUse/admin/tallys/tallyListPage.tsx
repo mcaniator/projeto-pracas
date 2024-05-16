@@ -21,10 +21,8 @@ const TallyPage = ({
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
   const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([]);
-  const [activeTallysIds, setActiveTallysIds] = useState(
-    tallys.map((tally) => tally.id),
-  );
 
+  const [activeTallys, setActiveTallys] = useState(tallys);
   useEffect(() => {
     const filteredTallys = tallys.filter((tally) => {
       if (weekdaysFilter.length > 0) {
@@ -50,9 +48,8 @@ const TallyPage = ({
         }
       }
     });
-    setActiveTallysIds(filteredTallys.map((tally) => tally.id));
+    setActiveTallys(filteredTallys);
   }, [initialDate, finalDate, weekdaysFilter, tallys]);
-
   return (
     <div className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5"}>
       <div
@@ -66,10 +63,7 @@ const TallyPage = ({
         <div className="overflow-auto rounded">
           <TallyList
             params={{ locationId: locationId }}
-            tallys={tallys}
-            initialDate={initialDate}
-            finalDate={finalDate}
-            weekdaysFilter={weekdaysFilter}
+            activeTallys={activeTallys}
           />
         </div>
       </div>
@@ -86,7 +80,7 @@ const TallyPage = ({
             setFinalDate={setFinalDate}
             setWeekDaysFilter={setWeekDaysFilter}
             locationId={parseInt(locationId)}
-            activeTallysIds={activeTallysIds}
+            activeTallys={activeTallys}
           ></TallyFilter>
         </div>
       </div>

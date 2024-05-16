@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
 import { Input } from "react-aria-components";
 
@@ -9,13 +10,13 @@ const TallyFilter = ({
   setFinalDate,
   setWeekDaysFilter,
   locationId,
-  activeTallysIds,
+  activeTallys,
 }: {
   setInitialDate: React.Dispatch<React.SetStateAction<number>>;
   setFinalDate: React.Dispatch<React.SetStateAction<number>>;
   setWeekDaysFilter: React.Dispatch<React.SetStateAction<string[]>>;
   locationId: number;
-  activeTallysIds: number[];
+  activeTallys: tallyDataFetchedToTallyListType[];
 }) => {
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -37,8 +38,7 @@ const TallyFilter = ({
     else
       setWeekDaysFilter((prev) => prev.filter((day) => day !== e.target.value));
   };
-
-  const activeTallysIdsString = `${activeTallysIds.join("-")}`;
+  const activeTallysIdsString = `${activeTallys.map((tally) => tally.id).join("-")}`;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex basis-1/5 flex-col">
