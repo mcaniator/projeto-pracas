@@ -25,12 +25,6 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 >
                   <Button type="button">Editar</Button>
                 </Link>
-                <Link
-                  href={`/admin/parks/${locationIdNumber}/tallys`}
-                  className="ml-auto"
-                >
-                  <Button type="button">Contagens</Button>
-                </Link>
               </div>
               <span>Nome: {location?.name}</span>
               {location.inactiveNotFound ?
@@ -112,6 +106,12 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   <span className="text-redwood">Não preenchido</span>
                 </span>
               }
+              <Link
+                href={`/admin/parks/${locationIdNumber}/tallys`}
+                className="ml-auto"
+              >
+                <Button type="button">Contagens</Button>
+              </Link>
             </div>
           </div>
         </div>

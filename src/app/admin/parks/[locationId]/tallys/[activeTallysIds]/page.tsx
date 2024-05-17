@@ -46,6 +46,7 @@ const Page = async ({
   tallys = tallys.filter((tally) => {
     if (tally.endDate) return true;
   });
+  tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   console.log(tallys);
 
   return (
@@ -56,7 +57,7 @@ const Page = async ({
       </div>
       <div className="col flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
-        <div className="flex flex-row gap-5 overflow-auto">
+        <div className="flex max-w-96 flex-row gap-5 overflow-auto">
           <IndividualDataTable tallys={tallys} />
         </div>
       </div>
