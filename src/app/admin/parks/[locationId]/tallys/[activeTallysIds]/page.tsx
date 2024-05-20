@@ -1,4 +1,4 @@
-import { IndividualDataTable } from "@/components/singleUse/admin/tallys/addedTallys/individualDataTable";
+import { TallysDataPage } from "@/components/singleUse/admin/tallys/addedTallys/TallysDataPage";
 import { prisma } from "@/lib/prisma";
 
 const Page = async ({
@@ -7,7 +7,7 @@ const Page = async ({
   params: { locationId: string; activeTallysIds: string };
 }) => {
   let validTallys = true;
-  const decodedActiveTallysString = decodeURIComponent(params.activeTallysIds);
+  const decodedActiveTallysString = params.activeTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
   if (tallysIds?.length === 0) validTallys = false;
   const location = await prisma.location.findUnique({
@@ -50,18 +50,10 @@ const Page = async ({
   console.log(tallys);
 
   return (
-    <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5">
-      <div className="flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <h3 className="text-2xl font-semibold">{`Contagem realizada em ${location?.name}`}</h3>
-        {decodedActiveTallysString}
-      </div>
-      <div className="col flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
-        <div className="flex max-w-96 flex-row gap-5 overflow-auto">
-          <IndividualDataTable tallys={tallys} />
-        </div>
-      </div>
-    </div>
+    <TallysDataPage
+      locationName={location ? location.name : ""}
+      tallys={tallys}
+    />
   );
 };
 
