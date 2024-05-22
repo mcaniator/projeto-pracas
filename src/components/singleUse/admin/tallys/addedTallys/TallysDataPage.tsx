@@ -175,7 +175,9 @@ const TallysDataPage = ({
     <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5">
       <div className="flex  flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
-        <MainTallyDataTable tallyMap={tallyMap} />
+        {tallys.length > 0 ?
+          <MainTallyDataTable tallyMap={tallyMap} />
+        : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>}
       </div>
       <div className="flex  flex-col gap-5">
         <div className=" flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">

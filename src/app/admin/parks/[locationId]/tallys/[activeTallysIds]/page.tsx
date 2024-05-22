@@ -6,10 +6,9 @@ const Page = async ({
 }: {
   params: { locationId: string; activeTallysIds: string };
 }) => {
-  let validTallys = true;
   const decodedActiveTallysString = params.activeTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
-  if (tallysIds?.length === 0) validTallys = false;
+
   const location = await prisma.location.findUnique({
     where: {
       id: parseInt(params.locationId),
@@ -47,7 +46,6 @@ const Page = async ({
     if (tally.endDate) return true;
   });
   tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-  console.log(tallys);
 
   return (
     <TallysDataPage

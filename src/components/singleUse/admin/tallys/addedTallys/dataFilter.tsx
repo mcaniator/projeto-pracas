@@ -24,7 +24,7 @@ const DataFilter = ({
   return (
     <div className="flex  flex-col gap-5">
       <div className="flex basis-1/5 flex-col">
-        <h3 className="text-xl font-semibold">sub-título</h3>
+        <h3 className="text-xl font-semibold"></h3>
         <div className="flex flex-row gap-1">
           <div className="flex flex-col gap-4">
             <div className="flex items-center">
