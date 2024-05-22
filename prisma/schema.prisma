@@ -157,9 +157,8 @@ enum Activity {
 // Don't really like naming this gender since you can't really tell someones gender based on the way they look
 // but since they're going to be needing this data we might as well be as inclusive as possible
 enum Gender {
-  MALE       @map("male")
-  FEMALE     @map("female")
-  NON_BINARY @map("non-binary")
+  MALE   @map("male")
+  FEMALE @map("female")
 
   @@map("gender")
 }

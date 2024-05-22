@@ -1,19 +1,26 @@
 "use client";
 
-import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
+import { personType } from "@/lib/zodValidators";
 
 const DataFilter = ({
-  setAgeGroupFilter,
-  setActivityFilter,
   setBooleanConditionsFilter,
-  setGenderFilter,
 }: {
-  setAgeGroupFilter: React.Dispatch<React.SetStateAction<string[]>>;
-  setActivityFilter: React.Dispatch<React.SetStateAction<string[]>>;
-  setBooleanConditionsFilter: React.Dispatch<React.SetStateAction<string[]>>;
-  setGenderFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  setBooleanConditionsFilter: React.Dispatch<
+    React.SetStateAction<(keyof personType)[]>
+  >;
 }) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked)
+      setBooleanConditionsFilter((prev) => [
+        ...prev,
+        e.target.value as keyof personType,
+      ]);
+    else
+      setBooleanConditionsFilter((prev) =>
+        prev.filter((filter) => filter !== e.target.value),
+      );
+  };
   return (
     <div className="flex  flex-col gap-5">
       <div className="flex basis-1/5 flex-col">
@@ -22,63 +29,67 @@ const DataFilter = ({
           <div className="flex flex-col gap-4">
             <div className="flex items-center">
               <span>
-                <label htmlFor="sun" className="mr-1">
+                <label htmlFor="isTraversing" className="mr-1">
                   Pessoas passando pela praça
                 </label>
               </span>
               <span className="ml-auto">
                 <Input
-                  id="sun"
+                  id="isTraversing"
                   type="checkbox"
-                  value={"dom."}
+                  value={"isTraversing"}
                   className="h-4 w-4"
+                  onChange={handleFilterChange}
                 />
               </span>
             </div>
             <div className="flex items-center">
               <span>
-                <label htmlFor="mon" className="mr-1">
+                <label htmlFor="isPersonWithImpairment" className="mr-1">
                   Pessoas com deficiência
                 </label>
               </span>
               <span className="ml-auto">
                 <Input
-                  id="mon"
+                  id="isPersonWithImpairment"
                   type="checkbox"
-                  value={"seg."}
+                  value={"isPersonWithImpairment"}
                   className="h-4 w-4"
+                  onChange={handleFilterChange}
                 />
               </span>
             </div>
 
             <div className="flex items-center">
               <span>
-                <label htmlFor="tue" className="mr-1">
+                <label htmlFor="isInApparentIllicitActivity" className="mr-1">
                   Pessoas em aparente ativ. Ilícita
                 </label>
               </span>
               <span className="ml-auto">
                 <Input
-                  id="tue"
+                  id="isInApparentIllicitActivity"
                   type="checkbox"
-                  value={"ter."}
+                  value={"isInApparentIllicitActivity"}
                   className="h-4 w-4"
+                  onChange={handleFilterChange}
                 />
               </span>
             </div>
 
             <div className="flex items-center">
               <span>
-                <label htmlFor="wed" className="mr-1">
+                <label htmlFor="isPersonWithoutHousing" className="mr-1">
                   Pessoas em situação de rua
                 </label>
               </span>
               <span className="ml-auto">
                 <Input
-                  id="wed"
+                  id="isPersonWithoutHousing"
                   type="checkbox"
-                  value={"qua."}
+                  value={"isPersonWithoutHousing"}
                   className="h-4 w-4"
+                  onChange={handleFilterChange}
                 />
               </span>
             </div>

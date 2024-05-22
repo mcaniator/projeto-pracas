@@ -420,9 +420,38 @@ const noiseSchema = z.object({
   assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
+const tallyDataToCreateTableSchema = z.object({
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  observer: z.coerce
+    .string()
+    .trim()
+    .refine((value) => !value.includes("\n")),
+  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
+  groups: z.coerce.number().int().finite().nonnegative().nullable(),
+  temperature: z.coerce.number().finite().nullable(),
+  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
+  commercialActivities: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullable(),
+
+  locationId: z.coerce.number().int().finite().nonnegative(),
+
+  tallyPerson: z.array(
+    z.object({
+      person: personSchema,
+      quantity: z.coerce.number().int().finite().nonnegative(),
+    }),
+  ),
+});
+
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
+type tallyDataToCreateTableType = z.infer<typeof tallyDataToCreateTableSchema>;
 type tallyDataFetchedToTallyListType = z.infer<
   typeof tallyDataFetchedToTallyListSchema
 >;
@@ -432,11 +461,13 @@ export {
   personSchema,
   tallySchema,
   tallyDataFetchedToTallyListSchema,
+  tallyDataToCreateTableSchema,
 };
 export type {
   noiseType,
   personType,
   tallyType,
   tallyDataFetchedToTallyListType,
+  tallyDataToCreateTableType,
 };
 // #endregion
