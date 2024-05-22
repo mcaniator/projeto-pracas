@@ -28,7 +28,7 @@ const MainTallyDataTable = ({
   console.log(tallyMap);
   return (
     <div className="flex flex-row gap-1 overflow-auto rounded">
-      <table style={{ borderCollapse: "collapse", border: "1px solid white" }}>
+      <table>
         {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
           return (
             <React.Fragment key={ageGroupKey}>
@@ -69,6 +69,7 @@ const MainTallyDataTable = ({
                               style={{
                                 border: "1px solid white",
                                 padding: "0.5rem",
+                                textAlign: "center",
                               }}
                             >
                               {tallyMap.get(
@@ -81,6 +82,32 @@ const MainTallyDataTable = ({
                     </React.Fragment>
                   );
                 })}
+              </tbody>
+              <tbody>
+                <tr>
+                  <td
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                    }}
+                  >
+                    Total
+                  </td>
+                  {gendersInOrder.map((gender, genderKey) => {
+                    return (
+                      <td
+                        key={genderKey}
+                        style={{
+                          border: "1px solid white",
+                          padding: "0.5rem",
+                          textAlign: "center",
+                        }}
+                      >
+                        {tallyMap.get(`Tot-${gender}-${ageGroup}`)}
+                      </td>
+                    );
+                  })}
+                </tr>
               </tbody>
             </React.Fragment>
           );
@@ -115,7 +142,11 @@ const MainTallyDataTable = ({
               {gendersInOrder.map((gender, genderKey) => {
                 return (
                   <td
-                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
                     key={genderKey}
                   >
                     {tallyMap.get(`Tot-${gender}`)}
@@ -130,10 +161,14 @@ const MainTallyDataTable = ({
               {gendersInOrder.map((gender, genderKey) => {
                 return (
                   <td
-                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
                     key={genderKey}
                   >
-                    {tallyMap.get(`%${gender}`)}
+                    {tallyMap.get(`%${gender}`)?.toString().replace(".", ",")}
                   </td>
                 );
               })}
@@ -160,7 +195,130 @@ const MainTallyDataTable = ({
               })}
             </tr>
           </thead>
+          <tbody>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                Total
+              </td>
+              {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
+                return (
+                  <td
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
+                    key={ageGroupKey}
+                  >
+                    {tallyMap.get(`Tot-${ageGroup}`)}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                %
+              </td>
+              {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
+                return (
+                  <td
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
+                    key={ageGroupKey}
+                  >
+                    {tallyMap.get(`%${ageGroup}`)?.toString().replace(".", ",")}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
         </table>
+        <table>
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+                ATIVIDADE
+              </th>
+              {activitiesInOrder.map((activity, activityKey) => {
+                return (
+                  <th
+                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                    key={activityKey}
+                  >
+                    {activitiesNamesInTableMap.get(activity)?.toUpperCase()}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                Total
+              </td>
+              {activitiesInOrder.map((activity, activityKey) => {
+                return (
+                  <td
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
+                    key={activityKey}
+                  >
+                    {tallyMap.get(`Tot-${activity}`)}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                %
+              </td>
+              {activitiesInOrder.map((activity, activityKey) => {
+                return (
+                  <td
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
+                    key={activityKey}
+                  >
+                    {tallyMap.get(`%${activity}`)}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+                  Total de pessoas
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  style={{
+                    border: "1px solid white",
+                    padding: "0.5rem",
+                    textAlign: "center",
+                  }}
+                >
+                  {tallyMap.get(`Tot-H&M`)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

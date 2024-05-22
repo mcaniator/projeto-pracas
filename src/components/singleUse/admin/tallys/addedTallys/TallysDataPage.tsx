@@ -36,6 +36,12 @@ const processTallyData = (
     }
     tallyMap.set(`Tot-${gender}`, 0);
   }
+  for (const ageGroup of Object.keys(AgeGroup)) {
+    tallyMap.set(`Tot-${ageGroup}`, 0);
+  }
+  for (const activity of Object.keys(Activity)) {
+    tallyMap.set(`Tot-${activity}`, 0);
+  }
   tallyMap.set("Tot-H&M", 0);
   tallyMap.set("%MALE", "0.00%");
   tallyMap.set("%FEMALE", "0.00%");
@@ -118,6 +124,7 @@ const processTallyData = (
           totalAgeGroup += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
         }
       }
+      tallyMap.set(`Tot-${ageGroup}`, totalAgeGroup);
       tallyMap.set(
         `%${ageGroup}`,
         ((totalAgeGroup / totalPeople) * 100).toFixed(2) + "%",
@@ -130,6 +137,7 @@ const processTallyData = (
           activityTotal += tallyMap.get(`${gender}-${ageGroup}-${activity}`);
         }
       }
+      tallyMap.set(`Tot-${activity}`, activityTotal);
       tallyMap.set(
         `%${activity}`,
         ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
@@ -165,7 +173,7 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   return (
     <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5">
-      <div className="flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <div className="flex  flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
         <MainTallyDataTable tallyMap={tallyMap} />
       </div>

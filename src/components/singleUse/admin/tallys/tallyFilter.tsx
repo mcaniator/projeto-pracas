@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
 import { Input } from "react-aria-components";
@@ -72,87 +73,57 @@ const TallyFilter = ({
       <div className="flex basis-1/5 flex-col">
         <h3 className="text-xl font-semibold">Filtro por dia da semana</h3>
         <div className="flex gap-4">
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="sun" className="mr-1">
               Dom.
             </label>
-            <Input
+            <Checkbox
               id="sun"
-              type="checkbox"
               value={"dom."}
+              variant={"default"}
               onChange={handleWeekdayChange}
             />
           </div>
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="mon" className="mr-1">
               Seg.
             </label>
-            <Input
-              id="mon"
-              type="checkbox"
-              value={"seg."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="mon" value={"seg."} onChange={handleWeekdayChange} />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="tue" className="mr-1">
               Ter.
             </label>
-            <Input
-              id="tue"
-              type="checkbox"
-              value={"ter."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="tue" value={"ter."} onChange={handleWeekdayChange} />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="wed" className="mr-1">
               Qua.
             </label>
-            <Input
-              id="wed"
-              type="checkbox"
-              value={"qua."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="wed" value={"qua."} onChange={handleWeekdayChange} />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="thu" className="mr-1">
               Qui.
             </label>
-            <Input
-              id="thu"
-              type="checkbox"
-              value={"qui."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="thu" value={"qui."} onChange={handleWeekdayChange} />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="fri" className="mr-1">
               Sex.
             </label>
-            <Input
-              id="fri"
-              type="checkbox"
-              value={"sex."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="fri" value={"sex."} onChange={handleWeekdayChange} />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex">
             <label htmlFor="sat" className="mr-1">
               Sáb.
             </label>
-            <Input
-              id="sat"
-              type="checkbox"
-              value={"sáb."}
-              onChange={handleWeekdayChange}
-            />
+            <Checkbox id="sat" value={"sáb."} onChange={handleWeekdayChange} />
           </div>
         </div>
       </div>

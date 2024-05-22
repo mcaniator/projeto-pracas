@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { personType } from "@/lib/zodValidators";
 
 const DataFilter = ({
@@ -34,11 +34,10 @@ const DataFilter = ({
                 </label>
               </span>
               <span className="ml-auto">
-                <Input
+                <Checkbox
                   id="isTraversing"
-                  type="checkbox"
                   value={"isTraversing"}
-                  className="h-4 w-4"
+                  variant={"default"}
                   onChange={handleFilterChange}
                 />
               </span>
@@ -50,11 +49,10 @@ const DataFilter = ({
                 </label>
               </span>
               <span className="ml-auto">
-                <Input
+                <Checkbox
                   id="isPersonWithImpairment"
-                  type="checkbox"
                   value={"isPersonWithImpairment"}
-                  className="h-4 w-4"
+                  variant={"default"}
                   onChange={handleFilterChange}
                 />
               </span>
@@ -67,11 +65,10 @@ const DataFilter = ({
                 </label>
               </span>
               <span className="ml-auto">
-                <Input
+                <Checkbox
                   id="isInApparentIllicitActivity"
-                  type="checkbox"
                   value={"isInApparentIllicitActivity"}
-                  className="h-4 w-4"
+                  variant={"default"}
                   onChange={handleFilterChange}
                 />
               </span>
@@ -84,11 +81,10 @@ const DataFilter = ({
                 </label>
               </span>
               <span className="ml-auto">
-                <Input
+                <Checkbox
                   id="isPersonWithoutHousing"
-                  type="checkbox"
                   value={"isPersonWithoutHousing"}
-                  className="h-4 w-4"
+                  variant={"default"}
                   onChange={handleFilterChange}
                 />
               </span>
