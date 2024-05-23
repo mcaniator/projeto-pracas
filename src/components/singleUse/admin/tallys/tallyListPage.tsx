@@ -1,9 +1,12 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import { useEffect, useState } from "react";
+
+import { OngoingTallyList } from "./ongoingTallyList";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -13,10 +16,12 @@ const TallyPage = ({
   locationId,
   locationName,
   tallys,
+  ongoingTallys,
 }: {
   locationId: string;
   locationName: string;
   tallys: tallyDataFetchedToTallyListType[];
+  ongoingTallys: tallyDataFetchedToTallyListType[];
 }) => {
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
@@ -51,37 +56,85 @@ const TallyPage = ({
     setActiveTallys(filteredTallys);
   }, [initialDate, finalDate, weekdaysFilter, tallys]);
   return (
-    <div className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5"}>
-      <div
-        className={
-          "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-        }
-      >
-        <h3 className={"text-2xl font-semibold"}>
-          {`Lista de contagens de ${locationName}`}
-        </h3>
-        <div className="overflow-auto rounded">
-          <TallyList
-            params={{ locationId: locationId }}
-            activeTallys={activeTallys}
-          />
-        </div>
-      </div>
-
-      <div>
+    <div
+      className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 flex-col gap-5 p-5"}
+    >
+      <div className=" flex max-h-64 gap-5 ">
         <div
           className={
-            " flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+            "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
           }
         >
-          <h3 className={"text-2xl font-semibold"}>Filtros</h3>
-          <TallyFilter
-            setInitialDate={setInitialDate}
-            setFinalDate={setFinalDate}
-            setWeekDaysFilter={setWeekDaysFilter}
-            locationId={parseInt(locationId)}
-            activeTallys={activeTallys}
-          ></TallyFilter>
+          <h3 className={"text-2xl font-semibold"}>
+            {`Lista de contagens em andamento de ${locationName}`}
+          </h3>
+          <div className="flex">
+            <span>
+              <h3 className="text-xl font-semibold">Data</h3>
+            </span>
+            <span className="ml-auto">
+              <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
+            </span>
+          </div>
+          <div className="overflow-auto rounded">
+            <OngoingTallyList
+              params={{ locationId: locationId }}
+              activeTallys={ongoingTallys}
+            />
+          </div>
+        </div>
+        <div
+          style={{ minWidth: "33.0625rem", width: "33.0625rem" }}
+          className={
+            " flex  flex-col gap-3 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+          }
+        >
+          <h3 className={"text-2xl font-semibold"}>Criação de contagens</h3>
+          <div>
+            <Button>Criar nova contagem</Button>
+          </div>
+        </div>
+      </div>
+      <div className=" flex gap-5 overflow-auto">
+        <div
+          className={
+            "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+          }
+        >
+          <h3 className={"text-2xl font-semibold"}>
+            {`Lista de contagens finalizadas de ${locationName}`}
+          </h3>
+          <div className="flex">
+            <span>
+              <h3 className="text-xl font-semibold">Data</h3>
+            </span>
+            <span className="ml-auto">
+              <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
+            </span>
+          </div>
+          <div className="overflow-auto rounded">
+            <TallyList
+              params={{ locationId: locationId }}
+              activeTallys={activeTallys}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div
+            className={
+              " flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+            }
+          >
+            <h3 className={"text-2xl font-semibold"}>Filtros</h3>
+            <TallyFilter
+              setInitialDate={setInitialDate}
+              setFinalDate={setFinalDate}
+              setWeekDaysFilter={setWeekDaysFilter}
+              locationId={parseInt(locationId)}
+              activeTallys={activeTallys}
+            ></TallyFilter>
+          </div>
         </div>
       </div>
     </div>
