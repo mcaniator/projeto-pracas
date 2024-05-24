@@ -5,6 +5,7 @@ import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import { useEffect, useState } from "react";
+import React from "react";
 
 import { OngoingTallyList } from "./ongoingTallyList";
 
@@ -68,20 +69,25 @@ const TallyPage = ({
           <h3 className={"text-2xl font-semibold"}>
             {`Lista de contagens em andamento de ${locationName}`}
           </h3>
-          <div className="flex">
-            <span>
-              <h3 className="text-xl font-semibold">Data</h3>
-            </span>
-            <span className="ml-auto">
-              <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
-            </span>
-          </div>
-          <div className="overflow-auto rounded">
-            <OngoingTallyList
-              params={{ locationId: locationId }}
-              activeTallys={ongoingTallys}
-            />
-          </div>
+          {!ongoingTallys || ongoingTallys.length === 0 ?
+            <h3>Nenhuma contagem em andamento para este local!</h3>
+          : <React.Fragment>
+              <div className="flex">
+                <span>
+                  <h3 className="text-xl font-semibold">Data</h3>
+                </span>
+                <span className="ml-auto">
+                  <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
+                </span>
+              </div>
+              <div className="overflow-auto rounded">
+                <OngoingTallyList
+                  params={{ locationId: locationId }}
+                  activeTallys={ongoingTallys}
+                />
+              </div>
+            </React.Fragment>
+          }
         </div>
         <div
           style={{ minWidth: "33.0625rem", width: "33.0625rem" }}
@@ -104,20 +110,25 @@ const TallyPage = ({
           <h3 className={"text-2xl font-semibold"}>
             {`Lista de contagens finalizadas de ${locationName}`}
           </h3>
-          <div className="flex">
-            <span>
-              <h3 className="text-xl font-semibold">Data</h3>
-            </span>
-            <span className="ml-auto">
-              <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
-            </span>
-          </div>
-          <div className="overflow-auto rounded">
-            <TallyList
-              params={{ locationId: locationId }}
-              activeTallys={activeTallys}
-            />
-          </div>
+          {!activeTallys || activeTallys.length === 0 ?
+            <h3>Nenhuma contagem finalizada para este local!</h3>
+          : <React.Fragment>
+              <div className="flex">
+                <span>
+                  <h3 className="text-xl font-semibold">Data</h3>
+                </span>
+                <span className="ml-auto">
+                  <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
+                </span>
+              </div>
+              <div className="overflow-auto rounded">
+                <TallyList
+                  params={{ locationId: locationId }}
+                  activeTallys={activeTallys}
+                />
+              </div>
+            </React.Fragment>
+          }
         </div>
 
         <div>

@@ -10,7 +10,8 @@ import { z } from "zod";
 
 import { DataFilter } from "./dataFilter";
 import { IndividualDataTable } from "./individualDataTable";
-import { MainTallyDataTable } from "./mainTallyDataTable";
+import { MainTallyDataTableComplementary } from "./mainTallyDataTableComplementary";
+import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
 
 const booleanPersonProperties: (keyof personType)[] = [
   "isPersonWithImpairment",
@@ -22,6 +23,26 @@ const otherPropertiesToCalcualtePercentage = [
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
 ];
+const possibleDataTypes = ["peopleData", "complementaryData"] as const;
+type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
+const imutableTallyData = (tallys: tallyDataToCreateTableType[]) => {
+  const tallyMap = new Map();
+  tallyMap.set("Groups", 0);
+  tallyMap.set("Pets", 0);
+  tallyMap.set("commercialActivities", 0);
+  for (const tally of tallys) {
+    if (tally.animalsAmount) {
+      tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
+    }
+    if (tally.commercialActivities) {
+      tallyMap.set(
+        "commercialActivities",
+        tallyMap.get("commercialActivities") + tally.commercialActivities,
+      );
+    }
+  }
+  return tallyMap;
+};
 const processTallyData = (
   tallys: tallyDataToCreateTableType[],
   booleanConditionsFilter: (keyof personType)[],
@@ -53,9 +74,7 @@ const processTallyData = (
   }
   tallyMap.set("isPersonWithImpairment", 0);
   tallyMap.set("Groups", 0);
-  tallyMap.set("Pets", 0);
   tallyMap.set("isTraversing", 0);
-  tallyMap.set("commercialActivities", 0);
   tallyMap.set("isInApparentIllicitActivity", 0);
   tallyMap.set("%isInApparentIllicitActivity", "0.00%");
   tallyMap.set("isPersonWithoutHousing", 0);
@@ -63,15 +82,6 @@ const processTallyData = (
   for (const tally of tallys) {
     if (tally.groups) {
       tallyMap.set("Groups", tallyMap.get("Groups") + tally.groups);
-    }
-    if (tally.animalsAmount) {
-      tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
-    }
-    if (tally.commercialActivities) {
-      tallyMap.set(
-        "commercialActivities",
-        tallyMap.get("commercialActivities") + tally.commercialActivities,
-      );
     }
 
     for (const tallyPerson of tally.tallyPerson) {
@@ -159,41 +169,44 @@ const TallysDataPage = ({
   locationName: string;
   tallys: tallyDataToCreateTableType[];
 }) => {
-  /*const [genderFilter, setGenderFilter] = useState<string[]>([]);
-  const [ageGroupFilter, setAgeGroupFilter] = useState<string[]>([]);
-  const [activityFilter, setActivityFilter] = useState<string[]>([]);*/
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (keyof personType)[]
   >([]);
   const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
     new Map(),
   );
+  const [dataTypeToShow, setDataTypeToShow] = useState<string>("peopleData");
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
+  const imutableTallyMap = imutableTallyData(tallys);
   return (
     <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5">
-      <div className="flex  flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <div className="flex  basis-3/6 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
-        {tallys.length > 0 ?
-          <MainTallyDataTable tallyMap={tallyMap} />
+        {dataTypeToShow === "peopleData" ?
+          tallys.length > 0 ?
+            <MainTallyDataTablePeople tallyMap={tallyMap} />
+          : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
+        : tallys.length > 0 ?
+          <MainTallyDataTableComplementary tallyMap={imutableTallyMap} />
         : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>}
       </div>
-      <div className="flex  flex-col gap-5">
+      <div className="flex flex-col gap-5">
         <div className=" flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
           <h3 className="text-2xl font-semibold">Filtros</h3>
 
-          <DataFilter setBooleanConditionsFilter={setBooleanConditionsFilter} />
+          <DataFilter
+            setBooleanConditionsFilter={setBooleanConditionsFilter}
+            setDataTypeToShow={setDataTypeToShow}
+          />
         </div>
-        <div className=" flex  flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-          <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
-          <div className="flex max-w-96 flex-row gap-5 overflow-auto rounded">
-            <IndividualDataTable tallys={tallys} />
-          </div>
-        </div>
+
+        <IndividualDataTable tallys={tallys} />
       </div>
     </div>
   );
 };
 
 export { TallysDataPage };
+export { type dataTypesToShowInTallyTable };

@@ -48,7 +48,7 @@ const OngoingTallyList = ({
   activeTallys: tallyDataFetchedToTallyListType[];
 }) => {
   return activeTallys === undefined || activeTallys.length === 0 ?
-      <h3>Nenhuma contagem encontrada para este local!</h3>
+      <h3>Nenhuma contagem em andamento encontrada para este local!</h3>
     : <div className="w-full text-red-600">
         {activeTallys.map((tally) => (
           <OngoingTallyComponent
