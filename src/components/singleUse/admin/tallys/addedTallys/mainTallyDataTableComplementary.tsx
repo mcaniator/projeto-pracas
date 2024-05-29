@@ -54,7 +54,7 @@ const MainTallyDataTableComplementary = ({
         </table>
       </div>
 
-      <table>
+      <table className="max-w-96">
         <thead>
           <tr>
             <th

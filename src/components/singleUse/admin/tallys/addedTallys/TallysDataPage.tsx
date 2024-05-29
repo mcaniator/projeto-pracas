@@ -181,8 +181,11 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const imutableTallyMap = imutableTallyData(tallys);
   return (
-    <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 gap-5 p-5">
-      <div className="flex  basis-3/6 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 w-fit gap-5 p-5">
+      <div
+        style={{ width: "50.7854375rem" }}
+        className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+      >
         <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
         {dataTypeToShow === "peopleData" ?
           tallys.length > 0 ?
