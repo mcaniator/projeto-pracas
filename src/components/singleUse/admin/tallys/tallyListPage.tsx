@@ -1,18 +1,22 @@
 "use client";
 
-import { Button } from "@/components/button";
 import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
-import { useEffect, useState } from "react";
+import { FormState, createTallyByUser } from "@/serverActions/tallyUtil";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
+import { Input } from "react-aria-components";
+import { useFormState } from "react-dom";
 
+import { CreateTallySubmitButton } from "./addedTallys/createTallySubmitButton";
 import { OngoingTallyList } from "./ongoingTallyList";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   weekday: "short",
 });
+const currentDatetime = new Date();
 const TallyPage = ({
   locationId,
   locationName,
@@ -27,8 +31,20 @@ const TallyPage = ({
   const [initialDate, setInitialDate] = useState(0);
   const [finalDate, setFinalDate] = useState(0);
   const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([]);
-
   const [activeTallys, setActiveTallys] = useState(tallys);
+  const [newTallyFormState, newTallyFormAction] = useFormState(
+    createTallyByUser,
+    {
+      locationId: locationId,
+      observer: "",
+      date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,
+      errors: {
+        observer: false,
+        date: false,
+      },
+    } as FormState,
+  );
+
   useEffect(() => {
     const filteredTallys = tallys.filter((tally) => {
       if (weekdaysFilter.length > 0) {
@@ -56,6 +72,10 @@ const TallyPage = ({
     });
     setActiveTallys(filteredTallys);
   }, [initialDate, finalDate, weekdaysFilter, tallys]);
+  /*useEffect(() => {
+    formRef.current?.reset();
+  }, [newTallyFormState]);*/
+  const formRef = useRef<HTMLFormElement>(null);
   return (
     <div
       className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 flex-col gap-5 p-5"}
@@ -97,7 +117,55 @@ const TallyPage = ({
         >
           <h3 className={"text-2xl font-semibold"}>Criação de contagens</h3>
           <div>
-            <Button>Criar nova contagem</Button>
+            <form
+              action={newTallyFormAction}
+              ref={formRef}
+              className="grid gap-3"
+            >
+              <div className="flex flex-row gap-1">
+                <label htmlFor="obsever" className="mr-1">
+                  {"Observador(a):"}
+                </label>
+                <Input
+                  type="text"
+                  id="observer"
+                  name="observer"
+                  className={`text-black ${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-red-500`}
+                  defaultValue={newTallyFormState.observer}
+                  required
+                ></Input>
+
+                {newTallyFormState.errors.observer ?
+                  <div className="text-red-500">* Obrigatório</div>
+                : ""}
+
+                <Input
+                  type="hidden"
+                  name="locationId"
+                  value={locationId}
+                ></Input>
+              </div>
+              <div className="flex flex-row gap-1">
+                <label htmlFor="dateTime" className="mr-1">
+                  Data/horário:
+                </label>
+
+                <Input
+                  type="datetime-local"
+                  id="datetime"
+                  className={`text-black ${newTallyFormState.errors.date ? "outline" : ""} outline-2 outline-red-500`}
+                  name="date"
+                  defaultValue={newTallyFormState.date}
+                  required
+                ></Input>
+                {newTallyFormState.errors.date ?
+                  <div className="text-red-500">* Obrigatório</div>
+                : ""}
+              </div>
+              <div className="flex flex-grow">
+                <CreateTallySubmitButton />
+              </div>
+            </form>
           </div>
         </div>
       </div>
