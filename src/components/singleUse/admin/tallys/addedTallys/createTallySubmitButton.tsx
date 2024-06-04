@@ -8,7 +8,7 @@ const CreateTallySubmitButton = () => {
 
   return (
     <Button type="submit" isDisabled={pending ? true : false}>
-      {pending ? "Criando..." : "Cria contagem"}
+      {pending ? "Criando..." : "Criar contagem"}
     </Button>
   );
 };

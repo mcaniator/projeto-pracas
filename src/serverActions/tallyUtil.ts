@@ -36,6 +36,38 @@ export type FormState = {
   };
 };
 
+const searchOngoingTallyById = async (tallyId: number) => {
+  const tally = await prisma.tally.findUnique({
+    where: {
+      id: tallyId,
+    },
+    include: {
+      tallyPerson: {
+        select: {
+          quantity: true,
+          person: {
+            select: {
+              ageGroup: true,
+              gender: true,
+              activity: true,
+              isTraversing: true,
+              isPersonWithImpairment: true,
+              isInApparentIllicitActivity: true,
+              isPersonWithoutHousing: true,
+            },
+          },
+        },
+      },
+      location: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+  return tally?.endDate ? null : tally;
+};
+
 const createTallyByUser = async (prevState: FormState, formData: FormData) => {
   const locationId = formData.get("locationId") as string;
   const observer = formData.get("observer") as string;
@@ -86,4 +118,4 @@ const createTallyByUser = async (prevState: FormState, formData: FormData) => {
     };
   }
 };
-export { searchTallysByLocationId, createTallyByUser };
+export { searchTallysByLocationId, createTallyByUser, searchOngoingTallyById };
