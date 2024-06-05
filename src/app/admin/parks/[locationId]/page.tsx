@@ -5,7 +5,8 @@ import Link from "next/link";
 const Page = async ({ params }: { params: { locationId: string } }) => {
   const location = await searchLocationsById(parseInt(params.locationId));
   const locationIdNumber = parseInt(params.locationId);
-  if (location != null && location != undefined)
+
+  if (location != null && location != undefined) {
     return (
       <div>
         <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
@@ -15,7 +16,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
               }
             >
-              <div className="flex">
+              <div className="space flex">
                 <h3 className={"text-2xl font-semibold "}>
                   Informações de {location?.name}
                 </h3>
@@ -24,6 +25,18 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   className="ml-auto"
                 >
                   <Button>Editar</Button>
+                </Link>
+                <Link
+                  href={`/admin/parks/${locationIdNumber}/responses?action=viewResponses`}
+                  className="ml-auto"
+                >
+                  <Button>Ver Respostas</Button>
+                </Link>
+                <Link
+                  href={`/admin/parks/${locationIdNumber}/responses?action=evaluate`}
+                  className="ml-auto"
+                >
+                  <Button>Avaliar</Button>
                 </Link>
               </div>
               <span>Nome: {location?.name}</span>
@@ -106,18 +119,14 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   <span className="text-redwood"> Não preenchido</span>
                 </span>
               }
-              <Link
-                href={`/admin/parks/${locationIdNumber}/evaluation`}
-                className="ml-auto"
-              >
-                <Button>Avaliar</Button>
-              </Link>
             </div>
           </div>
         </div>
       </div>
     );
-  else return <div>Local não encontrado</div>;
+  } else {
+    return <div>Local não encontrado</div>;
+  }
 };
 
 export default Page;
