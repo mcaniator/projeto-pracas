@@ -1,12 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { QuestionTypes } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
 const addResponses = async (
   locationId: number,
   formId: number,
   questionId: number,
+  questionType: QuestionTypes,
   response?: string,
 ) => {
   try {
@@ -15,6 +17,7 @@ const addResponses = async (
         locationId: locationId,
         formId: formId,
         questionId: questionId,
+        type: questionType,
         response: response,
       },
     });

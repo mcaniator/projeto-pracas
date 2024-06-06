@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addResponses } from "@/serverActions/responseUtil";
-import { Question } from "@prisma/client";
+import { Question, QuestionTypes } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -16,23 +16,31 @@ const ResponseForm = ({
   formId: number;
   questions: Question[] | null;
 }) => {
-  const [responses, setResponses] = useState<{ [key: number]: string }>({});
+  const [responses, setResponses] = useState<{
+    [key: number]: { value: string; type: QuestionTypes };
+  }>({});
   const [responsesSent, setResponsesSent] = useState(false);
-  const handleResponseChange = (questionId: number, value: string) => {
+
+  const handleResponseChange = (
+    questionId: number,
+    questionType: QuestionTypes,
+    value: string,
+  ) => {
     setResponses((prevResponses) => ({
       ...prevResponses,
-      [questionId]: value,
+      [questionId]: { value, type: questionType },
     }));
   };
 
   const handleSubmitResponse = () => {
-    Object.entries(responses).forEach(([questionId, responseValue]) => {
-      if (responseValue) {
+    Object.entries(responses).forEach(([questionId, { value, type }]) => {
+      if (value) {
         void addResponses(
           locationId,
           formId,
           parseInt(questionId),
-          responseValue,
+          type,
+          value,
         );
       }
     });
@@ -59,9 +67,13 @@ const ResponseForm = ({
                   type="text"
                   name={`response${question.id}`}
                   id={`response${question.id}`}
-                  value={responses[question.id] || ""}
+                  value={responses[question.id]?.value || ""}
                   onChange={(e) =>
-                    handleResponseChange(question.id, e.target.value)
+                    handleResponseChange(
+                      question.id,
+                      question.type,
+                      e.target.value,
+                    )
                   }
                 />
               </li>
