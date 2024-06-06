@@ -1,12 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import {
-  optionSchema, // textQuestionSchema,
-  // numericQuestionSchema,
-  // optionsQuestionSchema,
-  questionSchema,
-} from "@/lib/zodValidators";
+import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { Question, QuestionsOnForms } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 

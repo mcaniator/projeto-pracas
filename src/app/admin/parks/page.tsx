@@ -1,7 +1,4 @@
-// import { ButtonWrapper } from "@/components/singleUse/admin/parks/buttonWrapper";
 import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
-
-// import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
 
 const AdminRoot = () => {
   return (
@@ -18,7 +15,6 @@ const AdminRoot = () => {
           </div>
         </div>
       </div>
-      {/* <ButtonWrapper /> */}
     </div>
   );
 };

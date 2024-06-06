@@ -29,4 +29,30 @@ const addResponses = async (
   };
 };
 
-export { addResponses };
+const searchResponsesByQuestionId = async (questionId: number) => {
+  return await prisma.response.findMany({
+    where: {
+      questionId: questionId,
+    },
+  });
+};
+
+const searchResponsesByQuestionFormLocation = async (
+  questionId: number,
+  formId: number,
+  locationId: number,
+) => {
+  return await prisma.response.findMany({
+    where: {
+      questionId: questionId,
+      formId: formId,
+      locationId: locationId,
+    },
+  });
+};
+
+export {
+  addResponses,
+  searchResponsesByQuestionId,
+  searchResponsesByQuestionFormLocation,
+};

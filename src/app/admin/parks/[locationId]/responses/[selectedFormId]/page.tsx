@@ -2,7 +2,7 @@ import { searchFormsById } from "@/serverActions/formUtil";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 
-import { ResponseComponent } from "../../evaluation/[selectedFormId]/responseComponent";
+import { ResponseViewer } from "./responseViewer";
 
 const ResponsesFetcher = async ({
   params,
@@ -28,7 +28,7 @@ const ResponsesFetcher = async ({
         </h3>
         {questions !== null && form !== null && form !== undefined ?
           <ul className="list-disc p-3 ">
-            <ResponseComponent locationId={location.id} formId={form.id} />
+            <ResponseViewer locationId={location.id} formId={form.id} />
           </ul>
         : <div className="text-redwood">
             Ainda não há perguntas no formulário
