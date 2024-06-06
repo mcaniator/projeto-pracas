@@ -1,7 +1,6 @@
 import {
   Activity,
   AgeGroup,
-  BrazilianStates,
   CategoryTypes,
   Condition,
   Gender,
@@ -13,7 +12,13 @@ import {
   UserTypes,
   Visibility,
 } from "@prisma/client";
-import { z } from "zod";
+import { ZodType, z } from "zod";
+
+type zodErrorType<Type extends ZodType> = {
+  [Property in keyof z.infer<Type>]?: string[] | undefined;
+};
+
+export type { zodErrorType };
 
 // #region Auth
 //  ------------------------------------------------------------------------------------------------------------
@@ -138,6 +143,8 @@ export type {
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
+    firstStreet: z.string().trim().min(1).max(255),
+    secondStreet: z.string().trim().min(1).max(255),
     isPark: z.boolean().optional(),
     notes: z.string().trim().min(1).optional(),
     creationYear: z.coerce.date().optional(),
@@ -155,23 +162,12 @@ const locationSchema = z
   })
   .refine((value) => {
     if (
-      value.creationYear != undefined &&
-      value.lastMaintenanceYear != undefined
+      value.creationYear !== undefined &&
+      value.lastMaintenanceYear !== undefined
     )
       return value.lastMaintenanceYear >= value.creationYear;
     return true;
   });
-
-const addressSchema = z.object({
-  neighborhood: z.string().trim().min(1).max(255),
-  street: z.string().trim().min(1).max(255),
-  postalCode: z.string().trim().min(1).max(255),
-  identifier: z.coerce.number().int().finite().nonnegative(),
-  state: z.nativeEnum(BrazilianStates),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
-  cityId: z.coerce.number().int().finite().nonnegative(),
-});
 
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -184,12 +180,11 @@ const administrativeUnitsSchema = z.object({
 });
 
 type locationType = z.infer<typeof locationSchema>;
-type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
 
-export { addressSchema, administrativeUnitsSchema, citySchema, locationSchema };
-export type { addressType, administrativeUnitsType, cityType, locationType };
+export { administrativeUnitsSchema, citySchema, locationSchema };
+export type { administrativeUnitsType, cityType, locationType };
 // #endregion
 
 // #region Informações das Avaliações
