@@ -67,17 +67,17 @@ const Sidebar = () => {
             <p className="-mb-1">Usuários</p>
           </Button>
         </Link>
-        <Link href={"/admin/leaflet"}>
+        <Link href={"/admin/map"}>
           <Button
             type="button"
             variant={"ghost"}
             className={cn(
-              currentLocation == "/admin/leaflet" && "bg-transparent/5",
+              currentLocation == "/admin/map" && "bg-transparent/5",
               "justify-start gap-1 px-1 py-5",
             )}
           >
             <IconMapSearch size={34} />
-            <p className="-mb-1">Leaflet</p>
+            <p className="-mb-1">Mapa</p>
           </Button>
         </Link>
         <Link href={"/admin/registration"}>
