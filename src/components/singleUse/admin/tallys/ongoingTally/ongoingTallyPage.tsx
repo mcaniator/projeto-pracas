@@ -19,6 +19,8 @@ const OngoingTallyPage = ({
   >(new Map());
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
     useState("Alimentos");
+  const [temperature, setTemperature] = useState(0);
+  const [weather, setWeather] = useState("");
   const [animalsAmount, setAnimalsAmount] = useState(0);
   const [groupsAmount, setGroupsAmount] = useState(0);
   const [manActivity, setManActivity] = useState("sedentary");
@@ -110,6 +112,34 @@ const OngoingTallyPage = ({
             Contagem em {tally?.location.name}
           </h3>
           <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
+              <h4 className="text-2xl font-semibold">Dados climáticos</h4>
+              <div className="flex flex-row gap-5">
+                <div className="flex flex-row items-center">
+                  <label htmlFor="temperature-input" className="mr-1">
+                    {"Temperatura (°C):"}
+                  </label>
+                  <Input
+                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    className="w-11"
+                    type="number"
+                    maxLength={2}
+                  ></Input>
+                </div>
+                <div className="flex flex-grow flex-row items-center">
+                  <label htmlFor="weatherSelect" className="mr-1">
+                    Tempo:
+                  </label>
+                  <Select
+                    onChange={(e) => setWeather(e.target.value)}
+                    id="weatherSelect"
+                  >
+                    <option value="SUNNY">Com Sol</option>
+                    <option value="CLOUDY">Nublado</option>
+                  </Select>
+                </div>
+              </div>
+            </div>
             <div className="flex flex-col">
               <h4 className="text-2xl font-semibold">Pessoas</h4>
               <div className="flex flex-col gap-5">
@@ -172,7 +202,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("male", "child")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -193,7 +223,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("male", "child")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -205,7 +235,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("male", "teen")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -226,7 +256,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("male", "teen")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -238,7 +268,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("male", "adult")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -259,7 +289,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("male", "adult")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -271,7 +301,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("male", "elderly")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -292,7 +322,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("male", "elderly")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -361,7 +391,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("female", "child")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -382,7 +412,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("female", "child")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -394,7 +424,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("female", "teen")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -415,7 +445,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("female", "teen")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -427,7 +457,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() => handlePersonRemoval("female", "adult")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -448,7 +478,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("female", "adult")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -462,7 +492,7 @@ const OngoingTallyPage = ({
                           onPress={() =>
                             handlePersonRemoval("female", "elderly")
                           }
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           -
@@ -483,7 +513,7 @@ const OngoingTallyPage = ({
                         </p>
                         <Button
                           onPress={() => handlePersonAdd("female", "elderly")}
-                          className="h-8 w-8 text-5xl"
+                          className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
                           +
@@ -507,7 +537,7 @@ const OngoingTallyPage = ({
                           if (animalsAmount !== 0)
                             setAnimalsAmount((prev) => prev - 1);
                         }}
-                        className="h-8 w-8 text-5xl"
+                        className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
                         -
@@ -517,7 +547,7 @@ const OngoingTallyPage = ({
                       </p>
                       <Button
                         onPress={() => setAnimalsAmount((prev) => prev + 1)}
-                        className="h-8 w-8 text-5xl"
+                        className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
                         +
@@ -532,7 +562,7 @@ const OngoingTallyPage = ({
                           if (groupsAmount !== 0)
                             setGroupsAmount((prev) => prev - 1);
                         }}
-                        className="h-8 w-8 text-5xl"
+                        className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
                         -
@@ -542,7 +572,7 @@ const OngoingTallyPage = ({
                       </p>
                       <Button
                         onPress={() => setGroupsAmount((prev) => prev + 1)}
-                        className="h-8 w-8 text-5xl"
+                        className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
                         +
@@ -554,7 +584,7 @@ const OngoingTallyPage = ({
                   <h4 className="text-xl font-semibold">
                     Atividades comerciais itinerantes
                   </h4>
-                  <div className="flex flex-row items-center gap-8">
+                  <div className="flex flex-row items-center gap-3">
                     <div>
                       <Select
                         onChange={(e) =>
@@ -562,7 +592,6 @@ const OngoingTallyPage = ({
                         }
                         name="commercial-activities"
                         id="commercial-activities"
-                        className="text-black"
                       >
                         {commercialActivitiesOptions.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -579,7 +608,7 @@ const OngoingTallyPage = ({
                     >
                       <Button
                         variant={"admin"}
-                        className="h-8 w-8"
+                        className="h-8 w-8 text-3xl"
                         isDisabled={selectedCommercialActivity === "other"}
                         onPress={() => {
                           const key = selectedCommercialActivity;
@@ -610,7 +639,7 @@ const OngoingTallyPage = ({
                       </p>
                       <Button
                         variant={"admin"}
-                        className="h-8 w-8"
+                        className="h-8 w-8 text-3xl"
                         isDisabled={selectedCommercialActivity === "other"}
                         onPress={() => {
                           const key = selectedCommercialActivity;
