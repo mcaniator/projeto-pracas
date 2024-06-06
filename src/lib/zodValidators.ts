@@ -110,9 +110,6 @@ const formSchema = z.object({
 
 type categoryType = z.infer<typeof categorySchema>;
 type questionType = z.infer<typeof questionSchema>;
-// type textQuestionType = z.infer<typeof textQuestionSchema>;
-type numericQuestionType = z.infer<typeof numericQuestionSchema>;
-type optionsQuestionType = z.infer<typeof optionsQuestionSchema>;
 type formType = z.infer<typeof formSchema>;
 
 export {
@@ -124,14 +121,7 @@ export {
   questionSchema,
   // textQuestionSchema,
 };
-export type {
-  categoryType,
-  formType,
-  numericQuestionType,
-  optionsQuestionType,
-  questionType,
-  // textQuestionType,
-};
+export type { categoryType, formType, questionType };
 // #endregion
 
 // #region Informações da Praça

@@ -1,6 +1,7 @@
 "use client";
 
 import { Question, Response } from "@prisma/client";
+import { QuestionTypes } from "@prisma/client";
 
 const ResponseViewerClient = ({
   questions,
@@ -41,7 +42,19 @@ const ResponseViewerClient = ({
             <div>
               {responsesByQuestionId[question.id] ?
                 responsesByQuestionId[question.id].map((response, index) => (
-                  <div key={index}>{response.response}</div>
+                  <div key={index}>
+                    {response.type === QuestionTypes.TEXT ?
+                      <div>{response.response}</div>
+                    : response.type === QuestionTypes.NUMERIC ?
+                      <div>
+                        <span>{response.response}</span>
+                        <span className="font-bold text-blue-500">
+                          {" "}
+                          Frequência: {response.frequency}
+                        </span>
+                      </div>
+                    : <div>{response.response}</div>}
+                  </div>
                 ))
               : <div>Não há respostas para esta pergunta</div>}
             </div>
