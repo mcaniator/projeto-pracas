@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
-import { Input } from "react-aria-components";
 
 const TallyFilter = ({
   setInitialDate,
@@ -45,26 +45,24 @@ const TallyFilter = ({
       <div className="flex basis-1/5 flex-col">
         <h3 className="text-xl font-semibold">Filtro por data</h3>
         <div className="flex-cols-2 flex gap-6">
-          <div className="flex flex-row">
+          <div className="flex flex-row items-center">
             <label htmlFor="initial-date" className="mr-2">
               De:
             </label>
             <Input
               id="initial-date"
               type="datetime-local"
-              className={"text-black"}
               onChange={handleInitialDateChange}
             ></Input>
           </div>
 
-          <div className="flex flex-row">
+          <div className="flex flex-row items-center">
             <label htmlFor="final-date" className="mr-2">
               A:
             </label>
             <Input
               id="final-date"
               type="datetime-local"
-              className={"text-black"}
               onChange={handleFinalDateChange}
             ></Input>
           </div>

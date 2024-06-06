@@ -9,7 +9,7 @@ const Page = async ({
   const tally = await searchOngoingTallyById(
     Number(params.currentOngoingTally),
   );
-  return <OngoingTallyPage tally={tally}></OngoingTallyPage>;
+  if (tally) return <OngoingTallyPage tally={tally}></OngoingTallyPage>;
 };
 
 export default Page;

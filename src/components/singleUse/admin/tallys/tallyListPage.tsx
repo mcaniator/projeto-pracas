@@ -2,11 +2,11 @@
 
 import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
+import { Input } from "@/components/ui/input";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import { FormState, createTallyByUser } from "@/serverActions/tallyUtil";
 import { useEffect, useRef, useState } from "react";
 import React from "react";
-import { Input } from "react-aria-components";
 import { useFormState } from "react-dom";
 
 import { CreateTallySubmitButton } from "./addedTallys/createTallySubmitButton";
@@ -130,7 +130,7 @@ const TallyPage = ({
                   type="text"
                   id="observer"
                   name="observer"
-                  className={`text-black ${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-red-500`}
+                  className={`${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-red-500`}
                   defaultValue={newTallyFormState.observer}
                   required
                 ></Input>
@@ -153,7 +153,7 @@ const TallyPage = ({
                 <Input
                   type="datetime-local"
                   id="datetime"
-                  className={`text-black ${newTallyFormState.errors.date ? "outline" : ""} outline-2 outline-red-500`}
+                  className={`${newTallyFormState.errors.date ? "outline" : ""} outline-2 outline-red-500`}
                   name="date"
                   defaultValue={newTallyFormState.date}
                   required

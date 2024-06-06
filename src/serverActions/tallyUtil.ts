@@ -41,7 +41,7 @@ const searchOngoingTallyById = async (tallyId: number) => {
     where: {
       id: tallyId,
     },
-    include: {
+    select: {
       tallyPerson: {
         select: {
           quantity: true,
@@ -63,6 +63,15 @@ const searchOngoingTallyById = async (tallyId: number) => {
           name: true,
         },
       },
+      startDate: true,
+      endDate: true,
+      observer: true,
+      animalsAmount: true,
+      temperature: true,
+      weatherCondition: true,
+      groups: true,
+      commercialActivities: true,
+      commercialActivitiesDescription: true,
     },
   });
   return tally?.endDate ? null : tally;
