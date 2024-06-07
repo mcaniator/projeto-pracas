@@ -5,8 +5,34 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { tallyDataFetchedToOngoingTallyPageType } from "@/lib/zodValidators";
+import { Gender } from "@prisma/client";
+import { Activity } from "@prisma/client";
+import { AgeGroup } from "@prisma/client";
+import { WeatherConditions } from "@prisma/client";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import React from "react";
+
+interface WeatherStats {
+  temperature: number;
+  weather: WeatherConditions;
+}
+
+interface PersonCharacteristics {
+  FEMALE: {
+    activity: Activity;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  MALE: {
+    activity: Activity;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+}
 
 const OngoingTallyPage = ({
   tally,
@@ -19,22 +45,6 @@ const OngoingTallyPage = ({
   >(new Map());
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
     useState("Alimentos");
-  const [temperature, setTemperature] = useState(0);
-  const [weather, setWeather] = useState("");
-  const [animalsAmount, setAnimalsAmount] = useState(0);
-  const [groupsAmount, setGroupsAmount] = useState(0);
-  const [manActivity, setManActivity] = useState("sedentary");
-  const [womanActivity, setWomanActivity] = useState("sedentary");
-  const [manTraversing, setManTraversing] = useState(false);
-  const [manWithImpairment, setManWithImpairment] = useState(false);
-  const [manInApparentIllicitActivity, setManInApparentIllicitActivity] =
-    useState(false);
-  const [manWithoutHousing, setManWithoutHousing] = useState(false);
-  const [womanTraversing, setWomanTraversing] = useState(false);
-  const [womanWithImpairment, setWomanWithImpairment] = useState(false);
-  const [womanInApparentIllicitActivity, setWomanInApparentIllicitActivity] =
-    useState(false);
-  const [womanWithoutHousing, setWomanWithoutHousing] = useState(false);
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
     useState([
       { value: "Alimentos", label: "Alimentos" },
@@ -51,12 +61,35 @@ const OngoingTallyPage = ({
   const deferredNewCommercialActivityInput = useDeferredValue(
     newCommercialActivityInput,
   );
-  const handlePersonAdd = (gender: string, ageGroup: string) => {
-    const key =
-      gender === "male" ?
-        `${gender}-${ageGroup}-${manActivity}-${manTraversing}-${manWithImpairment}-${manInApparentIllicitActivity}-${manWithoutHousing}`
-      : `${gender}-${ageGroup}-${womanActivity}-${womanTraversing}-${womanWithImpairment}-${womanInApparentIllicitActivity}-${womanWithoutHousing}`;
+  const [weatherStats, setWeatherStats] = useState<WeatherStats>({
+    temperature: 0,
+    weather: "SUNNY",
+  });
 
+  const [complementaryData, setComplementaryData] = useState({
+    animalsAmount: 0,
+    groupsAmount: 0,
+  });
+  const [personCharacteristics, setPersonCharacteristics] =
+    useState<PersonCharacteristics>({
+      FEMALE: {
+        activity: "SEDENTARY",
+        isTraversing: false,
+        isPersonWithImpairment: false,
+        isInApparentIllicitActivity: false,
+        isPersonWithoutHousing: false,
+      },
+      MALE: {
+        activity: "SEDENTARY",
+        isTraversing: false,
+        isPersonWithImpairment: false,
+        isInApparentIllicitActivity: false,
+        isPersonWithoutHousing: false,
+      },
+    });
+
+  const handlePersonAdd = (gender: Gender, ageGroup: AgeGroup) => {
+    const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
     setTallyMap((prev) => {
       const newMap = new Map(prev);
       const prevValue = newMap.get(key) || 0;
@@ -64,12 +97,8 @@ const OngoingTallyPage = ({
       return newMap;
     });
   };
-  const handlePersonRemoval = (gender: string, ageGroup: string) => {
-    const key =
-      gender === "male" ?
-        `${gender}-${ageGroup}-${manActivity}-${manTraversing}-${manWithImpairment}-${manInApparentIllicitActivity}-${manWithoutHousing}`
-      : `${gender}-${ageGroup}-${womanActivity}-${womanTraversing}-${womanWithImpairment}-${womanInApparentIllicitActivity}-${womanWithoutHousing}`;
-
+  const handlePersonRemoval = (gender: Gender, ageGroup: AgeGroup) => {
+    const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
     setTallyMap((prev) => {
       const newMap = new Map(prev);
       const prevValue = newMap.get(key);
@@ -87,9 +116,9 @@ const OngoingTallyPage = ({
     console.log(commercialActivitiesMap);
   }, [commercialActivitiesMap]);
   const countPeople = (
-    gender: string,
-    ageGroup: string,
-    activity: string,
+    gender: Gender,
+    ageGroup: AgeGroup,
+    activity: Activity,
     isTraversing: boolean,
     isPersonWithImpairment: boolean,
     isInApparentIllicitActivity: boolean,
@@ -120,7 +149,12 @@ const OngoingTallyPage = ({
                     {"Temperatura (°C):"}
                   </label>
                   <Input
-                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    onChange={(e) =>
+                      setWeatherStats((prev) => ({
+                        ...prev,
+                        temperature: Number(e.target.value),
+                      }))
+                    }
                     className="w-11"
                     type="number"
                     maxLength={2}
@@ -131,7 +165,12 @@ const OngoingTallyPage = ({
                     Tempo:
                   </label>
                   <Select
-                    onChange={(e) => setWeather(e.target.value)}
+                    onChange={(e) =>
+                      setWeatherStats((prev) => ({
+                        ...prev,
+                        weather: e.target.value as WeatherConditions,
+                      }))
+                    }
                     id="weatherSelect"
                   >
                     <option value="SUNNY">Com Sol</option>
@@ -148,20 +187,35 @@ const OngoingTallyPage = ({
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <button
-                        onClick={() => setManActivity("sedentary")}
-                        className={`rounded-xl px-4 py-1 ${manActivity === "sedentary" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            MALE: { ...prev.MALE, activity: "SEDENTARY" },
+                          }))
+                        }
+                        className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Sedentário
                       </button>
                       <button
-                        onClick={() => setManActivity("walking")}
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${manActivity === "walking" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            MALE: { ...prev.MALE, activity: "WALKING" },
+                          }))
+                        }
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Caminhando
                       </button>
                       <button
-                        onClick={() => setManActivity("strenuous")}
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${manActivity === "strenuous" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            MALE: { ...prev.MALE, activity: "STRENUOUS" },
+                          }))
+                        }
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Vigoroso
                       </button>
@@ -170,27 +224,57 @@ const OngoingTallyPage = ({
 
                   <div className="flex flex-row gap-2 py-1">
                     <Checkbox
-                      onChange={(e) => setManTraversing(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          MALE: {
+                            ...prev.MALE,
+                            isTraversing: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Passando
                     </Checkbox>
                     <Checkbox
-                      onChange={(e) => setManWithImpairment(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          MALE: {
+                            ...prev.MALE,
+                            isPersonWithImpairment: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Deficiente
                     </Checkbox>
                     <Checkbox
                       onChange={(e) =>
-                        setManInApparentIllicitActivity(e.target.checked)
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          MALE: {
+                            ...prev.MALE,
+                            isInApparentIllicitActivity: e.target.checked,
+                          },
+                        }))
                       }
                       variant={"admin"}
                     >
                       Atividade ilícita
                     </Checkbox>
                     <Checkbox
-                      onChange={(e) => setManWithoutHousing(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          MALE: {
+                            ...prev.MALE,
+                            isPersonWithoutHousing: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Situação de rua
@@ -201,7 +285,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("male", "child")}
+                          onPress={() => handlePersonRemoval("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -212,17 +296,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "male",
-                            "child",
-                            manActivity,
-                            manTraversing,
-                            manWithImpairment,
-                            manInApparentIllicitActivity,
-                            manWithoutHousing,
+                            "MALE",
+                            "CHILD",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("male", "child")}
+                          onPress={() => handlePersonAdd("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -234,7 +319,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("male", "teen")}
+                          onPress={() => handlePersonRemoval("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -245,17 +330,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "male",
-                            "teen",
-                            manActivity,
-                            manTraversing,
-                            manWithImpairment,
-                            manInApparentIllicitActivity,
-                            manWithoutHousing,
+                            "MALE",
+                            "TEEN",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("male", "teen")}
+                          onPress={() => handlePersonAdd("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -267,7 +353,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulto</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("male", "adult")}
+                          onPress={() => handlePersonRemoval("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -278,17 +364,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "male",
-                            "adult",
-                            manActivity,
-                            manTraversing,
-                            manWithImpairment,
-                            manInApparentIllicitActivity,
-                            manWithoutHousing,
+                            "MALE",
+                            "ADULT",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("male", "adult")}
+                          onPress={() => handlePersonAdd("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -300,7 +387,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Idoso</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("male", "elderly")}
+                          onPress={() => handlePersonRemoval("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -311,17 +398,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "male",
-                            "elderly",
-                            manActivity,
-                            manTraversing,
-                            manWithImpairment,
-                            manInApparentIllicitActivity,
-                            manWithoutHousing,
+                            "MALE",
+                            "ELDERLY",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("male", "elderly")}
+                          onPress={() => handlePersonAdd("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -337,20 +425,35 @@ const OngoingTallyPage = ({
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <button
-                        onClick={() => setWomanActivity("sedentary")}
-                        className={`rounded-xl px-4 py-1 ${womanActivity === "sedentary" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            FEMALE: { ...prev.FEMALE, activity: "SEDENTARY" },
+                          }))
+                        }
+                        className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Sedentária
                       </button>
                       <button
-                        onClick={() => setWomanActivity("walking")}
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${womanActivity === "walking" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            FEMALE: { ...prev.FEMALE, activity: "WALKING" },
+                          }))
+                        }
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Caminhando
                       </button>
                       <button
-                        onClick={() => setWomanActivity("strenuous")}
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${womanActivity === "strenuous" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        onClick={() =>
+                          setPersonCharacteristics((prev) => ({
+                            ...prev,
+                            FEMALE: { ...prev.FEMALE, activity: "STRENUOUS" },
+                          }))
+                        }
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
                       >
                         Vigorosa
                       </button>
@@ -359,27 +462,57 @@ const OngoingTallyPage = ({
 
                   <div className="flex flex-row gap-2 py-1">
                     <Checkbox
-                      onChange={(e) => setWomanTraversing(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          FEMALE: {
+                            ...prev.FEMALE,
+                            isTraversing: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Passando
                     </Checkbox>
                     <Checkbox
-                      onChange={(e) => setWomanWithImpairment(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          FEMALE: {
+                            ...prev.FEMALE,
+                            isPersonWithImpairment: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Deficiente
                     </Checkbox>
                     <Checkbox
                       onChange={(e) =>
-                        setWomanInApparentIllicitActivity(e.target.checked)
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          FEMALE: {
+                            ...prev.FEMALE,
+                            isInApparentIllicitActivity: e.target.checked,
+                          },
+                        }))
                       }
                       variant={"admin"}
                     >
                       Atividade ilícita
                     </Checkbox>
                     <Checkbox
-                      onChange={(e) => setWomanWithoutHousing(e.target.checked)}
+                      onChange={(e) =>
+                        setPersonCharacteristics((prev) => ({
+                          ...prev,
+                          FEMALE: {
+                            ...prev.FEMALE,
+                            isPersonWithoutHousing: e.target.checked,
+                          },
+                        }))
+                      }
                       variant={"admin"}
                     >
                       Situação de rua
@@ -390,7 +523,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("female", "child")}
+                          onPress={() => handlePersonRemoval("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -401,17 +534,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "female",
-                            "child",
-                            womanActivity,
-                            womanTraversing,
-                            womanWithImpairment,
-                            womanInApparentIllicitActivity,
-                            womanWithoutHousing,
+                            "FEMALE",
+                            "CHILD",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("female", "child")}
+                          onPress={() => handlePersonAdd("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -423,7 +557,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("female", "teen")}
+                          onPress={() => handlePersonRemoval("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -434,17 +568,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "female",
-                            "teen",
-                            womanActivity,
-                            womanTraversing,
-                            womanWithImpairment,
-                            womanInApparentIllicitActivity,
-                            womanWithoutHousing,
+                            "FEMALE",
+                            "TEEN",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("female", "teen")}
+                          onPress={() => handlePersonAdd("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -456,7 +591,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulta</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          onPress={() => handlePersonRemoval("female", "adult")}
+                          onPress={() => handlePersonRemoval("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -467,17 +602,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "female",
-                            "adult",
-                            womanActivity,
-                            womanTraversing,
-                            womanWithImpairment,
-                            womanInApparentIllicitActivity,
-                            womanWithoutHousing,
+                            "FEMALE",
+                            "ADULT",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("female", "adult")}
+                          onPress={() => handlePersonAdd("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -490,7 +626,7 @@ const OngoingTallyPage = ({
                       <div className="flex flex-row items-center gap-1">
                         <Button
                           onPress={() =>
-                            handlePersonRemoval("female", "elderly")
+                            handlePersonRemoval("FEMALE", "ELDERLY")
                           }
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -502,17 +638,18 @@ const OngoingTallyPage = ({
                           className="text-center"
                         >
                           {countPeople(
-                            "female",
-                            "elderly",
-                            womanActivity,
-                            womanTraversing,
-                            womanWithImpairment,
-                            womanInApparentIllicitActivity,
-                            womanWithoutHousing,
+                            "FEMALE",
+                            "ELDERLY",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
                           )}
                         </p>
                         <Button
-                          onPress={() => handlePersonAdd("female", "elderly")}
+                          onPress={() => handlePersonAdd("FEMALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
                         >
@@ -534,8 +671,11 @@ const OngoingTallyPage = ({
                     <div className="flex flex-row items-center gap-1">
                       <Button
                         onPress={() => {
-                          if (animalsAmount !== 0)
-                            setAnimalsAmount((prev) => prev - 1);
+                          if (complementaryData.animalsAmount !== 0)
+                            setComplementaryData((prev) => ({
+                              ...prev,
+                              animalsAmount: prev.animalsAmount - 1,
+                            }));
                         }}
                         className="h-8 w-8 text-3xl"
                         variant={"admin"}
@@ -543,10 +683,15 @@ const OngoingTallyPage = ({
                         -
                       </Button>
                       <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {animalsAmount}
+                        {complementaryData.animalsAmount}
                       </p>
                       <Button
-                        onPress={() => setAnimalsAmount((prev) => prev + 1)}
+                        onPress={() =>
+                          setComplementaryData((prev) => ({
+                            ...prev,
+                            animalsAmount: prev.animalsAmount + 1,
+                          }))
+                        }
                         className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
@@ -559,8 +704,11 @@ const OngoingTallyPage = ({
                     <div className="flex flex-row items-center gap-1">
                       <Button
                         onPress={() => {
-                          if (groupsAmount !== 0)
-                            setGroupsAmount((prev) => prev - 1);
+                          if (complementaryData.groupsAmount !== 0)
+                            setComplementaryData((prev) => ({
+                              ...prev,
+                              groupsAmount: prev.groupsAmount - 1,
+                            }));
                         }}
                         className="h-8 w-8 text-3xl"
                         variant={"admin"}
@@ -568,10 +716,15 @@ const OngoingTallyPage = ({
                         -
                       </Button>
                       <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {groupsAmount}
+                        {complementaryData.groupsAmount}
                       </p>
                       <Button
-                        onPress={() => setGroupsAmount((prev) => prev + 1)}
+                        onPress={() =>
+                          setComplementaryData((prev) => ({
+                            ...prev,
+                            groupsAmount: prev.groupsAmount + 1,
+                          }))
+                        }
                         className="h-8 w-8 text-3xl"
                         variant={"admin"}
                       >
