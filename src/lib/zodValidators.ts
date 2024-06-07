@@ -431,12 +431,10 @@ const tallyDataToCreateTableSchema = z.object({
   groups: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  commercialActivities: z.coerce
-    .number()
-    .int()
-    .finite()
-    .nonnegative()
-    .nullable(),
+  commercialActivities: z.record(
+    z.string(),
+    z.coerce.number().int().finite().nonnegative(),
+  ),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 
@@ -448,44 +446,12 @@ const tallyDataToCreateTableSchema = z.object({
   ),
 });
 
-const tallyDataFetchedToOngoingTallyPageSchema = z.object({
-  tallyPerson: z.array(
-    z.object({
-      person: personSchema,
-      quantity: z.coerce.number().int().finite().nonnegative(),
-    }),
-  ),
-  location: z.object({
-    name: z.string().trim().min(1).max(255),
-  }),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  observer: z.coerce
-    .string()
-    .trim()
-    .refine((value) => !value.includes("\n")),
-  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-  groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  commercialActivities: z.coerce
-    .number()
-    .int()
-    .finite()
-    .nonnegative()
-    .nullable(),
-  commercialActivitiesDescription: z.string().nullable(),
-});
-
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
 type tallyDataToCreateTableType = z.infer<typeof tallyDataToCreateTableSchema>;
 type tallyDataFetchedToTallyListType = z.infer<
   typeof tallyDataFetchedToTallyListSchema
->;
-type tallyDataFetchedToOngoingTallyPageType = z.infer<
-  typeof tallyDataFetchedToOngoingTallyPageSchema
 >;
 
 export {
@@ -494,7 +460,6 @@ export {
   tallySchema,
   tallyDataFetchedToTallyListSchema,
   tallyDataToCreateTableSchema,
-  tallyDataFetchedToOngoingTallyPageSchema,
 };
 export type {
   noiseType,
@@ -502,6 +467,5 @@ export type {
   tallyType,
   tallyDataFetchedToTallyListType,
   tallyDataToCreateTableType,
-  tallyDataFetchedToOngoingTallyPageType,
 };
 // #endregion

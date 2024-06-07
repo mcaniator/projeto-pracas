@@ -4,14 +4,41 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { tallyDataFetchedToOngoingTallyPageType } from "@/lib/zodValidators";
+import { saveOngoingTallyData } from "@/serverActions/tallyUtil";
 import { Gender } from "@prisma/client";
 import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import React from "react";
 
+interface TallyPerson {
+  person: {
+    gender: Gender;
+    ageGroup: AgeGroup;
+    activity: Activity;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  quantity: number;
+}
+interface ongoingTallyDataFetched {
+  tallyPerson: TallyPerson[];
+  location: {
+    name: string;
+  };
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue;
+}
 interface WeatherStats {
   temperature: number;
   weather: WeatherConditions;
@@ -33,11 +60,16 @@ interface PersonCharacteristics {
     isPersonWithoutHousing: boolean;
   };
 }
-
+const weatherNameMap = new Map([
+  ["SUNNY", "Com sol"],
+  ["CLOUDY", "Nublado"],
+]);
 const OngoingTallyPage = ({
+  tallyId,
   tally,
 }: {
-  tally: tallyDataFetchedToOngoingTallyPageType;
+  tallyId: number;
+  tally: ongoingTallyDataFetched;
 }) => {
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(new Map());
   const [commercialActivitiesMap, setCommercialActivitiesMap] = useState<
@@ -54,7 +86,8 @@ const OngoingTallyPage = ({
         label: "Pula-pula (ou outra ativ. infantil)",
       },
       { value: "Mesas de bares", label: "Mesas de bares" },
-      { value: "other", label: "Outros" },
+      { value: "Outros", label: "Outros" },
+      { value: "other", label: "Criar nova atividade" },
     ]);
   const [newCommercialActivityInput, setNewCommercialActivityInput] =
     useState("");
@@ -815,7 +848,9 @@ const OngoingTallyPage = ({
                       <form
                         action={(formdata: FormData) => {
                           let activity = formdata.get("activity") as string;
-                          activity = activity.trim();
+                          activity =
+                            activity.trim().charAt(0).toUpperCase() +
+                            activity.trim().slice(1);
                           if (
                             !activity ||
                             activity === "" ||
@@ -836,7 +871,10 @@ const OngoingTallyPage = ({
                           name="activity"
                           placeholder="Descrição da atividade itinerante"
                           onChange={(e) =>
-                            setNewCommercialActivityInput(e.target.value)
+                            setNewCommercialActivityInput(
+                              e.target.value.trim().charAt(0).toUpperCase() +
+                                e.target.value.trim().slice(1),
+                            )
                           }
                         />
                         {(
@@ -857,8 +895,30 @@ const OngoingTallyPage = ({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+        <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
           <h4 className="text-xl font-semibold">Acompanhamento</h4>
+          <p>{`Data de início: ${tally.startDate.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })}`}</p>
+          <p>{`Horário de início: ${tally.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}</p>
+          <p>{`Observador: ${tally.observer}`}</p>
+          <p>{`Temperatura: ${weatherStats.temperature}°C`}</p>
+          <p>{`Tempo: ${weatherNameMap.get(weatherStats.weather)}`}</p>
+          <div className="flex flex-row gap-1">
+            <Button
+              onPress={() => {
+                saveOngoingTallyData(
+                  tallyId,
+                  weatherStats,
+                  tallyMap,
+                  commercialActivitiesMap,
+                  complementaryData,
+                ).catch((error) => console.log(error));
+              }}
+              variant={"secondary"}
+            >
+              Salvar
+            </Button>
+            <Button variant={"constructive"}>Salvar e finalizar</Button>
+          </div>
         </div>
       </div>
     </div>

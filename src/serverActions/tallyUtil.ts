@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
+import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 const searchTallysByLocationId = async (locationId: number) => {
@@ -71,9 +72,10 @@ const searchOngoingTallyById = async (tallyId: number) => {
       weatherCondition: true,
       groups: true,
       commercialActivities: true,
-      commercialActivitiesDescription: true,
     },
   });
+  if (tally?.commercialActivities)
+    tally.commercialActivities = tally?.commercialActivities?.toString();
   return tally?.endDate ? null : tally;
 };
 
@@ -127,4 +129,88 @@ const createTallyByUser = async (prevState: FormState, formData: FormData) => {
     };
   }
 };
-export { searchTallysByLocationId, createTallyByUser, searchOngoingTallyById };
+
+interface WeatherStats {
+  temperature: number;
+  weather: WeatherConditions;
+}
+interface PersonWithQuantity {
+  gender: Gender;
+  ageGroup: AgeGroup;
+  activity: Activity;
+  isTraversing: boolean;
+  isPersonWithImpairment: boolean;
+  isInApparentIllicitActivity: boolean;
+  isPersonWithoutHousing: boolean;
+  quantity: number;
+}
+const saveOngoingTallyData = async (
+  tallyId: number,
+  weatherStats: WeatherStats,
+  tallyMap: Map<string, number>,
+  commercialActivitiesMap: Map<string, number>,
+  complementaryData: { animalsAmount: number; groupsAmount: number },
+) => {
+  const person: PersonWithQuantity[] = [];
+
+  tallyMap.forEach((quantity, key) => {
+    const [
+      gender,
+      ageGroup,
+      activity,
+      isTraversing,
+      isPersonWithImpairment,
+      isInApparentIllicitActivity,
+      isPersonWithoutHousing,
+    ] = key.split("-") as [
+      Gender,
+      AgeGroup,
+      Activity,
+      string,
+      string,
+      string,
+      string,
+    ];
+    person.push({
+      gender,
+      ageGroup,
+      activity,
+      isTraversing: isTraversing === "true",
+      isPersonWithImpairment: isPersonWithImpairment === "true",
+      isInApparentIllicitActivity: isInApparentIllicitActivity === "true",
+      isPersonWithoutHousing: isPersonWithoutHousing === "true",
+      quantity,
+    });
+  });
+
+  const commercialActivities: { [key: string]: number } = {};
+
+  commercialActivitiesMap.forEach(
+    (quantity, key) => (commercialActivities[key] = quantity),
+  );
+
+  try {
+    await prisma.tally.update({
+      where: {
+        id: tallyId,
+      },
+      data: {
+        temperature: weatherStats.temperature,
+        weatherCondition: weatherStats.weather,
+        animalsAmount: complementaryData.animalsAmount,
+        groups: complementaryData.groupsAmount,
+        commercialActivities: commercialActivities,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  console.log(commercialActivities);
+};
+export {
+  searchTallysByLocationId,
+  createTallyByUser,
+  searchOngoingTallyById,
+  saveOngoingTallyData,
+};

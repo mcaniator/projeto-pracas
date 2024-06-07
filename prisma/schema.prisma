@@ -711,12 +711,11 @@ model Tally {
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
   observer  String    @db.VarChar(255)
 
-  animalsAmount                   Int?               @map("animals_amount")
-  temperature                     Float?
-  weatherCondition                WeatherConditions? @map("weather_condition")
-  groups                          Int?
-  commercialActivities            Int?               @map("commercial_activities")
-  commercialActivitiesDescription String?            @map("commercial_activities_description") @db.VarChar(255)
+  animalsAmount        Int?               @map("animals_amount")
+  temperature          Float?
+  weatherCondition     WeatherConditions? @map("weather_condition")
+  groups               Int?
+  commercialActivities Json?              @map("commercial_activities")
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
