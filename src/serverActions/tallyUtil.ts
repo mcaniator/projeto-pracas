@@ -74,8 +74,6 @@ const searchOngoingTallyById = async (tallyId: number) => {
       commercialActivities: true,
     },
   });
-  if (tally?.commercialActivities)
-    tally.commercialActivities = tally?.commercialActivities?.toString();
   return tally?.endDate ? null : tally;
 };
 
@@ -151,7 +149,7 @@ const saveOngoingTallyData = async (
   commercialActivitiesMap: Map<string, number>,
   complementaryData: { animalsAmount: number; groupsAmount: number },
 ) => {
-  const person: PersonWithQuantity[] = [];
+  const persons: PersonWithQuantity[] = [];
 
   tallyMap.forEach((quantity, key) => {
     const [
@@ -171,7 +169,7 @@ const saveOngoingTallyData = async (
       string,
       string,
     ];
-    person.push({
+    persons.push({
       gender,
       ageGroup,
       activity,
@@ -190,17 +188,57 @@ const saveOngoingTallyData = async (
   );
 
   try {
-    await prisma.tally.update({
-      where: {
-        id: tallyId,
-      },
-      data: {
-        temperature: weatherStats.temperature,
-        weatherCondition: weatherStats.weather,
-        animalsAmount: complementaryData.animalsAmount,
-        groups: complementaryData.groupsAmount,
-        commercialActivities: commercialActivities,
-      },
+    await prisma.$transaction(async (prisma) => {
+      await prisma.tally.update({
+        where: {
+          id: tallyId,
+        },
+        data: {
+          temperature: weatherStats.temperature,
+          weatherCondition: weatherStats.weather,
+          animalsAmount: complementaryData.animalsAmount,
+          groups: complementaryData.groupsAmount,
+          commercialActivities: commercialActivities,
+        },
+      });
+      for (const person of persons) {
+        const { quantity, ...personCharacteristics } = person;
+        const databasePerson = await prisma.person.upsert({
+          where: {
+            person_characteristics: {
+              ...personCharacteristics,
+            },
+          },
+          update: {},
+          create: {
+            ...personCharacteristics,
+          },
+        });
+        await prisma.tallyPerson.upsert({
+          where: {
+            tally_id_person_id: {
+              tallyId: tallyId,
+              personId: databasePerson.id,
+            },
+          },
+          update: {
+            quantity: quantity,
+          },
+          create: {
+            tally: {
+              connect: {
+                id: tallyId,
+              },
+            },
+            person: {
+              connect: {
+                id: databasePerson.id,
+              },
+            },
+            quantity: quantity,
+          },
+        });
+      }
     });
   } catch (error) {
     console.log(error);
