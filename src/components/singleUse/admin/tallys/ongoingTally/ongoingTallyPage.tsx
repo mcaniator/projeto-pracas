@@ -13,6 +13,10 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import React from "react";
 
+interface CommercialActivitiesObject {
+  [key: string]: number;
+}
+
 interface TallyPerson {
   person: {
     gender: Gender;
@@ -71,37 +75,74 @@ const OngoingTallyPage = ({
   tallyId: number;
   tally: ongoingTallyDataFetched;
 }) => {
-  const [tallyMap, setTallyMap] = useState<Map<string, number>>(new Map());
+  const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
+    const tallyMap = new Map();
+    for (const tallyPerson of tally.tallyPerson) {
+      const gender = tallyPerson.person.gender;
+      const ageGroup = tallyPerson.person.ageGroup;
+      const activity = tallyPerson.person.activity;
+      const isTraversing = tallyPerson.person.isTraversing;
+      const isPersonWithImpairment = tallyPerson.person.isPersonWithImpairment;
+      const isInApparentIllicitActivity =
+        tallyPerson.person.isInApparentIllicitActivity;
+      const isPersonWithoutHousing = tallyPerson.person.isPersonWithoutHousing;
+      tallyMap.set(
+        `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
+        tallyPerson.quantity,
+      );
+    }
+
+    return tallyMap;
+  });
   const [commercialActivitiesMap, setCommercialActivitiesMap] = useState<
     Map<string, number>
   >(new Map());
+  console.log(tally.commercialActivities);
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
-    useState([
-      { value: "Alimentos", label: "Alimentos" },
-      { value: "Produtos", label: "Produtos" },
-      {
-        value: "Pula-pula (ou outra ativ. infantil)",
-        label: "Pula-pula (ou outra ativ. infantil)",
-      },
-      { value: "Mesas de bares", label: "Mesas de bares" },
-      { value: "Outros", label: "Outros" },
-      { value: "other", label: "Criar nova atividade" },
-    ]);
+    useState(() => {
+      const defaultOptions = [
+        { value: "Alimentos", label: "Alimentos" },
+        { value: "Produtos", label: "Produtos" },
+        {
+          value: "Pula-pula (ou outra ativ. infantil)",
+          label: "Pula-pula (ou outra ativ. infantil)",
+        },
+        { value: "Mesas de bares", label: "Mesas de bares" },
+        { value: "Outros", label: "Outros" },
+        { value: "other", label: "Criar nova atividade" },
+      ];
+      if (!tally.commercialActivities) return defaultOptions;
+
+      const customOptions = Object.keys(tally.commercialActivities as string)
+        .filter(
+          (activity) =>
+            activity !== "Alimentos" &&
+            activity !== "Produtos" &&
+            activity !== "Pula-pula (ou outra ativ. infantil)" &&
+            activity !== "Mesas de bares" &&
+            activity !== "Outros" &&
+            activity !== "Criar nova atividade",
+        )
+        .map((activity) => ({ value: activity, label: activity }));
+
+      return [...defaultOptions, ...customOptions];
+    });
+  //console.log(Object.keys(tally.commercialActivities as string));
   const [newCommercialActivityInput, setNewCommercialActivityInput] =
     useState("");
   const deferredNewCommercialActivityInput = useDeferredValue(
     newCommercialActivityInput,
   );
   const [weatherStats, setWeatherStats] = useState<WeatherStats>({
-    temperature: 0,
-    weather: "SUNNY",
+    temperature: tally.temperature ? tally.temperature : 0,
+    weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
   });
 
   const [complementaryData, setComplementaryData] = useState({
-    animalsAmount: 0,
-    groupsAmount: 0,
+    animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
+    groupsAmount: tally.groups ? tally.groups : 0,
   });
   const [personCharacteristics, setPersonCharacteristics] =
     useState<PersonCharacteristics>({
@@ -136,7 +177,7 @@ const OngoingTallyPage = ({
       const newMap = new Map(prev);
       const prevValue = newMap.get(key);
       if (prevValue) {
-        if (prevValue - 1 === 0) newMap.delete(key);
+        if (prevValue - 1 < 0) newMap.set(key, 0);
         else newMap.set(key, prevValue - 1);
       }
       return newMap;
@@ -182,6 +223,7 @@ const OngoingTallyPage = ({
                     {"Temperatura (°C):"}
                   </label>
                   <Input
+                    value={weatherStats.temperature}
                     onChange={(e) =>
                       setWeatherStats((prev) => ({
                         ...prev,
@@ -198,6 +240,7 @@ const OngoingTallyPage = ({
                     Tempo:
                   </label>
                   <Select
+                    value={weatherStats.weather}
                     onChange={(e) =>
                       setWeatherStats((prev) => ({
                         ...prev,

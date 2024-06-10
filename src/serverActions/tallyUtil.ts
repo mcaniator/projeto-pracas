@@ -182,7 +182,7 @@ const saveOngoingTallyData = async (
   });
 
   const commercialActivities: { [key: string]: number } = {};
-
+  console.log("chamou");
   commercialActivitiesMap.forEach(
     (quantity, key) => (commercialActivities[key] = quantity),
   );
