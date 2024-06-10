@@ -132,6 +132,9 @@ interface WeatherStats {
   temperature: number;
   weather: WeatherConditions;
 }
+interface CommercialActivitiesObject {
+  [key: string]: number;
+}
 interface PersonWithQuantity {
   gender: Gender;
   ageGroup: AgeGroup;
@@ -146,7 +149,7 @@ const saveOngoingTallyData = async (
   tallyId: number,
   weatherStats: WeatherStats,
   tallyMap: Map<string, number>,
-  commercialActivitiesMap: Map<string, number>,
+  commercialActivities: CommercialActivitiesObject,
   complementaryData: { animalsAmount: number; groupsAmount: number },
 ) => {
   const persons: PersonWithQuantity[] = [];
@@ -181,11 +184,10 @@ const saveOngoingTallyData = async (
     });
   });
 
-  const commercialActivities: { [key: string]: number } = {};
   console.log("chamou");
-  commercialActivitiesMap.forEach(
+  /*commercialActivitiesMap.forEach(
     (quantity, key) => (commercialActivities[key] = quantity),
-  );
+  );*/
 
   try {
     await prisma.$transaction(async (prisma) => {

@@ -94,10 +94,13 @@ const OngoingTallyPage = ({
 
     return tallyMap;
   });
-  const [commercialActivitiesMap, setCommercialActivitiesMap] = useState<
-    Map<string, number>
-  >(new Map());
-  console.log(tally.commercialActivities);
+  const [commercialActivities, setCommercialActivities] =
+    useState<CommercialActivitiesObject>(() => {
+      if (tally.commercialActivities)
+        return tally.commercialActivities as CommercialActivitiesObject;
+      else return {};
+    });
+  console.log();
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
@@ -187,8 +190,8 @@ const OngoingTallyPage = ({
     console.log(tallyMap);
   }, [tallyMap]);
   useEffect(() => {
-    console.log(commercialActivitiesMap);
-  }, [commercialActivitiesMap]);
+    console.log(commercialActivities);
+  }, [commercialActivities]);
   const countPeople = (
     gender: Gender,
     ageGroup: AgeGroup,
@@ -230,7 +233,7 @@ const OngoingTallyPage = ({
                         temperature: Number(e.target.value),
                       }))
                     }
-                    className="w-11"
+                    className="w-14"
                     type="number"
                     maxLength={2}
                   ></Input>
@@ -842,28 +845,27 @@ const OngoingTallyPage = ({
                         onPress={() => {
                           const key = selectedCommercialActivity;
                           if (key === "other") return;
-                          setCommercialActivitiesMap((prev) => {
-                            const newMap = new Map(prev);
+                          setCommercialActivities((prev) => {
+                            const newObject = { ...prev };
+                            if (newObject[selectedCommercialActivity]) {
+                              newObject[selectedCommercialActivity] -= 1;
+                            }
+                            return newObject;
+                            /*const newMap = new Map(prev);
                             const prevValue = newMap.get(key);
                             if (prevValue) {
                               if (prevValue - 1 === 0) newMap.delete(key);
                               else newMap.set(key, prevValue - 1);
                             }
-                            return newMap;
+                            return newMap;*/
                           });
                         }}
                       >
                         -
                       </Button>
                       <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {(
-                          commercialActivitiesMap.get(
-                            selectedCommercialActivity,
-                          )
-                        ) ?
-                          commercialActivitiesMap.get(
-                            selectedCommercialActivity,
-                          )
+                        {commercialActivities[selectedCommercialActivity] ?
+                          commercialActivities[selectedCommercialActivity]
                         : 0}
                       </p>
                       <Button
@@ -873,11 +875,18 @@ const OngoingTallyPage = ({
                         onPress={() => {
                           const key = selectedCommercialActivity;
                           if (key === "other") return;
-                          setCommercialActivitiesMap((prev) => {
-                            const newMap = new Map(prev);
+                          setCommercialActivities((prev) => {
+                            const newObject = { ...prev };
+                            if (newObject[selectedCommercialActivity]) {
+                              newObject[selectedCommercialActivity] += 1;
+                            } else {
+                              newObject[selectedCommercialActivity] = 1;
+                            }
+                            return newObject;
+                            /*const newMap = new Map(prev);
                             const prevValue = newMap.get(key) || 0;
                             newMap.set(key, prevValue + 1);
-                            return newMap;
+                            return newMap;*/
                           });
                         }}
                       >
@@ -952,7 +961,7 @@ const OngoingTallyPage = ({
                   tallyId,
                   weatherStats,
                   tallyMap,
-                  commercialActivitiesMap,
+                  commercialActivities,
                   complementaryData,
                 ).catch((error) => console.log(error));
               }}
