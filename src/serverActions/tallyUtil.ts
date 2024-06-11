@@ -201,7 +201,10 @@ const saveOngoingTallyData = async (
           weatherCondition: weatherStats.weather,
           animalsAmount: complementaryData.animalsAmount,
           groups: complementaryData.groupsAmount,
-          commercialActivities: commercialActivities,
+          commercialActivities:
+            Object.keys(commercialActivities).length > 0 ?
+              commercialActivities
+            : undefined,
           endDate: endDate,
         },
       });
@@ -244,12 +247,11 @@ const saveOngoingTallyData = async (
         });
       }
     });
-    if (endDate) revalidatePath("/");
   } catch (error) {
     console.log(error);
   }
 
-  console.log(commercialActivities);
+  //console.log(commercialActivities);
 };
 export {
   searchTallysByLocationId,

@@ -12,6 +12,7 @@ const Page = async ({
   if (tally) {
     return (
       <OngoingTallyPage
+        locationId={Number(params.locationId)}
         tallyId={Number(params.currentOngoingTally)}
         tally={tally}
       ></OngoingTallyPage>

@@ -10,8 +10,8 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { error } from "console";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDeferredValue, useRef, useState } from "react";
 import React from "react";
 
 interface CommercialActivitiesObject {
@@ -70,31 +70,42 @@ const weatherNameMap = new Map([
   ["CLOUDY", "Nublado"],
 ]);
 const OngoingTallyPage = ({
+  locationId,
   tallyId,
   tally,
 }: {
+  locationId: number;
   tallyId: number;
   tally: ongoingTallyDataFetched;
 }) => {
-  let endDate: Date;
+  const router = useRouter();
+  const endDate = useRef<Date | null>(null);
   const handleDataSubmit = async (endTally: boolean) => {
     if (endTally) {
-      if (!endDate) {
+      if (!endDate.current || isNaN(endDate.current.getTime())) {
         setValidEndDate(false);
-        console.log(validEndDate);
         return;
-      } else setValidEndDate(true);
+      } else {
+        setValidEndDate(true);
+      }
+      setSubmittingAndEnding(true);
+    } else {
+      setSubmitting(true);
     }
-    endTally ? setSubmittingAndEnding(true) : setSubmitting(true);
+
     await saveOngoingTallyData(
       tallyId,
       weatherStats,
       tallyMap,
       commercialActivities,
       complementaryData,
-      endTally ? endDate : null,
+      endTally ? endDate.current : null,
     );
-    endTally ? setSubmittingAndEnding(false) : setSubmitting(false);
+    if (endTally) {
+      router.push(`/admin/parks/${locationId}/tallys`);
+    } else {
+      setSubmitting(false);
+    }
   };
   const [submitting, setSubmitting] = useState(false);
   const [submittingAndEnding, setSubmittingAndEnding] = useState(false);
@@ -209,12 +220,6 @@ const OngoingTallyPage = ({
       return newMap;
     });
   };
-  useEffect(() => {
-    console.log(tallyMap);
-  }, [tallyMap]);
-  useEffect(() => {
-    console.log(commercialActivities);
-  }, [commercialActivities]);
   const countPeople = (
     gender: Gender,
     ageGroup: AgeGroup,
@@ -289,6 +294,7 @@ const OngoingTallyPage = ({
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -300,6 +306,7 @@ const OngoingTallyPage = ({
                         Sedentário
                       </Button>
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -311,6 +318,7 @@ const OngoingTallyPage = ({
                         Caminhando
                       </Button>
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -535,6 +543,7 @@ const OngoingTallyPage = ({
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -546,6 +555,7 @@ const OngoingTallyPage = ({
                         Sedentária
                       </Button>
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -557,6 +567,7 @@ const OngoingTallyPage = ({
                         Caminhando
                       </Button>
                       <Button
+                        variant={"ghost"}
                         onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
@@ -998,7 +1009,7 @@ const OngoingTallyPage = ({
               validEndDate ? "outline-none" : "outline outline-red-500"
             }
             onChange={(e) => {
-              endDate = new Date(e.target.value);
+              endDate.current = new Date(e.target.value);
             }}
             id="end-date"
             type="datetime-local"
@@ -1007,21 +1018,22 @@ const OngoingTallyPage = ({
           <div className="flex flex-row gap-1">
             <Button
               className="w-24"
-              isDisabled={submitting}
+              isDisabled={submitting || submittingAndEnding}
               onPress={() => {
-                handleDataSubmit(false).catch((error) => console.log(error));
+                handleDataSubmit(false).catch(() => ({ statusCode: 0 }));
               }}
               variant={"secondary"}
             >
               {submitting ? "Salvando..." : "Salvar"}
             </Button>
             <Button
+              isDisabled={submitting || submittingAndEnding}
               variant={"constructive"}
               onPress={() => {
-                handleDataSubmit(true).catch((error) => console.log(error));
+                handleDataSubmit(true).catch(() => ({ statusCode: 0 }));
               }}
             >
-              {submittingAndEnding ? "Salvando" : "Salvar e finalizar"}
+              {submittingAndEnding ? "Salvando..." : "Salvar e finalizar"}
             </Button>
           </div>
         </div>
