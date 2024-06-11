@@ -85,10 +85,7 @@ const MainTallyDataTableComplementary = ({
               Tipos
             </td>
             <td style={{ border: "1px solid white", padding: "0.5rem" }}>
-              AAAAAAAAAA AAAAAAAA AAAAAAAAAAA AAAAAAAAAAAAAAA
-              AAAAAAAAAAAAAAAAAAAA AAAAAAAA AAAAA BBBBBBBBBBBBBB
-              BBBBBBBBBBBBBBBBBBBBBBBBBBBBB BBBBBBBBBBBBBBBBB BBBBBBBBBBBBBBB
-              BBBBBBBB BBBBBBBBBBBBBBBBBB BBBBBBBBBBBBBB
+              {tallyMap.get("commercialActivitiesDescription")}
             </td>
           </tr>
         </tbody>

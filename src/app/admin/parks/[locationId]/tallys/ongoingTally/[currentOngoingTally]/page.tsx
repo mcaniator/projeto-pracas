@@ -9,13 +9,20 @@ const Page = async ({
   const tally = await searchOngoingTallyById(
     Number(params.currentOngoingTally),
   );
-  if (tally)
+  if (tally) {
     return (
       <OngoingTallyPage
         tallyId={Number(params.currentOngoingTally)}
         tally={tally}
       ></OngoingTallyPage>
     );
+  } else {
+    return (
+      <div>
+        <h3>Contagem Finalizada!</h3>
+      </div>
+    );
+  }
 };
 
 export default Page;

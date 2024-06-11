@@ -10,6 +10,7 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { error } from "console";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import React from "react";
 
@@ -75,6 +76,29 @@ const OngoingTallyPage = ({
   tallyId: number;
   tally: ongoingTallyDataFetched;
 }) => {
+  let endDate: Date;
+  const handleDataSubmit = async (endTally: boolean) => {
+    if (endTally) {
+      if (!endDate) {
+        setValidEndDate(false);
+        console.log(validEndDate);
+        return;
+      } else setValidEndDate(true);
+    }
+    endTally ? setSubmittingAndEnding(true) : setSubmitting(true);
+    await saveOngoingTallyData(
+      tallyId,
+      weatherStats,
+      tallyMap,
+      commercialActivities,
+      complementaryData,
+      endTally ? endDate : null,
+    );
+    endTally ? setSubmittingAndEnding(false) : setSubmitting(false);
+  };
+  const [submitting, setSubmitting] = useState(false);
+  const [submittingAndEnding, setSubmittingAndEnding] = useState(false);
+  const [validEndDate, setValidEndDate] = useState(true);
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
     for (const tallyPerson of tally.tallyPerson) {
@@ -100,7 +124,6 @@ const OngoingTallyPage = ({
         return tally.commercialActivities as CommercialActivitiesObject;
       else return {};
     });
-  console.log();
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
@@ -217,7 +240,7 @@ const OngoingTallyPage = ({
           <h3 className="text-2xl font-semibold">
             Contagem em {tally?.location.name}
           </h3>
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-5 overflow-auto">
             <div className="flex flex-col gap-1">
               <h4 className="text-2xl font-semibold">Dados climáticos</h4>
               <div className="flex flex-row gap-5">
@@ -265,39 +288,39 @@ const OngoingTallyPage = ({
                   <h5 className="text-xl font-semibold">Homens</h5>
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
-                      <button
-                        onClick={() =>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             MALE: { ...prev.MALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Sedentário
-                      </button>
-                      <button
-                        onClick={() =>
+                      </Button>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             MALE: { ...prev.MALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Caminhando
-                      </button>
-                      <button
-                        onClick={() =>
+                      </Button>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             MALE: { ...prev.MALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Vigoroso
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -364,6 +387,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -386,6 +410,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -398,6 +423,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -420,6 +446,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -432,6 +459,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulto</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -454,6 +482,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -466,6 +495,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Idoso</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -488,6 +518,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -503,39 +534,39 @@ const OngoingTallyPage = ({
                   <h5 className="text-xl font-semibold">Mulheres</h5>
                   <div>
                     <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
-                      <button
-                        onClick={() =>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             FEMALE: { ...prev.FEMALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Sedentária
-                      </button>
-                      <button
-                        onClick={() =>
+                      </Button>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             FEMALE: { ...prev.FEMALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Caminhando
-                      </button>
-                      <button
-                        onClick={() =>
+                      </Button>
+                      <Button
+                        onPress={() =>
                           setPersonCharacteristics((prev) => ({
                             ...prev,
                             FEMALE: { ...prev.FEMALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-500/0"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Vigorosa
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -602,6 +633,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -624,6 +656,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -636,6 +669,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -658,6 +692,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -670,6 +705,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulta</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -692,6 +728,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -704,6 +741,7 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Idosa</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
+                          isDisabled={submitting}
                           onPress={() =>
                             handlePersonRemoval("FEMALE", "ELDERLY")
                           }
@@ -728,6 +766,7 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
+                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -749,6 +788,7 @@ const OngoingTallyPage = ({
                     <h6 className="text-xl font-semibold">Pets</h6>
                     <div className="flex flex-row items-center gap-1">
                       <Button
+                        isDisabled={submitting}
                         onPress={() => {
                           if (complementaryData.animalsAmount !== 0)
                             setComplementaryData((prev) => ({
@@ -765,6 +805,7 @@ const OngoingTallyPage = ({
                         {complementaryData.animalsAmount}
                       </p>
                       <Button
+                        isDisabled={submitting}
                         onPress={() =>
                           setComplementaryData((prev) => ({
                             ...prev,
@@ -782,6 +823,7 @@ const OngoingTallyPage = ({
                     <h6 className="text-xl font-semibold">Grupos</h6>
                     <div className="flex flex-row items-center gap-1">
                       <Button
+                        isDisabled={submitting}
                         onPress={() => {
                           if (complementaryData.groupsAmount !== 0)
                             setComplementaryData((prev) => ({
@@ -798,6 +840,7 @@ const OngoingTallyPage = ({
                         {complementaryData.groupsAmount}
                       </p>
                       <Button
+                        isDisabled={submitting}
                         onPress={() =>
                           setComplementaryData((prev) => ({
                             ...prev,
@@ -841,7 +884,9 @@ const OngoingTallyPage = ({
                       <Button
                         variant={"admin"}
                         className="h-8 w-8 text-3xl"
-                        isDisabled={selectedCommercialActivity === "other"}
+                        isDisabled={
+                          selectedCommercialActivity === "other" || submitting
+                        }
                         onPress={() => {
                           const key = selectedCommercialActivity;
                           if (key === "other") return;
@@ -851,13 +896,6 @@ const OngoingTallyPage = ({
                               newObject[selectedCommercialActivity] -= 1;
                             }
                             return newObject;
-                            /*const newMap = new Map(prev);
-                            const prevValue = newMap.get(key);
-                            if (prevValue) {
-                              if (prevValue - 1 === 0) newMap.delete(key);
-                              else newMap.set(key, prevValue - 1);
-                            }
-                            return newMap;*/
                           });
                         }}
                       >
@@ -871,7 +909,9 @@ const OngoingTallyPage = ({
                       <Button
                         variant={"admin"}
                         className="h-8 w-8 text-3xl"
-                        isDisabled={selectedCommercialActivity === "other"}
+                        isDisabled={
+                          selectedCommercialActivity === "other" || submitting
+                        }
                         onPress={() => {
                           const key = selectedCommercialActivity;
                           if (key === "other") return;
@@ -883,10 +923,6 @@ const OngoingTallyPage = ({
                               newObject[selectedCommercialActivity] = 1;
                             }
                             return newObject;
-                            /*const newMap = new Map(prev);
-                            const prevValue = newMap.get(key) || 0;
-                            newMap.set(key, prevValue + 1);
-                            return newMap;*/
                           });
                         }}
                       >
@@ -954,22 +990,39 @@ const OngoingTallyPage = ({
           <p>{`Observador: ${tally.observer}`}</p>
           <p>{`Temperatura: ${weatherStats.temperature}°C`}</p>
           <p>{`Tempo: ${weatherNameMap.get(weatherStats.weather)}`}</p>
+          <label className="mr-1" htmlFor="end-date">
+            Final:
+          </label>
+          <Input
+            className={
+              validEndDate ? "outline-none" : "outline outline-red-500"
+            }
+            onChange={(e) => {
+              endDate = new Date(e.target.value);
+            }}
+            id="end-date"
+            type="datetime-local"
+          ></Input>
+
           <div className="flex flex-row gap-1">
             <Button
+              className="w-24"
+              isDisabled={submitting}
               onPress={() => {
-                saveOngoingTallyData(
-                  tallyId,
-                  weatherStats,
-                  tallyMap,
-                  commercialActivities,
-                  complementaryData,
-                ).catch((error) => console.log(error));
+                handleDataSubmit(false).catch((error) => console.log(error));
               }}
               variant={"secondary"}
             >
-              Salvar
+              {submitting ? "Salvando..." : "Salvar"}
             </Button>
-            <Button variant={"constructive"}>Salvar e finalizar</Button>
+            <Button
+              variant={"constructive"}
+              onPress={() => {
+                handleDataSubmit(true).catch((error) => console.log(error));
+              }}
+            >
+              {submittingAndEnding ? "Salvando" : "Salvar e finalizar"}
+            </Button>
           </div>
         </div>
       </div>

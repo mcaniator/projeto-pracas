@@ -151,6 +151,7 @@ const saveOngoingTallyData = async (
   tallyMap: Map<string, number>,
   commercialActivities: CommercialActivitiesObject,
   complementaryData: { animalsAmount: number; groupsAmount: number },
+  endDate: Date | null,
 ) => {
   const persons: PersonWithQuantity[] = [];
 
@@ -201,6 +202,7 @@ const saveOngoingTallyData = async (
           animalsAmount: complementaryData.animalsAmount,
           groups: complementaryData.groupsAmount,
           commercialActivities: commercialActivities,
+          endDate: endDate,
         },
       });
       for (const person of persons) {
@@ -242,6 +244,7 @@ const saveOngoingTallyData = async (
         });
       }
     });
+    if (endDate) revalidatePath("/");
   } catch (error) {
     console.log(error);
   }

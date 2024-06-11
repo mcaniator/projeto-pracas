@@ -5,6 +5,8 @@ import { personType } from "@/lib/zodValidators";
 import { Gender } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { Activity } from "@prisma/client";
+import { WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -25,26 +27,37 @@ const otherPropertiesToCalcualtePercentage = [
 ];
 const possibleDataTypes = ["peopleData", "complementaryData"] as const;
 type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
-const imutableTallyData = (tallys: tallyDataToCreateTableType[]) => {
+const imutableTallyData = (tallys: TallyDataFetched[]) => {
   const tallyMap = new Map();
   tallyMap.set("Groups", 0);
   tallyMap.set("Pets", 0);
   tallyMap.set("commercialActivities", 0);
+
   for (const tally of tallys) {
+    const commercialActivities =
+      tally.commercialActivities as CommercialActivitiesObject;
+    const commercialActivitiesDescription =
+      commercialActivities ?
+        Object.entries(commercialActivities)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n")
+      : "";
     if (tally.animalsAmount) {
       tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
     }
     if (tally.commercialActivities) {
       tallyMap.set(
-        "commercialActivities",
-        tallyMap.get("commercialActivities") + tally.commercialActivities,
+        "commercialActivitiesDescription",
+        tallyMap.get("commercialActivitiesDescription") +
+          commercialActivitiesDescription +
+          "\n",
       );
     }
   }
   return tallyMap;
 };
 const processTallyData = (
-  tallys: tallyDataToCreateTableType[],
+  tallys: TallyDataFetched[],
   booleanConditionsFilter: (keyof personType)[],
 ) => {
   const tallyMap = new Map();
@@ -162,12 +175,39 @@ const processTallyData = (
   }
   return tallyMap;
 };
+interface CommercialActivitiesObject {
+  [key: string]: number;
+}
+
+interface TallyPerson {
+  person: {
+    gender: Gender;
+    ageGroup: AgeGroup;
+    activity: Activity;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  quantity: number;
+}
+interface TallyDataFetched {
+  tallyPerson: TallyPerson[];
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue;
+}
 const TallysDataPage = ({
   locationName,
   tallys,
 }: {
   locationName: string;
-  tallys: tallyDataToCreateTableType[];
+  tallys: TallyDataFetched[];
 }) => {
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (keyof personType)[]

@@ -2,6 +2,8 @@
 
 import { RadioButton } from "@/components/ui/radioButton";
 import { tallyDataToCreateTableType } from "@/lib/zodValidators";
+import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 import { useState } from "react";
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -27,11 +29,30 @@ const weatherConditionsMap = new Map([
   ["CLOUDY", "Nublado"],
   ["SUNNY", "Ensolarado"],
 ]);
-const IndividualDataTable = ({
-  tallys,
-}: {
-  tallys: tallyDataToCreateTableType[];
-}) => {
+interface TallyPerson {
+  person: {
+    gender: Gender;
+    ageGroup: AgeGroup;
+    activity: Activity;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  quantity: number;
+}
+interface TallyDataFetched {
+  tallyPerson: TallyPerson[];
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue;
+}
+const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
   const [showClimateData, setShowClimateData] = useState<boolean>(false);
   const handleIndividualTallyDataTable = (
     e: React.ChangeEvent<HTMLInputElement>,
