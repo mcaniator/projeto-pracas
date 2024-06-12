@@ -1,6 +1,6 @@
 "use client";
 
-import { MutableRefObject } from "react";
+import { RefObject } from "react";
 
 import { Input } from "./input";
 
@@ -21,7 +21,7 @@ const FormInput = <
   description,
 }: {
   objectKey: keyof Type;
-  answerValues: MutableRefObject<Type>;
+  answerValues: RefObject<Type>;
   errorValues: errorValues<Type> | null;
   checker: (key: keyof Type) => void;
   label: string;

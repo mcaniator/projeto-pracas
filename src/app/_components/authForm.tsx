@@ -6,7 +6,7 @@ import { titillium_web } from "@/lib/fonts";
 import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { redirect } from "next/navigation";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
 const AuthForm = () => {
@@ -50,7 +50,7 @@ const AuthForm = () => {
   );
 };
 
-const Login = (props: { username: MutableRefObject<string> }) => {
+const Login = (props: { username: RefObject<string> }) => {
   const [state, formAction] = useFormState(signin, { statusCode: 0 });
   const errorRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +98,7 @@ const Login = (props: { username: MutableRefObject<string> }) => {
   );
 };
 
-const Signup = (props: { username: MutableRefObject<string> }) => {
+const Signup = (props: { username: RefObject<string> }) => {
   const [state, formAction] = useFormState(signup, { statusCode: -1 });
 
   useEffect(() => {
