@@ -332,10 +332,12 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  firstStreet         String    @db.VarChar(255)
+  secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
-  creationYear        DateTime? @map("creation_year") @db.Date
-  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date
+  creationYear        DateTime? @map("creation_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
+  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
   overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
   legislation         String?   @db.VarChar(255)
   usableArea          Float?    @map("usable_area")
@@ -355,7 +357,6 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  address    Address[]
   assessment Assessment[]
   tally      Tally[]
 
@@ -363,25 +364,6 @@ model Location {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("location")
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-
-  neighborhood String @db.VarChar(255)
-  street       String @db.VarChar(255)
-  postalCode   String @map("postal_code") @db.VarChar(255)
-  identifier   Int
-
-  state BrazilianStates
-
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("address")
 }
 
 model City {

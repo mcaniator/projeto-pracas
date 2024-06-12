@@ -13,7 +13,7 @@ const usernameSchema = z.string().trim().toLowerCase().min(1).max(255);
 const passwordSchema = z.string().trim().min(6).max(255);
 
 const signin = async (
-  prevState: { statusCode: number },
+  _prevState: { statusCode: number },
   formData: FormData,
 ) => {
   let parsedPassword;
