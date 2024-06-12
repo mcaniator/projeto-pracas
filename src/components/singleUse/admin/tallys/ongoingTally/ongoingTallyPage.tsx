@@ -148,7 +148,6 @@ const OngoingTallyPage = ({
         },
         { value: "Mesas de bares", label: "Mesas de bares" },
         { value: "Outros", label: "Outros" },
-        { value: "other", label: "Criar nova atividade" },
       ];
       if (!tally.commercialActivities) return defaultOptions;
 
@@ -884,23 +883,33 @@ const OngoingTallyPage = ({
                             {option.label}
                           </option>
                         ))}
+                        <option value={"createNewCommercialActivity"}>
+                          Criar nova atividade
+                        </option>
                       </Select>
                     </div>
                     <div
                       className="flex flex-row items-center"
                       style={{
-                        opacity: selectedCommercialActivity !== "other" ? 1 : 0,
+                        opacity:
+                          (
+                            selectedCommercialActivity !==
+                            "createNewCommercialActivity"
+                          ) ?
+                            1
+                          : 0,
                       }}
                     >
                       <Button
                         variant={"admin"}
                         className="h-8 w-8 text-3xl"
                         isDisabled={
-                          selectedCommercialActivity === "other" || submitting
+                          selectedCommercialActivity ===
+                            "createNewCommercialActivity" || submitting
                         }
                         onPress={() => {
                           const key = selectedCommercialActivity;
-                          if (key === "other") return;
+                          if (key === "createNewCommercialActivity") return;
                           setCommercialActivities((prev) => {
                             const newObject = { ...prev };
                             if (newObject[selectedCommercialActivity]) {
@@ -921,11 +930,12 @@ const OngoingTallyPage = ({
                         variant={"admin"}
                         className="h-8 w-8 text-3xl"
                         isDisabled={
-                          selectedCommercialActivity === "other" || submitting
+                          selectedCommercialActivity ===
+                            "createNewCommercialActivity" || submitting
                         }
                         onPress={() => {
                           const key = selectedCommercialActivity;
-                          if (key === "other") return;
+                          if (key === "createNewCommercialActivity") return;
                           setCommercialActivities((prev) => {
                             const newObject = { ...prev };
                             if (newObject[selectedCommercialActivity]) {
@@ -941,7 +951,9 @@ const OngoingTallyPage = ({
                       </Button>
                     </div>
                   </div>
-                  {selectedCommercialActivity === "other" ?
+                  {(
+                    selectedCommercialActivity === "createNewCommercialActivity"
+                  ) ?
                     <React.Fragment>
                       <p>Nova atividade comercial itinerante: </p>
                       <form

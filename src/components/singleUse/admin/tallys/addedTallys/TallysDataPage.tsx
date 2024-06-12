@@ -1,6 +1,5 @@
 "use client";
 
-import { tallyDataToCreateTableType } from "@/lib/zodValidators";
 import { personType } from "@/lib/zodValidators";
 import { Gender } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
@@ -28,23 +27,25 @@ const otherPropertiesToCalcualtePercentage = [
 const possibleDataTypes = ["peopleData", "complementaryData"] as const;
 type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
 const imutableTallyData = (tallys: TallyDataFetched[]) => {
+  const commercialActivitiesMap = new Map();
   const tallyMap = new Map();
   tallyMap.set("Groups", 0);
   tallyMap.set("Pets", 0);
-  tallyMap.set("commercialActivities", 0);
+  tallyMap.set("totalCommercialActivities", 0);
 
   for (const tally of tallys) {
-    const commercialActivities =
-      tally.commercialActivities as CommercialActivitiesObject;
-    const commercialActivitiesDescription =
-      commercialActivities ?
-        Object.entries(commercialActivities)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join("\n")
-      : "";
-    if (tally.animalsAmount) {
-      tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
-    }
+    commercialActivitiesMap.set(tally.id, {
+      tallyInfo: {
+        observer: tally.observer,
+        startDate: tally.startDate.toLocaleString(),
+      },
+      commercialActivities: tally.commercialActivities,
+    });
+    /*if(Object.keys(commercialActivities).length > 0){
+      Object.entries(commercialActivities)
+          .map(([key, value]) => commercialActivitiesMap.set(tally.startDate.toLocaleString(), {...commercialActivitiesMap.get(tally.startDate.toLocaleString()), [key]: value}))
+    }*/
+    /* 
     if (tally.commercialActivities) {
       tallyMap.set(
         "commercialActivitiesDescription",
@@ -52,9 +53,15 @@ const imutableTallyData = (tallys: TallyDataFetched[]) => {
           commercialActivitiesDescription +
           "\n",
       );
+    }*/
+    if (tally.animalsAmount) {
+      tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
     }
   }
-  return tallyMap;
+  return {
+    tallyMap: tallyMap,
+    commercialActivitiesMap: commercialActivitiesMap,
+  };
 };
 const processTallyData = (
   tallys: TallyDataFetched[],
@@ -193,6 +200,7 @@ interface TallyPerson {
 }
 interface TallyDataFetched {
   tallyPerson: TallyPerson[];
+  id: number;
   startDate: Date;
   endDate: Date | null;
   observer: string;
@@ -219,7 +227,7 @@ const TallysDataPage = ({
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
-  const imutableTallyMap = imutableTallyData(tallys);
+  const imutableTallyMaps = imutableTallyData(tallys);
   return (
     <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 w-fit gap-5 p-5">
       <div
@@ -232,7 +240,12 @@ const TallysDataPage = ({
             <MainTallyDataTablePeople tallyMap={tallyMap} />
           : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
         : tallys.length > 0 ?
-          <MainTallyDataTableComplementary tallyMap={imutableTallyMap} />
+          <MainTallyDataTableComplementary
+            tallyWithCommercialActivities={
+              imutableTallyMaps.commercialActivitiesMap
+            }
+            tallyMap={imutableTallyMaps.tallyMap}
+          />
         : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>}
       </div>
       <div className="flex flex-col gap-5">
