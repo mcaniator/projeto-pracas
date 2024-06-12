@@ -27,7 +27,7 @@ const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
   variants: {
     variant: {
       default:
-        "fixed z-20 bg-black/30  backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+        "fixed z-20 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
       fixed: "fixed top-0",
       static: "static",
     },

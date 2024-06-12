@@ -16,7 +16,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
               }
             >
               <div className="flex">
-                <h3 className={"text-2xl font-semibold "}>
+                <h3 className={"text-2xl font-semibold"}>
                   Informações de {location?.name}
                 </h3>
                 <Link

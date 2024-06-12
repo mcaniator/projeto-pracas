@@ -16,7 +16,7 @@ const InfoSegment = ({
   return (
     <article
       className={clsx(
-        "flex flex-col items-center gap-20 p-10 pt-20 sm:p-32  xl:items-start xl:justify-center",
+        "flex flex-col items-center gap-20 p-10 pt-20 sm:p-32 xl:items-start xl:justify-center",
         rightJustify && ["xl:flex-row-reverse"],
         !rightJustify && "xl:flex-row",
       )}
