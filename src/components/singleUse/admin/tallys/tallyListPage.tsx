@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { useFormState } from "react-dom";
 
-import { CreateTallySubmitButton } from "./addedTallys/createTallySubmitButton";
+import { CreateTallySubmitButton } from "./createTallySubmitButton";
 import { OngoingTallyList } from "./ongoingTallyList";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
