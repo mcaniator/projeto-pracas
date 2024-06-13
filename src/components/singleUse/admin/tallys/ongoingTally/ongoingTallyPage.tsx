@@ -14,6 +14,8 @@ import { useRouter } from "next/navigation";
 import { useDeferredValue, useRef, useState } from "react";
 import React from "react";
 
+import { OngoingTallyCharts } from "./ongoingTallyCharts";
+
 interface CommercialActivitiesObject {
   [key: string]: number;
 }
@@ -1016,16 +1018,20 @@ const OngoingTallyPage = ({
           <label className="mr-1" htmlFor="end-date">
             Final:
           </label>
-          <Input
-            className={
-              validEndDate ? "outline-none" : "outline outline-red-500"
-            }
-            onChange={(e) => {
-              endDate.current = new Date(e.target.value);
-            }}
-            id="end-date"
-            type="datetime-local"
-          ></Input>
+          <div className="inline-flex">
+            <Input
+              className={
+                validEndDate ?
+                  "w-auto outline-none"
+                : "w-auto outline outline-red-500"
+              }
+              onChange={(e) => {
+                endDate.current = new Date(e.target.value);
+              }}
+              id="end-date"
+              type="datetime-local"
+            ></Input>
+          </div>
 
           <div className="flex flex-row gap-1">
             <Button
@@ -1047,6 +1053,9 @@ const OngoingTallyPage = ({
             >
               {submittingAndEnding ? "Salvando..." : "Salvar e finalizar"}
             </Button>
+          </div>
+          <div className="flex w-96 flex-col">
+            <OngoingTallyCharts tallyMap={tallyMap} />
           </div>
         </div>
       </div>
