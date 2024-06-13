@@ -41,6 +41,9 @@ dependencies:
   chart.js:
     specifier: ^4.4.3
     version: 4.4.3
+  chartjs-plugin-datalabels:
+    specifier: ^2.2.0
+    version: 2.2.0(chart.js@4.4.3)
   class-variance-authority:
     specifier: ^0.7.0
     version: 0.7.0
@@ -3148,6 +3151,14 @@ packages:
     engines: {pnpm: '>=8'}
     dependencies:
       '@kurkle/color': 0.3.2
+    dev: false
+
+  /chartjs-plugin-datalabels@2.2.0(chart.js@4.4.3):
+    resolution: {integrity: sha512-14ZU30lH7n89oq+A4bWaJPnAG8a7ZTk7dKf48YAzMvJjQtjrgg5Dpk9f+LbjCF6bpx3RAGTeL13IXpKQYyRvlw==}
+    peerDependencies:
+      chart.js: '>=3.0.0'
+    dependencies:
+      chart.js: 4.4.3
     dev: false
 
   /chokidar@3.6.0:

@@ -10,6 +10,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
@@ -19,6 +20,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  ChartDataLabels,
 );
 
 const calculateActivityCount = (
@@ -83,6 +85,11 @@ const OngoingTallyCharts = ({
       title: {
         display: true,
         text: "Atividades",
+        color: "white",
+      },
+      datalabels: {
+        anchor: "end" as const,
+        align: "left" as const,
         color: "white",
       },
     },
