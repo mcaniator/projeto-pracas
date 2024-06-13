@@ -1054,9 +1054,8 @@ const OngoingTallyPage = ({
               {submittingAndEnding ? "Salvando..." : "Salvar e finalizar"}
             </Button>
           </div>
-          <div className="flex w-96 flex-col">
-            <OngoingTallyCharts tallyMap={tallyMap} />
-          </div>
+
+          <OngoingTallyCharts tallyMap={tallyMap} />
         </div>
       </div>
     </div>
