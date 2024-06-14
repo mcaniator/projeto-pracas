@@ -17,6 +17,7 @@ const lucia = new Lucia(prismaAdapter, {
   sessionCookie: {
     expires: false,
     attributes: {
+      // this causes issues when running a production build on localhost because cookie info won't be sent with https
       secure: process.env.NODE_ENV === "production",
     },
   },

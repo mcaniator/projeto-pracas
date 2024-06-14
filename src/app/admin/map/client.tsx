@@ -100,8 +100,6 @@ const ParkList = ({
   return (
     <div className="flex max-w-80 flex-col gap-2 overflow-scroll text-white">
       {sortedLocations.map((location, index) => {
-        const feature = vectorSource.getFeatureById(location.id);
-
         return (
           <div key={index} className="flex items-center gap-2">
             <div className="w-full">
@@ -113,10 +111,16 @@ const ParkList = ({
             </div>
 
             <div className="ml-auto flex gap-2">
-              {location.st_asgeojson !== null && feature !== null ?
+              {location.st_asgeojson !== null ?
                 <>
                   <Button
                     onPress={() => {
+                      const feature = vectorSource.getFeatureById(location.id);
+                      if (feature === null)
+                        throw new Error(
+                          "Feature is currently null when it shouldn't be",
+                        );
+
                       const geometry = feature.getGeometry();
 
                       if (
@@ -137,6 +141,12 @@ const ParkList = ({
                     variant={"admin"}
                     size={"icon"}
                     onPress={() => {
+                      const feature = vectorSource.getFeatureById(location.id);
+                      if (feature === null)
+                        throw new Error(
+                          "Feature is currently null when it shouldn't be",
+                        );
+
                       const geometry = feature.getGeometry();
 
                       if (!(geometry instanceof MultiPolygon))

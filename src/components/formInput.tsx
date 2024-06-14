@@ -1,6 +1,6 @@
 "use client";
 
-import { MutableRefObject } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 import { Input } from "./input";
 
@@ -15,13 +15,15 @@ const FormInput = <
 >({
   objectKey,
   answerValues,
+  setAnswerValues,
   errorValues,
   checker,
   label,
   description,
 }: {
   objectKey: keyof Type;
-  answerValues: MutableRefObject<Type>;
+  answerValues: Type;
+  setAnswerValues: Dispatch<SetStateAction<Type>>;
   errorValues: errorValues<Type> | null;
   checker: (key: keyof Type) => void;
   label: string;
@@ -32,10 +34,14 @@ const FormInput = <
       name={objectKey as string}
       label={label}
       description={description}
-      defaultValue={answerValues.current[objectKey]}
+      defaultValue={answerValues[objectKey]}
       onChange={(val) => {
-        // @ts-expect-error not sure what TS is complaining about here, but doesn't seem to be an actual issue
-        answerValues.current[objectKey] = val === "" ? undefined : val;
+        setAnswerValues((answerValues) => {
+          const auxAnswerValues = answerValues;
+          // @ts-expect-error not sure what TS is complaining about here, but doesn't seem to be an actual issue
+          auxAnswerValues[objectKey] = val === "" ? undefined : val;
+          return auxAnswerValues;
+        });
         checker(objectKey);
       }}
       errorMessage={() => {

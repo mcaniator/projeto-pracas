@@ -9,7 +9,7 @@ import { IconX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import { Geometry, MultiPolygon, SimpleGeometry } from "ol/geom";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -40,7 +40,9 @@ const CreationModal = ({
   features: Feature<Geometry>[];
   setCurrentId: Dispatch<SetStateAction<number>>;
 }) => {
-  const basicAnswerValues = useRef<z.infer<typeof basicAnswerSchema>>({
+  const [basicAnswerValues, setBasicAnswerValues] = useState<
+    z.infer<typeof basicAnswerSchema>
+  >({
     name: "",
     firstStreet: "",
     secondStreet: "",
@@ -51,7 +53,7 @@ const CreationModal = ({
   > | null>({});
 
   const checkBasicValidity = (key: keyof z.infer<typeof basicAnswerSchema>) => {
-    const result = basicAnswerSchema.safeParse(basicAnswerValues.current);
+    const result = basicAnswerSchema.safeParse(basicAnswerValues);
 
     if (result.success) {
       setBasicErrorValues(null);
@@ -65,7 +67,9 @@ const CreationModal = ({
     }
   };
 
-  const extraAnswerValues = useRef<z.infer<typeof extraAnswerSchema>>({
+  const [extraAnswerValues, setExtraAnswerValues] = useState<
+    z.infer<typeof extraAnswerSchema>
+  >({
     creationYear: undefined,
     lastMaintenanceYear: undefined,
     overseeingMayor: undefined,
@@ -79,7 +83,7 @@ const CreationModal = ({
   > | null>(null);
 
   const checkExtraValidity = (key: keyof z.infer<typeof extraAnswerSchema>) => {
-    const result = extraAnswerSchema.safeParse(extraAnswerValues.current);
+    const result = extraAnswerSchema.safeParse(extraAnswerValues);
 
     if (result.success) {
       setExtraErrorValues(null);
@@ -148,11 +152,13 @@ const CreationModal = ({
           setTimeout(() => {
             setSelectedTab("basic");
             setBasicErrorValues({});
-            basicAnswerValues.current = {
+            setBasicAnswerValues({
               name: "",
               firstStreet: "",
               secondStreet: "",
-            };
+            });
+            setExtraAnswerValues({});
+            setExtraErrorValues({});
           }, 200); // time required for the fade out to finish
         }
       }}
@@ -225,7 +231,7 @@ const CreationModal = ({
                           praça
                         </h2>
                         <div className="flex flex-col gap-2">
-                          {Object.keys(basicAnswerValues.current).map(
+                          {Object.keys(basicAnswerValues).map(
                             (value, index) => (
                               <FormInput<z.infer<typeof basicAnswerSchema>>
                                 key={index}
@@ -233,6 +239,7 @@ const CreationModal = ({
                                 // this could be solved by manually typing every field but this is cooler lol
                                 objectKey={value}
                                 answerValues={basicAnswerValues}
+                                setAnswerValues={setBasicAnswerValues}
                                 errorValues={basicErrorValues}
                                 checker={checkBasicValidity}
                                 label={basicAnswerLabels[index]!}
@@ -243,7 +250,7 @@ const CreationModal = ({
 
                           {
                             // mapping inputs that aren't currently being rendered so that they're sent to the server
-                            Object.entries(extraAnswerValues.current).map(
+                            Object.entries(extraAnswerValues).map(
                               (value, index) => {
                                 return (
                                   <Input
@@ -265,13 +272,14 @@ const CreationModal = ({
                           praça
                         </h2>
                         <div className="flex flex-col gap-2">
-                          {Object.keys(extraAnswerValues.current).map(
+                          {Object.keys(extraAnswerValues).map(
                             (value, index) => (
                               <FormInput<z.infer<typeof extraAnswerSchema>>
                                 key={index}
                                 // @ts-expect-error same thing as the previous one
                                 objectKey={value}
                                 answerValues={extraAnswerValues}
+                                setAnswerValues={setExtraAnswerValues}
                                 errorValues={extraErrorValues}
                                 checker={checkExtraValidity}
                                 label={extraAnswerLabels[index]!}
@@ -282,7 +290,7 @@ const CreationModal = ({
 
                           {
                             // mapping inputs that aren't currently being rendered so that they're sent to the server
-                            Object.entries(basicAnswerValues.current).map(
+                            Object.entries(basicAnswerValues).map(
                               (value, index) => {
                                 return (
                                   <Input
@@ -305,9 +313,8 @@ const CreationModal = ({
                         variant={"admin"}
                         className="ml-auto"
                         onPress={() => {
-                          const result = basicAnswerSchema.safeParse(
-                            basicAnswerValues.current,
-                          );
+                          const result =
+                            basicAnswerSchema.safeParse(basicAnswerValues);
 
                           if (result.success) {
                             setBasicErrorValues(null);
