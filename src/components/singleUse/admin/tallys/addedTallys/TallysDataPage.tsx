@@ -9,7 +9,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
-import { DataFilter } from "./dataFilter";
+import { AddedTallysActions } from "./addedTallysActions";
 import { IndividualDataTable } from "./individualDataTable";
 import { MainTallyDataTableComplementary } from "./mainTallyDataTableComplementary";
 import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
@@ -24,8 +24,8 @@ const otherPropertiesToCalcualtePercentage = [
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
 ];
-const possibleDataTypes = ["peopleData", "complementaryData"] as const;
-type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
+//const possibleDataTypes = ["peopleData", "complementaryData"] as const;
+//type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
 const imutableTallyData = (tallys: TallyDataFetched[]) => {
   const commercialActivitiesMap = new Map();
   const tallyMap = new Map();
@@ -182,9 +182,6 @@ const processTallyData = (
   }
   return tallyMap;
 };
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
 
 interface TallyPerson {
   person: {
@@ -210,12 +207,17 @@ interface TallyDataFetched {
   weatherCondition: WeatherConditions | null;
   commercialActivities: JsonValue;
 }
+type dataTypesInTallyvisualization = "PEOPLE_DATA" | "COMPLEMENTARY_DATA";
 const TallysDataPage = ({
   locationName,
   tallys,
+  tallysIds,
+  locationId,
 }: {
   locationName: string;
   tallys: TallyDataFetched[];
+  tallysIds: number[];
+  locationId: number;
 }) => {
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (keyof personType)[]
@@ -223,7 +225,8 @@ const TallysDataPage = ({
   const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
     new Map(),
   );
-  const [dataTypeToShow, setDataTypeToShow] = useState<string>("peopleData");
+  const [dataTypeToShow, setDataTypeToShow] =
+    useState<dataTypesInTallyvisualization>("PEOPLE_DATA");
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
@@ -235,7 +238,7 @@ const TallysDataPage = ({
         className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
       >
         <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
-        {dataTypeToShow === "peopleData" ?
+        {dataTypeToShow === "PEOPLE_DATA" ?
           tallys.length > 0 ?
             <MainTallyDataTablePeople tallyMap={tallyMap} />
           : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
@@ -249,14 +252,13 @@ const TallysDataPage = ({
         : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>}
       </div>
       <div className="flex flex-col gap-5">
-        <div className=" flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-          <h3 className="text-2xl font-semibold">Filtros</h3>
-
-          <DataFilter
-            setBooleanConditionsFilter={setBooleanConditionsFilter}
-            setDataTypeToShow={setDataTypeToShow}
-          />
-        </div>
+        <AddedTallysActions
+          setBooleanConditionsFilter={setBooleanConditionsFilter}
+          setDataTypeToShow={setDataTypeToShow}
+          dataTypeToShow={dataTypeToShow}
+          tallyIds={tallysIds}
+          locationId={locationId}
+        />
 
         <IndividualDataTable tallys={tallys} />
       </div>
@@ -265,4 +267,4 @@ const TallysDataPage = ({
 };
 
 export { TallysDataPage };
-export { type dataTypesToShowInTallyTable };
+export { type dataTypesInTallyvisualization };
