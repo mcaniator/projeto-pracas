@@ -54,7 +54,12 @@ const Header = forwardRef<HTMLElement, headerProps>(
         {...props}
       >
         <Link className="flex items-center" href={"/"}>
-          <Button variant={"ghost"} className="px-3 py-6 pl-1">
+          <Button
+            type={"button"}
+            variant={"ghost"}
+            use={"link"}
+            className="px-3 py-6 pl-1"
+          >
             <IconTree size={34} />
             <span className="text-2xl sm:text-3xl">Projeto Praças</span>
           </Button>
@@ -110,13 +115,18 @@ const UserInfo = ({ user }: { user: User }) => {
           <span className="-mb-1 text-2xl font-semibold">{user.username}</span>
           <span className="-mb-1 text-gray-500">{user.email}</span>
         </div>
-        <Button variant={"ghost"} size={"icon"} className="ml-auto">
+        <Button
+          type={"button"}
+          variant={"ghost"}
+          size={"icon"}
+          className="ml-auto"
+        >
           <IconPencil />
         </Button>
       </div>
       <div className="my-3 flex gap-4">
         <Link href={"/admin"} className="basis-1/2">
-          <Button className="w-full text-white">
+          <Button type={"button"} className="w-full text-white" use={"link"}>
             <span className="-mb-1">Painel Admin</span>
           </Button>
         </Link>

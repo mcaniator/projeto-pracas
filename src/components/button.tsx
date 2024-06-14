@@ -6,7 +6,7 @@ import { AriaButtonProps } from "react-aria";
 import { Button as ButtonPrimitive } from "react-aria-components";
 
 const buttonVariants = cva(
-  "group inline-flex cursor-auto items-center justify-center rounded-lg text-lg font-medium shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
+  "group inline-flex items-center justify-center rounded-lg text-lg font-medium shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
   {
     variants: {
       variant: {
@@ -29,10 +29,15 @@ const buttonVariants = cva(
         lg: "h-10 px-8",
         icon: "h-9 w-9",
       },
+      use: {
+        default: "cursor-default",
+        link: "cursor-pointer",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      use: "default",
     },
   },
 );
@@ -48,11 +53,12 @@ const Button = ({
   variant,
   size,
   children,
+  use,
   ...props
 }: ButtonProps) => {
   return (
     <ButtonPrimitive
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, use, className }))}
       {...props}
     >
       {children}
