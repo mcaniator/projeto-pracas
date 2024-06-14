@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Input } from "@/components/input";
+import { search } from "@/lib/search";
 import { removePolygon } from "@/serverActions/managePolygons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
@@ -12,11 +14,12 @@ import {
   IconPolygon,
   IconPolygonOff,
 } from "@tabler/icons-react";
+import Fuse from "fuse.js";
 import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { CreationPanel } from "./creationPanel";
@@ -91,109 +94,139 @@ const ParkList = ({
   const view = map.getView();
 
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
-  const sortedLocations = locations.toSorted((a, b) => {
-    if (a.name === b.name) return 0;
-    else if (a.name > b.name) return 1;
-    else return -1;
-  });
+
+  const sortedLocations = useMemo(
+    () =>
+      locations.toSorted((a, b) => {
+        if (a.name === b.name) return 0;
+        else if (a.name > b.name) return 1;
+        else return -1;
+      }),
+    [locations],
+  );
+  const fuseHaystack = useMemo(
+    () => new Fuse(sortedLocations, { keys: ["name"] }),
+    [sortedLocations],
+  );
+  const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
+
+  // couldn't figure out a better way to refresh the buttons when the
+  // locations cache is revalidated
+  useEffect(() => {
+    setHay(search("", sortedLocations, fuseHaystack));
+  }, [sortedLocations, fuseHaystack]);
 
   return (
-    <div className="flex max-w-80 flex-col gap-2 overflow-scroll text-white">
-      {sortedLocations.map((location, index) => {
-        return (
-          <div key={index} className="flex items-center gap-2">
-            <div className="w-full">
-              <Link href={`/admin/parks/${location.id}`}>
-                <p className="-mb-1 overflow-hidden overflow-ellipsis whitespace-nowrap text-xl hover:underline">
-                  {location.name}
-                </p>
-              </Link>
-            </div>
+    <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
+      <Input
+        onChange={(value) => {
+          setHay(search(value, sortedLocations, fuseHaystack));
+        }}
+      />
 
-            <div className="ml-auto flex gap-2">
-              {location.st_asgeojson !== null ?
-                <>
-                  <Button
-                    onPress={() => {
-                      const feature = vectorSource.getFeatureById(location.id);
-                      if (feature === null)
-                        throw new Error(
-                          "Feature is currently null when it shouldn't be",
-                        );
+      <div className="overflow-scroll">
+        <div className="flex flex-col gap-2">
+          {hay.map((location, index) => {
+            return (
+              <div key={index} className="flex w-full items-center gap-2">
+                <div className="w-full">
+                  <Link href={`/admin/parks/${location.item.id}`}>
+                    <p className="-mb-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-xl hover:underline">
+                      {location.item.name}
+                    </p>
+                  </Link>
+                </div>
 
-                      const geometry = feature.getGeometry();
+                <div className="ml-auto flex gap-2">
+                  {location.item.st_asgeojson !== null ?
+                    <>
+                      <Button
+                        onPress={() => {
+                          const feature = vectorSource.getFeatureById(
+                            location.item.id,
+                          );
+                          if (feature === null)
+                            throw new Error(
+                              "Feature is currently null when it shouldn't be",
+                            );
 
-                      if (
-                        geometry !== undefined &&
-                        geometry instanceof SimpleGeometry
-                      )
-                        view.fit(geometry, {
-                          duration: 1000,
-                          padding: [10, 10, 10, 10],
-                        });
-                    }}
-                    variant={"admin"}
-                    size={"icon"}
-                  >
-                    <IconMapPin />
-                  </Button>
-                  <Button
-                    variant={"admin"}
-                    size={"icon"}
-                    onPress={() => {
-                      const feature = vectorSource.getFeatureById(location.id);
-                      if (feature === null)
-                        throw new Error(
-                          "Feature is currently null when it shouldn't be",
-                        );
+                          const geometry = feature.getGeometry();
 
-                      const geometry = feature.getGeometry();
+                          if (
+                            geometry !== undefined &&
+                            geometry instanceof SimpleGeometry
+                          )
+                            view.fit(geometry, {
+                              duration: 1000,
+                              padding: [10, 10, 10, 10],
+                            });
+                        }}
+                        variant={"admin"}
+                        size={"icon"}
+                      >
+                        <IconMapPin />
+                      </Button>
+                      <Button
+                        variant={"admin"}
+                        size={"icon"}
+                        onPress={() => {
+                          const feature = vectorSource.getFeatureById(
+                            location.item.id,
+                          );
+                          if (feature === null)
+                            throw new Error(
+                              "Feature is currently null when it shouldn't be",
+                            );
 
-                      if (!(geometry instanceof MultiPolygon))
-                        throw new Error(
-                          "Received geometry is not of MultiPolygon type",
-                        );
+                          const geometry = feature.getGeometry();
 
-                      const polygons = geometry.getPolygons();
-                      const features = polygons.map((polygon) => {
-                        const feature = new Feature(polygon);
-                        feature.set("name", geometry.get("name"));
+                          if (!(geometry instanceof MultiPolygon))
+                            throw new Error(
+                              "Received geometry is not of MultiPolygon type",
+                            );
 
-                        return feature;
-                      });
+                          const polygons = geometry.getPolygons();
+                          const features = polygons.map((polygon) => {
+                            const feature = new Feature(polygon);
+                            feature.set("name", geometry.get("name"));
 
-                      setOriginalFeatures(features);
-                      setCurrentId(location.id);
+                            return feature;
+                          });
 
-                      vectorSource.removeFeature(feature);
-                    }}
-                  >
-                    <IconPolygon />
-                  </Button>
-                  <Button
-                    onPress={() => void removePolygon(location.id)}
-                    variant={"destructive"}
-                    size={"icon"}
-                  >
-                    <IconPolygonOff />
-                  </Button>
-                </>
-              : <>
-                  <Button
-                    variant={"constructive"}
-                    size={"icon"}
-                    onPress={() => {
-                      setCurrentId(location.id);
-                    }}
-                  >
-                    <IconPlus />
-                  </Button>
-                </>
-              }
-            </div>
-          </div>
-        );
-      })}
+                          setOriginalFeatures(features);
+                          setCurrentId(location.item.id);
+
+                          vectorSource.removeFeature(feature);
+                        }}
+                      >
+                        <IconPolygon />
+                      </Button>
+                      <Button
+                        onPress={() => void removePolygon(location.item.id)}
+                        variant={"destructive"}
+                        size={"icon"}
+                      >
+                        <IconPolygonOff />
+                      </Button>
+                    </>
+                  : <>
+                      <Button
+                        variant={"constructive"}
+                        size={"icon"}
+                        onPress={() => {
+                          setCurrentId(location.item.id);
+                        }}
+                      >
+                        <IconPlus />
+                      </Button>
+                    </>
+                  }
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

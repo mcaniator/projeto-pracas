@@ -25,6 +25,7 @@
     "cmdk": "^1.0.0",
     "eslint-config-next": "15.0.0-rc.0",
     "eslint-plugin-react-compiler": "0.0.0-experimental-51a85ea-20240601",
+    "fuse.js": "^7.0.0",
     "lucia": "^3.2.0",
     "next": "15.0.0-rc.0",
     "ol": "^9.2.4",
