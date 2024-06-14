@@ -84,6 +84,7 @@ const OngoingTallyPage = ({
   const [submittingObj, setSubmittingObj] = useState({
     submitting: false,
     finishing: false,
+    deleting: false,
   });
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();

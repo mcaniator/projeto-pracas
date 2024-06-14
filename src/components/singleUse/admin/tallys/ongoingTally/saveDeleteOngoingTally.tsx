@@ -2,10 +2,11 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { saveOngoingTallyData } from "@/serverActions/tallyUtil";
+import { deleteTally, saveOngoingTallyData } from "@/serverActions/tallyUtil";
 import { WeatherConditions } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import React from "react";
 
 interface WeatherStats {
   temperature: number | null;
@@ -21,7 +22,9 @@ interface ComplementaryDataObject {
 interface SubmittingObj {
   submitting: boolean;
   finishing: boolean;
+  deleting: boolean;
 }
+type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const SaveDeleteOngoingTally = ({
   locationId,
   tallyId,
@@ -39,24 +42,18 @@ const SaveDeleteOngoingTally = ({
   commercialActivities: CommercialActivitiesObject;
   complementaryData: ComplementaryDataObject;
   submittingObj: SubmittingObj;
-  setSubmittingObj: React.Dispatch<
-    React.SetStateAction<{ submitting: boolean; finishing: boolean }>
-  >;
+  setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const endDate = useRef<Date | null>(null);
   const router = useRouter();
   const [validEndDate, setValidEndDate] = useState(true);
+  const [saveDeleteState, setSaveDeleteState] =
+    useState<SaveDeleteState>("DEFAULT");
   const handleDataSubmit = async (endTally: boolean) => {
     if (endTally) {
-      if (!endDate.current || isNaN(endDate.current.getTime())) {
-        setValidEndDate(false);
-        return;
-      } else {
-        setValidEndDate(true);
-      }
-      setSubmittingObj({ submitting: true, finishing: true });
+      setSubmittingObj({ submitting: true, finishing: true, deleting: false });
     } else {
-      setSubmittingObj({ submitting: true, finishing: false });
+      setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
 
     await saveOngoingTallyData(
@@ -70,48 +67,152 @@ const SaveDeleteOngoingTally = ({
     if (endTally) {
       router.push(`/admin/parks/${locationId}/tallys`);
     } else {
-      setSubmittingObj({ submitting: false, finishing: false });
+      setSubmittingObj({
+        submitting: false,
+        finishing: false,
+        deleting: false,
+      });
     }
   };
 
+  const handleTallyDeletion = async () => {
+    setSubmittingObj({ submitting: true, finishing: false, deleting: true });
+    await deleteTally(tallyId);
+    router.push(`/admin/parks/${locationId}/tallys`);
+  };
+
   return (
-    <div className="flex flex-col gap-1">
-      <div className="inline-flex">
-        <Input
-          className={
-            validEndDate ?
-              "w-auto outline-none"
-            : "w-auto outline outline-red-500"
-          }
-          onChange={(e) => {
-            endDate.current = new Date(e.target.value);
-          }}
-          id="end-date"
-          type="datetime-local"
-        ></Input>
-      </div>
-      <div className="flex flex-row gap-1">
+    <div className="flex flex-col gap-3 py-1">
+      <div>
+        <h5 className="text-xl font-semibold">Salvar dados</h5>
         <Button
-          className="w-24"
           isDisabled={submittingObj.submitting}
           onPress={() => {
-            handleDataSubmit(false).catch(() => ({ statusCode: 0 }));
+            handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
           }}
           variant={"secondary"}
         >
-          {submittingObj.submitting && !submittingObj.finishing ?
+          {(
+            submittingObj.submitting &&
+            !submittingObj.finishing &&
+            !submittingObj.deleting
+          ) ?
             "Salvando..."
           : "Salvar"}
         </Button>
-        <Button
-          isDisabled={submittingObj.submitting}
-          variant={"constructive"}
-          onPress={() => {
-            handleDataSubmit(true).catch(() => ({ statusCode: 0 }));
-          }}
-        >
-          {submittingObj.finishing ? "Salvando..." : "Salvar e finalizar"}
-        </Button>
+      </div>
+      <div>
+        <h5 className="text-xl font-semibold">Finalizar contagem</h5>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row items-center gap-1">
+            <label htmlFor="end-date">Fim da contagem em:</label>
+            <Input
+              className={
+                validEndDate ?
+                  "w-auto outline-none"
+                : "w-auto outline outline-red-500"
+              }
+              onChange={(e) => {
+                endDate.current = new Date(e.target.value);
+                if (!validEndDate && endDate.current) {
+                  setValidEndDate(true);
+                }
+              }}
+              id="end-date"
+              type="datetime-local"
+            ></Input>
+          </div>
+          <Button
+            className="w-48"
+            isDisabled={submittingObj.submitting}
+            variant={"constructive"}
+            onPress={() => {
+              if (!endDate.current || isNaN(endDate.current.getTime())) {
+                setValidEndDate(false);
+                return;
+              } else {
+                setSaveDeleteState("SAVE");
+              }
+              //handleDataSubmit(true).catch(() => ({ statusCode: 0 }));
+            }}
+          >
+            {submittingObj.finishing ? "Salvando..." : "Salvar e finalizar"}
+          </Button>
+          {saveDeleteState === "SAVE" && (
+            <React.Fragment>
+              <p>
+                Salvar dados e finalizar contagem?
+                <br />
+                Dados não poderão ser modificados posteriormente!
+              </p>
+              <div className="flex flex-row gap-3">
+                <Button
+                  isDisabled={submittingObj.submitting}
+                  variant={"constructive"}
+                  onPress={() => {
+                    if (!endDate.current || isNaN(endDate.current.getTime())) {
+                      setValidEndDate(false);
+                      return;
+                    } else {
+                      handleDataSubmit(true).catch(() => ({ statusCode: 1 }));
+                    }
+                  }}
+                >
+                  {submittingObj.finishing ? "Salvando..." : "Confirmar"}
+                </Button>
+                <Button
+                  isDisabled={submittingObj.submitting}
+                  variant={"secondary"}
+                  onPress={() => setSaveDeleteState("DEFAULT")}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+      <div>
+        <h5 className="text-xl font-semibold">Excluir contagem</h5>
+        <div className="flex flex-col gap-2">
+          <Button
+            isDisabled={submittingObj.submitting}
+            className="w-32"
+            variant={"destructive"}
+            onPress={() => setSaveDeleteState("DELETE")}
+          >
+            {submittingObj.deleting ? "Excluindo..." : "Excluir"}
+          </Button>
+          {saveDeleteState === "DELETE" && (
+            <React.Fragment>
+              <p>
+                Excluir contagem?
+                <br />
+                Todos os dados desta contagem serão perdidos!
+              </p>
+              <div className="flex flex-row gap-3">
+                <Button
+                  isDisabled={submittingObj.submitting}
+                  variant={"destructive"}
+                  onPress={() => {
+                    handleTallyDeletion().catch(() => ({ statusCode: 1 }));
+                  }}
+                >
+                  {submittingObj.deleting ?
+                    "Excluindo..."
+                  : "Confirmar e excluir"}
+                </Button>
+                <Button
+                  isDisabled={submittingObj.submitting}
+                  variant={"secondary"}
+                  onPress={() => setSaveDeleteState("DEFAULT")}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
       </div>
     </div>
   );
