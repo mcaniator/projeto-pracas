@@ -16,7 +16,7 @@ const Responses = async ({
       <div>Localização não encontrada</div>
     : <>
         <FormSelector location={location} action={searchParams.action} />
-        <div>O valor de action em FormSelector é: {searchParams.action}</div>
+        {/* <div>O valor de action em FormSelector é: {searchParams.action}</div> */}
       </>;
 };
 export default Responses;

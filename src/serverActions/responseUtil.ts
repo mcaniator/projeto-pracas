@@ -12,9 +12,7 @@ const addResponses = async (
   response?: string,
 ) => {
   try {
-    // Se o tipo de pergunta for "Numeric"
     if (questionType === QuestionTypes.NUMERIC && response) {
-      // Verificar se já existe uma resposta para essa pergunta, formulário e localização
       const existingResponse = await prisma.response.findFirst({
         where: {
           questionId: questionId,
@@ -25,7 +23,6 @@ const addResponses = async (
         },
       });
 
-      // Se já existir uma resposta, atualize a frequência
       if (existingResponse) {
         await prisma.response.update({
           where: {
@@ -33,12 +30,11 @@ const addResponses = async (
           },
           data: {
             frequency: {
-              increment: 1, // Incrementa a frequência em 1
+              increment: 1,
             },
           },
         });
       } else {
-        // Se não existir, crie uma nova resposta
         await prisma.response.create({
           data: {
             locationId: locationId,
@@ -46,12 +42,11 @@ const addResponses = async (
             questionId: questionId,
             type: questionType,
             response: response,
-            frequency: 1, // Define a frequência inicial como 1
+            frequency: 1,
           },
         });
       }
-    } else {
-      // Se o tipo de pergunta não for "Numeric" ou se a resposta for vazia, crie uma nova resposta como antes
+    } else if (questionType === QuestionTypes.TEXT && response) {
       await prisma.response.create({
         data: {
           locationId: locationId,
@@ -61,9 +56,43 @@ const addResponses = async (
           response: response,
         },
       });
+    } else if (questionType === QuestionTypes.OPTIONS && response) {
+      const optionId = parseInt(response);
+
+      const existingResponseOption = await prisma.responseOption.findFirst({
+        where: {
+          questionId: questionId,
+          formId: formId,
+          locationId: locationId,
+          optionId: optionId,
+        },
+      });
+
+      if (existingResponseOption) {
+        await prisma.responseOption.update({
+          where: {
+            id: existingResponseOption.id,
+          },
+          data: {
+            frequency: {
+              increment: 1,
+            },
+          },
+        });
+      } else {
+        await prisma.responseOption.create({
+          data: {
+            locationId: locationId,
+            formId: formId,
+            questionId: questionId,
+            optionId: optionId,
+            frequency: 1,
+          },
+        });
+      }
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return { statusCode: 2 };
   }
 
@@ -75,6 +104,14 @@ const addResponses = async (
 
 const searchResponsesByQuestionId = async (questionId: number) => {
   return await prisma.response.findMany({
+    where: {
+      questionId: questionId,
+    },
+  });
+};
+
+const searchResponsesOptionsByQuestionId = async (questionId: number) => {
+  return await prisma.responseOption.findMany({
     where: {
       questionId: questionId,
     },
@@ -98,5 +135,6 @@ const searchResponsesByQuestionFormLocation = async (
 export {
   addResponses,
   searchResponsesByQuestionId,
+  searchResponsesOptionsByQuestionId,
   searchResponsesByQuestionFormLocation,
 };

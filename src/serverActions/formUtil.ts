@@ -21,23 +21,22 @@ const handleDelete = async (formID: number) => {
 };
 
 const fetchForms = async () => {
-  const formsType = Prisma.validator<Prisma.FormDefaultArgs>()({
-    select: { id: true, name: true },
-  });
-
-  let forms: Prisma.FormGetPayload<typeof formsType>[] = [];
+  let forms: Form[];
 
   try {
     forms = await prisma.form.findMany({
       select: {
         id: true,
         name: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
-  } catch (error) {
-    // console.error(`Erro ao recuperar formulários`, error);
+  } catch (e) {
+    console.error(e);
+    forms = [];
   }
-
   return forms;
 };
 

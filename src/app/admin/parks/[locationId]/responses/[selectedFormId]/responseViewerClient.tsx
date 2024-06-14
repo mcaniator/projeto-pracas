@@ -5,9 +5,14 @@ import { QuestionTypes } from "@prisma/client";
 
 const ResponseViewerClient = ({
   questions,
+  options,
   responses,
 }: {
   questions: Question[] | null;
+  options: {
+    questionId: number;
+    options: { id: number; text: string; frequency: number }[];
+  }[];
   responses: Response[] | null;
 }) => {
   if (questions === null) {
@@ -17,7 +22,6 @@ const ResponseViewerClient = ({
     return <div>Ainda não há respostas para este formulário</div>;
   }
 
-  //TODO TS acusa que o acumulador pode ser nulo ou indefinido
   const responsesByQuestionId = responses.reduce(
     (acc, response) => {
       if (!acc[response.questionId]) {
@@ -27,6 +31,14 @@ const ResponseViewerClient = ({
       return acc;
     },
     {} as { [key: number]: Response[] },
+  );
+
+  const optionsByQuestionId = options.reduce(
+    (acc, option) => {
+      acc[option.questionId] = option.options;
+      return acc;
+    },
+    {} as { [key: number]: { id: number; text: string; frequency: number }[] },
   );
 
   return (
@@ -40,12 +52,27 @@ const ResponseViewerClient = ({
           <li key={question.id}>
             <div>{question.name}</div>
             <div>
-              {responsesByQuestionId[question.id] ?
+              {(
+                question.type === QuestionTypes.OPTIONS &&
+                optionsByQuestionId[question.id]
+              ) ?
+                <div>
+                  {optionsByQuestionId[question.id].map((option) => (
+                    <div key={option.id}>
+                      <span>{option.text}</span>
+                      <span className="font-bold text-blue-500">
+                        {" "}
+                        Frequência: {option.frequency}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              : responsesByQuestionId[question.id] ?
                 responsesByQuestionId[question.id].map((response, index) => (
                   <div key={index}>
-                    {response.type === QuestionTypes.TEXT ?
+                    {question.type === QuestionTypes.TEXT ?
                       <div>{response.response}</div>
-                    : response.type === QuestionTypes.NUMERIC ?
+                    : question.type === QuestionTypes.NUMERIC ?
                       <div>
                         <span>{response.response}</span>
                         <span className="font-bold text-blue-500">

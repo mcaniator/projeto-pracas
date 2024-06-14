@@ -257,8 +257,9 @@ model Question {
   category   Category @relation(fields: [categoryId], references: [id])
   options    Option[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("question")
 }
@@ -290,10 +291,31 @@ model Option {
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("option")
+}
+
+model ResponseOption {
+  id         Int      @id @default(autoincrement())
+  frequency  Int      @default(1)
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  optionId Int    @map("option_id")
+  option   Option @relation(fields: [optionId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("responseOption")
 }
 
 model Form {
@@ -304,8 +326,9 @@ model Form {
   questions QuestionsOnForms[]
   response  Response[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("form")
 }
@@ -360,8 +383,9 @@ model Location {
   assessment Assessment[]
   tally      Tally[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("location")
 }

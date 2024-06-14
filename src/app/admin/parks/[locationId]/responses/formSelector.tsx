@@ -1,4 +1,4 @@
-import { fetchFormsLatest } from "@/serverActions/formUtil";
+import { fetchForms, fetchFormsLatest } from "@/serverActions/formUtil";
 import "@/serverActions/locationUtil";
 import { Form, Location } from "@prisma/client";
 
@@ -11,27 +11,49 @@ const FormSelector = async ({
   location: Location;
   action?: string;
 }) => {
-  const forms: Form[] = await fetchFormsLatest();
+  const latestforms: Form[] = await fetchFormsLatest();
+  const allForms: Form[] = await fetchForms();
 
+  if (action === "evaluation") {
+    return (
+      <div>
+        <div>Escolha o formulário para avaliar</div>
+        {latestforms.length > 0 ?
+          <div className="w-full">
+            {latestforms.map((form) => (
+              <FormSelectorClient
+                key={form.id}
+                selectedFormId={form.id}
+                name={form.name}
+                locationId={location.id}
+                action={action}
+              />
+            ))}
+            {/* <div>O valor de action em FormSelectorClient é: {action}</div> */}
+          </div>
+        : <div className="text-redwood">
+            Ainda não há perguntas no formulário
+          </div>
+        }
+      </div>
+    );
+  }
   return (
     <div>
-      <div>
-        {action === "evaluate" ?
-          "Escolha o formulário para avaliar"
-        : "Escolha o formulário para ver as respostas"}
-      </div>
-      {forms.length > 0 ?
+      <div>Escolha o formulário para ver as respostas</div>
+      {allForms.length > 0 ?
         <div className="w-full">
-          {forms.map((form) => (
+          {allForms.map((form) => (
             <FormSelectorClient
               key={form.id}
               selectedFormId={form.id}
               name={form.name}
               locationId={location.id}
               action={action}
+              version={form.version}
             />
           ))}
-          <div>O valor de action em FormSelectorClient é: {action}</div>
+          {/* <div>O valor de action em FormSelectorClient é: {action}</div> */}
         </div>
       : <div className="text-redwood">Ainda não há perguntas no formulário</div>
       }

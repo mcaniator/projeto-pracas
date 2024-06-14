@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Question } from "@prisma/client";
+import { Option, Question } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
 const handleDelete = async (questionId: number) => {
@@ -46,4 +46,20 @@ const searchQuestionsByStatement = async (statement: string) => {
   return await cachedQuestions(statement);
 };
 
-export { handleDelete, searchQuestionsByStatement };
+const searchOptionsByQuestionId = async (
+  questionId: number,
+): Promise<Option[]> => {
+  try {
+    const options = await prisma.option.findMany({
+      where: {
+        questionId: questionId,
+      },
+    });
+    return options;
+  } catch (err) {
+    // console.error(`Erro ao buscar opções para a pergunta: ${questionId}`, err);
+    return [];
+  }
+};
+
+export { handleDelete, searchQuestionsByStatement, searchOptionsByQuestionId };
