@@ -5,6 +5,7 @@
     "plugin:@typescript-eslint/recommended-type-checked"
   ],
   "rules": {
+    "react-compiler/react-compiler": "error",
     "no-console": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -14,7 +15,7 @@
     ]
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["eslint-plugin-react-compiler", "@typescript-eslint"],
   "ignorePatterns": ["/*", "!/src"],
   "parserOptions": {
     "project": true,
