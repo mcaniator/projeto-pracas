@@ -129,7 +129,7 @@ const createTallyByUser = async (prevState: FormState, formData: FormData) => {
 };
 
 interface WeatherStats {
-  temperature: number;
+  temperature: number | null;
   weather: WeatherConditions;
 }
 interface CommercialActivitiesObject {
@@ -247,6 +247,7 @@ const saveOngoingTallyData = async (
         });
       }
     });
+    revalidatePath("/");
   } catch (error) {
     console.log(error);
   }

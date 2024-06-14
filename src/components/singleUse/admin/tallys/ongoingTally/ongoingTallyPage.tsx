@@ -4,17 +4,17 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { saveOngoingTallyData } from "@/serverActions/tallyUtil";
 import { Gender } from "@prisma/client";
 import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { useRouter } from "next/navigation";
-import { useDeferredValue, useRef, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import React from "react";
 
 import { OngoingTallyCharts } from "./ongoingTallyCharts";
+import { OngoingTallyTextualData } from "./ongoingTallyTextualData";
+import { SaveDeleteOngoingTally } from "./saveDeleteOngoingTally";
 
 interface CommercialActivitiesObject {
   [key: string]: number;
@@ -47,7 +47,7 @@ interface ongoingTallyDataFetched {
   commercialActivities: JsonValue;
 }
 interface WeatherStats {
-  temperature: number;
+  temperature: number | null;
   weather: WeatherConditions;
 }
 
@@ -71,6 +71,7 @@ const weatherNameMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
 ]);
+type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
 const OngoingTallyPage = ({
   locationId,
   tallyId,
@@ -80,38 +81,10 @@ const OngoingTallyPage = ({
   tallyId: number;
   tally: ongoingTallyDataFetched;
 }) => {
-  const router = useRouter();
-  const endDate = useRef<Date | null>(null);
-  const handleDataSubmit = async (endTally: boolean) => {
-    if (endTally) {
-      if (!endDate.current || isNaN(endDate.current.getTime())) {
-        setValidEndDate(false);
-        return;
-      } else {
-        setValidEndDate(true);
-      }
-      setSubmittingAndEnding(true);
-    } else {
-      setSubmitting(true);
-    }
-
-    await saveOngoingTallyData(
-      tallyId,
-      weatherStats,
-      tallyMap,
-      commercialActivities,
-      complementaryData,
-      endTally ? endDate.current : null,
-    );
-    if (endTally) {
-      router.push(`/admin/parks/${locationId}/tallys`);
-    } else {
-      setSubmitting(false);
-    }
-  };
-  const [submitting, setSubmitting] = useState(false);
-  const [submittingAndEnding, setSubmittingAndEnding] = useState(false);
-  const [validEndDate, setValidEndDate] = useState(true);
+  const [submittingObj, setSubmittingObj] = useState({
+    submitting: false,
+    finishing: false,
+  });
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
     for (const tallyPerson of tally.tallyPerson) {
@@ -167,14 +140,14 @@ const OngoingTallyPage = ({
 
       return [...defaultOptions, ...customOptions];
     });
-  //console.log(Object.keys(tally.commercialActivities as string));
+
   const [newCommercialActivityInput, setNewCommercialActivityInput] =
     useState("");
   const deferredNewCommercialActivityInput = useDeferredValue(
     newCommercialActivityInput,
   );
   const [weatherStats, setWeatherStats] = useState<WeatherStats>({
-    temperature: tally.temperature ? tally.temperature : 0,
+    temperature: tally.temperature ? tally.temperature : null,
     weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
   });
 
@@ -199,6 +172,8 @@ const OngoingTallyPage = ({
         isPersonWithoutHousing: false,
       },
     });
+  const [assistBarState, setAssistBarState] =
+    useState<AssistBarStates>("TEXTUAL_DATA");
 
   const handlePersonAdd = (gender: Gender, ageGroup: AgeGroup) => {
     const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
@@ -255,16 +230,24 @@ const OngoingTallyPage = ({
                     {"Temperatura (°C):"}
                   </label>
                   <Input
-                    value={weatherStats.temperature}
-                    onChange={(e) =>
-                      setWeatherStats((prev) => ({
-                        ...prev,
-                        temperature: Number(e.target.value),
-                      }))
+                    value={
+                      weatherStats.temperature ? weatherStats.temperature : ""
                     }
+                    onChange={(e) => {
+                      if (!e.target.value.length) {
+                        setWeatherStats((prev) => ({
+                          ...prev,
+                          temperature: null,
+                        }));
+                      } else {
+                        setWeatherStats((prev) => ({
+                          ...prev,
+                          temperature: Number(e.target.value),
+                        }));
+                      }
+                    }}
                     className="w-14"
                     type="number"
-                    maxLength={2}
                   ></Input>
                 </div>
                 <div className="flex flex-grow flex-row items-center">
@@ -396,7 +379,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -419,7 +401,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -432,7 +413,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -455,7 +435,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -468,7 +447,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulto</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -491,7 +469,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -504,7 +481,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Idoso</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -527,7 +503,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("MALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -645,7 +620,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -668,7 +642,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "CHILD")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -681,7 +654,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Jovem</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -704,7 +676,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "TEEN")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -717,7 +688,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Adulta</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonRemoval("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -740,7 +710,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "ADULT")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -753,7 +722,6 @@ const OngoingTallyPage = ({
                       <h6 className="text-xl font-semibold">Idosa</h6>
                       <div className="flex flex-row items-center gap-1">
                         <Button
-                          isDisabled={submitting}
                           onPress={() =>
                             handlePersonRemoval("FEMALE", "ELDERLY")
                           }
@@ -778,7 +746,6 @@ const OngoingTallyPage = ({
                           )}
                         </p>
                         <Button
-                          isDisabled={submitting}
                           onPress={() => handlePersonAdd("FEMALE", "ELDERLY")}
                           className="h-8 w-8 text-3xl"
                           variant={"admin"}
@@ -800,7 +767,6 @@ const OngoingTallyPage = ({
                     <h6 className="text-xl font-semibold">Pets</h6>
                     <div className="flex flex-row items-center gap-1">
                       <Button
-                        isDisabled={submitting}
                         onPress={() => {
                           if (complementaryData.animalsAmount !== 0)
                             setComplementaryData((prev) => ({
@@ -817,7 +783,6 @@ const OngoingTallyPage = ({
                         {complementaryData.animalsAmount}
                       </p>
                       <Button
-                        isDisabled={submitting}
                         onPress={() =>
                           setComplementaryData((prev) => ({
                             ...prev,
@@ -835,7 +800,6 @@ const OngoingTallyPage = ({
                     <h6 className="text-xl font-semibold">Grupos</h6>
                     <div className="flex flex-row items-center gap-1">
                       <Button
-                        isDisabled={submitting}
                         onPress={() => {
                           if (complementaryData.groupsAmount !== 0)
                             setComplementaryData((prev) => ({
@@ -852,7 +816,6 @@ const OngoingTallyPage = ({
                         {complementaryData.groupsAmount}
                       </p>
                       <Button
-                        isDisabled={submitting}
                         onPress={() =>
                           setComplementaryData((prev) => ({
                             ...prev,
@@ -907,7 +870,7 @@ const OngoingTallyPage = ({
                         className="h-8 w-8 text-3xl"
                         isDisabled={
                           selectedCommercialActivity ===
-                            "createNewCommercialActivity" || submitting
+                          "createNewCommercialActivity"
                         }
                         onPress={() => {
                           const key = selectedCommercialActivity;
@@ -933,7 +896,7 @@ const OngoingTallyPage = ({
                         className="h-8 w-8 text-3xl"
                         isDisabled={
                           selectedCommercialActivity ===
-                            "createNewCommercialActivity" || submitting
+                          "createNewCommercialActivity"
                         }
                         onPress={() => {
                           const key = selectedCommercialActivity;
@@ -1010,52 +973,60 @@ const OngoingTallyPage = ({
 
         <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
           <h4 className="text-xl font-semibold">Acompanhamento</h4>
-          <p>{`Data de início: ${tally.startDate.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })}`}</p>
-          <p>{`Horário de início: ${tally.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}</p>
-          <p>{`Observador: ${tally.observer}`}</p>
-          <p>{`Temperatura: ${weatherStats.temperature}°C`}</p>
-          <p>{`Tempo: ${weatherNameMap.get(weatherStats.weather)}`}</p>
-          <label className="mr-1" htmlFor="end-date">
-            Final:
-          </label>
-          <div className="inline-flex">
-            <Input
-              className={
-                validEndDate ?
-                  "w-auto outline-none"
-                : "w-auto outline outline-red-500"
+          <div>
+            <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+              <Button
+                isDisabled={submittingObj.submitting}
+                variant={"ghost"}
+                onPress={() => setAssistBarState("TEXTUAL_DATA")}
+                className={`rounded-xl px-4 py-1 ${assistBarState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+              >
+                Dados textuais
+              </Button>
+              <Button
+                isDisabled={submittingObj.submitting}
+                variant={"ghost"}
+                onPress={() => setAssistBarState("CHARTS")}
+                className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+              >
+                Gráficos
+              </Button>
+              <Button
+                isDisabled={submittingObj.submitting}
+                variant={"ghost"}
+                onPress={() => setAssistBarState("SAVE_DELETE")}
+                className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "SAVE_DELETE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+              >
+                Salvar/Excluir
+              </Button>
+            </div>
+          </div>
+          {assistBarState === "TEXTUAL_DATA" && (
+            <OngoingTallyTextualData
+              tally={tally}
+              temperature={weatherStats.temperature}
+              weather={
+                weatherNameMap.get(weatherStats.weather) as WeatherConditions
               }
-              onChange={(e) => {
-                endDate.current = new Date(e.target.value);
-              }}
-              id="end-date"
-              type="datetime-local"
-            ></Input>
-          </div>
-
-          <div className="flex flex-row gap-1">
-            <Button
-              className="w-24"
-              isDisabled={submitting || submittingAndEnding}
-              onPress={() => {
-                handleDataSubmit(false).catch(() => ({ statusCode: 0 }));
-              }}
-              variant={"secondary"}
-            >
-              {submitting ? "Salvando..." : "Salvar"}
-            </Button>
-            <Button
-              isDisabled={submitting || submittingAndEnding}
-              variant={"constructive"}
-              onPress={() => {
-                handleDataSubmit(true).catch(() => ({ statusCode: 0 }));
-              }}
-            >
-              {submittingAndEnding ? "Salvando..." : "Salvar e finalizar"}
-            </Button>
-          </div>
-
-          <OngoingTallyCharts tallyMap={tallyMap} />
+              complementaryData={complementaryData}
+              commercialActivities={commercialActivities}
+            />
+          )}
+          {assistBarState === "CHARTS" && (
+            <OngoingTallyCharts tallyMap={tallyMap} />
+          )}
+          {assistBarState === "SAVE_DELETE" && (
+            <SaveDeleteOngoingTally
+              locationId={locationId}
+              tallyId={tallyId}
+              tallyMap={tallyMap}
+              weatherStats={weatherStats}
+              commercialActivities={commercialActivities}
+              complementaryData={complementaryData}
+              submittingObj={submittingObj}
+              setSubmittingObj={setSubmittingObj}
+            />
+          )}
         </div>
       </div>
     </div>
