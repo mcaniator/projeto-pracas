@@ -72,10 +72,11 @@ const CreationPanel = ({
         );
 
         if (featureIndex >= 0 && featureIndex <= features.length) {
-          const helperFeatures = features;
-          helperFeatures[featureIndex] = feature;
-
-          setFeatures(helperFeatures);
+          setFeatures((features) => {
+            const helperFeatures = features;
+            helperFeatures[featureIndex] = feature;
+            return helperFeatures;
+          });
         }
       }
     };

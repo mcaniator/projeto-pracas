@@ -6,13 +6,13 @@ import { titillium_web } from "@/lib/fonts";
 import { signin, signup } from "@/serverActions/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { redirect } from "next/navigation";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
 const AuthForm = () => {
   const [loginSelected, setLoginSelected] = useState(true);
   const [parent] = useAutoAnimate();
-  const username = useRef("");
+  const [username, setUsername] = useState("");
 
   return (
     <div className="flex flex-col gap-2" ref={parent}>
@@ -44,13 +44,16 @@ const AuthForm = () => {
       </div>
 
       {loginSelected ?
-        <Login username={username} />
-      : <Signup username={username} />}
+        <Login username={username} setUsername={setUsername} />
+      : <Signup username={username} setUsername={setUsername} />}
     </div>
   );
 };
 
-const Login = (props: { username: RefObject<string> }) => {
+const Login = (props: {
+  username: string;
+  setUsername: Dispatch<SetStateAction<string>>;
+}) => {
   const [state, formAction] = useFormState(signin, { statusCode: 0 });
   const errorRef = useRef<HTMLDivElement>(null);
 
@@ -69,8 +72,8 @@ const Login = (props: { username: RefObject<string> }) => {
           </label>
           <Input
             name="username"
-            defaultValue={props.username.current}
-            onChange={(event) => (props.username.current = event.target.value)}
+            value={props.username}
+            onChange={(event) => props.setUsername(event.target.value)}
           />
         </div>
 
@@ -98,7 +101,10 @@ const Login = (props: { username: RefObject<string> }) => {
   );
 };
 
-const Signup = (props: { username: RefObject<string> }) => {
+const Signup = (props: {
+  username: string;
+  setUsername: Dispatch<SetStateAction<string>>;
+}) => {
   const [state, formAction] = useFormState(signup, { statusCode: -1 });
 
   useEffect(() => {
@@ -114,8 +120,8 @@ const Signup = (props: { username: RefObject<string> }) => {
           </label>
           <Input
             name="username"
-            defaultValue={props.username.current}
-            onChange={(event) => (props.username.current = event.target.value)}
+            defaultValue={props.username}
+            onChange={(event) => props.setUsername(event.target.value)}
           />
         </div>
 

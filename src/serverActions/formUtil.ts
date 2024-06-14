@@ -13,7 +13,8 @@ const handleDelete = async (formID: number) => {
     });
     revalidatePath("/admin/forms");
   } catch (error) {
-    console.error(`Erro ao excluir o formulário:${formID}`, error);
+    // an error logging service would go here!
+    throw new Error(`Erro ao excluir o formulário:${formID}`);
   }
 };
 
@@ -32,7 +33,8 @@ const fetchForms = async () => {
       },
     });
   } catch (error) {
-    console.error(`Erro ao recuperar formulários`, error);
+    // an error logging service would go here!
+    throw new Error(`Erro ao recuperar formulários`);
   }
 
   return forms;

@@ -4,13 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Form } from "@prisma/client";
 
 const AdminRoot = async () => {
-  let forms: Form[];
-  try {
-    forms = await prisma.form.findMany();
-  } catch (e) {
-    console.error(e);
-    forms = [];
-  }
+  const forms: Form[] = await prisma.form.findMany();
 
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
