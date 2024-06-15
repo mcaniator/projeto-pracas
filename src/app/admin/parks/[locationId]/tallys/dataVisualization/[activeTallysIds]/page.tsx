@@ -1,5 +1,6 @@
-import { TallysDataPage } from "@/components/singleUse/admin/tallys/addedTallys/TallysDataPage";
+import { TallysDataPage } from "@/components/singleUse/admin/tallys/tallyDataVisualization/TallysDataPage";
 import { prisma } from "@/lib/prisma";
+import { searchLocationNameById } from "@/serverActions/locationUtil";
 
 const Page = async ({
   params,
@@ -9,14 +10,7 @@ const Page = async ({
   const decodedActiveTallysString = params.activeTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
 
-  const location = await prisma.location.findUnique({
-    where: {
-      id: parseInt(params.locationId),
-    },
-    select: {
-      name: true,
-    },
-  });
+  const locationName = await searchLocationNameById(Number(params.locationId));
   let tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -47,14 +41,16 @@ const Page = async ({
   });
   tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
 
-  return (
-    <TallysDataPage
-      locationName={location ? location.name : ""}
-      tallys={tallys}
-      tallysIds={tallysIds}
-      locationId={Number(params.locationId)}
-    />
-  );
+  if (tallysIds) {
+    return (
+      <TallysDataPage
+        locationName={locationName}
+        tallys={tallys}
+        tallysIds={tallysIds}
+        locationId={Number(params.locationId)}
+      />
+    );
+  }
 };
 
 export default Page;

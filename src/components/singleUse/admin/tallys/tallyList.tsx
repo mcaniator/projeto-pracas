@@ -32,7 +32,7 @@ const TallyComponent = ({
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
-      href={`/admin/parks/${locationId}/tallys/${id}`}
+      href={`/admin/parks/${locationId}/tallys/dataVisualization/${id}`}
     >
       <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(startD)}`}</span>
       <span className="ml-auto">{observer}</span>

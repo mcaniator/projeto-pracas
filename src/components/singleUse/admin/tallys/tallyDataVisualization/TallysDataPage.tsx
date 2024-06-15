@@ -237,7 +237,7 @@ const TallysDataPage = ({
         style={{ width: "50.7854375rem" }}
         className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
       >
-        <h3 className="text-2xl font-semibold">{`Contagem realizada em ${locationName}`}</h3>
+        <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         {dataTypeToShow === "PEOPLE_DATA" ?
           tallys.length > 0 ?
             <MainTallyDataTablePeople tallyMap={tallyMap} />

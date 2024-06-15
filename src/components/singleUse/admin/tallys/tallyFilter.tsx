@@ -130,7 +130,7 @@ const TallyFilter = ({
         <div>
           <Button type="button">
             <Link
-              href={`/admin/parks/${locationId}/tallys/${activeTallysIdsString}`}
+              href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
             >
               Dados somados
             </Link>

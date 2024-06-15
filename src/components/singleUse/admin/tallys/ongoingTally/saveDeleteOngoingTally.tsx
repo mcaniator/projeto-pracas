@@ -65,7 +65,7 @@ const SaveDeleteOngoingTally = ({
       endTally ? endDate.current : null,
     );
     if (endTally) {
-      router.push(`/admin/parks/${locationId}/tallys`);
+      router.replace(`/admin/parks/${locationId}/tallys`);
     } else {
       setSubmittingObj({
         submitting: false,
@@ -78,7 +78,7 @@ const SaveDeleteOngoingTally = ({
   const handleTallyDeletion = async () => {
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
     await deleteTally(tallyId);
-    router.push(`/admin/parks/${locationId}/tallys`);
+    router.replace(`/admin/parks/${locationId}/tallys`);
   };
 
   return (
