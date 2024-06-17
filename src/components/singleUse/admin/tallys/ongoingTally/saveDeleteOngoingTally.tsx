@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { deleteTally, saveOngoingTallyData } from "@/serverActions/tallyUtil";
+import { deleteTallys, saveOngoingTallyData } from "@/serverActions/tallyUtil";
 import { WeatherConditions } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
@@ -77,7 +77,7 @@ const SaveDeleteOngoingTally = ({
 
   const handleTallyDeletion = async () => {
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
-    await deleteTally(tallyId);
+    await deleteTallys([tallyId]);
     router.replace(`/admin/parks/${locationId}/tallys`);
   };
 

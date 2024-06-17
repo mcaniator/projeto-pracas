@@ -255,66 +255,7 @@ const saveOngoingTallyData = async (
   //console.log(commercialActivities);
 };
 
-const deleteTally = async (tallyId: number) => {
-  try {
-    await prisma.$transaction(async (prisma) => {
-      const tallyPersons = await prisma.tallyPerson.findMany({
-        where: {
-          tallyId: tallyId,
-        },
-        select: {
-          personId: true,
-        },
-      });
-
-      const personsIdsToCheckIfShouldBeDeleted = tallyPersons.map(
-        (tallyPerson) => tallyPerson.personId,
-      );
-
-      await prisma.tallyPerson.deleteMany({
-        where: { tallyId: tallyId },
-      });
-
-      await prisma.tally.delete({
-        where: {
-          id: tallyId,
-        },
-      });
-
-      const personsToDelete = await prisma.person.findMany({
-        where: {
-          id: {
-            in: personsIdsToCheckIfShouldBeDeleted,
-          },
-          TallyPerson: {
-            none: {},
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (personsToDelete.length > 0) {
-        const personsToDeleteIds = personsToDelete.map(
-          (personToDelete) => personToDelete.id,
-        );
-        await prisma.person.deleteMany({
-          where: {
-            id: {
-              in: personsToDeleteIds,
-            },
-          },
-        });
-      }
-    });
-    revalidatePath("/");
-  } catch (error) {
-    return { statusCode: 1 };
-  }
-};
-
-const deleteMultipleTallys = async (tallysIds: number[]) => {
+const deleteTallys = async (tallysIds: number[]) => {
   try {
     await prisma.$transaction(async (prisma) => {
       const tallyPersons = await prisma.tallyPerson.findMany({
@@ -377,7 +318,6 @@ const deleteMultipleTallys = async (tallysIds: number[]) => {
     });
     revalidatePath("/");
   } catch (error) {
-    console.log(error);
     return { statusCode: 1 };
   }
 };
@@ -387,6 +327,5 @@ export {
   createTallyByUser,
   searchOngoingTallyById,
   saveOngoingTallyData,
-  deleteTally,
-  deleteMultipleTallys,
+  deleteTallys,
 };

@@ -5,7 +5,7 @@ import { RadioButton } from "@/components/ui/radioButton";
 import { personType } from "@/lib/zodValidators";
 import React from "react";
 
-import { dataTypesInTallyvisualization } from "./TallysDataPage";
+import { DataTypesInTallyVisualization } from "./TallysDataPage";
 
 let enableCheckboxes = true;
 const DataFilter = ({
@@ -17,9 +17,9 @@ const DataFilter = ({
     React.SetStateAction<(keyof personType)[]>
   >;
   setDataTypeToShow: React.Dispatch<
-    React.SetStateAction<dataTypesInTallyvisualization>
+    React.SetStateAction<DataTypesInTallyVisualization>
   >;
-  dataTypeToShow: dataTypesInTallyvisualization;
+  dataTypeToShow: DataTypesInTallyVisualization;
 }) => {
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked)
@@ -34,7 +34,7 @@ const DataFilter = ({
   };
   const handleDataTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setDataTypeToShow(e.target.value as dataTypesInTallyvisualization);
+      setDataTypeToShow(e.target.value as DataTypesInTallyVisualization);
       e.target.value === "PEOPLE_DATA" ?
         (enableCheckboxes = true)
       : (enableCheckboxes = false);

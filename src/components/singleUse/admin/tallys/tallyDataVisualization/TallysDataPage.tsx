@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { personType } from "@/lib/zodValidators";
 import { Gender } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
@@ -7,12 +8,16 @@ import { Activity } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { useEffect, useState } from "react";
+import React from "react";
 import { z } from "zod";
 
 import { AddedTallysActions } from "./addedTallysActions";
 import { IndividualDataTable } from "./individualDataTable";
 import { MainTallyDataTableComplementary } from "./mainTallyDataTableComplementary";
 import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
+import { PersonsDataVisualization } from "./personsDataVisualization";
+
+type TallyDataVisualizationModes = "CHART" | "TABLE";
 
 const booleanPersonProperties: (keyof personType)[] = [
   "isPersonWithImpairment",
@@ -207,7 +212,7 @@ interface TallyDataFetched {
   weatherCondition: WeatherConditions | null;
   commercialActivities: JsonValue;
 }
-type dataTypesInTallyvisualization = "PEOPLE_DATA" | "COMPLEMENTARY_DATA";
+type DataTypesInTallyVisualization = "PEOPLE_DATA" | "COMPLEMENTARY_DATA";
 const TallysDataPage = ({
   locationName,
   tallys,
@@ -219,6 +224,8 @@ const TallysDataPage = ({
   tallysIds: number[];
   locationId: number;
 }) => {
+  const [dataVisualizationMode, setDataVisualizationMode] =
+    useState<TallyDataVisualizationModes>("TABLE");
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (keyof personType)[]
   >([]);
@@ -226,7 +233,7 @@ const TallysDataPage = ({
     new Map(),
   );
   const [dataTypeToShow, setDataTypeToShow] =
-    useState<dataTypesInTallyvisualization>("PEOPLE_DATA");
+    useState<DataTypesInTallyVisualization>("PEOPLE_DATA");
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
@@ -238,9 +245,30 @@ const TallysDataPage = ({
         className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
       >
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
+        <div>
+          <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+            <Button
+              variant={"ghost"}
+              className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+              onPress={() => setDataVisualizationMode("TABLE")}
+            >
+              Tabelas
+            </Button>
+            <Button
+              variant={"ghost"}
+              className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+              onPress={() => setDataVisualizationMode("CHART")}
+            >
+              Gráficos
+            </Button>
+          </div>
+        </div>
         {dataTypeToShow === "PEOPLE_DATA" ?
           tallys.length > 0 ?
-            <MainTallyDataTablePeople tallyMap={tallyMap} />
+            <PersonsDataVisualization
+              dataVisualizationMode={dataVisualizationMode}
+              tallyMap={tallyMap}
+            />
           : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
         : tallys.length > 0 ?
           <MainTallyDataTableComplementary
@@ -267,4 +295,4 @@ const TallysDataPage = ({
 };
 
 export { TallysDataPage };
-export { type dataTypesInTallyvisualization };
+export { type DataTypesInTallyVisualization, type TallyDataVisualizationModes };

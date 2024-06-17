@@ -94,8 +94,8 @@ const MainTallyDataTableComplementary = ({
         <thead>
           <tr>
             <th
-              colSpan={2}
               style={{ border: "1px solid white", padding: "0.5rem" }}
+              colSpan={commercialActivitiesNames.length + 1}
             >
               Atividades itinerantes
             </th>
@@ -112,6 +112,7 @@ const MainTallyDataTableComplementary = ({
                 padding: "0.5rem",
                 textAlign: "center",
               }}
+              colSpan={commercialActivitiesNames.length}
             >
               {totalCommercialActivities}
             </td>
