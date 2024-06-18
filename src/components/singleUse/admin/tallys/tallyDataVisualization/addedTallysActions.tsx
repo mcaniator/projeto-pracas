@@ -4,7 +4,7 @@ import { Button } from "@/components/button";
 import { personType } from "@/lib/zodValidators";
 import { useState } from "react";
 
-import { dataTypesInTallyvisualization } from "./TallysDataPage";
+import { DataTypesInTallyVisualization } from "./TallysDataPage";
 import { DataFilter } from "./dataFilter";
 import { DeleteTallySection } from "./deleteTallySection";
 
@@ -20,9 +20,9 @@ const AddedTallysActions = ({
     React.SetStateAction<(keyof personType)[]>
   >;
   setDataTypeToShow: React.Dispatch<
-    React.SetStateAction<dataTypesInTallyvisualization>
+    React.SetStateAction<DataTypesInTallyVisualization>
   >;
-  dataTypeToShow: dataTypesInTallyvisualization;
+  dataTypeToShow: DataTypesInTallyVisualization;
   locationId: number;
   tallyIds: number[];
 }) => {

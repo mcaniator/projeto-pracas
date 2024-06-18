@@ -1,16 +1,7 @@
 "use client";
 
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
-interface TallyInfo {
-  observer: string;
-  startDate: string;
-}
-interface TallyInfoAndCommercialActivitiesObject {
-  tallyInfo: TallyInfo;
-  commercialActivities: CommercialActivitiesObject;
-}
+import { TallyInfoAndCommercialActivitiesObject } from "./complementaryDataVisualization";
+
 const MainTallyDataTableComplementary = ({
   tallyMap,
   tallyWithCommercialActivities,
@@ -40,64 +31,16 @@ const MainTallyDataTableComplementary = ({
   });
   commercialActivitiesNames.sort();
 
-  console.log(commercialActivitiesNames);
   return (
-    <div className="flex flex-col gap-1 overflow-auto rounded">
-      <div className="flex flex-row gap-1">
-        <table>
-          <thead>
-            <tr>
-              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-                Pets
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td
-                style={{
-                  border: "1px solid white",
-                  padding: "0.5rem",
-                  textAlign: "center",
-                }}
-              >
-                {tallyMap.get("Pets")}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <table>
-          <thead>
-            <tr>
-              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-                Grupos com 2 ou mais pessoas
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td
-                style={{
-                  border: "1px solid white",
-                  padding: "0.5rem",
-                  textAlign: "center",
-                }}
-              >
-                {tallyMap.get("Groups")}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <table className="max-w-96">
+    <div>
+      <table>
         <thead>
           <tr>
             <th
               style={{ border: "1px solid white", padding: "0.5rem" }}
               colSpan={commercialActivitiesNames.length + 1}
             >
-              Atividades itinerantes
+              Atividades comerciais itinerantes
             </th>
           </tr>
         </thead>
@@ -175,3 +118,4 @@ const MainTallyDataTableComplementary = ({
 };
 
 export { MainTallyDataTableComplementary };
+export { type TallyInfoAndCommercialActivitiesObject };

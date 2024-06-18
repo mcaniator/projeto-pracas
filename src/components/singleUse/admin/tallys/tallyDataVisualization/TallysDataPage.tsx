@@ -12,6 +12,7 @@ import React from "react";
 import { z } from "zod";
 
 import { AddedTallysActions } from "./addedTallysActions";
+import { ComplementaryDataVisualization } from "./complementaryDataVisualization";
 import { IndividualDataTable } from "./individualDataTable";
 import { MainTallyDataTableComplementary } from "./mainTallyDataTableComplementary";
 import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
@@ -29,8 +30,7 @@ const otherPropertiesToCalcualtePercentage = [
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
 ];
-//const possibleDataTypes = ["peopleData", "complementaryData"] as const;
-//type dataTypesToShowInTallyTable = (typeof possibleDataTypes)[number];
+
 const imutableTallyData = (tallys: TallyDataFetched[]) => {
   const commercialActivitiesMap = new Map();
   const tallyMap = new Map();
@@ -271,7 +271,8 @@ const TallysDataPage = ({
             />
           : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
         : tallys.length > 0 ?
-          <MainTallyDataTableComplementary
+          <ComplementaryDataVisualization
+            dataVisualizationMode={dataVisualizationMode}
             tallyWithCommercialActivities={
               imutableTallyMaps.commercialActivitiesMap
             }
