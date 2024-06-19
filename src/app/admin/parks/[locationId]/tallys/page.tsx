@@ -1,14 +1,19 @@
 import TallyPage from "@/components/singleUse/admin/tallys/tallyListPage";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
-import { searchTallysByLocationId } from "@/serverActions/tallyUtil";
+import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 
-const AdminRoot = async ({ params }: { params: { locationId: string } }) => {
-  const tallys = await searchTallysByLocationId(parseInt(params.locationId));
+const Tallys = async ({ params }: { params: { locationId: string } }) => {
+  const tallys = await fetchTallysByLocationId(parseInt(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
-  const endedTallys = tallys.filter((tally) => tally.endDate);
-  const ongoingTallys = tallys.filter((tally) => !tally.endDate);
+  let endedTallys;
+  let ongoingTallys;
+  if (tallys) {
+    endedTallys = tallys.filter((tally) => tally.endDate);
+    ongoingTallys = tallys.filter((tally) => !tally.endDate);
+  }
+
   return (
     <TallyPage
       locationId={params.locationId}
@@ -19,4 +24,4 @@ const AdminRoot = async ({ params }: { params: { locationId: string } }) => {
   );
 };
 
-export default AdminRoot;
+export default Tallys;

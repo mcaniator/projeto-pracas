@@ -73,11 +73,9 @@ const weatherNameMap = new Map([
 ]);
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
 const OngoingTallyPage = ({
-  locationId,
   tallyId,
   tally,
 }: {
-  locationId: number;
   tallyId: number;
   tally: ongoingTallyDataFetched;
 }) => {
@@ -1018,7 +1016,6 @@ const OngoingTallyPage = ({
           )}
           {assistBarState === "SAVE_DELETE" && (
             <SaveDeleteOngoingTally
-              locationId={locationId}
               tallyId={tallyId}
               tallyMap={tallyMap}
               weatherStats={weatherStats}

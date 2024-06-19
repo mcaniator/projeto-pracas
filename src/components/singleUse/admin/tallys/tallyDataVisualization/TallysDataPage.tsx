@@ -11,13 +11,24 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { z } from "zod";
 
-import { AddedTallysActions } from "./addedTallysActions";
 import { ComplementaryDataVisualization } from "./complementaryDataVisualization";
 import { IndividualDataTable } from "./individualDataTable";
-import { MainTallyDataTableComplementary } from "./mainTallyDataTableComplementary";
-import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
 import { PersonsDataVisualization } from "./personsDataVisualization";
+import { TallysDataPageActions } from "./tallysDataPageActions";
 
+interface TallyDataFetched {
+  tallyPerson: TallyPerson[];
+  id: number;
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue;
+}
+type DataTypesInTallyVisualization = "PERSONS_DATA" | "COMPLEMENTARY_DATA";
 type TallyDataVisualizationModes = "CHART" | "TABLE";
 
 const booleanPersonProperties: (keyof personType)[] = [
@@ -46,19 +57,6 @@ const imutableTallyData = (tallys: TallyDataFetched[]) => {
       },
       commercialActivities: tally.commercialActivities,
     });
-    /*if(Object.keys(commercialActivities).length > 0){
-      Object.entries(commercialActivities)
-          .map(([key, value]) => commercialActivitiesMap.set(tally.startDate.toLocaleString(), {...commercialActivitiesMap.get(tally.startDate.toLocaleString()), [key]: value}))
-    }*/
-    /* 
-    if (tally.commercialActivities) {
-      tallyMap.set(
-        "commercialActivitiesDescription",
-        tallyMap.get("commercialActivitiesDescription") +
-          commercialActivitiesDescription +
-          "\n",
-      );
-    }*/
     if (tally.animalsAmount) {
       tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
     }
@@ -200,29 +198,15 @@ interface TallyPerson {
   };
   quantity: number;
 }
-interface TallyDataFetched {
-  tallyPerson: TallyPerson[];
-  id: number;
-  startDate: Date;
-  endDate: Date | null;
-  observer: string;
-  animalsAmount: number | null;
-  groups: number | null;
-  temperature: number | null;
-  weatherCondition: WeatherConditions | null;
-  commercialActivities: JsonValue;
-}
-type DataTypesInTallyVisualization = "PEOPLE_DATA" | "COMPLEMENTARY_DATA";
+
 const TallysDataPage = ({
   locationName,
   tallys,
   tallysIds,
-  locationId,
 }: {
   locationName: string;
   tallys: TallyDataFetched[];
   tallysIds: number[];
-  locationId: number;
 }) => {
   const [dataVisualizationMode, setDataVisualizationMode] =
     useState<TallyDataVisualizationModes>("TABLE");
@@ -233,7 +217,7 @@ const TallysDataPage = ({
     new Map(),
   );
   const [dataTypeToShow, setDataTypeToShow] =
-    useState<DataTypesInTallyVisualization>("PEOPLE_DATA");
+    useState<DataTypesInTallyVisualization>("PERSONS_DATA");
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
@@ -263,30 +247,26 @@ const TallysDataPage = ({
             </Button>
           </div>
         </div>
-        {dataTypeToShow === "PEOPLE_DATA" ?
-          tallys.length > 0 ?
-            <PersonsDataVisualization
-              dataVisualizationMode={dataVisualizationMode}
-              tallyMap={tallyMap}
-            />
-          : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>
-        : tallys.length > 0 ?
-          <ComplementaryDataVisualization
+        {dataTypeToShow === "PERSONS_DATA" ?
+          <PersonsDataVisualization
+            dataVisualizationMode={dataVisualizationMode}
+            tallyMap={tallyMap}
+          />
+        : <ComplementaryDataVisualization
             dataVisualizationMode={dataVisualizationMode}
             tallyWithCommercialActivities={
               imutableTallyMaps.commercialActivitiesMap
             }
             tallyMap={imutableTallyMaps.tallyMap}
           />
-        : <h3 className="text-xl font-semibold">Contagem não encontrada!</h3>}
+        }
       </div>
       <div className="flex flex-col gap-5">
-        <AddedTallysActions
+        <TallysDataPageActions
           setBooleanConditionsFilter={setBooleanConditionsFilter}
           setDataTypeToShow={setDataTypeToShow}
           dataTypeToShow={dataTypeToShow}
           tallyIds={tallysIds}
-          locationId={locationId}
         />
 
         <IndividualDataTable tallys={tallys} />

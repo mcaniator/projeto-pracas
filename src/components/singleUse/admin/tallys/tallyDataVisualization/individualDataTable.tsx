@@ -1,7 +1,6 @@
 "use client";
 
 import { RadioButton } from "@/components/ui/radioButton";
-import { tallyDataToCreateTableType } from "@/lib/zodValidators";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { useState } from "react";

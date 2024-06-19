@@ -3,8 +3,8 @@
 import React from "react";
 
 import { TallyDataVisualizationModes } from "./TallysDataPage";
-import { MainTallyDataTablePeople } from "./mainTallyDataTablePeople";
 import { PersonsDataVisualizationCharts } from "./personsDataVisualizationCharts";
+import { PersonsDatavisualizationTables } from "./personsDataVisualizationTables";
 
 const PersonsDataVisualization = ({
   tallyMap,
@@ -16,7 +16,7 @@ const PersonsDataVisualization = ({
   return (
     <React.Fragment>
       {dataVisualizationMode === "TABLE" && (
-        <MainTallyDataTablePeople tallyMap={tallyMap} />
+        <PersonsDatavisualizationTables tallyMap={tallyMap} />
       )}
       {dataVisualizationMode === "CHART" && (
         <PersonsDataVisualizationCharts tallyMap={tallyMap} />

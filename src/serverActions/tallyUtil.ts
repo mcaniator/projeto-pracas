@@ -1,12 +1,30 @@
 "use server";
 
+import { TallyCreationFormType } from "@/components/singleUse/admin/tallys/tallyCreation";
+import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
 import { prisma } from "@/lib/prisma";
-import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
-const searchTallysByLocationId = async (locationId: number) => {
-  let foundTallys: tallyDataFetchedToTallyListType[] = [];
+interface WeatherStats {
+  temperature: number | null;
+  weather: WeatherConditions;
+}
+interface CommercialActivitiesObject {
+  [key: string]: number;
+}
+interface PersonWithQuantity {
+  gender: Gender;
+  ageGroup: AgeGroup;
+  activity: Activity;
+  isTraversing: boolean;
+  isPersonWithImpairment: boolean;
+  isInApparentIllicitActivity: boolean;
+  isPersonWithoutHousing: boolean;
+  quantity: number;
+}
+const fetchTallysByLocationId = async (locationId: number) => {
+  let foundTallys: TallyDataFetchedToTallyList[] = [];
 
   try {
     foundTallys = await prisma.tally.findMany({
@@ -20,64 +38,98 @@ const searchTallysByLocationId = async (locationId: number) => {
         observer: true,
       },
     });
-  } catch (err) {
-    // console.error(err);
+  } catch (error) {
+    return null;
   }
   foundTallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return foundTallys;
 };
 
-export type FormState = {
-  locationId: string;
-  observer: string;
-  date: string;
-  errors: {
-    observer: boolean;
-    date: boolean;
-  };
+const fetchOngoingTallyById = async (tallyId: number) => {
+  try {
+    const tally = await prisma.tally.findUnique({
+      where: {
+        id: tallyId,
+      },
+      select: {
+        tallyPerson: {
+          select: {
+            quantity: true,
+            person: {
+              select: {
+                ageGroup: true,
+                gender: true,
+                activity: true,
+                isTraversing: true,
+                isPersonWithImpairment: true,
+                isInApparentIllicitActivity: true,
+                isPersonWithoutHousing: true,
+              },
+            },
+          },
+        },
+        location: {
+          select: {
+            name: true,
+          },
+        },
+        startDate: true,
+        endDate: true,
+        observer: true,
+        animalsAmount: true,
+        temperature: true,
+        weatherCondition: true,
+        groups: true,
+        commercialActivities: true,
+      },
+    });
+    return tally?.endDate ? null : tally;
+  } catch (error) {
+    return null;
+  }
 };
 
-const searchOngoingTallyById = async (tallyId: number) => {
-  const tally = await prisma.tally.findUnique({
-    where: {
-      id: tallyId,
-    },
-    select: {
-      tallyPerson: {
-        select: {
-          quantity: true,
-          person: {
-            select: {
-              ageGroup: true,
-              gender: true,
-              activity: true,
-              isTraversing: true,
-              isPersonWithImpairment: true,
-              isInApparentIllicitActivity: true,
-              isPersonWithoutHousing: true,
+const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
+  try {
+    let tallys = await prisma.tally.findMany({
+      where: {
+        id: {
+          in: tallysIds,
+        },
+      },
+      include: {
+        tallyPerson: {
+          select: {
+            quantity: true,
+            person: {
+              select: {
+                ageGroup: true,
+                gender: true,
+                activity: true,
+                isTraversing: true,
+                isPersonWithImpairment: true,
+                isInApparentIllicitActivity: true,
+                isPersonWithoutHousing: true,
+              },
             },
           },
         },
       },
-      location: {
-        select: {
-          name: true,
-        },
-      },
-      startDate: true,
-      endDate: true,
-      observer: true,
-      animalsAmount: true,
-      temperature: true,
-      weatherCondition: true,
-      groups: true,
-      commercialActivities: true,
-    },
-  });
-  return tally?.endDate ? null : tally;
+    });
+    tallys = tallys.filter((tally) => {
+      if (tally.endDate) return true;
+    });
+    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+    return tallys;
+  } catch (error) {
+    return null;
+  }
 };
 
-const createTallyByUser = async (prevState: FormState, formData: FormData) => {
+const createTallyByUser = async (
+  prevState: TallyCreationFormType,
+  formData: FormData,
+) => {
   const locationId = formData.get("locationId") as string;
   const observer = formData.get("observer") as string;
   const date = formData.get("date") as string;
@@ -128,23 +180,6 @@ const createTallyByUser = async (prevState: FormState, formData: FormData) => {
   }
 };
 
-interface WeatherStats {
-  temperature: number | null;
-  weather: WeatherConditions;
-}
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
-interface PersonWithQuantity {
-  gender: Gender;
-  ageGroup: AgeGroup;
-  activity: Activity;
-  isTraversing: boolean;
-  isPersonWithImpairment: boolean;
-  isInApparentIllicitActivity: boolean;
-  isPersonWithoutHousing: boolean;
-  quantity: number;
-}
 const saveOngoingTallyData = async (
   tallyId: number,
   weatherStats: WeatherStats,
@@ -184,11 +219,6 @@ const saveOngoingTallyData = async (
       quantity,
     });
   });
-
-  console.log("chamou");
-  /*commercialActivitiesMap.forEach(
-    (quantity, key) => (commercialActivities[key] = quantity),
-  );*/
 
   try {
     await prisma.$transaction(async (prisma) => {
@@ -249,10 +279,8 @@ const saveOngoingTallyData = async (
     });
     revalidatePath("/");
   } catch (error) {
-    console.log(error);
+    return null;
   }
-
-  //console.log(commercialActivities);
 };
 
 const deleteTallys = async (tallysIds: number[]) => {
@@ -323,9 +351,10 @@ const deleteTallys = async (tallysIds: number[]) => {
 };
 
 export {
-  searchTallysByLocationId,
+  fetchTallysByLocationId,
   createTallyByUser,
-  searchOngoingTallyById,
+  fetchOngoingTallyById,
+  fetchFinalizedTallysToDataVisualization,
   saveOngoingTallyData,
   deleteTallys,
 };

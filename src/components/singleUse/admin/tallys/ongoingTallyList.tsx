@@ -1,7 +1,8 @@
 "use client";
 
-import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
+
+import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -45,7 +46,7 @@ const OngoingTallyList = ({
   activeTallys,
 }: {
   params: { locationId: string };
-  activeTallys: tallyDataFetchedToTallyListType[];
+  activeTallys: TallyDataFetchedToTallyList[];
 }) => {
   return activeTallys === undefined || activeTallys.length === 0 ?
       <h3>Nenhuma contagem em andamento encontrada para este local!</h3>

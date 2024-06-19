@@ -396,13 +396,6 @@ const tallySchema = z.object({
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
 
-const tallyDataFetchedToTallyListSchema = z.object({
-  id: z.coerce.number().int().finite().nonnegative(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  observer: z.coerce.string().trim().min(1).max(255),
-});
-
 const personSchema = z.object({
   ageGroup: z.nativeEnum(AgeGroup),
   gender: z.nativeEnum(Gender),
@@ -420,52 +413,10 @@ const noiseSchema = z.object({
   assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
-const tallyDataToCreateTableSchema = z.object({
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  observer: z.coerce
-    .string()
-    .trim()
-    .refine((value) => !value.includes("\n")),
-  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-  groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  commercialActivities: z.record(
-    z.string(),
-    z.coerce.number().int().finite().nonnegative(),
-  ),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
-
-  tallyPerson: z.array(
-    z.object({
-      person: personSchema,
-      quantity: z.coerce.number().int().finite().nonnegative(),
-    }),
-  ),
-});
-
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
-type tallyDataToCreateTableType = z.infer<typeof tallyDataToCreateTableSchema>;
-type tallyDataFetchedToTallyListType = z.infer<
-  typeof tallyDataFetchedToTallyListSchema
->;
 
-export {
-  noiseSchema,
-  personSchema,
-  tallySchema,
-  tallyDataFetchedToTallyListSchema,
-  tallyDataToCreateTableSchema,
-};
-export type {
-  noiseType,
-  personType,
-  tallyType,
-  tallyDataFetchedToTallyListType,
-  tallyDataToCreateTableType,
-};
+export { noiseSchema, personSchema, tallySchema };
+export type { noiseType, personType, tallyType };
 // #endregion

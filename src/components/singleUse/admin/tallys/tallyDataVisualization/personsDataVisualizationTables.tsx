@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const MainTallyDataTablePeople = ({
+const PersonsDatavisualizationTables = ({
   tallyMap,
 }: {
   tallyMap: Map<string, string | number>;
@@ -323,4 +323,4 @@ const MainTallyDataTablePeople = ({
   );
 };
 
-export { MainTallyDataTablePeople };
+export { PersonsDatavisualizationTables };

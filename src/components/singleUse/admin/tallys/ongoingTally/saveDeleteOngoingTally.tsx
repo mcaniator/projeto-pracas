@@ -26,7 +26,6 @@ interface SubmittingObj {
 }
 type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const SaveDeleteOngoingTally = ({
-  locationId,
   tallyId,
   tallyMap,
   weatherStats,
@@ -35,7 +34,6 @@ const SaveDeleteOngoingTally = ({
   submittingObj,
   setSubmittingObj,
 }: {
-  locationId: number;
   tallyId: number;
   tallyMap: Map<string, number>;
   weatherStats: WeatherStats;
@@ -65,7 +63,7 @@ const SaveDeleteOngoingTally = ({
       endTally ? endDate.current : null,
     );
     if (endTally) {
-      router.replace(`/admin/parks/${locationId}/tallys`);
+      router.back();
     } else {
       setSubmittingObj({
         submitting: false,
@@ -78,7 +76,7 @@ const SaveDeleteOngoingTally = ({
   const handleTallyDeletion = async () => {
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
     await deleteTallys([tallyId]);
-    router.replace(`/admin/parks/${locationId}/tallys`);
+    router.back();
   };
 
   return (

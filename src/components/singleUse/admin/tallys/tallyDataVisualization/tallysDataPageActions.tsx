@@ -8,12 +8,11 @@ import { DataTypesInTallyVisualization } from "./TallysDataPage";
 import { DataFilter } from "./dataFilter";
 import { DeleteTallySection } from "./deleteTallySection";
 
-type AddedTallysActionsCategories = "FILTERS" | "DELETION";
-const AddedTallysActions = ({
+type TallysVisualizationActionsCategories = "FILTERS" | "DELETION";
+const TallysDataPageActions = ({
   setBooleanConditionsFilter,
   setDataTypeToShow,
   dataTypeToShow,
-  locationId,
   tallyIds,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
@@ -23,11 +22,10 @@ const AddedTallysActions = ({
     React.SetStateAction<DataTypesInTallyVisualization>
   >;
   dataTypeToShow: DataTypesInTallyVisualization;
-  locationId: number;
   tallyIds: number[];
 }) => {
   const [actionsCategory, setActionsCategory] =
-    useState<AddedTallysActionsCategories>("FILTERS");
+    useState<TallysVisualizationActionsCategories>("FILTERS");
   return (
     <div className="flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
       <div>
@@ -53,13 +51,13 @@ const AddedTallysActions = ({
           setBooleanConditionsFilter={setBooleanConditionsFilter}
           setDataTypeToShow={setDataTypeToShow}
           dataTypeToShow={dataTypeToShow}
-        ></DataFilter>
+        />
       )}
       {actionsCategory === "DELETION" && (
-        <DeleteTallySection locationId={locationId} tallyIds={tallyIds} />
+        <DeleteTallySection tallyIds={tallyIds} />
       )}
     </div>
   );
 };
 
-export { AddedTallysActions };
+export { TallysDataPageActions };

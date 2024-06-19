@@ -3,8 +3,9 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { tallyDataFetchedToTallyListType } from "@/lib/zodValidators";
 import Link from "next/link";
+
+import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const TallyFilter = ({
   setInitialDate,
@@ -17,7 +18,7 @@ const TallyFilter = ({
   setFinalDate: React.Dispatch<React.SetStateAction<number>>;
   setWeekDaysFilter: React.Dispatch<React.SetStateAction<string[]>>;
   locationId: number;
-  activeTallys: tallyDataFetchedToTallyListType[];
+  activeTallys: TallyDataFetchedToTallyList[] | undefined;
 }) => {
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -39,7 +40,9 @@ const TallyFilter = ({
     else
       setWeekDaysFilter((prev) => prev.filter((day) => day !== e.target.value));
   };
-  const activeTallysIdsString = `${activeTallys.map((tally) => tally.id).join("-")}`;
+  let activeTallysIdsString;
+  if (activeTallys)
+    activeTallysIdsString = `${activeTallys.map((tally) => tally.id).join("-")}`;
   return (
     <div className="flex flex-col gap-5">
       <div className="flex basis-1/5 flex-col">

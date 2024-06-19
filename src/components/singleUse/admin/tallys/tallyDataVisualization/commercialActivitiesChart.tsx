@@ -12,8 +12,6 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar } from "react-chartjs-2";
 
-import { TallyInfoAndCommercialActivitiesObject } from "./mainTallyDataTableComplementary";
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,45 +23,12 @@ ChartJS.register(
 );
 
 const CommercialActivitiesChart = ({
-  tallyWithCommercialActivities,
+  sortedCommercialActivitiesNames,
+  sortedOccurrences,
 }: {
-  tallyWithCommercialActivities: Map<
-    number,
-    TallyInfoAndCommercialActivitiesObject
-  >;
+  sortedCommercialActivitiesNames: string[];
+  sortedOccurrences: number[];
 }) => {
-  const commercialActivitiesNames: string[] = [];
-  let totalCommercialActivities = 0;
-  const commercialActivitiesWithTotalOccurrences = new Map<string, number>();
-  tallyWithCommercialActivities.forEach((tally) => {
-    if (
-      tally.commercialActivities &&
-      Object.keys(tally.commercialActivities).length > 0
-    ) {
-      Object.entries(tally.commercialActivities).forEach(([key, value]) => {
-        if (value) {
-          const previousValue =
-            commercialActivitiesWithTotalOccurrences.get(key) || 0;
-          commercialActivitiesWithTotalOccurrences.set(
-            key,
-            previousValue + value,
-          );
-          totalCommercialActivities += value;
-          if (value !== 0 && !commercialActivitiesNames.includes(key)) {
-            commercialActivitiesNames.push(key);
-          }
-        }
-      });
-    }
-  });
-  commercialActivitiesNames.sort();
-  const commercialActivitiesArray = Array.from(
-    commercialActivitiesWithTotalOccurrences,
-  );
-  commercialActivitiesArray.sort((a, b) => a[0].localeCompare(b[0]));
-  const sorrtedOccurrences = commercialActivitiesArray.map(
-    (activity) => activity[1],
-  );
   const options = {
     responsive: true,
     plugins: {
@@ -110,10 +75,10 @@ const CommercialActivitiesChart = ({
   };
 
   const commercialActivitiesData = {
-    labels: commercialActivitiesNames,
+    labels: sortedCommercialActivitiesNames,
     datasets: [
       {
-        data: sorrtedOccurrences,
+        data: sortedOccurrences,
         backgroundColor: "rgb(148,0,211)",
         borderColor: "rgb(153,50,204)",
         borderWidth: 1,

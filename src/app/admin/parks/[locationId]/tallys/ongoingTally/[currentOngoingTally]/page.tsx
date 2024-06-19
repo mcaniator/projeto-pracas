@@ -1,28 +1,22 @@
 import { OngoingTallyPage } from "@/components/singleUse/admin/tallys/ongoingTally/ongoingTallyPage";
-import { searchOngoingTallyById } from "@/serverActions/tallyUtil";
+import { fetchOngoingTallyById } from "@/serverActions/tallyUtil";
+import { notFound } from "next/navigation";
 
 const Page = async ({
   params,
 }: {
-  params: { locationId: string; currentOngoingTally: string };
+  params: { currentOngoingTally: string };
 }) => {
-  const tally = await searchOngoingTallyById(
-    Number(params.currentOngoingTally),
-  );
+  const tally = await fetchOngoingTallyById(Number(params.currentOngoingTally));
   if (tally) {
     return (
       <OngoingTallyPage
-        locationId={Number(params.locationId)}
         tallyId={Number(params.currentOngoingTally)}
         tally={tally}
       ></OngoingTallyPage>
     );
   } else {
-    return (
-      <div>
-        <h3>Contagem Finalizada!</h3>
-      </div>
-    );
+    return notFound();
   }
 };
 

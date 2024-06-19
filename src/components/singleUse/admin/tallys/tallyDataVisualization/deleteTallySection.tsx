@@ -6,13 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import React from "react";
 
-const DeleteTallySection = ({
-  locationId,
-  tallyIds,
-}: {
-  locationId: number;
-  tallyIds: number[];
-}) => {
+const DeleteTallySection = ({ tallyIds }: { tallyIds: number[] }) => {
   const router = useRouter();
   const [showDeletionConfirmation, setShowDeletionConfirmation] =
     useState(false);
@@ -20,7 +14,7 @@ const DeleteTallySection = ({
   const handleTallyDeletion = async () => {
     setDeleting(true);
     await deleteTallys(tallyIds);
-    router.replace(`/admin/parks/${locationId}/tallys`);
+    router.back();
   };
   return (
     <div className="flex flex-col gap-2">
