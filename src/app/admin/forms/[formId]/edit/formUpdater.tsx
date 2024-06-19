@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { handleDelete, updateForm } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
@@ -35,7 +35,7 @@ const FormUpdater = ({
 
   // TODO: add error handling
   return (
-    <div className={"flex min-h-0  flex-grow gap-5 p-5"}>
+    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex basis-full flex-col gap-5 text-white">
         <div
           className={
@@ -86,7 +86,7 @@ const FormUpdater = ({
               <Link href={"/admin/forms"}>
                 <Button
                   variant={"destructive"}
-                  onClick={() => void handleDelete(form.id)}
+                  onPress={() => void handleDelete(form.id)}
                   className={"w-min"}
                 >
                   <span className={"-mb-1"}>Deletar</span>
@@ -114,7 +114,7 @@ const FormUpdater = ({
                       <span className="p-2">{question.name}</span>
                       <Button
                         className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
-                        onClick={() =>
+                        onPress={() =>
                           void handleQuestionsToRemove(question.id)
                         }
                       >
@@ -143,7 +143,7 @@ const FormUpdater = ({
                     <span className="p-2">{question.name}</span>
                     <Button
                       className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
-                      onClick={() => cancelAddQuestion(question.id)}
+                      onPress={() => cancelAddQuestion(question.id)}
                     >
                       Remover
                     </Button>

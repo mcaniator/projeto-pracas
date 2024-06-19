@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { searchFormsById } from "@/serverActions/formUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 import Link from "next/link";

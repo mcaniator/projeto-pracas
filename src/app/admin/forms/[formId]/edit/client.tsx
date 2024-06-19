@@ -1,7 +1,7 @@
 "use client";
 
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import {
   createVersion, // addQuestions,
   // removeQuestions,
@@ -157,7 +157,7 @@ const Client = ({
           {updatedQuestions.length !== 0 && (
             <Button
               variant={"admin"}
-              onClick={() =>
+              onPress={() =>
                 createNewVersion(
                   form.id,
                   questions,

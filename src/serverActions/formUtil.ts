@@ -35,7 +35,6 @@ const fetchForms = async () => {
       },
     });
   } catch (e) {
-    console.error(e);
     forms = [];
   }
   return forms;
@@ -63,7 +62,6 @@ const fetchFormsLatest = async () => {
       ],
     });
   } catch (e) {
-    console.error(e);
     forms = [];
   }
   return forms;
@@ -80,7 +78,7 @@ const searchFormsById = async (id: number) => {
           },
         });
       } catch (err) {
-        // console.error(err);
+        return null;
       }
 
       return foundForm;
@@ -116,7 +114,6 @@ const updateForm = async (
       name: formData.get("name"),
     });
   } catch (e) {
-    // console.log(e);
     return {
       statusCode: 1,
     };
@@ -145,7 +142,6 @@ const addQuestion = async (formId: number, questionId: number) => {
       data: { formId: formId, questionId: questionId },
     });
   } catch (err) {
-    // console.log(err);
     return { statusCode: 2 };
   }
 
@@ -169,7 +165,7 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       },
     });
   } catch (error) {
-    // // an error logging service would go here!
+    // an error logging service would go here!
     throw new Error(`Erro ao recuperar formulários`); //1
   }
 
@@ -183,7 +179,6 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       },
     });
 
-    // Armazenar o ID do novo formulário
     newFormId = newForm.id;
   } catch (e) {
     return {
@@ -201,7 +196,6 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       data: createManyParams,
     });
   } catch (err) {
-    // console.log(err); //2
     return { statusCode: 2 };
   }
 
@@ -220,7 +214,6 @@ const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {
       data: createManyParams,
     });
   } catch (err) {
-    // console.log(err);
     return { statusCode: 2 };
   }
 
@@ -243,7 +236,6 @@ const removeQuestions = async (
       },
     });
   } catch (err) {
-    // console.log(err);
     return { statusCode: 2 };
   }
 

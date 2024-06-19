@@ -1,7 +1,7 @@
 "use client";
 
 import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { searchQuestionsByStatement } from "@/serverActions/questionUtil";
 import { Form, Question } from "@prisma/client";
@@ -138,7 +138,7 @@ const QuestionComponent = ({
         variant={"admin"}
         type="submit"
         className={"w-min"}
-        onClick={() => handleQuestionsToAdd(questionId, name)}
+        onPress={() => handleQuestionsToAdd(questionId, name)}
       >
         <span className={"-mb-1"}>Adicionar</span>
       </Button>

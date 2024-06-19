@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { addResponses } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
@@ -119,7 +119,7 @@ const ResponseForm = ({
               variant={"admin"}
               type="button"
               className={"w-min"}
-              onClick={handleSubmitResponse}
+              onPress={handleSubmitResponse}
             >
               <span className={"-mb-1"}>Enviar Respostas</span>
             </Button>
