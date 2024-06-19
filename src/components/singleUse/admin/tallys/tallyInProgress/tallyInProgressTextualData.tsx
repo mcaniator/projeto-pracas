@@ -61,7 +61,7 @@ const TallyInProgressTextualData = ({
       ) ?
         Object.entries(commercialActivities).map(([key, value]) => {
           if (value !== 0) {
-            return <p key={key}>{`${key}: ${value}`}</p>;
+            return <p key={key} className="break-all">{`${key}: ${value}`}</p>;
           }
         })
       : "Nenhuma atividade comerical initerante registrada!"}
