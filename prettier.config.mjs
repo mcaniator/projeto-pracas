@@ -9,7 +9,10 @@ const config = {
   useTabs: false,
   tailwindFunctions: ["cva", "clsx", "cn"],
   tailwindConfig: "tailwind.config.ts",
-  plugins: ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
+  plugins: [
+    "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss",
+  ],
   experimentalTernaries: true,
 };
 

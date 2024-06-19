@@ -1,58 +1,51 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { searchLocationsByName } from "@/serverActions/locationUtil";
-import { Form } from "@prisma/client";
+import { Input } from "@/components/input";
+import { search } from "@/lib/search";
 import { IconLink } from "@tabler/icons-react";
+import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
-import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
+import { useState } from "react";
 
-const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
+const LocationComponent = ({ id, name }: { id: number; name: string }) => {
   return (
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/parks/${id}`}
     >
-      {nome}
+      {name}
       <IconLink size={24} />
     </Link>
   );
 };
 
 const LocationList = ({
-  locationsPromise,
+  locations,
 }: {
-  locationsPromise?: Promise<Form[]>;
+  locations: FuseResult<{ id: number; name: string }>[];
 }) => {
-  if (locationsPromise === undefined) return null;
-  const locations = use(locationsPromise);
-
-  return locations === undefined || locations.length === 0 ?
-      null
-    : <div className="w-full text-black">
-        {locations.length > 0 &&
-          locations.map((location) => (
-            <LocationComponent
-              key={location.id}
-              id={location.id}
-              nome={location.name}
-            />
-          ))}
-      </div>;
+  return (
+    <div className="w-full text-black">
+      {locations.map((location, index) => (
+        <LocationComponent
+          key={index}
+          id={location.item.id}
+          nome={location.item.name}
+        />
+      ))}
+    </div>
+  );
 };
 
-const ParkForm = () => {
-  const [targetLocation, setTargetLocation] = useState("");
+const ParkForm = ({
+  location,
+}: {
+  location: { id: number; name: string }[];
+}) => {
+  const fuseHaystack = new Fuse(location, { keys: ["name"] });
+  const [hay, setHay] = useState(search("", location, fuseHaystack));
 
-  const [foundLocations, setFoundLocations] = useState<Promise<Form[]>>();
-  useEffect(() => {
-    setFoundLocations(searchLocationsByName(targetLocation));
-  }, [targetLocation]);
-
-  const deferredFoundLocations = useDeferredValue(foundLocations);
-
-  // TODO: add error handling
   return (
     <>
       <div className={"flex flex-col gap-2"}>
@@ -60,16 +53,15 @@ const ParkForm = () => {
         <Input
           type="text"
           name="name"
-          required
           id={"name"}
           autoComplete={"none"}
-          value={targetLocation}
-          onChange={(e) => setTargetLocation(e.target.value)}
+          onChange={(value) => {
+            setHay(search(value, location, fuseHaystack));
+          }}
         />
       </div>
-      <Suspense>
-        <LocationList locationsPromise={deferredFoundLocations} />
-      </Suspense>
+
+      <LocationList locations={hay} />
     </>
   );
 };

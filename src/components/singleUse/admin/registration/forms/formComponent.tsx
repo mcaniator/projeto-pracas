@@ -1,30 +1,24 @@
 "use client";
 
-import { handleDelete } from "@/serverActions/formUtil";
+import { IconLink } from "@tabler/icons-react";
+import Link from "next/link";
 
 interface FormProps {
   id: number;
-  nome: string;
+  name: string;
+  version: number;
 }
 
-const FormComponent = ({ id, nome }: FormProps) => {
+const FormComponent = ({ id, name }: FormProps) => {
   return (
-    <div
+    <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
+      href={`/admin/forms/${id}`}
     >
-      <div>
-        <h4 className="text-lg font-semibold">{nome}</h4>
-      </div>
-      <div>
-        <button
-          onClick={() => void handleDelete(id)}
-          className="text-red-500 hover:text-red-700"
-        >
-          Deletar
-        </button>
-      </div>
-    </div>
+      {name}
+      <IconLink size={24} />
+    </Link>
   );
 };
 

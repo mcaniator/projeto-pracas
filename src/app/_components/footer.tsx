@@ -32,7 +32,12 @@ const Footer = forwardRef<HTMLElement, FooterProps>(
       >
         <div>
           <Link className="flex items-center gap-1" href={"/about"}>
-            <Button type="button" variant={"ghost"} className="px-3 py-5 pl-2">
+            <Button
+              type="button"
+              variant={"ghost"}
+              className="px-3 py-5 pl-2"
+              use={"link"}
+            >
               <IconInfoSquareRounded size={27} />
               <span className="text-2xl">Sobre nós!</span>
             </Button>
@@ -44,7 +49,12 @@ const Footer = forwardRef<HTMLElement, FooterProps>(
             className="flex items-center gap-1"
             href={"mailto:email@email.com"}
           >
-            <Button type="button" variant={"ghost"} className="px-3 py-5">
+            <Button
+              type="button"
+              variant={"ghost"}
+              use={"link"}
+              className="px-3 py-5"
+            >
               <IconMail size={27} />
               <span className="text-2xl">Contato</span>
             </Button>

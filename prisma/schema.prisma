@@ -236,70 +236,47 @@ model Category {
 model Question {
   id Int @id @default(autoincrement())
 
-  name     String        @db.VarChar(255)
-  optional Boolean       @default(false)
-  active   Boolean       @default(true)
-  type     QuestionTypes
-
-  TextQuestion    TextQuestion?
-  NumericQuestion NumericQuestion?
-  OptionsQuestion OptionsQuestion?
+  name              String             @db.VarChar(255)
+  optional          Boolean            @default(false)
+  active            Boolean            @default(true)
+  type              QuestionTypes
+  forms             QuestionsOnForms[]
+  response          Response[]
+  responseCharLimit Int?               @map("char_limit")
+  minValue          Int?
+  maxValue          Int?
+  optionType        OptionTypes?       @map("option_type")
+  // Should only have a value if optionType == CHECKBOX
+  maximumSelections Int?               @map("maximum_selections")
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
+  options    Option[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("question")
 }
 
-model TextQuestion {
-  id Int @id @default(autoincrement())
+model Response {
+  id         Int           @id @default(autoincrement())
+  type       QuestionTypes
+  frequency  Int           @default(1)
+  locationId Int           @map("location_id")
+  location   Location      @relation(fields: [locationId], references: [id])
 
-  charLimit Int? @map("char_limit")
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
 
-  questionId Int      @unique @map("question_id")
+  questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
+  response  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("text_question")
-}
-
-model NumericQuestion {
-  id Int @id @default(autoincrement())
-
-  min Int?
-  max Int?
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("numeric_question")
-}
-
-model OptionsQuestion {
-  id Int @id @default(autoincrement())
-
-  optionType OptionTypes @map("option_type")
-
-  // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int? @map("maximum_selections")
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  options Option[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("options_question")
+  @@map("response")
 }
 
 model Option {
@@ -307,24 +284,61 @@ model Option {
 
   text String @db.VarChar(255)
 
-  optionsQuestionId Int             @map("options_question_id")
-  OptionsQuestion   OptionsQuestion @relation(fields: [optionsQuestionId], references: [id])
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("option")
 }
 
-model Form {
-  id Int @id @default(autoincrement())
+model ResponseOption {
+  id         Int      @id @default(autoincrement())
+  frequency  Int      @default(1)
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
 
-  name String @db.VarChar(255)
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  optionId Int    @map("option_id")
+  option   Option @relation(fields: [optionId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // @@map("response_option")
+  @@map("responseOption")
+}
+
+model Form {
+  id      Int @id @default(autoincrement())
+  version Int @default(0)
+
+  name      String             @db.VarChar(255)
+  questions QuestionsOnForms[]
+  response  Response[]
+
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("form")
+}
+
+model QuestionsOnForms {
+  id Int @id @default(autoincrement())
+
+  formId     Int      @map("form_id")
+  form       Form     @relation(fields: [formId], references: [id])
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@map("questions_on_forms")
 }
 
 // #endregion
@@ -338,10 +352,12 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  firstStreet         String    @db.VarChar(255)
+  secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
-  creationYear        DateTime? @map("creation_year") @db.Date
-  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date
+  creationYear        DateTime? @map("creation_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
+  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
   overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
   legislation         String?   @db.VarChar(255)
   usableArea          Float?    @map("usable_area")
@@ -361,33 +377,15 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  address    Address[]
+  response   Response[]
   assessment Assessment[]
   tally      Tally[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("location")
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-
-  neighborhood String @db.VarChar(255)
-  street       String @db.VarChar(255)
-  postalCode   String @map("postal_code") @db.VarChar(255)
-  identifier   Int
-
-  state BrazilianStates
-
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("address")
 }
 
 model City {

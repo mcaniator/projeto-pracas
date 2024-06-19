@@ -13,7 +13,7 @@ const usernameSchema = z.string().trim().toLowerCase().min(1).max(255);
 const passwordSchema = z.string().trim().min(6).max(255);
 
 const signin = async (
-  prevState: { statusCode: number },
+  _prevState: { statusCode: number },
   formData: FormData,
 ) => {
   let parsedPassword;
@@ -134,8 +134,6 @@ const signout = async () => {
 
   await lucia.invalidateSession(session.id);
 
-  revalidateTag("session");
-
   const sessionCookie = lucia.createBlankSessionCookie();
   cookies().set(
     sessionCookie.name,
@@ -143,6 +141,7 @@ const signout = async () => {
     sessionCookie.attributes,
   );
 
+  revalidateTag("session");
   return { statusCode: 0 };
 };
 
