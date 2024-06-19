@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import React from "react";
 
-import { TallyDataFetchedToTallyList } from "./tallyListPage";
+import {
+  TallyDataFetchedToTallyList,
+  WeekdaysFilterItems,
+} from "./tallyListPage";
 
 const TallyFilter = ({
   initialDateFilter,
@@ -18,7 +21,7 @@ const TallyFilter = ({
 }: {
   initialDateFilter: React.MutableRefObject<number>;
   finalDateFilter: React.MutableRefObject<number>;
-  weekdaysFilter: React.MutableRefObject<string[]>;
+  weekdaysFilter: React.MutableRefObject<WeekdaysFilterItems[]>;
   locationId: number;
   activeTallys: TallyDataFetchedToTallyList[] | undefined;
   updateFilteredTallys: () => void;
@@ -43,7 +46,10 @@ const TallyFilter = ({
   };
   const handleWeekdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked)
-      weekdaysFilter.current = [...weekdaysFilter.current, e.target.value];
+      weekdaysFilter.current = [
+        ...weekdaysFilter.current,
+        e.target.value as WeekdaysFilterItems,
+      ];
     else
       weekdaysFilter.current = weekdaysFilter.current.filter(
         (day) => day !== e.target.value,

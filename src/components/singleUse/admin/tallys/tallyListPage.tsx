@@ -14,6 +14,14 @@ interface TallyDataFetchedToTallyList {
   endDate: Date | null;
   observer: string;
 }
+type WeekdaysFilterItems =
+  | "dom."
+  | "seg."
+  | "ter."
+  | "qua."
+  | "qui."
+  | "sex."
+  | "sáb.";
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   weekday: "short",
@@ -30,7 +38,7 @@ const TallyPage = ({
   tallys: TallyDataFetchedToTallyList[] | undefined;
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
 }) => {
-  const weekdaysFilter = useRef<string[]>([]);
+  const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
   const finalDateFilter = useRef(0);
   const [activeTallys, setActiveTallys] = useState(tallys);
@@ -43,7 +51,7 @@ const TallyPage = ({
       if (weekdaysFilter.current.length > 0) {
         if (
           !weekdaysFilter.current.includes(
-            weekdayFormatter.format(tally.startDate),
+            weekdayFormatter.format(tally.startDate) as WeekdaysFilterItems,
           )
         ) {
           return false;
@@ -146,4 +154,4 @@ const TallyPage = ({
 };
 
 export default TallyPage;
-export { type TallyDataFetchedToTallyList };
+export { type TallyDataFetchedToTallyList, type WeekdaysFilterItems };
