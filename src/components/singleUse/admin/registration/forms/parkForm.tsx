@@ -7,14 +7,14 @@ import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useState } from "react";
 
-const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
+const LocationComponent = ({ id, name }: { id: number; name: string }) => {
   return (
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
       href={`/admin/parks/${id}`}
     >
-      {nome}
+      {name}
       <IconLink size={24} />
     </Link>
   );
