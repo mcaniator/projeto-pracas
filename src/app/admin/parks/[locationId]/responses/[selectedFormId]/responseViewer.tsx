@@ -58,6 +58,23 @@ const ResponseViewer = async ({
 
   const flattenedResponses = responses.flat();
 
+  const groupedResponses = flattenedResponses.reduce(
+    (acc, response) => {
+      const dateKey = new Date(response.createdAt).toISOString().slice(0, 16);
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey]?.push(response);
+      return acc;
+    },
+    {} as { [key: string]: typeof flattenedResponses },
+  );
+
+  const envios = Object.keys(groupedResponses).map((key) => ({
+    envioId: key,
+    responses: groupedResponses[key] || [],
+  }));
+
   const options = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
@@ -92,6 +109,7 @@ const ResponseViewer = async ({
           questions={questions}
           options={options}
           responses={flattenedResponses}
+          envios={envios}
         />
       </div>
     </div>

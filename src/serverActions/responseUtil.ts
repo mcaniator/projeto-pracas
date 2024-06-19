@@ -92,6 +92,77 @@ const addResponses = async (
       }
     }
   } catch (err) {
+    return { statusCode: 2 };
+  }
+
+  revalidateTag("response");
+  return {
+    statusCode: 0,
+  };
+};
+
+const updateResponse = async (
+  responseId: number,
+  questionType: QuestionTypes,
+  newValue: string,
+) => {
+  try {
+    if (questionType === QuestionTypes.NUMERIC) {
+      await prisma.response.update({
+        where: {
+          id: responseId,
+        },
+        data: {
+          response: newValue,
+        },
+      });
+    } else if (questionType === QuestionTypes.TEXT) {
+      await prisma.response.update({
+        where: {
+          id: responseId,
+        },
+        data: {
+          response: newValue,
+        },
+      });
+    } else if (questionType === QuestionTypes.OPTIONS) {
+      const optionId = parseInt(newValue);
+      await prisma.responseOption.update({
+        where: {
+          id: responseId,
+        },
+        data: {
+          optionId: optionId,
+        },
+      });
+    }
+  } catch (err) {
+    return { statusCode: 2 };
+  }
+
+  revalidateTag("response");
+  return {
+    statusCode: 0,
+  };
+};
+
+const editResponses = async (
+  responses: {
+    responseId: number;
+    questionType: QuestionTypes;
+    newValue: string;
+  }[],
+) => {
+  try {
+    const updatePromises = responses.map((response) =>
+      updateResponse(
+        response.responseId,
+        response.questionType,
+        response.newValue,
+      ),
+    );
+    await Promise.all(updatePromises);
+  } catch (err) {
     // console.log(err);
     return { statusCode: 2 };
   }
@@ -137,4 +208,6 @@ export {
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionId,
   searchResponsesByQuestionFormLocation,
+  updateResponse,
+  editResponses, // Exportando a nova função
 };
