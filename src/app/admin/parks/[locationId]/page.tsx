@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import Link from "next/link";
 
@@ -16,15 +16,27 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
               }
             >
-              <div className="space flex">
-                <h3 className={"text-2xl font-semibold "}>
+              <div className="flex">
+                <h3 className={"text-2xl font-semibold"}>
                   Informações de {location?.name}
                 </h3>
                 <Link
                   href={`/admin/parks/${locationIdNumber}/edit`}
                   className="ml-auto"
                 >
-                  <Button>Editar</Button>
+                  <Button type="button">Editar</Button>
+                </Link>
+                <Link
+                  href={`/admin/parks/${locationIdNumber}/responses?action=responses`}
+                  className="ml-auto"
+                >
+                  <Button>Ver Respostas</Button>
+                </Link>
+                <Link
+                  href={`/admin/parks/${locationIdNumber}/responses?action=evaluation`}
+                  className="ml-auto"
+                >
+                  <Button>Avaliar</Button>
                 </Link>
                 <Link
                   href={`/admin/parks/${locationIdNumber}/responses?action=responses`}

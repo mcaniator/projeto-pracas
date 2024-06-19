@@ -11,6 +11,17 @@ const questionSubmit = async (
 ) => {
   const questionType = formData.get("questionType");
 
+  let questionParsed;
+  try {
+    questionParsed = questionSchema.parse({
+      name: formData.get("name"),
+      type: questionType,
+      categoryId: formData.get("categoryId"),
+    });
+  } catch (err) {
+    return { statusCode: 1 };
+  }
+
   switch (questionType) {
     case "TEXT": {
       let textQuestionParsed;
@@ -22,7 +33,6 @@ const questionSubmit = async (
           responseCharLimit: formData.get("charLimit"),
         });
       } catch (err) {
-        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -36,7 +46,6 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        // console.log(err);
         return { statusCode: 2 };
       }
 
@@ -53,7 +62,6 @@ const questionSubmit = async (
           max: formData.get("max"),
         });
       } catch (err) {
-        // console.log(err);
         return { statusCode: 1 };
       }
 
@@ -68,7 +76,6 @@ const questionSubmit = async (
           },
         });
       } catch (err) {
-        // console.log(err);
         return { statusCode: 2 };
       }
 
@@ -94,7 +101,6 @@ const questionSubmit = async (
           ...optionsQuestionObject,
         });
       } catch (err) {
-        console.error("Error parsing question schema:", err);
         return { statusCode: 1 };
       }
 
@@ -141,7 +147,6 @@ const questionSubmit = async (
           return { statusCode: 2 };
         }
       } catch (err) {
-        console.error("Error creating question in database:", err);
         return { statusCode: 2 };
       }
 

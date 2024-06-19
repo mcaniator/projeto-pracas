@@ -1,11 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { locationType } from "@/lib/zodValidators";
-import { Location } from "@prisma/client";
+import { administrativeUnitsType, locationType } from "@/lib/zodValidators";
 
 const fetchLocation = async (id: number) => {
-  let currentPark: Location | null = null;
+  let currentPark;
 
   try {
     currentPark = await prisma.location.findUnique({
@@ -14,7 +13,7 @@ const fetchLocation = async (id: number) => {
       },
     });
   } catch (error) {
-    console.log(error);
+    return { statusCode: 1, errorMessage: "Error fetching location id" };
   }
 
   return currentPark;
@@ -22,73 +21,76 @@ const fetchLocation = async (id: number) => {
 
 const createLocation = async (
   content: locationType,
-  cityID: Number,
-  polygonContent: string,
+  administrativeUnits: administrativeUnitsType,
+  cityID: number,
+  polygons?: string | null,
 ) => {
-  const dataToCreate: any = {};
-  Object.entries(content).forEach(([key, value]) => {
-    if (key == "administrativeDelimitation1") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_administrativeDelimitation1Name: {
-              cityId: cityID,
-              administrativeDelimitation1Name: value,
-            },
-          },
-          create: {
-            cityId: cityID,
-            administrativeDelimitation1Name: value,
-          },
-        },
-      };
-    } else if (key == "administrativeDelimitation2") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_administrativeDelimitation2Name: {
-              cityId: cityID,
-              administrativeDelimitation2Name: value,
-            },
-          },
-          create: {
-            cityId: cityID,
-            administrativeDelimitation2Name: value,
-          },
-        },
-      };
-    } else if (key == "administrativeDelimitation3") {
-      dataToCreate[key] = {
-        connectOrCreate: {
-          where: {
-            cityId_administrativeDelimitation3Name: {
-              cityId: cityID,
-              administrativeDelimitation3Name: value,
-            },
-          },
-          create: {
-            cityId: cityID,
-            administrativeDelimitation3Name: value,
-          },
-        },
-      };
-    } else {
-      dataToCreate[key] = value;
-    }
-  });
   try {
-    let locationCreated = await prisma.location.create({
-      data: dataToCreate,
+    const locationCreated = await prisma.location.create({
+      data: {
+        ...content,
+        narrowAdministrativeUnit: {
+          connectOrCreate:
+            administrativeUnits.narrowAdministrativeUnit ?
+              {
+                where: {
+                  cityId_narrowUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.narrowAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.narrowAdministrativeUnit,
+                },
+              }
+            : undefined,
+        },
+        intermediateAdministrativeUnit:
+          administrativeUnits.intermediateAdministrativeUnit ?
+            {
+              connectOrCreate: {
+                where: {
+                  cityId_intermediateUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.intermediateAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.intermediateAdministrativeUnit,
+                },
+              },
+            }
+          : undefined,
+        broadAdministrativeUnit:
+          administrativeUnits.broadAdministrativeUnit ?
+            {
+              connectOrCreate: {
+                where: {
+                  cityId_broadUnitName: {
+                    cityId: cityID,
+                    name: administrativeUnits.broadAdministrativeUnit,
+                  },
+                },
+                create: {
+                  cityId: cityID,
+                  name: administrativeUnits.broadAdministrativeUnit,
+                },
+              },
+            }
+          : undefined,
+      },
     });
-    if (polygonContent != null) {
-      polygonContent = "MULTIPOLYGON" + polygonContent;
-      await prisma.$executeRaw`UPDATE location
-    SET polygon = ST_GeomFromText(${polygonContent},4326)
-    WHERE id = ${locationCreated.id}`;
+
+    if (polygons) {
+      await prisma.$executeRaw`UPDATE location SET polygon = ST_GeomFromText(${polygons}, 4326) WHERE id = ${locationCreated.id}`;
     }
   } catch (error) {
-    console.log(error);
+    return { statusCode: 2, errorMessage: "Error creating new location" };
   }
+
+  return { statusCode: 0, errorMessage: "No error" };
 };
 
 export { createLocation, fetchLocation };

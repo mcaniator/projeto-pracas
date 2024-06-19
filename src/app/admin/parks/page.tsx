@@ -1,6 +1,13 @@
 import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
+import { prisma } from "@/lib/prisma";
 
-const AdminRoot = () => {
+// import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
+
+const AdminRoot = async () => {
+  const parkNames = await prisma.location.findMany({
+    select: { id: true, name: true },
+  });
+
   return (
     <div>
       <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
@@ -11,7 +18,7 @@ const AdminRoot = () => {
             }
           >
             <h3 className={"text-2xl font-semibold"}>Busca de Locais</h3>
-            <ParkForm />
+            <ParkForm location={parkNames} />
           </div>
         </div>
       </div>

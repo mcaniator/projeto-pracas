@@ -1,13 +1,16 @@
 import { Footer } from "@/app/_components/footer";
 import { HomeHeader } from "@/app/_components/homeHeader";
 import { InfoSegment } from "@/app/_components/infoSegment";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
+import { validateRequest } from "@/lib/lucia";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 
-const Home = () => {
+const Home = async () => {
+  const { user } = await validateRequest();
+
   return (
     <main className="bg-off-white">
-      <HomeHeader />
+      <HomeHeader user={user} />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">
@@ -23,12 +26,12 @@ const Home = () => {
               </h1>
             </div>
             <div className="relative z-10 col-span-2 flex w-full items-center justify-center sm:col-auto sm:justify-end">
-              <Button className="w-48 px-0" size={"lg"}>
+              <Button type="button" className="w-48 px-0" size={"lg"}>
                 <span className="-mb-1 font-bold">Ver praças</span>
               </Button>
             </div>
             <div className="relative z-10 col-span-2 flex w-full items-center justify-center sm:col-auto sm:justify-start">
-              <Button className="w-48 px-0" size={"lg"}>
+              <Button type="button" className="w-48 px-0" size={"lg"}>
                 <span className="-mb-1 font-bold">Comparar praças</span>
               </Button>
             </div>

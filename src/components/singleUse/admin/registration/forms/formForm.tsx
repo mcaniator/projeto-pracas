@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { formSubmit } from "@/serverActions/formSubmit";
 import { useRef } from "react";

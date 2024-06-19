@@ -16,51 +16,6 @@ datasource db {
 
 // #endregion
 
-// #region Auth
-//  ------------------------------------------------------------------------------------------------------------
-//  Auth
-//  ------------------------------------------------------------------------------------------------------------
-
-model User {
-  id String @id @unique
-
-  email    String?   @db.VarChar(255)
-  username String    @db.VarChar(255)
-  type     UserTypes
-
-  auth_session Session[]
-  key          Key[]
-
-  assessmentId Int?        @map("assessment_id")
-  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
-
-  @@map("user")
-}
-
-model Session {
-  id String @id @unique
-
-  active_expires BigInt
-  idle_expires   BigInt
-
-  user_id String
-  user    User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
-}
-
-model Key {
-  id              String  @id @unique
-  hashed_password String?
-
-  user_id String
-  user    User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
-}
-
-// #endregion
-
 // #region Enums
 //  ------------------------------------------------------------------------------------------------------------
 //  Enums
@@ -218,6 +173,41 @@ enum NoiseLocation {
 
 // #endregion
 
+// #region Auth
+//  ------------------------------------------------------------------------------------------------------------
+//  Auth
+//  ------------------------------------------------------------------------------------------------------------
+
+model User {
+  id String @id @unique
+
+  email           String?   @db.VarChar(255)
+  username        String    @unique @db.VarChar(255)
+  type            UserTypes
+  hashed_password String
+
+  auth_session Session[]
+
+  assessmentId Int?        @map("assessment_id")
+  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+
+  @@index([username])
+  @@map("user")
+}
+
+model Session {
+  id String @id @unique
+
+  expiresAt DateTime @map("expires_at")
+
+  userId String @map("user_id")
+  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// #endregion
+
 // #region Formulários
 //  ------------------------------------------------------------------------------------------------------------
 //  Formulários
@@ -356,10 +346,12 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  firstStreet         String    @db.VarChar(255)
+  secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
-  creationYear        DateTime? @map("creation_year") @db.Date
-  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date
+  creationYear        DateTime? @map("creation_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
+  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
   overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
   legislation         String?   @db.VarChar(255)
   usableArea          Float?    @map("usable_area")
@@ -380,7 +372,6 @@ model Location {
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   response   Response[]
-  address    Address[]
   assessment Assessment[]
   tally      Tally[]
 
@@ -389,25 +380,6 @@ model Location {
   ResponseOption ResponseOption[]
 
   @@map("location")
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-
-  neighborhood String @db.VarChar(255)
-  street       String @db.VarChar(255)
-  postalCode   String @map("postal_code") @db.VarChar(255)
-  identifier   Int
-
-  state BrazilianStates
-
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("address")
 }
 
 model City {
@@ -435,7 +407,7 @@ model NarrowAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_narrowUnitName")
   @@map("narrow_administrative_unit")
 }
 
@@ -449,7 +421,7 @@ model IntermediateAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_intermediateUnitName")
   @@map("intermediate_administrative_unit")
 }
 
@@ -463,7 +435,7 @@ model BroadAdministrativeUnit {
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])
 
-  @@unique([cityId, name])
+  @@unique([cityId, name], name: "cityId_broadUnitName")
   @@map("broad_administrative_unit")
 }
 
@@ -737,12 +709,28 @@ model Tally {
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
-  people     Person[]
+
+  tallyPerson TallyPerson[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("tally")
+}
+
+model TallyPerson {
+  id Int @id @default(autoincrement())
+
+  tally   Tally @relation(fields: [tallyId], references: [id])
+  tallyId Int   @map("tally_id")
+
+  person   Person @relation(fields: [personId], references: [id])
+  personId Int    @map("person_id")
+
+  quantity Int
+
+  @@unique([tallyId, personId], name: "tally_id_person_id")
+  @@map("tally_person")
 }
 
 model Person {
@@ -756,12 +744,12 @@ model Person {
   isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
   isPersonWithoutHousing      Boolean  @map("is_person_without_housing") // * Inclusive language
 
-  tallyId Int   @map("tally_id")
-  tally   Tally @relation(fields: [tallyId], references: [id])
+  TallyPerson TallyPerson[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "person_characteristics")
   @@map("person")
 }
 

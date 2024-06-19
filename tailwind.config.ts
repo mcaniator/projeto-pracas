@@ -21,6 +21,7 @@ module.exports = {
         "temporario-bg": "url(/bg7.jpg)",
       },
       colors: {
+        "ugly-white": "#A7ACB4",
         redwood: "#A34C4C",
         cordovan: "#893838",
         purpureus: "#9B59B2",
@@ -29,6 +30,7 @@ module.exports = {
         "indigo-dye": "#2B4673",
         "cambridge-blue": "#8FBC94",
         "sea-green": "#608E66",
+        emerald: "#65A26D",
         asparagus: "#6DA34D",
         "seasick-green": "#DDFBE133",
         "off-white": "#D9D9D9",
@@ -97,5 +99,8 @@ module.exports = {
       "2.5xl": "20px",
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-react-aria-components"),
+    require("tailwindcss-animate"),
+  ],
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioButton } from "@/components/ui/radioButton";
@@ -38,35 +38,35 @@ const AdminRoot = () => {
       </div>
       <div className={"flex flex-col gap-2"}>
         <div className={"flex gap-2"}>
-          <Button variant={"default"}>
+          <Button type="button" variant={"default"}>
             <span className={"-mb-1"}>teste 1</span>
           </Button>
-          <Button variant={"admin"}>
+          <Button type="button" variant={"admin"}>
             <span className={"-mb-1"}>teste 2</span>
           </Button>
-          <Button variant={"constructive"}>
+          <Button type="button" variant={"constructive"}>
             <span className={"-mb-1"}>teste 3</span>
           </Button>
-          <Button variant={"destructive"}>
+          <Button type="button" variant={"destructive"}>
             <span className={"-mb-1"}>teste 4</span>
           </Button>
         </div>
         <div className={"flex gap-2"}>
-          <Button variant={"default"} aria-disabled={true}>
+          <Button type="button" variant={"default"} isDisabled={true}>
             <span className={"-mb-1"}>teste 1</span>
           </Button>
-          <Button variant={"admin"} aria-disabled={true}>
+          <Button type="button" variant={"admin"} isDisabled={true}>
             <span className={"-mb-1"}>teste 2</span>
           </Button>
-          <Button variant={"constructive"} aria-disabled={true}>
+          <Button type="button" variant={"constructive"} isDisabled={true}>
             <span className={"-mb-1"}>teste 3</span>
           </Button>
-          <Button variant={"destructive"} aria-disabled={true}>
+          <Button type="button" variant={"destructive"} isDisabled={true}>
             <span className={"-mb-1"}>teste 4</span>
           </Button>
         </div>
       </div>
-      <div className={"flex flex-col gap-2 "}>
+      <div className={"flex flex-col gap-2"}>
         <Input state={"neutral"} />
         <Input state={"constructive"} />
         <Input state={"destructive"} />
