@@ -25,7 +25,7 @@ interface SubmittingObj {
   deleting: boolean;
 }
 type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
-const SaveDeleteOngoingTally = ({
+const TallyInProgressDatabaseOptions = ({
   tallyId,
   tallyMap,
   weatherStats,
@@ -64,6 +64,7 @@ const SaveDeleteOngoingTally = ({
     );
     if (endTally) {
       router.back();
+      router.refresh();
     } else {
       setSubmittingObj({
         submitting: false,
@@ -77,6 +78,7 @@ const SaveDeleteOngoingTally = ({
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
     await deleteTallys([tallyId]);
     router.back();
+    router.refresh();
   };
 
   return (
@@ -216,4 +218,4 @@ const SaveDeleteOngoingTally = ({
   );
 };
 
-export { SaveDeleteOngoingTally };
+export { TallyInProgressDatabaseOptions };

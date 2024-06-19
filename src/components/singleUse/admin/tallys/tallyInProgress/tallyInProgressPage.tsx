@@ -12,9 +12,9 @@ import { JsonValue } from "@prisma/client/runtime/library";
 import { useDeferredValue, useState } from "react";
 import React from "react";
 
-import { OngoingTallyCharts } from "./ongoingTallyCharts";
-import { OngoingTallyTextualData } from "./ongoingTallyTextualData";
-import { SaveDeleteOngoingTally } from "./saveDeleteOngoingTally";
+import { TallyInProgressCharts } from "./tallyInProgressCharts";
+import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
+import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
 interface CommercialActivitiesObject {
   [key: string]: number;
@@ -72,7 +72,7 @@ const weatherNameMap = new Map([
   ["CLOUDY", "Nublado"],
 ]);
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
-const OngoingTallyPage = ({
+const TallyInProgressPage = ({
   tallyId,
   tally,
 }: {
@@ -1001,7 +1001,7 @@ const OngoingTallyPage = ({
             </div>
           </div>
           {assistBarState === "TEXTUAL_DATA" && (
-            <OngoingTallyTextualData
+            <TallyInProgressTextualData
               tally={tally}
               temperature={weatherStats.temperature}
               weather={
@@ -1012,10 +1012,10 @@ const OngoingTallyPage = ({
             />
           )}
           {assistBarState === "CHARTS" && (
-            <OngoingTallyCharts tallyMap={tallyMap} />
+            <TallyInProgressCharts tallyMap={tallyMap} />
           )}
           {assistBarState === "SAVE_DELETE" && (
-            <SaveDeleteOngoingTally
+            <TallyInProgressDatabaseOptions
               tallyId={tallyId}
               tallyMap={tallyMap}
               weatherStats={weatherStats}
@@ -1031,4 +1031,4 @@ const OngoingTallyPage = ({
   );
 };
 
-export { OngoingTallyPage };
+export { TallyInProgressPage };

@@ -93,7 +93,7 @@ const calculateBooleanCharacteristicsArray = (
   });
   return booleanCharacteristicsArray;
 };
-const OngoingTallyCharts = ({
+const TallyInProgressCharts = ({
   tallyMap,
 }: {
   tallyMap: Map<string, number>;
@@ -252,4 +252,4 @@ const OngoingTallyCharts = ({
   );
 };
 
-export { OngoingTallyCharts };
+export { TallyInProgressCharts };

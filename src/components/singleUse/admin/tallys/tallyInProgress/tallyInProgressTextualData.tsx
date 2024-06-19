@@ -32,7 +32,7 @@ interface ongoingTallyDataFetched {
 interface CommercialActivitiesObject {
   [key: string]: number;
 }
-const OngoingTallyTextualData = ({
+const TallyInProgressTextualData = ({
   tally,
   temperature,
   weather,
@@ -69,4 +69,4 @@ const OngoingTallyTextualData = ({
   );
 };
 
-export { OngoingTallyTextualData };
+export { TallyInProgressTextualData };
