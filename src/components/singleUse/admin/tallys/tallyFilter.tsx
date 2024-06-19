@@ -4,41 +4,51 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import React from "react";
 
 import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const TallyFilter = ({
-  setInitialDate,
-  setFinalDate,
-  setWeekDaysFilter,
+  initialDateFilter,
+  finalDateFilter,
+  weekdaysFilter,
   locationId,
   activeTallys,
+  updateFilteredTallys,
 }: {
-  setInitialDate: React.Dispatch<React.SetStateAction<number>>;
-  setFinalDate: React.Dispatch<React.SetStateAction<number>>;
-  setWeekDaysFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  initialDateFilter: React.MutableRefObject<number>;
+  finalDateFilter: React.MutableRefObject<number>;
+  weekdaysFilter: React.MutableRefObject<string[]>;
   locationId: number;
   activeTallys: TallyDataFetchedToTallyList[] | undefined;
+  updateFilteredTallys: () => void;
 }) => {
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     const millisecondsSinceEpoch =
       selectedDate ? new Date(selectedDate).getTime() : null;
-    if (millisecondsSinceEpoch) setInitialDate(millisecondsSinceEpoch);
-    else setInitialDate(0);
+    if (millisecondsSinceEpoch)
+      initialDateFilter.current = millisecondsSinceEpoch;
+    else initialDateFilter.current = 0;
+    updateFilteredTallys();
   };
   const handleFinalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     const millisecondsSinceEpoch =
       selectedDate ? new Date(selectedDate).getTime() : null;
-    if (millisecondsSinceEpoch) setFinalDate(millisecondsSinceEpoch);
-    else setFinalDate(0);
+    if (millisecondsSinceEpoch)
+      finalDateFilter.current = millisecondsSinceEpoch;
+    else finalDateFilter.current = 0;
+    updateFilteredTallys();
   };
   const handleWeekdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked)
-      setWeekDaysFilter((prev) => [...prev, e.target.value]);
+      weekdaysFilter.current = [...weekdaysFilter.current, e.target.value];
     else
-      setWeekDaysFilter((prev) => prev.filter((day) => day !== e.target.value));
+      weekdaysFilter.current = weekdaysFilter.current.filter(
+        (day) => day !== e.target.value,
+      );
+    updateFilteredTallys();
   };
   let activeTallysIdsString;
   if (activeTallys)

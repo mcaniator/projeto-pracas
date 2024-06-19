@@ -2,7 +2,7 @@
 
 import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
 import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import React from "react";
 
 import { OngoingTallyList } from "./ongoingTallyList";
@@ -30,42 +30,43 @@ const TallyPage = ({
   tallys: TallyDataFetchedToTallyList[] | undefined;
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
 }) => {
-  const [initialDate, setInitialDate] = useState(0);
-  const [finalDate, setFinalDate] = useState(0);
-  const [weekdaysFilter, setWeekDaysFilter] = useState<string[]>([]);
+  const weekdaysFilter = useRef<string[]>([]);
+  const initialDateFilter = useRef(0);
+  const finalDateFilter = useRef(0);
   const [activeTallys, setActiveTallys] = useState(tallys);
 
-  useEffect(() => {
+  const updateFilteredTallys = () => {
     if (!tallys) {
       return;
     }
     const filteredTallys = tallys.filter((tally) => {
-      if (weekdaysFilter.length > 0) {
+      if (weekdaysFilter.current.length > 0) {
         if (
-          !weekdaysFilter.includes(weekdayFormatter.format(tally.startDate))
+          !weekdaysFilter.current.includes(
+            weekdayFormatter.format(tally.startDate),
+          )
         ) {
           return false;
         }
       }
 
-      if (initialDate === 0 && finalDate === 0) {
+      if (initialDateFilter.current === 0 && finalDateFilter.current === 0) {
         return true;
-      } else if (initialDate === 0) {
-        if (tally.startDate.getTime() <= finalDate) return true;
-      } else if (finalDate === 0) {
-        if (tally.startDate.getTime() >= initialDate) return true;
+      } else if (initialDateFilter.current === 0) {
+        if (tally.startDate.getTime() <= finalDateFilter.current) return true;
+      } else if (finalDateFilter.current === 0) {
+        if (tally.startDate.getTime() >= initialDateFilter.current) return true;
       } else {
         if (
-          tally.startDate.getTime() >= initialDate &&
-          tally.startDate.getTime() <= finalDate
+          tally.startDate.getTime() >= initialDateFilter.current &&
+          tally.startDate.getTime() <= finalDateFilter.current
         ) {
           return true;
         }
       }
     });
     setActiveTallys(filteredTallys);
-  }, [initialDate, finalDate, weekdaysFilter, tallys]);
-
+  };
   return (
     <div
       className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 flex-col gap-5 p-5"}
@@ -146,11 +147,12 @@ const TallyPage = ({
           >
             <h3 className={"text-2xl font-semibold"}>Filtros</h3>
             <TallyFilter
-              setInitialDate={setInitialDate}
-              setFinalDate={setFinalDate}
-              setWeekDaysFilter={setWeekDaysFilter}
+              initialDateFilter={initialDateFilter}
+              finalDateFilter={finalDateFilter}
+              weekdaysFilter={weekdaysFilter}
               locationId={parseInt(locationId)}
               activeTallys={activeTallys}
+              updateFilteredTallys={updateFilteredTallys}
             ></TallyFilter>
           </div>
         </div>
