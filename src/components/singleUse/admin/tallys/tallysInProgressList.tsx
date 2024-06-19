@@ -16,7 +16,7 @@ const dateWithHoursFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-const OngoingTallyComponent = ({
+const TallyInProgressItemComponent = ({
   id,
   startDate,
   observer,
@@ -41,7 +41,7 @@ const OngoingTallyComponent = ({
   );
 };
 
-const OngoingTallyList = ({
+const TallysInProgressList = ({
   params,
   activeTallys,
 }: {
@@ -52,7 +52,7 @@ const OngoingTallyList = ({
       <h3>Nenhuma contagem em andamento encontrada para este local!</h3>
     : <div className="w-full text-red-600">
         {activeTallys.map((tally) => (
-          <OngoingTallyComponent
+          <TallyInProgressItemComponent
             key={tally.id}
             id={tally.id}
             startDate={tally.startDate.toString()}
@@ -63,4 +63,4 @@ const OngoingTallyList = ({
       </div>;
 };
 
-export { OngoingTallyList };
+export { TallysInProgressList };

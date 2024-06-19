@@ -5,8 +5,8 @@ import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
 import { useRef, useState } from "react";
 import React from "react";
 
-import { OngoingTallyList } from "./ongoingTallyList";
 import { TallyCreation } from "./tallyCreation";
+import { TallysInProgressList } from "./tallysInProgressList";
 
 interface TallyDataFetchedToTallyList {
   id: number;
@@ -71,12 +71,8 @@ const TallyPage = ({
     <div
       className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 flex-col gap-5 p-5"}
     >
-      <div className=" flex max-h-64 gap-5 ">
-        <div
-          className={
-            "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-          }
-        >
+      <div className=" flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+        <div className={"flex basis-3/5 flex-col gap-1 overflow-auto "}>
           <h3 className={"text-2xl font-semibold"}>
             {`Lista de contagens em andamento de ${locationName}`}
           </h3>
@@ -92,7 +88,7 @@ const TallyPage = ({
                 </span>
               </div>
               <div className="overflow-auto rounded">
-                <OngoingTallyList
+                <TallysInProgressList
                   params={{ locationId: locationId }}
                   activeTallys={ongoingTallys}
                 />
@@ -100,21 +96,12 @@ const TallyPage = ({
             </React.Fragment>
           }
         </div>
-        <div
-          style={{ minWidth: "33.0625rem", width: "33.0625rem" }}
-          className={
-            " flex  flex-col gap-3 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-          }
-        >
+        <div className="max-h-52 basis-2/5 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
           <TallyCreation locationId={locationId} />
         </div>
       </div>
-      <div className=" flex gap-5 overflow-auto">
-        <div
-          className={
-            "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-          }
-        >
+      <div className=" flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+        <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>
             {`Lista de contagens finalizadas de ${locationName}`}
           </h3>
@@ -139,22 +126,19 @@ const TallyPage = ({
           }
         </div>
 
-        <div>
-          <div
-            className={
-              " flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-            }
-          >
-            <h3 className={"text-2xl font-semibold"}>Filtros</h3>
-            <TallyFilter
-              initialDateFilter={initialDateFilter}
-              finalDateFilter={finalDateFilter}
-              weekdaysFilter={weekdaysFilter}
-              locationId={parseInt(locationId)}
-              activeTallys={activeTallys}
-              updateFilteredTallys={updateFilteredTallys}
-            ></TallyFilter>
-          </div>
+        <div
+          className={
+            " flex max-h-72 basis-2/5 flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+          }
+        >
+          <TallyFilter
+            initialDateFilter={initialDateFilter}
+            finalDateFilter={finalDateFilter}
+            weekdaysFilter={weekdaysFilter}
+            locationId={parseInt(locationId)}
+            activeTallys={activeTallys}
+            updateFilteredTallys={updateFilteredTallys}
+          ></TallyFilter>
         </div>
       </div>
     </div>
