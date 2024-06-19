@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/old-button";
+import { Button } from "@/components/button";
 import { titillium_web } from "@/lib/fonts";
 import { IconInfoSquareRounded, IconMail } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
@@ -31,24 +31,34 @@ const Footer = forwardRef<HTMLElement, FooterProps>(
         {...props}
       >
         <div>
-          <Button asChild variant={"ghost"} className="px-3 py-5 pl-2">
-            <Link className="flex items-center gap-1" href={"/about"}>
+          <Link className="flex items-center gap-1" href={"/about"}>
+            <Button
+              type="button"
+              variant={"ghost"}
+              className="px-3 py-5 pl-2"
+              use={"link"}
+            >
               <IconInfoSquareRounded size={27} />
               <span className="text-2xl">Sobre nós!</span>
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
 
         <div className="ml-auto">
-          <Button asChild variant={"ghost"} className="px-3 py-5">
-            <Link
-              className="flex items-center gap-1"
-              href={"mailto:email@email.com"}
+          <Link
+            className="flex items-center gap-1"
+            href={"mailto:email@email.com"}
+          >
+            <Button
+              type="button"
+              variant={"ghost"}
+              use={"link"}
+              className="px-3 py-5"
             >
               <IconMail size={27} />
               <span className="text-2xl">Contato</span>
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </footer>
     );

@@ -1,7 +1,6 @@
 import {
   Activity,
   AgeGroup,
-  BrazilianStates,
   CategoryTypes,
   Condition,
   Gender,
@@ -15,7 +14,13 @@ import {
   Visibility,
   WeatherConditions,
 } from "@prisma/client";
-import { z } from "zod";
+import { ZodType, z } from "zod";
+
+type zodErrorType<Type extends ZodType> = {
+  [Property in keyof z.infer<Type>]?: string[] | undefined;
+};
+
+export type { zodErrorType };
 
 // #region Auth
 //  ------------------------------------------------------------------------------------------------------------
@@ -51,13 +56,17 @@ const questionSchema = z.object({
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
+  responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
+  minValue: z.coerce.number().finite().optional(),
+  maxValue: z.coerce.number().finite().optional(),
+  optionType: z.nativeEnum(OptionTypes).optional(),
+  maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });
 
-const textQuestionSchema = z.object({
-  charLimit: z.coerce.number().int().finite().nonnegative().optional(),
-
+const questionsOnFormsSchema = z.object({
+  formId: z.coerce.number().int().finite().nonnegative(),
   questionId: z.coerce.number().int().finite().nonnegative(),
 });
 
@@ -97,7 +106,7 @@ const optionSchema = z
   .object({
     text: z.string().trim().min(1).max(255),
 
-    optionsQuestionId: z.coerce.number().int().finite().nonnegative(),
+    questionId: z.coerce.number().int().finite().nonnegative(),
   })
   .array()
   .nonempty();
@@ -108,9 +117,6 @@ const formSchema = z.object({
 
 type categoryType = z.infer<typeof categorySchema>;
 type questionType = z.infer<typeof questionSchema>;
-type textQuestionType = z.infer<typeof textQuestionSchema>;
-type numericQuestionType = z.infer<typeof numericQuestionSchema>;
-type optionsQuestionType = z.infer<typeof optionsQuestionSchema>;
 type formType = z.infer<typeof formSchema>;
 
 export {
@@ -120,16 +126,9 @@ export {
   optionSchema,
   optionsQuestionSchema,
   questionSchema,
-  textQuestionSchema,
+  // textQuestionSchema,
 };
-export type {
-  categoryType,
-  formType,
-  numericQuestionType,
-  optionsQuestionType,
-  questionType,
-  textQuestionType,
-};
+export type { categoryType, formType, questionType };
 // #endregion
 
 // #region Informações da Praça
@@ -140,6 +139,8 @@ const SortOrderSchema = z.array(z.enum(["id", "name", "date"])).length(3);
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
+    firstStreet: z.string().trim().min(1).max(255),
+    secondStreet: z.string().trim().min(1).max(255),
     isPark: z.boolean().optional(),
     notes: z.string().trim().min(1).optional(),
     creationYear: z.coerce.date().optional(),
@@ -157,23 +158,12 @@ const locationSchema = z
   })
   .refine((value) => {
     if (
-      value.creationYear != undefined &&
-      value.lastMaintenanceYear != undefined
+      value.creationYear !== undefined &&
+      value.lastMaintenanceYear !== undefined
     )
       return value.lastMaintenanceYear >= value.creationYear;
     return true;
   });
-
-const addressSchema = z.object({
-  neighborhood: z.string().trim().min(1).max(255),
-  street: z.string().trim().min(1).max(255),
-  postalCode: z.string().trim().min(1).max(255),
-  identifier: z.coerce.number().int().finite().nonnegative(),
-  state: z.nativeEnum(BrazilianStates),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
-  cityId: z.coerce.number().int().finite().nonnegative(),
-});
 
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -187,24 +177,11 @@ const administrativeUnitsSchema = z.object({
 
 type SortOrderType = z.infer<typeof SortOrderSchema>;
 type locationType = z.infer<typeof locationSchema>;
-type addressType = z.infer<typeof addressSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
 
-export {
-  SortOrderSchema,
-  addressSchema,
-  administrativeUnitsSchema,
-  citySchema,
-  locationSchema,
-};
-export type {
-  SortOrderType,
-  addressType,
-  administrativeUnitsType,
-  cityType,
-  locationType,
-};
+export { administrativeUnitsSchema, citySchema, locationSchema };
+export type { administrativeUnitsType, cityType, locationType };
 // #endregion
 
 // #region Informações das Avaliações
@@ -398,24 +375,16 @@ export type {
 //  ------------------------------------------------------------------------------------------------------------
 
 const tallySchema = z.object({
+  date: z.coerce.date().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
-  observer: z.coerce
-    .string()
-    .trim()
-    .refine((value) => !value.includes("\n")),
-  tallyGroup: z.coerce.number().int().finite().nonnegative(),
+  observer: z.coerce.string().trim().min(1).max(255),
+
   animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.nativeEnum(WeatherConditions).optional(),
-  groups: z.coerce.number().finite().optional(),
-  commercialActivities: z.coerce
-    .number()
-    .int()
-    .finite()
-    .nonnegative()
-    .optional(),
-  commercialActivitiesDescription: z.coerce.string().trim().optional(),
+  weatherCondition: z.nativeEnum(WeatherConditions),
+
+  locationId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const personSchema = z.object({
@@ -470,6 +439,6 @@ type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
 type tallyDataToProcessType = z.infer<typeof tallyDataToProcessSchema>;
 
-export { noiseSchema, personSchema, tallySchema, tallyDataToProcessSchema };
-export type { noiseType, personType, tallyType, tallyDataToProcessType };
+export { noiseSchema, personSchema, tallySchema, questionsOnFormsSchema };
+export type { noiseType, personType, tallyType };
 // #endregion

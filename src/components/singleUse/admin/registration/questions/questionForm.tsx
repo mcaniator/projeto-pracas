@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/old-button";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
 import { questionSubmit } from "@/serverActions/questionSubmit";
@@ -125,19 +125,19 @@ const QuestionForm = ({
         {type == "text" && (
           <div>
             <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name={"charLimit"} id={"charLimit"} required />
+            <Input type="number" name={"charLimit"} id={"charLimit"} />
           </div>
         )}
 
         {type == "numeric" && (
           <>
             <div>
-              <label htmlFor={"min"}>Valor mínimo:</label>
-              <Input type="number" name={"min"} id={"min"} required />
+              <label htmlFor={"minValue"}>Valor mínimo:</label>
+              <Input type="number" name={"minValue"} id={"minValue"} />
             </div>
             <div>
-              <label htmlFor={"max"}>Valor máximo:</label>
-              <Input type="number" name={"max"} id={"max"} required />
+              <label htmlFor={"maxValue"}>Valor máximo:</label>
+              <Input type="number" name={"maxValue"} id={"maxValue"} />
             </div>
           </>
         )}
@@ -174,10 +174,8 @@ const QuestionForm = ({
               <Button
                 type="button"
                 variant={"admin"}
-                aria-disabled={(() => {
-                  return currentOption == "";
-                })()}
-                onClick={() => {
+                isDisabled={currentOption == ""}
+                onPress={() => {
                   if (addedOptions != undefined)
                     setAddedOptions([...addedOptions, { text: currentOption }]);
                   else setAddedOptions([{ text: currentOption }]);
@@ -206,7 +204,7 @@ const QuestionForm = ({
 
         {type && (
           <Button
-            aria-disabled={disabled}
+            isDisabled={disabled}
             variant={"admin"}
             type="submit"
             className={"w-24 transition-all"}
@@ -233,7 +231,7 @@ const QuestionForm = ({
                     size={"icon"}
                     className={"ml-auto h-7 w-7"}
                     type={"button"}
-                    onClick={() => {
+                    onPress={() => {
                       if (addedOptions.length == 1) setAddedOptions(undefined);
                       else setAddedOptions(addedOptions.toSpliced(index, 1));
                     }}

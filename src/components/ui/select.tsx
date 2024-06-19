@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { ChevronsUpDownIcon } from "lucide-react";
+import { IconSelector } from "@tabler/icons-react";
 import { SelectHTMLAttributes } from "react";
 
 interface selectProps extends SelectHTMLAttributes<HTMLSelectElement> {}
@@ -20,7 +20,7 @@ const Select = ({ ...props }: selectProps) => {
         {children}
       </select>
       <div className={"pointer-events-none relative -ml-7 flex items-center"}>
-        <ChevronsUpDownIcon className={"absolute"} />
+        <IconSelector className={"absolute"} />
       </div>
     </div>
   );

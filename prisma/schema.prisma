@@ -183,6 +183,13 @@ enum Morphology {
   @@map("morphology")
 }
 
+enum WeatherConditions {
+  CLOUDY @map("cloudy")
+  SUNNY  @map("sunny")
+
+  @@map("weather_conditions")
+}
+
 // #endregion
 
 // #region Auth
@@ -239,165 +246,112 @@ model Session {
 //  @@map("category")
 //}
 
-//model Question {
-//  id Int @id @default(autoincrement())
-//
-//  name     String        @db.VarChar(255)
-//  optional Boolean       @default(false)
-//  active   Boolean       @default(true)
-//  type     QuestionTypes
-//
-//  TextQuestion    TextQuestion?
-//  NumericQuestion NumericQuestion?
-//  OptionsQuestion OptionsQuestion?
-//
-//  categoryId Int      @map("category_id")
-//  category   Category @relation(fields: [categoryId], references: [id])
-//
-//  createdAt DateTime @default(now()) @map("created_at")
-//  updatedAt DateTime @updatedAt @map("updated_at")
-//
-//  @@map("question")
-//}
-
-//model TextQuestion {
-//  id Int @id @default(autoincrement())
-//
-//  charLimit Int? @map("char_limit")
-//
-//  questionId Int      @unique @map("question_id")
-//  question   Question @relation(fields: [questionId], references: [id])
-//
-//  createdAt DateTime @default(now()) @map("created_at")
-//  updatedAt DateTime @updatedAt @map("updated_at")
-//
-//  @@map("text_question")
-//}
-
-//model NumericQuestion {
-//  id Int @id @default(autoincrement())
-//
-//  min Int?
-//  max Int?
-//
-//  questionId Int      @unique @map("question_id")
-//  question   Question @relation(fields: [questionId], references: [id])
-//
-//  createdAt DateTime @default(now()) @map("created_at")
-//  updatedAt DateTime @updatedAt @map("updated_at")
-//
-//  @@map("numeric_question")
-//}
-
-//model OptionsQuestion {
-//  id Int @id @default(autoincrement())
-//
-//  optionType OptionTypes @map("option_type")
-//
-//  // Should only have a value if optionType == CHECKBOX
-//  maximumSelections Int? @map("maximum_selections")
-//
-//  questionId Int      @unique @map("question_id")
-//  question   Question @relation(fields: [questionId], references: [id])
-//
-//  options Option[]
-//
-//  createdAt DateTime @default(now()) @map("created_at")
-//  updatedAt DateTime @updatedAt @map("updated_at")
-//
-//  @@map("options_question")
-//}
-
-//model Option {
-//  id Int @id @default(autoincrement())
-//
-//  text String @db.VarChar(255)
-//
-//  optionsQuestionId Int             @map("options_question_id")
-//  OptionsQuestion   OptionsQuestion @relation(fields: [optionsQuestionId], references: [id])
-//
-//  createdAt DateTime  @default(now()) @map("created_at")
-//  updatedAt DateTime? @updatedAt @map("updated_at")
-//
-//  @@map("option")
-//}
-
-model Form {
+model Question {
   id Int @id @default(autoincrement())
 
-  name String @db.VarChar(255)
+  name              String             @db.VarChar(255)
+  optional          Boolean            @default(false)
+  active            Boolean            @default(true)
+  type              QuestionTypes
+  forms             QuestionsOnForms[]
+  response          Response[]
+  responseCharLimit Int?               @map("char_limit")
+  minValue          Int?
+  maxValue          Int?
+  optionType        OptionTypes?       @map("option_type")
+  // Should only have a value if optionType == CHECKBOX
+  maximumSelections Int?               @map("maximum_selections")
 
-  assessments     Assessment[]
-  classifications Classification[]
-  locations       Location[]
-  questions       Question[]
-  answers         Answer[]
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+  options    Option[]
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("form")
-}
-
-model Classification {
-  id       Int              @id @default(autoincrement())
-  name     String           @db.VarChar(255)
-  childs   Classification[] @relation("children")
-  parentId Int?             @map("parent_id")
-  parent   Classification?  @relation("children", fields: [parentId], references: [id])
-
-  questions Question[]
-  answers   Answer[]
-  forms     Form[]
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("classification")
-}
-
-model Question {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(255)
-
-  classificationId Int            @map("classification_id")
-  classification   Classification @relation(fields: [classificationId], references: [id])
-  forms            Form[]
-  answers          Answer[]
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("question")
 }
 
-model Answer {
-  id           Int        @id @default(autoincrement())
-  questionId   Int        @map("question_id")
-  question     Question   @relation(fields: [questionId], references: [id])
-  formId       Int        @map("form_id")
-  form         Form       @relation(fields: [formId], references: [id])
-  locationId   Int        @map("location_id")
-  location     Location   @relation(fields: [locationId], references: [id])
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+model Response {
+  id         Int           @id @default(autoincrement())
+  type       QuestionTypes
+  frequency  Int           @default(1)
+  locationId Int           @map("location_id")
+  location   Location      @relation(fields: [locationId], references: [id])
 
-  classificationId Int            @map("classification_id")
-  classification   Classification @relation(fields: [classificationId], references: [id])
-  content          String         @db.VarChar(255)
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
 
-  @@unique([questionId, assessmentId])
-  @@map("answer")
+  response  String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("response")
 }
 
-enum WeatherConditions {
-  CLOUDY @map("cloudy")
-  SUNNY  @map("sunny")
+model Option {
+  id Int @id @default(autoincrement())
 
-  @@map("weather_conditions")
+  text String @db.VarChar(255)
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
+
+  @@map("option")
+}
+
+model ResponseOption {
+  id         Int      @id @default(autoincrement())
+  frequency  Int      @default(1)
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  optionId Int    @map("option_id")
+  option   Option @relation(fields: [optionId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // @@map("response_option")
+  @@map("responseOption")
+}
+
+model Form {
+  id      Int @id @default(autoincrement())
+  version Int @default(0)
+
+  name      String             @db.VarChar(255)
+  questions QuestionsOnForms[]
+  response  Response[]
+
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
+
+  @@map("form")
+}
+
+model QuestionsOnForms {
+  id Int @id @default(autoincrement())
+
+  formId     Int      @map("form_id")
+  form       Form     @relation(fields: [formId], references: [id])
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@map("questions_on_forms")
 }
 
 // #endregion
@@ -411,6 +365,8 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  firstStreet         String    @db.VarChar(255)
+  secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
   popularName         String?   @db.VarChar(255)
@@ -459,32 +415,15 @@ model Location {
   tallys      Tally[]
   forms       Form[]
   answers     Answer[]
+  response    Response[]
+  assessment  Assessment[]
+  tally       Tally[]
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  ResponseOption ResponseOption[]
 
   @@map("location")
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-
-  cityId       Int
-  city         City    @relation(fields: [cityId], references: [id])
-  neighborhood String  @db.VarChar(255)
-  street       String  @db.VarChar(255)
-  postalCode   String? @map("postal_code") @db.VarChar(255)
-  identifier   Int? //qual a função disso?
-
-  state BrazilianStates
-
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("address")
 }
 
 model City {
@@ -755,17 +694,16 @@ model Assessment {
 model Tally {
   id Int @id @default(autoincrement())
 
-  tallyGroup Int       @map("tally_group")
-  startDate  DateTime  @map("start_date") @db.Timestamptz(0)
-  endDate    DateTime? @map("end_date") @db.Timestamptz(0)
-  observer   String    @db.VarChar(255)
+  //tallyGroup Int       @map("tally_group")
+  startDate DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate   DateTime? @map("end_date") @db.Timestamptz(0)
+  observer  String    @db.VarChar(255)
 
-  animalsAmount                   Int?               @map("animals_amount")
-  temperature                     Float?
-  weatherCondition                WeatherConditions? @map("weather_condition")
-  groups                          Int?
-  commercialActivities            Int?               @map("commercial_activities")
-  commercialActivitiesDescription String?            @map("commercial_activities_description") @db.VarChar(255)
+  animalsAmount        Int?               @map("animals_amount")
+  temperature          Float?
+  weatherCondition     WeatherConditions? @map("weather_condition")
+  groups               Int?
+  commercialActivities Json?              @map("commercial_activities")
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
