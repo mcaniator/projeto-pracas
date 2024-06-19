@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { createTallyByUser } from "@/serverActions/tallyUtil";
+import { createTally } from "@/serverActions/tallyUtil";
 import React from "react";
 import { useFormState } from "react-dom";
 
@@ -19,18 +19,15 @@ type TallyCreationFormType = {
 
 const TallyCreation = ({ locationId }: { locationId: string }) => {
   const currentDatetime = new Date();
-  const [newTallyFormState, newTallyFormAction] = useFormState(
-    createTallyByUser,
-    {
-      locationId: locationId,
-      observer: "",
-      date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,
-      errors: {
-        observer: false,
-        date: false,
-      },
-    } as TallyCreationFormType,
-  );
+  const [newTallyFormState, newTallyFormAction] = useFormState(createTally, {
+    locationId: locationId,
+    observer: "",
+    date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,
+    errors: {
+      observer: false,
+      date: false,
+    },
+  } as TallyCreationFormType);
   return (
     <React.Fragment>
       <h4 className={"text-2xl font-semibold"}>Criação de contagens</h4>

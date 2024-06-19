@@ -126,7 +126,7 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
   }
 };
 
-const createTallyByUser = async (
+const createTally = async (
   prevState: TallyCreationFormType,
   formData: FormData,
 ) => {
@@ -352,7 +352,7 @@ const deleteTallys = async (tallysIds: number[]) => {
 
 export {
   fetchTallysByLocationId,
-  createTallyByUser,
+  createTally,
   fetchOngoingTallyById,
   fetchFinalizedTallysToDataVisualization,
   saveOngoingTallyData,
