@@ -6,6 +6,7 @@ const CommercialActivitiesTable = ({
   tallyWithCommercialActivities,
   sortedCommercialActivitiesNames,
   totalCommercialActivities,
+  sortedOccurrences,
 }: {
   tallyWithCommercialActivities: Map<
     number,
@@ -13,6 +14,7 @@ const CommercialActivitiesTable = ({
   >;
   sortedCommercialActivitiesNames: string[];
   totalCommercialActivities: number;
+  sortedOccurrences: number[];
 }) => {
   return (
     <div>
@@ -56,13 +58,53 @@ const CommercialActivitiesTable = ({
                 return (
                   <td
                     key={key}
-                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
                   >
                     {commercialActivity}
                   </td>
                 );
               })
-            : <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+            : <td
+                style={{
+                  border: "1px solid white",
+                  padding: "0.5rem",
+                  textAlign: "center",
+                }}
+              >
+                -
+              </td>
+            }
+          </tr>
+          <tr>
+            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+              Total por tipo
+            </td>
+            {sortedOccurrences.length ?
+              sortedOccurrences.map((occurrences, key) => {
+                return (
+                  <td
+                    key={key}
+                    style={{
+                      border: "1px solid white",
+                      padding: "0.5rem",
+                      textAlign: "center",
+                    }}
+                  >
+                    {occurrences}
+                  </td>
+                );
+              })
+            : <td
+                style={{
+                  border: "1px solid white",
+                  padding: "0.5rem",
+                  textAlign: "center",
+                }}
+              >
                 -
               </td>
             }
@@ -83,6 +125,7 @@ const CommercialActivitiesTable = ({
                             style={{
                               border: "1px solid white",
                               padding: "0.5rem",
+                              textAlign: "center",
                             }}
                           >
                             {commercialActivitiesObject.commercialActivities ?
@@ -104,6 +147,7 @@ const CommercialActivitiesTable = ({
                       style={{
                         border: "1px solid white",
                         padding: "0.5rem",
+                        textAlign: "center",
                       }}
                     >
                       -

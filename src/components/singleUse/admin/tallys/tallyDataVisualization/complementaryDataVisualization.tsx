@@ -115,6 +115,7 @@ const ComplementaryDataVisualization = ({
           tallyWithCommercialActivities={tallyWithCommercialActivities}
           sortedCommercialActivitiesNames={commercialActivitiesNames}
           totalCommercialActivities={totalCommercialActivities}
+          sortedOccurrences={sorrtedOccurrences}
         />
       )}
       {dataVisualizationMode === "CHART" && (

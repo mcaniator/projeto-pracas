@@ -223,53 +223,59 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const imutableTallyMaps = imutableTallyData(tallys);
   return (
-    <div className="flex max-h-[calc(100vh-5.5rem)] min-h-0 w-fit gap-5 p-5">
-      <div
-        style={{ width: "50.7854375rem" }}
-        className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
-      >
+    <div className="flex max-h-[calc(100vh-5.5rem)]  min-h-0 w-fit gap-5 p-5">
+      <div className="flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
-        <div>
-          <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
-            <Button
-              variant={"ghost"}
-              className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-              onPress={() => setDataVisualizationMode("TABLE")}
-            >
-              Tabelas
-            </Button>
-            <Button
-              variant={"ghost"}
-              className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-              onPress={() => setDataVisualizationMode("CHART")}
-            >
-              Gráficos
-            </Button>
+        <div className="flex flex-row gap-5 overflow-auto">
+          <div
+            className="flex flex-col overflow-auto"
+            style={{ width: "50.7854375rem" }}
+          >
+            <div>
+              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                <Button
+                  variant={"ghost"}
+                  className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  onPress={() => setDataVisualizationMode("TABLE")}
+                >
+                  Tabelas
+                </Button>
+                <Button
+                  variant={"ghost"}
+                  className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  onPress={() => setDataVisualizationMode("CHART")}
+                >
+                  Gráficos
+                </Button>
+              </div>
+            </div>
+            {dataTypeToShow === "PERSONS_DATA" ?
+              <PersonsDataVisualization
+                dataVisualizationMode={dataVisualizationMode}
+                tallyMap={tallyMap}
+              />
+            : <ComplementaryDataVisualization
+                dataVisualizationMode={dataVisualizationMode}
+                tallyWithCommercialActivities={
+                  imutableTallyMaps.commercialActivitiesMap
+                }
+                tallyMap={imutableTallyMaps.tallyMap}
+              />
+            }
+          </div>
+          <div className="flex h-fit flex-col gap-1 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner">
+            <div className="flex flex-col gap-5 overflow-auto">
+              <TallysDataPageActions
+                setBooleanConditionsFilter={setBooleanConditionsFilter}
+                setDataTypeToShow={setDataTypeToShow}
+                dataTypeToShow={dataTypeToShow}
+                tallyIds={tallysIds}
+              />
+
+              <IndividualDataTable tallys={tallys} />
+            </div>
           </div>
         </div>
-        {dataTypeToShow === "PERSONS_DATA" ?
-          <PersonsDataVisualization
-            dataVisualizationMode={dataVisualizationMode}
-            tallyMap={tallyMap}
-          />
-        : <ComplementaryDataVisualization
-            dataVisualizationMode={dataVisualizationMode}
-            tallyWithCommercialActivities={
-              imutableTallyMaps.commercialActivitiesMap
-            }
-            tallyMap={imutableTallyMaps.tallyMap}
-          />
-        }
-      </div>
-      <div className="flex flex-col gap-5">
-        <TallysDataPageActions
-          setBooleanConditionsFilter={setBooleanConditionsFilter}
-          setDataTypeToShow={setDataTypeToShow}
-          dataTypeToShow={dataTypeToShow}
-          tallyIds={tallysIds}
-        />
-
-        <IndividualDataTable tallys={tallys} />
       </div>
     </div>
   );

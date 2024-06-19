@@ -98,7 +98,7 @@ const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
           </span>
         </div>
       </div>
-      <div className="flex w-96 flex-row gap-5 overflow-auto rounded">
+      <div className="flex  max-h-64 max-w-96 flex-row gap-5 overflow-auto rounded">
         <table
           style={{ borderCollapse: "collapse", border: "1px solid white" }}
         >

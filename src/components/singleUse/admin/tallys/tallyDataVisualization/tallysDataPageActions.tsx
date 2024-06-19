@@ -28,6 +28,7 @@ const TallysDataPageActions = ({
     useState<TallysVisualizationActionsCategories>("FILTERS");
   return (
     <div className="flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <h4 className="text-2xl font-semibold">Ações</h4>
       <div>
         <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
           <Button

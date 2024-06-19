@@ -35,7 +35,7 @@ const DataFilter = ({
   const handleDataTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       setDataTypeToShow(e.target.value as DataTypesInTallyVisualization);
-      e.target.value === "PEOPLE_DATA" ?
+      e.target.value === "PERSONS_DATA" ?
         (enableCheckboxes = true)
       : (enableCheckboxes = false);
     }
