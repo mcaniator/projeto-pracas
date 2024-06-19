@@ -157,9 +157,8 @@ enum Activity {
 // Don't really like naming this gender since you can't really tell someones gender based on the way they look
 // but since they're going to be needing this data we might as well be as inclusive as possible
 enum Gender {
-  MALE       @map("male")
-  FEMALE     @map("female")
-  NON_BINARY @map("non-binary")
+  MALE   @map("male")
+  FEMALE @map("female")
 
   @@map("gender")
 }
@@ -169,6 +168,13 @@ enum NoiseLocation {
   SURROUNDINGS @map("surroundings")
 
   @@map("noise_categories")
+}
+
+enum WeatherConditions {
+  CLOUDY @map("cloudy")
+  SUNNY  @map("sunny")
+
+  @@map("weather_conditions")
 }
 
 // #endregion
@@ -698,22 +704,24 @@ model Security {
 model Tally {
   id Int @id @default(autoincrement())
 
-  // não é meio redundante armazenar a data separada?
-  date      DateTime? @db.Date
-  startDate DateTime? @db.Timestamptz(0)
-  endDate   DateTime? @db.Timestamptz(0)
+  //tallyGroup Int       @map("tally_group")
+  startDate DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate   DateTime? @map("end_date") @db.Timestamptz(0)
+  observer  String    @db.VarChar(255)
 
-  animalsAmount    Int?    @map("animals_amount")
-  temperature      Float?
-  weatherCondition String? @map("weather_condition") @db.VarChar(255)
+  animalsAmount        Int?               @map("animals_amount")
+  temperature          Float?
+  weatherCondition     WeatherConditions? @map("weather_condition")
+  groups               Int?
+  commercialActivities Json?              @map("commercial_activities")
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
   tallyPerson TallyPerson[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("tally")
 }

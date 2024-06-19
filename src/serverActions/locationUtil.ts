@@ -92,6 +92,19 @@ const searchLocationsById = async (id: number) => {
   return await cachedLocations(id);
 };
 
+const searchLocationNameById = async (id: number) => {
+  const location = await prisma.location.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      name: true,
+    },
+  });
+  if (location) return location.name;
+  else return "Erro ao encontrar nome";
+};
+
 const updateLocation = async (
   prevState: { statusCode: number },
   formData: FormData,
@@ -185,5 +198,6 @@ export {
   handleDelete,
   searchLocationsById,
   searchLocationsByName,
+  searchLocationNameById,
   updateLocation,
 };
