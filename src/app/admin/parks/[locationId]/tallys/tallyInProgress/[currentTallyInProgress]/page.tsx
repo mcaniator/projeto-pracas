@@ -5,13 +5,15 @@ import { notFound } from "next/navigation";
 const Page = async ({
   params,
 }: {
-  params: { currentOngoingTally: string };
+  params: { currentTallyInProgress: string };
 }) => {
-  const tally = await fetchOngoingTallyById(Number(params.currentOngoingTally));
+  const tally = await fetchOngoingTallyById(
+    Number(params.currentTallyInProgress),
+  );
   if (tally) {
     return (
       <TallyInProgressPage
-        tallyId={Number(params.currentOngoingTally)}
+        tallyId={Number(params.currentTallyInProgress)}
         tally={tally}
       />
     );
