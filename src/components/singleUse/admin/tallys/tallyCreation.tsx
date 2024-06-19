@@ -33,7 +33,7 @@ const TallyCreation = ({ locationId }: { locationId: string }) => {
   );
   return (
     <React.Fragment>
-      <h3 className={"text-2xl font-semibold"}>Criação de contagens</h3>
+      <h4 className={"text-2xl font-semibold"}>Criação de contagens</h4>
       <div>
         <form action={newTallyFormAction} className="grid gap-3">
           <div className="flex flex-row gap-1">

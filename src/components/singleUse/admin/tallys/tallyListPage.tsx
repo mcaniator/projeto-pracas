@@ -74,7 +74,7 @@ const TallyPage = ({
       <div className=" flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <div className={"flex basis-3/5 flex-col gap-1 overflow-auto "}>
           <h3 className={"text-2xl font-semibold"}>
-            {`Lista de contagens em andamento de ${locationName}`}
+            {`Contagens em andamento de ${locationName}`}
           </h3>
           {!ongoingTallys || ongoingTallys.length === 0 ?
             <h3>Nenhuma contagem em andamento para este local!</h3>
@@ -103,7 +103,7 @@ const TallyPage = ({
       <div className=" flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>
-            {`Lista de contagens finalizadas de ${locationName}`}
+            {`Contagens finalizadas de ${locationName}`}
           </h3>
           {!activeTallys || activeTallys.length === 0 ?
             <h3>Nenhuma contagem finalizada para este local!</h3>
