@@ -6,56 +6,21 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import React from "react";
 
-import {
-  TallyDataFetchedToTallyList,
-  WeekdaysFilterItems,
-} from "./tallyListPage";
+import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const TallyFilter = ({
-  initialDateFilter,
-  finalDateFilter,
-  weekdaysFilter,
   locationId,
   activeTallys,
-  updateFilteredTallys,
+  handleWeekdayChange,
+  handleInitialDateChange,
+  handleFinalDateChange,
 }: {
-  initialDateFilter: React.MutableRefObject<number>;
-  finalDateFilter: React.MutableRefObject<number>;
-  weekdaysFilter: React.MutableRefObject<WeekdaysFilterItems[]>;
   locationId: number;
   activeTallys: TallyDataFetchedToTallyList[] | undefined;
-  updateFilteredTallys: () => void;
+  handleInitialDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
-  const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    const millisecondsSinceEpoch =
-      selectedDate ? new Date(selectedDate).getTime() : null;
-    if (millisecondsSinceEpoch)
-      initialDateFilter.current = millisecondsSinceEpoch;
-    else initialDateFilter.current = 0;
-    updateFilteredTallys();
-  };
-  const handleFinalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    const millisecondsSinceEpoch =
-      selectedDate ? new Date(selectedDate).getTime() : null;
-    if (millisecondsSinceEpoch)
-      finalDateFilter.current = millisecondsSinceEpoch;
-    else finalDateFilter.current = 0;
-    updateFilteredTallys();
-  };
-  const handleWeekdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked)
-      weekdaysFilter.current = [
-        ...weekdaysFilter.current,
-        e.target.value as WeekdaysFilterItems,
-      ];
-    else
-      weekdaysFilter.current = weekdaysFilter.current.filter(
-        (day) => day !== e.target.value,
-      );
-    updateFilteredTallys();
-  };
   let activeTallysIdsString;
   if (activeTallys)
     activeTallysIdsString = `${activeTallys.map((tally) => tally.id).join("-")}`;

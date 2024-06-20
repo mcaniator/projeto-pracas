@@ -2,8 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { createTally } from "@/serverActions/tallyUtil";
-import React from "react";
-import { useFormState } from "react-dom";
+import React, { useActionState } from "react";
 
 import { CreateTallySubmitButton } from "./createTallySubmitButton";
 
@@ -19,7 +18,7 @@ type TallyCreationFormType = {
 
 const TallyCreation = ({ locationId }: { locationId: string }) => {
   const currentDatetime = new Date();
-  const [newTallyFormState, newTallyFormAction] = useFormState(createTally, {
+  const [newTallyFormState, newTallyFormAction] = useActionState(createTally, {
     locationId: locationId,
     observer: "",
     date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,
