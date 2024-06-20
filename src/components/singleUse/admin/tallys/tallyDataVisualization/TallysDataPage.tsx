@@ -223,8 +223,8 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const imutableTallyMaps = imutableTallyData(tallys);
   return (
-    <div className="flex max-h-[calc(100vh-5.5rem)]  min-h-0 w-fit gap-5 p-5">
-      <div className="flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex max-h-full min-h-0 w-fit gap-5 p-5">
+      <div className="flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         <div className="flex flex-row gap-5 overflow-auto">
           <div
