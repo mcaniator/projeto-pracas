@@ -1,6 +1,5 @@
 "use client";
 
-import { Activity, AgeGroup, Gender } from "@prisma/client";
 import {
   BarElement,
   CategoryScale,
@@ -13,6 +12,8 @@ import {
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar } from "react-chartjs-2";
 
+import { TallyDataArraysByGender } from "./personsDataVisualization";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,80 +24,14 @@ ChartJS.register(
   ChartDataLabels,
 );
 
-const calculateActivityArray = (
-  tallyMap: Map<string, string | number>,
-  gender: Gender,
-) => {
-  const activityArray: number[] = [];
-  for (const activity of Object.values(Activity)) {
-    let count = 0;
-    tallyMap.forEach((value, key) => {
-      const [keyGender, , keyActivity] = key.split("-");
-      if (keyGender === gender && keyActivity === activity) {
-        if (typeof value === "number") count += value;
-      }
-    });
-    activityArray.push(count);
-  }
-  return activityArray;
-};
-const calculateAgeGroupArray = (
-  tallyMap: Map<string, string | number>,
-  gender: Gender,
-) => {
-  const ageGroupArray: number[] = [];
-  for (const ageGroup of Object.values(AgeGroup)) {
-    let count = 0;
-    tallyMap.forEach((value, key) => {
-      const [keyGender, keyAgeGroup] = key.split("-");
-      if (keyGender === gender && keyAgeGroup === ageGroup) {
-        if (typeof value === "number") count += value;
-      }
-    });
-    ageGroupArray.push(count);
-  }
-
-  return ageGroupArray;
-};
-
-const calculateBooleanCharacteristicsArray = (
-  tallyMap: Map<string, string | number>,
-  gender: Gender,
-) => {
-  const booleanCharacteristicsArray: number[] = [0, 0, 0, 0, 0];
-  tallyMap.forEach((value, key) => {
-    const [
-      keyGender,
-      ,
-      ,
-      isTraversing,
-      isPersonWithImpairment,
-      isInApparentIllicitActivity,
-      isPersonWithoutHousing,
-    ] = key.split("-");
-    if (keyGender === gender) {
-      const characteristics = [
-        isTraversing === "true",
-        isPersonWithImpairment === "true",
-        isInApparentIllicitActivity === "true",
-        isPersonWithoutHousing === "true",
-      ];
-      if (!characteristics.includes(true)) {
-        if (typeof value === "number") booleanCharacteristicsArray[0] += value;
-      } else {
-        characteristics.forEach((characteristic, index) => {
-          if (characteristic && typeof value === "number")
-            booleanCharacteristicsArray[index + 1] += value;
-        });
-      }
-    }
-  });
-  return booleanCharacteristicsArray;
-};
 const PersonsDataVisualizationCharts = ({
-  tallyMap,
+  activityArrays,
+  ageGroupArrays,
+  booleanCharacteristicsArrays,
 }: {
-  tallyMap: Map<string, string | number>;
+  activityArrays: TallyDataArraysByGender;
+  ageGroupArrays: TallyDataArraysByGender;
+  booleanCharacteristicsArrays: TallyDataArraysByGender;
 }) => {
   const options = {
     responsive: true,
@@ -126,7 +61,6 @@ const PersonsDataVisualizationCharts = ({
         beginAtZero: true,
         ticks: {
           color: "white",
-          precision: 0,
         },
         grid: {
           color: "white",
@@ -139,6 +73,7 @@ const PersonsDataVisualizationCharts = ({
           font: {
             size: 14,
           },
+          precision: 0,
         },
         grid: {
           color: "white",
@@ -152,14 +87,14 @@ const PersonsDataVisualizationCharts = ({
     datasets: [
       {
         label: "Homens",
-        data: calculateActivityArray(tallyMap, "MALE"),
+        data: activityArrays.MALE,
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
         label: "Mulheres",
-        data: calculateActivityArray(tallyMap, "FEMALE"),
+        data: activityArrays.FEMALE,
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
         borderWidth: 1,
@@ -172,14 +107,14 @@ const PersonsDataVisualizationCharts = ({
     datasets: [
       {
         label: "Homens",
-        data: calculateAgeGroupArray(tallyMap, "MALE"),
+        data: ageGroupArrays.MALE,
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
         label: "Mulheres",
-        data: calculateAgeGroupArray(tallyMap, "FEMALE"),
+        data: ageGroupArrays.FEMALE,
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
         borderWidth: 1,
@@ -198,14 +133,14 @@ const PersonsDataVisualizationCharts = ({
     datasets: [
       {
         label: "Homens",
-        data: calculateBooleanCharacteristicsArray(tallyMap, "MALE"),
+        data: booleanCharacteristicsArrays.MALE,
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
         label: "Mulheres",
-        data: calculateBooleanCharacteristicsArray(tallyMap, "FEMALE"),
+        data: booleanCharacteristicsArrays.FEMALE,
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
         borderWidth: 1,

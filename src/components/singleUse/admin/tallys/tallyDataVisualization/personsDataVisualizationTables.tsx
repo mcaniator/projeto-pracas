@@ -1,5 +1,6 @@
 "use client ";
 
+import { Gender } from "@prisma/client";
 import React from "react";
 
 const PersonsDatavisualizationTables = ({
@@ -22,9 +23,23 @@ const PersonsDatavisualizationTables = ({
     ["WALKING", "Caminhando"],
     ["STRENUOUS", "Vigoroso"],
   ]);
+  const booleanCharacteristicsNamesInTableMap = new Map([
+    ["noBooleanCharacteristic", "Padrão"],
+    ["isPersonWithImpairment", "Deficiente"],
+    ["isTraversing", "Passando"],
+    ["isInApparentIllicitActivity", "Atividade ilícita"],
+    ["isPersonWithoutHousing", "Situação de rua"],
+  ]);
   const ageGroupsInOrder = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
   const gendersInOrder = ["MALE", "FEMALE"];
   const activitiesInOrder = ["SEDENTARY", "WALKING", "STRENUOUS"];
+  const booleanCharacteristicsInOrder = [
+    "noBooleanCharacteristic",
+    "isTraversing",
+    "isPersonWithImpairment",
+    "isInApparentIllicitActivity",
+    "isPersonWithoutHousing",
+  ];
   return (
     <div className="flex flex-row gap-1 overflow-auto rounded">
       <table>
@@ -294,7 +309,72 @@ const PersonsDatavisualizationTables = ({
             </tr>
           </tbody>
         </table>
-        <div className="flex w-full gap-1">
+        <table>
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+                CARACTERÍSTICAS BINÁRIAS
+              </th>
+
+              {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                return (
+                  <th
+                    key={key}
+                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                  >
+                    {booleanCharacteristicsNamesInTableMap
+                      .get(characteristic)
+                      ?.toUpperCase()}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                Total
+              </td>
+              {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                return (
+                  <td
+                    key={key}
+                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                  >
+                    {Array.from(Object.keys(Gender))
+                      .map(
+                        (gender) =>
+                          tallyMap.get(`${gender}-${characteristic}`) || 0,
+                      )
+                      .reduce(
+                        (acc, value) =>
+                          typeof acc === "number" && typeof value === "number" ?
+                            acc + value
+                          : 0,
+                        0,
+                      )}
+                  </td>
+                );
+              })}
+            </tr>
+            <tr>
+              <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                %
+              </td>
+              {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                return (
+                  <td
+                    key={key}
+                    style={{ border: "1px solid white", padding: "0.5rem" }}
+                  >
+                    {tallyMap.get(`%${characteristic}`)}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+        <div className="flex w-full flex-col gap-1">
           <table className="flex-grow">
             <thead>
               <tr>

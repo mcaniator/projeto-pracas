@@ -30,16 +30,19 @@ interface TallyDataFetched {
 }
 type DataTypesInTallyVisualization = "PERSONS_DATA" | "COMPLEMENTARY_DATA";
 type TallyDataVisualizationModes = "CHART" | "TABLE";
+type BooleanPersonProperties =
+  | "isPersonWithImpairment"
+  | "isTraversing"
+  | "isInApparentIllicitActivity"
+  | "isPersonWithoutHousing"
+  | "noBooleanCharacteristic";
 
-const booleanPersonProperties: (keyof personType)[] = [
+const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithImpairment",
   "isTraversing",
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
-];
-const otherPropertiesToCalcualtePercentage = [
-  "isInApparentIllicitActivity",
-  "isPersonWithoutHousing",
+  "noBooleanCharacteristic",
 ];
 
 const imutableTallyData = (tallys: TallyDataFetched[]) => {
@@ -79,6 +82,10 @@ const processTallyData = (
       tallyMap.set(`Tot-${gender}-${ageGroup}`, 0);
     }
     tallyMap.set(`Tot-${gender}`, 0);
+    for (const property of booleanPersonProperties) {
+      tallyMap.set(`${gender}-${property}`, 0);
+      tallyMap.set(`%${gender}-${property}`, "0.00%");
+    }
   }
   for (const ageGroup of Object.keys(AgeGroup)) {
     tallyMap.set(`Tot-${ageGroup}`, 0);
@@ -95,13 +102,9 @@ const processTallyData = (
   for (const activity of Object.keys(Activity)) {
     tallyMap.set(`%${activity}`, "0.00%");
   }
-  tallyMap.set("isPersonWithImpairment", 0);
+
   tallyMap.set("Groups", 0);
-  tallyMap.set("isTraversing", 0);
-  tallyMap.set("isInApparentIllicitActivity", 0);
-  tallyMap.set("%isInApparentIllicitActivity", "0.00%");
-  tallyMap.set("isPersonWithoutHousing", 0);
-  tallyMap.set("%isPersonWithoutHousing", "0.00%");
+
   for (const tally of tallys) {
     if (tally.groups) {
       tallyMap.set("Groups", tallyMap.get("Groups") + tally.groups);
@@ -133,11 +136,33 @@ const processTallyData = (
         tallyMap.get(`Tot-${tallyPerson.person.gender}`) + tallyPerson.quantity,
       );
       tallyMap.set("Tot-H&M", tallyMap.get("Tot-H&M") + tallyPerson.quantity);
-      booleanPersonProperties.map((property) => {
-        if (tallyPerson.person[property]) {
-          tallyMap.set(property, tallyMap.get(property) + tallyPerson.quantity);
-        }
-      });
+      for (const gender of Array.from(Object.keys(Gender))) {
+        booleanPersonProperties.map((property) => {
+          if (property !== "noBooleanCharacteristic") {
+            if (
+              tallyPerson.person.gender === gender &&
+              tallyPerson.person[property]
+            ) {
+              tallyMap.set(
+                `${gender}-${property}`,
+                tallyMap.get(`${gender}-${property}`) + tallyPerson.quantity,
+              );
+            }
+          }
+        });
+      }
+
+      if (
+        !tallyPerson.person.isInApparentIllicitActivity &&
+        !tallyPerson.person.isPersonWithImpairment &&
+        !tallyPerson.person.isPersonWithoutHousing &&
+        !tallyPerson.person.isTraversing
+      ) {
+        tallyMap.set(
+          "noBooleanCharacteristic",
+          tallyMap.get("noBooleanCharacteristic") + tallyPerson.quantity,
+        );
+      }
     }
   }
   //Calculating data
@@ -176,10 +201,14 @@ const processTallyData = (
         ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
       );
     }
-    for (const property of otherPropertiesToCalcualtePercentage) {
+    for (const property of booleanPersonProperties) {
+      let propertyTotal = 0;
+      for (const gender of Object.keys(Gender)) {
+        propertyTotal += tallyMap.get(`${gender}-${property}`);
+      }
       tallyMap.set(
         `%${property}`,
-        ((tallyMap.get(`${property}`) / totalPeople) * 100).toFixed(2) + "%",
+        ((propertyTotal / totalPeople) * 100).toFixed(2) + "%",
       );
     }
   }
