@@ -54,7 +54,6 @@ const CommercialActivitiesChart = ({
         beginAtZero: true,
         ticks: {
           color: "white",
-          precision: 0,
         },
         grid: {
           color: "white",
@@ -66,6 +65,7 @@ const CommercialActivitiesChart = ({
           font: {
             size: 14,
           },
+          precision: 0,
         },
         grid: {
           color: "white",

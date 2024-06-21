@@ -148,7 +148,7 @@ const PersonsDataVisualizationCharts = ({
     ],
   };
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col overflow-auto">
       <Bar
         data={activityData}
         options={{

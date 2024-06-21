@@ -83,7 +83,6 @@ const calculateBooleanCharacteristicsArrays = (
     booleanCharacteristicsArrays[gender as Gender] =
       booleanCharacteristicsArray;
   }
-  console.log(booleanCharacteristicsArrays);
   return booleanCharacteristicsArrays;
 };
 
