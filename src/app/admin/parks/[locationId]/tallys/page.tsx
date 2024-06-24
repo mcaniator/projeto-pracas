@@ -3,7 +3,7 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 
 const Tallys = async ({ params }: { params: { locationId: string } }) => {
-  const tallys = await fetchTallysByLocationId(parseInt(params.locationId));
+  const tallys = await fetchTallysByLocationId(Number(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
