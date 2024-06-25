@@ -61,7 +61,7 @@ const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
     else setShowClimateData(false);
   };
   return (
-    <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex min-h-56 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
       <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
       <div className="flex flex-row gap-4">
         <div className="flex items-center">

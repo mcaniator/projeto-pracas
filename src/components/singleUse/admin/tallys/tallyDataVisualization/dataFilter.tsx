@@ -14,7 +14,7 @@ const DataFilter = ({
   dataTypeToShow,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
-    React.SetStateAction<(keyof personType)[]>
+    React.SetStateAction<(keyof personType | "DEFAULT")[]>
   >;
   setDataTypeToShow: React.Dispatch<
     React.SetStateAction<DataTypesInTallyVisualization>
@@ -42,7 +42,7 @@ const DataFilter = ({
   };
   return (
     <React.Fragment>
-      <div className="flex  flex-col gap-5">
+      <div className="flex flex-col gap-5 overflow-auto">
         <div className="flex basis-1/5 flex-col">
           <h3 className="text-xl font-semibold">Mostrar dados:</h3>
           <div className="flex flex-row gap-1">
@@ -93,6 +93,25 @@ const DataFilter = ({
           </h3>
           <div className="flex flex-row gap-1">
             <div className="flex flex-col gap-4">
+              <div className="flex items-center">
+                <span style={{ opacity: enableCheckboxes ? 1 : 0 }}>
+                  <label htmlFor="default" className="mr-1">
+                    Padrão
+                  </label>
+                </span>
+                <span
+                  className="ml-auto"
+                  style={{ opacity: enableCheckboxes ? 1 : 0 }}
+                >
+                  <Checkbox
+                    id="default"
+                    value={"DEFAULT"}
+                    variant={"default"}
+                    onChange={handleFilterChange}
+                    disabled={!enableCheckboxes}
+                  />
+                </span>
+              </div>
               <div className="flex items-center">
                 <span style={{ opacity: enableCheckboxes ? 1 : 0 }}>
                   <label htmlFor="isTraversing" className="mr-1">
