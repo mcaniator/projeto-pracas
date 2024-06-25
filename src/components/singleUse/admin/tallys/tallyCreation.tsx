@@ -32,7 +32,7 @@ const TallyCreation = ({ locationId }: { locationId: string }) => {
       <h4 className={"text-2xl font-semibold"}>Criação de contagens</h4>
       <div>
         <form action={newTallyFormAction} className="grid gap-3">
-          <div className="flex flex-row gap-1">
+          <div className="flex flex-row items-center gap-1">
             <label htmlFor="obsever" className="mr-1">
               {"Observador(a):"}
             </label>
@@ -40,13 +40,13 @@ const TallyCreation = ({ locationId }: { locationId: string }) => {
               type="text"
               id="observer"
               name="observer"
-              className={`${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-red-500`}
+              className={`${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-redwood`}
               defaultValue={newTallyFormState.observer}
               required
             ></Input>
 
             {newTallyFormState.errors.observer ?
-              <div className="text-red-500">* Obrigatório</div>
+              <span className="text-redwood">Obrigatório</span>
             : ""}
 
             <Input type="hidden" name="locationId" value={locationId}></Input>
@@ -59,13 +59,13 @@ const TallyCreation = ({ locationId }: { locationId: string }) => {
             <Input
               type="datetime-local"
               id="datetime"
-              className={`${newTallyFormState.errors.date ? "outline" : ""} outline-2 outline-red-500`}
+              className={`${newTallyFormState.errors.date ? "outline" : ""} outline-2 outline-redwood`}
               name="date"
               defaultValue={newTallyFormState.date}
               required
             ></Input>
             {newTallyFormState.errors.date ?
-              <div className="text-red-500">* Obrigatório</div>
+              <div className="text-redwood">* Obrigatório</div>
             : ""}
           </div>
           <div className="flex flex-grow">

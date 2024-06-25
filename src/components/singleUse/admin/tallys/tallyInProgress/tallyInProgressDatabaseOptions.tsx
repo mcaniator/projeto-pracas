@@ -110,7 +110,7 @@ const TallyInProgressDatabaseOptions = ({
               className={
                 validEndDate ?
                   "w-auto outline-none"
-                : "w-auto outline outline-red-500"
+                : "w-auto outline outline-redwood"
               }
               onChange={(e) => {
                 endDate.current = new Date(e.target.value);
