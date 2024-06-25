@@ -117,6 +117,9 @@ const processTallyData = (
   for (const activity of Object.keys(Activity)) {
     tallyMap.set(`%${activity}`, "0.00%");
   }
+  for (const booleanCharacteristic of booleanPersonPropertiesWithNoBooleanCharacteristic) {
+    tallyMap.set(`%${booleanCharacteristic}`, "0,00%");
+  }
   for (const tally of tallys) {
     for (const tallyPerson of tally.tallyPerson) {
       let skipToNextPerson = false;
@@ -273,7 +276,13 @@ const TallysDataPage = ({
       <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         <div className="flex flex-row gap-5 overflow-auto">
-          <div className={`flex flex-col overflow-auto`}>
+          <div
+            className={
+              dataVisualizationMode === "CHART" ?
+                "flex basis-3/5 flex-col overflow-auto"
+              : "flex w-fit flex-col overflow-auto"
+            }
+          >
             <div>
               <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                 <Button
