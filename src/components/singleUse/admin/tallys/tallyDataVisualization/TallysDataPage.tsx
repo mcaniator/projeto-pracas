@@ -128,12 +128,6 @@ const processTallyData = (
                 skipToNextPerson = true;
                 break;
               }
-              tallyMap.set(
-                `${tallyPerson.person.gender}-noBooleanCharacteristic`,
-                tallyMap.get(
-                  `${tallyPerson.person.gender}-noBooleanCharacteristic`,
-                ) + tallyPerson.quantity,
-              );
             }
           } else if (tallyPerson.person[filter] === false) {
             skipToNextPerson = true;
