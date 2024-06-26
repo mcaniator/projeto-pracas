@@ -110,6 +110,8 @@ const ResponseViewer = async ({
           options={options}
           responses={flattenedResponses}
           envios={envios}
+          locationId={locationId}
+          formId={formId}
         />
       </div>
     </div>

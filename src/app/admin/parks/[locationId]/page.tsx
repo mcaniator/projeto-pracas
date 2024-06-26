@@ -38,18 +38,6 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 >
                   <Button>Avaliar</Button>
                 </Link>
-                <Link
-                  href={`/admin/parks/${locationIdNumber}/responses?action=responses`}
-                  className="ml-auto"
-                >
-                  <Button>Ver Respostas</Button>
-                </Link>
-                <Link
-                  href={`/admin/parks/${locationIdNumber}/responses?action=evaluation`}
-                  className="ml-auto"
-                >
-                  <Button>Avaliar</Button>
-                </Link>
               </div>
               <span>Nome: {location?.name}</span>
               {location.inactiveNotFound ?
