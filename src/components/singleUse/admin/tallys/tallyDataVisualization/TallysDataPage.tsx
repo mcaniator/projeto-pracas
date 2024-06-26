@@ -7,7 +7,7 @@ import { AgeGroup } from "@prisma/client";
 import { Activity } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import { z } from "zod";
 
@@ -257,30 +257,19 @@ const TallysDataPage = ({
   tallys: TallyDataFetched[];
   tallysIds: number[];
 }) => {
-  const booleanConditionsFilter = useRef<(keyof personType | "DEFAULT")[]>([]);
   const [dataVisualizationMode, setDataVisualizationMode] =
     useState<TallyDataVisualizationModes>("TABLE");
+  const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
+    (keyof personType | "DEFAULT")[]
+  >([]);
   const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
-    processTallyData(tallys, booleanConditionsFilter.current),
+    new Map(),
   );
   const [dataTypeToShow, setDataTypeToShow] =
     useState<DataTypesInTallyVisualization>("PERSONS_DATA");
-
-  const handleBooleanConditionsFilterUpdate = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    if (e.target.checked) {
-      booleanConditionsFilter.current = [
-        ...booleanConditionsFilter.current,
-        e.target.value as keyof personType,
-      ];
-    } else {
-      booleanConditionsFilter.current = booleanConditionsFilter.current.filter(
-        (filter) => filter !== e.target.value,
-      );
-    }
-    setTallyMap(processTallyData(tallys, booleanConditionsFilter.current));
-  };
+  useEffect(() => {
+    setTallyMap(processTallyData(tallys, booleanConditionsFilter));
+  }, [booleanConditionsFilter, tallys]);
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
     <div className="flex max-h-full min-h-0 max-w-full gap-5 p-5">
@@ -328,9 +317,7 @@ const TallysDataPage = ({
           </div>
           <div className="flex h-fit max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner">
             <TallysDataPageActions
-              handleBooleanConditionsFilterUpdate={
-                handleBooleanConditionsFilterUpdate
-              }
+              setBooleanConditionsFilter={setBooleanConditionsFilter}
               setDataTypeToShow={setDataTypeToShow}
               dataTypeToShow={dataTypeToShow}
               tallyIds={tallysIds}

@@ -2,24 +2,36 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radioButton";
+import { personType } from "@/lib/zodValidators";
 import React from "react";
 
 import { DataTypesInTallyVisualization } from "./TallysDataPage";
 
 let enableCheckboxes = true;
 const DataFilter = ({
-  handleBooleanConditionsFilterUpdate,
+  setBooleanConditionsFilter,
   setDataTypeToShow,
   dataTypeToShow,
 }: {
-  handleBooleanConditionsFilterUpdate: (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => void;
+  setBooleanConditionsFilter: React.Dispatch<
+    React.SetStateAction<(keyof personType | "DEFAULT")[]>
+  >;
   setDataTypeToShow: React.Dispatch<
     React.SetStateAction<DataTypesInTallyVisualization>
   >;
   dataTypeToShow: DataTypesInTallyVisualization;
 }) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked)
+      setBooleanConditionsFilter((prev) => [
+        ...prev,
+        e.target.value as keyof personType,
+      ]);
+    else
+      setBooleanConditionsFilter((prev) =>
+        prev.filter((filter) => filter !== e.target.value),
+      );
+  };
   const handleDataTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       setDataTypeToShow(e.target.value as DataTypesInTallyVisualization);
@@ -95,7 +107,7 @@ const DataFilter = ({
                     id="default"
                     value={"DEFAULT"}
                     variant={"default"}
-                    onChange={handleBooleanConditionsFilterUpdate}
+                    onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
                 </span>
@@ -114,7 +126,7 @@ const DataFilter = ({
                     id="isTraversing"
                     value={"isTraversing"}
                     variant={"default"}
-                    onChange={handleBooleanConditionsFilterUpdate}
+                    onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
                 </span>
@@ -133,7 +145,7 @@ const DataFilter = ({
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
                     variant={"default"}
-                    onChange={handleBooleanConditionsFilterUpdate}
+                    onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
                 </span>
@@ -153,7 +165,7 @@ const DataFilter = ({
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
                     variant={"default"}
-                    onChange={handleBooleanConditionsFilterUpdate}
+                    onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
                 </span>
@@ -173,7 +185,7 @@ const DataFilter = ({
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
                     variant={"default"}
-                    onChange={handleBooleanConditionsFilterUpdate}
+                    onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
                 </span>
