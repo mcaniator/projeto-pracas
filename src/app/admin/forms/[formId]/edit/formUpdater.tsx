@@ -60,9 +60,7 @@ const FormUpdater = ({
               defaultValue={form.id}
             />
 
-            <div
-            // className="flex items-center"
-            >
+            <div>
               <label htmlFor={"name"}>Nome:</label>
               <Input
                 type="text"
@@ -71,11 +69,7 @@ const FormUpdater = ({
                 id={"name"}
                 defaultValue={form.name === null ? "" : form.name}
               />
-              <div
-              // className="text-2xl"
-              >
-                Versão: {form.version}
-              </div>
+              <div>Versão: {form.version}</div>
             </div>
 
             <div className="mb-2 flex items-center justify-between rounded p-2">

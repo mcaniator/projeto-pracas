@@ -114,7 +114,6 @@ const updateLocation = async (
   try {
     const lastMaintenanceYear = formData.get("lastMaintenanceYear");
     const creationYear = formData.get("creationYear");
-    // console.log(lastMaintenanceYear === null);
 
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
