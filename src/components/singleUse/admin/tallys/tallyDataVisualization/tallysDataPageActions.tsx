@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { personType } from "@/lib/zodValidators";
 import { useState } from "react";
 
 import { DataTypesInTallyVisualization } from "./TallysDataPage";
@@ -10,14 +9,14 @@ import { DeleteTallySection } from "./deleteTallySection";
 
 type TallysVisualizationActionsCategories = "FILTERS" | "DELETION";
 const TallysDataPageActions = ({
-  setBooleanConditionsFilter,
+  handleBooleanConditionsFilterUpdate,
   setDataTypeToShow,
   dataTypeToShow,
   tallyIds,
 }: {
-  setBooleanConditionsFilter: React.Dispatch<
-    React.SetStateAction<(keyof personType | "DEFAULT")[]>
-  >;
+  handleBooleanConditionsFilterUpdate: (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
   setDataTypeToShow: React.Dispatch<
     React.SetStateAction<DataTypesInTallyVisualization>
   >;
@@ -49,7 +48,9 @@ const TallysDataPageActions = ({
       </div>
       {actionsCategory === "FILTERS" && (
         <DataFilter
-          setBooleanConditionsFilter={setBooleanConditionsFilter}
+          handleBooleanConditionsFilterUpdate={
+            handleBooleanConditionsFilterUpdate
+          }
           setDataTypeToShow={setDataTypeToShow}
           dataTypeToShow={dataTypeToShow}
         />
