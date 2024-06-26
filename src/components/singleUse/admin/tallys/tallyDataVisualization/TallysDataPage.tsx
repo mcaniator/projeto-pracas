@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { personType } from "@/lib/zodValidators";
 import { Gender } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { Activity } from "@prisma/client";
@@ -86,7 +85,7 @@ const immutableTallyData = (tallys: TallyDataFetched[]) => {
 };
 const processTallyData = (
   tallys: TallyDataFetched[],
-  booleanConditionsFilter: (keyof personType | "DEFAULT")[],
+  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[],
 ) => {
   const tallyMap = new Map();
   for (const gender of Object.keys(Gender)) {
@@ -260,7 +259,7 @@ const TallysDataPage = ({
   const [dataVisualizationMode, setDataVisualizationMode] =
     useState<TallyDataVisualizationModes>("TABLE");
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
-    (keyof personType | "DEFAULT")[]
+    (BooleanPersonProperties | "DEFAULT")[]
   >([]);
   const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
     new Map(),
@@ -333,4 +332,8 @@ const TallysDataPage = ({
 };
 
 export { TallysDataPage };
-export { type DataTypesInTallyVisualization, type TallyDataVisualizationModes };
+export {
+  type DataTypesInTallyVisualization,
+  type TallyDataVisualizationModes,
+  type BooleanPersonProperties,
+};

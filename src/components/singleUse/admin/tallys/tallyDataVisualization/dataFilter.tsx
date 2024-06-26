@@ -2,10 +2,12 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radioButton";
-import { personType } from "@/lib/zodValidators";
 import React, { useState } from "react";
 
-import { DataTypesInTallyVisualization } from "./TallysDataPage";
+import {
+  BooleanPersonProperties,
+  DataTypesInTallyVisualization,
+} from "./TallysDataPage";
 
 let enableCheckboxes = true;
 const DataFilter = ({
@@ -15,16 +17,16 @@ const DataFilter = ({
   booleanConditionsFilter,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
-    React.SetStateAction<(keyof personType | "DEFAULT")[]>
+    React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
   setDataTypeToShow: React.Dispatch<
     React.SetStateAction<DataTypesInTallyVisualization>
   >;
   dataTypeToShow: DataTypesInTallyVisualization;
-  booleanConditionsFilter: (keyof personType | "DEFAULT")[];
+  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
 }) => {
   const [checkedNonDefaultCheckboxes, setCheckedNonDefaultCheckboxes] =
-    useState<(keyof personType | "DEFAULT")[]>([]);
+    useState<(BooleanPersonProperties | "DEFAULT")[]>([]);
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked)
       if (e.target.value === "DEFAULT") {
@@ -33,7 +35,7 @@ const DataFilter = ({
       } else {
         setBooleanConditionsFilter((prev) => [
           ...prev,
-          e.target.value as keyof personType,
+          e.target.value as BooleanPersonProperties,
         ]);
       }
     else if (e.target.value === "DEFAULT") {

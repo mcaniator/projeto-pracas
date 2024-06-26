@@ -120,7 +120,10 @@ const TallyInProgressPage = ({
           value: "Pula-pula (ou outra ativ. infantil)",
           label: "Pula-pula (ou outra ativ. infantil)",
         },
-        { value: "Mesas de bares", label: "Mesas de bares" },
+        {
+          value: "Mesas de bares do entorno",
+          label: "Mesas de bares do entorno",
+        },
         { value: "Outros", label: "Outros" },
       ];
       if (!tally.commercialActivities) return defaultOptions;

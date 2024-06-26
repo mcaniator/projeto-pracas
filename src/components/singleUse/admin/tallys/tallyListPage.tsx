@@ -135,7 +135,7 @@ const TallyPage = ({
             </React.Fragment>
           }
         </div>
-        <div className="max-h-52 basis-2/5 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+        <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
           <TallyCreation locationId={locationId} />
         </div>
       </div>
@@ -167,7 +167,7 @@ const TallyPage = ({
 
         <div
           className={
-            "flex max-h-72 basis-2/5 flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+            "flex max-h-72 w-fit flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
           }
         >
           <TallyFilter
