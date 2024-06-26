@@ -1,11 +1,8 @@
 "use client";
 
-import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { Button } from "@/components/button";
-import {
-  createVersion, // addQuestions,
-  // removeQuestions,
-} from "@/serverActions/formUtil";
+import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
+import { createVersion } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
 
@@ -53,11 +50,6 @@ const Client = ({
     }
   };
 
-  // const handleAddQuestion = (formId: number, questions: DisplayQuestion[]) => {
-  //   void addQuestions(formId, questions);
-  //   setQuestionsToAdd([]);
-  // };
-
   const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
     [],
   );
@@ -69,14 +61,6 @@ const Client = ({
       setUpdatedQuestions([...updatedQuestions, questionToRemove]);
     }
   };
-
-  // const handleRemoveQuestions = (
-  //   formId: number,
-  //   questions: DisplayQuestion[],
-  // ) => {
-  //   void removeQuestions(formId, questions);
-  //   setQuestionsToRemove([]);
-  // };
 
   const createNewVersion = (
     formId: number,
@@ -90,8 +74,6 @@ const Client = ({
       questionsToAdd,
       questionsToRemove,
     );
-    // handleAddQuestion(formId, questionsToAdd);
-    // handleRemoveQuestions(formId, questionsToRemove);
     setUpdatedQuestions([]);
     setQuestionsToAdd([]);
     setQuestionsToRemove([]);
