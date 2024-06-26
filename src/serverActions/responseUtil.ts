@@ -103,8 +103,11 @@ const addResponses = async (
 
 const updateResponse = async (
   responseId: number,
+  locationId: number,
+  formId: number,
+  questionId: number,
   questionType: QuestionTypes,
-  newValue: string,
+  newResponse: string,
 ) => {
   try {
     if (questionType === QuestionTypes.NUMERIC) {
@@ -113,7 +116,7 @@ const updateResponse = async (
           id: responseId,
         },
         data: {
-          response: newValue,
+          response: newResponse,
         },
       });
     } else if (questionType === QuestionTypes.TEXT) {
@@ -122,11 +125,12 @@ const updateResponse = async (
           id: responseId,
         },
         data: {
-          response: newValue,
+          response: newResponse,
         },
       });
     } else if (questionType === QuestionTypes.OPTIONS) {
-      const optionId = parseInt(newValue);
+      const optionId = parseInt(newResponse);
+
       await prisma.responseOption.update({
         where: {
           id: responseId,
@@ -137,33 +141,6 @@ const updateResponse = async (
       });
     }
   } catch (err) {
-    return { statusCode: 2 };
-  }
-
-  revalidateTag("response");
-  return {
-    statusCode: 0,
-  };
-};
-
-const editResponses = async (
-  responses: {
-    responseId: number;
-    questionType: QuestionTypes;
-    newValue: string;
-  }[],
-) => {
-  try {
-    const updatePromises = responses.map((response) =>
-      updateResponse(
-        response.responseId,
-        response.questionType,
-        response.newValue,
-      ),
-    );
-    await Promise.all(updatePromises);
-  } catch (err) {
-    // console.log(err);
     return { statusCode: 2 };
   }
 
@@ -205,9 +182,8 @@ const searchResponsesByQuestionFormLocation = async (
 
 export {
   addResponses,
+  updateResponse,
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionId,
   searchResponsesByQuestionFormLocation,
-  updateResponse,
-  editResponses, // Exportando a nova função
 };

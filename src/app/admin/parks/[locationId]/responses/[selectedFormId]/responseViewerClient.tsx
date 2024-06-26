@@ -1,15 +1,18 @@
 "use client";
 
-import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
 import { Question, Response } from "@prisma/client";
 import { QuestionTypes } from "@prisma/client";
 import { useState } from "react";
+
+import { ResponseEditor } from "./responseEditor";
 
 const ResponseViewerClient = ({
   questions,
   options,
   responses,
   envios,
+  locationId,
+  formId,
 }: {
   questions: Question[] | null;
   options: {
@@ -18,14 +21,10 @@ const ResponseViewerClient = ({
   }[];
   responses: Response[] | null;
   envios: { envioId: string; responses: Response[] }[];
+  locationId: number;
+  formId: number;
 }) => {
-  const [visibleEnvios, setVisibleEnvios] = useState<{
-    [key: string]: boolean;
-  }>({});
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
-  const [editedResponses, setEditedResponses] = useState<{
-    [key: number]: string;
-  }>({});
 
   if (questions === null) {
     return <div>Ainda não há perguntas neste formulário</div>;
@@ -34,16 +33,19 @@ const ResponseViewerClient = ({
     return <div>Ainda não há respostas para este formulário</div>;
   }
 
-  const toggleEnvioVisibility = (envioId: string) => {
-    setVisibleEnvios((prev) => ({
-      ...prev,
-      [envioId]: !prev[envioId],
-    }));
+  const handleEditEnvio = (envioId: string | null) => {
+    if (envioId === null) return;
+    setEditingEnvioId(envioId);
   };
 
-  const handleSaveEdits = (envioId: string) => {
-    // console.log("Saving edits for envio:", envioId, editedResponses);
-    setEditingEnvioId(null);
+  const getInitialResponses = (responses: Response[]) => {
+    return responses.reduce(
+      (acc, response) => ({
+        ...acc,
+        [response.questionId]: response.response || "",
+      }),
+      {} as { [key: number]: string },
+    );
   };
 
   const responsesByQuestionId = responses.reduce(
@@ -134,7 +136,6 @@ const ResponseViewerClient = ({
             hour: "2-digit",
             minute: "2-digit",
           });
-          const isVisible = visibleEnvios[envio.envioId] || false;
           const isEditing = editingEnvioId === envio.envioId;
 
           return (
@@ -145,51 +146,23 @@ const ResponseViewerClient = ({
               <h4 className="font-semibold">
                 Envio em: {formattedDate} às {formattedTime}
               </h4>
-              <button
-                onClick={() => toggleEnvioVisibility(envio.envioId)}
-                className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-700"
-              >
-                {isVisible ? "Ocultar" : "Ver"}
-              </button>
-              {isVisible && (
-                <div>
-                  <ul className="ml-5 mt-3 list-disc">
-                    {envio.responses.map((response, index) => (
-                      <li key={index}>
-                        Pergunta ID: {response.questionId}, Resposta:{" "}
-                        {isEditing ?
-                          <ResponseForm
-                            locationId={1}
-                            formId={1}
-                            questions={questions}
-                            options={options}
-                            initialResponses={{
-                              [response.questionId]: response.response,
-                            }}
-                            onSave={() => handleSaveEdits(envio.envioId)}
-                          />
-                        : response.response}
-                      </li>
-                    ))}
-                  </ul>
-                  {isEditing && (
-                    <button
-                      onClick={() => handleSaveEdits(envio.envioId)}
-                      className="mt-2 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-700"
-                    >
-                      Salvar
-                    </button>
-                  )}
-                  {!isEditing && (
-                    <button
-                      onClick={() => setEditingEnvioId(envio.envioId)}
-                      className="mt-2 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-700"
-                    >
-                      Editar
-                    </button>
-                  )}
-                </div>
-              )}
+              {isEditing ?
+                <ResponseEditor
+                  locationId={locationId}
+                  formId={formId}
+                  questions={questions}
+                  options={options}
+                  initialResponses={getInitialResponses(envio.responses)}
+                  onSave={() => handleEditEnvio(null)}
+                  responses={envio.responses}
+                />
+              : <button
+                  onClick={() => handleEditEnvio(envio.envioId)}
+                  className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-green-700"
+                >
+                  Editar
+                </button>
+              }
             </div>
           );
         })}
