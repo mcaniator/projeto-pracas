@@ -14,6 +14,7 @@ const TallysDataPageActions = ({
   setDataTypeToShow,
   dataTypeToShow,
   tallyIds,
+  booleanConditionsFilter,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(keyof personType | "DEFAULT")[]>
@@ -23,6 +24,7 @@ const TallysDataPageActions = ({
   >;
   dataTypeToShow: DataTypesInTallyVisualization;
   tallyIds: number[];
+  booleanConditionsFilter: (keyof personType | "DEFAULT")[];
 }) => {
   const [actionsCategory, setActionsCategory] =
     useState<TallysVisualizationActionsCategories>("FILTERS");
@@ -52,6 +54,7 @@ const TallysDataPageActions = ({
           setBooleanConditionsFilter={setBooleanConditionsFilter}
           setDataTypeToShow={setDataTypeToShow}
           dataTypeToShow={dataTypeToShow}
+          booleanConditionsFilter={booleanConditionsFilter}
         />
       )}
       {actionsCategory === "DELETION" && (

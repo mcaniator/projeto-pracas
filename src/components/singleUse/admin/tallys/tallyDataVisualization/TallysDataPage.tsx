@@ -321,6 +321,7 @@ const TallysDataPage = ({
               setDataTypeToShow={setDataTypeToShow}
               dataTypeToShow={dataTypeToShow}
               tallyIds={tallysIds}
+              booleanConditionsFilter={booleanConditionsFilter}
             />
 
             <IndividualDataTable tallys={tallys} />
