@@ -5,6 +5,7 @@ import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys
 import { prisma } from "@/lib/prisma";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { RedirectType, redirect } from "next/navigation";
 
 interface WeatherStats {
   temperature: number | null;
@@ -150,14 +151,14 @@ const createTally = async (
       data: {
         location: {
           connect: {
-            id: parseInt(locationId),
+            id: Number(locationId),
           },
         },
         observer: observer,
         startDate: new Date(date),
       },
     });
-    revalidatePath("/");
+    revalidatePath(`/admin/parks/${locationId}/tallys`);
     return {
       locationId: locationId,
       observer: "",
@@ -277,7 +278,6 @@ const saveOngoingTallyData = async (
         });
       }
     });
-    revalidatePath("/");
   } catch (error) {
     return null;
   }
@@ -344,10 +344,13 @@ const deleteTallys = async (tallysIds: number[]) => {
         });
       }
     });
-    revalidatePath("/");
   } catch (error) {
     return { statusCode: 1 };
   }
+};
+
+const redirectToTallysList = (locationId: number) => {
+  redirect(`/admin/parks/${locationId}/tallys`, RedirectType.push);
 };
 
 export {
@@ -357,4 +360,5 @@ export {
   fetchFinalizedTallysToDataVisualization,
   saveOngoingTallyData,
   deleteTallys,
+  redirectToTallysList,
 };

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 const Page = async ({
   params,
 }: {
-  params: { currentTallyInProgress: string };
+  params: { locationId: string; currentTallyInProgress: string };
 }) => {
   const tally = await fetchOngoingTallyById(
     Number(params.currentTallyInProgress),
@@ -14,6 +14,7 @@ const Page = async ({
     return (
       <TallyInProgressPage
         tallyId={Number(params.currentTallyInProgress)}
+        locationId={Number(params.locationId)}
         tally={tally}
       />
     );

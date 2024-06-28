@@ -2,9 +2,12 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { deleteTallys, saveOngoingTallyData } from "@/serverActions/tallyUtil";
+import {
+  deleteTallys,
+  redirectToTallysList,
+  saveOngoingTallyData,
+} from "@/serverActions/tallyUtil";
 import { WeatherConditions } from "@prisma/client";
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import React from "react";
 
@@ -27,6 +30,7 @@ interface SubmittingObj {
 type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const TallyInProgressDatabaseOptions = ({
   tallyId,
+  locationId,
   tallyMap,
   weatherStats,
   commercialActivities,
@@ -35,6 +39,7 @@ const TallyInProgressDatabaseOptions = ({
   setSubmittingObj,
 }: {
   tallyId: number;
+  locationId: number;
   tallyMap: Map<string, number>;
   weatherStats: WeatherStats;
   commercialActivities: CommercialActivitiesObject;
@@ -43,7 +48,6 @@ const TallyInProgressDatabaseOptions = ({
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const endDate = useRef<Date | null>(null);
-  const router = useRouter();
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
     useState<SaveDeleteState>("DEFAULT");
@@ -63,8 +67,7 @@ const TallyInProgressDatabaseOptions = ({
       endTally ? endDate.current : null,
     );
     if (endTally) {
-      router.back();
-      router.refresh();
+      redirectToTallysList(locationId);
     } else {
       setSubmittingObj({
         submitting: false,
@@ -77,8 +80,10 @@ const TallyInProgressDatabaseOptions = ({
   const handleTallyDeletion = async () => {
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
     await deleteTallys([tallyId]);
-    router.back();
-    router.refresh();
+    redirectToTallysList(locationId);
+    //redirect()
+    //router.back();
+    //router.refresh();
   };
 
   return (
@@ -133,7 +138,6 @@ const TallyInProgressDatabaseOptions = ({
               } else {
                 setSaveDeleteState("SAVE");
               }
-              //handleDataSubmit(true).catch(() => ({ statusCode: 0 }));
             }}
           >
             {submittingObj.finishing ? "Salvando..." : "Salvar e finalizar"}
