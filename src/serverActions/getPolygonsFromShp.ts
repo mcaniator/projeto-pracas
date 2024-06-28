@@ -19,7 +19,7 @@ const getPolygonsFromShp = async (shpFile: File) => {
     else if (isMultiPolygon) multiPolygonAmount++;
 
     return isPolygon || isMultiPolygon;
-  }) as (Polygon | MultiPolygon)[]; // Typescript doesn't correctly identify this as a (Polygon or MultiPolygon)[] so a type assertion is necessary
+  });
 
   // TODO ask if these are actual issues that should be accounted for
   if (
