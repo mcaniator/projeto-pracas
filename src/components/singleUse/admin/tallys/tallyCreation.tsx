@@ -16,7 +16,13 @@ type TallyCreationFormType = {
   };
 };
 
-const TallyCreation = ({ locationId }: { locationId: string }) => {
+const TallyCreation = ({
+  locationId,
+  userName,
+}: {
+  locationId: string;
+  userName: string;
+}) => {
   const currentDatetime = new Date();
   const [newTallyFormState, newTallyFormAction] = useActionState(createTally, {
     locationId: locationId,
@@ -41,7 +47,7 @@ const TallyCreation = ({ locationId }: { locationId: string }) => {
               id="observer"
               name="observer"
               className={`${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-redwood`}
-              defaultValue={newTallyFormState.observer}
+              defaultValue={userName}
               required
             ></Input>
 

@@ -32,11 +32,13 @@ const TallyPage = ({
   locationName,
   tallys,
   ongoingTallys,
+  userName,
 }: {
   locationId: string;
   locationName: string;
   tallys: TallyDataFetchedToTallyList[] | undefined;
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
+  userName: string;
 }) => {
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
@@ -136,7 +138,7 @@ const TallyPage = ({
           }
         </div>
         <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
-          <TallyCreation locationId={locationId} />
+          <TallyCreation locationId={locationId} userName={userName} />
         </div>
       </div>
       <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
