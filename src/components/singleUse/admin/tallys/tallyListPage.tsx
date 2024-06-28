@@ -43,6 +43,39 @@ const TallyPage = ({
   const finalDateFilter = useRef(0);
   const [activeTallys, setActiveTallys] = useState(tallys);
 
+  const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const millisecondsSinceEpoch =
+      selectedDate ? new Date(selectedDate).getTime() : null;
+    if (millisecondsSinceEpoch)
+      initialDateFilter.current = millisecondsSinceEpoch;
+    else initialDateFilter.current = 0;
+    updateFilteredTallys();
+  };
+
+  const handleFinalDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    const millisecondsSinceEpoch =
+      selectedDate ? new Date(selectedDate).getTime() : null;
+    if (millisecondsSinceEpoch)
+      finalDateFilter.current = millisecondsSinceEpoch;
+    else finalDateFilter.current = 0;
+    updateFilteredTallys();
+  };
+
+  const handleWeekdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked)
+      weekdaysFilter.current = [
+        ...weekdaysFilter.current,
+        e.target.value as WeekdaysFilterItems,
+      ];
+    else
+      weekdaysFilter.current = weekdaysFilter.current.filter(
+        (day) => day !== e.target.value,
+      );
+    updateFilteredTallys();
+  };
+
   const updateFilteredTallys = () => {
     if (!tallys) {
       return;
@@ -76,11 +109,9 @@ const TallyPage = ({
     setActiveTallys(filteredTallys);
   };
   return (
-    <div
-      className={"flex max-h-[calc(100vh-5.5rem)] min-h-0 flex-col gap-5 p-5"}
-    >
-      <div className=" flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className={"flex basis-3/5 flex-col gap-1 overflow-auto "}>
+    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
+      <div className="flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+        <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>
             {`Contagens em andamento de ${locationName}`}
           </h3>
@@ -104,11 +135,11 @@ const TallyPage = ({
             </React.Fragment>
           }
         </div>
-        <div className="max-h-52 basis-2/5 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+        <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
           <TallyCreation locationId={locationId} />
         </div>
       </div>
-      <div className=" flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>
             {`Contagens finalizadas de ${locationName}`}
@@ -136,16 +167,15 @@ const TallyPage = ({
 
         <div
           className={
-            " flex max-h-72 basis-2/5 flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+            "flex max-h-72 w-fit flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
           }
         >
           <TallyFilter
-            initialDateFilter={initialDateFilter}
-            finalDateFilter={finalDateFilter}
-            weekdaysFilter={weekdaysFilter}
+            handleInitialDateChange={handleInitialDateChange}
+            handleFinalDateChange={handleFinalDateChange}
+            handleWeekdayChange={handleWeekdayChange}
             locationId={parseInt(locationId)}
             activeTallys={activeTallys}
-            updateFilteredTallys={updateFilteredTallys}
           ></TallyFilter>
         </div>
       </div>

@@ -38,10 +38,13 @@ CREATE TYPE "age_group" AS ENUM ('child', 'teen', 'adult', 'elderly');
 CREATE TYPE "atividade" AS ENUM ('sedentary', 'walking', 'strenuous');
 
 -- CreateEnum
-CREATE TYPE "gender" AS ENUM ('male', 'female', 'non-binary');
+CREATE TYPE "gender" AS ENUM ('male', 'female');
 
 -- CreateEnum
 CREATE TYPE "noise_categories" AS ENUM ('center', 'surroundings');
+
+-- CreateEnum
+CREATE TYPE "weather_conditions" AS ENUM ('cloudy', 'sunny');
 
 -- CreateTable
 CREATE TABLE "user" (
@@ -405,15 +408,17 @@ CREATE TABLE "security" (
 -- CreateTable
 CREATE TABLE "tally" (
     "id" SERIAL NOT NULL,
-    "date" DATE,
-    "startDate" TIMESTAMPTZ(0),
-    "endDate" TIMESTAMPTZ(0),
+    "start_date" TIMESTAMPTZ(0) NOT NULL,
+    "end_date" TIMESTAMPTZ(0),
+    "observer" VARCHAR(255) NOT NULL,
     "animals_amount" INTEGER,
     "temperature" DOUBLE PRECISION,
-    "weather_condition" VARCHAR(255),
+    "weather_condition" "weather_conditions",
+    "groups" INTEGER,
+    "commercial_activities" JSONB,
     "location_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3),
 
     CONSTRAINT "tally_pkey" PRIMARY KEY ("id")
 );

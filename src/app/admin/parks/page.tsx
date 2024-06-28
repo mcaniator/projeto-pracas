@@ -1,8 +1,6 @@
 import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
 import { prisma } from "@/lib/prisma";
 
-// import { cadastrar } from "@/lib/serverActions/cadastrarLocal";
-
 const AdminRoot = async () => {
   const parkNames = await prisma.location.findMany({
     select: { id: true, name: true },

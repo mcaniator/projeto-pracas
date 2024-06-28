@@ -82,7 +82,7 @@ const TallyInProgressDatabaseOptions = ({
   };
 
   return (
-    <div className="flex flex-col gap-3 py-1">
+    <div className="flex flex-col gap-3 overflow-auto py-1">
       <div>
         <h5 className="text-xl font-semibold">Salvar dados</h5>
         <Button
@@ -110,7 +110,7 @@ const TallyInProgressDatabaseOptions = ({
               className={
                 validEndDate ?
                   "w-auto outline-none"
-                : "w-auto outline outline-red-500"
+                : "w-auto outline outline-redwood"
               }
               onChange={(e) => {
                 endDate.current = new Date(e.target.value);

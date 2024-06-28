@@ -214,7 +214,7 @@ const TallyInProgressCharts = ({
     ],
   };
   return (
-    <div style={{ width: "30rem" }} className="flex flex-col">
+    <div style={{ width: "30rem" }} className="flex flex-col overflow-auto">
       <Bar
         data={activityData}
         options={{

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { personType } from "@/lib/zodValidators";
 import { Gender } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { Activity } from "@prisma/client";
@@ -30,19 +29,34 @@ interface TallyDataFetched {
 }
 type DataTypesInTallyVisualization = "PERSONS_DATA" | "COMPLEMENTARY_DATA";
 type TallyDataVisualizationModes = "CHART" | "TABLE";
-
-const booleanPersonProperties: (keyof personType)[] = [
+type BooleanPersonProperties =
+  | "isPersonWithImpairment"
+  | "isTraversing"
+  | "isInApparentIllicitActivity"
+  | "isPersonWithoutHousing";
+const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithImpairment",
   "isTraversing",
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
 ];
-const otherPropertiesToCalcualtePercentage = [
-  "isInApparentIllicitActivity",
-  "isPersonWithoutHousing",
-];
+type BooleanPersonPropertiesWithNoBooleanCharacteristic =
+  | "isPersonWithImpairment"
+  | "isTraversing"
+  | "isInApparentIllicitActivity"
+  | "isPersonWithoutHousing"
+  | "noBooleanCharacteristic";
 
-const imutableTallyData = (tallys: TallyDataFetched[]) => {
+const booleanPersonPropertiesWithNoBooleanCharacteristic: BooleanPersonPropertiesWithNoBooleanCharacteristic[] =
+  [
+    "isPersonWithImpairment",
+    "isTraversing",
+    "isInApparentIllicitActivity",
+    "isPersonWithoutHousing",
+    "noBooleanCharacteristic",
+  ];
+
+const immutableTallyData = (tallys: TallyDataFetched[]) => {
   const commercialActivitiesMap = new Map();
   const tallyMap = new Map();
   tallyMap.set("Groups", 0);
@@ -60,6 +74,9 @@ const imutableTallyData = (tallys: TallyDataFetched[]) => {
     if (tally.animalsAmount) {
       tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
     }
+    if (tally.groups) {
+      tallyMap.set("Groups", tallyMap.get("Groups") + tally.groups);
+    }
   }
   return {
     tallyMap: tallyMap,
@@ -68,7 +85,7 @@ const imutableTallyData = (tallys: TallyDataFetched[]) => {
 };
 const processTallyData = (
   tallys: TallyDataFetched[],
-  booleanConditionsFilter: (keyof personType)[],
+  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[],
 ) => {
   const tallyMap = new Map();
   for (const gender of Object.keys(Gender)) {
@@ -79,6 +96,10 @@ const processTallyData = (
       tallyMap.set(`Tot-${gender}-${ageGroup}`, 0);
     }
     tallyMap.set(`Tot-${gender}`, 0);
+    for (const property of booleanPersonPropertiesWithNoBooleanCharacteristic) {
+      tallyMap.set(`${gender}-${property}`, 0);
+      tallyMap.set(`%${gender}-${property}`, "0.00%");
+    }
   }
   for (const ageGroup of Object.keys(AgeGroup)) {
     tallyMap.set(`Tot-${ageGroup}`, 0);
@@ -95,23 +116,22 @@ const processTallyData = (
   for (const activity of Object.keys(Activity)) {
     tallyMap.set(`%${activity}`, "0.00%");
   }
-  tallyMap.set("isPersonWithImpairment", 0);
-  tallyMap.set("Groups", 0);
-  tallyMap.set("isTraversing", 0);
-  tallyMap.set("isInApparentIllicitActivity", 0);
-  tallyMap.set("%isInApparentIllicitActivity", "0.00%");
-  tallyMap.set("isPersonWithoutHousing", 0);
-  tallyMap.set("%isPersonWithoutHousing", "0.00%");
+  for (const booleanCharacteristic of booleanPersonPropertiesWithNoBooleanCharacteristic) {
+    tallyMap.set(`%${booleanCharacteristic}`, "0,00%");
+  }
   for (const tally of tallys) {
-    if (tally.groups) {
-      tallyMap.set("Groups", tallyMap.get("Groups") + tally.groups);
-    }
-
     for (const tallyPerson of tally.tallyPerson) {
       let skipToNextPerson = false;
       if (booleanConditionsFilter.length > 0) {
         for (const filter of booleanConditionsFilter) {
-          if (tallyPerson.person[filter] === false) {
+          if (filter === "DEFAULT") {
+            for (const property of booleanPersonProperties) {
+              if (tallyPerson.person[property] === true) {
+                skipToNextPerson = true;
+                break;
+              }
+            }
+          } else if (tallyPerson.person[filter] === false) {
             skipToNextPerson = true;
             break;
           }
@@ -133,11 +153,35 @@ const processTallyData = (
         tallyMap.get(`Tot-${tallyPerson.person.gender}`) + tallyPerson.quantity,
       );
       tallyMap.set("Tot-H&M", tallyMap.get("Tot-H&M") + tallyPerson.quantity);
-      booleanPersonProperties.map((property) => {
-        if (tallyPerson.person[property]) {
-          tallyMap.set(property, tallyMap.get(property) + tallyPerson.quantity);
-        }
-      });
+      for (const gender of Array.from(Object.keys(Gender))) {
+        booleanPersonPropertiesWithNoBooleanCharacteristic.map((property) => {
+          if (property !== "noBooleanCharacteristic") {
+            if (
+              tallyPerson.person.gender === gender &&
+              tallyPerson.person[property]
+            ) {
+              tallyMap.set(
+                `${gender}-${property}`,
+                tallyMap.get(`${gender}-${property}`) + tallyPerson.quantity,
+              );
+            }
+          } else {
+            if (
+              !tallyPerson.person.isInApparentIllicitActivity &&
+              !tallyPerson.person.isPersonWithImpairment &&
+              !tallyPerson.person.isPersonWithoutHousing &&
+              !tallyPerson.person.isTraversing &&
+              tallyPerson.person.gender === gender
+            ) {
+              tallyMap.set(
+                `${gender}-noBooleanCharacteristic`,
+                tallyMap.get(`${gender}-noBooleanCharacteristic`) +
+                  tallyPerson.quantity,
+              );
+            }
+          }
+        });
+      }
     }
   }
   //Calculating data
@@ -176,10 +220,14 @@ const processTallyData = (
         ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
       );
     }
-    for (const property of otherPropertiesToCalcualtePercentage) {
+    for (const property of booleanPersonPropertiesWithNoBooleanCharacteristic) {
+      let propertyTotal = 0;
+      for (const gender of Object.keys(Gender)) {
+        propertyTotal += tallyMap.get(`${gender}-${property}`);
+      }
       tallyMap.set(
         `%${property}`,
-        ((tallyMap.get(`${property}`) / totalPeople) * 100).toFixed(2) + "%",
+        ((propertyTotal / totalPeople) * 100).toFixed(2) + "%",
       );
     }
   }
@@ -211,7 +259,7 @@ const TallysDataPage = ({
   const [dataVisualizationMode, setDataVisualizationMode] =
     useState<TallyDataVisualizationModes>("TABLE");
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
-    (keyof personType)[]
+    (BooleanPersonProperties | "DEFAULT")[]
   >([]);
   const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
     new Map(),
@@ -221,15 +269,18 @@ const TallysDataPage = ({
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
-  const imutableTallyMaps = imutableTallyData(tallys);
+  const immutableTallyMaps = immutableTallyData(tallys);
   return (
-    <div className="flex max-h-[calc(100vh-5.5rem)]  min-h-0 w-fit gap-5 p-5">
-      <div className="flex flex-col gap-1  rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex max-h-full min-h-0 max-w-full gap-5 p-5">
+      <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         <div className="flex flex-row gap-5 overflow-auto">
           <div
-            className="flex flex-col overflow-auto"
-            style={{ width: "50.7854375rem" }}
+            className={
+              dataVisualizationMode === "CHART" ?
+                "flex basis-3/5 flex-col overflow-auto"
+              : "flex w-fit flex-col overflow-auto"
+            }
           >
             <div>
               <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
@@ -257,23 +308,22 @@ const TallysDataPage = ({
             : <ComplementaryDataVisualization
                 dataVisualizationMode={dataVisualizationMode}
                 tallyWithCommercialActivities={
-                  imutableTallyMaps.commercialActivitiesMap
+                  immutableTallyMaps.commercialActivitiesMap
                 }
-                tallyMap={imutableTallyMaps.tallyMap}
+                tallyMap={immutableTallyMaps.tallyMap}
               />
             }
           </div>
-          <div className="flex h-fit flex-col gap-1 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner">
-            <div className="flex flex-col gap-5 overflow-auto">
-              <TallysDataPageActions
-                setBooleanConditionsFilter={setBooleanConditionsFilter}
-                setDataTypeToShow={setDataTypeToShow}
-                dataTypeToShow={dataTypeToShow}
-                tallyIds={tallysIds}
-              />
+          <div className="flex h-fit max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner">
+            <TallysDataPageActions
+              setBooleanConditionsFilter={setBooleanConditionsFilter}
+              setDataTypeToShow={setDataTypeToShow}
+              dataTypeToShow={dataTypeToShow}
+              tallyIds={tallysIds}
+              booleanConditionsFilter={booleanConditionsFilter}
+            />
 
-              <IndividualDataTable tallys={tallys} />
-            </div>
+            <IndividualDataTable tallys={tallys} />
           </div>
         </div>
       </div>
@@ -282,4 +332,8 @@ const TallysDataPage = ({
 };
 
 export { TallysDataPage };
-export { type DataTypesInTallyVisualization, type TallyDataVisualizationModes };
+export {
+  type DataTypesInTallyVisualization,
+  type TallyDataVisualizationModes,
+  type BooleanPersonProperties,
+};

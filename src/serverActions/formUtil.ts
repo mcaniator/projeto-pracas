@@ -16,7 +16,6 @@ const handleDelete = async (formID: number) => {
     });
     revalidatePath("/admin/forms");
   } catch (error) {
-    // an error logging service would go here!
     throw new Error(`Erro ao excluir o formulário:${formID}`);
   }
 };
@@ -165,8 +164,7 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       },
     });
   } catch (error) {
-    // an error logging service would go here!
-    throw new Error(`Erro ao recuperar formulários`); //1
+    throw new Error(`Erro ao recuperar formulários`);
   }
 
   if (form === null) return { message: "erro do servidor" };
