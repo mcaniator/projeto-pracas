@@ -3,24 +3,47 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { exportIndividualTallysToCSV } from "@/serverActions/exportToCSV";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
 import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const TallyFilter = ({
   locationId,
+  locationName,
   activeTallys,
   handleWeekdayChange,
   handleInitialDateChange,
   handleFinalDateChange,
 }: {
   locationId: number;
+  locationName: string;
   activeTallys: TallyDataFetchedToTallyList[] | undefined;
   handleInitialDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
+  const [loadingExport, setLoadingExport] = useState(false);
+  const handleTallysExport = async () => {
+    const tallysIds = activeTallys?.map((tally) => tally.id);
+    if (!tallysIds || tallysIds.length === 0) return;
+    setLoadingExport(true);
+    const csvString = await exportIndividualTallysToCSV(tallysIds, [
+      "name",
+      "id",
+      "date",
+    ]);
+    const blob = new Blob([csvString]);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Contagens Individuais ${locationName}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setLoadingExport(false);
+  };
   let activeTallysIdsString;
   if (activeTallys)
     activeTallysIdsString = `${activeTallys.map((tally) => tally.id).join("-")}`;
@@ -137,14 +160,25 @@ const TallyFilter = ({
         </div>
         <div className="flex basis-1/5 flex-col">
           <h5 className="text-xl font-semibold">Contagens Filtradas</h5>
-          <div>
-            <Button type="button">
-              <Link
-                href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
+          <div className="flex flex-row gap-3">
+            <div>
+              <Button>
+                <Link
+                  href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
+                >
+                  Dados somados
+                </Link>
+              </Button>
+            </div>
+            <div>
+              <Button
+                onPress={() => {
+                  handleTallysExport().catch(() => ({ statusCode: 1 }));
+                }}
               >
-                Dados somados
-              </Link>
-            </Button>
+                {loadingExport ? "Exportando..." : "Exportar individualmente"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

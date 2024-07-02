@@ -175,6 +175,7 @@ const TallyPage = ({
             handleFinalDateChange={handleFinalDateChange}
             handleWeekdayChange={handleWeekdayChange}
             locationId={parseInt(locationId)}
+            locationName={locationName}
             activeTallys={activeTallys}
           ></TallyFilter>
         </div>

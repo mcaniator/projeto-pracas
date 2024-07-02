@@ -12,6 +12,7 @@ import {
   IconListDetails,
   IconMail,
   IconMapSearch,
+  IconTableExport,
   IconUserCog,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -35,6 +36,11 @@ const Sidebar = () => {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
       path: "/admin/forms",
+    },
+    {
+      icon: <IconTableExport size={34} />,
+      name: "Exportar",
+      path: "/admin/export",
     },
   ];
 

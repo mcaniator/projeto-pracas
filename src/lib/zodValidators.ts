@@ -135,7 +135,6 @@ export type { categoryType, formType, questionType };
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
-const SortOrderSchema = z.array(z.enum(["id", "name", "date"])).length(3);
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
@@ -175,7 +174,6 @@ const administrativeUnitsSchema = z.object({
   broadAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
 });
 
-type SortOrderType = z.infer<typeof SortOrderSchema>;
 type locationType = z.infer<typeof locationSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
@@ -404,40 +402,9 @@ const noiseSchema = z.object({
   soundLevel: z.coerce.number().finite().nonnegative(),
 });
 
-const tallyDataToProcessSchema = z.object({
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  observer: z.coerce
-    .string()
-    .trim()
-    .refine((value) => !value.includes("\n")),
-  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-  groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  commercialActivities: z.coerce
-    .number()
-    .int()
-    .finite()
-    .nonnegative()
-    .nullable(),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
-  location: z.object({
-    name: z.string().trim(),
-  }),
-  tallyPerson: z.array(
-    z.object({
-      person: personSchema,
-      quantity: z.coerce.number().int().finite().nonnegative(),
-    }),
-  ),
-});
-
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
-type tallyDataToProcessType = z.infer<typeof tallyDataToProcessSchema>;
 
 export { noiseSchema, personSchema, tallySchema, questionsOnFormsSchema };
 export type { noiseType, personType, tallyType };

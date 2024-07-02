@@ -1,15 +1,33 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import {
-  SortOrderType,
-  personType,
-  tallyDataToProcessType,
-} from "@/lib/zodValidators";
+import { personType, tallyDataToProcessType } from "@/lib/zodValidators";
+import { WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
+type SortOrderType = "id" | "name" | "date";
 interface StreetsJsonType {
   [key: string]: string;
+}
+interface TallyPerson {
+  person: personType;
+  quantity: number;
+}
+interface TallyDataToProcessType {
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue | null;
+  locationId: number;
+  location: {
+    name: string;
+  };
+  tallyPerson: TallyPerson[];
 }
 const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -797,12 +815,18 @@ const exportFullSpreadsheetToCSV = async (
   return result;
 };
 
+/**
+ * This function must revceive locations and it's tallys which were made in the same day (Currently 4 max).
+ * @param locationsIds
+ * @param tallysIds
+ * @param sortCriteriaOrder - The sort criteria to order locations
+ * @returns
+ */
 const exportDailyTally = async (
   locationsIds: number[],
   tallysIds: number[],
-  sortCriteriaOrder: SortOrderType,
+  sortCriteriaOrder: SortOrderType[],
 ) => {
-  //This function must revceive locations and it's tallys which were made in the same day (Currently 4 max).
   let locations = await prisma.location.findMany({
     where: {
       id: {
@@ -810,7 +834,7 @@ const exportDailyTally = async (
       },
     },
     include: {
-      tallys: {
+      tally: {
         where: {
           id: {
             in: tallysIds,
@@ -865,15 +889,15 @@ const exportDailyTally = async (
     "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
   CSVstring += locations
     .map((location) => {
-      const observers = location.tallys
+      const observers = location.tally
         .map((tally) => tally.observer)
         .filter((observer, index, self) => self.indexOf(observer) === index)
         .join(" / ");
 
       let fourTallys = 0;
-      if (location.tallys.length == 4) fourTallys = 1;
+      if (location.tally.length == 4) fourTallys = 1;
       const dataLine = processAndFormatTallyDataLineWithAddedContent(
-        location.tallys,
+        location.tally,
       ).tallyString;
       return `${location.id},${location.name},${observers},${fourTallys},${dataLine}`;
     })
@@ -884,7 +908,7 @@ const exportDailyTally = async (
 //These 2 functions below are used to export tally content without combining data. They use old spreadsheet formation.
 const exportAllIndividualTallysToCsv = async (
   locationsIds: number[],
-  sortCriteriaOrder: SortOrderType,
+  sortCriteriaOrder: SortOrderType[],
 ) => {
   const locations = await prisma.location.findMany({
     where: {
@@ -893,7 +917,7 @@ const exportAllIndividualTallysToCsv = async (
       },
     },
     select: {
-      tallys: {
+      tally: {
         include: {
           location: {
             select: {
@@ -922,7 +946,7 @@ const exportAllIndividualTallysToCsv = async (
   });
   const allTallys = locations
     .map((location) => {
-      return location.tallys;
+      return location.tally;
     })
     .flat();
   return createTallyStringWithoutAddedData(allTallys, sortCriteriaOrder);
@@ -930,7 +954,7 @@ const exportAllIndividualTallysToCsv = async (
 
 const exportIndividualTallysToCSV = async (
   tallysIds: number[],
-  sortCriteriaOrder: SortOrderType,
+  sortCriteriaOrder: SortOrderType[],
 ) => {
   const tallys = await prisma.tally.findMany({
     where: {
@@ -968,7 +992,7 @@ const exportIndividualTallysToCSV = async (
 
 //Functions below are used to process  and format tally content and are called by other functions
 const processAndFormatTallyDataLineWithAddedContent = (
-  tallys: tallyDataToProcessType[],
+  tallys: TallyDataToProcessType[],
 ) => {
   if (tallys.length === 0)
     return {
@@ -1010,11 +1034,17 @@ const processAndFormatTallyDataLineWithAddedContent = (
     if (tally.animalsAmount) {
       tallyMap.set("Pets", tallyMap.get("Pets") + tally.animalsAmount);
     }
-    if (tally.commercialActivities) {
-      tallyMap.set(
-        "commercialActivities",
-        tallyMap.get("commercialActivities") + tally.commercialActivities,
-      );
+    if (
+      tally.commercialActivities &&
+      Object.keys(tally.commercialActivities).length > 0
+    ) {
+      let totalCommericalActivities = 0;
+      Object.entries(tally.commercialActivities).forEach(([, value]) => {
+        if (value) {
+          totalCommericalActivities += value;
+        }
+      });
+      tallyMap.set("commercialActivities", totalCommericalActivities);
     }
 
     for (const tallyPerson of tally.tallyPerson) {
@@ -1086,8 +1116,8 @@ const processAndFormatTallyDataLineWithAddedContent = (
 };
 
 const createTallyStringWithoutAddedData = (
-  tallys: tallyDataToProcessType[],
-  sortCriteriaOrder: SortOrderType,
+  tallys: TallyDataToProcessType[],
+  sortCriteriaOrder: SortOrderType[],
 ) => {
   tallys = tallys.sort((a, b) => {
     for (const criteria of sortCriteriaOrder) {
@@ -1152,11 +1182,24 @@ const createTallyStringWithoutAddedData = (
         tallyMap.set("Groups", tally.groups);
         tallyMap.set("Pets", tally.animalsAmount);
         tallyMap.set("isTraversing", 0);
-        tallyMap.set("Itinerant commercial activities", 0);
+        tallyMap.set("commercialActivities", 0);
         tallyMap.set("isInApparentIllicitActivity", 0);
         tallyMap.set("%isInApparentIllicitActivity", "0.00%");
         tallyMap.set("isPersonWithoutHousing", 0);
         tallyMap.set("%isPersonWithoutHousing", "0.00%");
+
+        if (
+          tally.commercialActivities &&
+          Object.keys(tally.commercialActivities).length > 0
+        ) {
+          let totalCommericalActivities = 0;
+          Object.entries(tally.commercialActivities).forEach(([, value]) => {
+            if (value) {
+              totalCommericalActivities += value;
+            }
+          });
+          tallyMap.set("commercialActivities", totalCommericalActivities);
+        }
 
         tally.tallyPerson.map((tallyPerson) => {
           const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;
@@ -1240,7 +1283,7 @@ const createTallyStringWithoutAddedData = (
           weatherConditionMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId},${tally.location.name},${tally.observer},${date},${startDateTime},${duration},${tally.temperature},${weatherCondition},` +
+        `${tally.locationId},${tally.location.name},${tally.observer},${date},${startDateTime},${duration},${tally.temperature ? tally.temperature : "-"},${weatherCondition},` +
         tallyString
       );
     })
