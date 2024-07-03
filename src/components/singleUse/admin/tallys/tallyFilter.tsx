@@ -31,12 +31,12 @@ const TallyFilter = ({
     individual: false,
     added: false,
   });
-  const handleTallysExport = async (addedContet: boolean) => {
+  const handleTallysExport = async (addedContent: boolean) => {
     const tallysIds = activeTallys?.map((tally) => tally.id);
     if (!tallysIds || tallysIds.length === 0) return;
 
     let csvString = "";
-    if (addedContet) {
+    if (addedContent) {
       setLoadingExport({ individual: false, added: true });
       csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
     } else {
@@ -52,7 +52,11 @@ const TallyFilter = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `Contagens Individuais ${locationName}.csv`);
+    link.setAttribute(
+      "download",
+      (addedContent ? `Contagens diárias ` : `Contagens Individuais `) +
+        `${locationName}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
