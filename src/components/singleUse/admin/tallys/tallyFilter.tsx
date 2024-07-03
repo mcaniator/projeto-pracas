@@ -3,7 +3,10 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { exportIndividualTallysToCSV } from "@/serverActions/exportToCSV";
+import {
+  exportDailyTallys,
+  exportIndividualTallysToCSV,
+} from "@/serverActions/exportToCSV";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -24,16 +27,27 @@ const TallyFilter = ({
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
-  const [loadingExport, setLoadingExport] = useState(false);
-  const handleTallysExport = async () => {
+  const [loadingExport, setLoadingExport] = useState({
+    individual: false,
+    added: false,
+  });
+  const handleTallysExport = async (addedContet: boolean) => {
     const tallysIds = activeTallys?.map((tally) => tally.id);
     if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport(true);
-    const csvString = await exportIndividualTallysToCSV(tallysIds, [
-      "name",
-      "id",
-      "date",
-    ]);
+
+    let csvString = "";
+    if (addedContet) {
+      setLoadingExport({ individual: false, added: true });
+      csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
+    } else {
+      setLoadingExport({ individual: true, added: false });
+      csvString = await exportIndividualTallysToCSV(tallysIds, [
+        "name",
+        "id",
+        "date",
+      ]);
+    }
+
     const blob = new Blob([csvString]);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -42,7 +56,7 @@ const TallyFilter = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setLoadingExport(false);
+    setLoadingExport({ individual: false, added: false });
   };
   let activeTallysIdsString;
   if (activeTallys)
@@ -160,23 +174,38 @@ const TallyFilter = ({
         </div>
         <div className="flex basis-1/5 flex-col">
           <h5 className="text-xl font-semibold">Contagens Filtradas</h5>
-          <div className="flex flex-row gap-3">
-            <div>
-              <Button>
-                <Link
-                  href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-row gap-3">
+              <div>
+                <Button>
+                  <Link
+                    href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
+                  >
+                    Dados somados
+                  </Link>
+                </Button>
+              </div>
+              <div>
+                <Button
+                  onPress={() => {
+                    handleTallysExport(false).catch(() => ({ statusCode: 1 }));
+                  }}
                 >
-                  Dados somados
-                </Link>
-              </Button>
+                  {loadingExport.individual ?
+                    "Exportando..."
+                  : "Exportar individualmente"}
+                </Button>
+              </div>
             </div>
             <div>
               <Button
                 onPress={() => {
-                  handleTallysExport().catch(() => ({ statusCode: 1 }));
+                  handleTallysExport(true).catch(() => ({ statusCode: 1 }));
                 }}
               >
-                {loadingExport ? "Exportando..." : "Exportar individualmente"}
+                {loadingExport.added ?
+                  "Exportando"
+                : "Exportar contagens por dia"}
               </Button>
             </div>
           </div>

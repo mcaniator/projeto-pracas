@@ -905,6 +905,125 @@ const exportDailyTally = async (
   return CSVstring;
 };
 
+const exportDailyTallys = async (
+  tallysIds: number[],
+  sortCriteriaOrder: SortOrderType[],
+) => {
+  let tallys = await prisma.tally.findMany({
+    where: {
+      id: {
+        in: tallysIds,
+      },
+    },
+    include: {
+      location: {
+        select: {
+          name: true,
+          id: true,
+          createdAt: true,
+        },
+      },
+      tallyPerson: {
+        select: {
+          person: {
+            select: {
+              ageGroup: true,
+              gender: true,
+              activity: true,
+              isTraversing: true,
+              isPersonWithImpairment: true,
+              isInApparentIllicitActivity: true,
+              isPersonWithoutHousing: true,
+            },
+          },
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  let CSVstring =
+    "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+  CSVstring +=
+    ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+  CSVstring +=
+    "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
+
+  tallys = tallys.sort((a, b) => {
+    for (const criteria of sortCriteriaOrder) {
+      switch (criteria) {
+        case "name":
+          return a.location.name.localeCompare(b.location.name);
+        case "id":
+          return a.location.id - b.location.id;
+        case "date":
+          return (
+            a.location.createdAt.getTime() - b.location.createdAt.getTime()
+          );
+        default:
+          return 0;
+      }
+    }
+    return 0;
+  });
+  const tallyGroupsByLocation: { [key: number]: typeof tallys } = {};
+  for (const tally of tallys) {
+    if (!tallyGroupsByLocation[tally.location.id]) {
+      tallyGroupsByLocation[tally.location.id] = [];
+    }
+    const currentGroup = tallyGroupsByLocation[tally.location.id];
+    if (currentGroup) {
+      currentGroup.push(tally);
+    }
+  }
+
+  CSVstring += Object.entries(tallyGroupsByLocation)
+    .map(([locationId, value]) => {
+      value = value.sort(
+        (a, b) => a.startDate.getTime() - b.startDate.getTime(),
+      );
+      const tallysGroupsByDate = value.reduce<{ [key: string]: typeof tallys }>(
+        (acc, tally) => {
+          const year = tally.startDate.getFullYear();
+          const month = String(tally.startDate.getMonth() + 1).padStart(2, "0");
+          const day = String(tally.startDate.getDate()).padStart(2, "0");
+          const key = `${year}-${month}-${day}`;
+          if (key) {
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            const currentAccElement = acc[key];
+            if (currentAccElement) {
+              currentAccElement.push(tally);
+            }
+          }
+          return acc;
+        },
+        {},
+      );
+
+      return Object.entries(tallysGroupsByDate)
+        .map(([, tallyGroup]) => {
+          const observers = tallyGroup
+            .map((tally) => tally.observer)
+            .filter((observer, index, self) => self.indexOf(observer) === index)
+            .join(" / ");
+
+          let fourTallys = 0;
+          if (tallyGroup.length == 4) fourTallys = 1;
+          const dataLine =
+            processAndFormatTallyDataLineWithAddedContent(
+              tallyGroup,
+            ).tallyString;
+          return `${locationId},${tallyGroup[0]?.location.name},${observers},${fourTallys},${dataLine}`;
+        })
+        .join("\n");
+    })
+    .join("\n");
+
+  return CSVstring;
+};
+
 //These 2 functions below are used to export tally content without combining data. They use old spreadsheet formation.
 const exportAllIndividualTallysToCsv = async (
   locationsIds: number[],
@@ -1296,4 +1415,5 @@ export {
   exportIndividualTallysToCSV,
   exportAllIndividualTallysToCsv,
   exportDailyTally,
+  exportDailyTallys,
 };
