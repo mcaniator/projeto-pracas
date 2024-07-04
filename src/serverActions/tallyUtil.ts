@@ -350,7 +350,7 @@ const deleteTallys = async (tallysIds: number[]) => {
 };
 
 const redirectToTallysList = (locationId: number) => {
-  redirect(`/admin/parks/${locationId}/tallys`, RedirectType.push);
+  redirect(`/admin/parks/${locationId}/tallys`, RedirectType.replace);
 };
 
 export {
