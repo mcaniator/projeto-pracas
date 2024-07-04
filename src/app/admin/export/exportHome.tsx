@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCircleMinus, IconEdit } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconCircleMinus,
+  IconEdit,
+  IconX,
+} from "@tabler/icons-react";
 
 import { ExportPageModes, SelectedLocationObj } from "./client";
 import { ParkSearch } from "./parkSearch";
@@ -46,6 +51,9 @@ const ExportHome = ({
               >
                 {locationObject?.name}
                 <div className="flex items-center">
+                  {locationObj.saved ?
+                    <IconCheck color="green" />
+                  : <IconX color="red" />}
                   <Button
                     onPress={() => {
                       handlePageStateChange(locationObj.id, "EDIT");
