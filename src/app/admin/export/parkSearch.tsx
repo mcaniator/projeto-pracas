@@ -8,6 +8,8 @@ import Fuse, { FuseResult } from "fuse.js";
 import { useState } from "react";
 import React from "react";
 
+import { SelectedLocationObj } from "./client";
+
 const LocationComponent = ({
   id,
   name,
@@ -15,7 +17,7 @@ const LocationComponent = ({
 }: {
   id: number;
   name: string;
-  handleSelectedLocationsAddition: (id: number) => void;
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   return (
     <div
@@ -25,7 +27,12 @@ const LocationComponent = ({
       {name}
       <Button
         onPress={() => {
-          handleSelectedLocationsAddition(id);
+          handleSelectedLocationsAddition({
+            id,
+            assessmentId: undefined,
+            tallysIds: [],
+            saved: false,
+          });
         }}
         variant={"ghost"}
       >
@@ -41,14 +48,16 @@ const LocationList = ({
   handleSelectedLocationsAddition,
 }: {
   locations: FuseResult<{ id: number; name: string }>[];
-  selectedLocations: number[];
-  handleSelectedLocationsAddition: (id: number) => void;
+  selectedLocations: SelectedLocationObj[];
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   return (
     <div className="w-full text-black">
       {locations.map(
         (location, index) =>
-          !selectedLocations.includes(location.item.id) && (
+          !selectedLocations.some(
+            (selectedLocation) => selectedLocation.id === location.item.id,
+          ) && (
             <LocationComponent
               key={index}
               id={location.item.id}
@@ -67,8 +76,8 @@ const ParkSearch = ({
   handleSelectedLocationsAddition,
 }: {
   location: { id: number; name: string }[];
-  selectedLocations: number[];
-  handleSelectedLocationsAddition: (id: number) => void;
+  selectedLocations: SelectedLocationObj[];
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   const fuseHaystack = new Fuse(location, { keys: ["name"] });
   const [hay, setHay] = useState(search("", location, fuseHaystack));

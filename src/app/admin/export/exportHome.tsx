@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import { IconCircleMinus, IconEdit } from "@tabler/icons-react";
 
-import { ExportPageModes } from "./client";
+import { ExportPageModes, SelectedLocationObj } from "./client";
 import { ParkSearch } from "./parkSearch";
 
 const ExportHome = ({
@@ -14,8 +14,8 @@ const ExportHome = ({
   handlePageStateChange,
 }: {
   locations: { id: number; name: string }[];
-  selectedLocations: number[];
-  handleSelectedLocationsAddition: (id: number) => void;
+  selectedLocations: SelectedLocationObj[];
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
@@ -35,9 +35,9 @@ const ExportHome = ({
       <div className="w-fit overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
         <div className="flex flex-col">
-          {selectedLocations.map((locationId, index) => {
+          {selectedLocations.map((locationObj, index) => {
             const locationObject = locations.find(
-              (item) => item.id === locationId,
+              (item) => item.id === locationObj.id,
             );
             return (
               <div
@@ -48,7 +48,7 @@ const ExportHome = ({
                 <div className="flex items-center">
                   <Button
                     onPress={() => {
-                      handlePageStateChange(locationId, "EDIT");
+                      handlePageStateChange(locationObj.id, "EDIT");
                     }}
                     variant={"ghost"}
                   >
@@ -56,7 +56,7 @@ const ExportHome = ({
                   </Button>
                   <Button
                     onPress={() => {
-                      handleSelectedLocationsRemoval(locationId);
+                      handleSelectedLocationsRemoval(locationObj.id);
                     }}
                     variant={"ghost"}
                   >

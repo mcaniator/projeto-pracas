@@ -6,24 +6,46 @@ import { EditPage } from "./editPage";
 import { ExportHome } from "./exportHome";
 
 type ExportPageModes = "HOME" | "EDIT";
+interface SelectedLocationObj {
+  id: number;
+  assessmentId: number | undefined;
+  tallysIds: number[];
+  saved: boolean;
+}
 const ExportClientPage = ({
   locations,
 }: {
   locations: { id: number; name: string }[];
 }) => {
-  const [selectedLocations, setSelectedLocations] = useState<number[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<
+    SelectedLocationObj[]
+  >([]);
   const [pageState, setPageState] = useState<{
     pageMode: ExportPageModes;
     currentLocation: number | undefined;
   }>({ pageMode: "HOME", currentLocation: undefined });
-  const handleSelectedLocationsAddition = (id: number) => {
-    if (!selectedLocations.includes(id)) {
-      setSelectedLocations((prev) => [...prev, id]);
+  const handleSelectedLocationsAddition = (
+    locationObj: SelectedLocationObj,
+  ) => {
+    if (!selectedLocations.some((location) => location.id === locationObj.id)) {
+      setSelectedLocations((prev) => [...prev, locationObj]);
     }
   };
+  const handleSelectedLocationsSaveChange = (
+    locationId: number,
+    save: boolean,
+  ) => {
+    setSelectedLocations((prev) =>
+      prev.map((locationObj) =>
+        locationObj.id === locationId ?
+          { ...locationObj, saved: save }
+        : locationObj,
+      ),
+    );
+  };
   const handleSelectedLocationsRemoval = (id: number) => {
-    if (selectedLocations.includes(id)) {
-      setSelectedLocations((prev) => prev.filter((item) => item !== id));
+    if (selectedLocations.some((location) => location.id === id)) {
+      setSelectedLocations((prev) => prev.filter((item) => item.id !== id));
     }
   };
   const handlePageStateChange = (
@@ -49,7 +71,11 @@ const ExportClientPage = ({
           <EditPage
             locationId={pageState.currentLocation}
             locations={locations}
+            selectedLocations={selectedLocations}
             handlePageStateChange={handlePageStateChange}
+            handleSelectedLocationsSaveChange={
+              handleSelectedLocationsSaveChange
+            }
           />
         )}
       </div>
@@ -58,4 +84,4 @@ const ExportClientPage = ({
 };
 
 export { ExportClientPage };
-export { type ExportPageModes };
+export { type ExportPageModes, type SelectedLocationObj };
