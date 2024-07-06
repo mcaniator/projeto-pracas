@@ -138,7 +138,10 @@ const EditPage = ({
           </Button>
 
           <Button
-            onPress={() => handleSelectedLocationsSaveChange(locationId, true)}
+            onPress={() => {
+              if (currentLocationId)
+                handleSelectedLocationsSaveChange(currentLocationId, true);
+            }}
             variant={"constructive"}
           >
             <IconDeviceFloppy size={24} />
