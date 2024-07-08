@@ -13,6 +13,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import React from "react";
 
 import { ExportPageModes, SelectedLocationObj } from "./client";
 import { TallyList } from "./tallyList";
@@ -97,7 +98,7 @@ const EditPage = ({
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
   return (
-    <div className="flex flex-col gap-1 overflow-auto">
+    <div className="flex h-full flex-col gap-1 overflow-auto">
       <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
       <label htmlFor="assessment">Avaliação física</label>
       <Select id="assessment">
@@ -126,7 +127,7 @@ const EditPage = ({
           <IconCheck color="green" />
         : <IconX color="red" />}
       </span>
-      <div className="my-2 flex flex-row gap-1">
+      <div className="my-2 mt-auto flex flex-row gap-1">
         <div className="flex flex-col gap-1">
           <Button
             onPress={() => {
@@ -148,26 +149,92 @@ const EditPage = ({
             Salvar
           </Button>
         </div>
-        <div className="flex flex-col gap-1">
-          <Button onPress={() => goToPreviousLocation(false)}>
+        <div className={"flex flex-col gap-1"}>
+          <Button
+            className={
+              (
+                selectedLocations.findIndex(
+                  (location) => location.id === currentLocationId,
+                ) === 0
+              ) ?
+                "opacity-0"
+              : ""
+            }
+            onPress={() => goToPreviousLocation(false)}
+            isDisabled={
+              selectedLocations.findIndex(
+                (location) => location.id === currentLocationId,
+              ) === 0
+            }
+          >
             <IconArrowBackUp /> Praça anteterior
           </Button>
           <Button
+            className={
+              (
+                selectedLocations.findIndex(
+                  (location) => location.id === currentLocationId,
+                ) === 0
+              ) ?
+                "opacity-0"
+              : ""
+            }
             onPress={() => goToPreviousLocation(true)}
+            isDisabled={
+              selectedLocations.findIndex(
+                (location) => location.id === currentLocationId,
+              ) === 0
+            }
             variant={"constructive"}
           >
             <IconDeviceFloppy /> + <IconArrowBackUp />
           </Button>
         </div>
         <div className="flex flex-col gap-1">
-          <Button onPress={() => goToNextLocation(false)}>
+          <Button
+            onPress={() => goToNextLocation(false)}
+            className={
+              (
+                selectedLocations.findIndex(
+                  (location) => location.id === currentLocationId,
+                ) ===
+                selectedLocations.length - 1
+              ) ?
+                "opacity-0"
+              : ""
+            }
+          >
             Próxima praça <IconArrowForwardUp />
           </Button>
           <Button
-            onPress={() => goToNextLocation(true)}
+            onPress={() => {
+              if (
+                selectedLocations.findIndex(
+                  (location) => location.id === currentLocationId,
+                ) ===
+                selectedLocations.length - 1
+              ) {
+                handleSelectedLocationsSaveChange(locationId, true);
+                handlePageStateChange(undefined, "HOME");
+              } else {
+                goToNextLocation(true);
+              }
+            }}
             variant={"constructive"}
           >
-            <IconDeviceFloppy /> + <IconArrowForwardUp />
+            {(
+              selectedLocations.findIndex(
+                (location) => location.id === currentLocationId,
+              ) ===
+              selectedLocations.length - 1
+            ) ?
+              <React.Fragment>
+                <IconDeviceFloppy /> + <IconArrowBackUpDouble />
+              </React.Fragment>
+            : <React.Fragment>
+                <IconDeviceFloppy /> + <IconArrowForwardUp />
+              </React.Fragment>
+            }
           </Button>
         </div>
       </div>

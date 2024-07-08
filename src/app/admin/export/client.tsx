@@ -55,7 +55,7 @@ const ExportClientPage = ({
     setPageState({ pageMode, currentLocation: id });
   };
   return (
-    <div className="flex max-h-full min-h-0 max-w-full gap-5 p-5">
+    <div className="flex h-full max-h-full min-h-0 max-w-full gap-5 p-5">
       <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">Exportar dados</h3>
         {pageState.pageMode === "HOME" && (
