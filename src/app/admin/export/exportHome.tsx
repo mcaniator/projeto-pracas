@@ -1,12 +1,14 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { exportDailyTallys } from "@/serverActions/exportToCSV";
 import {
   IconCheck,
   IconCircleMinus,
   IconEdit,
   IconX,
 } from "@tabler/icons-react";
+import { useState } from "react";
 
 import {
   ExportPageModes,
@@ -32,6 +34,30 @@ const ExportHome = ({
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
+  const [loadingExport, setLoadingExport] = useState(false);
+  const handleTallysExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
+    const tallysIds: number[] = [];
+    selectedLocationsTallys.forEach((location) =>
+      tallysIds.push(...location.tallysIds),
+    );
+    if (!tallysIds || tallysIds.length === 0) return;
+
+    let csvString = "";
+    setLoadingExport(true);
+    csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
+    const blob = new Blob([csvString]);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "Contagens diárias.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setLoadingExport(false);
+  };
   return (
     <div className="flex flex-row gap-5">
       <div className="flex flex-col gap-1">
@@ -83,7 +109,14 @@ const ExportHome = ({
             );
           })}
         </div>
-        <Button>Exportar</Button>
+        <Button
+          isDisabled={loadingExport}
+          onPress={() => {
+            handleTallysExport().catch(() => ({ statusCode: 1 }));
+          }}
+        >
+          {loadingExport ? "Exportando..." : "Exportar"}
+        </Button>
       </div>
     </div>
   );

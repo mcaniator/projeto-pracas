@@ -65,13 +65,6 @@ const ExportClientPage = ({
     locationId: number,
     save: boolean,
   ) => {
-    /*setSelectedLocationsTallys((prev) =>
-      prev.map((locationObj) =>
-        locationObj.id === locationId ?
-          { ...locationObj, ...(tallysIds && { tallysIds: tallysIds }) }
-        : locationObj,
-      ),
-    );*/
     setSelectedLocationsSaved((prev) =>
       prev.map((locationObj) =>
         locationObj.id === locationId ?
