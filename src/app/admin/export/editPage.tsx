@@ -36,6 +36,7 @@ const EditPage = ({
   handleSelectedLocationsSaveChange: (
     locationId: number,
     save: boolean,
+    tallysIds: number[],
   ) => void;
 }) => {
   const [currentLocationId, setCurrentLocationId] = useState<number>();
@@ -61,6 +62,7 @@ const EditPage = ({
       fetchTallys().catch(() => ({ statusCode: 1 }));
     }
   }, [currentLocationId]);
+  const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const goToNextLocation = (save: boolean) => {
     const currentLocationIndex = selectedLocations.findIndex(
       (location) => location.id === currentLocationId,
@@ -69,7 +71,11 @@ const EditPage = ({
       const nextLocation = selectedLocations[currentLocationIndex + 1];
       if (nextLocation && currentLocationId) {
         if (save) {
-          handleSelectedLocationsSaveChange(currentLocationId, true);
+          handleSelectedLocationsSaveChange(
+            currentLocationId,
+            true,
+            selectedTallys,
+          );
         }
 
         setCurrentLocationId(nextLocation.id);
@@ -84,12 +90,34 @@ const EditPage = ({
       const previousLocation = selectedLocations[currentLocationIndex - 1];
       if (previousLocation && currentLocationId) {
         if (save) {
-          handleSelectedLocationsSaveChange(currentLocationId, true);
+          handleSelectedLocationsSaveChange(
+            currentLocationId,
+            true,
+            selectedTallys,
+          );
         }
         setCurrentLocationId(previousLocation.id);
       }
     }
   };
+  const handleTallyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      if (!selectedTallys.includes(Number(e.target.value)))
+        setSelectedTallys((prev) => [...prev, Number(e.target.value)]);
+    } else if (selectedTallys.includes(Number(e.target.value))) {
+      setSelectedTallys((prev) =>
+        prev.filter((tallyId) => tallyId !== Number(e.target.value)),
+      );
+    }
+  };
+  useEffect(() => {
+    const currentLocationObj = selectedLocations.find(
+      (location) => location.id === currentLocationId,
+    );
+    if (currentLocationObj?.tallysIds)
+      setSelectedTallys(currentLocationObj?.tallysIds);
+  }, [currentLocationId, selectedLocations]);
+  //console.log(selectedTallys);
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
@@ -110,7 +138,14 @@ const EditPage = ({
       {fetchedTallysStatus === "LOADED" && fetchedTallys?.length === 0 && (
         <span>Nenhuma contagem encontrada!</span>
       )}
-      {fetchedTallys && <TallyList tallys={fetchedTallys} />}
+      {fetchedTallys && (
+        <TallyList
+          currentLocationId={currentLocationId}
+          selectedLocations={selectedLocations}
+          tallys={fetchedTallys}
+          handleTallyChange={handleTallyChange}
+        />
+      )}
       <span className="flex flex-row">
         {(
           selectedLocations.find(
@@ -141,7 +176,11 @@ const EditPage = ({
           <Button
             onPress={() => {
               if (currentLocationId)
-                handleSelectedLocationsSaveChange(currentLocationId, true);
+                handleSelectedLocationsSaveChange(
+                  currentLocationId,
+                  true,
+                  selectedTallys,
+                );
             }}
             variant={"constructive"}
           >
@@ -212,9 +251,14 @@ const EditPage = ({
                 selectedLocations.findIndex(
                   (location) => location.id === currentLocationId,
                 ) ===
-                selectedLocations.length - 1
+                  selectedLocations.length - 1 &&
+                currentLocationId
               ) {
-                handleSelectedLocationsSaveChange(locationId, true);
+                handleSelectedLocationsSaveChange(
+                  currentLocationId,
+                  true,
+                  selectedTallys,
+                );
                 handlePageStateChange(undefined, "HOME");
               } else {
                 goToNextLocation(true);
