@@ -8,19 +8,27 @@ import {
   IconX,
 } from "@tabler/icons-react";
 
-import { ExportPageModes, SelectedLocationObj } from "./client";
+import {
+  ExportPageModes,
+  SelectedLocationSavedObj,
+  SelectedLocationTallyObj,
+} from "./client";
 import { ParkSearch } from "./parkSearch";
 
 const ExportHome = ({
   locations,
-  selectedLocations,
+  selectedLocationsTallys,
+  selectedLocationsSaved,
   handleSelectedLocationsAddition,
   handleSelectedLocationsRemoval,
   handlePageStateChange,
 }: {
   locations: { id: number; name: string }[];
-  selectedLocations: SelectedLocationObj[];
-  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
+  selectedLocationsTallys: SelectedLocationTallyObj[];
+  selectedLocationsSaved: SelectedLocationSavedObj[];
+  handleSelectedLocationsAddition: (
+    locationObj: SelectedLocationTallyObj,
+  ) => void;
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
@@ -32,7 +40,7 @@ const ExportHome = ({
         </h4>
         <ParkSearch
           location={locations}
-          selectedLocations={selectedLocations}
+          selectedLocations={selectedLocationsTallys}
           handleSelectedLocationsAddition={handleSelectedLocationsAddition}
         />
       </div>
@@ -40,7 +48,7 @@ const ExportHome = ({
       <div className="w-fit overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
         <div className="flex flex-col">
-          {selectedLocations.map((locationObj, index) => {
+          {selectedLocationsSaved.map((locationObj, index) => {
             const locationObject = locations.find(
               (item) => item.id === locationObj.id,
             );

@@ -15,20 +15,27 @@ import {
 import { useEffect, useState } from "react";
 import React from "react";
 
-import { ExportPageModes, SelectedLocationObj } from "./client";
+import {
+  ExportPageModes,
+  SelectedLocationSavedObj,
+  SelectedLocationTallyObj,
+} from "./client";
 import { TallyList } from "./tallyList";
 
 type FetchedTallysStatus = "LOADING" | "LOADED" | "ERROR";
 const EditPage = ({
   locationId,
   locations,
-  selectedLocations,
+  selectedLocationsTallys,
+  selectedLocationsSaved,
   handlePageStateChange,
   handleSelectedLocationsSaveChange,
+  handleSelectedLocationsTallyChange,
 }: {
   locationId: number | undefined;
   locations: { id: number; name: string }[];
-  selectedLocations: SelectedLocationObj[];
+  selectedLocationsTallys: SelectedLocationTallyObj[];
+  selectedLocationsSaved: SelectedLocationSavedObj[];
   handlePageStateChange: (
     id: number | undefined,
     pageMode: ExportPageModes,
@@ -36,7 +43,10 @@ const EditPage = ({
   handleSelectedLocationsSaveChange: (
     locationId: number,
     save: boolean,
-    tallysIds: number[],
+  ) => void;
+  handleSelectedLocationsTallyChange: (
+    locationId: number,
+    tallysIds: number[] | undefined,
   ) => void;
 }) => {
   const [currentLocationId, setCurrentLocationId] = useState<number>();
@@ -64,43 +74,40 @@ const EditPage = ({
   }, [currentLocationId]);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const goToNextLocation = (save: boolean) => {
-    const currentLocationIndex = selectedLocations.findIndex(
+    const currentLocationIndex = selectedLocationsTallys.findIndex(
       (location) => location.id === currentLocationId,
     );
-    if (currentLocationIndex < selectedLocations.length - 1) {
-      const nextLocation = selectedLocations[currentLocationIndex + 1];
+    if (currentLocationIndex < selectedLocationsTallys.length - 1) {
+      const nextLocation = selectedLocationsTallys[currentLocationIndex + 1];
       if (nextLocation && currentLocationId) {
         if (save) {
-          handleSelectedLocationsSaveChange(
-            currentLocationId,
-            true,
-            selectedTallys,
-          );
+          handleSelectedLocationsSaveChange(currentLocationId, true);
+          handleSelectedLocationsTallyChange(currentLocationId, selectedTallys);
         }
-
         setCurrentLocationId(nextLocation.id);
       }
     }
   };
   const goToPreviousLocation = (save: boolean) => {
-    const currentLocationIndex = selectedLocations.findIndex(
+    const currentLocationIndex = selectedLocationsTallys.findIndex(
       (location) => location.id === currentLocationId,
     );
     if (currentLocationIndex > 0) {
-      const previousLocation = selectedLocations[currentLocationIndex - 1];
+      const previousLocation =
+        selectedLocationsTallys[currentLocationIndex - 1];
       if (previousLocation && currentLocationId) {
         if (save) {
-          handleSelectedLocationsSaveChange(
-            currentLocationId,
-            true,
-            selectedTallys,
-          );
+          handleSelectedLocationsSaveChange(currentLocationId, true);
+          handleSelectedLocationsTallyChange(currentLocationId, selectedTallys);
         }
         setCurrentLocationId(previousLocation.id);
       }
     }
   };
-  const handleTallyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTallyChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    removeSaveState: boolean,
+  ) => {
     if (e.target.checked) {
       if (!selectedTallys.includes(Number(e.target.value)))
         setSelectedTallys((prev) => [...prev, Number(e.target.value)]);
@@ -109,15 +116,17 @@ const EditPage = ({
         prev.filter((tallyId) => tallyId !== Number(e.target.value)),
       );
     }
+    if (removeSaveState && currentLocationId) {
+      handleSelectedLocationsSaveChange(currentLocationId, false);
+    }
   };
   useEffect(() => {
-    const currentLocationObj = selectedLocations.find(
+    const currentLocationObj = selectedLocationsTallys.find(
       (location) => location.id === currentLocationId,
     );
     if (currentLocationObj?.tallysIds)
       setSelectedTallys(currentLocationObj?.tallysIds);
-  }, [currentLocationId, selectedLocations]);
-  //console.log(selectedTallys);
+  }, [currentLocationId, selectedLocationsTallys]);
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
@@ -140,22 +149,21 @@ const EditPage = ({
       )}
       {fetchedTallys && (
         <TallyList
-          currentLocationId={currentLocationId}
-          selectedLocations={selectedLocations}
           tallys={fetchedTallys}
           handleTallyChange={handleTallyChange}
+          selectedTallys={selectedTallys}
         />
       )}
       <span className="flex flex-row">
         {(
-          selectedLocations.find(
+          selectedLocationsSaved.find(
             (location) => location.id === currentLocationId,
           )?.saved
         ) ?
           "Parâmetros salvos!"
         : "Parâmetros não salvos!"}
         {(
-          selectedLocations.find(
+          selectedLocationsSaved.find(
             (location) => location.id === currentLocationId,
           )?.saved
         ) ?
@@ -175,12 +183,13 @@ const EditPage = ({
 
           <Button
             onPress={() => {
-              if (currentLocationId)
-                handleSelectedLocationsSaveChange(
+              if (currentLocationId) {
+                handleSelectedLocationsSaveChange(currentLocationId, true);
+                handleSelectedLocationsTallyChange(
                   currentLocationId,
-                  true,
                   selectedTallys,
                 );
+              }
             }}
             variant={"constructive"}
           >
@@ -192,7 +201,7 @@ const EditPage = ({
           <Button
             className={
               (
-                selectedLocations.findIndex(
+                selectedLocationsTallys.findIndex(
                   (location) => location.id === currentLocationId,
                 ) === 0
               ) ?
@@ -201,7 +210,7 @@ const EditPage = ({
             }
             onPress={() => goToPreviousLocation(false)}
             isDisabled={
-              selectedLocations.findIndex(
+              selectedLocationsTallys.findIndex(
                 (location) => location.id === currentLocationId,
               ) === 0
             }
@@ -211,7 +220,7 @@ const EditPage = ({
           <Button
             className={
               (
-                selectedLocations.findIndex(
+                selectedLocationsTallys.findIndex(
                   (location) => location.id === currentLocationId,
                 ) === 0
               ) ?
@@ -220,7 +229,7 @@ const EditPage = ({
             }
             onPress={() => goToPreviousLocation(true)}
             isDisabled={
-              selectedLocations.findIndex(
+              selectedLocationsTallys.findIndex(
                 (location) => location.id === currentLocationId,
               ) === 0
             }
@@ -234,10 +243,10 @@ const EditPage = ({
             onPress={() => goToNextLocation(false)}
             className={
               (
-                selectedLocations.findIndex(
+                selectedLocationsTallys.findIndex(
                   (location) => location.id === currentLocationId,
                 ) ===
-                selectedLocations.length - 1
+                selectedLocationsTallys.length - 1
               ) ?
                 "opacity-0"
               : ""
@@ -248,15 +257,15 @@ const EditPage = ({
           <Button
             onPress={() => {
               if (
-                selectedLocations.findIndex(
+                selectedLocationsTallys.findIndex(
                   (location) => location.id === currentLocationId,
                 ) ===
-                  selectedLocations.length - 1 &&
+                  selectedLocationsTallys.length - 1 &&
                 currentLocationId
               ) {
-                handleSelectedLocationsSaveChange(
+                handleSelectedLocationsSaveChange(currentLocationId, true);
+                handleSelectedLocationsTallyChange(
                   currentLocationId,
-                  true,
                   selectedTallys,
                 );
                 handlePageStateChange(undefined, "HOME");
@@ -267,10 +276,10 @@ const EditPage = ({
             variant={"constructive"}
           >
             {(
-              selectedLocations.findIndex(
+              selectedLocationsTallys.findIndex(
                 (location) => location.id === currentLocationId,
               ) ===
-              selectedLocations.length - 1
+              selectedLocationsTallys.length - 1
             ) ?
               <React.Fragment>
                 <IconDeviceFloppy /> + <IconArrowBackUpDouble />

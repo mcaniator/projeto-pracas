@@ -1,9 +1,6 @@
 "use client";
 
 import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
-import { useEffect, useState } from "react";
-
-import { SelectedLocationObj } from "./client";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -24,14 +21,15 @@ const TallyComponent = ({
   tallyId,
   checked,
   handleTallyChange,
-  setCheckedTallys,
 }: {
   startDate: Date;
   observer: string;
   tallyId: number;
   checked: boolean;
-  handleTallyChange(e: React.ChangeEvent<HTMLInputElement>): void;
-  setCheckedTallys: React.Dispatch<React.SetStateAction<number[]>>;
+  handleTallyChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    removeSaveState: boolean,
+  ): void;
 }) => {
   const weekday = weekdayFormatter.format(startDate);
   return (
@@ -41,14 +39,7 @@ const TallyComponent = ({
           type="checkbox"
           value={tallyId}
           onChange={(e) => {
-            if (e.target.checked) {
-              setCheckedTallys((prev) => [...prev, Number(e.target.value)]);
-            } else {
-              setCheckedTallys((prev) =>
-                prev.filter((tallyId) => tallyId !== Number(e.target.value)),
-              );
-            }
-            handleTallyChange(e);
+            handleTallyChange(e, true);
           }}
           checked={checked}
         />
@@ -60,29 +51,22 @@ const TallyComponent = ({
 };
 
 const TallyList = ({
-  currentLocationId,
-  selectedLocations,
   tallys,
+  selectedTallys,
   handleTallyChange,
 }: {
-  currentLocationId: number | undefined;
-  selectedLocations: SelectedLocationObj[];
   tallys: TallyDataFetchedToTallyList[];
-  handleTallyChange(e: React.ChangeEvent<HTMLInputElement>): void;
+  selectedTallys: number[];
+  handleTallyChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    removeSaveState: boolean,
+  ): void;
 }) => {
-  const [checkedTallys, setCheckedTallys] = useState<number[]>([]);
-
-  useEffect(() => {
-    const currentLocationObj = selectedLocations.find(
-      (location) => location.id === currentLocationId,
-    );
-    setCheckedTallys(currentLocationObj?.tallysIds || []);
-  }, [currentLocationId, selectedLocations]);
   return tallys === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
     : <div className="w-full overflow-auto text-black">
         {tallys.map((tally) => {
-          const checked = checkedTallys?.includes(tally.id);
+          const checked = selectedTallys?.includes(tally.id);
           return (
             <TallyComponent
               startDate={tally.startDate}
@@ -91,7 +75,6 @@ const TallyList = ({
               tallyId={tally.id}
               checked={checked ? checked : false}
               handleTallyChange={handleTallyChange}
-              setCheckedTallys={setCheckedTallys}
             />
           );
         })}
