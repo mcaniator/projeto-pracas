@@ -4,7 +4,7 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
-  exportDailyTallys,
+  exportDailyTallysWithDateInfo,
   exportIndividualTallysToCSV,
 } from "@/serverActions/exportToCSV";
 import Link from "next/link";
@@ -38,7 +38,11 @@ const TallyFilter = ({
     let csvString = "";
     if (addedContent) {
       setLoadingExport({ individual: false, added: true });
-      csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
+      csvString = await exportDailyTallysWithDateInfo(tallysIds, [
+        "name",
+        "id",
+        "date",
+      ]);
     } else {
       setLoadingExport({ individual: true, added: false });
       csvString = await exportIndividualTallysToCSV(tallysIds, [
