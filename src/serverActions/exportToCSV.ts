@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { personType, tallyDataToProcessType } from "@/lib/zodValidators";
+import { personType } from "@/lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
