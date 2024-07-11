@@ -286,21 +286,6 @@ const saveOngoingTallyData = async (
 const deleteTallys = async (tallysIds: number[]) => {
   try {
     await prisma.$transaction(async (prisma) => {
-      const tallyPersons = await prisma.tallyPerson.findMany({
-        where: {
-          tallyId: {
-            in: tallysIds,
-          },
-        },
-        select: {
-          personId: true,
-        },
-      });
-
-      const personsIdsToCheckIfShouldBeDeleted = tallyPersons.map(
-        (tallyPerson) => tallyPerson.personId,
-      );
-
       await prisma.tallyPerson.deleteMany({
         where: {
           tallyId: {
@@ -316,33 +301,6 @@ const deleteTallys = async (tallysIds: number[]) => {
           },
         },
       });
-
-      const personsToDelete = await prisma.person.findMany({
-        where: {
-          id: {
-            in: personsIdsToCheckIfShouldBeDeleted,
-          },
-          TallyPerson: {
-            none: {},
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (personsToDelete.length > 0) {
-        const personsToDeleteIds = personsToDelete.map(
-          (personToDelete) => personToDelete.id,
-        );
-        await prisma.person.deleteMany({
-          where: {
-            id: {
-              in: personsToDeleteIds,
-            },
-          },
-        });
-      }
     });
   } catch (error) {
     return { statusCode: 1 };
