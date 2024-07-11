@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Input } from "@/components/input";
 import { exportDailyTallys } from "@/serverActions/exportToCSV";
 import {
   IconCheck,
@@ -35,6 +36,8 @@ const ExportHome = ({
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
   const [loadingExport, setLoadingExport] = useState(false);
+  const [desiredNumberObservations, setDesiredNumberObservations] = useState(4);
+  const [missingTallySaveWarning, setMissingTallySaveWarning] = useState(false);
   const handleTallysExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
       return;
@@ -49,7 +52,7 @@ const ExportHome = ({
       locations.map((location) => location.id),
       tallysIds,
       ["name", "id", "date"],
-      4,
+      desiredNumberObservations,
     );
     if (csvObj?.CSVstringWeekdays) {
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
@@ -81,7 +84,6 @@ const ExportHome = ({
         }
       }
     }
-
     setLoadingExport(false);
   };
   return (
@@ -135,14 +137,43 @@ const ExportHome = ({
             );
           })}
         </div>
-        <Button
-          isDisabled={loadingExport}
-          onPress={() => {
-            handleTallysExport().catch(() => ({ statusCode: 1 }));
-          }}
-        >
-          {loadingExport ? "Exportando..." : "Exportar"}
-        </Button>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="desired-number-tallys">
+            Selecione o número desejável de observações por dia
+          </label>
+          <Input
+            id="desired-number-tallys"
+            type="number"
+            onChange={(e) => {
+              const value = Number(e);
+              if (value > 0) {
+                setDesiredNumberObservations(value);
+              }
+            }}
+            value={desiredNumberObservations.toString()}
+          />
+          {missingTallySaveWarning &&
+            selectedLocationsSaved.filter((location) => !location.saved)
+              .length !== 0 && (
+              <span className="text-redwood">{`${selectedLocationsSaved.filter((location) => !location.saved).length} ${selectedLocationsSaved.filter((location) => !location.saved).length === 1 ? "contagem" : "contagens"}  sem parâmetros salvos!`}</span>
+            )}
+          <Button
+            isDisabled={loadingExport}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingTallySaveWarning(false);
+                handleTallysExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingTallySaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport ? "Exportando..." : "Exportar"}
+          </Button>
+        </div>
       </div>
     </div>
   );
