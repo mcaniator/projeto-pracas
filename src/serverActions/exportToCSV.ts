@@ -29,6 +29,18 @@ interface TallyDataToProcessType {
   };
   tallyPerson: TallyPerson[];
 }
+interface TallyDataToProcessTypeWithoutLocation {
+  startDate: Date;
+  endDate: Date | null;
+  observer: string;
+  animalsAmount: number | null;
+  groups: number | null;
+  temperature: number | null;
+  weatherCondition: WeatherConditions | null;
+  commercialActivities: JsonValue | null;
+  locationId: number;
+  tallyPerson: TallyPerson[];
+}
 const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   hour12: false,
@@ -904,7 +916,217 @@ const exportDailyTally = async (
     .join("\n");
   return CSVstring;
 };
+const exportDailyTallys2 = async (
+  locationIds: number[],
+  tallysIds: number[],
+  sortCriteriaOrder: SortOrderType[],
+  numberObservations: number,
+) => {
+  let locationObjs = await prisma.location.findMany({
+    where: {
+      id: {
+        in: locationIds,
+      },
+    },
+    select: {
+      name: true,
+      id: true,
+      createdAt: true,
+      tally: {
+        where: {
+          id: {
+            in: tallysIds,
+          },
+        },
+        include: {
+          tallyPerson: {
+            select: {
+              person: {
+                select: {
+                  ageGroup: true,
+                  gender: true,
+                  activity: true,
+                  isTraversing: true,
+                  isPersonWithImpairment: true,
+                  isInApparentIllicitActivity: true,
+                  isPersonWithoutHousing: true,
+                },
+              },
+              quantity: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
+  locationObjs = locationObjs.sort((a, b) => {
+    for (const criteria of sortCriteriaOrder) {
+      switch (criteria) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "id":
+          return a.id - b.id;
+        case "date":
+          return a.createdAt.getTime() - b.createdAt.getTime();
+        default:
+          return 0;
+      }
+    }
+    return 0;
+  });
+
+  let maxWeekdays = 0;
+  let maxWeekendDays = 0;
+  const locationsWithTallyGroupsByDate = locationObjs.map((location) => {
+    const tallyGroupsByDate = location.tally.reduce<{
+      [key: string]: typeof location.tally;
+    }>((acc, tally) => {
+      const weekday = tally.startDate.toLocaleString("pt-BR", {
+        weekday: "short",
+      });
+      const year = tally.startDate.getFullYear();
+      const month = String(tally.startDate.getMonth() + 1).padStart(2, "0");
+      const day = String(tally.startDate.getDate()).padStart(2, "0");
+      const key = `${weekday}-${year}-${month}-${day}`;
+      if (key) {
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        const currentAccElement = acc[key];
+        if (currentAccElement) {
+          currentAccElement.push(tally);
+        }
+      }
+      return acc;
+    }, {});
+
+    const tallyGroupsByDateAndDayClassication: {
+      weekendDays: (typeof tallyGroupsByDate)[];
+      weekdays: (typeof tallyGroupsByDate)[];
+    } = { weekendDays: [], weekdays: [] };
+    for (const tallyGroupByDateKey of Object.keys(tallyGroupsByDate)) {
+      const dayName = tallyGroupByDateKey.split("-")[0];
+      if (dayName === "dom." || dayName === "sáb.") {
+        const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
+        if (tallyGroupToSort) {
+          tallyGroupsByDateAndDayClassication.weekendDays.push({
+            [tallyGroupByDateKey]: tallyGroupToSort,
+          });
+        }
+      } else {
+        const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
+        if (tallyGroupToSort) {
+          tallyGroupsByDateAndDayClassication.weekdays.push({
+            [tallyGroupByDateKey]: tallyGroupToSort,
+          });
+        }
+      }
+    }
+    tallyGroupsByDateAndDayClassication.weekdays.sort((a, b) => {
+      const keyA = Object.keys(a)[0];
+      const keyB = Object.keys(b)[0];
+      if (keyA && keyB) {
+        const objArrayA = a[keyA];
+        const objArrayB = b[keyB];
+        if (objArrayA && objArrayB) {
+          const objA = objArrayA[0];
+          const objB = objArrayB[0];
+          if (objA && objB) {
+            return objA.startDate.getTime() - objB.startDate.getTime();
+          } else {
+            return 0;
+          }
+        } else {
+          return 0;
+        }
+      } else {
+        return 0;
+      }
+    });
+    tallyGroupsByDateAndDayClassication.weekendDays.sort((a, b) => {
+      const keyA = Object.keys(a)[0];
+      const keyB = Object.keys(b)[0];
+      if (keyA && keyB) {
+        const objArrayA = a[keyA];
+        const objArrayB = b[keyB];
+        if (objArrayA && objArrayB) {
+          const objA = objArrayA[0];
+          const objB = objArrayB[0];
+          if (objA && objB) {
+            return objA.startDate.getTime() - objB.startDate.getTime();
+          } else {
+            return 0;
+          }
+        } else {
+          return 0;
+        }
+      } else {
+        return 0;
+      }
+    });
+    const weekdays = tallyGroupsByDateAndDayClassication.weekdays.length;
+    const weekendDays = tallyGroupsByDateAndDayClassication.weekendDays.length;
+    if (maxWeekdays < weekdays) maxWeekdays = weekdays;
+    if (maxWeekendDays < weekendDays) maxWeekendDays = weekendDays;
+    return {
+      location: {
+        id: location.id,
+        name: location.name,
+        createdAt: location.createdAt,
+      },
+      tallyGroupsByDateAndDayClassication,
+    };
+  });
+  const CSVstringWeekdays: string[] = [];
+  const CSVstringWeekendDays: string[] = [];
+  for (let i = 0; i < maxWeekdays; i++) {
+    let CSVstring =
+      "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+    CSVstring +=
+      ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+    CSVstring +=
+      "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
+    CSVstring += locationsWithTallyGroupsByDate
+      .map((locationObj) => {
+        const observers =
+          locationObj.tallyGroupsByDateAndDayClassication.weekdays
+            .map((tally) => tally.observer)
+            .filter((observer, index, self) => self.indexOf(observer) === index)
+            .join(" / ");
+
+        let fourTallys = 0;
+        if (
+          locationObj.tallyGroupsByDateAndDayClassication.weekdays.length == 4
+        )
+          fourTallys = 1;
+        const tallys: TallyDataToProcessTypeWithoutLocation[] = [];
+        const tallyWithKey =
+          locationObj.tallyGroupsByDateAndDayClassication.weekdays[0];
+        locationObj.tallyGroupsByDateAndDayClassication.weekdays.shift();
+
+        if (tallyWithKey) {
+          const key = Object.keys(tallyWithKey)[0];
+          if (key) {
+            const tallysToPush = tallyWithKey[key];
+            if (tallysToPush) {
+              tallys.push(...tallysToPush);
+            }
+          }
+        }
+        console.log(tallys);
+        const dataLine =
+          processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
+        return `${locationObj.location.id},${locationObj.location.name},${observers},${fourTallys},${dataLine}`;
+      })
+      .join("\n");
+
+    CSVstringWeekdays.push(CSVstring);
+  }
+  return {
+    CSVstringWeekdays,
+  };
+};
 const exportDailyTallys = async (
   tallysIds: number[],
   sortCriteriaOrder: SortOrderType[],
@@ -1227,7 +1449,7 @@ const exportIndividualTallysToCSV = async (
 
 //Functions below are used to process  and format tally content and are called by other functions
 const processAndFormatTallyDataLineWithAddedContent = (
-  tallys: TallyDataToProcessType[],
+  tallys: TallyDataToProcessTypeWithoutLocation[],
 ) => {
   if (tallys.length === 0)
     return {
@@ -1532,5 +1754,6 @@ export {
   exportAllIndividualTallysToCsv,
   exportDailyTally,
   exportDailyTallys,
+  exportDailyTallys2,
   exportDailyTallysWithDateInfo,
 };

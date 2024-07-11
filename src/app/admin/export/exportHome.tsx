@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { exportDailyTallys } from "@/serverActions/exportToCSV";
+import {
+  exportDailyTallys,
+  exportDailyTallys2,
+} from "@/serverActions/exportToCSV";
 import {
   IconCheck,
   IconCircleMinus,
@@ -45,17 +48,31 @@ const ExportHome = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
 
-    let csvString = "";
+    //let csvString = "";
     setLoadingExport(true);
-    csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
-    const blob = new Blob([csvString]);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "Contagens diárias.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvObj = await exportDailyTallys2(
+      locations.map((location) => location.id),
+      tallysIds,
+      ["name", "id", "date"],
+      4,
+    );
+    //csvString = await exportDailyTallys(tallysIds, ["name", "id", "date"]);
+    if (csvObj?.CSVstringWeekdays) {
+      for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
+        const csvString = csvObj.CSVstringWeekdays[i];
+        if (csvString) {
+          const blob = new Blob([csvString]);
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", `Contagem-Semana-Dia${i + 1}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    }
+
     setLoadingExport(false);
   };
   return (
