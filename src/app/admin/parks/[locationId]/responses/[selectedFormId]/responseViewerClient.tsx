@@ -25,12 +25,6 @@ const ResponseViewerClient = ({
   formId: number;
 }) => {
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
-
-  console.log("Initial questions:", questions);
-  console.log("Initial options:", options);
-  console.log("Initial responses:", responses);
-  console.log("Initial envios:", envios);
-
   if (questions === null) {
     return <div>Ainda não há perguntas neste formulário</div>;
   }
@@ -64,8 +58,6 @@ const ResponseViewerClient = ({
     {} as { [key: number]: Response[] },
   );
 
-  console.log("Responses by questionId:", responsesByQuestionId);
-
   const optionsByQuestionId = options.reduce(
     (acc, option) => {
       acc[option.questionId] = option.options;
@@ -73,8 +65,6 @@ const ResponseViewerClient = ({
     },
     {} as { [key: number]: { id: number; text: string; frequency: number }[] },
   );
-
-  console.log("Options by questionId:", optionsByQuestionId);
 
   const sortedEnvios = [...envios].sort(
     (a, b) => new Date(b.envioId).getTime() - new Date(a.envioId).getTime(),

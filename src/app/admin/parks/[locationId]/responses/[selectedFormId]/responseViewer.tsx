@@ -93,8 +93,6 @@ const ResponseViewer = async ({
             {} as { [key: number]: number },
           );
 
-        console.log("responseFrequencies:", responseFrequencies);
-
         return {
           questionId: question.id,
           options: options.map((option) => ({
