@@ -25,7 +25,11 @@ const ResponseViewer = async ({
   const responses = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
-        const options = await searchResponsesOptionsByQuestionId(question.id);
+        const options = await searchResponsesOptionsByQuestionId(
+          question.id,
+          formId,
+          locationId,
+        );
         return options.map((option) => ({
           id: option.id,
           type: question.type,
@@ -34,6 +38,7 @@ const ResponseViewer = async ({
           formId: formId,
           questionId: question.id,
           response: null,
+          optionId: option.optionId,
           createdAt: option.createdAt,
         }));
       } else {
@@ -51,6 +56,7 @@ const ResponseViewer = async ({
           questionId: question.id,
           response: response.response,
           createdAt: response.createdAt,
+          optionId: null,
         }));
       }
     }),
@@ -83,11 +89,15 @@ const ResponseViewer = async ({
           .filter((response) => response.questionId === question.id)
           .reduce(
             (acc, response) => {
-              acc[response.id] = response.frequency;
+              if (response.optionId) {
+                acc[response.optionId] = response.frequency;
+              }
               return acc;
             },
             {} as { [key: number]: number },
           );
+
+        console.log("responseFrequencies:", responseFrequencies);
 
         return {
           questionId: question.id,

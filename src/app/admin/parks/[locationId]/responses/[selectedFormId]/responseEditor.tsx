@@ -160,11 +160,11 @@ const ResponseEditor = ({
         </>
       : questions !== null && responsesSent === true ?
         <div className="flex-row text-4xl">
-          Respostas enviadas com sucesso!
+          Respostas alteradas com sucesso!
           <div>
-            <Link href={"/admin/parks/"}>
+            <Link href={`/admin/parks/${locationId}/responses/${formId}`}>
               <Button className="text-white" variant={"default"}>
-                <span className="-mb-1">Voltar à seleção</span>
+                <span className="-mb-1">Recarregar</span>
               </Button>
             </Link>
           </div>
