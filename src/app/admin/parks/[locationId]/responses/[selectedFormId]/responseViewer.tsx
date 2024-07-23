@@ -33,7 +33,7 @@ const ResponseViewer = async ({
           locationId: locationId,
           formId: formId,
           questionId: question.id,
-          response: null,
+          response: option.id.toString(),
           createdAt: option.createdAt,
         }));
       } else {

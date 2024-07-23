@@ -106,6 +106,8 @@ const ResponseEditor = ({
                     <div>
                       {questionOptions.map((option) => (
                         <div key={option.id}>
+                          <p>{option.id}</p>
+                          <p>{responsesState[question.id]?.value}</p>
                           <input
                             type="radio"
                             id={`option${option.id}`}
@@ -113,7 +115,7 @@ const ResponseEditor = ({
                             value={option.id}
                             checked={
                               responsesState[question.id]?.value ===
-                              String(option.id)
+                              option.id.toString()
                             }
                             onChange={(e) =>
                               handleResponseChange(
