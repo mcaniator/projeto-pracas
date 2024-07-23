@@ -25,11 +25,7 @@ const ResponseViewer = async ({
   const responses = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
-        const options = await searchResponsesOptionsByQuestionId(
-          question.id,
-          formId,
-          locationId,
-        );
+        const options = await searchResponsesOptionsByQuestionId(question.id);
         return options.map((option) => ({
           id: option.id,
           type: question.type,
@@ -37,7 +33,7 @@ const ResponseViewer = async ({
           locationId: locationId,
           formId: formId,
           questionId: question.id,
-          response: null,
+          response: option.optionId.toString(),
           optionId: option.optionId,
           createdAt: option.createdAt,
         }));
