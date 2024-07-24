@@ -5,7 +5,7 @@ import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys
 import { prisma } from "@/lib/prisma";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { RedirectType, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 interface WeatherStats {
   temperature: number | null;
@@ -308,7 +308,7 @@ const deleteTallys = async (tallysIds: number[]) => {
 };
 
 const redirectToTallysList = (locationId: number) => {
-  redirect(`/admin/parks/${locationId}/tallys`, RedirectType.replace);
+  redirect(`/admin/parks/${locationId}/tallys`);
 };
 
 export {

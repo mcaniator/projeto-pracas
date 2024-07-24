@@ -81,9 +81,6 @@ const TallyInProgressDatabaseOptions = ({
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
     await deleteTallys([tallyId]);
     redirectToTallysList(locationId);
-    //redirect()
-    //router.back();
-    //router.refresh();
   };
 
   return (
