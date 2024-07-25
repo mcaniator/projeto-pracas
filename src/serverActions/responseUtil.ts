@@ -180,10 +180,23 @@ const searchResponsesByQuestionFormLocation = async (
   });
 };
 
+const searchResponsesByLocation = async (locationId: number) => {
+  return await prisma.response.findMany({
+    where: {
+      locationId: locationId,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+    },
+  });
+};
+
 export {
   addResponses,
   updateResponse,
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionId,
   searchResponsesByQuestionFormLocation,
+  searchResponsesByLocation,
 };

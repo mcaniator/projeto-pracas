@@ -827,6 +827,49 @@ const exportFullSpreadsheetToCSV = async (
   return result;
 };
 
+const exportRegistrationData = async (
+  locationsIds: number[],
+  sortCriteriaOrder: SortOrderType[],
+) => {
+  const locations = await prisma.location.findMany({
+    where: {
+      id: {
+        in: locationsIds,
+      },
+    },
+  });
+
+  let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,,\n";
+  CSVstring += ",,,,,,,,,,,\n";
+  CSVstring +=
+    "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Prefeito,Legislação\n";
+  CSVstring += locations
+    .map((location) => {
+      const locationString = [
+        location.id,
+        location.name,
+        location.popularName ? location.popularName : "",
+        locationCategoriesMap.has(location.category) ?
+          locationCategoriesMap.get(location.category)
+        : "",
+        location.type ? LocationTypesMap.get(location.type) : "",
+        location.notes ? location.notes : "",
+        `${location.firstStreet} / ${location.secondStreet}`,
+        location.creationYear?.toLocaleDateString("pt-BR", { year: "numeric" }),
+        location.lastMaintenanceYear?.toLocaleDateString("pt-BR", {
+          year: "numeric",
+        }),
+        location.overseeingMayor,
+        location.legislation,
+      ].join(",");
+
+      return locationString;
+    })
+    .join("\n");
+
+  return CSVstring;
+};
+
 /**
  * This function must revceive locations and it's tallys which were made in the same day (Currently 4 max).
  * @param locationsIds
@@ -1797,4 +1840,5 @@ export {
   exportDailyTally,
   exportDailyTallys,
   exportDailyTallysWithDateInfo,
+  exportRegistrationData,
 };

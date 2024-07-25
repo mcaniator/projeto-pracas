@@ -8,7 +8,7 @@ import Fuse, { FuseResult } from "fuse.js";
 import { useState } from "react";
 import React from "react";
 
-import { SelectedLocationTallyObj } from "./client";
+import { SelectedLocationObj } from "./client";
 
 const LocationComponent = ({
   id,
@@ -17,9 +17,7 @@ const LocationComponent = ({
 }: {
   id: number;
   name: string;
-  handleSelectedLocationsAddition: (
-    locationObj: SelectedLocationTallyObj,
-  ) => void;
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   return (
     <div
@@ -33,6 +31,7 @@ const LocationComponent = ({
             id,
             assessmentId: undefined,
             tallysIds: [],
+            exportRegistrationInfo: false,
           });
         }}
         variant={"ghost"}
@@ -49,13 +48,11 @@ const LocationList = ({
   handleSelectedLocationsAddition,
 }: {
   locations: FuseResult<{ id: number; name: string }>[];
-  selectedLocations: SelectedLocationTallyObj[];
-  handleSelectedLocationsAddition: (
-    locationObj: SelectedLocationTallyObj,
-  ) => void;
+  selectedLocations: SelectedLocationObj[];
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   return (
-    <div className="w-full text-black">
+    <div className="w-full overflow-auto text-black">
       {locations.map(
         (location, index) =>
           !selectedLocations.some(
@@ -79,10 +76,8 @@ const ParkSearch = ({
   handleSelectedLocationsAddition,
 }: {
   location: { id: number; name: string }[];
-  selectedLocations: SelectedLocationTallyObj[];
-  handleSelectedLocationsAddition: (
-    locationObj: SelectedLocationTallyObj,
-  ) => void;
+  selectedLocations: SelectedLocationObj[];
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
 }) => {
   const fuseHaystack = new Fuse(location, { keys: ["name"] });
   const [hay, setHay] = useState(search("", location, fuseHaystack));

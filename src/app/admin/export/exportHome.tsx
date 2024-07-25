@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
-import { exportDailyTallys } from "@/serverActions/exportToCSV";
+import {
+  exportDailyTallys,
+  exportRegistrationData,
+} from "@/serverActions/exportToCSV";
 import {
   IconCheck,
   IconCircleMinus,
@@ -13,37 +16,58 @@ import { useState } from "react";
 
 import {
   ExportPageModes,
+  SelectedLocationObj,
   SelectedLocationSavedObj,
-  SelectedLocationTallyObj,
 } from "./client";
 import { ParkSearch } from "./parkSearch";
 
 const ExportHome = ({
   locations,
-  selectedLocationsTallys,
+  selectedLocationsObjs,
   selectedLocationsSaved,
   handleSelectedLocationsAddition,
   handleSelectedLocationsRemoval,
   handlePageStateChange,
 }: {
   locations: { id: number; name: string }[];
-  selectedLocationsTallys: SelectedLocationTallyObj[];
+  selectedLocationsObjs: SelectedLocationObj[];
   selectedLocationsSaved: SelectedLocationSavedObj[];
-  handleSelectedLocationsAddition: (
-    locationObj: SelectedLocationTallyObj,
-  ) => void;
+  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
   const [loadingExport, setLoadingExport] = useState(false);
   const [desiredNumberObservations, setDesiredNumberObservations] = useState(4);
   const [missingTallySaveWarning, setMissingTallySaveWarning] = useState(false);
+  const handleRegistrationDataExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
+    setLoadingExport(true);
+    const locationsIds = selectedLocationsObjs.map((location) => location.id);
+    const csvString = await exportRegistrationData(locationsIds, [
+      "name",
+      "id",
+      "date",
+    ]);
+    if (csvString) {
+      const blob = new Blob([csvString]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Informações-Cadastro.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    setLoadingExport(false);
+  };
   const handleTallysExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
       return;
     }
     const tallysIds: number[] = [];
-    selectedLocationsTallys.forEach((location) =>
+    selectedLocationsObjs.forEach((location) =>
       tallysIds.push(...location.tallysIds),
     );
     if (!tallysIds || tallysIds.length === 0) return;
@@ -87,21 +111,21 @@ const ExportHome = ({
     setLoadingExport(false);
   };
   return (
-    <div className="flex flex-row gap-5">
-      <div className="flex flex-col gap-1">
+    <div className="flex flex-row gap-5 overflow-auto">
+      <div className="flex flex-col gap-1 overflow-auto">
         <h4 className="text-xl font-semibold">
           Selecione as praças as quais deseja exportar dados
         </h4>
         <ParkSearch
           location={locations}
-          selectedLocations={selectedLocationsTallys}
+          selectedLocations={selectedLocationsObjs}
           handleSelectedLocationsAddition={handleSelectedLocationsAddition}
         />
       </div>
 
-      <div className="w-fit overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+      <div className="flex w-fit flex-col overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
-        <div className="flex flex-col">
+        <div className="flex flex-col overflow-auto rounded-md">
           {selectedLocationsSaved.map((locationObj, index) => {
             const locationObject = locations.find(
               (item) => item.id === locationObj.id,
@@ -171,7 +195,23 @@ const ExportHome = ({
               }
             }}
           >
-            {loadingExport ? "Exportando..." : "Exportar"}
+            {loadingExport ? "Exportando..." : "Exportar contagens"}
+          </Button>
+          <Button
+            isDisabled={loadingExport}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingTallySaveWarning(false);
+                handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingTallySaveWarning(true);
+              }
+            }}
+          >
+            Exportar dados de cadastro
           </Button>
         </div>
       </div>
