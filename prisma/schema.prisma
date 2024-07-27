@@ -295,7 +295,6 @@ model Option {
 
 model ResponseOption {
   id         Int      @id @default(autoincrement())
-  frequency  Int      @default(1)
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 

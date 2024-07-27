@@ -29,7 +29,6 @@ const ResponseViewer = async ({
         return options.map((option) => ({
           id: option.id,
           type: question.type,
-          frequency: option.frequency,
           locationId: locationId,
           formId: formId,
           questionId: question.id,
@@ -85,7 +84,7 @@ const ResponseViewer = async ({
           .reduce(
             (acc, response) => {
               if (response.optionId) {
-                acc[response.optionId] = response.frequency;
+                acc[response.optionId] = 0;
               }
               return acc;
             },

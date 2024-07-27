@@ -35,37 +35,14 @@ const addResponses = async (
     } else if (questionType === QuestionTypes.OPTIONS && response) {
       const optionId = parseInt(response);
 
-      const existingResponseOption = await prisma.responseOption.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
+      await prisma.responseOption.create({
+        data: {
           locationId: locationId,
+          formId: formId,
+          questionId: questionId,
           optionId: optionId,
         },
       });
-
-      if (existingResponseOption) {
-        await prisma.responseOption.update({
-          where: {
-            id: existingResponseOption.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
-            },
-          },
-        });
-      } else {
-        await prisma.responseOption.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            optionId: optionId,
-            frequency: 1,
-          },
-        });
-      }
     }
   } catch (err) {
     return { statusCode: 2 };
