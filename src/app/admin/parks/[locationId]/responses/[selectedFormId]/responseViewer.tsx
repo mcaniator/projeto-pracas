@@ -46,7 +46,6 @@ const ResponseViewer = async ({
         return responses.map((response) => ({
           id: response.id,
           type: question.type,
-          frequency: response.frequency,
           locationId: locationId,
           formId: formId,
           questionId: question.id,
