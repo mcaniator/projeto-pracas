@@ -13,39 +13,15 @@ const addResponses = async (
 ) => {
   try {
     if (questionType === QuestionTypes.NUMERIC && response) {
-      const existingResponse = await prisma.response.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
+      await prisma.response.create({
+        data: {
           locationId: locationId,
-          type: QuestionTypes.NUMERIC,
+          formId: formId,
+          questionId: questionId,
+          type: questionType,
           response: response,
         },
       });
-
-      if (existingResponse) {
-        await prisma.response.update({
-          where: {
-            id: existingResponse.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
-            },
-          },
-        });
-      } else {
-        await prisma.response.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            type: questionType,
-            response: response,
-            frequency: 1,
-          },
-        });
-      }
     } else if (questionType === QuestionTypes.TEXT && response) {
       await prisma.response.create({
         data: {

@@ -263,7 +263,6 @@ model Question {
 model Response {
   id         Int           @id @default(autoincrement())
   type       QuestionTypes
-  frequency  Int           @default(1)
   locationId Int           @map("location_id")
   location   Location      @relation(fields: [locationId], references: [id])
 
@@ -311,8 +310,7 @@ model ResponseOption {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  // @@map("response_option")
-  @@map("responseOption")
+  @@map("response_option")
 }
 
 model Form {
