@@ -60,7 +60,7 @@ const ResponseViewer = async ({
 
   const groupedResponses = flattenedResponses.reduce(
     (acc, response) => {
-      const dateKey = new Date(response.createdAt).toISOString().slice(0, 16);
+      const dateKey = new Date(response.createdAt).toISOString();
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
