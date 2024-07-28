@@ -99,10 +99,16 @@ const searchResponsesByQuestionId = async (questionId: number) => {
   });
 };
 
-const searchResponsesOptionsByQuestionId = async (questionId: number) => {
+const searchResponsesOptionsByQuestionFormLocation = async (
+  questionId: number,
+  formId: number,
+  locationId: number,
+) => {
   return await prisma.responseOption.findMany({
     where: {
-      questionId: questionId,
+      questionId,
+      locationId,
+      formId,
     },
   });
 };
@@ -125,6 +131,6 @@ export {
   addResponses,
   updateResponse,
   searchResponsesByQuestionId,
-  searchResponsesOptionsByQuestionId,
+  searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
 };

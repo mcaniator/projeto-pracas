@@ -2,7 +2,7 @@ import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 import { searchOptionsByQuestionId } from "@/serverActions/questionUtil";
 import {
   searchResponsesByQuestionFormLocation,
-  searchResponsesOptionsByQuestionId,
+  searchResponsesOptionsByQuestionFormLocation,
 } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 
@@ -25,7 +25,11 @@ const ResponseViewer = async ({
   const responses = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
-        const options = await searchResponsesOptionsByQuestionId(question.id);
+        const options = await searchResponsesOptionsByQuestionFormLocation(
+          question.id,
+          formId,
+          locationId,
+        );
         return options.map((option) => ({
           id: option.id,
           type: question.type,
