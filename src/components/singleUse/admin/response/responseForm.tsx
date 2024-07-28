@@ -35,17 +35,16 @@ const ResponseForm = ({
   };
 
   const handleSubmitResponse = () => {
-    Object.entries(responses).forEach(([questionId, { value, type }]) => {
-      if (value) {
-        void addResponses(
-          locationId,
-          formId,
-          parseInt(questionId),
-          type,
-          value,
-        );
-      }
-    });
+    const responsesArray = Object.entries(responses).map(
+      ([questionId, { value, type }]) => ({
+        locationId,
+        formId,
+        questionId: Number(questionId),
+        type,
+        response: value,
+      }),
+    );
+    void addResponses(responsesArray);
     setResponsesSent(!responsesSent);
   };
 

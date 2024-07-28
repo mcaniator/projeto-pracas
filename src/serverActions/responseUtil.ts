@@ -4,46 +4,34 @@ import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
-const addResponses = async (
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  response?: string,
-) => {
+interface ResponseToAdd {
+  locationId: number;
+  formId: number;
+  questionId: number;
+  type: QuestionTypes;
+  response?: string;
+}
+const addResponses = async (responses: ResponseToAdd[]) => {
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
   try {
-    if (questionType === QuestionTypes.NUMERIC && response) {
-      await prisma.response.create({
-        data: {
-          locationId: locationId,
-          formId: formId,
-          questionId: questionId,
-          type: questionType,
-          response: response,
-        },
-      });
-    } else if (questionType === QuestionTypes.TEXT && response) {
-      await prisma.response.create({
-        data: {
-          locationId: locationId,
-          formId: formId,
-          questionId: questionId,
-          type: questionType,
-          response: response,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS && response) {
-      const optionId = parseInt(response);
-
-      await prisma.responseOption.create({
-        data: {
-          locationId: locationId,
-          formId: formId,
-          questionId: questionId,
-          optionId: optionId,
-        },
-      });
-    }
+    await prisma.$transaction([
+      prisma.response.createMany({
+        data: responsesTextNumeric.map((response) => response),
+      }),
+      prisma.responseOption.createMany({
+        data: responsesOption.map((response) => ({
+          optionId: Number(response.response),
+          locationId: response.locationId,
+          formId: response.formId,
+          questionId: response.questionId,
+        })),
+      }),
+    ]);
   } catch (err) {
     return { statusCode: 2 };
   }
