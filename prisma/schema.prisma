@@ -249,9 +249,10 @@ model Question {
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?               @map("maximum_selections")
 
-  categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
-  options    Option[]
+  categoryId  Int      @map("category_id")
+  category    Category @relation(fields: [categoryId], references: [id])
+  subcategory String?  @db.VarChar(255)
+  options     Option[]
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
