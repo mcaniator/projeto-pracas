@@ -73,10 +73,9 @@ const ExportHome = ({
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport(true);
     const csvObj = await exportDailyTallys(
-      locations.map((location) => location.id),
+      selectedLocationsObjs.map((location) => location.id),
       tallysIds,
       ["name", "id", "date"],
-      desiredNumberObservations,
     );
     if (csvObj?.CSVstringWeekdays) {
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {

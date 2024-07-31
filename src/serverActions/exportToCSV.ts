@@ -870,100 +870,10 @@ const exportRegistrationData = async (
   return CSVstring;
 };
 
-/**
- * This function must revceive locations and it's tallys which were made in the same day (Currently 4 max).
- * @param locationsIds
- * @param tallysIds
- * @param sortCriteriaOrder - The sort criteria to order locations
- * @returns
- */
-const exportDailyTally = async (
-  locationsIds: number[],
-  tallysIds: number[],
-  sortCriteriaOrder: SortOrderType[],
-) => {
-  let locations = await prisma.location.findMany({
-    where: {
-      id: {
-        in: locationsIds,
-      },
-    },
-    include: {
-      tally: {
-        where: {
-          id: {
-            in: tallysIds,
-          },
-        },
-        include: {
-          location: {
-            select: {
-              name: true,
-            },
-          },
-          tallyPerson: {
-            select: {
-              person: {
-                select: {
-                  ageGroup: true,
-                  gender: true,
-                  activity: true,
-                  isTraversing: true,
-                  isPersonWithImpairment: true,
-                  isInApparentIllicitActivity: true,
-                  isPersonWithoutHousing: true,
-                },
-              },
-              quantity: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  locations = locations.sort((a, b) => {
-    for (const criteria of sortCriteriaOrder) {
-      switch (criteria) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "id":
-          return a.id - b.id;
-        case "date":
-          return a.createdAt.getTime() - b.createdAt.getTime();
-        default:
-          return 0;
-      }
-    }
-    return 0;
-  });
-  let CSVstring =
-    "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
-  CSVstring +=
-    ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-  CSVstring +=
-    "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
-  CSVstring += locations
-    .map((location) => {
-      const observers = location.tally
-        .map((tally) => tally.observer)
-        .filter((observer, index, self) => self.indexOf(observer) === index)
-        .join(" / ");
-
-      let fourTallys = 0;
-      if (location.tally.length == 4) fourTallys = 1;
-      const dataLine = processAndFormatTallyDataLineWithAddedContent(
-        location.tally,
-      ).tallyString;
-      return `${location.id},${location.name},${observers},${fourTallys},${dataLine}`;
-    })
-    .join("\n");
-  return CSVstring;
-};
 const exportDailyTallys = async (
   locationIds: number[],
   tallysIds: number[],
   sortCriteriaOrder: SortOrderType[],
-  desirednNumberObservations: number,
 ) => {
   let locationObjs = await prisma.location.findMany({
     where: {
@@ -1125,41 +1035,50 @@ const exportDailyTallys = async (
   const CSVstringWeekendDays: string[] = [];
   for (let i = 0; i < maxWeekdays; i++) {
     let CSVstring =
-      "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+      "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
     CSVstring +=
-      ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-    CSVstring += `Identificador,Nome da Praça,Observador(es),${desirednNumberObservations} horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
+      ",,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+    CSVstring += `Identificador,Nome da Praça,Observador(es),Dia,Data,Nº horários,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
     CSVstring += locationsWithTallyGroupsByDate
       .map((locationObj) => {
-        const observers =
-          locationObj.tallyGroupsByDateAndDayClassication.weekdays
-            .map((tally) => tally.observer)
-            .filter((observer, index, self) => self.indexOf(observer) === index)
-            .join(" / ");
-
-        let numberObservations = 0;
-        if (
-          locationObj.tallyGroupsByDateAndDayClassication.weekdays.length ==
-          desirednNumberObservations
-        )
-          numberObservations = 1;
+        let observers = "";
         const tallys: TallyDataToProcessTypeWithoutLocation[] = [];
         const tallyWithKey =
           locationObj.tallyGroupsByDateAndDayClassication.weekdays[0];
         locationObj.tallyGroupsByDateAndDayClassication.weekdays.shift();
-
+        let day = "";
+        let date = "";
+        let tallysInAday = "";
         if (tallyWithKey) {
           const key = Object.keys(tallyWithKey)[0];
           if (key) {
             const tallysToPush = tallyWithKey[key];
             if (tallysToPush) {
               tallys.push(...tallysToPush);
+              observers = tallysToPush
+                .map((tally) => tally.observer)
+                .filter(
+                  (observer, index, self) => self.indexOf(observer) === index,
+                )
+                .join(" / ");
+              day =
+                tallysToPush[0]?.startDate.toLocaleString("pt-BR", {
+                  weekday: "short",
+                }) || "";
+              date =
+                tallysToPush[0]?.startDate.toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                }) || "";
+              tallysInAday = tallysToPush.length.toString();
             }
           }
         }
         const dataLine =
           processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
-        return `${locationObj.location.id},${locationObj.location.name},${observers},${numberObservations},${dataLine}`;
+
+        return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
       })
       .join("\n");
 
@@ -1167,41 +1086,50 @@ const exportDailyTallys = async (
   }
   for (let i = 0; i < maxWeekendDays; i++) {
     let CSVstring =
-      "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+      "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
     CSVstring +=
-      ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-    CSVstring += `Identificador,Nome da Praça,Observador(es),${desirednNumberObservations} horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
+      ",,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+    CSVstring += `Identificador,Nome da Praça,Observador(es),Dia,Data,Nº horários,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
     CSVstring += locationsWithTallyGroupsByDate
       .map((locationObj) => {
-        const observers =
-          locationObj.tallyGroupsByDateAndDayClassication.weekendDays
-            .map((tally) => tally.observer)
-            .filter((observer, index, self) => self.indexOf(observer) === index)
-            .join(" / ");
-
-        let numberObservations = 0;
-        if (
-          locationObj.tallyGroupsByDateAndDayClassication.weekendDays.length ==
-          desirednNumberObservations
-        )
-          numberObservations = 1;
+        let observers = "";
         const tallys: TallyDataToProcessTypeWithoutLocation[] = [];
         const tallyWithKey =
           locationObj.tallyGroupsByDateAndDayClassication.weekendDays[0];
         locationObj.tallyGroupsByDateAndDayClassication.weekendDays.shift();
-
+        let day = "";
+        let date = "";
+        let tallysInAday = "";
         if (tallyWithKey) {
           const key = Object.keys(tallyWithKey)[0];
           if (key) {
             const tallysToPush = tallyWithKey[key];
             if (tallysToPush) {
               tallys.push(...tallysToPush);
+              observers = tallysToPush
+                .map((tally) => tally.observer)
+                .filter(
+                  (observer, index, self) => self.indexOf(observer) === index,
+                )
+                .join(" / ");
+              day =
+                tallysToPush[0]?.startDate.toLocaleString("pt-BR", {
+                  weekday: "short",
+                }) || "";
+              date =
+                tallysToPush[0]?.startDate.toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                }) || "";
+              tallysInAday = tallysToPush.length.toString();
             }
           }
         }
         const dataLine =
           processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
-        return `${locationObj.location.id},${locationObj.location.name},${observers},${numberObservations},${dataLine}`;
+
+        return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
       })
       .join("\n");
 
@@ -1212,126 +1140,8 @@ const exportDailyTallys = async (
     CSVstringWeekendDays,
   };
 };
-/*const exportDailyTallys = async (
-  tallysIds: number[],
-  sortCriteriaOrder: SortOrderType[],
-) => {
-  let tallys = await prisma.tally.findMany({
-    where: {
-      id: {
-        in: tallysIds,
-      },
-    },
-    include: {
-      location: {
-        select: {
-          name: true,
-          id: true,
-          createdAt: true,
-        },
-      },
-      tallyPerson: {
-        select: {
-          person: {
-            select: {
-              ageGroup: true,
-              gender: true,
-              activity: true,
-              isTraversing: true,
-              isPersonWithImpairment: true,
-              isInApparentIllicitActivity: true,
-              isPersonWithoutHousing: true,
-            },
-          },
-          quantity: true,
-        },
-      },
-    },
-  });
 
-  let CSVstring =
-    "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
-  CSVstring +=
-    ",,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-  CSVstring +=
-    "Identificador,Nome da Praça,Observador(es),4 horários?,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
-
-  tallys = tallys.sort((a, b) => {
-    for (const criteria of sortCriteriaOrder) {
-      switch (criteria) {
-        case "name":
-          return a.location.name.localeCompare(b.location.name);
-        case "id":
-          return a.location.id - b.location.id;
-        case "date":
-          return (
-            a.location.createdAt.getTime() - b.location.createdAt.getTime()
-          );
-        default:
-          return 0;
-      }
-    }
-    return 0;
-  });
-  const tallyGroupsByLocation: { [key: number]: typeof tallys } = {};
-  for (const tally of tallys) {
-    if (!tallyGroupsByLocation[tally.location.id]) {
-      tallyGroupsByLocation[tally.location.id] = [];
-    }
-    const currentGroup = tallyGroupsByLocation[tally.location.id];
-    if (currentGroup) {
-      currentGroup.push(tally);
-    }
-  }
-
-  CSVstring += Object.entries(tallyGroupsByLocation)
-    .map(([locationId, value]) => {
-      value = value.sort(
-        (a, b) => a.startDate.getTime() - b.startDate.getTime(),
-      );
-      const tallysGroupsByDate = value.reduce<{ [key: string]: typeof tallys }>(
-        (acc, tally) => {
-          const year = tally.startDate.getFullYear();
-          const month = String(tally.startDate.getMonth() + 1).padStart(2, "0");
-          const day = String(tally.startDate.getDate()).padStart(2, "0");
-          const key = `${year}-${month}-${day}`;
-          if (key) {
-            if (!acc[key]) {
-              acc[key] = [];
-            }
-            const currentAccElement = acc[key];
-            if (currentAccElement) {
-              currentAccElement.push(tally);
-            }
-          }
-          return acc;
-        },
-        {},
-      );
-
-      return Object.entries(tallysGroupsByDate)
-        .map(([, tallyGroup]) => {
-          const observers = tallyGroup
-            .map((tally) => tally.observer)
-            .filter((observer, index, self) => self.indexOf(observer) === index)
-            .join(" / ");
-
-          let fourTallys = 0;
-          if (tallyGroup.length == 4) fourTallys = 1;
-          const dataLine =
-            processAndFormatTallyDataLineWithAddedContent(
-              tallyGroup,
-            ).tallyString;
-          return `${locationId},${tallyGroup[0]?.location.name},${observers},${fourTallys},${dataLine}`;
-        })
-        .join("\n");
-    })
-    .join("\n");
-
-  return CSVstring;
-};*/
-
-const exportDailyTallysWithDateInfo = async (
+const exportDailyTallysFromSingleLocation = async (
   tallysIds: number[],
   sortCriteriaOrder: SortOrderType[],
 ) => {
@@ -1837,8 +1647,7 @@ export {
   exportFullSpreadsheetToCSV,
   exportIndividualTallysToCSV,
   exportAllIndividualTallysToCsv,
-  exportDailyTally,
   exportDailyTallys,
-  exportDailyTallysWithDateInfo,
+  exportDailyTallysFromSingleLocation,
   exportRegistrationData,
 };
