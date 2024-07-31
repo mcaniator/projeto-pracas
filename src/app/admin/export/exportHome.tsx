@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import {
   exportDailyTallys,
   exportRegistrationData,
@@ -37,7 +36,6 @@ const ExportHome = ({
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
   const [loadingExport, setLoadingExport] = useState(false);
-  const [desiredNumberObservations, setDesiredNumberObservations] = useState(4);
   const [missingTallySaveWarning, setMissingTallySaveWarning] = useState(false);
   const handleRegistrationDataExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
@@ -161,20 +159,6 @@ const ExportHome = ({
           })}
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="desired-number-tallys">
-            Selecione o número desejável de observações por dia
-          </label>
-          <Input
-            id="desired-number-tallys"
-            type="number"
-            onChange={(e) => {
-              const value = Number(e);
-              if (value > 0) {
-                setDesiredNumberObservations(value);
-              }
-            }}
-            value={desiredNumberObservations.toString()}
-          />
           {missingTallySaveWarning &&
             selectedLocationsSaved.filter((location) => !location.saved)
               .length !== 0 && (

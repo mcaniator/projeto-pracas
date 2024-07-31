@@ -845,13 +845,15 @@ const exportRegistrationData = async (
     "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Prefeito,Legislação\n";
   CSVstring += locations
     .map((location) => {
+      let locationCategory = "";
+      if (location.category) {
+        locationCategory = locationCategoriesMap.get(location.category) || "";
+      }
       const locationString = [
         location.id,
         location.name,
         location.popularName ? location.popularName : "",
-        locationCategoriesMap.has(location.category) ?
-          locationCategoriesMap.get(location.category)
-        : "",
+        locationCategory,
         location.type ? LocationTypesMap.get(location.type) : "",
         location.notes ? location.notes : "",
         `${location.firstStreet} / ${location.secondStreet}`,
