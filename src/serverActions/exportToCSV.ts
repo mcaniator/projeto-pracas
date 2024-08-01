@@ -4,9 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { z } from "zod";
+import { number, z } from "zod";
 
 type SortOrderType = "id" | "name" | "date";
+type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
+interface FetchedSubmission {
+  id: number;
+  createdAt: Date;
+  type: AnswerType;
+}
 interface StreetsJsonType {
   [key: string]: string;
 }
@@ -872,6 +878,44 @@ const exportRegistrationData = async (
   return CSVstring;
 };
 
+const exportEvaluation = async (responsesWithType: FetchedSubmission[]) => {
+  const responsesIds = responsesWithType
+    .filter((response) => response.type === "RESPONSE")
+    .map((response) => response.id);
+  const responsesOptionsIds = responsesWithType
+    .filter((response) => response.type === "RESPONSE_OPTION")
+    .map((response) => response.id);
+
+  const responses = await prisma.response.findMany({
+    where: {
+      id: {
+        in: responsesIds,
+      },
+    },
+  });
+
+  const responsesOptions = await prisma.responseOption.findMany({
+    where: {
+      id: {
+        in: responsesOptionsIds,
+      },
+    },
+  });
+
+  const locationsWithResponses = responses.reduce<{
+    [key: number]: typeof responses;
+  }>((acc, response) => {
+    const key = response.locationId;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(response);
+    return acc;
+  }, {});
+
+  console.log(locationsWithResponses);
+};
+
 const exportDailyTallys = async (
   locationIds: number[],
   tallysIds: number[],
@@ -1652,4 +1696,7 @@ export {
   exportDailyTallys,
   exportDailyTallysFromSingleLocation,
   exportRegistrationData,
+  exportEvaluation,
 };
+
+export { type FetchedSubmission };

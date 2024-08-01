@@ -1,5 +1,6 @@
 "use client";
 
+import { FetchedSubmission } from "@/serverActions/exportToCSV";
 import { useState } from "react";
 
 import { EditPage } from "./editPage";
@@ -8,7 +9,7 @@ import { ExportHome } from "./exportHome";
 type ExportPageModes = "HOME" | "EDIT";
 interface SelectedLocationObj {
   id: number;
-  assessmentId: number | undefined;
+  responses: FetchedSubmission[];
   exportRegistrationInfo: boolean;
   tallysIds: number[];
 }
@@ -50,13 +51,18 @@ const ExportClientPage = ({
   };
   const handleSelectedLocationObjChange = (
     locationId: number,
+    responses: FetchedSubmission[],
     tallysIds: number[] | undefined,
     exportRegistrationInfo: boolean,
   ) => {
     setSelectedLocationsObjs((prev) =>
       prev.map((locationObj) =>
         locationObj.id === locationId ?
-          { ...locationObj, ...(tallysIds && { tallysIds: tallysIds }) }
+          {
+            ...locationObj,
+            ...(responses && { responses: responses }),
+            ...(tallysIds && { tallysIds: tallysIds }),
+          }
         : locationObj,
       ),
     );

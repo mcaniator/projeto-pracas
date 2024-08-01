@@ -2,8 +2,11 @@
 
 import { Button } from "@/components/button";
 import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
-import { Select } from "@/components/ui/select";
-import { searchResponsesByLocation } from "@/serverActions/responseUtil";
+import { FetchedSubmission } from "@/serverActions/exportToCSV";
+import {
+  searchResponsesByLocation,
+  searchResponsesOptionsByLocation,
+} from "@/serverActions/responseUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import {
   IconArrowBackUp,
@@ -13,7 +16,7 @@ import {
   IconDeviceFloppy,
   IconX,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 
 import {
@@ -25,10 +28,12 @@ import { SubmissionList } from "./submissionList";
 import { TallyList } from "./tallyList";
 
 type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
-/*interface FetchedSubmission{
+
+interface SubmissionGroup {
   id: number;
-  createdAt: Date
-}*/
+  date: string;
+}
+
 const EditPage = ({
   locationId,
   locations,
@@ -52,6 +57,7 @@ const EditPage = ({
   ) => void;
   handleSelectedLocationObjChange: (
     locationId: number,
+    responses: FetchedSubmission[],
     tallysIds: number[] | undefined,
     exportRegistrationInfo: boolean,
   ) => void;
@@ -64,7 +70,9 @@ const EditPage = ({
   >(null);
   const [fetchedSubmissionsStatus, setFetchedSubmissionsStatus] =
     useState<FetchedDataStatus>("LOADING");
-  const [fetchedSubmissions, setFetchedSubmissions] = useState<string[]>([]);
+  const [fetchedSubmissionsGroups, setFetchedSubmissionsGroups] = useState<
+    SubmissionGroup[]
+  >([]);
   useEffect(() => {
     setCurrentLocationId(locationId);
   }, [locationId]);
@@ -82,9 +90,23 @@ const EditPage = ({
       const fetchSubmissions = async () => {
         try {
           const responses = await searchResponsesByLocation(currentLocationId);
-          const groupedResponses = responses.reduce(
+          const responsesWithType: FetchedSubmission[] = responses.map(
+            (response) => ({ ...response, type: "RESPONSE" }),
+          );
+          const responsesOptions =
+            await searchResponsesOptionsByLocation(currentLocationId);
+          const responsesOptionsWithType: FetchedSubmission[] =
+            responsesOptions.map((responseOption) => ({
+              ...responseOption,
+              type: "RESPONSE_OPTION",
+            }));
+          const allResponsesWithType = responsesWithType.concat(
+            responsesOptionsWithType,
+          );
+          allResponsesWithTypeRef.current = allResponsesWithType;
+          const groupedResponses = allResponsesWithType.reduce(
             (acc, response) => {
-              const date = response.createdAt.toISOString().split("T")[0];
+              const date = response.createdAt.toString();
               if (date) {
                 if (!acc[date]) {
                   acc[date] = [];
@@ -95,7 +117,16 @@ const EditPage = ({
             },
             {} as { [key: string]: typeof responses },
           );
-          setFetchedSubmissions(Object.keys(groupedResponses));
+          //console.log(groupedResponses);
+          const groupedResponsesKeys = Object.keys(groupedResponses);
+          const groupedResponsesObjs: SubmissionGroup[] = [];
+          for (let i = 0; i < groupedResponsesKeys.length; i++) {
+            const date = groupedResponsesKeys[i];
+            if (date) {
+              groupedResponsesObjs.push({ id: i, date: date });
+            }
+          }
+          setFetchedSubmissionsGroups(groupedResponsesObjs);
           setFetchedSubmissionsStatus("LOADED");
         } catch (error) {
           setFetchedSubmissionsStatus("ERROR");
@@ -105,7 +136,12 @@ const EditPage = ({
       fetchSubmissions().catch(() => ({ statusCode: 1 }));
     }
   }, [currentLocationId]);
-  console.log(fetchedSubmissions);
+  //console.log(fetchedSubmissionsGroups);
+  const [selectedSubmissionsGroups, setSelectedSubmissionsGroups] = useState<
+    number[]
+  >([]);
+  const allResponsesWithTypeRef = useRef<FetchedSubmission[]>([]);
+  const selectedSubmissions = useRef<FetchedSubmission[]>([]);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const [exportRegistrationInfo, setExportRegistrationInfo] =
     useState<boolean>(false);
@@ -120,6 +156,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
+            selectedSubmissions.current,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -139,6 +176,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
+            selectedSubmissions.current,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -149,9 +187,46 @@ const EditPage = ({
   };
   const handleRegistrationInfoChange = (
     e: React.ChangeEvent<HTMLInputElement>,
+    removeSaveState: boolean,
   ) => {
     setExportRegistrationInfo(e.target.checked);
+    if (removeSaveState && currentLocationId) {
+      handleSelectedLocationsSaveChange(currentLocationId, false);
+    }
   };
+  const handleSubmissionGroupChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    removeSaveState: boolean,
+  ) => {
+    if (e.target.checked) {
+      if (!selectedSubmissionsGroups.includes(Number(e.target.value))) {
+        setSelectedSubmissionsGroups((prev) => [
+          ...prev,
+          Number(e.target.value),
+        ]);
+      }
+    } else if (selectedSubmissionsGroups.includes(Number(e.target.value))) {
+      setSelectedSubmissionsGroups((prev) =>
+        prev.filter(
+          (submissionGroupId) => submissionGroupId !== Number(e.target.value),
+        ),
+      );
+    }
+    if (removeSaveState && currentLocationId) {
+      handleSelectedLocationsSaveChange(currentLocationId, false);
+    }
+  };
+  useEffect(() => {
+    const submissionsToAddDates = fetchedSubmissionsGroups
+      .filter((group) => selectedSubmissionsGroups.includes(group.id))
+      .map((group) => group.date);
+
+    selectedSubmissions.current = allResponsesWithTypeRef.current.filter(
+      (response) =>
+        submissionsToAddDates.includes(response.createdAt.toString()),
+    );
+  }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);
+  //console.log(selectedSubmissions.current);
   const handleTallyChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     removeSaveState: boolean,
@@ -191,25 +266,24 @@ const EditPage = ({
         <input
           id="registration-info"
           type="checkbox"
-          onChange={(e) => handleRegistrationInfoChange(e)}
+          onChange={(e) => handleRegistrationInfoChange(e, true)}
           checked={exportRegistrationInfo}
         ></input>
         <label htmlFor="registration-info">Informações de cadastro</label>
       </div>
-
-      <label htmlFor="assessment">Avaliação física</label>
-      <Select id="assessment">
-        <option value="NONE">Nenhuma</option>
-      </Select>
       <h5>Avaliações físicas</h5>
       {fetchedSubmissionsStatus === "LOADING" && <span>Carregando...</span>}
       {fetchedSubmissionsStatus === "ERROR" && <span>Erro!</span>}
       {fetchedSubmissionsStatus === "LOADED" &&
-        fetchedSubmissions?.length === 0 && (
+        fetchedSubmissionsGroups?.length === 0 && (
           <span>Nenhuma avaliação física encontrada!</span>
         )}
-      {fetchedSubmissions && (
-        <SubmissionList dates={fetchedSubmissions}></SubmissionList>
+      {fetchedSubmissionsGroups && (
+        <SubmissionList
+          submissionsGroups={fetchedSubmissionsGroups}
+          selectedSubmissionsGroups={selectedSubmissionsGroups}
+          handleSubmissionGroupChange={handleSubmissionGroupChange}
+        ></SubmissionList>
       )}
       <h5>Contagens</h5>
       {fetchedTallysStatus === "LOADING" && <span>Carregando...</span>}
@@ -257,6 +331,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
+                  selectedSubmissions.current,
                   selectedTallys,
                   exportRegistrationInfo,
                 );
@@ -337,6 +412,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
+                  selectedSubmissions.current,
                   selectedTallys,
                   exportRegistrationInfo,
                 );
@@ -368,3 +444,4 @@ const EditPage = ({
 };
 
 export { EditPage };
+export { type SubmissionGroup };
