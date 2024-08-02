@@ -1442,7 +1442,10 @@ const processAndFormatTallyDataLineWithAddedContent = (
           totalCommericalActivities += value;
         }
       });
-      tallyMap.set("commercialActivities", totalCommericalActivities);
+      tallyMap.set(
+        "commercialActivities",
+        tallyMap.get("commercialActivities") + totalCommericalActivities,
+      );
     }
 
     for (const tallyPerson of tally.tallyPerson) {
