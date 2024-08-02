@@ -878,7 +878,10 @@ const exportRegistrationData = async (
   return CSVstring;
 };
 
-const exportEvaluation = async (responsesWithType: FetchedSubmission[]) => {
+const exportEvaluation = async (
+  locationsIds: number[],
+  responsesWithType: FetchedSubmission[],
+) => {
   const responsesIds = responsesWithType
     .filter((response) => response.type === "RESPONSE")
     .map((response) => response.id);
@@ -886,34 +889,42 @@ const exportEvaluation = async (responsesWithType: FetchedSubmission[]) => {
     .filter((response) => response.type === "RESPONSE_OPTION")
     .map((response) => response.id);
 
-  const responses = await prisma.response.findMany({
+  const locations = await prisma.location.findMany({
     where: {
       id: {
-        in: responsesIds,
+        in: locationsIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      response: {
+        where: {
+          id: {
+            in: responsesIds,
+          },
+        },
+        include: {
+          form: true,
+          question: true,
+        },
+      },
+      ResponseOption: {
+        where: {
+          id: {
+            in: responsesOptionsIds,
+          },
+        },
+        include: {
+          form: true,
+          question: true,
+          option: true,
+        },
       },
     },
   });
 
-  const responsesOptions = await prisma.responseOption.findMany({
-    where: {
-      id: {
-        in: responsesOptionsIds,
-      },
-    },
-  });
-
-  const locationsWithResponses = responses.reduce<{
-    [key: number]: typeof responses;
-  }>((acc, response) => {
-    const key = response.locationId;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(response);
-    return acc;
-  }, {});
-
-  console.log(locationsWithResponses);
+  console.log(locations);
 };
 
 const exportDailyTallys = async (

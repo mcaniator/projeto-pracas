@@ -3,6 +3,7 @@
 import { Button } from "@/components/button";
 import {
   exportDailyTallys,
+  exportEvaluation,
   exportRegistrationData,
 } from "@/serverActions/exportToCSV";
 import {
@@ -62,6 +63,18 @@ const ExportHome = ({
       document.body.removeChild(link);
     }
     setLoadingExport(false);
+  };
+  const handleEvaluationExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
+    const locationsToExportEvaluations = selectedLocationsObjs.filter(
+      (location) => location.responses.length > 0,
+    );
+    await exportEvaluation(
+      locationsToExportEvaluations.map((location) => location.id),
+      locationsToExportEvaluations.map((location) => location.responses).flat(),
+    );
   };
   const handleTallysExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
@@ -186,7 +199,22 @@ const ExportHome = ({
           >
             Exportar dados de cadastro
           </Button>
-          <Button>Exportar avaliações físicas</Button>
+          <Button
+            isDisabled={loadingExport}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingTallySaveWarning(false);
+                handleEvaluationExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingTallySaveWarning(true);
+              }
+            }}
+          >
+            Exportar avaliações físicas
+          </Button>
           <Button
             isDisabled={loadingExport}
             onPress={() => {
