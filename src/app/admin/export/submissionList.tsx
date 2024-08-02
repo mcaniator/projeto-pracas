@@ -3,23 +3,21 @@
 import { SubmissionGroup } from "./editPage";
 
 const SubmissionComponent = ({
-  date,
   checked,
-  submissionGroupId,
+  submissionGroup,
   handleSubmissionGroupChange,
 }: {
-  date: string;
   checked: boolean;
-  submissionGroupId: number;
+  submissionGroup: SubmissionGroup;
   handleSubmissionGroupChange(
     checked: boolean,
-    value: number,
+    submissionGroup: SubmissionGroup,
     removeSaveState: boolean,
   ): void;
 }) => {
   const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!(e.target instanceof HTMLInputElement)) {
-      handleSubmissionGroupChange(!checked, submissionGroupId, true);
+      handleSubmissionGroupChange(!checked, submissionGroup, true);
     }
   };
   return (
@@ -31,17 +29,16 @@ const SubmissionComponent = ({
         <input
           type="checkbox"
           checked={checked}
-          value={submissionGroupId}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             handleSubmissionGroupChange(
               e.target.checked,
-              Number(e.target.value),
+              submissionGroup,
               true,
             );
           }}
         />
-        {date}
+        {submissionGroup.date.toString()}
       </span>
     </div>
   );
@@ -53,26 +50,27 @@ const SubmissionList = ({
   handleSubmissionGroupChange,
 }: {
   submissionsGroups: SubmissionGroup[];
-  selectedSubmissionsGroups: number[];
+  selectedSubmissionsGroups: SubmissionGroup[];
   handleSubmissionGroupChange(
     checked: boolean,
-    value: number,
+    submissionGroup: SubmissionGroup,
     removeSaveState: boolean,
   ): void;
 }) => {
+  submissionsGroups.sort((a, b) => b.date.getTime() - a.date.getTime());
   return submissionsGroups === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
     : <div className="w-full overflow-auto p-2 text-black">
         {submissionsGroups.map((submissionGroup) => {
-          const checked = selectedSubmissionsGroups?.includes(
-            submissionGroup.id,
+          const checked = selectedSubmissionsGroups?.some(
+            (selectedSubmissionsGroup) =>
+              selectedSubmissionsGroup.id === submissionGroup.id,
           );
           return (
             <SubmissionComponent
-              date={submissionGroup.date}
               key={submissionGroup.id}
               checked={checked}
-              submissionGroupId={submissionGroup.id}
+              submissionGroup={submissionGroup}
               handleSubmissionGroupChange={handleSubmissionGroupChange}
             />
           );

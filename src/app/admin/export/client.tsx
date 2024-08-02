@@ -60,6 +60,7 @@ const ExportClientPage = ({
         locationObj.id === locationId ?
           {
             ...locationObj,
+            exportRegistrationInfo: exportRegistrationInfo,
             ...(responses && { responses: responses }),
             ...(tallysIds && { tallysIds: tallysIds }),
           }
@@ -67,13 +68,13 @@ const ExportClientPage = ({
       ),
     );
 
-    setSelectedLocationsObjs((prev) =>
+    /*setSelectedLocationsObjs((prev) =>
       prev.map((locationObj) =>
         locationObj.id === locationId ?
           { ...locationObj, exportRegistrationInfo }
         : locationObj,
       ),
-    );
+    );*/
   };
   const handleSelectedLocationsSaveChange = (
     locationId: number,
@@ -103,7 +104,7 @@ const ExportClientPage = ({
   ) => {
     setPageState({ pageMode, currentLocation: id });
   };
-  console.log(selectedLocationsObjs);
+  //console.log(selectedLocationsObjs);
   return (
     <div className="flex h-full max-h-full min-h-0 max-w-full gap-5 p-5">
       <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">

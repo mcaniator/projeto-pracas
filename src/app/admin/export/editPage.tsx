@@ -31,7 +31,7 @@ type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
 
 interface SubmissionGroup {
   id: number;
-  date: string;
+  date: Date;
 }
 
 const EditPage = ({
@@ -106,7 +106,7 @@ const EditPage = ({
           allResponsesWithTypeRef.current = allResponsesWithType;
           const groupedResponses = allResponsesWithType.reduce(
             (acc, response) => {
-              const date = response.createdAt.toString();
+              const date = response.createdAt.toISOString();
               if (date) {
                 if (!acc[date]) {
                   acc[date] = [];
@@ -123,7 +123,7 @@ const EditPage = ({
           for (let i = 0; i < groupedResponsesKeys.length; i++) {
             const date = groupedResponsesKeys[i];
             if (date) {
-              groupedResponsesObjs.push({ id: i, date: date });
+              groupedResponsesObjs.push({ id: i, date: new Date(date) });
             }
           }
           setFetchedSubmissionsGroups(groupedResponsesObjs);
@@ -138,10 +138,13 @@ const EditPage = ({
   }, [currentLocationId]);
   //console.log(fetchedSubmissionsGroups);
   const [selectedSubmissionsGroups, setSelectedSubmissionsGroups] = useState<
-    number[]
+    SubmissionGroup[]
   >([]);
   const allResponsesWithTypeRef = useRef<FetchedSubmission[]>([]);
-  const selectedSubmissions = useRef<FetchedSubmission[]>([]);
+  const [selectedSubmissions, setSelectedSubmissions] = useState<
+    FetchedSubmission[]
+  >([]);
+  //console.log(selectedSubmissions);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const [exportRegistrationInfo, setExportRegistrationInfo] =
     useState<boolean>(false);
@@ -156,7 +159,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
-            selectedSubmissions.current,
+            selectedSubmissions,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -176,7 +179,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
-            selectedSubmissions.current,
+            selectedSubmissions,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -196,33 +199,46 @@ const EditPage = ({
   };
   const handleSubmissionGroupChange = (
     checked: boolean,
-    value: number,
+    submissionGroup: SubmissionGroup,
     removeSaveState: boolean,
   ) => {
     if (checked) {
-      if (!selectedSubmissionsGroups.includes(value)) {
-        setSelectedSubmissionsGroups((prev) => [...prev, value]);
+      if (!selectedSubmissionsGroups.includes(submissionGroup)) {
+        setSelectedSubmissionsGroups((prev) => [...prev, submissionGroup]);
       }
-    } else if (selectedSubmissionsGroups.includes(value)) {
+    } else if (selectedSubmissionsGroups.includes(submissionGroup)) {
       setSelectedSubmissionsGroups((prev) =>
-        prev.filter((submissionGroupId) => submissionGroupId !== value),
+        prev.filter(
+          (prevSubmissionGroup) =>
+            prevSubmissionGroup.id !== submissionGroup.id,
+        ),
       );
     }
+    //console.log(selectedSubmissionsGroups);
     if (removeSaveState && currentLocationId) {
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
   };
   useEffect(() => {
     const submissionsToAddDates = fetchedSubmissionsGroups
-      .filter((group) => selectedSubmissionsGroups.includes(group.id))
+      .filter((group) =>
+        selectedSubmissionsGroups.some(
+          (selectedSubmissionGroup) => selectedSubmissionGroup.id === group.id,
+        ),
+      )
       .map((group) => group.date);
-
-    selectedSubmissions.current = allResponsesWithTypeRef.current.filter(
-      (response) =>
-        submissionsToAddDates.includes(response.createdAt.toString()),
+    //console.log(submissionsToAddDates);
+    //console.log(allResponsesWithTypeRef.current);
+    setSelectedSubmissions(
+      allResponsesWithTypeRef.current.filter((response) =>
+        submissionsToAddDates.some(
+          (element) =>
+            element.toISOString() === response.createdAt.toISOString(),
+        ),
+      ),
     );
   }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);
-  //console.log(selectedSubmissions.current);
+
   const handleTallyChange = (
     checked: boolean,
     value: number,
@@ -245,12 +261,21 @@ const EditPage = ({
     if (currentLocationObj) {
       setSelectedTallys(currentLocationObj.tallysIds);
       setExportRegistrationInfo(currentLocationObj.exportRegistrationInfo);
+      setSelectedSubmissionsGroups(
+        fetchedSubmissionsGroups.filter((fetchedSubmissionGroup) =>
+          currentLocationObj.responses.some(
+            (response) =>
+              response.createdAt.toISOString() ===
+              fetchedSubmissionGroup.date.toISOString(),
+          ),
+        ),
+      );
     }
-  }, [currentLocationId, selectedLocationsObjs]);
+  }, [currentLocationId, selectedLocationsObjs, fetchedSubmissionsGroups]);
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
-
+  //console.log(selectedSubmissionsGroups);
   const locationName =
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
@@ -326,7 +351,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
-                  selectedSubmissions.current,
+                  selectedSubmissions,
                   selectedTallys,
                   exportRegistrationInfo,
                 );
@@ -407,7 +432,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
-                  selectedSubmissions.current,
+                  selectedSubmissions,
                   selectedTallys,
                   exportRegistrationInfo,
                 );

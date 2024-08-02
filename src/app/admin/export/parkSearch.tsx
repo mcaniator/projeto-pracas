@@ -29,8 +29,8 @@ const LocationComponent = ({
         onPress={() => {
           handleSelectedLocationsAddition({
             id,
-            assessmentId: undefined,
             tallysIds: [],
+            responses: [],
             exportRegistrationInfo: false,
           });
         }}

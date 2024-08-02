@@ -73,6 +73,7 @@ const TallyList = ({
     removeSaveState: boolean,
   ): void;
 }) => {
+  tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return tallys === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
     : <div className="w-full overflow-auto p-2 text-black">
