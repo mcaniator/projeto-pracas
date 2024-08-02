@@ -195,21 +195,17 @@ const EditPage = ({
     }
   };
   const handleSubmissionGroupChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ) => {
-    if (e.target.checked) {
-      if (!selectedSubmissionsGroups.includes(Number(e.target.value))) {
-        setSelectedSubmissionsGroups((prev) => [
-          ...prev,
-          Number(e.target.value),
-        ]);
+    if (checked) {
+      if (!selectedSubmissionsGroups.includes(value)) {
+        setSelectedSubmissionsGroups((prev) => [...prev, value]);
       }
-    } else if (selectedSubmissionsGroups.includes(Number(e.target.value))) {
+    } else if (selectedSubmissionsGroups.includes(value)) {
       setSelectedSubmissionsGroups((prev) =>
-        prev.filter(
-          (submissionGroupId) => submissionGroupId !== Number(e.target.value),
-        ),
+        prev.filter((submissionGroupId) => submissionGroupId !== value),
       );
     }
     if (removeSaveState && currentLocationId) {
@@ -228,16 +224,15 @@ const EditPage = ({
   }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);
   //console.log(selectedSubmissions.current);
   const handleTallyChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ) => {
-    if (e.target.checked) {
-      if (!selectedTallys.includes(Number(e.target.value)))
-        setSelectedTallys((prev) => [...prev, Number(e.target.value)]);
-    } else if (selectedTallys.includes(Number(e.target.value))) {
-      setSelectedTallys((prev) =>
-        prev.filter((tallyId) => tallyId !== Number(e.target.value)),
-      );
+    if (checked) {
+      if (!selectedTallys.includes(value))
+        setSelectedTallys((prev) => [...prev, value]);
+    } else if (selectedTallys.includes(value)) {
+      setSelectedTallys((prev) => prev.filter((tallyId) => tallyId !== value));
     }
     if (removeSaveState && currentLocationId) {
       handleSelectedLocationsSaveChange(currentLocationId, false);

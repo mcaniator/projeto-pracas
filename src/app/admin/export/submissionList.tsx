@@ -12,19 +12,33 @@ const SubmissionComponent = ({
   checked: boolean;
   submissionGroupId: number;
   handleSubmissionGroupChange(
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ): void;
 }) => {
+  const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!(e.target instanceof HTMLInputElement)) {
+      handleSubmissionGroupChange(!checked, submissionGroupId, true);
+    }
+  };
   return (
-    <div className="mb-2 flex items-center justify-between rounded bg-white p-2">
+    <div
+      className="mb-2 flex items-center justify-between rounded bg-white p-2 outline-blue-500 hover:outline"
+      onClick={(e) => handleDivClick(e)}
+    >
       <span className="flex flex-row">
         <input
           type="checkbox"
           checked={checked}
           value={submissionGroupId}
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
-            handleSubmissionGroupChange(e, true);
+            handleSubmissionGroupChange(
+              e.target.checked,
+              Number(e.target.value),
+              true,
+            );
           }}
         />
         {date}
@@ -41,13 +55,14 @@ const SubmissionList = ({
   submissionsGroups: SubmissionGroup[];
   selectedSubmissionsGroups: number[];
   handleSubmissionGroupChange(
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ): void;
 }) => {
   return submissionsGroups === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
-    : <div className="w-full overflow-auto text-black">
+    : <div className="w-full overflow-auto p-2 text-black">
         {submissionsGroups.map((submissionGroup) => {
           const checked = selectedSubmissionsGroups?.includes(
             submissionGroup.id,

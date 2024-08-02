@@ -27,19 +27,29 @@ const TallyComponent = ({
   tallyId: number;
   checked: boolean;
   handleTallyChange(
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ): void;
 }) => {
+  const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!(e.target instanceof HTMLInputElement)) {
+      handleTallyChange(!checked, tallyId, true);
+    }
+  };
   const weekday = weekdayFormatter.format(startDate);
   return (
-    <div className="mb-2 flex items-center justify-between rounded bg-white p-2">
+    <div
+      className="mb-2 flex items-center justify-between rounded bg-white p-2 outline-blue-500 hover:outline"
+      onClick={(e) => handleDivClick(e)}
+    >
       <span className="flex flex-row">
         <input
           type="checkbox"
           value={tallyId}
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
-            handleTallyChange(e, true);
+            handleTallyChange(e.target.checked, Number(e.target.value), true);
           }}
           checked={checked}
         />
@@ -58,13 +68,14 @@ const TallyList = ({
   tallys: TallyDataFetchedToTallyList[];
   selectedTallys: number[];
   handleTallyChange(
-    e: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+    value: number,
     removeSaveState: boolean,
   ): void;
 }) => {
   return tallys === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
-    : <div className="w-full overflow-auto text-black">
+    : <div className="w-full overflow-auto p-2 text-black">
         {tallys.map((tally) => {
           const checked = selectedTallys?.includes(tally.id);
           return (
