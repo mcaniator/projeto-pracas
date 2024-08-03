@@ -194,10 +194,8 @@ model User {
 
   auth_session Session[]
 
-  response Response[]
-
-  assessmentId Int?        @map("assessment_id")
-  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+  response       Response[]
+  responseOption ResponseOption[]
 
   @@index([username])
   @@map("user")
@@ -321,8 +319,12 @@ model ResponseOption {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  formId Int  @map("form_id")
-  form   Form @relation(fields: [formId], references: [id])
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  formId      Int  @map("form_id")
+  form        Form @relation(fields: [formId], references: [id])
+  formVersion Int  @map("form_version")
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -477,7 +479,6 @@ model Assessment {
 
   startDate DateTime @map("start_date") @db.Timestamptz()
   endDate   DateTime @map("end_date") @db.Timestamptz()
-  user      User[]
 
   changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
   hasWifi             Boolean  @map("has_wifi")

@@ -10,13 +10,17 @@ import { useEffect, useState } from "react";
 const ResponseForm = ({
   locationId,
   formId,
+  formVersion,
   questions,
   options,
+  userId,
 }: {
   locationId: number;
   formId: number;
+  formVersion: number;
   questions: Question[] | null;
   options: { questionId: number; options: { id: number; text: string }[] }[];
+  userId: string;
 }) => {
   const [responses, setResponses] = useState<{
     [key: number]: { value: string; type: QuestionTypes };
@@ -44,7 +48,7 @@ const ResponseForm = ({
         response: value,
       }),
     );
-    void addResponses(responsesArray);
+    void addResponses(responsesArray, userId, formVersion);
     setResponsesSent(!responsesSent);
   };
 

@@ -11,7 +11,11 @@ interface ResponseToAdd {
   type: QuestionTypes;
   response?: string;
 }
-const addResponses = async (responses: ResponseToAdd[]) => {
+const addResponses = async (
+  responses: ResponseToAdd[],
+  userId: string,
+  formVersion: number,
+) => {
   const responsesTextNumeric = responses.filter(
     (response) => response.type === "NUMERIC" || response.type === "TEXT",
   );
@@ -21,7 +25,11 @@ const addResponses = async (responses: ResponseToAdd[]) => {
   try {
     await prisma.$transaction([
       prisma.response.createMany({
-        data: responsesTextNumeric.map((response) => response),
+        data: responsesTextNumeric.map((response) => ({
+          ...response,
+          userId,
+          formVersion,
+        })),
       }),
       prisma.responseOption.createMany({
         data: responsesOption.map((response) => ({
@@ -29,6 +37,8 @@ const addResponses = async (responses: ResponseToAdd[]) => {
           locationId: response.locationId,
           formId: response.formId,
           questionId: response.questionId,
+          userId: userId,
+          formVersion: formVersion,
         })),
       }),
     ]);
