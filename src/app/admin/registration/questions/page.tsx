@@ -1,6 +1,7 @@
 import { AddedOptions } from "@/components/singleUse/admin/registration/questions/addedOptions";
 import { CategoryForm } from "@/components/singleUse/admin/registration/questions/categoryForm";
 import { QuestionForm } from "@/components/singleUse/admin/registration/questions/questionForm";
+import { SubcategoryForm } from "@/components/singleUse/admin/registration/questions/subcategoryForm";
 import { prisma } from "@/lib/prisma";
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
@@ -17,8 +18,12 @@ const AdminComponentsPage = () => {
           <h3 className={"text-2xl font-semibold"}>Criação de Categorias</h3>
           <CategoryForm />
         </div>
+        <div className="flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md">
+          <h3 className={"text-2xl font-semibold"}>Criação de Subcategorias</h3>
+          <SubcategoryFormRenderer />
+        </div>
 
-        <div className="flex min-h-0 basis-4/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md">
+        <div className="flex min-h-0 basis-4/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
           <h3 className={"text-2xl font-semibold"}>Criação de Perguntas</h3>
           <QuestionFormRenderer />
         </div>
@@ -27,6 +32,32 @@ const AdminComponentsPage = () => {
         <AddedOptions />
       </div>
     </div>
+  );
+};
+
+const SubcategoryFormRenderer = async () => {
+  const getCacheCategories = unstable_cache(
+    async () => await prisma.category.findMany(),
+    ["all-categories"],
+    {
+      revalidate: 120,
+      tags: ["category", "database"],
+    },
+  );
+  const categories = await getCacheCategories();
+
+  return (
+    <Suspense fallback={<p>Loading</p>}>
+      {categories.length <= 0 ?
+        <div>
+          <p>Crie sua primeira categorias acima antes de criar uma pergunta!</p>
+          <p>
+            Já criou uma categoria previamente? Verifique o status do servidor
+            aqui!
+          </p>
+        </div>
+      : <SubcategoryForm availableCategories={categories} />}
+    </Suspense>
   );
 };
 

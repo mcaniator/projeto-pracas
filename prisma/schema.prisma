@@ -243,8 +243,10 @@ model Subcategory {
   active   Boolean    @default(true)
   question Question[]
 
-  categoryId Int      @map("subcategory_id")
+  categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
+
+  @@map("subcategory")
 }
 
 model Question {
