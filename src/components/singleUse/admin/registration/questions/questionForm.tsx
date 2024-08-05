@@ -46,6 +46,9 @@ const QuestionForm = ({
   useEffect(() => {
     setDisabled(addedOptions == undefined && type == "option");
   }, [addedOptions, type]);
+  useEffect(() => {
+    setCurrentCategoryId(availableCategories[0]?.id);
+  }, [availableCategories]);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentCategoryId(Number(e.target.value));
