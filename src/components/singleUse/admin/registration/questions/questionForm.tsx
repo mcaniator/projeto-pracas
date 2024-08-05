@@ -7,18 +7,31 @@ import { Select } from "@/components/ui/select";
 import { questionSubmit } from "@/serverActions/questionSubmit";
 import { IconTrashX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useFormState } from "react-dom";
 
 const initialState = {
   statusCode: 0,
 };
-
+interface AvaliableSubcategories {
+  id: number;
+  categoryId: number;
+  name: string;
+  active: boolean;
+  optional: boolean;
+}
 const QuestionForm = ({
   availableCategories,
+  availableSubcategories,
 }: {
   availableCategories: { id: number; name: string }[];
+  availableSubcategories: AvaliableSubcategories[];
 }) => {
   const [, formAction] = useFormState(questionSubmit, initialState);
+
+  const [currentCategoryId, setCurrentCategoryId] = useState<
+    number | undefined
+  >(availableCategories[0]?.id);
 
   const [type, setType] = useState("");
   const [optionType, setOptionType] = useState("SELECTION");
@@ -34,6 +47,9 @@ const QuestionForm = ({
     setDisabled(addedOptions == undefined && type == "option");
   }, [addedOptions, type]);
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentCategoryId(Number(e.target.value));
+  };
   // TODO: add error handling
   return (
     <form
@@ -52,7 +68,11 @@ const QuestionForm = ({
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
         <div>
           <label htmlFor={"categories"}>Categoria</label>
-          <Select name="categoryId" id={"categories"}>
+          <Select
+            name="categoryId"
+            id={"categories"}
+            onChange={(e) => handleCategoryChange(e)}
+          >
             {availableCategories.map((value, index) => (
               <option key={index} value={value.id}>
                 {value.name}
@@ -60,7 +80,28 @@ const QuestionForm = ({
             ))}
           </Select>
         </div>
-
+        {currentCategoryId &&
+          availableCategories &&
+          availableSubcategories.some(
+            (subcategory) => subcategory.categoryId === currentCategoryId,
+          ) && (
+            <React.Fragment>
+              <label htmlFor="subcategories">Subcategoria</label>
+              <Select name="subcategoryId" id="subcategories">
+                <option value={-1}>Nenhuma</option>
+                {availableSubcategories
+                  .filter(
+                    (subcategory) =>
+                      subcategory.categoryId === currentCategoryId,
+                  )
+                  .map((value, index) => (
+                    <option key={index} value={value.id}>
+                      {value.name}
+                    </option>
+                  ))}
+              </Select>
+            </React.Fragment>
+          )}
         <div>
           <label htmlFor={"question"}>Pergunta:</label>
           <Input type="text" name="name" id={"question"} required />
