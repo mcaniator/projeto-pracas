@@ -6,9 +6,8 @@ import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
 import { questionSubmit } from "@/serverActions/questionSubmit";
 import { IconTrashX } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import React from "react";
-import { useFormState } from "react-dom";
 
 const initialState = {
   statusCode: 0,
@@ -27,7 +26,7 @@ const QuestionForm = ({
   availableCategories: { id: number; name: string }[];
   availableSubcategories: AvaliableSubcategories[];
 }) => {
-  const [, formAction] = useFormState(questionSubmit, initialState);
+  const [, formAction] = useActionState(questionSubmit, initialState);
 
   const [currentCategoryId, setCurrentCategoryId] = useState<
     number | undefined
