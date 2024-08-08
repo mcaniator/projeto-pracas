@@ -25,7 +25,6 @@ const ResponseViewerClient = ({
   formId: number;
 }) => {
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
-
   if (questions === null) {
     return <div>Ainda não há perguntas neste formulário</div>;
   }

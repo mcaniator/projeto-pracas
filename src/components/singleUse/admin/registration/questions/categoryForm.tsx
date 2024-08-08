@@ -3,15 +3,14 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { categorySubmit } from "@/serverActions/categorySubmit";
-import { useRef } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useRef } from "react";
 
 const initialState = {
   statusCode: 0,
 };
 
 const CategoryForm = () => {
-  const [, formAction] = useFormState(categorySubmit, initialState);
+  const [, formAction] = useActionState(categorySubmit, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   // TODO: add error handling

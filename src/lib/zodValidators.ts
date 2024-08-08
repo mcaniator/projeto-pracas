@@ -63,6 +63,7 @@ const questionSchema = z.object({
   maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
+  subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
 const questionsOnFormsSchema = z.object({

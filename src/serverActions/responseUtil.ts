@@ -4,93 +4,44 @@ import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
+interface ResponseToAdd {
+  locationId: number;
+  formId: number;
+  questionId: number;
+  type: QuestionTypes;
+  response?: string;
+}
 const addResponses = async (
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  response?: string,
+  responses: ResponseToAdd[],
+  userId: string,
+  formVersion: number,
 ) => {
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
   try {
-    if (questionType === QuestionTypes.NUMERIC && response) {
-      const existingResponse = await prisma.response.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
-          locationId: locationId,
-          type: QuestionTypes.NUMERIC,
-          response: response,
-        },
-      });
-
-      if (existingResponse) {
-        await prisma.response.update({
-          where: {
-            id: existingResponse.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
-            },
-          },
-        });
-      } else {
-        await prisma.response.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            type: questionType,
-            response: response,
-            frequency: 1,
-          },
-        });
-      }
-    } else if (questionType === QuestionTypes.TEXT && response) {
-      await prisma.response.create({
-        data: {
-          locationId: locationId,
-          formId: formId,
-          questionId: questionId,
-          type: questionType,
-          response: response,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS && response) {
-      const optionId = parseInt(response);
-
-      const existingResponseOption = await prisma.responseOption.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
-          locationId: locationId,
-          optionId: optionId,
-        },
-      });
-
-      if (existingResponseOption) {
-        await prisma.responseOption.update({
-          where: {
-            id: existingResponseOption.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
-            },
-          },
-        });
-      } else {
-        await prisma.responseOption.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            optionId: optionId,
-            frequency: 1,
-          },
-        });
-      }
-    }
+    await prisma.$transaction([
+      prisma.response.createMany({
+        data: responsesTextNumeric.map((response) => ({
+          ...response,
+          userId,
+          formVersion,
+        })),
+      }),
+      prisma.responseOption.createMany({
+        data: responsesOption.map((response) => ({
+          optionId: Number(response.response),
+          locationId: response.locationId,
+          formId: response.formId,
+          questionId: response.questionId,
+          userId: userId,
+          formVersion: formVersion,
+        })),
+      }),
+    ]);
   } catch (err) {
     return { statusCode: 2 };
   }
@@ -158,10 +109,16 @@ const searchResponsesByQuestionId = async (questionId: number) => {
   });
 };
 
-const searchResponsesOptionsByQuestionId = async (questionId: number) => {
+const searchResponsesOptionsByQuestionFormLocation = async (
+  questionId: number,
+  formId: number,
+  locationId: number,
+) => {
   return await prisma.responseOption.findMany({
     where: {
-      questionId: questionId,
+      questionId,
+      locationId,
+      formId,
     },
   });
 };
@@ -208,7 +165,7 @@ export {
   addResponses,
   updateResponse,
   searchResponsesByQuestionId,
-  searchResponsesOptionsByQuestionId,
+  searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
   searchResponsesByLocation,
   searchResponsesOptionsByLocation,

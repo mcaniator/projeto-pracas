@@ -10,7 +10,7 @@ const questionSubmit = async (
   formData: FormData,
 ) => {
   const questionType = formData.get("questionType");
-
+  //console.log(formData.get("subcategoryId"));
   switch (questionType) {
     case "TEXT": {
       let textQuestionParsed;
@@ -20,6 +20,10 @@ const questionSubmit = async (
           type: questionType,
           categoryId: formData.get("categoryId"),
           responseCharLimit: formData.get("charLimit"),
+          subcategoryId:
+            Number(formData.get("subcategoryId")) > 0 ?
+              formData.get("subcategoryId")
+            : undefined,
         });
       } catch (err) {
         return { statusCode: 1 };
@@ -31,6 +35,7 @@ const questionSubmit = async (
             name: textQuestionParsed.name,
             type: textQuestionParsed.type,
             categoryId: textQuestionParsed.categoryId,
+            subcategoryId: textQuestionParsed.subcategoryId,
             responseCharLimit: textQuestionParsed.responseCharLimit,
           },
         });
@@ -47,6 +52,10 @@ const questionSubmit = async (
           name: formData.get("name"),
           type: questionType,
           categoryId: formData.get("categoryId"),
+          subcategoryId:
+            Number(formData.get("subcategoryId")) > 0 ?
+              formData.get("subcategoryId")
+            : undefined,
           min: formData.get("min"),
           max: formData.get("max"),
         });
@@ -60,6 +69,7 @@ const questionSubmit = async (
             name: numericQuestionParsed.name,
             type: numericQuestionParsed.type,
             categoryId: numericQuestionParsed.categoryId,
+            subcategoryId: numericQuestionParsed.subcategoryId,
             minValue: numericQuestionParsed.minValue,
             maxValue: numericQuestionParsed.maxValue,
           },
@@ -75,6 +85,10 @@ const questionSubmit = async (
       const maximumSelections = formData.get("maximumSelection");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
+      const subcategoryId =
+        Number(formData.get("subcategoryId")) > 0 ?
+          formData.get("subcategoryId")
+        : undefined;
 
       const optionsQuestionObject =
         optionType === "CHECKBOX" ?
@@ -87,6 +101,7 @@ const questionSubmit = async (
           name,
           type: questionType,
           categoryId,
+          subcategoryId,
           ...optionsQuestionObject,
         });
       } catch (err) {
@@ -107,6 +122,7 @@ const questionSubmit = async (
             name: optionsQuestionParsed.name,
             type: questionType,
             categoryId: optionsQuestionParsed.categoryId,
+            subcategoryId: optionsQuestionParsed.subcategoryId,
             optionType: optionsQuestionParsed.optionType,
             maximumSelections: optionsQuestionParsed.maximumSelections,
           },

@@ -6,9 +6,13 @@ import { QuestionTypes } from "@prisma/client";
 const ResponseComponent = async ({
   locationId,
   formId,
+  formVersion,
+  userId,
 }: {
   locationId: number;
   formId: number;
+  formVersion: number;
+  userId: string;
 }) => {
   const questions = await searchQuestionsByFormId(formId);
 
@@ -29,8 +33,10 @@ const ResponseComponent = async ({
         <ResponseForm
           locationId={locationId}
           formId={formId}
+          formVersion={formVersion}
           questions={questions}
           options={options}
+          userId={userId}
         />
       </div>
     </div>

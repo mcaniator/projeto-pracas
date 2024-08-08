@@ -1,6 +1,8 @@
+import { validateRequest } from "@/lib/lucia";
 import { searchFormsById } from "@/serverActions/formUtil";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
+import { redirect } from "next/navigation";
 
 import { ResponseComponent } from "./responseComponent";
 
@@ -12,6 +14,8 @@ const Responses = async ({
     selectedFormId: string;
   };
 }) => {
+  const { user } = await validateRequest();
+  if (user === null || user.type !== "ADMIN") redirect("/error");
   const location = await searchLocationsById(parseInt(params.locationId));
   const form = await searchFormsById(parseInt(params.selectedFormId));
   const questions = await searchQuestionsByFormId(
@@ -26,8 +30,13 @@ const Responses = async ({
           Avaliando: {location.name} com o formulário: {form?.name}
         </h3>
         {questions !== null && form !== null && form !== undefined ?
-          <ul className="list-disc p-3 ">
-            <ResponseComponent locationId={location.id} formId={form.id} />
+          <ul className="list-disc p-3">
+            <ResponseComponent
+              locationId={location.id}
+              formId={form.id}
+              formVersion={form.version}
+              userId={user.id}
+            />
           </ul>
         : <div className="text-redwood">
             Ainda não há perguntas no formulário

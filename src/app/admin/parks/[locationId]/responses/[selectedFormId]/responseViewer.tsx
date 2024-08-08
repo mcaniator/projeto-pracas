@@ -2,7 +2,7 @@ import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 import { searchOptionsByQuestionId } from "@/serverActions/questionUtil";
 import {
   searchResponsesByQuestionFormLocation,
-  searchResponsesOptionsByQuestionId,
+  searchResponsesOptionsByQuestionFormLocation,
 } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 
@@ -25,15 +25,19 @@ const ResponseViewer = async ({
   const responses = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
-        const options = await searchResponsesOptionsByQuestionId(question.id);
+        const options = await searchResponsesOptionsByQuestionFormLocation(
+          question.id,
+          formId,
+          locationId,
+        );
         return options.map((option) => ({
           id: option.id,
           type: question.type,
-          frequency: option.frequency,
           locationId: locationId,
           formId: formId,
           questionId: question.id,
-          response: null,
+          response: option.optionId.toString(),
+          optionId: option.optionId,
           createdAt: option.createdAt,
         }));
       } else {
@@ -45,12 +49,12 @@ const ResponseViewer = async ({
         return responses.map((response) => ({
           id: response.id,
           type: question.type,
-          frequency: response.frequency,
           locationId: locationId,
           formId: formId,
           questionId: question.id,
           response: response.response,
           createdAt: response.createdAt,
+          optionId: null,
         }));
       }
     }),
@@ -60,7 +64,7 @@ const ResponseViewer = async ({
 
   const groupedResponses = flattenedResponses.reduce(
     (acc, response) => {
-      const dateKey = new Date(response.createdAt).toISOString().slice(0, 16);
+      const dateKey = new Date(response.createdAt).toISOString();
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -83,7 +87,9 @@ const ResponseViewer = async ({
           .filter((response) => response.questionId === question.id)
           .reduce(
             (acc, response) => {
-              acc[response.id] = response.frequency;
+              if (response.optionId) {
+                acc[response.optionId] = 0;
+              }
               return acc;
             },
             {} as { [key: number]: number },
