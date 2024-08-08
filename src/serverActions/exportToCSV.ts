@@ -4,13 +4,22 @@ import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { number, z } from "zod";
+import { z } from "zod";
 
 type SortOrderType = "id" | "name" | "date";
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
   id: number;
   createdAt: Date;
+  formVersion: number;
+  form: {
+    id: number;
+    name: string;
+  };
+  user: {
+    id: string;
+    username: string;
+  };
   type: AnswerType;
 }
 interface StreetsJsonType {

@@ -38,7 +38,20 @@ const SubmissionComponent = ({
             );
           }}
         />
-        {submissionGroup.date.toString()}
+        {submissionGroup.date.toLocaleString("pt-BR", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }) +
+          ", " +
+          submissionGroup.formName +
+          ", Versão: " +
+          submissionGroup.formVersion +
+          ", " +
+          submissionGroup.username}
       </span>
     </div>
   );

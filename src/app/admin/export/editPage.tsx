@@ -32,6 +32,9 @@ type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
 interface SubmissionGroup {
   id: number;
   date: Date;
+  username: string;
+  formName: string;
+  formVersion: number;
 }
 
 const EditPage = ({
@@ -108,10 +111,11 @@ const EditPage = ({
             (acc, response) => {
               const date = response.createdAt.toISOString();
               if (date) {
-                if (!acc[date]) {
-                  acc[date] = [];
+                const key = `${date}-${response.form.id}-${response.formVersion}-${response.user.id}`;
+                if (!acc[key]) {
+                  acc[key] = [];
                 }
-                acc[date].push(response);
+                acc[key].push(response);
               }
               return acc;
             },
@@ -120,10 +124,19 @@ const EditPage = ({
           //console.log(groupedResponses);
           const groupedResponsesKeys = Object.keys(groupedResponses);
           const groupedResponsesObjs: SubmissionGroup[] = [];
+          //console.log(groupedResponses);
           for (let i = 0; i < groupedResponsesKeys.length; i++) {
-            const date = groupedResponsesKeys[i];
-            if (date) {
-              groupedResponsesObjs.push({ id: i, date: new Date(date) });
+            const key = groupedResponsesKeys[i];
+            if (key) {
+              const currentGroup = groupedResponses[key];
+              if (currentGroup)
+                groupedResponsesObjs.push({
+                  id: i,
+                  date: currentGroup[0]?.createdAt || new Date(0),
+                  formVersion: currentGroup[0]?.formVersion || -1,
+                  formName: currentGroup[0]?.form.name || "ERRO",
+                  username: currentGroup[0]?.user.username || "",
+                });
             }
           }
           setFetchedSubmissionsGroups(groupedResponsesObjs);

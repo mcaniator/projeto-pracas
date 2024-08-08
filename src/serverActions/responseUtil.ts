@@ -144,7 +144,20 @@ const searchResponsesByLocation = async (locationId: number) => {
     },
     select: {
       id: true,
+      formVersion: true,
       createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
     },
   });
 };
@@ -156,7 +169,20 @@ const searchResponsesOptionsByLocation = async (locationId: number) => {
     },
     select: {
       id: true,
+      formVersion: true,
       createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
     },
   });
 };
