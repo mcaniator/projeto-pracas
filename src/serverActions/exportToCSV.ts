@@ -915,7 +915,22 @@ const exportEvaluation = async (
         },
         include: {
           form: true,
-          question: true,
+          question: {
+            include: {
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+              category: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
         },
       },
       ResponseOption: {
@@ -926,14 +941,197 @@ const exportEvaluation = async (
         },
         include: {
           form: true,
-          question: true,
+          question: {
+            include: {
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+              category: true,
+            },
+          },
           option: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
         },
       },
     },
   });
 
-  console.log(locations);
+  let CSVstringHeader = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,\n";
+  //CSVstring += "Identificador,Nome da Praça,Avaliador,Dia,Data\n";
+  const locationsWithFormObjs = locations.map((location) => {
+    const groupedResponses: {
+      [key: string]: {
+        id: number;
+        name: string;
+        formName: string;
+        response: {
+          id: number;
+          type: string;
+          form: { id: number; name: string };
+          question: {
+            id: number;
+            name: string;
+            category: {
+              id: number;
+              name: string;
+            };
+            subcategory: {
+              id: number;
+              name: string;
+              categoryId: number;
+            } | null;
+          };
+          response: string | null;
+          formVersion: number;
+          user: { id: string; username: string };
+        }[];
+        responseOption: {
+          id: number;
+          form: { id: number; name: string };
+          question: {
+            id: number;
+            name: string;
+            category: {
+              id: number;
+              name: string;
+            };
+            subcategory: {
+              id: number;
+              name: string;
+              categoryId: number;
+            } | null;
+          };
+          option: { id: number; text: string; questionId: number };
+          formVersion: number;
+          user: { id: string; username: string };
+        }[];
+      };
+    } = {};
+    location.response.forEach((response) => {
+      const key = `${response.form.name}-${response.formVersion}`;
+      if (!groupedResponses[key]) {
+        groupedResponses[key] = {
+          id: location.id,
+          name: location.name,
+          formName: response.form.name,
+          response: [],
+          responseOption: [],
+        };
+      }
+      const currentElement = groupedResponses[key];
+      if (currentElement) {
+        currentElement.response.push(response);
+      }
+    });
+
+    location.ResponseOption.forEach((responseOption) => {
+      const key = `${responseOption.form.name}-${responseOption.formVersion}`;
+      if (!groupedResponses[key]) {
+        groupedResponses[key] = {
+          id: location.id,
+          name: location.name,
+          formName: responseOption.form.name,
+          response: [],
+          responseOption: [],
+        };
+      }
+      const currentElement = groupedResponses[key];
+      if (currentElement) {
+        currentElement.responseOption.push(responseOption);
+      }
+    });
+
+    return groupedResponses;
+  });
+  const formsAndVersions: string[] = [];
+  locationsWithFormObjs.forEach((location) => {
+    const keys = Object.keys(location);
+    for (const key of keys) {
+      if (formsAndVersions.includes(key)) {
+        continue;
+      }
+      formsAndVersions.push(key);
+    }
+  });
+  //console.log(locationsWithFormObjs);
+  for (const currentForm of formsAndVersions) {
+    let headerCreated = false;
+    let formHeader = "";
+    const questions: {
+      id: number;
+      name: string;
+      category: { id: number; name: string };
+      subcategory: { id: number; name: string; categoryId: number } | null;
+    }[] = [];
+    const categories: { id: number; name: string }[] = [];
+    const subcategories: { id: number; name: string; categoryId: number }[] =
+      [];
+    for (const locationObj of locationsWithFormObjs) {
+      const formObj = locationObj[currentForm];
+      if (formObj) {
+        if (!headerCreated) {
+          for (const response of formObj.response) {
+            questions.push(response.question);
+          }
+          for (const responseOption of formObj.responseOption) {
+            questions.push(responseOption.question);
+          }
+          for (const question of questions) {
+            if (
+              !categories.some(
+                (category) => category.id === question.category.id,
+              )
+            ) {
+              categories.push(question.category);
+            }
+            if (question.subcategory) {
+              if (
+                !subcategories.some(
+                  (subcategory) => subcategory.id === question.subcategory?.id,
+                )
+              ) {
+                subcategories.push(question.subcategory);
+              }
+            }
+            headerCreated = true;
+          }
+        }
+      }
+    }
+    //console.log(questions);
+    //console.log(categories);
+    //console.log(subcategories);
+    const nestedObjs = categories.map((category) => {
+      const categorySubcategories = subcategories
+        .filter((subcategory) => {
+          return subcategory.categoryId === category.id;
+        })
+        .map((subcategory) => ({
+          ...subcategory,
+          questions: questions.filter(
+            (question) => question.subcategory?.id === subcategory.id,
+          ),
+        }));
+      //console.log(categorySubcategories);
+      const categoryObj = {
+        ...category,
+        questions: questions.filter(
+          (question) =>
+            !question.subcategory && question.category.id === category.id,
+        ),
+        subcategories: categorySubcategories,
+      };
+      return categoryObj;
+    });
+    console.log(nestedObjs);
+  }
 };
 
 const exportDailyTallys = async (
