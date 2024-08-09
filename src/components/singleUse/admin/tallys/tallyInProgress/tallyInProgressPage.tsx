@@ -74,9 +74,11 @@ const weatherNameMap = new Map([
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
 const TallyInProgressPage = ({
   tallyId,
+  locationId,
   tally,
 }: {
   tallyId: number;
+  locationId: number;
   tally: ongoingTallyDataFetched;
 }) => {
   const [submittingObj, setSubmittingObj] = useState({
@@ -1020,6 +1022,7 @@ const TallyInProgressPage = ({
           {assistBarState === "SAVE_DELETE" && (
             <TallyInProgressDatabaseOptions
               tallyId={tallyId}
+              locationId={locationId}
               tallyMap={tallyMap}
               weatherStats={weatherStats}
               commercialActivities={commercialActivities}

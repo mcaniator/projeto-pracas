@@ -5,6 +5,7 @@ import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys
 import { prisma } from "@/lib/prisma";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 interface WeatherStats {
   temperature: number | null;
@@ -35,7 +36,11 @@ const fetchTallysByLocationId = async (locationId: number) => {
         id: true,
         startDate: true,
         endDate: true,
-        observer: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -75,7 +80,11 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         },
         startDate: true,
         endDate: true,
-        observer: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
         animalsAmount: true,
         temperature: true,
         weatherCondition: true,
@@ -131,16 +140,16 @@ const createTally = async (
   formData: FormData,
 ) => {
   const locationId = formData.get("locationId") as string;
-  const observer = formData.get("observer") as string;
+  const userId = formData.get("userId") as string;
   const date = formData.get("date") as string;
 
-  if (!observer || !date) {
+  if (!userId || !date) {
     return {
       locationId: locationId,
-      observer: observer,
+      userId: userId,
       date: date,
       errors: {
-        observer: !observer,
+        userId: !userId,
         date: !date,
       },
     };
@@ -150,30 +159,34 @@ const createTally = async (
       data: {
         location: {
           connect: {
-            id: parseInt(locationId),
+            id: Number(locationId),
           },
         },
-        observer: observer,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         startDate: new Date(date),
       },
     });
-    revalidatePath("/");
+    revalidatePath(`/admin/parks/${locationId}/tallys`);
     return {
       locationId: locationId,
-      observer: "",
+      userId: "",
       date: date,
       errors: {
-        observer: false,
+        userId: false,
         date: false,
       },
     };
   } catch (error) {
     return {
       locationId: locationId,
-      observer: observer,
+      userId: userId,
       date: date,
       errors: {
-        observer: !observer,
+        userId: !userId,
         date: !date,
       },
     };
@@ -277,7 +290,6 @@ const saveOngoingTallyData = async (
         });
       }
     });
-    revalidatePath("/");
   } catch (error) {
     return null;
   }
@@ -286,21 +298,6 @@ const saveOngoingTallyData = async (
 const deleteTallys = async (tallysIds: number[]) => {
   try {
     await prisma.$transaction(async (prisma) => {
-      const tallyPersons = await prisma.tallyPerson.findMany({
-        where: {
-          tallyId: {
-            in: tallysIds,
-          },
-        },
-        select: {
-          personId: true,
-        },
-      });
-
-      const personsIdsToCheckIfShouldBeDeleted = tallyPersons.map(
-        (tallyPerson) => tallyPerson.personId,
-      );
-
       await prisma.tallyPerson.deleteMany({
         where: {
           tallyId: {
@@ -316,38 +313,14 @@ const deleteTallys = async (tallysIds: number[]) => {
           },
         },
       });
-
-      const personsToDelete = await prisma.person.findMany({
-        where: {
-          id: {
-            in: personsIdsToCheckIfShouldBeDeleted,
-          },
-          TallyPerson: {
-            none: {},
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (personsToDelete.length > 0) {
-        const personsToDeleteIds = personsToDelete.map(
-          (personToDelete) => personToDelete.id,
-        );
-        await prisma.person.deleteMany({
-          where: {
-            id: {
-              in: personsToDeleteIds,
-            },
-          },
-        });
-      }
     });
-    revalidatePath("/");
   } catch (error) {
     return { statusCode: 1 };
   }
+};
+
+const redirectToTallysList = (locationId: number) => {
+  redirect(`/admin/parks/${locationId}/tallys`);
 };
 
 export {
@@ -357,4 +330,5 @@ export {
   fetchFinalizedTallysToDataVisualization,
   saveOngoingTallyData,
   deleteTallys,
+  redirectToTallysList,
 };

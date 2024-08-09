@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radioButton";
 import React, { useState } from "react";
 
@@ -119,10 +118,10 @@ const DataFilter = ({
                   className="ml-auto"
                   style={{ opacity: enableCheckboxes ? 1 : 0 }}
                 >
-                  <Checkbox
+                  <input
                     id="default"
                     value={"DEFAULT"}
-                    variant={"default"}
+                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
@@ -146,10 +145,10 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
+                  <input
                     id="isTraversing"
                     value={"isTraversing"}
-                    variant={"default"}
+                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -173,10 +172,10 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
+                  <input
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
-                    variant={"default"}
+                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -201,10 +200,10 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
+                  <input
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
-                    variant={"default"}
+                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -229,10 +228,10 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
+                  <input
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
-                    variant={"default"}
+                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />

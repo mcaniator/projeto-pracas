@@ -249,10 +249,12 @@ interface TallyPerson {
 
 const TallysDataPage = ({
   locationName,
+  locationId,
   tallys,
   tallysIds,
 }: {
   locationName: string;
+  locationId: number;
   tallys: TallyDataFetched[];
   tallysIds: number[];
 }) => {
@@ -320,6 +322,7 @@ const TallysDataPage = ({
               setDataTypeToShow={setDataTypeToShow}
               dataTypeToShow={dataTypeToShow}
               tallyIds={tallysIds}
+              locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
 

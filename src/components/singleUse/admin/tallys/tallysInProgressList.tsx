@@ -56,7 +56,7 @@ const TallysInProgressList = ({
             key={tally.id}
             id={tally.id}
             startDate={tally.startDate.toString()}
-            observer={tally.observer}
+            observer={tally.user.username}
             locationId={params.locationId}
           />
         ))}

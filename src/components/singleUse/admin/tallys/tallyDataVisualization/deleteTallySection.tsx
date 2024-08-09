@@ -1,21 +1,24 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { deleteTallys } from "@/serverActions/tallyUtil";
-import { useRouter } from "next/navigation";
+import { deleteTallys, redirectToTallysList } from "@/serverActions/tallyUtil";
 import { useState } from "react";
 import React from "react";
 
-const DeleteTallySection = ({ tallyIds }: { tallyIds: number[] }) => {
-  const router = useRouter();
+const DeleteTallySection = ({
+  tallyIds,
+  locationId,
+}: {
+  tallyIds: number[];
+  locationId: number;
+}) => {
   const [showDeletionConfirmation, setShowDeletionConfirmation] =
     useState(false);
   const [deleting, setDeleting] = useState(false);
   const handleTallyDeletion = async () => {
     setDeleting(true);
     await deleteTallys(tallyIds);
-    router.back();
-    router.refresh();
+    redirectToTallysList(locationId);
   };
   return (
     <div className="flex flex-col gap-2">
