@@ -12,7 +12,9 @@ interface TallyDataFetchedToTallyList {
   id: number;
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
 }
 type WeekdaysFilterItems =
   | "dom."
@@ -32,13 +34,13 @@ const TallyPage = ({
   locationName,
   tallys,
   ongoingTallys,
-  userName,
+  userId,
 }: {
   locationId: string;
   locationName: string;
   tallys: TallyDataFetchedToTallyList[] | undefined;
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
-  userName: string;
+  userId: string;
 }) => {
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
@@ -138,7 +140,7 @@ const TallyPage = ({
           }
         </div>
         <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
-          <TallyCreation locationId={locationId} userName={userName} />
+          <TallyCreation locationId={locationId} userId={userId} />
         </div>
       </div>
       <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">

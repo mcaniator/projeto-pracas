@@ -8,28 +8,28 @@ import { CreateTallySubmitButton } from "./createTallySubmitButton";
 
 type TallyCreationFormType = {
   locationId: string;
-  observer: string;
+  userId: string;
   date: string;
   errors: {
-    observer: boolean;
+    userId: boolean;
     date: boolean;
   };
 };
 
 const TallyCreation = ({
   locationId,
-  userName,
+  userId,
 }: {
   locationId: string;
-  userName: string;
+  userId: string;
 }) => {
   const currentDatetime = new Date();
   const [newTallyFormState, newTallyFormAction] = useActionState(createTally, {
     locationId: locationId,
-    observer: "",
+    userId: "",
     date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,
     errors: {
-      observer: false,
+      userId: false,
       date: false,
     },
   } as TallyCreationFormType);
@@ -39,19 +39,16 @@ const TallyCreation = ({
       <div>
         <form action={newTallyFormAction} className="grid gap-3">
           <div className="flex flex-row items-center gap-1">
-            <label htmlFor="obsever" className="mr-1">
-              {"Observador(a):"}
-            </label>
             <Input
-              type="text"
-              id="observer"
-              name="observer"
-              className={`${newTallyFormState.errors.observer ? "outline" : ""} outline-2 outline-redwood`}
-              defaultValue={userName}
+              type="hidden"
+              id="userId"
+              name="userId"
+              className={`${newTallyFormState.errors.userId ? "outline" : ""} outline-2 outline-redwood`}
+              defaultValue={userId}
               required
             ></Input>
 
-            {newTallyFormState.errors.observer ?
+            {newTallyFormState.errors.userId ?
               <span className="text-redwood">Obrigatório</span>
             : ""}
 

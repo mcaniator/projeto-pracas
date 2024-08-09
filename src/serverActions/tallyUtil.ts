@@ -36,7 +36,11 @@ const fetchTallysByLocationId = async (locationId: number) => {
         id: true,
         startDate: true,
         endDate: true,
-        observer: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -76,7 +80,11 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         },
         startDate: true,
         endDate: true,
-        observer: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
         animalsAmount: true,
         temperature: true,
         weatherCondition: true,
@@ -132,16 +140,16 @@ const createTally = async (
   formData: FormData,
 ) => {
   const locationId = formData.get("locationId") as string;
-  const observer = formData.get("observer") as string;
+  const userId = formData.get("userId") as string;
   const date = formData.get("date") as string;
 
-  if (!observer || !date) {
+  if (!userId || !date) {
     return {
       locationId: locationId,
-      observer: observer,
+      userId: userId,
       date: date,
       errors: {
-        observer: !observer,
+        userId: !userId,
         date: !date,
       },
     };
@@ -154,27 +162,31 @@ const createTally = async (
             id: Number(locationId),
           },
         },
-        observer: observer,
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
         startDate: new Date(date),
       },
     });
     revalidatePath(`/admin/parks/${locationId}/tallys`);
     return {
       locationId: locationId,
-      observer: "",
+      userId: "",
       date: date,
       errors: {
-        observer: false,
+        userId: false,
         date: false,
       },
     };
   } catch (error) {
     return {
       locationId: locationId,
-      observer: observer,
+      userId: userId,
       date: date,
       errors: {
-        observer: !observer,
+        userId: !userId,
         date: !date,
       },
     };
