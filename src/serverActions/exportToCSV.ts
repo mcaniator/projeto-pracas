@@ -32,7 +32,9 @@ interface TallyPerson {
 interface TallyDataToProcessType {
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;
@@ -47,7 +49,9 @@ interface TallyDataToProcessType {
 interface TallyDataToProcessTypeWithoutLocation {
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;
@@ -1172,6 +1176,11 @@ const exportDailyTallys = async (
               quantity: true,
             },
           },
+          user: {
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -1320,7 +1329,7 @@ const exportDailyTallys = async (
             if (tallysToPush) {
               tallys.push(...tallysToPush);
               observers = tallysToPush
-                .map((tally) => tally.observer)
+                .map((tally) => tally.user.username)
                 .filter(
                   (observer, index, self) => self.indexOf(observer) === index,
                 )
@@ -1371,7 +1380,7 @@ const exportDailyTallys = async (
             if (tallysToPush) {
               tallys.push(...tallysToPush);
               observers = tallysToPush
-                .map((tally) => tally.observer)
+                .map((tally) => tally.user.username)
                 .filter(
                   (observer, index, self) => self.indexOf(observer) === index,
                 )
@@ -1437,6 +1446,11 @@ const exportDailyTallysFromSingleLocation = async (
             },
           },
           quantity: true,
+        },
+      },
+      user: {
+        select: {
+          username: true,
         },
       },
     },
@@ -1505,7 +1519,7 @@ const exportDailyTallysFromSingleLocation = async (
       return Object.entries(tallysGroupsByDate)
         .map(([, tallyGroup]) => {
           const observers = tallyGroup
-            .map((tally) => tally.observer)
+            .map((tally) => tally.user.username)
             .filter((observer, index, self) => self.indexOf(observer) === index)
             .join(" / ");
           const dataLine =
@@ -1556,6 +1570,11 @@ const exportAllIndividualTallysToCsv = async (
               quantity: true,
             },
           },
+          user: {
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -1598,6 +1617,11 @@ const exportIndividualTallysToCSV = async (
             },
           },
           quantity: true,
+        },
+      },
+      user: {
+        select: {
+          username: true,
         },
       },
     },
@@ -1902,7 +1926,7 @@ const createTallyStringWithoutAddedData = (
           weatherConditionMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId},${tally.location.name},${tally.observer},${date},${startDateTime},${duration},${tally.temperature ? tally.temperature : "-"},${weatherCondition},` +
+        `${tally.locationId},${tally.location.name},${tally.user.username},${date},${startDateTime},${duration},${tally.temperature ? tally.temperature : "-"},${weatherCondition},` +
         tallyString
       );
     })
