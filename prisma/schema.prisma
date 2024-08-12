@@ -104,9 +104,8 @@ enum QuestionTypes {
 }
 
 enum OptionTypes {
-  SELECTION @map("selection")
-  RADIO     @map("radio")
-  CHECKBOX  @map("checkbox")
+  RADIO    @map("radio")
+  CHECKBOX @map("checkbox")
 
   @@map("option_types")
 }

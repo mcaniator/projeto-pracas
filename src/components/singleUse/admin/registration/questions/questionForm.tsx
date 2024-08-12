@@ -33,7 +33,7 @@ const QuestionForm = ({
   >(availableCategories[0]?.id);
 
   const [type, setType] = useState("");
-  const [optionType, setOptionType] = useState("SELECTION");
+  const [optionType, setOptionType] = useState("RADIO");
 
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
@@ -196,7 +196,6 @@ const QuestionForm = ({
                 }}
                 id={"tipoSelecao"}
               >
-                <option value={"SELECTION"}>Caixa de Seleção</option>
                 <option value={"RADIO"}>Botões Radias</option>
                 <option value={"CHECKBOX"}>Caixa de Checagem</option>
               </Select>

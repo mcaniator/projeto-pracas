@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { addResponses } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
@@ -23,19 +24,65 @@ const ResponseForm = ({
   userId: string;
 }) => {
   const [responses, setResponses] = useState<{
-    [key: number]: { value: string; type: QuestionTypes };
-  }>({});
+    [key: number]: { value: string[]; type: QuestionTypes };
+  }>(
+    questions?.reduce(
+      (acc, question) => {
+        acc[question.id] = { value: [], type: question.type };
+        return acc;
+      },
+      {} as { [key: number]: { value: string[]; type: QuestionTypes } },
+    ) || {},
+  );
   const [responsesSent, setResponsesSent] = useState(false);
 
+  const handleCheckboxResponseChange = (
+    checked: boolean,
+    questionId: number,
+    questionType: QuestionTypes,
+    value: string,
+  ) => {
+    if (checked) {
+      setResponses((prevResponses) => {
+        const prevResponse = prevResponses[questionId];
+        const valueArray: string[] = [];
+        if (prevResponse) {
+          valueArray.push(...prevResponse.value);
+        }
+        valueArray.push(value);
+        return {
+          ...prevResponses,
+          [questionId]: { value: valueArray, type: questionType },
+        };
+      });
+    } else {
+      setResponses((prevResponses) => {
+        const prevResponse = prevResponses[questionId];
+        let valueArray: string[] = [];
+        if (prevResponse) {
+          valueArray = prevResponse.value.filter(
+            (prevValue) => prevValue !== value,
+          );
+        }
+        return {
+          ...prevResponses,
+          [questionId]: { value: valueArray, type: questionType },
+        };
+      });
+    }
+  };
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
     value: string,
   ) => {
-    setResponses((prevResponses) => ({
-      ...prevResponses,
-      [questionId]: { value, type: questionType },
-    }));
+    setResponses((prevResponses) => {
+      const valueArray: string[] = [value];
+      return {
+        ...prevResponses,
+        [questionId]: { value: valueArray, type: questionType },
+      };
+    });
   };
 
   const handleSubmitResponse = () => {
@@ -74,30 +121,54 @@ const ResponseForm = ({
                   </label>
                   {question.type === QuestionTypes.OPTIONS ?
                     <div>
-                      {questionOptions.map((option) => (
-                        <div key={option.id}>
-                          <input
-                            type="radio"
-                            id={`option${option.id}`}
-                            name={`response${question.id}`}
-                            value={option.id}
-                            checked={
-                              responses[question.id]?.value ===
-                              String(option.id)
-                            }
-                            onChange={(e) =>
-                              handleResponseChange(
-                                question.id,
-                                question.type,
-                                e.target.value,
-                              )
-                            }
-                          />
-                          <label htmlFor={`option${option.id}`}>
-                            {option.text}
-                          </label>
-                        </div>
-                      ))}
+                      {question.optionType === "RADIO" &&
+                        questionOptions.map((option) => (
+                          <div key={option.id}>
+                            <input
+                              type="radio"
+                              id={`option${option.id}`}
+                              name={`response${question.id}`}
+                              value={option.id}
+                              checked={responses[question.id]?.value.includes(
+                                String(option.id),
+                              )}
+                              onChange={(e) =>
+                                handleResponseChange(
+                                  question.id,
+                                  question.type,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                            <label htmlFor={`option${option.id}`}>
+                              {option.text}
+                            </label>
+                          </div>
+                        ))}
+                      {question.optionType === "CHECKBOX" &&
+                        questionOptions.map((option) => (
+                          <div key={option.id}>
+                            <Checkbox
+                              id={`option${option.id}`}
+                              name={`response${question.id}`}
+                              value={option.id}
+                              checked={responses[question.id]?.value.includes(
+                                String(option.id),
+                              )}
+                              onChange={(e) =>
+                                handleCheckboxResponseChange(
+                                  e.target.checked,
+                                  question.id,
+                                  question.type,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                            <label htmlFor={`option${option.id}`}>
+                              {option.text}
+                            </label>
+                          </div>
+                        ))}
                     </div>
                   : <Input
                       type="text"

@@ -107,15 +107,14 @@ const questionSubmit = async (
       } catch (err) {
         return { statusCode: 1 };
       }
-
       if (
-        optionsQuestionParsed.maximumSelections !== undefined
+        optionsQuestionParsed.optionType === "CHECKBOX" &&
+        optionsQuestionParsed.maximumSelections === undefined
         //  &&
         // optionsQuestionParsed.maximumSelections > options.length
       ) {
         return { statusCode: 3 };
       }
-
       try {
         const newQuestion = await prisma.question.create({
           data: {

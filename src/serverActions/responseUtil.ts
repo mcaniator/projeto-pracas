@@ -9,7 +9,7 @@ interface ResponseToAdd {
   formId: number;
   questionId: number;
   type: QuestionTypes;
-  response?: string;
+  response?: string[];
 }
 const addResponses = async (
   responses: ResponseToAdd[],
@@ -27,19 +27,24 @@ const addResponses = async (
       prisma.response.createMany({
         data: responsesTextNumeric.map((response) => ({
           ...response,
+          response: response.response ? response.response[0] : undefined,
           userId,
           formVersion,
         })),
       }),
       prisma.responseOption.createMany({
-        data: responsesOption.map((response) => ({
-          optionId: Number(response.response),
-          locationId: response.locationId,
-          formId: response.formId,
-          questionId: response.questionId,
-          userId: userId,
-          formVersion: formVersion,
-        })),
+        data: responsesOption.flatMap((response) =>
+          response.response ?
+            response.response.map((optionId) => ({
+              optionId: Number(optionId),
+              locationId: response.locationId,
+              formId: response.formId,
+              questionId: response.questionId,
+              userId: userId,
+              formVersion: formVersion,
+            }))
+          : [],
+        ),
       }),
     ]);
   } catch (err) {
