@@ -11,6 +11,7 @@ import {
   QuestionTypes,
   UserTypes,
   Visibility,
+  WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
 
@@ -54,13 +55,17 @@ const questionSchema = z.object({
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
+  responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
+  minValue: z.coerce.number().finite().optional(),
+  maxValue: z.coerce.number().finite().optional(),
+  optionType: z.nativeEnum(OptionTypes).optional(),
+  maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
 });
 
-const textQuestionSchema = z.object({
-  charLimit: z.coerce.number().int().finite().nonnegative().optional(),
-
+const questionsOnFormsSchema = z.object({
+  formId: z.coerce.number().int().finite().nonnegative(),
   questionId: z.coerce.number().int().finite().nonnegative(),
 });
 
@@ -100,7 +105,7 @@ const optionSchema = z
   .object({
     text: z.string().trim().min(1).max(255),
 
-    optionsQuestionId: z.coerce.number().int().finite().nonnegative(),
+    questionId: z.coerce.number().int().finite().nonnegative(),
   })
   .array()
   .nonempty();
@@ -111,9 +116,6 @@ const formSchema = z.object({
 
 type categoryType = z.infer<typeof categorySchema>;
 type questionType = z.infer<typeof questionSchema>;
-type textQuestionType = z.infer<typeof textQuestionSchema>;
-type numericQuestionType = z.infer<typeof numericQuestionSchema>;
-type optionsQuestionType = z.infer<typeof optionsQuestionSchema>;
 type formType = z.infer<typeof formSchema>;
 
 export {
@@ -123,16 +125,9 @@ export {
   optionSchema,
   optionsQuestionSchema,
   questionSchema,
-  textQuestionSchema,
+  // textQuestionSchema,
 };
-export type {
-  categoryType,
-  formType,
-  numericQuestionType,
-  optionsQuestionType,
-  questionType,
-  textQuestionType,
-};
+export type { categoryType, formType, questionType };
 // #endregion
 
 // #region Informações da Praça
@@ -379,12 +374,13 @@ export type {
 
 const tallySchema = z.object({
   date: z.coerce.date().optional(),
-  startDate: z.coerce.date().optional(),
+  startDate: z.coerce.date(),
   endDate: z.coerce.date().optional(),
+  observer: z.coerce.string().trim().min(1).max(255),
 
   animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
   temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.string().trim().min(1).max(255).optional(),
+  weatherCondition: z.nativeEnum(WeatherConditions),
 
   locationId: z.coerce.number().int().finite().nonnegative(),
 });
@@ -410,6 +406,6 @@ type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type noiseType = z.infer<typeof noiseSchema>;
 
-export { noiseSchema, personSchema, tallySchema };
+export { noiseSchema, personSchema, tallySchema, questionsOnFormsSchema };
 export type { noiseType, personType, tallyType };
 // #endregion

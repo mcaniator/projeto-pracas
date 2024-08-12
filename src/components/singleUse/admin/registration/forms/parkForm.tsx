@@ -61,7 +61,7 @@ const LocationList = ({
         <LocationComponent
           key={index}
           id={location.item.id}
-          nome={location.item.name}
+          name={location.item.name}
         />
       ))}
     </div>

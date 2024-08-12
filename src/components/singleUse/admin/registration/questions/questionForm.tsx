@@ -125,19 +125,19 @@ const QuestionForm = ({
         {type == "text" && (
           <div>
             <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name={"charLimit"} id={"charLimit"} required />
+            <Input type="number" name={"charLimit"} id={"charLimit"} />
           </div>
         )}
 
         {type == "numeric" && (
           <>
             <div>
-              <label htmlFor={"min"}>Valor mínimo:</label>
-              <Input type="number" name={"min"} id={"min"} required />
+              <label htmlFor={"minValue"}>Valor mínimo:</label>
+              <Input type="number" name={"minValue"} id={"minValue"} />
             </div>
             <div>
-              <label htmlFor={"max"}>Valor máximo:</label>
-              <Input type="number" name={"max"} id={"max"} required />
+              <label htmlFor={"maxValue"}>Valor máximo:</label>
+              <Input type="number" name={"maxValue"} id={"maxValue"} />
             </div>
           </>
         )}

@@ -92,6 +92,19 @@ const searchLocationsById = async (id: number) => {
   return await cachedLocations(id);
 };
 
+const searchLocationNameById = async (id: number) => {
+  const location = await prisma.location.findUnique({
+    where: {
+      id: id,
+    },
+    select: {
+      name: true,
+    },
+  });
+  if (location) return location.name;
+  else return "Erro ao encontrar nome";
+};
+
 const updateLocation = async (
   prevState: { statusCode: number },
   formData: FormData,
@@ -119,22 +132,44 @@ const updateLocation = async (
       name: formData.get("name"),
       inactiveNotFound: formData.get("inactiveNotFound") === "on",
       isPark: formData.get("isPark") === "on",
-      notes: formData.get("notes"),
+      notes: formData.get("notes") !== "" ? formData.get("notes") : undefined,
       creationYear:
-        creationYear !== null && !(creationYear instanceof File) ?
+        (
+          creationYear !== null &&
+          creationYear !== "" &&
+          !(creationYear instanceof File)
+        ) ?
           new Date(creationYear).toISOString()
-        : null,
+        : undefined,
       lastMaintenanceYear:
-        lastMaintenanceYear !== null && !(lastMaintenanceYear instanceof File) ?
+        (
+          lastMaintenanceYear !== null &&
+          lastMaintenanceYear !== "" &&
+          !(lastMaintenanceYear instanceof File)
+        ) ?
           new Date(lastMaintenanceYear).toISOString()
-        : null,
-      overseeingMayor: formData.get("overseeingMayor"),
-      legislation: formData.get("legislation"),
-      usableArea: formData.get("usableArea"),
-      legalArea: formData.get("legalArea"),
-      incline: formData.get("incline"),
+        : undefined,
+      overseeingMayor:
+        formData.get("overseeingMayor") !== "" ?
+          formData.get("overseeingMayor")
+        : undefined,
+      legislation:
+        formData.get("legislation") !== "" ?
+          formData.get("legislation")
+        : undefined,
+      usableArea:
+        formData.get("usableArea") !== "" ?
+          formData.get("usableArea")
+        : undefined,
+      legalArea:
+        formData.get("legalArea") !== "" ?
+          formData.get("legalArea")
+        : undefined,
+      incline:
+        formData.get("incline") !== "" ? formData.get("incline") : undefined,
     });
   } catch (e) {
+    // console.log(e);
     return {
       statusCode: 1,
     };
@@ -162,5 +197,6 @@ export {
   handleDelete,
   searchLocationsById,
   searchLocationsByName,
+  searchLocationNameById,
   updateLocation,
 };
