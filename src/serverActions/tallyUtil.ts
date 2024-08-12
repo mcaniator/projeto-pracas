@@ -123,6 +123,11 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
             },
           },
         },
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
     tallys = tallys.filter((tally) => {
