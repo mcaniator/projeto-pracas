@@ -1,4 +1,4 @@
-import { AddedOptions } from "@/components/singleUse/admin/registration/questions/addedOptions";
+//import { AddedOptions } from "@/components/singleUse/admin/registration/questions/addedOptions";
 import { CategoryForm } from "@/components/singleUse/admin/registration/questions/categoryForm";
 import { QuestionForm } from "@/components/singleUse/admin/registration/questions/questionForm";
 import { SubcategoryForm } from "@/components/singleUse/admin/registration/questions/subcategoryForm";

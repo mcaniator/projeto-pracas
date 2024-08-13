@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { addResponses } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
 import Link from "next/link";
+import React from "react";
 import { useEffect, useState } from "react";
 
 const ResponseForm = ({
@@ -41,15 +42,27 @@ const ResponseForm = ({
     questionId: number,
     questionType: QuestionTypes,
     value: string,
+    maximumSelections: number | null,
   ) => {
     if (checked) {
       setResponses((prevResponses) => {
         const prevResponse = prevResponses[questionId];
-        const valueArray: string[] = [];
+        let valueArray: string[] = [];
         if (prevResponse) {
-          valueArray.push(...prevResponse.value);
+          if (maximumSelections !== null) {
+            if (prevResponse.value.length < maximumSelections) {
+              valueArray.push(...prevResponse.value);
+              valueArray.push(value);
+            } else {
+              valueArray = prevResponse.value;
+            }
+          } else {
+            valueArray = prevResponse.value;
+          }
+        } else {
+          valueArray.push(value);
         }
-        valueArray.push(value);
+
         return {
           ...prevResponses,
           [questionId]: { value: valueArray, type: questionType },
@@ -71,6 +84,7 @@ const ResponseForm = ({
       });
     }
   };
+  //const handle
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
@@ -145,30 +159,36 @@ const ResponseForm = ({
                             </label>
                           </div>
                         ))}
-                      {question.optionType === "CHECKBOX" &&
-                        questionOptions.map((option) => (
-                          <div key={option.id}>
-                            <Checkbox
-                              id={`option${option.id}`}
-                              name={`response${question.id}`}
-                              value={option.id}
-                              checked={responses[question.id]?.value.includes(
-                                String(option.id),
-                              )}
-                              onChange={(e) =>
-                                handleCheckboxResponseChange(
-                                  e.target.checked,
-                                  question.id,
-                                  question.type,
-                                  e.target.value,
-                                )
-                              }
-                            />
-                            <label htmlFor={`option${option.id}`}>
-                              {option.text}
-                            </label>
-                          </div>
-                        ))}
+                      {question.optionType === "CHECKBOX" && (
+                        <React.Fragment>
+                          <h5>
+                            Máximo de seleções: {question.maximumSelections}
+                          </h5>
+                          {questionOptions.map((option) => (
+                            <div key={option.id}>
+                              <Checkbox
+                                id={`option${option.id}`}
+                                name={`response${question.id}`}
+                                value={option.id}
+                                checked={responses[question.id]?.value.includes(
+                                  String(option.id),
+                                )}
+                                onChange={(e) =>
+                                  handleCheckboxResponseChange(
+                                    e.target.checked,
+                                    question.id,
+                                    question.type,
+                                    e.target.value,
+                                    question.maximumSelections,
+                                  )
+                                }
+                              >
+                                {option.text}
+                              </Checkbox>
+                            </div>
+                          ))}
+                        </React.Fragment>
+                      )}
                     </div>
                   : <Input
                       type="text"
