@@ -35,6 +35,8 @@ const ResponseViewer = async ({
           type: question.type,
           locationId: locationId,
           formId: formId,
+          formVersion: option.formVersion,
+          userId: option.userId,
           questionId: question.id,
           response: option.optionId.toString(),
           optionId: option.optionId,
@@ -51,6 +53,8 @@ const ResponseViewer = async ({
           type: question.type,
           locationId: locationId,
           formId: formId,
+          formVersion: response.formVersion,
+          userId: response.userId,
           questionId: question.id,
           response: response.response,
           createdAt: response.createdAt,
@@ -78,7 +82,7 @@ const ResponseViewer = async ({
     envioId: key,
     responses: groupedResponses[key] || [],
   }));
-
+  //console.log(envios);
   const options = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {

@@ -11,6 +11,14 @@ interface ResponseToAdd {
   type: QuestionTypes;
   response?: string[];
 }
+interface ResponseToUpdate {
+  responseId: number;
+  locationId: number;
+  formId: number;
+  questionId: number;
+  type: QuestionTypes;
+  response?: string;
+}
 const addResponses = async (
   responses: ResponseToAdd[],
   userId: string,
@@ -57,16 +65,37 @@ const addResponses = async (
   };
 };
 
-const updateResponse = async (
-  responseId: number,
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  newResponse: string,
-) => {
+const updateResponses = async (responses: ResponseToUpdate[]) => {
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
   try {
-    if (questionType === QuestionTypes.NUMERIC) {
+    await prisma.$transaction([
+      ...responsesTextNumeric.map((response) =>
+        prisma.response.update({
+          where: {
+            id: response.responseId,
+          },
+          data: {
+            response: response.response ? response.response : undefined,
+          },
+        }),
+      ),
+      ...responsesOption.map((response) =>
+        prisma.responseOption.update({
+          where: {
+            id: response.responseId,
+          },
+          data: {
+            optionId: response.response ? Number(response.response) : undefined,
+          },
+        }),
+      ),
+    ]);
+    /*if (questionType === QuestionTypes.NUMERIC) {
       await prisma.response.update({
         where: {
           id: responseId,
@@ -95,7 +124,7 @@ const updateResponse = async (
           optionId: optionId,
         },
       });
-    }
+    }*/
   } catch (err) {
     return { statusCode: 2 };
   }
@@ -144,8 +173,10 @@ const searchResponsesByQuestionFormLocation = async (
 
 export {
   addResponses,
-  updateResponse,
+  updateResponses,
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
 };
+
+export { type ResponseToUpdate };

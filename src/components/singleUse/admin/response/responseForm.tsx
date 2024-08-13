@@ -84,7 +84,7 @@ const ResponseForm = ({
       });
     }
   };
-  //const handle
+
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,

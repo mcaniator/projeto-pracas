@@ -38,13 +38,28 @@ const ResponseViewerClient = ({
   };
 
   const getInitialResponses = (responses: Response[]) => {
-    return responses.reduce(
-      (acc, response) => ({
-        ...acc,
-        [response.questionId]: response.response || "",
-      }),
-      {} as { [key: number]: string },
+    const char = responses.reduce(
+      (acc, response) => {
+        if (!acc[response.questionId]) {
+          acc[response.questionId] = {
+            value: [],
+            type: response.type,
+            responseId: response.id,
+          };
+        }
+        if (response.response)
+          acc[response.questionId]?.value.push(response.response);
+        return acc;
+      },
+      {} as {
+        [key: number]: {
+          value: string[];
+          type: QuestionTypes;
+          responseId: number;
+        };
+      },
     );
+    return char;
   };
 
   const responsesByQuestionId = responses.reduce(
