@@ -44,18 +44,21 @@ const ResponseViewerClient = ({
           acc[response.questionId] = {
             value: [],
             type: response.type,
-            responseId: response.id,
+            responseId: [],
           };
         }
-        if (response.response)
+        if (response.response) {
+          acc[response.questionId]?.responseId.push(response.id);
           acc[response.questionId]?.value.push(response.response);
+        }
+
         return acc;
       },
       {} as {
         [key: number]: {
           value: string[];
           type: QuestionTypes;
-          responseId: number;
+          responseId: number[];
         };
       },
     );

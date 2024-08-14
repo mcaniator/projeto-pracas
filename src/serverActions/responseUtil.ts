@@ -12,12 +12,12 @@ interface ResponseToAdd {
   response?: string[];
 }
 interface ResponseToUpdate {
-  responseId: number;
+  responseId: number[];
   locationId: number;
   formId: number;
   questionId: number;
   type: QuestionTypes;
-  response?: string;
+  value: string[];
 }
 const addResponses = async (
   responses: ResponseToAdd[],
@@ -77,14 +77,14 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
       ...responsesTextNumeric.map((response) =>
         prisma.response.update({
           where: {
-            id: response.responseId,
+            id: response.responseId[0],
           },
           data: {
-            response: response.response ? response.response : undefined,
+            response: response.value[0],
           },
         }),
       ),
-      ...responsesOption.map((response) =>
+      /*...responsesOption.map((response) =>
         prisma.responseOption.update({
           where: {
             id: response.responseId,
@@ -93,7 +93,7 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
             optionId: response.response ? Number(response.response) : undefined,
           },
         }),
-      ),
+      ),*/
     ]);
     /*if (questionType === QuestionTypes.NUMERIC) {
       await prisma.response.update({
@@ -126,6 +126,7 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
       });
     }*/
   } catch (err) {
+    console.log(err);
     return { statusCode: 2 };
   }
 

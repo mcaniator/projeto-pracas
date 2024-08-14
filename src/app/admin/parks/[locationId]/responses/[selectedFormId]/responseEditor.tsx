@@ -27,13 +27,21 @@ const ResponseEditor = ({
   questions: Question[] | null;
   options: { questionId: number; options: { id: number; text: string }[] }[];
   initialResponses?: {
-    [key: number]: { value: string[]; type: QuestionTypes; responseId: number };
+    [key: number]: {
+      value: string[];
+      type: QuestionTypes;
+      responseId: number[];
+    };
   };
   onSave?: () => void;
   responses: Response[];
 }) => {
   const [responsesState, setResponsesState] = useState<{
-    [key: number]: { value: string[]; type: QuestionTypes; responseId: number };
+    [key: number]: {
+      value: string[];
+      type: QuestionTypes;
+      responseId: number[];
+    };
   }>(
     initialResponses ?
       Object.fromEntries(
@@ -49,7 +57,7 @@ const ResponseEditor = ({
     : {},
   );
   const [responsesSent, setResponsesSent] = useState(false);
-
+  //console.log(responsesState);
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
@@ -120,16 +128,25 @@ const ResponseEditor = ({
   const handleSubmitResponse = () => {
     const responsesToUpdate: ResponseToUpdate[] = [];
     for (const key in responsesState) {
-      const updatedResponse = responsesState[key];
-      if (initialResponses) {
-        const initialResponse = initialResponses[key];
-        if (updatedResponse && initialResponse) {
-          if (updatedResponse.value !== initialResponses[key]?.value) {
-            console.log(updatedResponse);
+      const currentResponse = responsesState[key];
+      if (currentResponse) {
+        const updatedResponse = {
+          ...currentResponse,
+          locationId,
+          formId,
+          questionId: Number(key),
+        };
+        if (initialResponses) {
+          const initialResponse = initialResponses[key];
+          if (updatedResponse && initialResponse) {
+            if (updatedResponse.value !== initialResponses[key]?.value) {
+              responsesToUpdate.push(updatedResponse);
+            }
           }
         }
       }
     }
+
     void updateResponses(responsesToUpdate);
 
     responses.forEach((response) => {
