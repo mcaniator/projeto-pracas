@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
-import { connect } from "http2";
 import { revalidateTag } from "next/cache";
 
 interface ResponseToAdd {
@@ -67,21 +66,25 @@ const addResponses = async (
 };
 
 const updateResponses = async (responses: ResponseToUpdate[]) => {
+  type ResponsePromise =
+    | ReturnType<typeof prisma.response.update>
+    | ReturnType<typeof prisma.responseOption.upsert>
+    | ReturnType<typeof prisma.responseOption.deleteMany>;
+
   const responsesTextNumeric = responses.filter(
     (response) => response.type === "NUMERIC" || response.type === "TEXT",
   );
   const responsesOption = responses.filter(
     (response) => response.type === "OPTIONS",
   );
-  console.log(responsesOption);
   try {
-    let submissionDate: {
+    let submmitData: {
       createdAt: Date;
       userId: string;
       formVersion: number;
     };
     if (responsesOption[0]) {
-      submissionDate = await prisma.responseOption.findUnique({
+      const responseObj = await prisma.responseOption.findUnique({
         where: {
           id: Number(responsesOption[0].responseId[0]),
         },
@@ -91,6 +94,9 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
           formVersion: true,
         },
       });
+      if (responseObj) {
+        submmitData = responseObj;
+      }
     }
 
     await prisma.$transaction([
@@ -104,174 +110,131 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
           },
         }),
       ),
-      ...responsesOption.map(
-        (response) => {
-          if (response.responseId.length >= response.value.length) {
-            const quantityResponsesOptionToDelete =
-              response.responseId.length - response.value.length;
-            const responsesOptionToDeleteIds: number[] = [];
-            for (let i = 0; i < quantityResponsesOptionToDelete; i++) {
-              if (response.responseId[0]) {
-                responsesOptionToDeleteIds.push(response.responseId[0]);
-                response.responseId.shift();
-              }
+      ...responsesOption.flatMap((response) => {
+        const transactionPromises: ResponsePromise[] = [];
+        if (response.responseId.length >= response.value.length) {
+          const quantityResponsesOptionToDelete =
+            response.responseId.length - response.value.length;
+          const responsesOptionToDeleteIds: number[] = [];
+          for (let i = 0; i < quantityResponsesOptionToDelete; i++) {
+            if (response.responseId[0]) {
+              responsesOptionToDeleteIds.push(response.responseId[0]);
+              response.responseId.shift();
             }
-            prisma.responseOption
-              .deleteMany({
+          }
+          transactionPromises.push(
+            prisma.responseOption.deleteMany({
+              where: {
+                id: {
+                  in: responsesOptionToDeleteIds,
+                },
+              },
+            }),
+          );
+
+          for (let i = 0; i < response.value.length; i++) {
+            transactionPromises.push(
+              prisma.responseOption.update({
                 where: {
-                  id: {
-                    in: responsesOptionToDeleteIds,
+                  id: response.responseId[i],
+                },
+                data: {
+                  option: {
+                    connect: {
+                      id: Number(response.value[i]),
+                    },
                   },
                 },
-              })
-              .catch(() => ({ statusCode: 2 }));
-            for (let i = 0; i < response.value.length; i++) {
-              prisma.responseOption
-                .update({
+              }),
+            );
+          }
+        } else {
+          for (let i = 0; i < response.value.length; i++) {
+            if (response.responseId[i]) {
+              transactionPromises.push(
+                prisma.responseOption.upsert({
                   where: {
-                    id: response.responseId[i],
+                    id: Number(response.responseId[i]),
                   },
-                  data: {
+                  update: {
                     option: {
                       connect: {
                         id: Number(response.value[i]),
                       },
                     },
                   },
-                })
-                .catch(() => ({ statusCode: 2 }));
-            }
-          } else {
-            //const responsesOptionToCreate = response.value.length - response.responseId.length;
-
-            for (let i = 0; i < response.value.length; i++) {
-              if (response.responseId[i]) {
-                prisma.responseOption
-                  .upsert({
-                    where: {
-                      id: Number(response.responseId[i]),
-                    },
-                    update: {
-                      option: {
-                        connect: {
-                          id: Number(response.value[i]),
-                        },
+                  create: {
+                    location: {
+                      connect: {
+                        id: response.locationId,
                       },
                     },
-                    create: {
-                      location: {
-                        connect: {
-                          id: response.locationId,
-                        },
-                      },
-                      question: {
-                        connect: {
-                          id: response.questionId,
-                        },
-                      },
-                      user: {
-                        connect: {
-                          id: submissionDate.userId,
-                        },
-                      },
-                      form: {
-                        connect: {
-                          id: response.formId,
-                        },
-                      },
-                      formVersion: submissionDate.formVersion,
-                      createdAt: submissionDate.createdAt,
-                      option: {
-                        connect: {
-                          id: Number(response.value[i]),
-                        },
+                    question: {
+                      connect: {
+                        id: response.questionId,
                       },
                     },
-                  })
-                  .catch(() => ({ statusCode: 2 }));
-              } else {
-                prisma.responseOption
-                  .create({
-                    data: {
-                      location: {
-                        connect: {
-                          id: response.locationId,
-                        },
-                      },
-                      question: {
-                        connect: {
-                          id: response.questionId,
-                        },
-                      },
-                      user: {
-                        connect: {
-                          id: "z5tg10gr63f9hfn",
-                        },
-                      },
-                      form: {
-                        connect: {
-                          id: response.formId,
-                        },
-                      },
-                      formVersion: 4,
-                      createdAt: submissionDate.createdAt,
-                      option: {
-                        connect: {
-                          id: Number(response.value[i]),
-                        },
+                    user: {
+                      connect: {
+                        id: submmitData.userId,
                       },
                     },
-                  })
-                  .catch(() => ({ statusCode: 2 }));
-              }
+                    form: {
+                      connect: {
+                        id: response.formId,
+                      },
+                    },
+                    formVersion: submmitData.formVersion,
+                    createdAt: submmitData.createdAt,
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
+            } else {
+              transactionPromises.push(
+                prisma.responseOption.create({
+                  data: {
+                    location: {
+                      connect: {
+                        id: response.locationId,
+                      },
+                    },
+                    question: {
+                      connect: {
+                        id: response.questionId,
+                      },
+                    },
+                    user: {
+                      connect: {
+                        id: submmitData.userId,
+                      },
+                    },
+                    form: {
+                      connect: {
+                        id: response.formId,
+                      },
+                    },
+                    formVersion: submmitData.formVersion,
+                    createdAt: submmitData.createdAt,
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
             }
           }
-          return prisma.responseOption.count({
-            //
-          });
-        },
-        /*prisma.responseOption.update({
-          where: {
-            id: response.responseId,
-          },
-          data: {
-            optionId: response.response ? Number(response.response) : undefined,
-          },
-        }),*/
-      ),
+        }
+        return transactionPromises;
+      }),
     ]);
-    /*if (questionType === QuestionTypes.NUMERIC) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.TEXT) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS) {
-      const optionId = parseInt(newResponse);
-
-      await prisma.responseOption.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          optionId: optionId,
-        },
-      });
-    }*/
   } catch (err) {
-    console.log(err);
     return { statusCode: 2 };
   }
 
