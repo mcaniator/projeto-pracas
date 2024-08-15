@@ -73,9 +73,9 @@ const ResponseViewer = async ({
       const dateKey = new Date(response.createdAt).toISOString();
       const userId = response.userId;
       if (!acc[`${dateKey},${userId}`]) {
-        acc[dateKey] = [];
+        acc[`${dateKey},${userId}`] = [];
       }
-      acc[dateKey]?.push(response);
+      acc[`${dateKey},${userId}`]?.push(response);
       return acc;
     },
     {} as { [key: string]: typeof flattenedResponses },
