@@ -5,6 +5,18 @@ import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { Question, QuestionsOnForms } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
+interface QuestionWithCategories extends Question {
+  category: {
+    id: number;
+    name: string;
+  };
+  subcategory: {
+    id: number;
+    name: string;
+    categoryId: number;
+  } | null;
+}
+
 const questionSubmit = async (
   prevState: { statusCode: number },
   formData: FormData,
@@ -107,15 +119,14 @@ const questionSubmit = async (
       } catch (err) {
         return { statusCode: 1 };
       }
-
       if (
-        optionsQuestionParsed.maximumSelections !== undefined
+        optionsQuestionParsed.optionType === "CHECKBOX" &&
+        optionsQuestionParsed.maximumSelections === undefined
         //  &&
         // optionsQuestionParsed.maximumSelections > options.length
       ) {
         return { statusCode: 3 };
       }
-
       try {
         const newQuestion = await prisma.question.create({
           data: {
@@ -160,9 +171,9 @@ const questionSubmit = async (
 
 const searchQuestionsByFormId = async (id: number) => {
   const cachedQuestions = unstable_cache(
-    async (id: number): Promise<Question[]> => {
+    async (id: number): Promise<QuestionWithCategories[]> => {
       let foundQuestionsOnForms: QuestionsOnForms[] = [];
-      let foundQuestions: Question[] = [];
+      let foundQuestions: QuestionWithCategories[] = [];
 
       try {
         foundQuestionsOnForms = await prisma.questionsOnForms.findMany({
@@ -185,6 +196,21 @@ const searchQuestionsByFormId = async (id: number) => {
               in: foundQuestionsIds,
             },
           },
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
+            },
+          },
         });
       } catch (err) {
         // console.error(err);
@@ -201,3 +227,5 @@ const searchQuestionsByFormId = async (id: number) => {
 };
 
 export { questionSubmit, searchQuestionsByFormId };
+
+export { type QuestionWithCategories };

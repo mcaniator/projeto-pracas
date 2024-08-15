@@ -1,6 +1,8 @@
+import { validateRequest } from "@/lib/lucia";
 import { searchFormsById } from "@/serverActions/formUtil";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
+import { redirect } from "next/navigation";
 
 import { ResponseViewer } from "./responseViewer";
 
@@ -12,6 +14,8 @@ const ResponsesFetcher = async ({
     selectedFormId: string;
   };
 }) => {
+  const { user } = await validateRequest();
+  if (user === null || user.type !== "ADMIN") redirect("/error");
   const location = await searchLocationsById(parseInt(params.locationId));
   const form = await searchFormsById(parseInt(params.selectedFormId));
   const questions = await searchQuestionsByFormId(
@@ -27,7 +31,7 @@ const ResponsesFetcher = async ({
           {location.name}
         </h3>
         {questions !== null && form !== null && form !== undefined ?
-          <ul className="list-disc p-3 ">
+          <ul className="list-disc p-3">
             <ResponseViewer locationId={location.id} formId={form.id} />
           </ul>
         : <div className="text-redwood">

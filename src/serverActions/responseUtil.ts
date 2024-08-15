@@ -9,7 +9,15 @@ interface ResponseToAdd {
   formId: number;
   questionId: number;
   type: QuestionTypes;
-  response?: string;
+  response?: string[];
+}
+interface ResponseToUpdate {
+  responseId: number[];
+  locationId: number;
+  formId: number;
+  questionId: number;
+  type: QuestionTypes;
+  value: string[];
 }
 const addResponses = async (
   responses: ResponseToAdd[],
@@ -27,19 +35,24 @@ const addResponses = async (
       prisma.response.createMany({
         data: responsesTextNumeric.map((response) => ({
           ...response,
+          response: response.response ? response.response[0] : undefined,
           userId,
           formVersion,
         })),
       }),
       prisma.responseOption.createMany({
-        data: responsesOption.map((response) => ({
-          optionId: Number(response.response),
-          locationId: response.locationId,
-          formId: response.formId,
-          questionId: response.questionId,
-          userId: userId,
-          formVersion: formVersion,
-        })),
+        data: responsesOption.flatMap((response) =>
+          response.response ?
+            response.response.map((optionId) => ({
+              optionId: optionId !== "null" ? Number(optionId) : null,
+              locationId: response.locationId,
+              formId: response.formId,
+              questionId: response.questionId,
+              userId: userId,
+              formVersion: formVersion,
+            }))
+          : [],
+        ),
       }),
     ]);
   } catch (err) {
@@ -52,45 +65,149 @@ const addResponses = async (
   };
 };
 
-const updateResponse = async (
-  responseId: number,
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  newResponse: string,
-) => {
-  try {
-    if (questionType === QuestionTypes.NUMERIC) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.TEXT) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS) {
-      const optionId = parseInt(newResponse);
+const updateResponses = async (responses: ResponseToUpdate[]) => {
+  type ResponsePromise =
+    | ReturnType<typeof prisma.response.update>
+    | ReturnType<typeof prisma.responseOption.upsert>
+    | ReturnType<typeof prisma.responseOption.deleteMany>;
 
-      await prisma.responseOption.update({
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
+  try {
+    let submmitData: {
+      createdAt: Date;
+      userId: string;
+      formVersion: number;
+    };
+    if (responsesOption[0]) {
+      const responseObj = await prisma.responseOption.findUnique({
         where: {
-          id: responseId,
+          id: Number(responsesOption[0].responseId[0]),
         },
-        data: {
-          optionId: optionId,
+        select: {
+          createdAt: true,
+          userId: true,
+          formVersion: true,
         },
       });
+      if (responseObj) {
+        submmitData = responseObj;
+      }
     }
+
+    await prisma.$transaction([
+      ...responsesTextNumeric.map((response) =>
+        prisma.response.update({
+          where: {
+            id: response.responseId[0],
+          },
+          data: {
+            response: response.value[0],
+          },
+        }),
+      ),
+      ...responsesOption.flatMap((response) => {
+        const transactionPromises: ResponsePromise[] = [];
+        if (response.responseId.length >= response.value.length) {
+          const quantityResponsesOptionToNullify =
+            response.responseId.length - response.value.length;
+          const responsesOptionToNullifyIds: number[] = [];
+          for (let i = 0; i < quantityResponsesOptionToNullify; i++) {
+            if (response.responseId[0]) {
+              responsesOptionToNullifyIds.push(response.responseId[0]);
+              response.responseId.shift();
+            }
+          }
+          transactionPromises.push(
+            prisma.responseOption.updateMany({
+              where: {
+                id: {
+                  in: responsesOptionToNullifyIds,
+                },
+              },
+              data: {
+                optionId: null,
+              },
+            }),
+          );
+
+          for (let i = 0; i < response.value.length; i++) {
+            transactionPromises.push(
+              prisma.responseOption.update({
+                where: {
+                  id: response.responseId[i],
+                },
+                data: {
+                  option: {
+                    connect: {
+                      id: Number(response.value[i]),
+                    },
+                  },
+                },
+              }),
+            );
+          }
+        } else {
+          for (let i = 0; i < response.value.length; i++) {
+            if (response.responseId[i]) {
+              transactionPromises.push(
+                prisma.responseOption.update({
+                  where: {
+                    id: Number(response.responseId[i]),
+                  },
+                  data: {
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
+            } else {
+              transactionPromises.push(
+                prisma.responseOption.create({
+                  data: {
+                    location: {
+                      connect: {
+                        id: response.locationId,
+                      },
+                    },
+                    question: {
+                      connect: {
+                        id: response.questionId,
+                      },
+                    },
+                    user: {
+                      connect: {
+                        id: submmitData.userId,
+                      },
+                    },
+                    form: {
+                      connect: {
+                        id: response.formId,
+                      },
+                    },
+                    formVersion: submmitData.formVersion,
+                    createdAt: submmitData.createdAt,
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
+            }
+          }
+        }
+        return transactionPromises;
+      }),
+    ]);
   } catch (err) {
     return { statusCode: 2 };
   }
@@ -120,6 +237,13 @@ const searchResponsesOptionsByQuestionFormLocation = async (
       locationId,
       formId,
     },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
   });
 };
 
@@ -133,6 +257,13 @@ const searchResponsesByQuestionFormLocation = async (
       questionId: questionId,
       formId: formId,
       locationId: locationId,
+    },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 };
@@ -189,10 +320,12 @@ const searchResponsesOptionsByLocation = async (locationId: number) => {
 
 export {
   addResponses,
-  updateResponse,
+  updateResponses,
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
   searchResponsesByLocation,
   searchResponsesOptionsByLocation,
 };
+
+export { type ResponseToUpdate };

@@ -6,6 +6,12 @@ import { useState } from "react";
 
 import { ResponseEditor } from "./responseEditor";
 
+interface ResponseWithFrequency extends Response {
+  frequency: number;
+}
+interface ResponseWithUsername extends Response {
+  username: string;
+}
 const ResponseViewerClient = ({
   questions,
   options,
@@ -20,10 +26,11 @@ const ResponseViewerClient = ({
     options: { id: number; text: string; frequency: number }[];
   }[];
   responses: Response[] | null;
-  envios: { envioId: string; responses: Response[] }[];
+  envios: { envioId: string; responses: ResponseWithUsername[] }[];
   locationId: number;
   formId: number;
 }) => {
+  //console.log(envios);
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
   if (questions === null) {
     return <div>Ainda não há perguntas neste formulário</div>;
@@ -38,24 +45,80 @@ const ResponseViewerClient = ({
   };
 
   const getInitialResponses = (responses: Response[]) => {
-    return responses.reduce(
-      (acc, response) => ({
-        ...acc,
-        [response.questionId]: response.response || "",
-      }),
-      {} as { [key: number]: string },
+    const questionChar = questions.reduce(
+      (acc, question) => {
+        if (!acc[question.id]) {
+          acc[question.id] = {
+            value: [],
+            type: question.type,
+            responseId: [],
+          };
+        }
+        return acc;
+      },
+      {} as {
+        [key: number]: {
+          value: string[];
+          type: QuestionTypes;
+          responseId: number[];
+        };
+      },
     );
-  };
+    const char = responses.reduce(
+      (acc, response) => {
+        if (!acc[response.questionId]) {
+          acc[response.questionId] = {
+            value: [],
+            type: response.type,
+            responseId: [],
+          };
+        }
+        acc[response.questionId]?.responseId.push(response.id);
+        if (response.response) {
+          acc[response.questionId]?.value.push(response.response);
+        }
 
+        return acc;
+      },
+      {} as {
+        [key: number]: {
+          value: string[];
+          type: QuestionTypes;
+          responseId: number[];
+        };
+      },
+    );
+    Object.keys(char).forEach((key) => {
+      const questionId = Number(key);
+      if (questionChar[questionId] && char[questionId]) {
+        questionChar[questionId].value = questionChar[questionId].value.concat(
+          char[questionId].value,
+        );
+
+        questionChar[questionId].responseId = questionChar[
+          questionId
+        ].responseId.concat(char[questionId].responseId);
+      }
+    });
+    return questionChar;
+  };
   const responsesByQuestionId = responses.reduce(
     (acc, response) => {
       if (!acc[response.questionId]) {
         acc[response.questionId] = [];
       }
-      acc[response.questionId]?.push(response);
+      const existingResponse = acc[response.questionId]?.find(
+        (addedResponse) => addedResponse.response === response.response,
+      );
+      if (existingResponse) {
+        existingResponse.frequency += 1;
+      } else {
+        acc[response.questionId]?.push({ ...response, frequency: 1 });
+      }
+
       return acc;
     },
-    {} as { [key: number]: Response[] },
+    {} as { [key: number]: ResponseWithFrequency[] },
   );
 
   const optionsByQuestionId = options.reduce(
@@ -76,7 +139,7 @@ const ResponseViewerClient = ({
     <div className="flex gap-5">
       <div
         className={
-          "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+          "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
         <ul className="list-disc p-3">
@@ -100,21 +163,24 @@ const ResponseViewerClient = ({
                     ))}
                   </div>
                 : responsesByQuestionId[question.id] ?
-                  responsesByQuestionId[question.id]?.map((response, index) => (
-                    <div key={index}>
-                      {question.type === QuestionTypes.TEXT ?
-                        <div>{response.response}</div>
-                      : question.type === QuestionTypes.NUMERIC ?
-                        <div>
-                          <span>{response.response}</span>
-                          <span className="font-bold text-blue-500">
-                            {" "}
-                            Frequência: {response.frequency}
-                          </span>
-                        </div>
-                      : <div>{response.response}</div>}
-                    </div>
-                  ))
+                  responsesByQuestionId[question.id]?.map((response, index) => {
+                    return (
+                      <div key={index}>
+                        {(
+                          question.type === QuestionTypes.NUMERIC ||
+                          question.type === QuestionTypes.TEXT
+                        ) ?
+                          <div>
+                            <span>{response.response}</span>
+                            <span className="font-bold text-blue-500">
+                              {" "}
+                              Frequência: {response.frequency}
+                            </span>
+                          </div>
+                        : <div>{response.response}</div>}
+                      </div>
+                    );
+                  })
                 : <div>Não há respostas para esta pergunta</div>}
               </div>
             </li>
@@ -125,16 +191,22 @@ const ResponseViewerClient = ({
       <div className="flex basis-2/5 flex-col gap-3">
         <h3 className="text-lg font-bold">3 Envios Mais Recentes</h3>
         {recentEnvios.map((envio, index) => {
-          const envioDate = new Date(envio.envioId);
-          const formattedDate = envioDate.toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit",
-          });
-          const formattedTime = envioDate.toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          const envioDateString = envio.envioId.split(",")[0];
+          let formattedTimeString = "";
+          if (envioDateString) {
+            const envioDate = new Date(envioDateString);
+            const formattedDate = envioDate.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            });
+            const formattedTime = envioDate.toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            formattedTimeString += `${formattedDate} às ${formattedTime}`;
+          }
+
           const isEditing = editingEnvioId === envio.envioId;
 
           return (
@@ -142,8 +214,9 @@ const ResponseViewerClient = ({
               key={index}
               className="rounded-lg bg-transparent p-3 shadow-md"
             >
+              <h4 className="font-semibold">Envio em: {formattedTimeString}</h4>
               <h4 className="font-semibold">
-                Envio em: {formattedDate} às {formattedTime}
+                Por: {envio.responses[0]?.username}
               </h4>
               {isEditing ?
                 <ResponseEditor
