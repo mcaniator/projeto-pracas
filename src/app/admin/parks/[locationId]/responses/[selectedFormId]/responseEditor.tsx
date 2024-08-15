@@ -124,7 +124,7 @@ const ResponseEditor = ({
       });
     }
   };
-  //console.log(responsesState);
+  console.log(responsesState);
   const handleSubmitResponse = () => {
     const responsesToUpdate: ResponseToUpdate[] = [];
     for (const key in responsesState) {

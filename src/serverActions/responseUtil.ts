@@ -235,6 +235,7 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
       }),
     ]);
   } catch (err) {
+    console.log(err);
     return { statusCode: 2 };
   }
 

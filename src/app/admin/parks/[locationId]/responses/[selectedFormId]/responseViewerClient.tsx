@@ -38,6 +38,25 @@ const ResponseViewerClient = ({
   };
 
   const getInitialResponses = (responses: Response[]) => {
+    const questionChar = questions.reduce(
+      (acc, question) => {
+        if (!acc[question.id]) {
+          acc[question.id] = {
+            value: [],
+            type: question.type,
+            responseId: [],
+          };
+        }
+        return acc;
+      },
+      {} as {
+        [key: number]: {
+          value: string[];
+          type: QuestionTypes;
+          responseId: number[];
+        };
+      },
+    );
     const char = responses.reduce(
       (acc, response) => {
         if (!acc[response.questionId]) {
@@ -62,9 +81,22 @@ const ResponseViewerClient = ({
         };
       },
     );
-    return char;
-  };
+    Object.keys(char).forEach((key) => {
+      const questionId = Number(key);
+      if (questionChar[questionId] && char[questionId]) {
+        questionChar[questionId].value = questionChar[questionId].value.concat(
+          char[questionId].value,
+        );
 
+        questionChar[questionId].responseId = questionChar[
+          questionId
+        ].responseId.concat(char[questionId].responseId);
+      } else {
+        questionChar[questionId] = char[questionId];
+      }
+    });
+    return questionChar;
+  };
   const responsesByQuestionId = responses.reduce(
     (acc, response) => {
       if (!acc[response.questionId]) {
