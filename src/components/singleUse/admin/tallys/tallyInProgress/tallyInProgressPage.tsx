@@ -39,7 +39,9 @@ interface ongoingTallyDataFetched {
   };
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;

@@ -44,7 +44,9 @@ interface TallyDataFetched {
   tallyPerson: TallyPerson[];
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;
@@ -166,7 +168,7 @@ const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
                       tally.weatherCondition ?
                         weatherConditionsMap.get(tally.weatherCondition)
                       : ""
-                    : formatName(tally.observer)}
+                    : formatName(tally.user.username)}
                   </td>
                 </tr>
               );

@@ -82,11 +82,18 @@ const calculateBooleanCharacteristicsArray = (
         isInApparentIllicitActivity === "true",
         isPersonWithoutHousing === "true",
       ];
-      if (!characteristics.includes(true)) {
+      if (
+        !characteristics.includes(true) &&
+        booleanCharacteristicsArray[0] !== undefined
+      ) {
         booleanCharacteristicsArray[0] += value;
       } else {
         characteristics.forEach((characteristic, index) => {
-          if (characteristic) booleanCharacteristicsArray[index + 1] += value;
+          if (characteristic) {
+            const previousValue = booleanCharacteristicsArray[index + 1];
+            if (previousValue !== undefined)
+              booleanCharacteristicsArray[index + 1] = previousValue + value;
+          }
         });
       }
     }

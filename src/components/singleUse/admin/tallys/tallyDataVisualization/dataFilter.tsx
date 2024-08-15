@@ -1,5 +1,6 @@
 "use client";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { RadioButton } from "@/components/ui/radioButton";
 import React, { useState } from "react";
 
@@ -118,10 +119,9 @@ const DataFilter = ({
                   className="ml-auto"
                   style={{ opacity: enableCheckboxes ? 1 : 0 }}
                 >
-                  <input
+                  <Checkbox
                     id="default"
                     value={"DEFAULT"}
-                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
@@ -145,10 +145,9 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <input
+                  <Checkbox
                     id="isTraversing"
                     value={"isTraversing"}
-                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -172,10 +171,9 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <input
+                  <Checkbox
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
-                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -200,10 +198,9 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <input
+                  <Checkbox
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
-                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -228,10 +225,9 @@ const DataFilter = ({
                       enableCheckboxes && enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <input
+                  <Checkbox
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
-                    type="checkbox"
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
