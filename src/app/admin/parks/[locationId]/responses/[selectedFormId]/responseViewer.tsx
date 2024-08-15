@@ -122,7 +122,7 @@ const ResponseViewer = async ({
 
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-3/5 flex-col gap-5 text-white">
+      <div className="flex max-h-96 basis-3/5 flex-col gap-5 overflow-auto text-white">
         <ResponseViewerClient
           questions={questions}
           options={options}

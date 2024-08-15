@@ -44,7 +44,7 @@ const addResponses = async (
         data: responsesOption.flatMap((response) =>
           response.response ?
             response.response.map((optionId) => ({
-              optionId: Number(optionId),
+              optionId: optionId !== "null" ? Number(optionId) : null,
               locationId: response.locationId,
               formId: response.formId,
               questionId: response.questionId,

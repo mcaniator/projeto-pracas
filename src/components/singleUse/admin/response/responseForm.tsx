@@ -33,7 +33,11 @@ const ResponseForm = ({
   }>(
     questions?.reduce(
       (acc, question) => {
-        acc[question.id] = { value: [], type: question.type };
+        const valueArray: string[] = [];
+        if (question.type === "OPTIONS") {
+          valueArray.push("null");
+        }
+        acc[question.id] = { value: valueArray, type: question.type };
         return acc;
       },
       {} as { [key: number]: { value: string[]; type: QuestionTypes } },
@@ -55,7 +59,9 @@ const ResponseForm = ({
         if (prevResponse) {
           if (maximumSelections !== null) {
             if (prevResponse.value.length < maximumSelections) {
-              valueArray.push(...prevResponse.value);
+              valueArray.push(
+                ...prevResponse.value.filter((value) => value !== "null"),
+              );
               valueArray.push(value);
             } else {
               valueArray = prevResponse.value;
@@ -81,6 +87,9 @@ const ResponseForm = ({
             (prevValue) => prevValue !== value,
           );
         }
+        if (valueArray.length === 0) {
+          valueArray.push("null");
+        }
         return {
           ...prevResponses,
           [questionId]: { value: valueArray, type: questionType },
@@ -88,7 +97,6 @@ const ResponseForm = ({
       });
     }
   };
-
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
