@@ -330,8 +330,8 @@ model ResponseOption {
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
-  optionId Int    @map("option_id")
-  option   Option @relation(fields: [optionId], references: [id])
+  optionId Int?    @map("option_id")
+  option   Option? @relation(fields: [optionId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
 

@@ -113,21 +113,24 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
       ...responsesOption.flatMap((response) => {
         const transactionPromises: ResponsePromise[] = [];
         if (response.responseId.length >= response.value.length) {
-          const quantityResponsesOptionToDelete =
+          const quantityResponsesOptionToNullify =
             response.responseId.length - response.value.length;
-          const responsesOptionToDeleteIds: number[] = [];
-          for (let i = 0; i < quantityResponsesOptionToDelete; i++) {
+          const responsesOptionToNullifyIds: number[] = [];
+          for (let i = 0; i < quantityResponsesOptionToNullify; i++) {
             if (response.responseId[0]) {
-              responsesOptionToDeleteIds.push(response.responseId[0]);
+              responsesOptionToNullifyIds.push(response.responseId[0]);
               response.responseId.shift();
             }
           }
           transactionPromises.push(
-            prisma.responseOption.deleteMany({
+            prisma.responseOption.updateMany({
               where: {
                 id: {
-                  in: responsesOptionToDeleteIds,
+                  in: responsesOptionToNullifyIds,
                 },
+              },
+              data: {
+                optionId: null,
               },
             }),
           );
@@ -152,40 +155,11 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
           for (let i = 0; i < response.value.length; i++) {
             if (response.responseId[i]) {
               transactionPromises.push(
-                prisma.responseOption.upsert({
+                prisma.responseOption.update({
                   where: {
                     id: Number(response.responseId[i]),
                   },
-                  update: {
-                    option: {
-                      connect: {
-                        id: Number(response.value[i]),
-                      },
-                    },
-                  },
-                  create: {
-                    location: {
-                      connect: {
-                        id: response.locationId,
-                      },
-                    },
-                    question: {
-                      connect: {
-                        id: response.questionId,
-                      },
-                    },
-                    user: {
-                      connect: {
-                        id: submmitData.userId,
-                      },
-                    },
-                    form: {
-                      connect: {
-                        id: response.formId,
-                      },
-                    },
-                    formVersion: submmitData.formVersion,
-                    createdAt: submmitData.createdAt,
+                  data: {
                     option: {
                       connect: {
                         id: Number(response.value[i]),

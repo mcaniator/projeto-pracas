@@ -24,6 +24,7 @@ const ResponseViewerClient = ({
   locationId: number;
   formId: number;
 }) => {
+  //console.log(envios);
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
   if (questions === null) {
     return <div>Ainda não há perguntas neste formulário</div>;
@@ -66,8 +67,8 @@ const ResponseViewerClient = ({
             responseId: [],
           };
         }
+        acc[response.questionId]?.responseId.push(response.id);
         if (response.response) {
-          acc[response.questionId]?.responseId.push(response.id);
           acc[response.questionId]?.value.push(response.response);
         }
 
@@ -91,8 +92,6 @@ const ResponseViewerClient = ({
         questionChar[questionId].responseId = questionChar[
           questionId
         ].responseId.concat(char[questionId].responseId);
-      } else {
-        questionChar[questionId] = char[questionId];
       }
     });
     return questionChar;

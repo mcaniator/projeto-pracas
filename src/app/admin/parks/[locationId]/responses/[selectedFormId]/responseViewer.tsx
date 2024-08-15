@@ -38,7 +38,7 @@ const ResponseViewer = async ({
           formVersion: option.formVersion,
           userId: option.userId,
           questionId: question.id,
-          response: option.optionId.toString(),
+          response: option.optionId ? option.optionId.toString() : null,
           optionId: option.optionId,
           createdAt: option.createdAt,
         }));
@@ -77,7 +77,7 @@ const ResponseViewer = async ({
     },
     {} as { [key: string]: typeof flattenedResponses },
   );
-
+  //console.log(groupedResponses);
   const envios = Object.keys(groupedResponses).map((key) => ({
     envioId: key,
     responses: groupedResponses[key] || [],
