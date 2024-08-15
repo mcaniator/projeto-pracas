@@ -22,9 +22,7 @@ interface FetchedSubmission {
   };
   type: AnswerType;
 }
-interface StreetsJsonType {
-  [key: string]: string;
-}
+
 interface TallyPerson {
   person: personType;
   quantity: number;
@@ -66,12 +64,7 @@ const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
+
 const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   day: "2-digit",
@@ -103,47 +96,7 @@ const LocationTypesMap = new Map([
   ["FOREST_GARDEN", "Horto Florestal"],
   ["AMATEUR_SOCCER_FIELDS", "Campos de futebol de várzea"],
 ]);
-const brazilianStatesMap = new Map([
-  ["ACRE", "Acre"],
-  ["ALAGOAS", "Alagoas"],
-  ["AMAPA", "Amapá"],
-  ["AMAZONAS", "Amazonas"],
-  ["BAHIA", "Bahia"],
-  ["CEARA", "Ceará"],
-  ["DISTRITO_FEDERAL", "Distrito Federal"],
-  ["ESPIRITO_SANTO", "Espirito Santo"],
-  ["GOIAS", "Goiás"],
-  ["MARANHAO", "Maranhão"],
-  ["MATO_GROSSO", "Mato Grosso"],
-  ["MATO_GROSSO_DO_SUL", "Mato Grosso do Sul"],
-  ["MINAS_GERAIS", "Minas Gerais"],
-  ["PARA", "Pará"],
-  ["PARAIBA", "Paraíba"],
-  ["PARANA", "Paraná"],
-  ["PERNAMBUCO", "Pernambuco"],
-  ["PIAUI", "Piauí"],
-  ["RIO_DE_JANEIRO", "Rio de Janeiro"],
-  ["RIO_GRANDE_DO_NORTE", "Rio Grande do Norte"],
-  ["RIO_GRANDE_DO_SUL", "Rio Grande do Sul"],
-  ["RONDONIA", "Rondônia"],
-  ["RORAIMA", "Roraima"],
-  ["SANTA_CATARINA", "Santa Catarina"],
-  ["SAO_PAULO", "São Paulo"],
-  ["SERGIPE", "Sergipe"],
-  ["TOCANTINS", "Tocantins"],
-]);
 
-//These sizes are used to determine the location's classification (P,M,G)
-const maxPSize = 747;
-const maxMSize = 1392;
-//The arrays below are created to make sure that the algorithm will create the spreadsheet in the correct order, independently of the order in the database.
-const streetSizes = [
-  "streets4mWide",
-  "streets6mWide",
-  "streets8mWide",
-  "streets10mWide",
-  "streets20mWide",
-];
 const genders = ["MALE", "FEMALE"];
 const ageGroups = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
 const acitvities = ["SEDENTARY", "WALKING", "STRENUOUS"];
@@ -158,7 +111,7 @@ const booleanPersonProperties: (keyof personType)[] = [
   "isPersonWithoutHousing",
 ];
 
-const exportFullSpreadsheetToCSV = async (
+/*const exportFullSpreadsheetToCSV = async (
   locationsIds: number[],
   tallysGroups: number[],
   assessmentsIds: number[],
@@ -844,7 +797,7 @@ const exportFullSpreadsheetToCSV = async (
 
   const result = resultArray.join("\n");
   return result;
-};
+};*/
 
 const exportRegistrationData = async (
   locationsIds: number[],
@@ -1068,7 +1021,6 @@ const exportEvaluation = async (
   //console.log(locationsWithFormObjs);
   for (const currentForm of formsAndVersions) {
     let headerCreated = false;
-    let formHeader = "";
     const questions: {
       id: number;
       name: string;
@@ -1998,7 +1950,6 @@ const createTallyStringWithoutAddedData = (
 };
 
 export {
-  exportFullSpreadsheetToCSV,
   exportIndividualTallysToCSV,
   exportAllIndividualTallysToCsv,
   exportDailyTallys,

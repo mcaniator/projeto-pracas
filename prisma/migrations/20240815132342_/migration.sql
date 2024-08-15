@@ -20,7 +20,7 @@ CREATE TYPE "category_types" AS ENUM ('for Social Practices', 'Open Space for no
 CREATE TYPE "question_types" AS ENUM ('Text', 'Numeric', 'Options');
 
 -- CreateEnum
-CREATE TYPE "option_types" AS ENUM ('selection', 'radio', 'checkbox');
+CREATE TYPE "option_types" AS ENUM ('radio', 'checkbox');
 
 -- CreateEnum
 CREATE TYPE "maintenance" AS ENUM ('terrible', 'poor', 'good', 'great');
@@ -53,7 +53,6 @@ CREATE TABLE "user" (
     "username" VARCHAR(255) NOT NULL,
     "type" "user_types" NOT NULL,
     "hashed_password" TEXT NOT NULL,
-    "assessment_id" INTEGER,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -80,6 +79,17 @@ CREATE TABLE "category" (
 );
 
 -- CreateTable
+CREATE TABLE "subcategory" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "optional" BOOLEAN NOT NULL DEFAULT false,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "category_id" INTEGER NOT NULL,
+
+    CONSTRAINT "subcategory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "question" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
@@ -92,6 +102,7 @@ CREATE TABLE "question" (
     "option_type" "option_types",
     "maximum_selections" INTEGER,
     "category_id" INTEGER NOT NULL,
+    "subcategory_id" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -102,9 +113,10 @@ CREATE TABLE "question" (
 CREATE TABLE "response" (
     "id" SERIAL NOT NULL,
     "type" "question_types" NOT NULL,
-    "frequency" INTEGER NOT NULL DEFAULT 1,
+    "user_id" TEXT NOT NULL,
     "location_id" INTEGER NOT NULL,
     "form_id" INTEGER NOT NULL,
+    "form_version" INTEGER NOT NULL,
     "question_id" INTEGER NOT NULL,
     "response" VARCHAR(255),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -124,16 +136,17 @@ CREATE TABLE "option" (
 );
 
 -- CreateTable
-CREATE TABLE "responseOption" (
+CREATE TABLE "response_option" (
     "id" SERIAL NOT NULL,
-    "frequency" INTEGER NOT NULL DEFAULT 1,
     "location_id" INTEGER NOT NULL,
+    "user_id" TEXT NOT NULL,
     "form_id" INTEGER NOT NULL,
+    "form_version" INTEGER NOT NULL,
     "question_id" INTEGER NOT NULL,
-    "option_id" INTEGER NOT NULL,
+    "option_id" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "responseOption_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "response_option_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -410,12 +423,12 @@ CREATE TABLE "tally" (
     "id" SERIAL NOT NULL,
     "start_date" TIMESTAMPTZ(0) NOT NULL,
     "end_date" TIMESTAMPTZ(0),
-    "observer" VARCHAR(255) NOT NULL,
     "animals_amount" INTEGER,
     "temperature" DOUBLE PRECISION,
     "weather_condition" "weather_conditions",
     "groups" INTEGER,
     "commercial_activities" JSONB,
+    "user_id" VARCHAR(255) NOT NULL,
     "location_id" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
@@ -520,13 +533,19 @@ CREATE UNIQUE INDEX "person_age_group_gender_activity_is_traversing_is_person_wi
 CREATE INDEX "location_idx" ON "noise" USING GIST ("point");
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "question" ADD CONSTRAINT "question_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "question" ADD CONSTRAINT "question_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "response" ADD CONSTRAINT "response_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "response" ADD CONSTRAINT "response_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -541,16 +560,19 @@ ALTER TABLE "response" ADD CONSTRAINT "response_question_id_fkey" FOREIGN KEY ("
 ALTER TABLE "option" ADD CONSTRAINT "option_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "responseOption" ADD CONSTRAINT "responseOption_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "response_option" ADD CONSTRAINT "response_option_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "responseOption" ADD CONSTRAINT "responseOption_form_id_fkey" FOREIGN KEY ("form_id") REFERENCES "form"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "response_option" ADD CONSTRAINT "response_option_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "responseOption" ADD CONSTRAINT "responseOption_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "response_option" ADD CONSTRAINT "response_option_form_id_fkey" FOREIGN KEY ("form_id") REFERENCES "form"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "responseOption" ADD CONSTRAINT "responseOption_option_id_fkey" FOREIGN KEY ("option_id") REFERENCES "option"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "response_option" ADD CONSTRAINT "response_option_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "response_option" ADD CONSTRAINT "response_option_option_id_fkey" FOREIGN KEY ("option_id") REFERENCES "option"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "questions_on_forms" ADD CONSTRAINT "questions_on_forms_form_id_fkey" FOREIGN KEY ("form_id") REFERENCES "form"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -608,6 +630,9 @@ ALTER TABLE "surrounding_activity" ADD CONSTRAINT "surrounding_activity_assessme
 
 -- AddForeignKey
 ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "tally" ADD CONSTRAINT "tally_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tally" ADD CONSTRAINT "tally_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
