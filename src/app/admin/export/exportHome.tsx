@@ -71,10 +71,20 @@ const ExportHome = ({
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.responses.length > 0,
     );
-    await exportEvaluation(
+    const csvString = await exportEvaluation(
       locationsToExportEvaluations.map((location) => location.id),
       locationsToExportEvaluations.map((location) => location.responses).flat(),
     );
+    if (csvString) {
+      const blob = new Blob([csvString]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Avaliacao-fisica.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
   const handleTallysExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {

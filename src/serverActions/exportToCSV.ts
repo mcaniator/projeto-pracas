@@ -967,8 +967,9 @@ const exportEvaluation = async (
     },
   });
 
-  let CSVstringHeader = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,\n";
+  //let CSVstringHeader = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,\n";
   //CSVstring += "Identificador,Nome da Praça,Avaliador,Dia,Data\n";
+  let CSVstringHeader = "";
   const locationsWithFormObjs = locations.map((location) => {
     const groupedResponses: {
       [key: string]: {
@@ -1112,30 +1113,92 @@ const exportEvaluation = async (
     //console.log(questions);
     //console.log(categories);
     //console.log(subcategories);
+    const usedQuestions = new Set();
+
     const nestedObjs = categories.map((category) => {
       const categorySubcategories = subcategories
-        .filter((subcategory) => {
-          return subcategory.categoryId === category.id;
-        })
+        .filter((subcategory) => subcategory.categoryId === category.id)
         .map((subcategory) => ({
           ...subcategory,
-          questions: questions.filter(
-            (question) => question.subcategory?.id === subcategory.id,
-          ),
+          questions: questions.filter((question) => {
+            const isMatch =
+              question.subcategory?.id === subcategory.id &&
+              !usedQuestions.has(question.id);
+            if (isMatch) {
+              usedQuestions.add(question.id);
+            }
+            return isMatch;
+          }),
         }));
-      //console.log(categorySubcategories);
+
       const categoryObj = {
         ...category,
-        questions: questions.filter(
-          (question) =>
-            !question.subcategory && question.category.id === category.id,
-        ),
+        questions: questions.filter((question) => {
+          const isMatch =
+            !question.subcategory &&
+            question.category.id === category.id &&
+            !usedQuestions.has(question.id);
+          if (isMatch) {
+            usedQuestions.add(question.id);
+          }
+          return isMatch;
+        }),
         subcategories: categorySubcategories,
       };
+
       return categoryObj;
     });
-    console.log(nestedObjs);
+    let categoryRow = "";
+    let subcategoryRow = "";
+    let questionRow = "";
+
+    nestedObjs.forEach((category) => {
+      let categoryQuestionsCount = 0;
+
+      category.subcategories.forEach((subcategory) => {
+        categoryQuestionsCount += subcategory.questions.length;
+      });
+      categoryQuestionsCount += category.questions.length;
+
+      categoryRow += `${category.name}`;
+      for (let i = 0; i < categoryQuestionsCount; i++) {
+        categoryRow += ",";
+      }
+
+      category.subcategories.forEach((subcategory) => {
+        subcategoryRow += `${subcategory.name}`;
+        for (let i = 0; i < subcategory.questions.length; i++) {
+          subcategoryRow += ",";
+        }
+      });
+
+      for (let i = 0; i < category.questions.length; i++) {
+        subcategoryRow += ",";
+      }
+
+      category.subcategories.forEach((subcategory) => {
+        subcategory.questions.forEach((question) => {
+          questionRow += `${question.name},`;
+        });
+      });
+
+      category.questions.forEach((question) => {
+        questionRow += `${question.name},`;
+      });
+    });
+
+    categoryRow = categoryRow.replace(/,+$/, "") + "\n";
+    subcategoryRow = subcategoryRow.replace(/,+$/, "") + "\n";
+    questionRow = questionRow.replace(/,+$/, "") + "\n";
+    const firstHeaderRow = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,," + categoryRow;
+    const secondHeaderRow =
+      "Identificador,Nome da Praça,Avaliador,Dia,Data," + subcategoryRow;
+    const thirdHeaderRow = ",,,,," + questionRow;
+    const csvHeader = firstHeaderRow + secondHeaderRow + thirdHeaderRow;
+
+    CSVstringHeader = csvHeader;
   }
+  return CSVstringHeader;
 };
 
 const exportDailyTallys = async (
