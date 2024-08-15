@@ -9,6 +9,9 @@ import { ResponseEditor } from "./responseEditor";
 interface ResponseWithFrequency extends Response {
   frequency: number;
 }
+interface ResponseWithUsername extends Response {
+  username: string;
+}
 const ResponseViewerClient = ({
   questions,
   options,
@@ -23,7 +26,7 @@ const ResponseViewerClient = ({
     options: { id: number; text: string; frequency: number }[];
   }[];
   responses: Response[] | null;
-  envios: { envioId: string; responses: Response[] }[];
+  envios: { envioId: string; responses: ResponseWithUsername[] }[];
   locationId: number;
   formId: number;
 }) => {
@@ -136,7 +139,7 @@ const ResponseViewerClient = ({
     <div className="flex gap-5">
       <div
         className={
-          "flex basis-3/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+          "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
         <ul className="list-disc p-3">
@@ -188,16 +191,22 @@ const ResponseViewerClient = ({
       <div className="flex basis-2/5 flex-col gap-3">
         <h3 className="text-lg font-bold">3 Envios Mais Recentes</h3>
         {recentEnvios.map((envio, index) => {
-          const envioDate = new Date(envio.envioId);
-          const formattedDate = envioDate.toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit",
-          });
-          const formattedTime = envioDate.toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+          const envioDateString = envio.envioId.split(",")[0];
+          let formattedTimeString = "";
+          if (envioDateString) {
+            const envioDate = new Date(envioDateString);
+            const formattedDate = envioDate.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            });
+            const formattedTime = envioDate.toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            formattedTimeString += `${formattedDate} às ${formattedTime}`;
+          }
+
           const isEditing = editingEnvioId === envio.envioId;
 
           return (
@@ -205,8 +214,9 @@ const ResponseViewerClient = ({
               key={index}
               className="rounded-lg bg-transparent p-3 shadow-md"
             >
+              <h4 className="font-semibold">Envio em: {formattedTimeString}</h4>
               <h4 className="font-semibold">
-                Envio em: {formattedDate} às {formattedTime}
+                Por: {envio.responses[0]?.username}
               </h4>
               {isEditing ?
                 <ResponseEditor

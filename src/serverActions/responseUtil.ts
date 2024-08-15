@@ -237,6 +237,13 @@ const searchResponsesOptionsByQuestionFormLocation = async (
       locationId,
       formId,
     },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
   });
 };
 
@@ -250,6 +257,13 @@ const searchResponsesByQuestionFormLocation = async (
       questionId: questionId,
       formId: formId,
       locationId: locationId,
+    },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 };

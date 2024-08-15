@@ -37,6 +37,7 @@ const ResponseViewer = async ({
           formId: formId,
           formVersion: option.formVersion,
           userId: option.userId,
+          username: option.user.username,
           questionId: question.id,
           response: option.optionId ? option.optionId.toString() : null,
           optionId: option.optionId,
@@ -55,6 +56,7 @@ const ResponseViewer = async ({
           formId: formId,
           formVersion: response.formVersion,
           userId: response.userId,
+          username: response.user.username,
           questionId: question.id,
           response: response.response,
           createdAt: response.createdAt,
@@ -69,7 +71,8 @@ const ResponseViewer = async ({
   const groupedResponses = flattenedResponses.reduce(
     (acc, response) => {
       const dateKey = new Date(response.createdAt).toISOString();
-      if (!acc[dateKey]) {
+      const userId = response.userId;
+      if (!acc[`${dateKey},${userId}`]) {
         acc[dateKey] = [];
       }
       acc[dateKey]?.push(response);
