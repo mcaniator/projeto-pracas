@@ -6,6 +6,9 @@ import { useState } from "react";
 
 import { ResponseEditor } from "./responseEditor";
 
+interface ResponseWithFrequency extends Response {
+  frequency: number;
+}
 const ResponseViewerClient = ({
   questions,
   options,
@@ -101,10 +104,18 @@ const ResponseViewerClient = ({
       if (!acc[response.questionId]) {
         acc[response.questionId] = [];
       }
-      acc[response.questionId]?.push(response);
+      const existingResponse = acc[response.questionId]?.find(
+        (addedResponse) => addedResponse.response === response.response,
+      );
+      if (existingResponse) {
+        existingResponse.frequency += 1;
+      } else {
+        acc[response.questionId]?.push({ ...response, frequency: 1 });
+      }
+
       return acc;
     },
-    {} as { [key: number]: Response[] },
+    {} as { [key: number]: ResponseWithFrequency[] },
   );
 
   const optionsByQuestionId = options.reduce(
@@ -149,21 +160,24 @@ const ResponseViewerClient = ({
                     ))}
                   </div>
                 : responsesByQuestionId[question.id] ?
-                  responsesByQuestionId[question.id]?.map((response, index) => (
-                    <div key={index}>
-                      {question.type === QuestionTypes.TEXT ?
-                        <div>{response.response}</div>
-                      : question.type === QuestionTypes.NUMERIC ?
-                        <div>
-                          <span>{response.response}</span>
-                          <span className="font-bold text-blue-500">
-                            {" "}
-                            Frequência: {response.frequency}
-                          </span>
-                        </div>
-                      : <div>{response.response}</div>}
-                    </div>
-                  ))
+                  responsesByQuestionId[question.id]?.map((response, index) => {
+                    return (
+                      <div key={index}>
+                        {(
+                          question.type === QuestionTypes.NUMERIC ||
+                          question.type === QuestionTypes.TEXT
+                        ) ?
+                          <div>
+                            <span>{response.response}</span>
+                            <span className="font-bold text-blue-500">
+                              {" "}
+                              Frequência: {response.frequency}
+                            </span>
+                          </div>
+                        : <div>{response.response}</div>}
+                      </div>
+                    );
+                  })
                 : <div>Não há respostas para esta pergunta</div>}
               </div>
             </li>
