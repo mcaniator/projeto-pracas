@@ -92,7 +92,12 @@ const ResponseViewer = async ({
           .reduce(
             (acc, response) => {
               if (response.optionId) {
-                acc[response.optionId] = 0;
+                if (!acc[response.optionId]) {
+                  acc[response.optionId] = 0;
+                }
+                const currentEntry = acc[response.optionId];
+                if (currentEntry !== undefined)
+                  acc[response.optionId] = currentEntry + 1;
               }
               return acc;
             },
