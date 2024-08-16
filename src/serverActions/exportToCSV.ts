@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { WeatherConditions } from "@prisma/client";
+import { Location, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
@@ -58,6 +58,45 @@ interface TallyDataToProcessTypeWithoutLocation {
   locationId: number;
   tallyPerson: TallyPerson[];
 }
+interface Category {
+  id: number;
+  name: string;
+}
+
+interface Subcategory {
+  id: number;
+  name: string;
+}
+interface EvaluationDataType {
+  type: string;
+  location: Location;
+  createdAt: Date;
+  question: {
+    id: number;
+    name: string;
+    category: Category;
+    subcategory: Subcategory | null;
+  };
+  value: string | null | undefined;
+  user: {
+    id: string;
+    username: string;
+  };
+}
+
+interface groupedDataType {
+  [key: string]: {
+    form: {
+      id: number;
+      version: number;
+      name: string;
+      createdAt: Date;
+    };
+    formVersion: number;
+    data: EvaluationDataType[];
+  };
+}
+
 const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   hour12: false,
@@ -855,302 +894,242 @@ const exportEvaluation = async (
     .filter((response) => response.type === "RESPONSE_OPTION")
     .map((response) => response.id);
 
-  const locations = await prisma.location.findMany({
+  const responses = await prisma.response.findMany({
     where: {
       id: {
-        in: locationsIds,
+        in: responsesIds,
       },
     },
-    select: {
-      id: true,
-      name: true,
-      response: {
-        where: {
-          id: {
-            in: responsesIds,
-          },
-        },
+    include: {
+      location: true,
+      form: true,
+      question: {
         include: {
-          form: true,
-          question: {
+          category: true,
+          subcategory: {
             include: {
-              subcategory: {
-                include: {
-                  category: true,
-                },
-              },
               category: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              username: true,
             },
           },
         },
       },
-      ResponseOption: {
-        where: {
-          id: {
-            in: responsesOptionsIds,
-          },
+      user: {
+        select: {
+          username: true,
+          id: true,
         },
+      },
+    },
+  });
+  const responseOptions = await prisma.responseOption.findMany({
+    where: {
+      id: {
+        in: responsesOptionsIds,
+      },
+    },
+    include: {
+      location: true,
+      form: true,
+      question: {
         include: {
-          form: true,
-          question: {
+          category: true,
+          subcategory: {
             include: {
-              subcategory: {
-                include: {
-                  category: true,
-                },
-              },
               category: true,
             },
           },
-          option: true,
-          user: {
-            select: {
-              id: true,
-              username: true,
-            },
-          },
+        },
+      },
+      option: true,
+      user: {
+        select: {
+          username: true,
+          id: true,
         },
       },
     },
   });
 
-  //let CSVstringHeader = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,\n";
-  //CSVstring += "Identificador,Nome da Praça,Avaliador,Dia,Data\n";
-  let CSVstringHeader = "";
-  const locationsWithFormObjs = locations.map((location) => {
-    const groupedResponses: {
-      [key: string]: {
-        id: number;
-        name: string;
-        formName: string;
-        response: {
-          id: number;
-          type: string;
-          form: { id: number; name: string };
-          question: {
-            id: number;
-            name: string;
-            category: {
-              id: number;
-              name: string;
-            };
-            subcategory: {
-              id: number;
-              name: string;
-              categoryId: number;
-            } | null;
-          };
-          response: string | null;
-          formVersion: number;
-          user: { id: string; username: string };
-        }[];
-        responseOption: {
-          id: number;
-          form: { id: number; name: string };
-          question: {
-            id: number;
-            name: string;
-            category: {
-              id: number;
-              name: string;
-            };
-            subcategory: {
-              id: number;
-              name: string;
-              categoryId: number;
-            } | null;
-          };
-          option: { id: number; text: string; questionId: number };
-          formVersion: number;
-          user: { id: string; username: string };
-        }[];
+  // Grouping by form and formVersion. Each group will form a different table.
+  const groupedDataByFormAndFormVersion: groupedDataType = {};
+  responses.forEach((response) => {
+    const key = `${response.form.id}-${response.formVersion}`;
+    if (!groupedDataByFormAndFormVersion[key]) {
+      groupedDataByFormAndFormVersion[key] = {
+        form: response.form,
+        formVersion: response.formVersion,
+        data: [],
       };
-    } = {};
-    location.response.forEach((response) => {
-      const key = `${response.form.name}-${response.formVersion}`;
-      if (!groupedResponses[key]) {
-        groupedResponses[key] = {
-          id: location.id,
-          name: location.name,
-          formName: response.form.name,
-          response: [],
-          responseOption: [],
-        };
-      }
-      const currentElement = groupedResponses[key];
-      if (currentElement) {
-        currentElement.response.push(response);
-      }
-    });
-
-    location.ResponseOption.forEach((responseOption) => {
-      const key = `${responseOption.form.name}-${responseOption.formVersion}`;
-      if (!groupedResponses[key]) {
-        groupedResponses[key] = {
-          id: location.id,
-          name: location.name,
-          formName: responseOption.form.name,
-          response: [],
-          responseOption: [],
-        };
-      }
-      const currentElement = groupedResponses[key];
-      if (currentElement) {
-        currentElement.responseOption.push(responseOption);
-      }
-    });
-
-    return groupedResponses;
-  });
-  const formsAndVersions: string[] = [];
-  locationsWithFormObjs.forEach((location) => {
-    const keys = Object.keys(location);
-    for (const key of keys) {
-      if (formsAndVersions.includes(key)) {
-        continue;
-      }
-      formsAndVersions.push(key);
     }
+    groupedDataByFormAndFormVersion[key].data.push({
+      type: "response",
+      location: response.location,
+      createdAt: response.createdAt,
+      question: response.question,
+      value: response.response,
+      user: response.user,
+    });
   });
-  //console.log(locationsWithFormObjs);
-  for (const currentForm of formsAndVersions) {
-    let headerCreated = false;
-    const questions: {
-      id: number;
-      name: string;
-      category: { id: number; name: string };
-      subcategory: { id: number; name: string; categoryId: number } | null;
-    }[] = [];
-    const categories: { id: number; name: string }[] = [];
-    const subcategories: { id: number; name: string; categoryId: number }[] =
-      [];
-    for (const locationObj of locationsWithFormObjs) {
-      const formObj = locationObj[currentForm];
-      if (formObj) {
-        if (!headerCreated) {
-          for (const response of formObj.response) {
-            questions.push(response.question);
+
+  responseOptions.forEach((responseOption) => {
+    const key = `${responseOption.form.id}-${responseOption.formVersion}`;
+    if (!groupedDataByFormAndFormVersion[key]) {
+      groupedDataByFormAndFormVersion[key] = {
+        form: responseOption.form,
+        formVersion: responseOption.formVersion,
+        data: [],
+      };
+    }
+    groupedDataByFormAndFormVersion[key].data.push({
+      type: "responseOption",
+      location: responseOption.location,
+      createdAt: responseOption.createdAt,
+      question: responseOption.question,
+      value: responseOption.option?.text,
+      user: responseOption.user,
+    });
+  });
+
+  const csvObjs: {
+    formName: string;
+    formVersion: number;
+    csvString: string;
+  }[] = [];
+  for (const key in groupedDataByFormAndFormVersion) {
+    const currentGroup = groupedDataByFormAndFormVersion[key];
+    if (currentGroup) {
+      const categories: {
+        [key: number]: {
+          name: string;
+          questionCount: number;
+          processedQuestions: Set<number>;
+        };
+      } = {};
+      const subcategories: {
+        [key: number]: {
+          name: string;
+          questionCount: number;
+          processedQuestions: Set<number>;
+        };
+      } = {};
+      const questions: { [key: number]: string } = {};
+
+      const { form, formVersion, data } = currentGroup;
+
+      data.forEach((response) => {
+        const question = response.question;
+
+        if (!categories[question.category.id]) {
+          categories[question.category.id] = {
+            name: question.category.name,
+            questionCount: 0,
+            processedQuestions: new Set(),
+          };
+        }
+        const currentCategory = categories[question.category.id];
+        if (currentCategory) {
+          if (!currentCategory.processedQuestions.has(question.id)) {
+            currentCategory.questionCount += 1;
+            currentCategory.processedQuestions.add(question.id);
           }
-          for (const responseOption of formObj.responseOption) {
-            questions.push(responseOption.question);
+        }
+
+        if (question.subcategory) {
+          if (!subcategories[question.subcategory.id]) {
+            subcategories[question.subcategory.id] = {
+              name: question.subcategory.name,
+              questionCount: 0,
+              processedQuestions: new Set(),
+            };
           }
-          for (const question of questions) {
-            if (
-              !categories.some(
-                (category) => category.id === question.category.id,
-              )
-            ) {
-              categories.push(question.category);
+
+          const currentSubcategory = subcategories[question.subcategory.id];
+          if (currentSubcategory) {
+            if (!currentSubcategory.processedQuestions.has(question.id)) {
+              currentSubcategory.questionCount += 1;
+              currentSubcategory.processedQuestions.add(question.id);
             }
-            if (question.subcategory) {
-              if (
-                !subcategories.some(
-                  (subcategory) => subcategory.id === question.subcategory?.id,
-                )
-              ) {
-                subcategories.push(question.subcategory);
+          }
+        }
+
+        if (!questions[question.id]) {
+          questions[question.id] = question.name;
+        }
+      });
+
+      const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
+        categories,
+      )
+        .map((category) =>
+          Array(category.questionCount).fill(category.name).join(","),
+        )
+        .join(",")}`;
+
+      const subcategoryLine = `,,,,,,${Object.values(subcategories)
+        .map((subcategory) =>
+          Array(subcategory.questionCount).fill(subcategory.name).join(","),
+        )
+        .join(",")}`;
+      const questionLine = `Identificador,Nome da praça,Avaliador,Dia,Data,Horário,${Object.values(questions).join(",")}`;
+
+      let csvContent = `${categoryLine}\n${subcategoryLine}\n${questionLine}\n`;
+
+      const groupedDataByLocationDateUser: {
+        [key: string]: EvaluationDataType[];
+      } = {}; //Each group will form a line.
+
+      data.forEach((response) => {
+        const key = `${response.location.id}-${response.createdAt.toISOString()}-${response.user.id}`;
+        if (!groupedDataByLocationDateUser[key]) {
+          groupedDataByLocationDateUser[key] = [];
+        }
+        groupedDataByLocationDateUser[key].push(response);
+      });
+
+      for (const key in groupedDataByLocationDateUser) {
+        const groupedData = groupedDataByLocationDateUser[key];
+        if (groupedData) {
+          const firstResponse = groupedData[0];
+          if (firstResponse) {
+            const locationId = firstResponse.location.id;
+            const locationName = firstResponse.location.name;
+            const username = firstResponse.user.username;
+            const dateTime = new Date(firstResponse.createdAt);
+            const weekday = dateTime.toLocaleString("pt-BR", {
+              weekday: "short",
+            });
+            const date = dateTime.toLocaleDateString();
+            const time = dateTime.toLocaleTimeString();
+
+            const responseValues = Object.keys(questions).map((questionId) => {
+              const currentQuestionResponses = groupedData.filter(
+                (response) => response.question.id === parseInt(questionId),
+              );
+              if (currentQuestionResponses.length > 0) {
+                return currentQuestionResponses
+                  .filter(
+                    (response) =>
+                      response.value !== null && response.value !== undefined,
+                  )
+                  .map((response) => response.value)
+                  .join(" / ");
               }
-            }
-            headerCreated = true;
+              return "";
+            });
+            csvContent += `${locationId},${locationName},${username},${weekday},${date},${time},${responseValues.join(",")}\n`;
           }
         }
       }
+
+      csvObjs.push({
+        formName: form.name,
+        formVersion: formVersion,
+        csvString: csvContent,
+      });
     }
-    //console.log(questions);
-    //console.log(categories);
-    //console.log(subcategories);
-    const usedQuestions = new Set();
-
-    const nestedObjs = categories.map((category) => {
-      const categorySubcategories = subcategories
-        .filter((subcategory) => subcategory.categoryId === category.id)
-        .map((subcategory) => ({
-          ...subcategory,
-          questions: questions.filter((question) => {
-            const isMatch =
-              question.subcategory?.id === subcategory.id &&
-              !usedQuestions.has(question.id);
-            if (isMatch) {
-              usedQuestions.add(question.id);
-            }
-            return isMatch;
-          }),
-        }));
-
-      const categoryObj = {
-        ...category,
-        questions: questions.filter((question) => {
-          const isMatch =
-            !question.subcategory &&
-            question.category.id === category.id &&
-            !usedQuestions.has(question.id);
-          if (isMatch) {
-            usedQuestions.add(question.id);
-          }
-          return isMatch;
-        }),
-        subcategories: categorySubcategories,
-      };
-
-      return categoryObj;
-    });
-    let categoryRow = "";
-    let subcategoryRow = "";
-    let questionRow = "";
-
-    nestedObjs.forEach((category) => {
-      let categoryQuestionsCount = 0;
-
-      category.subcategories.forEach((subcategory) => {
-        categoryQuestionsCount += subcategory.questions.length;
-      });
-      categoryQuestionsCount += category.questions.length;
-
-      categoryRow += `${category.name}`;
-      for (let i = 0; i < categoryQuestionsCount; i++) {
-        categoryRow += ",";
-      }
-
-      category.subcategories.forEach((subcategory) => {
-        subcategoryRow += `${subcategory.name}`;
-        for (let i = 0; i < subcategory.questions.length; i++) {
-          subcategoryRow += ",";
-        }
-      });
-
-      for (let i = 0; i < category.questions.length; i++) {
-        subcategoryRow += ",";
-      }
-
-      category.subcategories.forEach((subcategory) => {
-        subcategory.questions.forEach((question) => {
-          questionRow += `${question.name},`;
-        });
-      });
-
-      category.questions.forEach((question) => {
-        questionRow += `${question.name},`;
-      });
-    });
-
-    categoryRow = categoryRow.replace(/,+$/, "") + "\n";
-    subcategoryRow = subcategoryRow.replace(/,+$/, "") + "\n";
-    questionRow = questionRow.replace(/,+$/, "") + "\n";
-    const firstHeaderRow = "IDENTIFICAÇÃO PRAÇA,,AVALIAÇÃO,,," + categoryRow;
-    const secondHeaderRow =
-      "Identificador,Nome da Praça,Avaliador,Dia,Data," + subcategoryRow;
-    const thirdHeaderRow = ",,,,," + questionRow;
-    const csvHeader = firstHeaderRow + secondHeaderRow + thirdHeaderRow;
-
-    CSVstringHeader = csvHeader;
   }
-  return CSVstringHeader;
+
+  return csvObjs;
 };
 
 const exportDailyTallys = async (

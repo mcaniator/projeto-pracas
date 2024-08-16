@@ -71,16 +71,19 @@ const ExportHome = ({
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.responses.length > 0,
     );
-    const csvString = await exportEvaluation(
+    const csvObjs = await exportEvaluation(
       locationsToExportEvaluations.map((location) => location.id),
       locationsToExportEvaluations.map((location) => location.responses).flat(),
     );
-    if (csvString) {
-      const blob = new Blob([csvString]);
+    for (const csvObj of csvObjs) {
+      const blob = new Blob([csvObj.csvString]);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `Avaliacao-fisica.csv`);
+      link.setAttribute(
+        "download",
+        `Avaliações - ${csvObj.formName}, v.${csvObj.formVersion}.csv`,
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
