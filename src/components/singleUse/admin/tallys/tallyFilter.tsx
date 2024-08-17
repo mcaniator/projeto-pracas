@@ -38,18 +38,10 @@ const TallyFilter = ({
     let csvString = "";
     if (addedContent) {
       setLoadingExport({ individual: false, added: true });
-      csvString = await exportDailyTallysFromSingleLocation(tallysIds, [
-        "name",
-        "id",
-        "date",
-      ]);
+      csvString = await exportDailyTallysFromSingleLocation(tallysIds);
     } else {
       setLoadingExport({ individual: true, added: false });
-      csvString = await exportIndividualTallysToCSV(tallysIds, [
-        "name",
-        "id",
-        "date",
-      ]);
+      csvString = await exportIndividualTallysToCSV(tallysIds);
     }
 
     const blob = new Blob([csvString]);

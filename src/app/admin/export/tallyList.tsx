@@ -82,7 +82,7 @@ const TallyList = ({
           return (
             <TallyComponent
               startDate={tally.startDate}
-              observer={tally.observer}
+              observer={tally.user.username}
               key={tally.id}
               tallyId={tally.id}
               checked={checked ? checked : false}

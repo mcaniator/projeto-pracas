@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FetchedSubmission } from "@/serverActions/exportToCSV";
 import {
   searchResponsesByLocation,
@@ -121,10 +122,8 @@ const EditPage = ({
             },
             {} as { [key: string]: typeof responses },
           );
-          //console.log(groupedResponses);
           const groupedResponsesKeys = Object.keys(groupedResponses);
           const groupedResponsesObjs: SubmissionGroup[] = [];
-          //console.log(groupedResponses);
           for (let i = 0; i < groupedResponsesKeys.length; i++) {
             const key = groupedResponsesKeys[i];
             if (key) {
@@ -149,7 +148,6 @@ const EditPage = ({
       fetchSubmissions().catch(() => ({ statusCode: 1 }));
     }
   }, [currentLocationId]);
-  //console.log(fetchedSubmissionsGroups);
   const [selectedSubmissionsGroups, setSelectedSubmissionsGroups] = useState<
     SubmissionGroup[]
   >([]);
@@ -157,7 +155,6 @@ const EditPage = ({
   const [selectedSubmissions, setSelectedSubmissions] = useState<
     FetchedSubmission[]
   >([]);
-  //console.log(selectedSubmissions);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const [exportRegistrationInfo, setExportRegistrationInfo] =
     useState<boolean>(false);
@@ -227,7 +224,6 @@ const EditPage = ({
         ),
       );
     }
-    //console.log(selectedSubmissionsGroups);
     if (removeSaveState && currentLocationId) {
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
@@ -240,8 +236,6 @@ const EditPage = ({
         ),
       )
       .map((group) => group.date);
-    //console.log(submissionsToAddDates);
-    //console.log(allResponsesWithTypeRef.current);
     setSelectedSubmissions(
       allResponsesWithTypeRef.current.filter((response) =>
         submissionsToAddDates.some(
@@ -288,7 +282,6 @@ const EditPage = ({
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
-  //console.log(selectedSubmissionsGroups);
   const locationName =
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
@@ -296,12 +289,11 @@ const EditPage = ({
     <div className="flex h-full flex-col gap-1 overflow-auto">
       <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
       <div className="flex flex-row items-center gap-1">
-        <input
+        <Checkbox
           id="registration-info"
-          type="checkbox"
           onChange={(e) => handleRegistrationInfoChange(e, true)}
           checked={exportRegistrationInfo}
-        ></input>
+        />
         <label htmlFor="registration-info">Informações de cadastro</label>
       </div>
       <h5>Avaliações físicas</h5>

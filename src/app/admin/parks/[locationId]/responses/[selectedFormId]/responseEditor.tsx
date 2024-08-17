@@ -57,7 +57,6 @@ const ResponseEditor = ({
     : {},
   );
   const [responsesSent, setResponsesSent] = useState(false);
-  //console.log(responsesState);
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
@@ -149,7 +148,6 @@ const ResponseEditor = ({
     void updateResponses(responsesToUpdate);
 
     responses.forEach((response) => {
-      //console.log(response);
       const { questionId } = response;
       const updatedResponse = responsesState[questionId];
       if (
@@ -172,7 +170,6 @@ const ResponseEditor = ({
       onSave();
     }
   };
-  //console.log(responsesState);
   useEffect(() => {
     if (initialResponses) {
       setResponsesState(

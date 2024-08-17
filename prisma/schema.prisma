@@ -376,6 +376,7 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  popularName         String?   @db.VarChar(255)
   firstStreet         String    @db.VarChar(255)
   secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")

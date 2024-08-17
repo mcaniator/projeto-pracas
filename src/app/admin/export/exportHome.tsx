@@ -47,11 +47,7 @@ const ExportHome = ({
       (location) => location.exportRegistrationInfo,
     );
     const locationsIds = locationsToExport.map((location) => location.id);
-    const csvString = await exportRegistrationData(locationsIds, [
-      "name",
-      "id",
-      "date",
-    ]);
+    const csvString = await exportRegistrationData(locationsIds);
     if (csvString) {
       const blob = new Blob([csvString]);
       const url = URL.createObjectURL(blob);
@@ -72,7 +68,6 @@ const ExportHome = ({
       (location) => location.responses.length > 0,
     );
     const csvObjs = await exportEvaluation(
-      locationsToExportEvaluations.map((location) => location.id),
       locationsToExportEvaluations.map((location) => location.responses).flat(),
     );
     for (const csvObj of csvObjs) {
@@ -105,7 +100,6 @@ const ExportHome = ({
     const csvObj = await exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
-      ["name", "id", "date"],
     );
     if (csvObj?.CSVstringWeekdays) {
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
