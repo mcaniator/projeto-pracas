@@ -83,7 +83,6 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         user: {
           select: {
             username: true,
-            id: true,
           },
         },
         animalsAmount: true,

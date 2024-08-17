@@ -1,7 +1,6 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { TextFieldProps } from "react-aria-components";
 
 import { Input } from "./input";
 
@@ -21,7 +20,6 @@ const FormInput = <
   checker,
   label,
   description,
-  ...props
 }: {
   objectKey: keyof Type;
   answerValues: Type;
@@ -30,7 +28,7 @@ const FormInput = <
   checker: (key: keyof Type) => void;
   label: string;
   description?: string;
-} & Omit<TextFieldProps, "className">) => {
+}) => {
   return (
     <Input
       name={objectKey as string}
@@ -61,7 +59,6 @@ const FormInput = <
         errorValues === null ? false : errorValues[objectKey] !== undefined
       }
       onBlur={() => checker(objectKey)}
-      {...props}
     />
   );
 };

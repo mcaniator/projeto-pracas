@@ -47,7 +47,7 @@ const Sidebar = () => {
   return (
     <nav
       className={cn(
-        "flex h-full w-64 basis-[15%] flex-col p-5 text-xl text-white",
+        "flex h-full w-64 flex-col p-5 text-xl text-white",
         titillium_web.className,
       )}
     >

@@ -173,7 +173,6 @@ CREATE TABLE "questions_on_forms" (
 CREATE TABLE "location" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "popularName" VARCHAR(255),
     "firstStreet" VARCHAR(255) NOT NULL,
     "secondStreet" VARCHAR(255) NOT NULL,
     "is_park" BOOLEAN,
@@ -237,7 +236,7 @@ CREATE TABLE "broad_administrative_unit" (
 );
 
 -- CreateTable
-CREATE TABLE "assessment" (
+CREATE TABLE "Assessment" (
     "id" SERIAL NOT NULL,
     "start_date" TIMESTAMPTZ NOT NULL,
     "end_date" TIMESTAMPTZ NOT NULL,
@@ -263,7 +262,7 @@ CREATE TABLE "assessment" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "assessment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Assessment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -600,37 +599,37 @@ ALTER TABLE "intermediate_administrative_unit" ADD CONSTRAINT "intermediate_admi
 ALTER TABLE "broad_administrative_unit" ADD CONSTRAINT "broad_administrative_unit_city_id_fkey" FOREIGN KEY ("city_id") REFERENCES "city"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "assessment" ADD CONSTRAINT "assessment_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Assessment" ADD CONSTRAINT "Assessment_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "location"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "accessibility" ADD CONSTRAINT "accessibility_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "accessibility" ADD CONSTRAINT "accessibility_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "surrounding_area" ADD CONSTRAINT "surrounding_area_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "surrounding_area" ADD CONSTRAINT "surrounding_area_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "activities_area" ADD CONSTRAINT "activities_area_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "activities_area" ADD CONSTRAINT "activities_area_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "destruction" ADD CONSTRAINT "destruction_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "destruction" ADD CONSTRAINT "destruction_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "landscaping" ADD CONSTRAINT "landscaping_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "landscaping" ADD CONSTRAINT "landscaping_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "seating" ADD CONSTRAINT "seating_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "seating" ADD CONSTRAINT "seating_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "events" ADD CONSTRAINT "events_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "events" ADD CONSTRAINT "events_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "traffic_safety" ADD CONSTRAINT "traffic_safety_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "traffic_safety" ADD CONSTRAINT "traffic_safety_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "surrounding_activity" ADD CONSTRAINT "surrounding_activity_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "surrounding_activity" ADD CONSTRAINT "surrounding_activity_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "security" ADD CONSTRAINT "security_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tally" ADD CONSTRAINT "tally_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -645,4 +644,4 @@ ALTER TABLE "tally_person" ADD CONSTRAINT "tally_person_tally_id_fkey" FOREIGN K
 ALTER TABLE "tally_person" ADD CONSTRAINT "tally_person_person_id_fkey" FOREIGN KEY ("person_id") REFERENCES "person"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "noise" ADD CONSTRAINT "noise_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "noise" ADD CONSTRAINT "noise_assessment_id_fkey" FOREIGN KEY ("assessment_id") REFERENCES "Assessment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
