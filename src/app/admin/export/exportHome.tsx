@@ -36,13 +36,17 @@ const ExportHome = ({
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
-  const [loadingExport, setLoadingExport] = useState(false);
-  const [missingTallySaveWarning, setMissingTallySaveWarning] = useState(false);
+  const [loadingExport, setLoadingExport] = useState({
+    registrationsData: false,
+    evaluations: false,
+    tallys: false,
+  });
+  const [missingInfoSaveWarning, setMissingInfoSaveWarning] = useState(false);
   const handleRegistrationDataExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
       return;
     }
-    setLoadingExport(true);
+    setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
     const locationsToExport = selectedLocationsObjs.filter(
       (location) => location.exportRegistrationInfo,
     );
@@ -58,12 +62,13 @@ const ExportHome = ({
       link.click();
       document.body.removeChild(link);
     }
-    setLoadingExport(false);
+    setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
       return;
     }
+    setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.responses.length > 0,
     );
@@ -83,6 +88,7 @@ const ExportHome = ({
       link.click();
       document.body.removeChild(link);
     }
+    setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
     if (selectedLocationsSaved.find((location) => !location.saved)) {
@@ -96,7 +102,7 @@ const ExportHome = ({
       tallysIds.push(...location.tallysIds),
     );
     if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport(true);
+    setLoadingExport((prev) => ({ ...prev, tallys: true }));
     const csvObj = await exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
@@ -131,7 +137,7 @@ const ExportHome = ({
         }
       }
     }
-    setLoadingExport(false);
+    setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
   return (
     <div className="flex flex-row gap-5 overflow-auto">
@@ -185,58 +191,62 @@ const ExportHome = ({
           })}
         </div>
         <div className="flex flex-col gap-1">
-          {missingTallySaveWarning &&
+          {missingInfoSaveWarning &&
             selectedLocationsSaved.filter((location) => !location.saved)
               .length !== 0 && (
               <span className="text-redwood">{`${selectedLocationsSaved.filter((location) => !location.saved).length} ${selectedLocationsSaved.filter((location) => !location.saved).length === 1 ? "praça" : "praças"}  sem parâmetros salvos!`}</span>
             )}
           <Button
-            isDisabled={loadingExport}
+            isDisabled={loadingExport.registrationsData}
             onPress={() => {
               if (
                 selectedLocationsSaved.filter((location) => !location.saved)
                   .length === 0
               ) {
-                setMissingTallySaveWarning(false);
+                setMissingInfoSaveWarning(false);
                 handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
               } else {
-                setMissingTallySaveWarning(true);
+                setMissingInfoSaveWarning(true);
               }
             }}
           >
-            Exportar dados de cadastro
+            {loadingExport.registrationsData ?
+              "Exportando..."
+            : "Exportar dados de cadastro"}
           </Button>
           <Button
-            isDisabled={loadingExport}
+            isDisabled={loadingExport.evaluations}
             onPress={() => {
               if (
                 selectedLocationsSaved.filter((location) => !location.saved)
                   .length === 0
               ) {
-                setMissingTallySaveWarning(false);
+                setMissingInfoSaveWarning(false);
                 handleEvaluationExport().catch(() => ({ statusCode: 1 }));
               } else {
-                setMissingTallySaveWarning(true);
+                setMissingInfoSaveWarning(true);
               }
             }}
           >
-            Exportar avaliações físicas
+            {loadingExport.evaluations ?
+              "Exportando..."
+            : "Exportar avaliações físicas"}
           </Button>
           <Button
-            isDisabled={loadingExport}
+            isDisabled={loadingExport.tallys}
             onPress={() => {
               if (
                 selectedLocationsSaved.filter((location) => !location.saved)
                   .length === 0
               ) {
-                setMissingTallySaveWarning(false);
+                setMissingInfoSaveWarning(false);
                 handleTallysExport().catch(() => ({ statusCode: 1 }));
               } else {
-                setMissingTallySaveWarning(true);
+                setMissingInfoSaveWarning(true);
               }
             }}
           >
-            {loadingExport ? "Exportando..." : "Exportar contagens"}
+            {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
           </Button>
         </div>
       </div>
