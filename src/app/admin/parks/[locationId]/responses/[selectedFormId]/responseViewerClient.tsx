@@ -226,7 +226,6 @@ const ResponseViewerClient = ({
                   options={options}
                   initialResponses={getInitialResponses(envio.responses)}
                   onSave={() => handleEditEnvio(null)}
-                  responses={envio.responses}
                 />
               : <button
                   onClick={() => handleEditEnvio(envio.envioId)}
