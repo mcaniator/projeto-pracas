@@ -82,6 +82,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         endDate: true,
         user: {
           select: {
+            id: true,
             username: true,
           },
         },

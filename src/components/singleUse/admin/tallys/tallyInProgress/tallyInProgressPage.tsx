@@ -9,6 +9,7 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { redirect } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import React from "react";
 
@@ -40,6 +41,7 @@ interface ongoingTallyDataFetched {
   startDate: Date;
   endDate: Date | null;
   user: {
+    id: string;
     username: string;
   };
   animalsAmount: number | null;
@@ -75,14 +77,17 @@ const weatherNameMap = new Map([
 ]);
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
 const TallyInProgressPage = ({
+  userId,
   tallyId,
   locationId,
   tally,
 }: {
+  userId: string;
   tallyId: number;
   locationId: number;
   tally: ongoingTallyDataFetched;
 }) => {
+  if (userId !== tally.user.id) redirect("/error");
   const [submittingObj, setSubmittingObj] = useState({
     submitting: false,
     finishing: false,
