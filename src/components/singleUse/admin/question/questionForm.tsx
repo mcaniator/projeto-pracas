@@ -22,9 +22,10 @@ const QuestionForm = ({
 }) => {
   const [targetQuestion, setTargetQuestion] = useState("");
 
-  const [foundQuestions, setFoundQuestions] = useState<Promise<Form[]>>();
+  // TODO: corrigir o tipo de setFoundQuestions
+  const [foundQuestions, setFoundQuestions] = useState<Promise<Question[]>>();
   useEffect(() => {
-    setFoundQuestions(void searchQuestionsByStatement(targetQuestion));
+    setFoundQuestions( searchQuestionsByStatement(targetQuestion));
   }, [targetQuestion]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
@@ -75,7 +76,7 @@ const QuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<Form[]>;
+  questionPromise?: Promise<Question[]>;
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
