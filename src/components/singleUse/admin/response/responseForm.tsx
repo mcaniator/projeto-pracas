@@ -1,6 +1,6 @@
 "use client";
 
-import { CategoryWithSubcategoryAndQuestion } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/responseComponent";
+import { CategoryWithSubcategoryAndQuestion } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";

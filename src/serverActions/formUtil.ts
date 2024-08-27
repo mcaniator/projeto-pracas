@@ -89,6 +89,18 @@ const searchFormsById = async (id: number) => {
   return await cachedForms(id);
 };
 
+const searchformNameById = async (formId: number) => {
+  const formName = await prisma.form.findUnique({
+    where: {
+      id: formId,
+    },
+    select: {
+      name: true,
+    },
+  });
+  return formName?.name;
+};
+
 const updateForm = async (
   prevState: { statusCode: number },
   formData: FormData,
@@ -247,6 +259,7 @@ export {
   fetchForms,
   handleDelete,
   searchFormsById,
+  searchformNameById,
   updateForm,
   addQuestion,
   addQuestions,
