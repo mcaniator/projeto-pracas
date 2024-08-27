@@ -44,11 +44,24 @@ const createAssessment = async (
   }
 };
 
-const fetchAssessmentsInProgresss = async (formId: number) => {
+const fetchAssessmentsInProgresss = async (
+  locationId: number,
+  formId: number,
+) => {
   const assessments = await prisma.assessment.findMany({
     where: {
       formId,
+      locationId,
       endDate: null,
+    },
+    select: {
+      id: true,
+      startDate: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
   return assessments;

@@ -14,6 +14,7 @@ const AssessmentPage = async ({
   const { user } = await validateRequest();
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const assessments = await fetchAssessmentsInProgresss(
+    Number(params.locationId),
     Number(params.selectedFormId),
   );
   const locationName = await searchLocationNameById(Number(params.locationId));
