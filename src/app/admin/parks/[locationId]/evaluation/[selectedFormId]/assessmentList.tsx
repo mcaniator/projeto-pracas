@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { AssessmentDataFetchedToAssessmentList } from "./assessmentsClient";
+import { AssessmentDataFetchedToAssessmentList } from "./page";
 
 const AssessmentComponent = ({
   id,

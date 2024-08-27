@@ -22,10 +22,7 @@ const Evaluation = async ({ params }: { params: { locationId: string } }) => {
               />
             ))}
           </div>
-        : <div className="text-redwood">
-            Ainda não há perguntas no formulário
-          </div>
-        }
+        : <div className="text-redwood">Ainda não há formulários válidos!</div>}
       </div>
     </div>
   );
