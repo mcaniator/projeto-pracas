@@ -25,6 +25,11 @@ const fetchForms = async () => {
 
   try {
     forms = await prisma.form.findMany({
+      where: {
+        version: {
+          not: 0,
+        },
+      },
       select: {
         id: true,
         name: true,
