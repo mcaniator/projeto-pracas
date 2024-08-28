@@ -7,6 +7,14 @@ import { redirect } from "next/navigation";
 import AssessmentCreation from "./assessmentCreation";
 import { AssessmentList } from "./assessmentList";
 
+interface AssessmentDataFetchedToAssessmentList {
+  id: number;
+  startDate: Date;
+  user: {
+    username: string;
+  };
+}
+
 const AssessmentPage = async ({
   params,
 }: {
@@ -28,12 +36,21 @@ const AssessmentPage = async ({
           <h3 className={"text-2xl font-semibold"}>
             {`Avaliações em andamento do formulário ${formName} em ${locationName}`}
           </h3>
-
-          <AssessmentList
-            locationId={locationId}
-            formId={formId}
-            assessments={assessments}
-          />
+          <div className="flex">
+            <span>
+              <h3 className="text-xl font-semibold">Data</h3>
+            </span>
+            <span className="ml-auto">
+              <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
+            </span>
+          </div>
+          <div className="overflow-auto rounded">
+            <AssessmentList
+              locationId={locationId}
+              formId={formId}
+              assessments={assessments}
+            />
+          </div>
         </div>
 
         <AssessmentCreation
@@ -47,3 +64,5 @@ const AssessmentPage = async ({
 };
 
 export default AssessmentPage;
+
+export { type AssessmentDataFetchedToAssessmentList };

@@ -17,14 +17,12 @@ interface CategoryWithSubcategoryAndQuestion {
 }
 
 const ResponseComponent = async ({
-  locationId,
+  assessmentId,
   formId,
-  formVersion,
   userId,
 }: {
-  locationId: number;
   formId: number;
-  formVersion: number;
+  assessmentId: number;
   userId: string;
 }) => {
   const questions = await searchQuestionsByFormId(formId);
@@ -83,9 +81,7 @@ const ResponseComponent = async ({
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex w-full flex-col gap-5 text-white">
         <ResponseForm
-          locationId={locationId}
-          formId={formId}
-          formVersion={formVersion}
+          assessmentId={assessmentId}
           questions={questions}
           options={options}
           userId={userId}

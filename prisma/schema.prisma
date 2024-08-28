@@ -288,21 +288,15 @@ model Response {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
   assessmentId Int        @map("assessment_id")
   assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  formId      Int  @map("form_id")
-  form        Form @relation(fields: [formId], references: [id])
-  formVersion Int  @map("form_version")
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
   response  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("response")
 }
@@ -323,19 +317,13 @@ model Option {
 }
 
 model ResponseOption {
-  id         Int      @id @default(autoincrement())
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
+  id Int @id @default(autoincrement())
 
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
   assessmentId Int        @map("assessment_id")
   assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  formId      Int  @map("form_id")
-  form        Form @relation(fields: [formId], references: [id])
-  formVersion Int  @map("form_version")
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -344,6 +332,7 @@ model ResponseOption {
   option   Option? @relation(fields: [optionId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("response_option")
 }
@@ -352,11 +341,9 @@ model Form {
   id      Int @id @default(autoincrement())
   version Int @default(0)
 
-  name           String             @db.VarChar(255)
-  questions      QuestionsOnForms[]
-  response       Response[]
-  ResponseOption ResponseOption[]
-  assessment     Assessment[]
+  name       String             @db.VarChar(255)
+  questions  QuestionsOnForms[]
+  assessment Assessment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -411,13 +398,11 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  response   Response[]
   assessment Assessment[]
   tally      Tally[]
 
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  ResponseOption ResponseOption[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("location")
 }

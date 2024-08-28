@@ -12,6 +12,7 @@ const Responses = async ({
   params: {
     locationId: string;
     selectedFormId: string;
+    selectedAssessmentId: string;
   };
 }) => {
   const { user } = await validateRequest();
@@ -32,9 +33,8 @@ const Responses = async ({
         {questions !== null && form !== null && form !== undefined ?
           <ul className="list-disc p-3">
             <ResponseComponent
-              locationId={location.id}
+              assessmentId={Number(params.selectedAssessmentId)}
               formId={form.id}
-              formVersion={form.version}
               userId={user.id}
             />
           </ul>

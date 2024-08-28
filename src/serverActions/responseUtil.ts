@@ -5,8 +5,6 @@ import { QuestionTypes } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
 interface ResponseToAdd {
-  locationId: number;
-  formId: number;
   questionId: number;
   type: QuestionTypes;
   response?: string[];
@@ -19,7 +17,78 @@ interface ResponseToUpdate {
   type: QuestionTypes;
   value: string[];
 }
+
 const addResponses = async (
+  assessmentId: number,
+  responses: ResponseToAdd[],
+  userId: string,
+) => {
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
+  try {
+    await prisma.assessment.update({
+      where: {
+        id: assessmentId,
+      },
+      data: {
+        endDate: new Date(),
+        response: {
+          create: responsesTextNumeric.map((response) => ({
+            ...response,
+            response: response.response ? response.response[0] : undefined,
+            user: {
+              connect: {
+                id: userId,
+              },
+            },
+            question: {
+              connect: {
+                id: response.questionId,
+              },
+            },
+          })),
+        },
+        responseOption: {
+          create: responsesOption.flatMap((response) =>
+            response.response ?
+              response.response.map((optionId) => {
+                const baseResponseOptionData = {
+                  user: {
+                    connect: {
+                      id: userId,
+                    },
+                  },
+                  question: {
+                    connect: {
+                      id: response.questionId,
+                    },
+                  },
+                };
+                if (optionId === "null") return baseResponseOptionData;
+                return {
+                  option: {
+                    connect: {
+                      id: Number(optionId),
+                    },
+                  },
+                  ...baseResponseOptionData,
+                };
+              })
+            : [],
+          ),
+        },
+      },
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+/*const addResponses = async (
   responses: ResponseToAdd[],
   userId: string,
   formVersion: number,
@@ -63,7 +132,7 @@ const addResponses = async (
   return {
     statusCode: 0,
   };
-};
+};*/
 
 const updateResponses = async (responses: ResponseToUpdate[]) => {
   type ResponsePromise =

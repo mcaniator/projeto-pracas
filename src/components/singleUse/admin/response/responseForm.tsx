@@ -11,17 +11,13 @@ import React from "react";
 import { useEffect, useState } from "react";
 
 const ResponseForm = ({
-  locationId,
-  formId,
-  formVersion,
+  assessmentId,
   questions,
   options,
   userId,
   categoriesObj,
 }: {
-  locationId: number;
-  formId: number;
-  formVersion: number;
+  assessmentId: number;
   questions: Question[] | null;
   options: { questionId: number; options: { id: number; text: string }[] }[];
   userId: string;
@@ -114,14 +110,12 @@ const ResponseForm = ({
   const handleSubmitResponse = () => {
     const responsesArray = Object.entries(responses).map(
       ([questionId, { value, type }]) => ({
-        locationId,
-        formId,
         questionId: Number(questionId),
         type,
         response: value,
       }),
     );
-    void addResponses(responsesArray, userId, formVersion);
+    void addResponses(assessmentId, responsesArray, userId);
     setResponsesSent(!responsesSent);
   };
 
