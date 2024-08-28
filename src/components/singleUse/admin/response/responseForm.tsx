@@ -39,7 +39,7 @@ const ResponseForm = ({
       {} as { [key: number]: { value: string[]; type: QuestionTypes } },
     ) || {},
   );
-  const [responsesSent, setResponsesSent] = useState(false);
+  const [assessmentEnded, setAssessmentEnded] = useState(false);
 
   const handleCheckboxResponseChange = (
     checked: boolean,
@@ -107,7 +107,7 @@ const ResponseForm = ({
     });
   };
 
-  const handleSubmitResponse = () => {
+  const handleSubmitResponse = (endAssessment: boolean) => {
     const responsesArray = Object.entries(responses).map(
       ([questionId, { value, type }]) => ({
         questionId: Number(questionId),
@@ -115,19 +115,19 @@ const ResponseForm = ({
         response: value,
       }),
     );
-    void addResponses(assessmentId, responsesArray, userId);
-    setResponsesSent(!responsesSent);
+    void addResponses(assessmentId, responsesArray, userId, endAssessment);
+    setAssessmentEnded(endAssessment);
   };
 
-  useEffect(() => {}, [responses, responsesSent]);
+  useEffect(() => {}, [responses, assessmentEnded]);
 
   return (
     <div
       className={
-        "flex h-full basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+        "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
       }
     >
-      {questions !== null && responsesSent === false ?
+      {questions !== null && assessmentEnded === false ?
         <>
           {categoriesObj.map((category) => {
             return (
@@ -318,18 +318,23 @@ const ResponseForm = ({
               </React.Fragment>
             );
           })}
-          <div className="mb-2 flex items-center justify-between rounded p-2">
+          <div className="mb-2 flex items-center justify-between gap-2 rounded p-2">
             <Button
-              variant={"admin"}
-              type="button"
-              className={"w-min"}
-              onPress={handleSubmitResponse}
+              variant={"secondary"}
+              onPress={() => handleSubmitResponse(false)}
             >
-              <span className={"-mb-1"}>Enviar Respostas</span>
+              Salvar respostas
+            </Button>
+            <Button
+              variant={"constructive"}
+              type="button"
+              onPress={() => handleSubmitResponse(true)}
+            >
+              <span className={"-mb-1"}>Salvar e finalizar</span>
             </Button>
           </div>
         </>
-      : questions !== null && responsesSent === true ?
+      : questions !== null && assessmentEnded === true ?
         <div className="flex-row text-4xl">
           Respostas enviadas com sucesso!
           <div>

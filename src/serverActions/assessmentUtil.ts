@@ -67,4 +67,36 @@ const fetchAssessmentsInProgresss = async (
   return assessments;
 };
 
-export { createAssessment, fetchAssessmentsInProgresss };
+const fetchAssessmentsByLocationAndForm = async (
+  locationId: number,
+  formId: number,
+) => {
+  const assessments = await prisma.assessment.findMany({
+    where: {
+      locationId,
+      formId,
+    },
+    include: {
+      form: {
+        include: {
+          questions: true,
+        },
+      },
+      response: true,
+      responseOption: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+  return assessments;
+};
+
+export {
+  createAssessment,
+  fetchAssessmentsInProgresss,
+  fetchAssessmentsByLocationAndForm,
+};

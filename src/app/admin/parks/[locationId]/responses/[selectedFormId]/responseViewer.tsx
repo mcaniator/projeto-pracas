@@ -1,3 +1,4 @@
+import { fetchAssessmentsByLocationAndForm } from "@/serverActions/assessmentUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 import { searchOptionsByQuestionId } from "@/serverActions/questionUtil";
 import {
@@ -16,6 +17,10 @@ const ResponseViewer = async ({
   formId: number;
 }) => {
   const questions = await searchQuestionsByFormId(formId);
+  const assessments = await fetchAssessmentsByLocationAndForm(
+    locationId,
+    formId,
+  );
   if (questions === null) {
     return (
       <div className="text-redwood">Ainda não há perguntas no formulário</div>

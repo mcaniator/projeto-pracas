@@ -22,6 +22,7 @@ const addResponses = async (
   assessmentId: number,
   responses: ResponseToAdd[],
   userId: string,
+  endAssessment: boolean,
 ) => {
   const responsesTextNumeric = responses.filter(
     (response) => response.type === "NUMERIC" || response.type === "TEXT",
@@ -35,7 +36,7 @@ const addResponses = async (
         id: assessmentId,
       },
       data: {
-        endDate: new Date(),
+        endDate: endAssessment ? new Date() : null,
         response: {
           create: responsesTextNumeric.map((response) => ({
             ...response,
