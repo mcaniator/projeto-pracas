@@ -39,7 +39,7 @@ const addResponses = async (
         endDate: endAssessment ? new Date() : null,
         response: {
           create: responsesTextNumeric.map((response) => ({
-            ...response,
+            type: response.type,
             response: response.response ? response.response[0] : undefined,
             user: {
               connect: {
