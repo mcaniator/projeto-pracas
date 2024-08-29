@@ -64,37 +64,110 @@ const addResponses = async (
             },
           })),
         },
-        responseOption: {
-          create: responsesOption.flatMap((response) =>
-            response.response ?
-              response.response.map((optionId) => {
-                const baseResponseOptionData = {
-                  user: {
-                    connect: {
-                      id: userId,
-                    },
-                  },
-                  question: {
-                    connect: {
-                      id: response.questionId,
-                    },
-                  },
-                };
-                if (optionId === "null") return baseResponseOptionData;
-                return {
-                  option: {
-                    connect: {
-                      id: Number(optionId),
-                    },
-                  },
-                  ...baseResponseOptionData,
-                };
-              })
-            : [],
-          ),
-        },
       },
     });
+    const existingResponseOptions = await prisma.responseOption.findMany({
+      where: {
+        assessmentId,
+        userId,
+      },
+    });
+    for (const currentResponseOption of responsesOption) {
+      const existingResponseOptionsToCurrentQuestion =
+        existingResponseOptions.filter(
+          (responseOption) =>
+            responseOption.questionId === currentResponseOption.questionId,
+        );
+
+      if (currentResponseOption.response?.includes("null")) {
+        if (existingResponseOptionsToCurrentQuestion.length === 0) {
+          await prisma.responseOption.create({
+            data: {
+              user: {
+                connect: { id: userId },
+              },
+              question: {
+                connect: { id: currentResponseOption.questionId },
+              },
+              assessment: {
+                connect: { id: assessmentId },
+              },
+            },
+          });
+        } else {
+          await prisma.responseOption.updateMany({
+            where: {
+              assessmentId,
+              questionId: currentResponseOption.questionId,
+              userId,
+            },
+            data: {
+              optionId: null,
+            },
+          });
+        }
+      } else {
+        const optionIds =
+          currentResponseOption.response?.map((id) => Number(id)) || [];
+
+        for (let i = 0; i < optionIds.length; i++) {
+          const optionId = optionIds[i];
+
+          if (i < existingResponseOptionsToCurrentQuestion.length) {
+            const currentExistingResponseOptionsToCurrentQuestion =
+              existingResponseOptionsToCurrentQuestion[i];
+            if (currentExistingResponseOptionsToCurrentQuestion) {
+              await prisma.responseOption.update({
+                where: {
+                  id: currentExistingResponseOptionsToCurrentQuestion.id,
+                },
+                data: {
+                  option: {
+                    connect: { id: optionId },
+                  },
+                },
+              });
+            }
+          } else {
+            await prisma.responseOption.create({
+              data: {
+                user: {
+                  connect: { id: userId },
+                },
+                question: {
+                  connect: { id: currentResponseOption.questionId },
+                },
+                assessment: {
+                  connect: { id: assessmentId },
+                },
+                option: {
+                  connect: { id: optionId },
+                },
+              },
+            });
+          }
+        }
+
+        if (
+          existingResponseOptionsToCurrentQuestion.length > optionIds.length
+        ) {
+          const excessResponseOptions =
+            existingResponseOptionsToCurrentQuestion.slice(optionIds.length);
+          await prisma.responseOption.updateMany({
+            where: {
+              id: {
+                in: excessResponseOptions.map(
+                  (excessResponseOption) => excessResponseOption.id,
+                ),
+              },
+            },
+            data: {
+              optionId: null,
+            },
+          });
+        }
+      }
+    }
   } catch (e) {
     console.log(e);
   }
