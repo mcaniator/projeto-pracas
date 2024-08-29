@@ -38,17 +38,28 @@ const addResponses = async (
       data: {
         endDate: endAssessment ? new Date() : null,
         response: {
-          create: responsesTextNumeric.map((response) => ({
-            type: response.type,
-            response: response.response ? response.response[0] : undefined,
-            user: {
-              connect: {
-                id: userId,
+          upsert: responsesTextNumeric.map((response) => ({
+            where: {
+              assessmentId_questionId: {
+                assessmentId,
+                questionId: response.questionId,
               },
             },
-            question: {
-              connect: {
-                id: response.questionId,
+            update: {
+              response: response.response ? response.response[0] : undefined,
+            },
+            create: {
+              type: response.type,
+              response: response.response ? response.response[0] : undefined,
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+              question: {
+                connect: {
+                  id: response.questionId,
+                },
               },
             },
           })),

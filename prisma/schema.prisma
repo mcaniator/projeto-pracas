@@ -298,6 +298,7 @@ model Response {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("response")
 }
 
