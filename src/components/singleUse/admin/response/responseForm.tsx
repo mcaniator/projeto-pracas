@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { deleteAssessment } from "@/serverActions/assessmentUtil";
 import { addResponses } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 import Link from "next/link";
@@ -127,6 +128,10 @@ const ResponseForm = ({
     );
     void addResponses(assessment.id, responsesArray, userId, endAssessment);
     setAssessmentEnded(endAssessment);
+  };
+
+  const handleDeleteAssessment = () => {
+    void deleteAssessment(assessment.id);
   };
 
   useEffect(() => {}, [responses, assessmentEnded]);
@@ -345,9 +350,12 @@ const ResponseForm = ({
             >
               <span className={"-mb-1"}>Salvar e finalizar</span>
             </Button>
+            <Button variant={"destructive"} onPress={handleDeleteAssessment}>
+              Excluir avaliação
+            </Button>
           </div>
         </>
-      : questions !== null && assessmentEnded === true ?
+      : assessmentEnded === true ?
         <div className="flex-row text-4xl">
           Respostas enviadas com sucesso!
           <div>

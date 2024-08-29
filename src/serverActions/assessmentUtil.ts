@@ -127,8 +127,21 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
   return assessment;
 };
 
+const deleteAssessment = async (assessmentId: number) => {
+  try {
+    await prisma.assessment.delete({
+      where: {
+        id: assessmentId,
+      },
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 export {
   createAssessment,
+  deleteAssessment,
   fetchAssessmentsInProgresss,
   fetchAssessmentsByLocationAndForm,
   fetchAssessmentWithResponses,
