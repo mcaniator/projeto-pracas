@@ -191,6 +191,9 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       data: {
         name: form.name,
         version: form.version + 1,
+        questions: {
+          connect: questions.map((question) => ({ id: question.id })),
+        },
       },
     });
 
@@ -199,19 +202,6 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
     return {
       message: "erro do servidor",
     };
-  }
-
-  try {
-    const createManyParams = questions.map((question) => ({
-      formId: newFormId,
-      questionId: question.id,
-    }));
-
-    await prisma.questionsOnForms.createMany({
-      data: createManyParams,
-    });
-  } catch (err) {
-    return { statusCode: 2 };
   }
 
   revalidateTag("questionOnForm");

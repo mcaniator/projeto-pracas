@@ -95,8 +95,40 @@ const fetchAssessmentsByLocationAndForm = async (
   return assessments;
 };
 
+const fetchAssessmentWithResponses = async (assessmentId: number) => {
+  const assessment = await prisma.assessment.findUnique({
+    where: {
+      id: assessmentId,
+    },
+    include: {
+      form: {
+        include: {
+          questions: {
+            include: {
+              response: true,
+              ResponseOption: {
+                include: {
+                  option: true,
+                },
+              },
+              category: true,
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return assessment;
+};
+
 export {
   createAssessment,
   fetchAssessmentsInProgresss,
   fetchAssessmentsByLocationAndForm,
+  fetchAssessmentWithResponses,
 };

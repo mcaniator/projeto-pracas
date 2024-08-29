@@ -1,33 +1,32 @@
 "use client";
 
-import { CategoryWithSubcategoryAndQuestion } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
+import {
+  AssessmentWithResposes,
+  CategoryWithSubcategoryAndQuestion,
+} from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { addResponses } from "@/serverActions/responseUtil";
-import { Question, QuestionTypes } from "@prisma/client";
+import { QuestionTypes } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 import { useEffect, useState } from "react";
 
 const ResponseForm = ({
-  assessmentId,
-  questions,
-  options,
   userId,
   categoriesObj,
+  assessment,
 }: {
-  assessmentId: number;
-  questions: Question[] | null;
-  options: { questionId: number; options: { id: number; text: string }[] }[];
   userId: string;
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
+  assessment: AssessmentWithResposes;
 }) => {
-  //console.log(options);
+  console.log(assessment);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
   }>(
-    questions?.reduce(
+    assessment.form.questions.reduce(
       (acc, question) => {
         const valueArray: string[] = [];
         if (question.type === "OPTIONS") {
@@ -115,19 +114,23 @@ const ResponseForm = ({
         response: value,
       }),
     );
-    void addResponses(assessmentId, responsesArray, userId, endAssessment);
+    void addResponses(assessment.id, responsesArray, userId, endAssessment);
     setAssessmentEnded(endAssessment);
   };
 
   useEffect(() => {}, [responses, assessmentEnded]);
-
+  const options = assessment.form.questions.flatMap((question) => {
+    return question.ResponseOption.flatMap((responseOption) => {
+      return responseOption.option;
+    });
+  });
   return (
     <div
       className={
         "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
       }
     >
-      {questions !== null && assessmentEnded === false ?
+      {assessment.form.questions !== null && assessmentEnded === false ?
         <>
           {categoriesObj.map((category) => {
             return (
@@ -140,9 +143,9 @@ const ResponseForm = ({
                       <ul className="list-disc p-3">
                         {subcategory.questions.map((question) => {
                           const questionOptions =
-                            options.find(
-                              (opt) => opt.questionId === question.id,
-                            )?.options || [];
+                            options.filter(
+                              (opt) => opt && opt.questionId === question.id,
+                            ) || [];
                           return (
                             <li key={question.id}>
                               <label htmlFor={`response${question.id}`}>
@@ -232,8 +235,8 @@ const ResponseForm = ({
                 <ul className="list-disc p-3">
                   {category.questions.map((question) => {
                     const questionOptions =
-                      options.find((opt) => opt.questionId === question.id)
-                        ?.options || [];
+                      options.filter((opt) => opt.questionId === question.id) ||
+                      [];
                     return (
                       <li key={question.id}>
                         <label htmlFor={`response${question.id}`}>

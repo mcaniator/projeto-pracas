@@ -1,7 +1,6 @@
 import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
-import { searchOptionsByQuestionId } from "@/serverActions/questionUtil";
-import { Question, QuestionTypes } from "@prisma/client";
+import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
+import { Question } from "@prisma/client";
 
 interface SubcategoryWithQuestion {
   id: number;
@@ -16,27 +15,18 @@ interface CategoryWithSubcategoryAndQuestion {
   questions: Question[];
 }
 
-const ResponseComponent = async ({
-  assessmentId,
-  formId,
-  userId,
-}: {
-  formId: number;
-  assessmentId: number;
-  userId: string;
-}) => {
-  const questions = await searchQuestionsByFormId(formId);
+type AssessmentWithResposes = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentWithResponses>>
+>;
 
-  if (questions === null) return null;
-  const options = await Promise.all(
-    questions.map(async (question) => {
-      if (question.type === QuestionTypes.OPTIONS) {
-        const options = await searchOptionsByQuestionId(question.id);
-        return { questionId: question.id, options };
-      }
-      return { questionId: question.id, options: [] };
-    }),
-  );
+const ResponseComponent = ({
+  userId,
+  assessment,
+}: {
+  userId: string;
+  assessment: AssessmentWithResposes;
+}) => {
+  const questions = assessment?.form.questions;
 
   const categoriesMap = new Map<number, CategoryWithSubcategoryAndQuestion>();
 
@@ -81,11 +71,9 @@ const ResponseComponent = async ({
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex w-full flex-col gap-5 text-white">
         <ResponseForm
-          assessmentId={assessmentId}
-          questions={questions}
-          options={options}
           userId={userId}
           categoriesObj={categories}
+          assessment={assessment}
         />
       </div>
     </div>
@@ -93,4 +81,4 @@ const ResponseComponent = async ({
 };
 
 export { ResponseComponent };
-export { type CategoryWithSubcategoryAndQuestion };
+export { type CategoryWithSubcategoryAndQuestion, type AssessmentWithResposes };

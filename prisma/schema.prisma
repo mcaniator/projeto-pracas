@@ -253,18 +253,18 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String             @db.VarChar(255)
-  optional          Boolean            @default(false)
-  active            Boolean            @default(true)
+  name              String        @db.VarChar(255)
+  optional          Boolean       @default(false)
+  active            Boolean       @default(true)
   type              QuestionTypes
-  forms             QuestionsOnForms[]
+  forms             Form[]
   response          Response[]
-  responseCharLimit Int?               @map("char_limit")
+  responseCharLimit Int?          @map("char_limit")
   minValue          Int?
   maxValue          Int?
-  optionType        OptionTypes?       @map("option_type")
+  optionType        OptionTypes?  @map("option_type")
   // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?               @map("maximum_selections")
+  maximumSelections Int?          @map("maximum_selections")
 
   assessment Assessment[]
 
@@ -341,25 +341,14 @@ model Form {
   id      Int @id @default(autoincrement())
   version Int @default(0)
 
-  name       String             @db.VarChar(255)
-  questions  QuestionsOnForms[]
+  name       String       @db.VarChar(255)
+  questions  Question[]
   assessment Assessment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("form")
-}
-
-model QuestionsOnForms {
-  id Int @id @default(autoincrement())
-
-  formId     Int      @map("form_id")
-  form       Form     @relation(fields: [formId], references: [id])
-  questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  @@map("questions_on_forms")
 }
 
 // #endregion
