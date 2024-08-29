@@ -22,7 +22,7 @@ const ResponseForm = ({
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
   assessment: AssessmentWithResposes;
 }) => {
-  console.log(assessment);
+  // console.log(assessment);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
   }>(
@@ -120,10 +120,9 @@ const ResponseForm = ({
 
   useEffect(() => {}, [responses, assessmentEnded]);
   const options = assessment.form.questions.flatMap((question) => {
-    return question.ResponseOption.flatMap((responseOption) => {
-      return responseOption.option;
-    });
+    return question.options;
   });
+  console.log(assessment.form.questions);
   return (
     <div
       className={

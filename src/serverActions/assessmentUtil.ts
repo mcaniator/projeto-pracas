@@ -105,6 +105,7 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
         include: {
           questions: {
             include: {
+              options: true,
               response: true,
               ResponseOption: {
                 include: {
