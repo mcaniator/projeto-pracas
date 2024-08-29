@@ -29,8 +29,19 @@ const ResponseForm = ({
     assessment.form.questions.reduce(
       (acc, question) => {
         const valueArray: string[] = [];
-        if (question.type === "OPTIONS") {
-          valueArray.push("null");
+        if (question.type === "NUMERIC" || question.type === "TEXT") {
+          const currentResponse = question.response[0];
+          if (currentResponse && currentResponse.response) {
+            valueArray.push(currentResponse.response);
+          }
+        } else {
+          for (const currentResponse of question.ResponseOption) {
+            if (currentResponse.option)
+              valueArray.push(currentResponse.option.id.toString());
+          }
+          if (valueArray.length === 0) {
+            valueArray.push("null");
+          }
         }
         acc[question.id] = { value: valueArray, type: question.type };
         return acc;
@@ -122,7 +133,7 @@ const ResponseForm = ({
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
   });
-  console.log(assessment.form.questions);
+  //console.log(assessment.form.questions);
   return (
     <div
       className={
