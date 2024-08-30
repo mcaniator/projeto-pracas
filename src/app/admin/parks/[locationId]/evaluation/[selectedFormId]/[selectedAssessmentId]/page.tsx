@@ -34,7 +34,11 @@ const Responses = async ({
         </h3>
         {assessment?.formId !== null && assessment?.formId !== undefined ?
           <ul className="list-disc p-3">
-            <ResponseComponent assessment={assessment} userId={user.id} />
+            <ResponseComponent
+              assessment={assessment}
+              userId={user.id}
+              locationId={Number(params.locationId)}
+            />
           </ul>
         : <div className="text-redwood">
             Ainda não há perguntas no formulário

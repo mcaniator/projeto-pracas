@@ -3,6 +3,7 @@
 import { AssessmentCreationFormType } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/assessmentCreation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 const createAssessment = async (
   prevState: AssessmentCreationFormType | undefined,
@@ -101,17 +102,18 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
       id: assessmentId,
     },
     include: {
+      response: true,
+      responseOption: {
+        include: {
+          option: true,
+        },
+      },
       form: {
         include: {
           questions: {
             include: {
               options: true,
-              response: true,
-              ResponseOption: {
-                include: {
-                  option: true,
-                },
-              },
+
               category: true,
               subcategory: {
                 include: {
@@ -135,8 +137,14 @@ const deleteAssessment = async (assessmentId: number) => {
       },
     });
   } catch (e) {
-    console.log(e);
+    return {
+      statusCode: 2,
+    };
   }
+};
+
+const redirectToFormsList = (locationId: number) => {
+  redirect(`/admin/parks/${locationId}/evaluation`);
 };
 
 export {
@@ -145,4 +153,5 @@ export {
   fetchAssessmentsInProgresss,
   fetchAssessmentsByLocationAndForm,
   fetchAssessmentWithResponses,
+  redirectToFormsList,
 };

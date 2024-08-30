@@ -20,9 +20,11 @@ type AssessmentWithResposes = NonNullable<
 >;
 
 const ResponseComponent = ({
+  locationId,
   userId,
   assessment,
 }: {
+  locationId: number;
   userId: string;
   assessment: AssessmentWithResposes;
 }) => {
@@ -72,6 +74,7 @@ const ResponseComponent = ({
       <div className="flex w-full flex-col gap-5 text-white">
         <ResponseForm
           userId={userId}
+          locationId={locationId}
           categoriesObj={categories}
           assessment={assessment}
         />

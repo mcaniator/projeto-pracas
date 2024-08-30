@@ -7,7 +7,10 @@ import {
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { deleteAssessment } from "@/serverActions/assessmentUtil";
+import {
+  deleteAssessment,
+  redirectToFormsList,
+} from "@/serverActions/assessmentUtil";
 import { addResponses } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 import Link from "next/link";
@@ -16,14 +19,15 @@ import { useEffect, useState } from "react";
 
 const ResponseForm = ({
   userId,
+  locationId,
   categoriesObj,
   assessment,
 }: {
   userId: string;
+  locationId: number;
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
   assessment: AssessmentWithResposes;
 }) => {
-  // console.log(assessment);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
   }>(
@@ -31,12 +35,18 @@ const ResponseForm = ({
       (acc, question) => {
         const valueArray: string[] = [];
         if (question.type === "NUMERIC" || question.type === "TEXT") {
-          const currentResponse = question.response[0];
+          const currentResponseArray = assessment.response.filter(
+            (respose) => respose.questionId === question.id,
+          );
+          const currentResponse = currentResponseArray[0];
           if (currentResponse && currentResponse.response) {
             valueArray.push(currentResponse.response);
           }
         } else {
-          for (const currentResponse of question.ResponseOption) {
+          const currentResponseArray = assessment.responseOption.filter(
+            (resposeOption) => resposeOption.questionId === question.id,
+          );
+          for (const currentResponse of currentResponseArray) {
             if (currentResponse.option)
               valueArray.push(currentResponse.option.id.toString());
           }
@@ -104,6 +114,39 @@ const ResponseForm = ({
       });
     }
   };
+  const handleRadialButtonResponseChange = (
+    questionId: number,
+    questionType: QuestionTypes,
+    value: string,
+  ) => {
+    const currentQuestionResponsesObj = responses[questionId];
+    if (currentQuestionResponsesObj) {
+      if (currentQuestionResponsesObj.value.includes(value)) {
+        setResponses((prevResponses) => {
+          return {
+            ...prevResponses,
+            [questionId]: { value: ["null"], type: questionType },
+          };
+        });
+      } else {
+        setResponses((prevResponses) => {
+          const valueArray: string[] = [value];
+          return {
+            ...prevResponses,
+            [questionId]: { value: valueArray, type: questionType },
+          };
+        });
+      }
+    } else {
+      setResponses((prevResponses) => {
+        const valueArray: string[] = [value];
+        return {
+          ...prevResponses,
+          [questionId]: { value: valueArray, type: questionType },
+        };
+      });
+    }
+  };
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
@@ -132,13 +175,13 @@ const ResponseForm = ({
 
   const handleDeleteAssessment = () => {
     void deleteAssessment(assessment.id);
+    redirectToFormsList(locationId);
   };
 
   useEffect(() => {}, [responses, assessmentEnded]);
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
   });
-  //console.log(assessment.form.questions);
   return (
     <div
       className={
@@ -179,13 +222,14 @@ const ResponseForm = ({
                                           checked={responses[
                                             question.id
                                           ]?.value.includes(String(option.id))}
-                                          onChange={(e) =>
-                                            handleResponseChange(
+                                          onClick={() =>
+                                            handleRadialButtonResponseChange(
                                               question.id,
                                               question.type,
-                                              e.target.value,
+                                              String(option.id),
                                             )
                                           }
+                                          readOnly
                                         />
                                         <label htmlFor={`option${option.id}`}>
                                           {option.text}
@@ -270,13 +314,14 @@ const ResponseForm = ({
                                     checked={responses[
                                       question.id
                                     ]?.value.includes(String(option.id))}
-                                    onChange={(e) =>
-                                      handleResponseChange(
+                                    onClick={() =>
+                                      handleRadialButtonResponseChange(
                                         question.id,
                                         question.type,
-                                        e.target.value,
+                                        String(option.id),
                                       )
                                     }
+                                    readOnly
                                   />
                                   <label htmlFor={`option${option.id}`}>
                                     {option.text}

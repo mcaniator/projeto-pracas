@@ -169,55 +169,11 @@ const addResponses = async (
       }
     }
   } catch (e) {
-    console.log(e);
+    return {
+      statusCode: 2,
+    };
   }
 };
-
-/*const addResponses = async (
-  responses: ResponseToAdd[],
-  userId: string,
-  formVersion: number,
-) => {
-  const responsesTextNumeric = responses.filter(
-    (response) => response.type === "NUMERIC" || response.type === "TEXT",
-  );
-  const responsesOption = responses.filter(
-    (response) => response.type === "OPTIONS",
-  );
-  try {
-    await prisma.$transaction([
-      prisma.response.createMany({
-        data: responsesTextNumeric.map((response) => ({
-          ...response,
-          response: response.response ? response.response[0] : undefined,
-          userId,
-          formVersion,
-        })),
-      }),
-      prisma.responseOption.createMany({
-        data: responsesOption.flatMap((response) =>
-          response.response ?
-            response.response.map((optionId) => ({
-              optionId: optionId !== "null" ? Number(optionId) : null,
-              locationId: response.locationId,
-              formId: response.formId,
-              questionId: response.questionId,
-              userId: userId,
-              formVersion: formVersion,
-            }))
-          : [],
-        ),
-      }),
-    ]);
-  } catch (err) {
-    return { statusCode: 2 };
-  }
-
-  revalidateTag("response");
-  return {
-    statusCode: 0,
-  };
-};*/
 
 const updateResponses = async (responses: ResponseToUpdate[]) => {
   type ResponsePromise =
