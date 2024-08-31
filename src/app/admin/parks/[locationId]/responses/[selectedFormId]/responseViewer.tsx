@@ -1,33 +1,21 @@
 import { fetchAssessmentsByLocationAndForm } from "@/serverActions/assessmentUtil";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
-import { searchOptionsByQuestionId } from "@/serverActions/questionUtil";
-import {
-  searchResponsesByQuestionFormLocation,
-  searchResponsesOptionsByQuestionFormLocation,
-} from "@/serverActions/responseUtil";
-import { QuestionTypes } from "@prisma/client";
 
 import { ResponseViewerClient } from "./responseViewerClient";
 
-const ResponseViewer = async ({
+type AssessmentsWithResposes = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentsByLocationAndForm>>
+>;
+
+const ResponseViewer = ({
   locationId,
   formId,
+  assessments,
 }: {
   locationId: number;
   formId: number;
+  assessments: AssessmentsWithResposes;
 }) => {
-  const questions = await searchQuestionsByFormId(formId);
-  const assessments = await fetchAssessmentsByLocationAndForm(
-    locationId,
-    formId,
-  );
-  if (questions === null) {
-    return (
-      <div className="text-redwood">Ainda não há perguntas no formulário</div>
-    );
-  }
-
-  const responses = await Promise.all(
+  /*const responses = await Promise.all(
     questions.map(async (question) => {
       if (question.type === QuestionTypes.OPTIONS) {
         const options = await searchResponsesOptionsByQuestionFormLocation(
@@ -123,16 +111,13 @@ const ResponseViewer = async ({
       }
       return { questionId: question.id, options: [] };
     }),
-  );
+  );*/
 
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex max-h-96 basis-3/5 flex-col gap-5 overflow-auto text-white">
         <ResponseViewerClient
-          questions={questions}
-          options={options}
-          responses={flattenedResponses}
-          envios={envios}
+          assessments={assessments}
           locationId={locationId}
           formId={formId}
         />
@@ -142,3 +127,4 @@ const ResponseViewer = async ({
 };
 
 export { ResponseViewer };
+export { type AssessmentsWithResposes };

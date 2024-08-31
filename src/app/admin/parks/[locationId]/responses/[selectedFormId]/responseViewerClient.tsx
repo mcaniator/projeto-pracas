@@ -5,6 +5,7 @@ import { QuestionTypes } from "@prisma/client";
 import { useState } from "react";
 
 import { ResponseEditor } from "./responseEditor";
+import { AssessmentsWithResposes } from "./responseViewer";
 
 interface ResponseWithFrequency extends Response {
   frequency: number;
@@ -12,128 +13,273 @@ interface ResponseWithFrequency extends Response {
 interface ResponseWithUsername extends Response {
   username: string;
 }
+
+interface FrequencyObjByCategory {
+  id: number;
+  categoryName: string;
+  subcategories: {
+    id: number;
+    subcategoryName: string;
+    questions: {
+      id: number;
+      questionName: string;
+      type: QuestionTypes;
+      responses: {
+        text: string;
+        frequency: number;
+      }[];
+    }[];
+  }[];
+  questions: {
+    id: number;
+    questionName: string;
+    type: QuestionTypes;
+    responses: {
+      text: string;
+      frequency: number;
+    }[];
+  }[];
+}
+
 const ResponseViewerClient = ({
-  questions,
-  options,
-  responses,
-  envios,
   locationId,
   formId,
+  assessments,
 }: {
-  questions: Question[] | null;
-  options: {
-    questionId: number;
-    options: { id: number; text: string; frequency: number }[];
-  }[];
-  responses: Response[] | null;
-  envios: { envioId: string; responses: ResponseWithUsername[] }[];
   locationId: number;
   formId: number;
+  assessments: AssessmentsWithResposes;
 }) => {
-  //console.log(envios);
   const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
-  if (questions === null) {
-    return <div>Ainda não há perguntas neste formulário</div>;
-  }
-  if (responses === null) {
-    return <div>Ainda não há respostas para este formulário</div>;
-  }
 
   const handleEditEnvio = (envioId: string | null) => {
     if (envioId === null) return;
     setEditingEnvioId(envioId);
   };
 
-  const getInitialResponses = (responses: Response[]) => {
-    const questionChar = questions.reduce(
-      (acc, question) => {
-        if (!acc[question.id]) {
-          acc[question.id] = {
-            value: [],
-            type: question.type,
-            responseId: [],
-          };
+  const frequencies: FrequencyObjByCategory[] = [];
+  assessments.forEach((assessment) => {
+    assessment.form.questions.forEach((question) => {
+      if (
+        !frequencies.find((category) => category.id === question.category.id)
+      ) {
+        frequencies.push({
+          id: question.category.id,
+          categoryName: question.category.name,
+          questions: [],
+          subcategories: [],
+        });
+      }
+      const currentCategoryObj = frequencies.find(
+        (category) => category.id === question.category.id,
+      );
+      if (currentCategoryObj !== undefined) {
+        if (
+          question.subcategory &&
+          currentCategoryObj.subcategories.find(
+            (subcategory) => subcategory.id === question.subcategory.id,
+          ) === undefined
+        ) {
+          currentCategoryObj.subcategories.push({
+            id: question.subcategory.id,
+            subcategoryName: question.subcategory.name,
+            questions: [],
+          });
         }
-        return acc;
-      },
-      {} as {
-        [key: number]: {
-          value: string[];
-          type: QuestionTypes;
-          responseId: number[];
-        };
-      },
-    );
-    const char = responses.reduce(
-      (acc, response) => {
-        if (!acc[response.questionId]) {
-          acc[response.questionId] = {
-            value: [],
-            type: response.type,
-            responseId: [],
-          };
+        if (question.subcategory) {
+          const currentSubcategoryObj = currentCategoryObj.subcategories.find(
+            (subcategory) => subcategory.id === question.subcategory.id,
+          );
+          if (currentSubcategoryObj) {
+            if (
+              currentSubcategoryObj.questions.find(
+                (subcategoryQuestion) => subcategoryQuestion.id === question.id,
+              ) === undefined
+            ) {
+              currentSubcategoryObj.questions.push({
+                id: question.id,
+                questionName: question.name,
+                type: question.type,
+                responses: [],
+              });
+            }
+            const currentQuestionObj = currentSubcategoryObj.questions.find(
+              (subcategoryQuestion) => subcategoryQuestion.id === question.id,
+            );
+            if (currentQuestionObj !== undefined) {
+              if (question.type === "OPTIONS") {
+                question.options.forEach((option) => {
+                  if (
+                    !currentQuestionObj.responses.find(
+                      (response) => response.text === option.text,
+                    )
+                  ) {
+                    currentQuestionObj.responses.push({
+                      text: option.text,
+                      frequency: 0,
+                    });
+                  }
+                });
+                const assessmentResponsesOption =
+                  assessment.responseOption.filter(
+                    (responseOption) =>
+                      responseOption.questionId === question.id,
+                  );
+                assessmentResponsesOption.forEach(
+                  (assessmentResponseOption) => {
+                    const currentResponseObj =
+                      currentQuestionObj.responses.find(
+                        (response) =>
+                          response.text ===
+                          assessmentResponseOption.option?.text,
+                      );
+                    if (currentResponseObj) {
+                      currentResponseObj.frequency++;
+                    }
+                  },
+                );
+              } else {
+                const assessmentResponse = assessment.response.find(
+                  (response) => response.questionId === question.id,
+                );
+                if (assessmentResponse && assessmentResponse.response) {
+                  if (
+                    currentQuestionObj.responses.find(
+                      (questionResponse) =>
+                        questionResponse.text === assessmentResponse.response,
+                    ) === undefined
+                  ) {
+                    currentQuestionObj.responses.push({
+                      text: assessmentResponse.response,
+                      frequency: 0,
+                    });
+                  }
+                  const currentResponseObj = currentQuestionObj.responses.find(
+                    (questionResponse) =>
+                      questionResponse.text === assessmentResponse.response,
+                  );
+                  if (currentResponseObj) {
+                    currentResponseObj.frequency++;
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (
+            currentCategoryObj.questions.find(
+              (categoryQuestion) => categoryQuestion.id === question.id,
+            ) === undefined
+          ) {
+            currentCategoryObj.questions.push({
+              id: question.id,
+              questionName: question.name,
+              type: question.type,
+              responses: [],
+            });
+          }
+          const currentQuestionObj = currentCategoryObj.questions.find(
+            (categoryQuestion) => categoryQuestion.id === question.id,
+          );
+          if (currentQuestionObj !== undefined) {
+            if (question.type === "OPTIONS") {
+              question.options.forEach((option) => {
+                if (
+                  !currentQuestionObj.responses.find(
+                    (response) => response.text === option.text,
+                  )
+                ) {
+                  currentQuestionObj.responses.push({
+                    text: option.text,
+                    frequency: 0,
+                  });
+                }
+              });
+              const assessmentResponsesOption =
+                assessment.responseOption.filter(
+                  (responseOption) => responseOption.questionId === question.id,
+                );
+              assessmentResponsesOption.forEach((assessmentResponseOption) => {
+                const currentResponseObj = currentQuestionObj.responses.find(
+                  (response) =>
+                    response.text === assessmentResponseOption.option?.text,
+                );
+                if (currentResponseObj) {
+                  currentResponseObj.frequency++;
+                }
+              });
+            } else {
+              const assessmentResponse = assessment.response.find(
+                (response) => response.questionId === question.id,
+              );
+              if (assessmentResponse && assessmentResponse.response) {
+                if (
+                  currentQuestionObj.responses.find(
+                    (questionResponse) =>
+                      questionResponse.text === assessmentResponse.response,
+                  ) === undefined
+                ) {
+                  currentQuestionObj.responses.push({
+                    text: assessmentResponse.response,
+                    frequency: 0,
+                  });
+                }
+                const currentResponseObj = currentQuestionObj.responses.find(
+                  (questionResponse) =>
+                    questionResponse.text === assessmentResponse.response,
+                );
+                if (currentResponseObj) {
+                  currentResponseObj.frequency++;
+                }
+              }
+            }
+          }
         }
-        acc[response.questionId]?.responseId.push(response.id);
-        if (response.response) {
-          acc[response.questionId]?.value.push(response.response);
-        }
-
-        return acc;
-      },
-      {} as {
-        [key: number]: {
-          value: string[];
-          type: QuestionTypes;
-          responseId: number[];
-        };
-      },
-    );
-    Object.keys(char).forEach((key) => {
-      const questionId = Number(key);
-      if (questionChar[questionId] && char[questionId]) {
-        questionChar[questionId].value = questionChar[questionId].value.concat(
-          char[questionId].value,
-        );
-
-        questionChar[questionId].responseId = questionChar[
-          questionId
-        ].responseId.concat(char[questionId].responseId);
       }
     });
-    return questionChar;
-  };
-  const responsesByQuestionId = responses.reduce(
-    (acc, response) => {
-      if (!acc[response.questionId]) {
-        acc[response.questionId] = [];
+  });
+  /*assessments.forEach((assessment) => {
+    assessment.response.forEach((response) => {
+      if (!frequencies[response.questionId]) {
+        frequencies[response.questionId] = {};
       }
-      const existingResponse = acc[response.questionId]?.find(
-        (addedResponse) => addedResponse.response === response.response,
-      );
-      if (existingResponse) {
-        existingResponse.frequency += 1;
-      } else {
-        acc[response.questionId]?.push({ ...response, frequency: 1 });
+      const currentQuestionObj = frequencies[response.questionId];
+      if (currentQuestionObj && response.response) {
+        let currentResponseObj = currentQuestionObj[response.response];
+
+        if (currentResponseObj !== undefined) {
+          currentResponseObj++;
+        }
+        currentQuestionObj[response.response] = currentResponseObj || 1;
       }
+    });
+    assessment.form.questions.forEach((question)=>{
+     
+      if(question.type === "OPTIONS"){
+        if (!frequencies[question.id]) {
+          frequencies[question.id] = {};
+        }
+        const currentQuestionObj = frequencies[question.id]
 
-      return acc;
-    },
-    {} as { [key: number]: ResponseWithFrequency[] },
-  );
+      }
+    })
+    assessment.responseOption.forEach((responseOption) => {
+      if (!frequencies[responseOption.questionId]) {
+        frequencies[responseOption.questionId] = {};
+      }
+      const currentQuestionObj = frequencies[responseOption.questionId];
+      if (currentQuestionObj && responseOption.option?.text) {
+        let currentResponseObj =
+          currentQuestionObj[responseOption.option?.text];
 
-  const optionsByQuestionId = options.reduce(
-    (acc, option) => {
-      acc[option.questionId] = option.options;
-      return acc;
-    },
-    {} as { [key: number]: { id: number; text: string; frequency: number }[] },
-  );
-
-  const sortedEnvios = [...envios].sort(
-    (a, b) => new Date(b.envioId).getTime() - new Date(a.envioId).getTime(),
-  );
-
-  const recentEnvios = sortedEnvios.slice(0, 3);
+        if (currentResponseObj !== undefined) {
+          currentResponseObj++;
+        }
+        currentQuestionObj[responseOption.option?.text] =
+          currentResponseObj || 1;
+      }
+    });
+  });*/
 
   return (
     <div className="flex gap-5">
@@ -143,54 +289,126 @@ const ResponseViewerClient = ({
         }
       >
         <ul className="list-disc p-3">
-          {questions.map((question) => (
-            <li key={question.id}>
-              <div>{question.name}</div>
-              <div>
-                {(
-                  question.type === QuestionTypes.OPTIONS &&
-                  optionsByQuestionId[question.id]
-                ) ?
-                  <div>
-                    {optionsByQuestionId[question.id]?.map((option) => (
-                      <div key={option.id}>
-                        <span>{option.text}</span>
-                        <span className="font-bold text-blue-500">
-                          {" "}
-                          Frequência: {option.frequency}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                : responsesByQuestionId[question.id] ?
-                  responsesByQuestionId[question.id]?.map((response, index) => {
-                    return (
-                      <div key={index}>
-                        {(
-                          question.type === QuestionTypes.NUMERIC ||
-                          question.type === QuestionTypes.TEXT
-                        ) ?
-                          <div>
-                            <span>{response.response}</span>
-                            <span className="font-bold text-blue-500">
-                              {" "}
-                              Frequência: {response.frequency}
+          {frequencies.map((category) => {
+            return (
+              <div key={category.id}>
+                <span className="text-2xl font-bold">
+                  {category.categoryName}
+                </span>
+                {category.questions.map((question) => {
+                  return (
+                    <div key={question.id} className="flex flex-col">
+                      <span className="font-bold">{question.questionName}</span>
+
+                      {question.responses.map((response) => {
+                        return (
+                          <span key={response.text}>
+                            {response.text}
+                            <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                {category.subcategories.map((subcategory) => {
+                  return (
+                    <div key={subcategory.id}>
+                      <span className="text-xl font-bold">
+                        {subcategory.subcategoryName}
+                      </span>
+
+                      {subcategory.questions.map((question) => {
+                        return (
+                          <div key={question.id} className="flex flex-col">
+                            <span className="font-bold">
+                              {question.questionName}
                             </span>
+
+                            {question.responses.map((response) => {
+                              return (
+                                <span key={`${question.id}-${response.text}`}>
+                                  {response.text}
+                                  <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                                </span>
+                              );
+                            })}
                           </div>
-                        : <div>{response.response}</div>}
-                      </div>
-                    );
-                  })
-                : <div>Não há respostas para esta pergunta</div>}
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
-            </li>
-          ))}
+            );
+          })}
+          {/*assessments.flatMap((assessment) =>
+            assessment.form.questions.map((question) => (
+              <li key={question.id}>
+                <div>{question.name}</div>
+                <div>
+                  {question.type === QuestionTypes.OPTIONS ?
+                    <div>
+                      {question.options.map((option) => (
+                        <div key={option.id}>
+                          <span>{option.text}</span>
+                          <span className="font-bold text-blue-500">
+                            {" "}
+                            Frequência:{" "}
+                            {
+                              frequencies[question.id][
+                                assessment.responseOption.find(
+                                  (ro) => ro.optionId === question.id,
+                                )?.option?.text || 1
+                              ]
+                            }
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  : (
+                    assessment.response.find(
+                      (response) => response.questionId === question.id,
+                    )
+                  ) ?
+                    assessment.response
+                      .filter((response) => response.questionId === question.id)
+                      .map((response, index) => {
+                        return (
+                          <div key={index}>
+                            {(
+                              question.type === QuestionTypes.NUMERIC ||
+                              question.type === QuestionTypes.TEXT
+                            ) ?
+                              <div>
+                                <span>{response.response}</span>
+                                <span className="font-bold text-blue-500">
+                                  {" "}
+                                  Frequência:{" "}
+                                  {
+                                    frequencies[question.id][
+                                      assessment.responseOption.find(
+                                        (ro) => ro.optionId === question.id,
+                                      )?.option?.text || 1
+                                    ]
+                                  }
+                                </span>
+                              </div>
+                            : <div>{response.response}</div>}
+                          </div>
+                        );
+                      })
+                  : <div>Não há respostas para esta pergunta</div>}
+                </div>
+              </li>
+            )),
+          )*/}
         </ul>
       </div>
 
       <div className="flex basis-2/5 flex-col gap-3">
         <h3 className="text-lg font-bold">3 Envios Mais Recentes</h3>
-        {recentEnvios.map((envio, index) => {
+        {/*recentEnvios.map((envio, index) => {
           const envioDateString = envio.envioId.split(",")[0];
           let formattedTimeString = "";
           if (envioDateString) {
@@ -237,7 +455,7 @@ const ResponseViewerClient = ({
               }
             </div>
           );
-        })}
+        })*/}
       </div>
     </div>
   );

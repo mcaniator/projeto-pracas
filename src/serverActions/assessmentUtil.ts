@@ -80,11 +80,25 @@ const fetchAssessmentsByLocationAndForm = async (
     include: {
       form: {
         include: {
-          questions: true,
+          questions: {
+            include: {
+              options: true,
+              category: true,
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
         },
       },
       response: true,
-      responseOption: true,
+      responseOption: {
+        include: {
+          option: true,
+        },
+      },
       user: {
         select: {
           id: true,
