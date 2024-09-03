@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+type AssessmentsWithResposes = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentsByLocationAndForm>>
+>;
 const createAssessment = async (
   prevState: AssessmentCreationFormType | undefined,
   formData: FormData,
@@ -169,3 +172,5 @@ export {
   fetchAssessmentWithResponses,
   redirectToFormsList,
 };
+
+export { type AssessmentsWithResposes };

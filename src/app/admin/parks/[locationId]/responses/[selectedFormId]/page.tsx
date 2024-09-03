@@ -9,6 +9,7 @@ import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 import { redirect } from "next/navigation";
 
 import { ResponseViewer } from "./responseViewer";
+import { ResponseViewerClient } from "./responseViewerClient";
 
 const ResponsesFetcher = async ({
   params,
@@ -30,14 +31,16 @@ const ResponsesFetcher = async ({
   return (
     <div>
       <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
-        Respostas ao formulario {} referentes a localidade {locationName}
+        Respostas ao formulario {assessments[0]?.form.name} referentes a
+        localidade {locationName}
       </h3>
-
-      <ResponseViewer
-        locationId={Number(params.locationId)}
-        formId={Number(params.selectedFormId)}
-        assessments={assessments}
-      />
+      <div className="flex h-full basis-3/5 flex-col gap-5 overflow-auto p-5 text-white">
+        <ResponseViewerClient
+          locationId={Number(params.locationId)}
+          formId={Number(params.selectedFormId)}
+          assessments={assessments}
+        />
+      </div>
     </div>
   );
 };

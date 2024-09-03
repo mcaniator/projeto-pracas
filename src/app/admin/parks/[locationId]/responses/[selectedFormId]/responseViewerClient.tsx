@@ -1,11 +1,11 @@
 "use client";
 
+import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
 import { Question, Response } from "@prisma/client";
 import { QuestionTypes } from "@prisma/client";
 import { useState } from "react";
 
 import { ResponseEditor } from "./responseEditor";
-import { AssessmentsWithResposes } from "./responseViewer";
 
 interface ResponseWithFrequency extends Response {
   frequency: number;
@@ -288,6 +288,7 @@ const ResponseViewerClient = ({
           "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
+        <h3 className="text-2xl font-semibold">Dados somados</h3>
         <ul className="list-disc p-3">
           {frequencies.map((category) => {
             return (
@@ -342,120 +343,11 @@ const ResponseViewerClient = ({
               </div>
             );
           })}
-          {/*assessments.flatMap((assessment) =>
-            assessment.form.questions.map((question) => (
-              <li key={question.id}>
-                <div>{question.name}</div>
-                <div>
-                  {question.type === QuestionTypes.OPTIONS ?
-                    <div>
-                      {question.options.map((option) => (
-                        <div key={option.id}>
-                          <span>{option.text}</span>
-                          <span className="font-bold text-blue-500">
-                            {" "}
-                            Frequência:{" "}
-                            {
-                              frequencies[question.id][
-                                assessment.responseOption.find(
-                                  (ro) => ro.optionId === question.id,
-                                )?.option?.text || 1
-                              ]
-                            }
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  : (
-                    assessment.response.find(
-                      (response) => response.questionId === question.id,
-                    )
-                  ) ?
-                    assessment.response
-                      .filter((response) => response.questionId === question.id)
-                      .map((response, index) => {
-                        return (
-                          <div key={index}>
-                            {(
-                              question.type === QuestionTypes.NUMERIC ||
-                              question.type === QuestionTypes.TEXT
-                            ) ?
-                              <div>
-                                <span>{response.response}</span>
-                                <span className="font-bold text-blue-500">
-                                  {" "}
-                                  Frequência:{" "}
-                                  {
-                                    frequencies[question.id][
-                                      assessment.responseOption.find(
-                                        (ro) => ro.optionId === question.id,
-                                      )?.option?.text || 1
-                                    ]
-                                  }
-                                </span>
-                              </div>
-                            : <div>{response.response}</div>}
-                          </div>
-                        );
-                      })
-                  : <div>Não há respostas para esta pergunta</div>}
-                </div>
-              </li>
-            )),
-          )*/}
         </ul>
       </div>
 
-      <div className="flex basis-2/5 flex-col gap-3">
-        <h3 className="text-lg font-bold">3 Envios Mais Recentes</h3>
-        {/*recentEnvios.map((envio, index) => {
-          const envioDateString = envio.envioId.split(",")[0];
-          let formattedTimeString = "";
-          if (envioDateString) {
-            const envioDate = new Date(envioDateString);
-            const formattedDate = envioDate.toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "2-digit",
-            });
-            const formattedTime = envioDate.toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-            formattedTimeString += `${formattedDate} às ${formattedTime}`;
-          }
-
-          const isEditing = editingEnvioId === envio.envioId;
-
-          return (
-            <div
-              key={index}
-              className="rounded-lg bg-transparent p-3 shadow-md"
-            >
-              <h4 className="font-semibold">Envio em: {formattedTimeString}</h4>
-              <h4 className="font-semibold">
-                Por: {envio.responses[0]?.username}
-              </h4>
-              {isEditing ?
-                <ResponseEditor
-                  locationId={locationId}
-                  formId={formId}
-                  questions={questions}
-                  options={options}
-                  initialResponses={getInitialResponses(envio.responses)}
-                  onSave={() => handleEditEnvio(null)}
-                  responses={envio.responses}
-                />
-              : <button
-                  onClick={() => handleEditEnvio(envio.envioId)}
-                  className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-green-700"
-                >
-                  Editar
-                </button>
-              }
-            </div>
-          );
-        })*/}
+      <div className="flex basis-2/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+        <h3 className="text-2xl font-semibold">Avaliações</h3>
       </div>
     </div>
   );
