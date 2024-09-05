@@ -7,6 +7,7 @@ import {
   IconCaretUpFilled,
   IconCircleFilled,
 } from "@tabler/icons-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { FrequencyObjByCategory } from "./frequencyTable";
@@ -289,6 +290,13 @@ const AssessmentComponent = ({
               </div>
             );
           })}
+          <Button className="w-fit">
+            <Link
+              href={`/admin/parks/${assessment.locationId}/evaluation/${assessment.formId}/${assessment.id}`}
+            >
+              Editar avaliação
+            </Link>
+          </Button>
         </ul>
       )}
     </div>

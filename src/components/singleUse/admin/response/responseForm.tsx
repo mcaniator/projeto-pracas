@@ -382,12 +382,15 @@ const ResponseForm = ({
             );
           })}
           <div className="mb-2 flex items-center justify-between gap-2 rounded p-2">
-            <Button
-              variant={"secondary"}
-              onPress={() => handleSubmitResponse(false)}
-            >
-              Salvar respostas
-            </Button>
+            {assessment.endDate === null && (
+              <Button
+                variant={"secondary"}
+                onPress={() => handleSubmitResponse(false)}
+              >
+                Salvar respostas
+              </Button>
+            )}
+
             <Button
               variant={"constructive"}
               type="button"

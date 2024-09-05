@@ -25,6 +25,7 @@ const Responses = async ({
   const assessment = await fetchAssessmentWithResponses(
     Number(params.selectedAssessmentId),
   );
+  if (assessment?.userId !== user.id) redirect("/error");
   // TODO: add error handling
   return locationName == null ?
       <div>Localização não encontrada</div>

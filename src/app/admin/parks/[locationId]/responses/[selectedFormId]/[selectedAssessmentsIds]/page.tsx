@@ -23,6 +23,7 @@ const ResponsesFetcher = async ({
   const locationName = await searchLocationNameById(Number(params.locationId));
   const assessments =
     await fetchMultipleAssessmentsWithResponses(assessmentsIds);
+  assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
 
   // TODO: add error handling
   return (
