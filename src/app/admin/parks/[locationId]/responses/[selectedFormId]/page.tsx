@@ -1,47 +1,27 @@
-import { validateRequest } from "@/lib/lucia";
-import { fetchAssessmentsByLocationAndForm } from "@/serverActions/assessmentUtil";
-import { searchFormsById } from "@/serverActions/formUtil";
-import {
-  searchLocationNameById,
-  searchLocationsById,
-} from "@/serverActions/locationUtil";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
-import { redirect } from "next/navigation";
+import { fetchAssessmentsForAssessmentList } from "@/serverActions/assessmentUtil";
+import { searchLocationNameById } from "@/serverActions/locationUtil";
 
-import { ResponseViewer } from "./responseViewer";
-import { ResponseViewerClient } from "./responseViewerClient";
+import { AssessmentsListPage } from "./assessmentsListPage";
 
-const ResponsesFetcher = async ({
+const AssessmentsPage = async ({
   params,
 }: {
-  params: {
-    locationId: string;
-    selectedFormId: string;
-  };
+  params: { locationId: string; selectedFormId: string };
 }) => {
-  const { user } = await validateRequest();
-  if (user === null || user.type !== "ADMIN") redirect("/error");
-  const locationName = await searchLocationNameById(Number(params.locationId));
-  const assessments = await fetchAssessmentsByLocationAndForm(
+  const locatioName = await searchLocationNameById(Number(params.locationId));
+  const assessments = await fetchAssessmentsForAssessmentList(
     Number(params.locationId),
     Number(params.selectedFormId),
   );
-
-  // TODO: add error handling
+  assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return (
-    <div>
-      <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
-        Respostas ao formulario {assessments[0]?.form.name} referentes a
-        localidade {locationName}
-      </h3>
-      <div className="flex h-full basis-3/5 flex-col gap-5 overflow-auto p-5 text-white">
-        <ResponseViewerClient
-          locationId={Number(params.locationId)}
-          formId={Number(params.selectedFormId)}
-          assessments={assessments}
-        />
-      </div>
-    </div>
+    <AssessmentsListPage
+      locationId={Number(params.locationId)}
+      locationName={locatioName}
+      formId={Number(params.selectedFormId)}
+      assessments={assessments}
+    />
   );
 };
-export default ResponsesFetcher;
+
+export default AssessmentsPage;

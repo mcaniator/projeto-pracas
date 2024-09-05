@@ -1,18 +1,7 @@
 "use client";
 
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
-import { Question, Response } from "@prisma/client";
 import { QuestionTypes } from "@prisma/client";
-import { useState } from "react";
-
-import { ResponseEditor } from "./responseEditor";
-
-interface ResponseWithFrequency extends Response {
-  frequency: number;
-}
-interface ResponseWithUsername extends Response {
-  username: string;
-}
 
 interface FrequencyObjByCategory {
   id: number;
@@ -41,22 +30,11 @@ interface FrequencyObjByCategory {
   }[];
 }
 
-const ResponseViewerClient = ({
-  locationId,
-  formId,
+const FrequencyTable = ({
   assessments,
 }: {
-  locationId: number;
-  formId: number;
   assessments: AssessmentsWithResposes;
 }) => {
-  const [editingEnvioId, setEditingEnvioId] = useState<string | null>(null);
-
-  const handleEditEnvio = (envioId: string | null) => {
-    if (envioId === null) return;
-    setEditingEnvioId(envioId);
-  };
-
   const frequencies: FrequencyObjByCategory[] = [];
   assessments.forEach((assessment) => {
     assessment.form.questions.forEach((question) => {
@@ -238,119 +216,70 @@ const ResponseViewerClient = ({
       }
     });
   });
-  /*assessments.forEach((assessment) => {
-    assessment.response.forEach((response) => {
-      if (!frequencies[response.questionId]) {
-        frequencies[response.questionId] = {};
-      }
-      const currentQuestionObj = frequencies[response.questionId];
-      if (currentQuestionObj && response.response) {
-        let currentResponseObj = currentQuestionObj[response.response];
-
-        if (currentResponseObj !== undefined) {
-          currentResponseObj++;
-        }
-        currentQuestionObj[response.response] = currentResponseObj || 1;
-      }
-    });
-    assessment.form.questions.forEach((question)=>{
-     
-      if(question.type === "OPTIONS"){
-        if (!frequencies[question.id]) {
-          frequencies[question.id] = {};
-        }
-        const currentQuestionObj = frequencies[question.id]
-
-      }
-    })
-    assessment.responseOption.forEach((responseOption) => {
-      if (!frequencies[responseOption.questionId]) {
-        frequencies[responseOption.questionId] = {};
-      }
-      const currentQuestionObj = frequencies[responseOption.questionId];
-      if (currentQuestionObj && responseOption.option?.text) {
-        let currentResponseObj =
-          currentQuestionObj[responseOption.option?.text];
-
-        if (currentResponseObj !== undefined) {
-          currentResponseObj++;
-        }
-        currentQuestionObj[responseOption.option?.text] =
-          currentResponseObj || 1;
-      }
-    });
-  });*/
-
   return (
-    <div className="flex gap-5">
-      <div
-        className={
-          "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
-        }
-      >
-        <h3 className="text-2xl font-semibold">Dados somados</h3>
-        <ul className="list-disc p-3">
-          {frequencies.map((category) => {
-            return (
-              <div key={category.id}>
-                <span className="text-2xl font-bold">
-                  {category.categoryName}
-                </span>
-                {category.questions.map((question) => {
-                  return (
-                    <div key={question.id} className="flex flex-col">
-                      <span className="font-bold">{question.questionName}</span>
+    <div
+      className={
+        "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+      }
+    >
+      <h3 className="text-2xl font-semibold">Dados somados</h3>
+      <ul className="list-disc p-3">
+        {frequencies.map((category) => {
+          return (
+            <div key={category.id}>
+              <span className="text-2xl font-bold">
+                {category.categoryName}
+              </span>
+              {category.questions.map((question) => {
+                return (
+                  <div key={question.id} className="flex flex-col">
+                    <span className="font-bold">{question.questionName}</span>
 
-                      {question.responses.map((response) => {
-                        return (
-                          <span key={response.text}>
-                            {response.text}
-                            <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                    {question.responses.map((response) => {
+                      return (
+                        <span key={response.text}>
+                          {response.text}
+                          <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              {category.subcategories.map((subcategory) => {
+                return (
+                  <div key={subcategory.id}>
+                    <span className="text-xl font-bold">
+                      {subcategory.subcategoryName}
+                    </span>
+
+                    {subcategory.questions.map((question) => {
+                      return (
+                        <div key={question.id} className="flex flex-col">
+                          <span className="font-bold">
+                            {question.questionName}
                           </span>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-                {category.subcategories.map((subcategory) => {
-                  return (
-                    <div key={subcategory.id}>
-                      <span className="text-xl font-bold">
-                        {subcategory.subcategoryName}
-                      </span>
 
-                      {subcategory.questions.map((question) => {
-                        return (
-                          <div key={question.id} className="flex flex-col">
-                            <span className="font-bold">
-                              {question.questionName}
-                            </span>
-
-                            {question.responses.map((response) => {
-                              return (
-                                <span key={`${question.id}-${response.text}`}>
-                                  {response.text}
-                                  <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </ul>
-      </div>
-
-      <div className="flex basis-2/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
-        <h3 className="text-2xl font-semibold">Avaliações</h3>
-      </div>
+                          {question.responses.map((response) => {
+                            return (
+                              <span key={`${question.id}-${response.text}`}>
+                                {response.text}
+                                <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </ul>
     </div>
   );
 };
 
-export { ResponseViewerClient };
+export { FrequencyTable };
