@@ -234,14 +234,17 @@ const FrequencyTable = ({
                   <div key={question.id} className="flex flex-col">
                     <span className="font-bold">{question.questionName}</span>
 
-                    {question.responses.map((response) => {
-                      return (
-                        <span key={response.text}>
-                          {response.text}
-                          <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
-                        </span>
-                      );
-                    })}
+                    {question.responses.length === 0 ?
+                      <span>SEM RESPOSTA</span>
+                    : question.responses.map((response) => {
+                        return (
+                          <span key={response.text}>
+                            {response.text}
+                            <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                          </span>
+                        );
+                      })
+                    }
                   </div>
                 );
               })}
@@ -259,14 +262,17 @@ const FrequencyTable = ({
                             {question.questionName}
                           </span>
 
-                          {question.responses.map((response) => {
-                            return (
-                              <span key={`${question.id}-${response.text}`}>
-                                {response.text}
-                                <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
-                              </span>
-                            );
-                          })}
+                          {question.responses.length === 0 ?
+                            <span>SEM RESPOSTA</span>
+                          : question.responses.map((response) => {
+                              return (
+                                <span key={`${question.id}-${response.text}`}>
+                                  {response.text}
+                                  <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                                </span>
+                              );
+                            })
+                          }
                         </div>
                       );
                     })}

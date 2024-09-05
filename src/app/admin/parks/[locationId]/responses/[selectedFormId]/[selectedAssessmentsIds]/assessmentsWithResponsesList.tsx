@@ -225,22 +225,25 @@ const AssessmentComponent = ({
                     <div key={question.id} className="flex flex-col">
                       <span className="font-bold">{question.questionName}</span>
 
-                      {question.responses.map((response) => {
-                        return (
-                          <div
-                            className="flex"
-                            key={`${question.id}-${response.text}`}
-                          >
-                            <span>{response.text}</span>
-                            <span className="font-bold text-blue-500">
-                              {question.type === "OPTIONS" &&
-                                response.frequency !== 0 && (
-                                  <IconCircleFilled />
-                                )}
-                            </span>
-                          </div>
-                        );
-                      })}
+                      {question.responses.length === 0 ?
+                        <span>SEM RESPOSTA</span>
+                      : question.responses.map((response) => {
+                          return (
+                            <div
+                              className="flex"
+                              key={`${question.id}-${response.text}`}
+                            >
+                              <span>{response.text}</span>
+                              <span className="font-bold text-blue-500">
+                                {question.type === "OPTIONS" &&
+                                  response.frequency !== 0 && (
+                                    <IconCircleFilled />
+                                  )}
+                              </span>
+                            </div>
+                          );
+                        })
+                      }
                     </div>
                   );
                 })}
@@ -258,22 +261,25 @@ const AssessmentComponent = ({
                               {question.questionName}
                             </span>
 
-                            {question.responses.map((response) => {
-                              return (
-                                <div
-                                  className="flex"
-                                  key={`${question.id}-${response.text}`}
-                                >
-                                  <span>{response.text}</span>
-                                  <span className="font-bold text-blue-500">
-                                    {question.type === "OPTIONS" &&
-                                      response.frequency !== 0 && (
-                                        <IconCircleFilled />
-                                      )}
-                                  </span>
-                                </div>
-                              );
-                            })}
+                            {question.responses.length === 0 ?
+                              <span>SEM RESPOSTA</span>
+                            : question.responses.map((response) => {
+                                return (
+                                  <div
+                                    className="flex"
+                                    key={`${question.id}-${response.text}`}
+                                  >
+                                    <span>{response.text}</span>
+                                    <span className="font-bold text-blue-500">
+                                      {question.type === "OPTIONS" &&
+                                        response.frequency !== 0 && (
+                                          <IconCircleFilled />
+                                        )}
+                                    </span>
+                                  </div>
+                                );
+                              })
+                            }
                           </div>
                         );
                       })}
