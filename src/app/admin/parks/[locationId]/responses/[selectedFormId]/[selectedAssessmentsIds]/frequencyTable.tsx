@@ -1,5 +1,3 @@
-"use client";
-
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
 import { QuestionTypes } from "@prisma/client";
 
@@ -52,21 +50,22 @@ const FrequencyTable = ({
         (category) => category.id === question.category.id,
       );
       if (currentCategoryObj !== undefined) {
+        const questionSubcategory = question.subcategory;
         if (
-          question.subcategory &&
+          questionSubcategory &&
           currentCategoryObj.subcategories.find(
-            (subcategory) => subcategory.id === question.subcategory.id,
+            (subcategory) => subcategory.id === questionSubcategory.id,
           ) === undefined
         ) {
           currentCategoryObj.subcategories.push({
-            id: question.subcategory.id,
-            subcategoryName: question.subcategory.name,
+            id: questionSubcategory.id,
+            subcategoryName: questionSubcategory.name,
             questions: [],
           });
         }
-        if (question.subcategory) {
+        if (questionSubcategory) {
           const currentSubcategoryObj = currentCategoryObj.subcategories.find(
-            (subcategory) => subcategory.id === question.subcategory.id,
+            (subcategory) => subcategory.id === questionSubcategory.id,
           );
           if (currentSubcategoryObj) {
             if (
@@ -283,3 +282,4 @@ const FrequencyTable = ({
 };
 
 export { FrequencyTable };
+export { type FrequencyObjByCategory };

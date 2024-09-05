@@ -3,7 +3,8 @@ import { fetchMultipleAssessmentsWithResponses } from "@/serverActions/assessmen
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
 
-import { ResponseViewerClient } from "./responseViewerClient";
+import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
+import { FrequencyTable } from "./frequencyTable";
 
 const ResponsesFetcher = async ({
   params,
@@ -25,17 +26,15 @@ const ResponsesFetcher = async ({
 
   // TODO: add error handling
   return (
-    <div>
+    <div className="h-full overflow-auto">
       <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
         Respostas ao formulario {assessments[0]?.form.name} referentes a
         localidade {locationName}
       </h3>
-      <div className="flex h-full flex-col gap-5 overflow-auto p-5 text-white">
-        <ResponseViewerClient
-          locationId={Number(params.locationId)}
-          formId={Number(params.selectedFormId)}
-          assessments={assessments}
-        />
+      <div className="flex h-full gap-5 overflow-auto p-5 text-white">
+        <FrequencyTable assessments={assessments} />
+
+        <AssessmentsWithResponsesList assessments={assessments} />
       </div>
     </div>
   );
