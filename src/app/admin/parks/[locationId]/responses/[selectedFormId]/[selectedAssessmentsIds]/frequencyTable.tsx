@@ -240,7 +240,7 @@ const FrequencyTable = ({
                         return (
                           <span key={response.text}>
                             {response.text}
-                            <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                            <span className="font-bold text-blue-500">{`  - Frequência: ${response.frequency}`}</span>
                           </span>
                         );
                       })
@@ -268,7 +268,7 @@ const FrequencyTable = ({
                               return (
                                 <span key={`${question.id}-${response.text}`}>
                                   {response.text}
-                                  <span className="font-bold text-blue-500">{`Frequência: ${response.frequency}`}</span>
+                                  <span className="font-bold text-blue-500">{` - Frequência: ${response.frequency}`}</span>
                                 </span>
                               );
                             })

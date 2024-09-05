@@ -109,7 +109,7 @@ const AssessmentsListPage = ({
       <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>
-            {`Contagens finalizadas de ${locationName}`}
+            {`Avaliações finalizadas de ${locationName}`}
           </h3>
           {!assessments || assessments.length === 0 ?
             <h3>Nenhuma avaliação finalizada para este local!</h3>
