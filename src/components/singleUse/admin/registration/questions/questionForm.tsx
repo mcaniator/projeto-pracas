@@ -19,6 +19,7 @@ interface AvaliableSubcategories {
   active: boolean;
   optional: boolean;
 }
+type CharacterType = "text" | "number";
 const QuestionForm = ({
   availableCategories,
   availableSubcategories,
@@ -33,6 +34,7 @@ const QuestionForm = ({
   >(availableCategories[0]?.id);
 
   const [type, setType] = useState("");
+  const [characterType, setCharacterType] = useState<CharacterType | null>();
   const [optionType, setOptionType] = useState("RADIO");
 
   const [currentOption, setCurrentOption] = useState("");
@@ -120,36 +122,21 @@ const QuestionForm = ({
               type={"radio"}
               variant={"admin"}
               id={"text"}
-              value={"TEXT"}
+              value={"WRITTEN"}
               name="questionType"
               onClick={() => {
-                setType("text");
+                setType("written");
                 setAddedOptions(undefined);
               }}
               className={"border-white"}
               required
             >
-              Texto
+              Escrito
             </RadioButton>
             <RadioButton
               type="radio"
               variant={"admin"}
               id="numeric"
-              value={"NUMERIC"}
-              name="questionType"
-              onClick={() => {
-                setType("numeric");
-                setAddedOptions(undefined);
-              }}
-              className={"border-white"}
-              required
-            >
-              Numérico
-            </RadioButton>
-            <RadioButton
-              type="radio"
-              variant={"admin"}
-              id="option"
               value={"OPTIONS"}
               name="questionType"
               onClick={() => {
@@ -165,24 +152,54 @@ const QuestionForm = ({
       </div>
 
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
-        {type == "text" && (
+        {type == "written" && (
           <div>
-            <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name={"charLimit"} id={"charLimit"} />
+            <div>
+              <label htmlFor={"text"}>Tipo de caracteres:</label>
+              <div
+                className={
+                  "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+                }
+              >
+                <RadioButton
+                  name="characterType"
+                  value={"TEXT"}
+                  onChange={() => setCharacterType("text")}
+                  checked={characterType === "text"}
+                  required
+                >
+                  Texto
+                </RadioButton>
+                <RadioButton
+                  name="characterType"
+                  value={"NUMBER"}
+                  onChange={() => setCharacterType("number")}
+                  checked={characterType === "number"}
+                  required
+                >
+                  Numérico
+                </RadioButton>
+              </div>
+            </div>
+            {characterType === "text" && (
+              <div>
+                <label htmlFor={"charLimit"}>Limite de caracteres:</label>
+                <Input type="number" name={"charLimit"} id={"charLimit"} />
+              </div>
+            )}
+            {characterType === "number" && (
+              <div>
+                <div>
+                  <label htmlFor={"minValue"}>Valor mínimo:</label>
+                  <Input type="number" name={"minValue"} id={"minValue"} />
+                </div>
+                <div>
+                  <label htmlFor={"maxValue"}>Valor máximo:</label>
+                  <Input type="number" name={"maxValue"} id={"maxValue"} />
+                </div>
+              </div>
+            )}
           </div>
-        )}
-
-        {type == "numeric" && (
-          <>
-            <div>
-              <label htmlFor={"minValue"}>Valor mínimo:</label>
-              <Input type="number" name={"minValue"} id={"minValue"} />
-            </div>
-            <div>
-              <label htmlFor={"maxValue"}>Valor máximo:</label>
-              <Input type="number" name={"maxValue"} id={"maxValue"} />
-            </div>
-          </>
         )}
 
         {type == "option" && (
@@ -201,34 +218,66 @@ const QuestionForm = ({
               </Select>
             </div>
 
-            <div className={"flex flex-col gap-2"}>
-              <div>
-                <label htmlFor={"opcao"}>Digite as suas opções:</label>
-                <Input
-                  id={"opcao"}
-                  type="text"
-                  value={currentOption}
-                  onChange={(e) => {
-                    setCurrentOption(e.target.value);
-                  }}
-                />
-              </div>
-              <Button
-                type="button"
-                variant={"admin"}
-                isDisabled={currentOption == ""}
-                onPress={() => {
-                  if (addedOptions != undefined)
-                    setAddedOptions([...addedOptions, { text: currentOption }]);
-                  else setAddedOptions([{ text: currentOption }]);
-
-                  setCurrentOption("");
-                }}
-                className={"transition-all"}
+            <div>
+              <label htmlFor={"text"}>Tipo de caracteres:</label>
+              <div
+                className={
+                  "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+                }
               >
-                Adicionar
-              </Button>
+                <RadioButton
+                  name="characterType"
+                  value={"TEXT"}
+                  onChange={() => setCharacterType("text")}
+                  checked={characterType === "text"}
+                  required
+                >
+                  Texto
+                </RadioButton>
+                <RadioButton
+                  name="characterType"
+                  value={"NUMBER"}
+                  onChange={() => setCharacterType("number")}
+                  checked={characterType === "number"}
+                  required
+                >
+                  Numérico
+                </RadioButton>
+              </div>
             </div>
+            {characterType !== null && (
+              <div className={"flex flex-col gap-2"}>
+                <div>
+                  <label htmlFor={"opcao"}>Digite as suas opções:</label>
+                  <Input
+                    id={"opcao"}
+                    type={characterType}
+                    value={currentOption}
+                    onChange={(e) => {
+                      setCurrentOption(e.target.value);
+                    }}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant={"admin"}
+                  isDisabled={currentOption == ""}
+                  onPress={() => {
+                    if (addedOptions != undefined)
+                      setAddedOptions([
+                        ...addedOptions,
+                        { text: currentOption },
+                      ]);
+                    else setAddedOptions([{ text: currentOption }]);
+
+                    setCurrentOption("");
+                  }}
+                  className={"transition-all"}
+                >
+                  Adicionar
+                </Button>
+              </div>
+            )}
 
             {optionType == "CHECKBOX" && (
               <div>
@@ -244,7 +293,7 @@ const QuestionForm = ({
           </>
         )}
 
-        {type && (
+        {type && characterType !== null && (
           <Button
             isDisabled={disabled}
             variant={"admin"}

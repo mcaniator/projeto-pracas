@@ -88,6 +88,13 @@ enum UserTypes {
   @@map("user_types")
 }
 
+enum CalculationTypes {
+  SUM     @map("Sum")
+  AVERAGE @map("Average")
+
+  @@map("calculation_types")
+}
+
 enum CategoryTypes {
   FOR_SOCIAL_PRACTICES              @map("for Social Practices")
   OPEN_SPACE_FOR_NON_COLLECTIVE_USE @map("Open Space for non-Collective Use")
@@ -96,11 +103,15 @@ enum CategoryTypes {
 }
 
 enum QuestionTypes {
-  TEXT    @map("Text")
-  NUMERIC @map("Numeric")
+  WRITTEN @map("Written")
   OPTIONS @map("Options")
 
   @@map("question_types")
+}
+
+enum QuestionResponseCharacterTypes {
+  TEXT   @map("Text")
+  NUMBER @map("Number")
 }
 
 enum OptionTypes {
@@ -223,10 +234,11 @@ model Session {
 model Category {
   id Int @id @default(autoincrement())
 
-  name     String     @db.VarChar(255)
-  optional Boolean    @default(false)
-  active   Boolean    @default(true)
-  question Question[]
+  name        String        @db.VarChar(255)
+  optional    Boolean       @default(false)
+  active      Boolean       @default(true)
+  question    Question[]
+  calculation Calculation[]
 
   subcategory Subcategory[]
 
@@ -239,10 +251,11 @@ model Category {
 model Subcategory {
   id Int @id @default(autoincrement())
 
-  name     String     @db.VarChar(255)
-  optional Boolean    @default(false)
-  active   Boolean    @default(true)
-  question Question[]
+  name        String        @db.VarChar(255)
+  optional    Boolean       @default(false)
+  active      Boolean       @default(true)
+  question    Question[]
+  calculation Calculation[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
@@ -253,32 +266,48 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String        @db.VarChar(255)
-  optional          Boolean       @default(false)
-  active            Boolean       @default(true)
+  name              String                         @db.VarChar(255)
+  optional          Boolean                        @default(false)
+  active            Boolean                        @default(true)
   type              QuestionTypes
+  characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
   response          Response[]
-  responseCharLimit Int?          @map("char_limit")
+  responseCharLimit Int?                           @map("char_limit")
   minValue          Int?
   maxValue          Int?
-  optionType        OptionTypes?  @map("option_type")
+  optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?          @map("maximum_selections")
+  maximumSelections Int?                           @map("maximum_selections")
 
   assessment Assessment[]
 
-  categoryId    Int          @map("category_id")
-  category      Category     @relation(fields: [categoryId], references: [id])
-  subcategoryId Int?         @map("subcategory_id")
-  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  categoryId    Int           @map("category_id")
+  category      Category      @relation(fields: [categoryId], references: [id])
+  subcategoryId Int?          @map("subcategory_id")
+  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id])
   options       Option[]
+  calculation   Calculation[]
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   ResponseOption ResponseOption[]
 
   @@map("question")
+}
+
+model Calculation {
+  id Int @id @default(autoincrement())
+
+  type          CalculationTypes
+  name          String           @db.VarChar(255)
+  question      Question[]
+  categoryId    Int              @map("category_id")
+  category      Category         @relation(fields: [categoryId], references: [id])
+  subcategoryId Int?             @map("subcategory_id")
+  subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
+
+  @@map("calculation")
 }
 
 model Response {
