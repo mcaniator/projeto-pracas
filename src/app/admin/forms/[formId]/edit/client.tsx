@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
+import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import { createVersion } from "@/serverActions/formUtil";
 import { Form, Question } from "@prisma/client";
 import { useState } from "react";
@@ -16,9 +17,11 @@ interface DisplayQuestion {
 const Client = ({
   form,
   questions,
+  categories,
 }: {
   form?: Form | null;
   questions: Question[];
+  categories: CategoriesWithQuestions;
 }) => {
   const [updatedQuestions, setUpdatedQuestions] = useState<DisplayQuestion[]>(
     [],
@@ -115,7 +118,7 @@ const Client = ({
 
   return form == null ?
       <div>Formulário não encontrado</div>
-    : <div className="grid grid-cols-5 gap-4">
+    : <div className="grid h-full grid-cols-5 gap-4">
         <div className="col-span-3">
           <FormUpdater
             form={form}
@@ -126,13 +129,14 @@ const Client = ({
             handleQuestionsToRemove={handleQuestionsToRemove}
           />
         </div>
-        <div className="col-span-2">
+        <div className="col-span-2 h-full overflow-auto">
           <QuestionForm
             formId={form.id}
             initialQuestions={questions}
             handleQuestionsToAdd={handleQuestionsToAdd}
             questionsToAdd={questionsToAdd}
             questionsToRemove={questionsToRemove}
+            categories={categories}
           />
         </div>
         <div className="col-span-4 flex justify-center">

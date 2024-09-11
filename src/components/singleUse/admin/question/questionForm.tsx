@@ -3,8 +3,14 @@
 import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { searchQuestionsByStatement } from "@/serverActions/questionUtil";
-import { Form, Question } from "@prisma/client";
+import { Select } from "@/components/ui/select";
+import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
+import {
+  QuestionSearchedByStatement,
+  searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByStatement,
+} from "@/serverActions/questionUtil";
+import { Question } from "@prisma/client";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
 const QuestionForm = ({
@@ -13,30 +19,58 @@ const QuestionForm = ({
   handleQuestionsToAdd,
   questionsToAdd,
   questionsToRemove,
+  categories,
 }: {
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   questionsToAdd: DisplayQuestion[];
   questionsToRemove: DisplayQuestion[];
+  categories: CategoriesWithQuestions;
 }) => {
   const [targetQuestion, setTargetQuestion] = useState("");
+  const [currentCategoryId, setCurrentCategoryId] = useState<
+    number | undefined
+  >(categories[0]?.id);
+  const [currentSubcategoryId, setCurrentSubcategoryId] = useState<
+    number | undefined
+  >();
 
   // TODO: corrigir o tipo de setFoundQuestions
-  const [foundQuestions, setFoundQuestions] = useState<Promise<Question[]>>();
+  const [foundQuestions, setFoundQuestions] =
+    useState<Promise<QuestionSearchedByStatement[]>>();
+  const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
+    useState<Promise<{ id: number; name: string }[]>>();
   useEffect(() => {
-    setFoundQuestions( searchQuestionsByStatement(targetQuestion));
+    setFoundQuestions(searchQuestionsByStatement(targetQuestion));
   }, [targetQuestion]);
+
+  useEffect(() => {
+    setFoundQuestionsByCategory(
+      searchQuestionsByCategoryAndSubcategory(
+        currentCategoryId,
+        currentSubcategoryId,
+      ),
+    );
+  }, [currentCategoryId, currentSubcategoryId]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentCategoryId(Number(e.target.value));
+  };
+  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentSubcategoryId(
+      e.target.value ? Number(e.target.value) : undefined,
+    );
+  };
   // TODO: add error handling
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-full flex-col gap-5 text-white">
+    <div className={"flex h-full flex-grow gap-5 overflow-auto p-5"}>
+      <div className="flex basis-full flex-col gap-5 overflow-auto text-white">
         <div
           className={
-            "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+            "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
           <h3 className={"text-2xl font-semibold"}>Busca de Perguntas</h3>
@@ -62,6 +96,43 @@ const QuestionForm = ({
               questionsToRemove={questionsToRemove}
             />
           </Suspense>
+          <div className="flex flex-col gap-2 overflow-auto">
+            <h4>Buscar por categoria: </h4>
+            <label htmlFor="category-select">Categoria: </label>
+            <Select name="category-select" onChange={handleCategoryChange}>
+              {categories.map((category) => {
+                return (
+                  <option value={category.id} key={category.id}>
+                    {category.name}
+                  </option>
+                );
+              })}
+            </Select>
+            <label htmlFor="subcategory-select">Subcategoria: </label>
+            <Select
+              name="subcategory-select"
+              onChange={handleSubcategoryChange}
+            >
+              <option value={undefined}>NENHUMA</option>
+              {categories
+                .find((category) => category.id === currentCategoryId)
+                ?.subcategory.map((subcategory) => {
+                  return (
+                    <option value={subcategory.id} key={subcategory.id}>
+                      {subcategory.name}
+                    </option>
+                  );
+                })}
+            </Select>
+            <QuestionList
+              questionPromise={foundQuestionsByCategory}
+              formId={formId}
+              initialQuestions={initialQuestions}
+              handleQuestionsToAdd={handleQuestionsToAdd}
+              questionsToAdd={questionsToAdd}
+              questionsToRemove={questionsToRemove}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -76,7 +147,7 @@ const QuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<Question[]>;
+  questionPromise?: Promise<{ id: number; name: string }[]>;
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
@@ -112,6 +183,7 @@ const QuestionList = ({
           name={question.name}
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
+          showCategory={false}
         />
       ))}
     </div>
@@ -122,11 +194,17 @@ const QuestionComponent = ({
   questionId,
   handleQuestionsToAdd,
   name,
+  showCategory,
+  categoryName,
+  subcategoryName,
 }: {
   questionId: number;
   handleQuestionsToAdd: (questionId: number, questionName: string) => void;
   name: string;
   formId?: number;
+  showCategory: boolean;
+  categoryName?: string;
+  subcategoryName?: string;
 }) => {
   return (
     <div
@@ -134,6 +212,8 @@ const QuestionComponent = ({
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
     >
       {name}
+      {showCategory &&
+        `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
       <Button
         variant={"admin"}
         type="submit"

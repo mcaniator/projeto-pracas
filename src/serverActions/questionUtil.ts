@@ -1,8 +1,28 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Option, Question } from "@prisma/client";
+import { Option } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
+
+interface QuestionSearchedByStatement {
+  id: number;
+  name: string;
+  category:
+    | {
+        id: number;
+        name: string;
+      }
+    | null
+    | undefined;
+  subcategory:
+    | {
+        id: number;
+        name: string;
+        categoryId: number;
+      }
+    | null
+    | undefined;
+}
 
 const handleDelete = async (questionId: number) => {
   try {
@@ -19,10 +39,10 @@ const handleDelete = async (questionId: number) => {
 
 const searchQuestionsByStatement = async (statement: string) => {
   const cachedQuestions = unstable_cache(
-    async (statement: string): Promise<Question[]> => {
+    async (statement: string): Promise<QuestionSearchedByStatement[]> => {
       if (statement.length < 2) return [];
 
-      let foundQuestions: Question[] = [];
+      let foundQuestions: QuestionSearchedByStatement[] = [];
 
       try {
         foundQuestions = await prisma.question.findMany({
@@ -30,6 +50,23 @@ const searchQuestionsByStatement = async (statement: string) => {
             name: {
               contains: statement,
               mode: "insensitive",
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
             },
           },
         });
@@ -44,6 +81,46 @@ const searchQuestionsByStatement = async (statement: string) => {
   );
 
   return await cachedQuestions(statement);
+};
+
+const searchQuestionsByCategoryAndSubcategory = async (
+  categoryId: number | undefined,
+  subcategoryId: number | undefined,
+) => {
+  const cachedQuestions = unstable_cache(
+    async (
+      categoryId: number | undefined,
+      subcategoryId: number | undefined,
+    ): Promise<{ id: number; name: string }[]> => {
+      let foundQuestions: { id: number; name: string }[] = [];
+      if (!categoryId) return [];
+      try {
+        foundQuestions = await prisma.question.findMany({
+          where: {
+            categoryId,
+            subcategoryId: subcategoryId ? subcategoryId : null,
+          },
+          select: {
+            id: true,
+            name: true,
+          },
+        });
+      } catch (err) {
+        // console.error(err);
+      }
+
+      return foundQuestions;
+    },
+    ["searchQuestionsByStatementCache"],
+    { tags: ["question"] },
+  );
+  const questions = await cachedQuestions(categoryId, subcategoryId);
+  questions.sort((a, b) => {
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+    return 0;
+  });
+  return questions;
 };
 
 const searchOptionsByQuestionId = async (
@@ -62,4 +139,11 @@ const searchOptionsByQuestionId = async (
   }
 };
 
-export { handleDelete, searchQuestionsByStatement, searchOptionsByQuestionId };
+export {
+  handleDelete,
+  searchQuestionsByStatement,
+  searchOptionsByQuestionId,
+  searchQuestionsByCategoryAndSubcategory,
+};
+
+export { type QuestionSearchedByStatement };
