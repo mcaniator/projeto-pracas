@@ -88,11 +88,11 @@ const FormUpdater = ({
 
   // TODO: add error handling
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-full flex-col gap-5 text-white">
+    <div className={"flex h-full min-h-0 flex-grow gap-5 p-5"}>
+      <div className="flex basis-full flex-col gap-5 overflow-auto text-white">
         <div
           className={
-            "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+            "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
           <form
@@ -142,7 +142,7 @@ const FormUpdater = ({
             </div>
           </form>
           <div>Perguntas nesse formulário:</div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 overflow-auto">
             {categories.map((category) => {
               return (
                 <div
@@ -175,6 +175,30 @@ const FormUpdater = ({
                       }
                       return null;
                     })}
+                    {questionsToAdd
+                      .filter(
+                        (questionToAdd) =>
+                          questionToAdd.category.id === category.id &&
+                          !questionToAdd.subcategory,
+                      )
+                      .map((question) => {
+                        return (
+                          <li
+                            key={question.id}
+                            className="flex w-full flex-row items-center justify-between"
+                          >
+                            <span className="p-2 text-blue-500">
+                              {question.name}
+                            </span>
+                            <Button
+                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              onPress={() => cancelAddQuestion(question.id)}
+                            >
+                              Remover
+                            </Button>
+                          </li>
+                        );
+                      })}
                   </ul>
                   {category.subcategories.map((subcategory) => {
                     return (
@@ -205,6 +229,33 @@ const FormUpdater = ({
                             }
                             return null;
                           })}
+                          {questionsToAdd
+                            .filter(
+                              (questionToAdd) =>
+                                questionToAdd.category.id === category.id &&
+                                questionToAdd.subcategory?.id ===
+                                  subcategory.id,
+                            )
+                            .map((question) => {
+                              return (
+                                <li
+                                  key={question.id}
+                                  className="flex w-full flex-row items-center justify-between"
+                                >
+                                  <span className="p-2 text-blue-500">
+                                    {question.name}
+                                  </span>
+                                  <Button
+                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    onPress={() =>
+                                      cancelAddQuestion(question.id)
+                                    }
+                                  >
+                                    Remover
+                                  </Button>
+                                </li>
+                              );
+                            })}
                         </ul>
                       </div>
                     );
@@ -213,28 +264,6 @@ const FormUpdater = ({
               );
             })}
           </div>
-
-          {questionsToAdd.length > 0 && (
-            <div>
-              <div>Perguntas que serão adicionadas:</div>
-              <ul className="list-disc p-5">
-                {questionsToAdd.map((question) => (
-                  <li
-                    key={question.id}
-                    className="flex w-full flex-row items-center justify-between"
-                  >
-                    <span className="p-2">{question.name}</span>
-                    <Button
-                      className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
-                      onPress={() => cancelAddQuestion(question.id)}
-                    >
-                      Remover
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </div>

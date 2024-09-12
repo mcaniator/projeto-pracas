@@ -1,5 +1,6 @@
 "use server";
 
+import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { Option } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
@@ -116,8 +117,8 @@ const searchQuestionsByCategoryAndSubcategory = async (
     async (
       categoryId: number | undefined,
       subcategoryId: number | undefined,
-    ): Promise<{ id: number; name: string }[]> => {
-      let foundQuestions: { id: number; name: string }[] = [];
+    ): Promise<DisplayQuestion[]> => {
+      let foundQuestions: DisplayQuestion[] = [];
       if (!categoryId) return [];
       try {
         foundQuestions = await prisma.question.findMany({
@@ -128,6 +129,19 @@ const searchQuestionsByCategoryAndSubcategory = async (
           select: {
             id: true,
             name: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
+            },
           },
         });
       } catch (err) {

@@ -23,7 +23,7 @@ const QuestionForm = ({
 }: {
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
   questionsToAdd: DisplayQuestion[];
   questionsToRemove: DisplayQuestion[];
   categories: CategoriesWithQuestions;
@@ -40,7 +40,7 @@ const QuestionForm = ({
   const [foundQuestions, setFoundQuestions] =
     useState<Promise<QuestionSearchedByStatement[]>>();
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
-    useState<Promise<{ id: number; name: string }[]>>();
+    useState<Promise<DisplayQuestion[]>>();
   useEffect(() => {
     setFoundQuestions(searchQuestionsByStatement(targetQuestion));
   }, [targetQuestion]);
@@ -157,7 +157,7 @@ const SearchedQuestionList = ({
   >;
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
   questionsToAdd: DisplayQuestion[];
   questionsToRemove: DisplayQuestion[];
 }) => {
@@ -191,6 +191,8 @@ const SearchedQuestionList = ({
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
           showCategory={true}
+          categoryId={question.category.id}
+          subcategoryId={question.subcategory?.id}
           categoryName={question.category.name}
           subcategoryName={question.subcategory?.name}
         />
@@ -207,10 +209,10 @@ const QuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<{ id: number; name: string }[]>;
+  questionPromise?: Promise<DisplayQuestion[]>;
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
   questionsToAdd: DisplayQuestion[];
   questionsToRemove: DisplayQuestion[];
 }) => {
@@ -244,6 +246,10 @@ const QuestionList = ({
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
           showCategory={false}
+          categoryId={question.category.id}
+          subcategoryId={question.subcategory?.id}
+          categoryName={question.category.name}
+          subcategoryName={question.subcategory?.name}
         />
       ))}
     </div>
@@ -255,15 +261,19 @@ const QuestionComponent = ({
   handleQuestionsToAdd,
   name,
   showCategory,
+  categoryId,
+  subcategoryId,
   categoryName,
   subcategoryName,
 }: {
   questionId: number;
-  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
   name: string;
   formId?: number;
   showCategory: boolean;
-  categoryName?: string;
+  categoryId: number;
+  subcategoryId?: number;
+  categoryName: string;
   subcategoryName?: string;
 }) => {
   return (
@@ -278,7 +288,17 @@ const QuestionComponent = ({
         variant={"admin"}
         type="submit"
         className={"w-min"}
-        onPress={() => handleQuestionsToAdd(questionId, name)}
+        onPress={() =>
+          handleQuestionsToAdd({
+            id: questionId,
+            name,
+            category: { id: categoryId, name: categoryName },
+            subcategory:
+              subcategoryId && subcategoryName ?
+                { id: subcategoryId, name: subcategoryName, categoryId }
+              : null,
+          })
+        }
       >
         <span className={"-mb-1"}>Adicionar</span>
       </Button>

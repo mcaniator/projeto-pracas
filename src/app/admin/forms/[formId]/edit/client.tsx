@@ -4,7 +4,6 @@ import { Button } from "@/components/button";
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
-import { Question } from "@prisma/client";
 import { useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
@@ -12,6 +11,15 @@ import { FormUpdater } from "./formUpdater";
 interface DisplayQuestion {
   id: number;
   name: string;
+  category: {
+    id: number;
+    name: string;
+  };
+  subcategory: {
+    id: number;
+    name: string;
+    categoryId: number;
+  } | null;
 }
 
 const Client = ({
@@ -27,17 +35,16 @@ const Client = ({
 
   const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
 
-  const handleQuestionsToAdd = (questionId: number, questionName: string) => {
-    const questionExists = questionsToAdd.some((q) => q.id === questionId);
-    const newQuestion: DisplayQuestion = { id: questionId, name: questionName };
+  const handleQuestionsToAdd = (question: DisplayQuestion) => {
+    const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
-      setQuestionsToAdd([...questionsToAdd, newQuestion]);
-      if (questionsToRemove.some((q) => q.id === questionId)) {
+      setQuestionsToAdd([...questionsToAdd, question]);
+      if (questionsToRemove.some((q) => q.id === question.id)) {
         setUpdatedQuestions(
-          updatedQuestions.filter((q) => q.id !== questionId),
+          updatedQuestions.filter((q) => q.id !== question.id),
         );
       } else {
-        setUpdatedQuestions([...updatedQuestions, newQuestion]);
+        setUpdatedQuestions([...updatedQuestions, question]);
       }
     }
   };
@@ -65,7 +72,7 @@ const Client = ({
 
   const createNewVersion = (
     formId: number,
-    oldQuestions: Question[],
+    oldQuestions: DisplayQuestion[],
     questionsToAdd: DisplayQuestion[],
     questionsToRemove: DisplayQuestion[],
   ) => {
@@ -82,7 +89,7 @@ const Client = ({
 
   const handleCreateVersion = (
     formId: number,
-    oldQuestions: Question[],
+    oldQuestions: DisplayQuestion[],
     questionsToAdd: DisplayQuestion[],
     questionsToRemove: DisplayQuestion[],
   ) => {
@@ -91,10 +98,7 @@ const Client = ({
     let filteredQuestions: DisplayQuestion[];
 
     if (oldQuestions !== null) {
-      convertedQuestions = oldQuestions.map((question) => ({
-        id: question.id,
-        name: question.name,
-      }));
+      convertedQuestions = oldQuestions.map((question) => question);
       allQuestions = convertedQuestions.concat(questionsToAdd);
       filteredQuestions = allQuestions.filter(
         (question) =>
@@ -116,8 +120,8 @@ const Client = ({
 
   return form == null ?
       <div>Formulário não encontrado</div>
-    : <div className="grid h-full grid-cols-5 gap-4">
-        <div className="col-span-3">
+    : <div className="grid h-full grid-cols-5 gap-4 overflow-auto">
+        <div className="col-span-3 overflow-auto">
           <FormUpdater
             form={form}
             questionsToAdd={questionsToAdd}
