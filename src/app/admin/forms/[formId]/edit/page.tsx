@@ -1,13 +1,10 @@
 import { getCategories } from "@/serverActions/categorySubmit";
 import { searchFormsById } from "@/serverActions/formUtil";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
 
 import Client from "./client";
 
 const Edit = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormsById(parseInt(params.formId));
-  const questions =
-    (await searchQuestionsByFormId(parseInt(params.formId))) ?? [];
   const categories = await getCategories();
   categories.sort((a, b) => {
     if (a.name < b.name) return -1;
@@ -22,6 +19,6 @@ const Edit = async ({ params }: { params: { formId: string } }) => {
     });
   });
   // TODO: add error handling
-  return <Client form={form} questions={questions} categories={categories} />;
+  if (form) return <Client form={form} categories={categories} />;
 };
 export default Edit;

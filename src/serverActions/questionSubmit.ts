@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { Question } from "@prisma/client";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 interface QuestionWithCategories extends Question {
   category: {
@@ -158,63 +158,6 @@ const questionSubmit = async (
   return { statusCode: 0 };
 };
 
-const searchQuestionsByFormId = async (id: number) => {
-  const cachedQuestions = unstable_cache(
-    async (id: number): Promise<QuestionWithCategories[]> => {
-      let foundQuestionsOnForms: QuestionsOnForms[] = [];
-      let foundQuestions: QuestionWithCategories[] = [];
-
-      try {
-        foundQuestionsOnForms = await prisma.questionsOnForms.findMany({
-          where: {
-            formId: id,
-          },
-        });
-      } catch (err) {
-        // console.error(err);
-      }
-
-      try {
-        const foundQuestionsIds = foundQuestionsOnForms.map(
-          (questionOnForm) => questionOnForm.questionId,
-        );
-
-        foundQuestions = await prisma.question.findMany({
-          where: {
-            id: {
-              in: foundQuestionsIds,
-            },
-          },
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            subcategory: {
-              select: {
-                id: true,
-                name: true,
-                categoryId: true,
-              },
-            },
-          },
-        });
-      } catch (err) {
-        // console.error(err);
-      }
-
-      return foundQuestions;
-    },
-    ["searchQuestionsByFormIdCache"],
-    { tags: ["question", "questionOnForm", "form"] },
-  );
-
-  if ((await cachedQuestions(id)).length === 0) return null;
-  else return await cachedQuestions(id);
-};
-
-export { questionSubmit, searchQuestionsByFormId };
+export { questionSubmit };
 
 export { type QuestionWithCategories };

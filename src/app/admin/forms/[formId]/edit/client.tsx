@@ -3,8 +3,8 @@
 import { Button } from "@/components/button";
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
-import { createVersion } from "@/serverActions/formUtil";
-import { Form, Question } from "@prisma/client";
+import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
+import { Question } from "@prisma/client";
 import { useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
@@ -16,11 +16,9 @@ interface DisplayQuestion {
 
 const Client = ({
   form,
-  questions,
   categories,
 }: {
-  form?: Form | null;
-  questions: Question[];
+  form: FormToEditPage;
   categories: CategoriesWithQuestions;
 }) => {
   const [updatedQuestions, setUpdatedQuestions] = useState<DisplayQuestion[]>(
@@ -58,7 +56,7 @@ const Client = ({
   );
 
   const handleQuestionsToRemove = (questionId: number) => {
-    const questionToRemove = questions.find((q) => q.id === questionId);
+    const questionToRemove = form.questions.find((q) => q.id === questionId);
     if (questionToRemove) {
       setQuestionsToRemove([...questionsToRemove, questionToRemove]);
       setUpdatedQuestions([...updatedQuestions, questionToRemove]);
@@ -122,7 +120,6 @@ const Client = ({
         <div className="col-span-3">
           <FormUpdater
             form={form}
-            questions={questions}
             questionsToAdd={questionsToAdd}
             cancelAddQuestion={cancelAddQuestion}
             questionsToRemove={questionsToRemove}
@@ -132,7 +129,7 @@ const Client = ({
         <div className="col-span-2 h-full overflow-auto">
           <QuestionForm
             formId={form.id}
-            initialQuestions={questions}
+            initialQuestions={form.questions}
             handleQuestionsToAdd={handleQuestionsToAdd}
             questionsToAdd={questionsToAdd}
             questionsToRemove={questionsToRemove}
@@ -146,7 +143,7 @@ const Client = ({
               onPress={() =>
                 createNewVersion(
                   form.id,
-                  questions,
+                  form.questions,
                   questionsToAdd,
                   questionsToRemove,
                 )

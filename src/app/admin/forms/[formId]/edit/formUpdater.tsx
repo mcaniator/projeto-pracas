@@ -2,8 +2,11 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import { handleDelete, updateForm } from "@/serverActions/formUtil";
-import { Form, Question } from "@prisma/client";
+import {
+  FormToEditPage,
+  handleDelete,
+  updateForm,
+} from "@/serverActions/formUtil";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
@@ -15,14 +18,12 @@ const initialState = {
 };
 const FormUpdater = ({
   form,
-  questions,
   questionsToAdd,
   cancelAddQuestion,
   questionsToRemove,
   handleQuestionsToRemove,
 }: {
-  form: Form;
-  questions: Question[] | null;
+  form: FormToEditPage;
   questionsToAdd: DisplayQuestion[];
   cancelAddQuestion: (questionId: number) => void;
   questionsToRemove: DisplayQuestion[];
@@ -90,12 +91,12 @@ const FormUpdater = ({
           </form>
           <div>Perguntas nesse formulário:</div>
           {(
-            questions !== null &&
-            questions !== undefined &&
-            questions.length > 0
+            form.questions !== null &&
+            form.questions !== undefined &&
+            form.questions.length > 0
           ) ?
             <ul className="list-disc p-5">
-              {questions.map((question) => {
+              {form.questions.map((question) => {
                 const isInToRemove = questionsToRemove.some(
                   (q) => q.id === question.id,
                 );

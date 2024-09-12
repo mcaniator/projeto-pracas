@@ -32,6 +32,36 @@ const handleDelete = async (questionId: number) => {
   }
 };
 
+const searchQuestionsByFormId = async (formId: number) => {
+  const questions = await prisma.question.findMany({
+    where: {
+      forms: {
+        some: {
+          id: formId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          categoryId: true,
+        },
+      },
+    },
+  });
+  return questions;
+};
+
 const searchQuestionsByStatement = async (statement: string) => {
   const cachedQuestions = unstable_cache(
     async (statement: string): Promise<QuestionSearchedByStatement[]> => {
@@ -139,6 +169,7 @@ export {
   searchQuestionsByStatement,
   searchOptionsByQuestionId,
   searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByFormId,
 };
 
 export { type QuestionSearchedByStatement };
