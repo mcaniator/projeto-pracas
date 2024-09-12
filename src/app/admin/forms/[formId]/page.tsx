@@ -1,10 +1,10 @@
 import { Button } from "@/components/button";
-import { searchFormsById } from "@/serverActions/formUtil";
+import { searchFormById } from "@/serverActions/formUtil";
 import { searchQuestionsByFormId } from "@/serverActions/questionUtil";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { formId: string } }) => {
-  const form = await searchFormsById(parseInt(params.formId));
+  const form = await searchFormById(parseInt(params.formId));
   const formIdNumber = parseInt(params.formId);
   //const questions = await searchQuestionsByFormId(parseInt(params.formId));
   const questions = await searchQuestionsByFormId(Number(params.formId));
@@ -82,33 +82,35 @@ const Page = async ({ params }: { params: { formId: string } }) => {
               </div>
               <span>Versão: {form?.version}</span>
               <div>Perguntas do formulário:</div>
-              {categories.map((category) => {
-                return (
-                  <div
-                    key={category.id}
-                    className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
-                  >
-                    <h4 className="text-2xl">{category.name}</h4>
-                    <ul className="list-disc p-3">
-                      {category.questions.map((question) => (
-                        <li key={question.id}>{question.name}</li>
-                      ))}
-                    </ul>
-                    {category.subcategories.map((subcategory) => {
-                      return (
-                        <div key={subcategory.id}>
-                          <h5 className="text-xl">{subcategory.name}</h5>
-                          <ul className="list-disc p-3">
-                            {subcategory.questions.map((question) => (
-                              <li key={question.id}>{question.name}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+              <div className="flex flex-col gap-3">
+                {categories.map((category) => {
+                  return (
+                    <div
+                      key={category.id}
+                      className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+                    >
+                      <h4 className="text-2xl">{category.name}</h4>
+                      <ul className="list-disc p-3">
+                        {category.questions.map((question) => (
+                          <li key={question.id}>{question.name}</li>
+                        ))}
+                      </ul>
+                      {category.subcategories.map((subcategory) => {
+                        return (
+                          <div key={subcategory.id}>
+                            <h5 className="text-xl">{subcategory.name}</h5>
+                            <ul className="list-disc p-3">
+                              {subcategory.questions.map((question) => (
+                                <li key={question.id}>{question.name}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

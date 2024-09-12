@@ -1,10 +1,10 @@
 import { getCategories } from "@/serverActions/categorySubmit";
-import { searchFormsById } from "@/serverActions/formUtil";
+import { searchFormById } from "@/serverActions/formUtil";
 
 import Client from "./client";
 
 const Edit = async ({ params }: { params: { formId: string } }) => {
-  const form = await searchFormsById(parseInt(params.formId));
+  const form = await searchFormById(parseInt(params.formId));
   const categories = await getCategories();
   categories.sort((a, b) => {
     if (a.name < b.name) return -1;

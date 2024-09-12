@@ -80,8 +80,8 @@ const fetchFormsLatest = async () => {
   return forms;
 };
 
-const searchFormsById = async (id: number) => {
-  const cachedForms = unstable_cache(
+const searchFormById = async (id: number) => {
+  const cachedForm = unstable_cache(
     async (id: number): Promise<FormToEditPage | undefined | null> => {
       let foundForm;
       try {
@@ -122,7 +122,7 @@ const searchFormsById = async (id: number) => {
     { tags: ["location", "form", "question"] },
   );
 
-  return await cachedForms(id);
+  return await cachedForm(id);
 };
 
 const searchformNameById = async (formId: number) => {
@@ -227,7 +227,7 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
 export {
   fetchForms,
   handleDelete,
-  searchFormsById,
+  searchFormById,
   searchformNameById,
   updateForm,
   createVersion,

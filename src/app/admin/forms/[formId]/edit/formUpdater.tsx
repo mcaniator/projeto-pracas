@@ -34,6 +34,58 @@ const FormUpdater = ({
 
   useEffect(() => {}, [questionsToAdd.length]);
 
+  const categories: {
+    id: number;
+    name: string;
+    questions: { id: number; name: string }[];
+    subcategories: {
+      id: number;
+      name: string;
+      categoryId: number;
+      questions: { id: number; name: string }[];
+    }[];
+  }[] = [];
+
+  form.questions.forEach((question) => {
+    let categoryGroup = categories.find(
+      (category) => category.id === question.category.id,
+    );
+    if (!categoryGroup) {
+      categoryGroup = {
+        id: question.category.id,
+        name: question.category.name,
+
+        subcategories: [],
+        questions: [],
+      };
+      categories.push(categoryGroup);
+    }
+    if (question.subcategory) {
+      let subcategoryGroup = categoryGroup.subcategories.find(
+        (subcategory) => subcategory.id === question.subcategory?.id,
+      );
+      if (!subcategoryGroup) {
+        subcategoryGroup = {
+          id: question.subcategory.id,
+          name: question.subcategory.name,
+          categoryId: question.subcategory.categoryId,
+
+          questions: [],
+        };
+        categoryGroup.subcategories.push(subcategoryGroup);
+      }
+      subcategoryGroup.questions.push({
+        id: question.id,
+        name: question.name,
+      });
+    } else {
+      categoryGroup.questions.push({
+        id: question.id,
+        name: question.name,
+      });
+    }
+  });
+
   // TODO: add error handling
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
@@ -90,41 +142,77 @@ const FormUpdater = ({
             </div>
           </form>
           <div>Perguntas nesse formulário:</div>
-          {(
-            form.questions !== null &&
-            form.questions !== undefined &&
-            form.questions.length > 0
-          ) ?
-            <ul className="list-disc p-5">
-              {form.questions.map((question) => {
-                const isInToRemove = questionsToRemove.some(
-                  (q) => q.id === question.id,
-                );
-                if (!isInToRemove) {
-                  return (
-                    <li
-                      key={question.id}
-                      className="flex w-full flex-row items-center justify-between"
-                    >
-                      <span className="p-2">{question.name}</span>
-                      <Button
-                        className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
-                        onPress={() =>
-                          void handleQuestionsToRemove(question.id)
-                        }
-                      >
-                        Remover
-                      </Button>
-                    </li>
-                  );
-                }
-                return null;
-              })}
-            </ul>
-          : <div className="text-redwood">
-              Ainda não há perguntas no formulário
-            </div>
-          }
+          <div className="flex flex-col gap-3">
+            {categories.map((category) => {
+              return (
+                <div
+                  key={category.id}
+                  className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+                >
+                  <h4 className="text-2xl">{category.name}</h4>
+                  <ul className="list-disc p-3">
+                    {category.questions.map((question) => {
+                      const isInToRemove = questionsToRemove.some(
+                        (q) => q.id === question.id,
+                      );
+                      if (!isInToRemove) {
+                        return (
+                          <li
+                            key={question.id}
+                            className="flex w-full flex-row items-center justify-between"
+                          >
+                            <span className="p-2">{question.name}</span>
+                            <Button
+                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              onPress={() =>
+                                void handleQuestionsToRemove(question.id)
+                              }
+                            >
+                              Remover
+                            </Button>
+                          </li>
+                        );
+                      }
+                      return null;
+                    })}
+                  </ul>
+                  {category.subcategories.map((subcategory) => {
+                    return (
+                      <div key={subcategory.id}>
+                        <h5 className="text-xl">{subcategory.name}</h5>
+                        <ul className="list-disc p-3">
+                          {subcategory.questions.map((question) => {
+                            const isInToRemove = questionsToRemove.some(
+                              (q) => q.id === question.id,
+                            );
+                            if (!isInToRemove) {
+                              return (
+                                <li
+                                  key={question.id}
+                                  className="flex w-full flex-row items-center justify-between"
+                                >
+                                  <span className="p-2">{question.name}</span>
+                                  <Button
+                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    onPress={() =>
+                                      void handleQuestionsToRemove(question.id)
+                                    }
+                                  >
+                                    Remover
+                                  </Button>
+                                </li>
+                              );
+                            }
+                            return null;
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
 
           {questionsToAdd.length > 0 && (
             <div>
