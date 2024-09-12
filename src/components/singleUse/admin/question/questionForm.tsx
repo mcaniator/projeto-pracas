@@ -87,7 +87,7 @@ const QuestionForm = ({
             />
           </div>
           <Suspense>
-            <QuestionList
+            <SearchedQuestionList
               questionPromise={deferredFoundQuestions}
               formId={formId}
               initialQuestions={initialQuestions}
@@ -135,6 +135,66 @@ const QuestionForm = ({
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const SearchedQuestionList = ({
+  questionPromise,
+  formId,
+  initialQuestions,
+  handleQuestionsToAdd,
+  questionsToAdd,
+  questionsToRemove,
+}: {
+  questionPromise?: Promise<
+    {
+      id: number;
+      name: string;
+      category: { id: number; name: string };
+      subcategory: { id: number; name: string; categoryId: number } | null;
+    }[]
+  >;
+  formId?: number;
+  initialQuestions: Question[] | null;
+  handleQuestionsToAdd: (questionId: number, questionName: string) => void;
+  questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
+}) => {
+  useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
+  if (questionPromise === undefined) return null;
+  const questions = use(questionPromise);
+
+  const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
+    questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
+  );
+
+  const filteredQuestions = questions.filter((question) => {
+    const isQuestionInInitial = initialQuestions?.some(
+      (q) => q.id === question.id,
+    );
+    const isQuestionAdded = questionsToAdd.some((q) => q.id === question.id);
+    const isQuestionToRemove = updatedQuestionsToRemove.some(
+      (q) => q.id === question.id,
+    );
+
+    return (!isQuestionInInitial && !isQuestionAdded) || isQuestionToRemove;
+  });
+
+  return (
+    <div className="w-full text-black">
+      {filteredQuestions.map((question) => (
+        <QuestionComponent
+          key={question.id}
+          questionId={question.id}
+          name={question.name}
+          formId={formId}
+          handleQuestionsToAdd={handleQuestionsToAdd}
+          showCategory={true}
+          categoryName={question.category.name}
+          subcategoryName={question.subcategory?.name}
+        />
+      ))}
     </div>
   );
 };

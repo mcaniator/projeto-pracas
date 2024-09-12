@@ -7,21 +7,16 @@ import { revalidateTag, unstable_cache } from "next/cache";
 interface QuestionSearchedByStatement {
   id: number;
   name: string;
-  category:
-    | {
-        id: number;
-        name: string;
-      }
-    | null
-    | undefined;
-  subcategory:
-    | {
-        id: number;
-        name: string;
-        categoryId: number;
-      }
-    | null
-    | undefined;
+  category: {
+    id: number;
+    name: string;
+  };
+
+  subcategory: {
+    id: number;
+    name: string;
+    categoryId: number;
+  } | null;
 }
 
 const handleDelete = async (questionId: number) => {
