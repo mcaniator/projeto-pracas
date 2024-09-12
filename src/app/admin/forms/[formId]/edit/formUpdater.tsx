@@ -303,7 +303,11 @@ const FormUpdater = ({
                   key={category.id}
                   className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
                 >
-                  <h4 className="text-2xl">{category.name}</h4>
+                  <div className="flex gap-2">
+                    <h4 className="text-2xl">{category.name}</h4>
+                    <Button>Adicionar cálculo</Button>
+                  </div>
+
                   <ul className="list-disc p-3">
                     {category.questions.map((question) => {
                       const isInToRemove = questionsToRemove.some(
@@ -357,7 +361,11 @@ const FormUpdater = ({
                   {category.subcategories.map((subcategory) => {
                     return (
                       <div key={subcategory.id}>
-                        <h5 className="text-xl">{subcategory.name}</h5>
+                        <div className="flex gap-2">
+                          <h5 className="text-xl">{subcategory.name}</h5>
+                          <Button>Adicionar cálculo</Button>
+                        </div>
+
                         <ul className="list-disc p-3">
                           {subcategory.questions.map((question) => {
                             const isInToRemove = questionsToRemove.some(
@@ -423,9 +431,13 @@ const FormUpdater = ({
                   key={category.id}
                   className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
                 >
-                  <h4 key={category.id} className="text-2xl text-blue-500">
-                    {category.name}
-                  </h4>
+                  <div className="flex gap-2">
+                    <h4 key={category.id} className="text-2xl text-blue-500">
+                      {category.name}
+                    </h4>
+                    <Button>Adicionar cálculo</Button>
+                  </div>
+
                   <ul className="list-disc p-3">
                     {questionsToAdd
                       .filter((question) => {
@@ -456,9 +468,13 @@ const FormUpdater = ({
                   {category.subcategories.map((subcategory) => {
                     return (
                       <div key={subcategory.id}>
-                        <h5 className="text-xl text-blue-500">
-                          {subcategory.name}
-                        </h5>
+                        <div className="flex gap-2">
+                          <h5 className="text-xl text-blue-500">
+                            {subcategory.name}
+                          </h5>
+                          <Button>Adicionar cálculo</Button>
+                        </div>
+
                         <ul className="list-disc p-3">
                           {questionsToAdd
                             .filter((question) => {

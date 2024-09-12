@@ -13,6 +13,8 @@ import {
 import { Question } from "@prisma/client";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
+type SearchMethods = "CATEGORY" | "STATEMENT";
+
 const QuestionForm = ({
   formId,
   initialQuestions,
@@ -35,7 +37,8 @@ const QuestionForm = ({
   const [currentSubcategoryId, setCurrentSubcategoryId] = useState<
     number | undefined
   >();
-
+  const [currentSearchMethod, setCurrentSearchMethod] =
+    useState<SearchMethods>("CATEGORY");
   // TODO: corrigir o tipo de setFoundQuestions
   const [foundQuestions, setFoundQuestions] =
     useState<Promise<QuestionSearchedByStatement[]>>();
@@ -74,65 +77,89 @@ const QuestionForm = ({
           }
         >
           <h3 className={"text-2xl font-semibold"}>Busca de Perguntas</h3>
-          <div className={"flex flex-col gap-2"}>
-            <label htmlFor={"name"}>Buscar pelo enunciado:</label>
-            <Input
-              type="text"
-              name="name"
-              required
-              id={"name"}
-              autoComplete={"none"}
-              value={targetQuestion}
-              onChange={(e) => setTargetQuestion(e.target.value)}
-            />
+          <div>
+            <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+              <Button
+                variant={"ghost"}
+                className={`rounded-xl px-4 py-1 ${currentSearchMethod === "CATEGORY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                onPress={() => setCurrentSearchMethod("CATEGORY")}
+              >
+                Categorias
+              </Button>
+              <Button
+                variant={"ghost"}
+                className={`rounded-xl bg-blue-500 px-4 py-1 ${currentSearchMethod === "STATEMENT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                onPress={() => setCurrentSearchMethod("STATEMENT")}
+              >
+                Enunciado
+              </Button>
+            </div>
           </div>
-          <Suspense>
-            <SearchedQuestionList
-              questionPromise={deferredFoundQuestions}
-              formId={formId}
-              initialQuestions={initialQuestions}
-              handleQuestionsToAdd={handleQuestionsToAdd}
-              questionsToAdd={questionsToAdd}
-              questionsToRemove={questionsToRemove}
-            />
-          </Suspense>
-          <div className="flex flex-col gap-2 overflow-auto">
-            <h4>Buscar por categoria: </h4>
-            <label htmlFor="category-select">Categoria: </label>
-            <Select name="category-select" onChange={handleCategoryChange}>
-              {categories.map((category) => {
-                return (
-                  <option value={category.id} key={category.id}>
-                    {category.name}
-                  </option>
-                );
-              })}
-            </Select>
-            <label htmlFor="subcategory-select">Subcategoria: </label>
-            <Select
-              name="subcategory-select"
-              onChange={handleSubcategoryChange}
-            >
-              <option value={undefined}>NENHUMA</option>
-              {categories
-                .find((category) => category.id === currentCategoryId)
-                ?.subcategory.map((subcategory) => {
+          {currentSearchMethod === "STATEMENT" && (
+            <div className="flex flex-col gap-2 overflow-auto">
+              <div className={"flex flex-col gap-2"}>
+                <label htmlFor={"name"}>Buscar pelo enunciado:</label>
+                <Input
+                  type="text"
+                  name="name"
+                  required
+                  id={"name"}
+                  autoComplete={"none"}
+                  value={targetQuestion}
+                  onChange={(e) => setTargetQuestion(e.target.value)}
+                />
+              </div>
+              <Suspense>
+                <SearchedQuestionList
+                  questionPromise={deferredFoundQuestions}
+                  formId={formId}
+                  initialQuestions={initialQuestions}
+                  handleQuestionsToAdd={handleQuestionsToAdd}
+                  questionsToAdd={questionsToAdd}
+                  questionsToRemove={questionsToRemove}
+                />
+              </Suspense>
+            </div>
+          )}
+          {currentSearchMethod === "CATEGORY" && (
+            <div className="flex flex-col gap-2 overflow-auto">
+              <h4>Buscar por categoria: </h4>
+              <label htmlFor="category-select">Categoria: </label>
+              <Select name="category-select" onChange={handleCategoryChange}>
+                {categories.map((category) => {
                   return (
-                    <option value={subcategory.id} key={subcategory.id}>
-                      {subcategory.name}
+                    <option value={category.id} key={category.id}>
+                      {category.name}
                     </option>
                   );
                 })}
-            </Select>
-            <QuestionList
-              questionPromise={foundQuestionsByCategory}
-              formId={formId}
-              initialQuestions={initialQuestions}
-              handleQuestionsToAdd={handleQuestionsToAdd}
-              questionsToAdd={questionsToAdd}
-              questionsToRemove={questionsToRemove}
-            />
-          </div>
+              </Select>
+              <label htmlFor="subcategory-select">Subcategoria: </label>
+              <Select
+                name="subcategory-select"
+                onChange={handleSubcategoryChange}
+              >
+                <option value={undefined}>NENHUMA</option>
+                {categories
+                  .find((category) => category.id === currentCategoryId)
+                  ?.subcategory.map((subcategory) => {
+                    return (
+                      <option value={subcategory.id} key={subcategory.id}>
+                        {subcategory.name}
+                      </option>
+                    );
+                  })}
+              </Select>
+              <QuestionList
+                questionPromise={foundQuestionsByCategory}
+                formId={formId}
+                initialQuestions={initialQuestions}
+                handleQuestionsToAdd={handleQuestionsToAdd}
+                questionsToAdd={questionsToAdd}
+                questionsToRemove={questionsToRemove}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
