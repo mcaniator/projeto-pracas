@@ -120,7 +120,7 @@ const Client = ({
 
   return form == null ?
       <div>Formulário não encontrado</div>
-    : <div className="grid h-full grid-cols-5 gap-4 overflow-auto">
+    : <div className="grid h-full grid-cols-5 overflow-auto">
         <div className="col-span-3 overflow-auto">
           <FormUpdater
             form={form}

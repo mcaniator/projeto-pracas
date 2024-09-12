@@ -7,10 +7,12 @@ import {
   handleDelete,
   updateForm,
 } from "@/serverActions/formUtil";
+import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
+import { CalculationCreationModal } from "./calculationCreationModal";
 import { DisplayQuestion } from "./client";
 
 const initialState = {
@@ -146,7 +148,7 @@ const FormUpdater = ({
           }
         }
       });
-
+      console.log(initialCategoriesMap);
       const categoriesToAddMap = new Map<
         number,
         {
@@ -157,7 +159,17 @@ const FormUpdater = ({
       >();
 
       questionsToAdd.forEach((question) => {
-        if (!categoriesToAddMap.has(question.category.id)) {
+        if (
+          (!question.subcategory &&
+            !initialCategoriesMap.has(question.category.id)) ||
+          (question.subcategory &&
+            (!initialCategoriesMap.get(question.category.id) ||
+              !initialCategoriesMap
+                .get(question.category.id)
+                ?.subcategories.some(
+                  (subcategory) => subcategory.id === question.subcategory?.id,
+                )))
+        ) {
           categoriesToAddMap.set(question.category.id, {
             id: question.category.id,
             name: question.category.name,
@@ -169,11 +181,13 @@ const FormUpdater = ({
           const existingCategory = categoriesToAddMap.get(
             question.category.id,
           )!;
-          const subcategoryExists = existingCategory.subcategories.some(
-            (subcategory) => subcategory.id === question.subcategory?.id,
-          );
 
-          if (!subcategoryExists) {
+          if (
+            existingCategory &&
+            !existingCategory.subcategories.some(
+              (subcategory) => subcategory.id === question.subcategory?.id,
+            )
+          ) {
             existingCategory.subcategories.push({
               id: question.subcategory.id,
               name: question.subcategory.name,
@@ -188,6 +202,7 @@ const FormUpdater = ({
 
   useEffect(() => {}, [questionsToAdd.length]);
 
+  console.log(categoriesToAdd);
   const categories: {
     id: number;
     name: string;
@@ -305,7 +320,11 @@ const FormUpdater = ({
                 >
                   <div className="flex gap-2">
                     <h4 className="text-2xl">{category.name}</h4>
-                    <Button>Adicionar cálculo</Button>
+                    <CalculationCreationModal
+                      category={{ id: category.id, name: category.name }}
+                      subcategory={null}
+                      questions={category.questions}
+                    />
                   </div>
 
                   <ul className="list-disc p-3">
@@ -321,12 +340,13 @@ const FormUpdater = ({
                           >
                             <span className="p-2">{question.name}</span>
                             <Button
-                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              className="items-center p-2"
+                              variant={"destructive"}
                               onPress={() =>
                                 void handleQuestionsToRemove(question.id)
                               }
                             >
-                              Remover
+                              <IconSquareRoundedMinus />
                             </Button>
                           </li>
                         );
@@ -349,10 +369,11 @@ const FormUpdater = ({
                               {question.name}
                             </span>
                             <Button
-                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              className="items-center p-2"
+                              variant={"destructive"}
                               onPress={() => cancelAddQuestion(question.id)}
                             >
-                              Remover
+                              <IconSquareRoundedMinus />
                             </Button>
                           </li>
                         );
@@ -363,7 +384,14 @@ const FormUpdater = ({
                       <div key={subcategory.id}>
                         <div className="flex gap-2">
                           <h5 className="text-xl">{subcategory.name}</h5>
-                          <Button>Adicionar cálculo</Button>
+                          <CalculationCreationModal
+                            category={{ id: category.id, name: category.name }}
+                            subcategory={{
+                              id: subcategory.id,
+                              name: subcategory.name,
+                            }}
+                            questions={subcategory.questions}
+                          />
                         </div>
 
                         <ul className="list-disc p-3">
@@ -379,12 +407,13 @@ const FormUpdater = ({
                                 >
                                   <span className="p-2">{question.name}</span>
                                   <Button
-                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    className="items-center p-2"
+                                    variant={"destructive"}
                                     onPress={() =>
                                       void handleQuestionsToRemove(question.id)
                                     }
                                   >
-                                    Remover
+                                    <IconSquareRoundedMinus />
                                   </Button>
                                 </li>
                               );
@@ -408,12 +437,13 @@ const FormUpdater = ({
                                     {question.name}
                                   </span>
                                   <Button
-                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    className="items-center p-2"
+                                    variant={"destructive"}
                                     onPress={() =>
                                       cancelAddQuestion(question.id)
                                     }
                                   >
-                                    Remover
+                                    <IconSquareRoundedMinus />
                                   </Button>
                                 </li>
                               );
@@ -435,7 +465,16 @@ const FormUpdater = ({
                     <h4 key={category.id} className="text-2xl text-blue-500">
                       {category.name}
                     </h4>
-                    <Button>Adicionar cálculo</Button>
+                    <CalculationCreationModal
+                      category={{ id: category.id, name: category.name }}
+                      subcategory={null}
+                      questions={questionsToAdd.filter((question) => {
+                        return (
+                          question.category.id === category.id &&
+                          !question.subcategory
+                        );
+                      })}
+                    />
                   </div>
 
                   <ul className="list-disc p-3">
@@ -456,10 +495,11 @@ const FormUpdater = ({
                               {question.name}
                             </span>
                             <Button
-                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              className="items-center p-2"
+                              variant={"destructive"}
                               onPress={() => cancelAddQuestion(question.id)}
                             >
-                              Remover
+                              <IconSquareRoundedMinus />
                             </Button>
                           </li>
                         );
@@ -472,7 +512,18 @@ const FormUpdater = ({
                           <h5 className="text-xl text-blue-500">
                             {subcategory.name}
                           </h5>
-                          <Button>Adicionar cálculo</Button>
+                          <CalculationCreationModal
+                            category={{ id: category.id, name: category.name }}
+                            subcategory={{
+                              id: subcategory.id,
+                              name: subcategory.name,
+                            }}
+                            questions={questionsToAdd.filter((question) => {
+                              return (
+                                question.subcategory?.id === subcategory.id
+                              );
+                            })}
+                          />
                         </div>
 
                         <ul className="list-disc p-3">
@@ -492,12 +543,13 @@ const FormUpdater = ({
                                     {question.name}
                                   </span>
                                   <Button
-                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    className="items-center p-2"
+                                    variant={"destructive"}
                                     onPress={() =>
                                       cancelAddQuestion(question.id)
                                     }
                                   >
-                                    Remover
+                                    <IconSquareRoundedMinus />
                                   </Button>
                                 </li>
                               );
