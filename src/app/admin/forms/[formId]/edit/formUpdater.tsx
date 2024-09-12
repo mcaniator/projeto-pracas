@@ -8,7 +8,7 @@ import {
   updateForm,
 } from "@/serverActions/formUtil";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 
 import { DisplayQuestion } from "./client";
@@ -31,6 +31,160 @@ const FormUpdater = ({
 }) => {
   const [, formAction] = useFormState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const [categoriesToAdd, setCategoriesToAdd] = useState<
+    {
+      id: number;
+      name: string;
+      subcategories: { id: number; name: string }[];
+    }[]
+  >(() => {
+    const initialCategoriesMap = new Map<
+      number,
+      {
+        id: number;
+        name: string;
+        subcategories: { id: number; name: string }[];
+      }
+    >();
+
+    form.questions.forEach((question) => {
+      if (!initialCategoriesMap.has(question.category.id)) {
+        initialCategoriesMap.set(question.category.id, {
+          id: question.category.id,
+          name: question.category.name,
+          subcategories: [],
+        });
+      }
+
+      if (question.subcategory) {
+        const existingCategory = initialCategoriesMap.get(
+          question.category.id,
+        )!;
+        const subcategoryExists = existingCategory.subcategories.some(
+          (subcategory) => subcategory.id === question.subcategory?.id,
+        );
+
+        if (!subcategoryExists) {
+          existingCategory.subcategories.push({
+            id: question.subcategory.id,
+            name: question.subcategory.name,
+          });
+        }
+      }
+    });
+
+    const categoriesToAddMap = new Map<
+      number,
+      {
+        id: number;
+        name: string;
+        subcategories: { id: number; name: string }[];
+      }
+    >();
+
+    questionsToAdd.forEach((question) => {
+      if (!categoriesToAddMap.has(question.category.id)) {
+        categoriesToAddMap.set(question.category.id, {
+          id: question.category.id,
+          name: question.category.name,
+          subcategories: [],
+        });
+      }
+
+      if (question.subcategory) {
+        const existingCategory = categoriesToAddMap.get(question.category.id)!;
+        const subcategoryExists = existingCategory.subcategories.some(
+          (subcategory) => subcategory.id === question.subcategory?.id,
+        );
+
+        if (!subcategoryExists) {
+          existingCategory.subcategories.push({
+            id: question.subcategory.id,
+            name: question.subcategory.name,
+          });
+        }
+      }
+    });
+
+    return Array.from(categoriesToAddMap.values());
+  });
+
+  useEffect(() => {
+    setCategoriesToAdd(() => {
+      const initialCategoriesMap = new Map<
+        number,
+        {
+          id: number;
+          name: string;
+          subcategories: { id: number; name: string }[];
+        }
+      >();
+
+      form.questions.forEach((question) => {
+        if (!initialCategoriesMap.has(question.category.id)) {
+          initialCategoriesMap.set(question.category.id, {
+            id: question.category.id,
+            name: question.category.name,
+            subcategories: [],
+          });
+        }
+
+        if (question.subcategory) {
+          const existingCategory = initialCategoriesMap.get(
+            question.category.id,
+          )!;
+          const subcategoryExists = existingCategory.subcategories.some(
+            (subcategory) => subcategory.id === question.subcategory?.id,
+          );
+
+          if (!subcategoryExists) {
+            existingCategory.subcategories.push({
+              id: question.subcategory.id,
+              name: question.subcategory.name,
+            });
+          }
+        }
+      });
+
+      const categoriesToAddMap = new Map<
+        number,
+        {
+          id: number;
+          name: string;
+          subcategories: { id: number; name: string }[];
+        }
+      >();
+
+      questionsToAdd.forEach((question) => {
+        if (!categoriesToAddMap.has(question.category.id)) {
+          categoriesToAddMap.set(question.category.id, {
+            id: question.category.id,
+            name: question.category.name,
+            subcategories: [],
+          });
+        }
+
+        if (question.subcategory) {
+          const existingCategory = categoriesToAddMap.get(
+            question.category.id,
+          )!;
+          const subcategoryExists = existingCategory.subcategories.some(
+            (subcategory) => subcategory.id === question.subcategory?.id,
+          );
+
+          if (!subcategoryExists) {
+            existingCategory.subcategories.push({
+              id: question.subcategory.id,
+              name: question.subcategory.name,
+            });
+          }
+        }
+      });
+
+      return Array.from(categoriesToAddMap.values());
+    });
+  }, [questionsToAdd, form]);
 
   useEffect(() => {}, [questionsToAdd.length]);
 
@@ -236,6 +390,82 @@ const FormUpdater = ({
                                 questionToAdd.subcategory?.id ===
                                   subcategory.id,
                             )
+                            .map((question) => {
+                              return (
+                                <li
+                                  key={question.id}
+                                  className="flex w-full flex-row items-center justify-between"
+                                >
+                                  <span className="p-2 text-blue-500">
+                                    {question.name}
+                                  </span>
+                                  <Button
+                                    className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                                    onPress={() =>
+                                      cancelAddQuestion(question.id)
+                                    }
+                                  >
+                                    Remover
+                                  </Button>
+                                </li>
+                              );
+                            })}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+            {categoriesToAdd.map((category) => {
+              return (
+                <div
+                  key={category.id}
+                  className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+                >
+                  <h4 key={category.id} className="text-2xl text-blue-500">
+                    {category.name}
+                  </h4>
+                  <ul className="list-disc p-3">
+                    {questionsToAdd
+                      .filter((question) => {
+                        return (
+                          question.category.id === category.id &&
+                          !question.subcategory
+                        );
+                      })
+                      .map((question) => {
+                        return (
+                          <li
+                            key={question.id}
+                            className="flex w-full flex-row items-center justify-between"
+                          >
+                            <span className="p-2 text-blue-500">
+                              {question.name}
+                            </span>
+                            <Button
+                              className="block min-w-32 overflow-hidden text-ellipsis whitespace-nowrap"
+                              onPress={() => cancelAddQuestion(question.id)}
+                            >
+                              Remover
+                            </Button>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                  {category.subcategories.map((subcategory) => {
+                    return (
+                      <div key={subcategory.id}>
+                        <h5 className="text-xl text-blue-500">
+                          {subcategory.name}
+                        </h5>
+                        <ul className="list-disc p-3">
+                          {questionsToAdd
+                            .filter((question) => {
+                              return (
+                                question.subcategory?.id === subcategory.id
+                              );
+                            })
                             .map((question) => {
                               return (
                                 <li
