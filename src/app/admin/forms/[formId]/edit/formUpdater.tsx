@@ -9,8 +9,7 @@ import {
 } from "@/serverActions/formUtil";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { DisplayQuestion } from "./client";
@@ -31,7 +30,7 @@ const FormUpdater = ({
   questionsToRemove: DisplayQuestion[];
   handleQuestionsToRemove: (questionId: number) => void;
 }) => {
-  const [, formAction] = useFormState(updateForm, initialState);
+  const [, formAction] = useActionState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [categoriesToAdd, setCategoriesToAdd] = useState<
@@ -148,7 +147,7 @@ const FormUpdater = ({
           }
         }
       });
-      console.log(initialCategoriesMap);
+
       const categoriesToAddMap = new Map<
         number,
         {
@@ -202,7 +201,6 @@ const FormUpdater = ({
 
   useEffect(() => {}, [questionsToAdd.length]);
 
-  console.log(categoriesToAdd);
   const categories: {
     id: number;
     name: string;
