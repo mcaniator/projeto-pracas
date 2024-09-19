@@ -321,7 +321,22 @@ const FormUpdater = ({
                     <CalculationCreationModal
                       category={{ id: category.id, name: category.name }}
                       subcategory={null}
-                      questions={category.questions}
+                      questions={category.questions
+                        .filter(
+                          (question) =>
+                            !questionsToRemove.some(
+                              (questionToRemove) =>
+                                questionToRemove.id === question.id,
+                            ),
+                        )
+                        .concat(
+                          questionsToAdd.filter((question) => {
+                            return (
+                              question.category.id === category.id &&
+                              !question.subcategory
+                            );
+                          }),
+                        )}
                     />
                   </div>
 
@@ -388,7 +403,21 @@ const FormUpdater = ({
                               id: subcategory.id,
                               name: subcategory.name,
                             }}
-                            questions={subcategory.questions}
+                            questions={subcategory.questions
+                              .filter(
+                                (question) =>
+                                  !questionsToRemove.some(
+                                    (questionToRemove) =>
+                                      questionToRemove.id === question.id,
+                                  ),
+                              )
+                              .concat(
+                                questionsToAdd.filter((question) => {
+                                  return (
+                                    question.subcategory?.id === subcategory.id
+                                  );
+                                }),
+                              )}
                           />
                         </div>
 

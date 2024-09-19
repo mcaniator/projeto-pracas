@@ -71,7 +71,6 @@ const CalculationCreationModal = ({
         return updatedArray;
       });
     }
-    console.log(selectedQuestions);
   };
 
   return (
@@ -91,54 +90,58 @@ const CalculationCreationModal = ({
           <Dialog className="outline-none data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring">
             {({ close }) => {
               return (
-                <div className="flex gap-2">
-                  <div className="flex flex-col gap-2">
-                    <h4 className="text-2xl">{`Criação de cálculo para:`}</h4>
-                    <h5 className="text-xl">{`Categoria: ${category.name}`}</h5>
-                    {subcategory && (
-                      <h5 className="text-xl">{`Subcategoria: ${subcategory.name}`}</h5>
-                    )}
-                    <label htmlFor="calculation-name">Título:</label>
-                    <Input
-                      type="text"
-                      id="calculation-name"
-                      name="calculation-name"
-                    />
-                    <label htmlFor="calculation-type">Tipo:</label>
-                    <Select id="calculation-type">
-                      <option value="SUM">Soma</option>
-                      <option value="AVERAGE">Média</option>
-                    </Select>
-                    <label htmlFor="questions-select">Questões: </label>
-                    <ul className="list-disc" id="questions-select">
-                      {questions.map((question) => {
-                        return (
-                          <li
-                            key={question.id}
-                            className="flex w-full flex-row items-center justify-between"
-                          >
-                            <QuestionComponent
-                              checked={selectedQuestions.includes(question.id)}
-                              question={question}
-                              handleQuestionToCalculateChange={
-                                handleQuestionToCalculateChange
-                              }
-                            />
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    <Button variant={"constructive"}>Criar</Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex">
+                    <h4 className="text-2xl">{`Criação de cálculo`}</h4>
+                    <Button
+                      className="ml-auto"
+                      variant={"ghost"}
+                      size={"icon"}
+                      onPress={close}
+                    >
+                      <IconX />
+                    </Button>
                   </div>
 
-                  <Button
-                    className="ml-auto"
-                    variant={"ghost"}
-                    size={"icon"}
-                    onPress={close}
-                  >
-                    <IconX />
-                  </Button>
+                  <h5 className="text-xl">{`Categoria: ${category.name}`}</h5>
+                  {subcategory && (
+                    <h5 className="text-xl">{`Subcategoria: ${subcategory.name}`}</h5>
+                  )}
+                  <label htmlFor="calculation-name">Título:</label>
+                  <Input
+                    type="text"
+                    id="calculation-name"
+                    name="calculation-name"
+                  />
+                  <label htmlFor="calculation-type">Tipo:</label>
+                  <Select id="calculation-type">
+                    <option value="SUM">Soma</option>
+                    <option value="AVERAGE">Média</option>
+                  </Select>
+                  <label htmlFor="questions-select">Questões: </label>
+                  <ul className="list-disc" id="questions-select">
+                    {questions.map((question) => {
+                      return (
+                        <li
+                          key={question.id}
+                          className="flex w-full flex-row items-center justify-between"
+                        >
+                          <QuestionComponent
+                            checked={selectedQuestions.includes(question.id)}
+                            question={question}
+                            handleQuestionToCalculateChange={
+                              handleQuestionToCalculateChange
+                            }
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <span className="ml-auto">
+                    <Button variant={"constructive"} className="w-fit">
+                      Criar
+                    </Button>
+                  </span>
                 </div>
               );
             }}
