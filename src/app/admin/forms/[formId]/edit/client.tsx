@@ -4,6 +4,7 @@ import { Button } from "@/components/button";
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
+import { CalculationTypes } from "@prisma/client";
 import { useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
@@ -24,6 +25,7 @@ interface DisplayQuestion {
 
 interface DisplayCalculation {
   name: string;
+  type: CalculationTypes;
   questions: {
     id: number;
     name: string;
@@ -94,6 +96,18 @@ const Client = ({
   ) => {
     if (add) {
       setCalculationsToAdd((prev) => [...prev, calculation]);
+    } else {
+      setCalculationsToAdd((prev) =>
+        prev.filter((prevCalculation) =>
+          (
+            prevCalculation.category !== calculation.category &&
+            prevCalculation.subcategory
+          ) ?
+            prevCalculation.subcategory !== calculation.subcategory
+          : !calculation.subcategory &&
+            prevCalculation.name !== calculation.name,
+        ),
+      );
     }
   };
 

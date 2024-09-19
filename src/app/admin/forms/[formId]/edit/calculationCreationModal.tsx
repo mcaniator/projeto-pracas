@@ -3,7 +3,9 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
+import { CalculationTypes } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
+import { IconCalculator } from "@tabler/icons-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -64,6 +66,7 @@ const CalculationCreationModal = ({
     { id: number; name: string }[]
   >([]);
   const [calculationName, setCalculationame] = useState<string>("");
+  const [type, setType] = useState<CalculationTypes>("SUM");
   const handleQuestionToCalculateChange = (
     question: { id: number; name: string },
     checked: boolean,
@@ -86,7 +89,9 @@ const CalculationCreationModal = ({
 
   return (
     <DialogTrigger>
-      <Button>Adicionar cálculo</Button>
+      <Button className="items-center p-2">
+        <IconCalculator />
+      </Button>
       <ModalOverlay
         className={({ isEntering, isExiting }) =>
           `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${isEntering ? "duration-300 ease-out animate-in fade-in" : ""} ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""} `
@@ -126,7 +131,12 @@ const CalculationCreationModal = ({
                     onChange={(e) => setCalculationame(e)}
                   />
                   <label htmlFor="calculation-type">Tipo:</label>
-                  <Select id="calculation-type">
+                  <Select
+                    id="calculation-type"
+                    onChange={(e) =>
+                      setType(e.target.value as CalculationTypes)
+                    }
+                  >
                     <option value="SUM">Soma</option>
                     <option value="AVERAGE">Média</option>
                   </Select>
@@ -163,6 +173,7 @@ const CalculationCreationModal = ({
                             category: category,
                             subcategory: subcategory,
                             questions: selectedQuestions,
+                            type: type,
                           },
                           true,
                         );
