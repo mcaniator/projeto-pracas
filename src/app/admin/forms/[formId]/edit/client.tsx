@@ -22,6 +22,22 @@ interface DisplayQuestion {
   } | null;
 }
 
+interface DisplayCalculation {
+  name: string;
+  questions: {
+    id: number;
+    name: string;
+  }[];
+  category: {
+    id: number;
+    name: string;
+  };
+  subcategory: {
+    id: number;
+    name: string;
+  } | null;
+}
+
 const Client = ({
   form,
   categories,
@@ -34,6 +50,12 @@ const Client = ({
   );
 
   const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
+  const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
+    [],
+  );
+  const [calculationsToAdd, setCalculationsToAdd] = useState<
+    DisplayCalculation[]
+  >([]);
 
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
@@ -58,15 +80,20 @@ const Client = ({
     }
   };
 
-  const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
-    [],
-  );
-
   const handleQuestionsToRemove = (questionId: number) => {
     const questionToRemove = form.questions.find((q) => q.id === questionId);
     if (questionToRemove) {
       setQuestionsToRemove([...questionsToRemove, questionToRemove]);
       setUpdatedQuestions([...updatedQuestions, questionToRemove]);
+    }
+  };
+
+  const handleCalculationsToAdd = (
+    calculation: DisplayCalculation,
+    add: boolean,
+  ) => {
+    if (add) {
+      setCalculationsToAdd((prev) => [...prev, calculation]);
     }
   };
 
@@ -125,9 +152,11 @@ const Client = ({
           <FormUpdater
             form={form}
             questionsToAdd={questionsToAdd}
+            calculationsToAdd={calculationsToAdd}
             cancelAddQuestion={cancelAddQuestion}
             questionsToRemove={questionsToRemove}
             handleQuestionsToRemove={handleQuestionsToRemove}
+            handleCalculationsToAdd={handleCalculationsToAdd}
           />
         </div>
         <div className="col-span-2 h-full overflow-auto">
@@ -160,4 +189,4 @@ const Client = ({
       </div>;
 };
 export default Client;
-export type { DisplayQuestion };
+export type { DisplayQuestion, DisplayCalculation };

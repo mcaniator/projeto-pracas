@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { CalculationCreationModal } from "./calculationCreationModal";
-import { DisplayQuestion } from "./client";
+import { DisplayCalculation, DisplayQuestion } from "./client";
 
 const initialState = {
   statusCode: 0,
@@ -20,15 +20,22 @@ const initialState = {
 const FormUpdater = ({
   form,
   questionsToAdd,
+  calculationsToAdd,
   cancelAddQuestion,
   questionsToRemove,
   handleQuestionsToRemove,
+  handleCalculationsToAdd,
 }: {
   form: FormToEditPage;
   questionsToAdd: DisplayQuestion[];
+  calculationsToAdd: DisplayCalculation[];
   cancelAddQuestion: (questionId: number) => void;
   questionsToRemove: DisplayQuestion[];
   handleQuestionsToRemove: (questionId: number) => void;
+  handleCalculationsToAdd: (
+    calculationId: DisplayCalculation,
+    add: boolean,
+  ) => void;
 }) => {
   const [, formAction] = useActionState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -319,6 +326,7 @@ const FormUpdater = ({
                   <div className="flex gap-2">
                     <h4 className="text-2xl">{category.name}</h4>
                     <CalculationCreationModal
+                      handleCalculationsToAdd={handleCalculationsToAdd}
                       category={{ id: category.id, name: category.name }}
                       subcategory={null}
                       questions={category.questions
@@ -392,12 +400,43 @@ const FormUpdater = ({
                         );
                       })}
                   </ul>
+                  <h6>Calculos</h6>
+                  <ul>
+                    {calculationsToAdd
+                      .filter(
+                        (calculation) =>
+                          calculation.category.id === category.id &&
+                          !calculation.subcategory,
+                      )
+                      .map((calculation) => {
+                        return (
+                          <li
+                            key={calculation.name}
+                            className="flex w-full flex-row items-center justify-between"
+                          >
+                            <span className="p-2 text-blue-500">
+                              {calculation.name}
+                            </span>
+                            <Button
+                              className="items-center p-2"
+                              variant={"destructive"}
+                              onPress={() =>
+                                handleCalculationsToAdd(calculation, false)
+                              }
+                            >
+                              <IconSquareRoundedMinus />
+                            </Button>
+                          </li>
+                        );
+                      })}
+                  </ul>
                   {category.subcategories.map((subcategory) => {
                     return (
                       <div key={subcategory.id}>
                         <div className="flex gap-2">
                           <h5 className="text-xl">{subcategory.name}</h5>
                           <CalculationCreationModal
+                            handleCalculationsToAdd={handleCalculationsToAdd}
                             category={{ id: category.id, name: category.name }}
                             subcategory={{
                               id: subcategory.id,
@@ -476,6 +515,38 @@ const FormUpdater = ({
                               );
                             })}
                         </ul>
+                        <h6>Calculos</h6>
+                        <ul>
+                          {calculationsToAdd
+                            .filter(
+                              (calculation) =>
+                                calculation.subcategory?.id === subcategory.id,
+                            )
+                            .map((calculation) => {
+                              return (
+                                <li
+                                  key={calculation.name}
+                                  className="flex w-full flex-row items-center justify-between"
+                                >
+                                  <span className="p-2 text-blue-500">
+                                    {calculation.name}
+                                  </span>
+                                  <Button
+                                    className="items-center p-2"
+                                    variant={"destructive"}
+                                    onPress={() =>
+                                      handleCalculationsToAdd(
+                                        calculation,
+                                        false,
+                                      )
+                                    }
+                                  >
+                                    <IconSquareRoundedMinus />
+                                  </Button>
+                                </li>
+                              );
+                            })}
+                        </ul>
                       </div>
                     );
                   })}
@@ -493,6 +564,7 @@ const FormUpdater = ({
                       {category.name}
                     </h4>
                     <CalculationCreationModal
+                      handleCalculationsToAdd={handleCalculationsToAdd}
                       category={{ id: category.id, name: category.name }}
                       subcategory={null}
                       questions={questionsToAdd.filter((question) => {
@@ -532,6 +604,36 @@ const FormUpdater = ({
                         );
                       })}
                   </ul>
+                  <h6>Calculos</h6>
+                  <ul>
+                    {calculationsToAdd
+                      .filter(
+                        (calculation) =>
+                          calculation.category.id === category.id &&
+                          !calculation.subcategory,
+                      )
+                      .map((calculation) => {
+                        return (
+                          <li
+                            key={calculation.name}
+                            className="flex w-full flex-row items-center justify-between"
+                          >
+                            <span className="p-2 text-blue-500">
+                              {calculation.name}
+                            </span>
+                            <Button
+                              className="items-center p-2"
+                              variant={"destructive"}
+                              onPress={() =>
+                                handleCalculationsToAdd(calculation, false)
+                              }
+                            >
+                              <IconSquareRoundedMinus />
+                            </Button>
+                          </li>
+                        );
+                      })}
+                  </ul>
                   {category.subcategories.map((subcategory) => {
                     return (
                       <div key={subcategory.id}>
@@ -540,6 +642,7 @@ const FormUpdater = ({
                             {subcategory.name}
                           </h5>
                           <CalculationCreationModal
+                            handleCalculationsToAdd={handleCalculationsToAdd}
                             category={{ id: category.id, name: category.name }}
                             subcategory={{
                               id: subcategory.id,
@@ -574,6 +677,38 @@ const FormUpdater = ({
                                     variant={"destructive"}
                                     onPress={() =>
                                       cancelAddQuestion(question.id)
+                                    }
+                                  >
+                                    <IconSquareRoundedMinus />
+                                  </Button>
+                                </li>
+                              );
+                            })}
+                        </ul>
+                        <h6>Calculos</h6>
+                        <ul>
+                          {calculationsToAdd
+                            .filter(
+                              (calculation) =>
+                                calculation.subcategory?.id === subcategory.id,
+                            )
+                            .map((calculation) => {
+                              return (
+                                <li
+                                  key={calculation.name}
+                                  className="flex w-full flex-row items-center justify-between"
+                                >
+                                  <span className="p-2 text-blue-500">
+                                    {calculation.name}
+                                  </span>
+                                  <Button
+                                    className="items-center p-2"
+                                    variant={"destructive"}
+                                    onPress={() =>
+                                      handleCalculationsToAdd(
+                                        calculation,
+                                        false,
+                                      )
                                     }
                                   >
                                     <IconSquareRoundedMinus />

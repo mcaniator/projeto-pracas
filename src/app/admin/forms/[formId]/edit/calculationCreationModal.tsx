@@ -12,6 +12,8 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
+import { DisplayCalculation } from "./client";
+
 const QuestionComponent = ({
   checked,
   question,
@@ -20,13 +22,13 @@ const QuestionComponent = ({
   checked: boolean;
   question: { id: number; name: string };
   handleQuestionToCalculateChange: (
-    questionId: number,
+    question: { id: number; name: string },
     checked: boolean,
   ) => void;
 }) => {
   const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!(e.target instanceof HTMLInputElement)) {
-      handleQuestionToCalculateChange(question.id, !checked);
+      handleQuestionToCalculateChange(question, !checked);
     }
   };
   return (
@@ -37,7 +39,7 @@ const QuestionComponent = ({
       <input
         type="checkbox"
         checked={checked}
-        onChange={() => handleQuestionToCalculateChange(question.id, !checked)}
+        onChange={() => handleQuestionToCalculateChange(question, !checked)}
       />
       <span className="flex flex-row">{question.name}</span>
     </div>
@@ -48,26 +50,35 @@ const CalculationCreationModal = ({
   category,
   subcategory,
   questions,
+  handleCalculationsToAdd,
 }: {
   category: { id: number; name: string };
   subcategory: { id: number; name: string } | null;
   questions: { id: number; name: string }[];
+  handleCalculationsToAdd: (
+    calculation: DisplayCalculation,
+    add: boolean,
+  ) => void;
 }) => {
-  const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
-
+  const [selectedQuestions, setSelectedQuestions] = useState<
+    { id: number; name: string }[]
+  >([]);
+  const [calculationName, setCalculationame] = useState<string>("");
   const handleQuestionToCalculateChange = (
-    questionId: number,
+    question: { id: number; name: string },
     checked: boolean,
   ) => {
     if (checked) {
       setSelectedQuestions((prev) => {
         const updatedArray = [...prev];
-        updatedArray.push(questionId);
+        updatedArray.push(question);
         return updatedArray;
       });
     } else {
       setSelectedQuestions((prev) => {
-        const updatedArray = [...prev.filter((id) => id !== questionId)];
+        const updatedArray = [
+          ...prev.filter((prevQuestion) => prevQuestion.id !== question.id),
+        ];
         return updatedArray;
       });
     }
@@ -112,6 +123,7 @@ const CalculationCreationModal = ({
                     type="text"
                     id="calculation-name"
                     name="calculation-name"
+                    onChange={(e) => setCalculationame(e)}
                   />
                   <label htmlFor="calculation-type">Tipo:</label>
                   <Select id="calculation-type">
@@ -127,7 +139,10 @@ const CalculationCreationModal = ({
                           className="flex w-full flex-row items-center justify-between"
                         >
                           <QuestionComponent
-                            checked={selectedQuestions.includes(question.id)}
+                            checked={selectedQuestions.some(
+                              (prevSelectedQuestion) =>
+                                prevSelectedQuestion.id === question.id,
+                            )}
                             question={question}
                             handleQuestionToCalculateChange={
                               handleQuestionToCalculateChange
@@ -138,7 +153,22 @@ const CalculationCreationModal = ({
                     })}
                   </ul>
                   <span className="ml-auto">
-                    <Button variant={"constructive"} className="w-fit">
+                    <Button
+                      variant={"constructive"}
+                      className="w-fit"
+                      onPress={() => {
+                        handleCalculationsToAdd(
+                          {
+                            name: calculationName,
+                            category: category,
+                            subcategory: subcategory,
+                            questions: selectedQuestions,
+                          },
+                          true,
+                        );
+                        close();
+                      }}
+                    >
                       Criar
                     </Button>
                   </span>
