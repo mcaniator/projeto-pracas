@@ -24,6 +24,24 @@ interface DisplayQuestion {
 }
 
 interface DisplayCalculation {
+  id: number;
+  name: string;
+  type: CalculationTypes;
+  questions: {
+    id: number;
+    name: string;
+  }[];
+  category: {
+    id: number;
+    name: string;
+  };
+  subcategory: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+interface AddCalculationToAddObj {
   name: string;
   type: CalculationTypes;
   questions: {
@@ -58,7 +76,7 @@ const Client = ({
   const [calculationsToAdd, setCalculationsToAdd] = useState<
     DisplayCalculation[]
   >([]);
-
+  const [calculationsToAddIndex, setCalculationsToAddIndex] = useState(0);
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
@@ -90,27 +108,44 @@ const Client = ({
     }
   };
 
-  const handleCalculationsToAdd = (
-    calculation: DisplayCalculation,
-    add: boolean,
-  ) => {
-    if (add) {
-      setCalculationsToAdd((prev) => [...prev, calculation]);
-    } else {
-      setCalculationsToAdd((prev) =>
-        prev.filter((prevCalculation) =>
-          (
-            prevCalculation.category !== calculation.category &&
-            prevCalculation.subcategory
-          ) ?
-            prevCalculation.subcategory !== calculation.subcategory
-          : !calculation.subcategory &&
-            prevCalculation.name !== calculation.name,
-        ),
-      );
-    }
+  const addCalculationToAdd = (calculation: AddCalculationToAddObj) => {
+    setCalculationsToAdd((prev) => [
+      ...prev,
+      {
+        id: calculationsToAddIndex,
+        name: calculation.name,
+        type: calculation.type,
+        category: calculation.category,
+        subcategory: calculation.subcategory,
+        questions: calculation.questions,
+      },
+    ]);
+    setCalculationsToAddIndex((prev) => prev + 1);
   };
 
+  const removeCalculationToAdd = (id: number) => {
+    setCalculationsToAdd((prev) =>
+      prev.filter((prevCalculation) => prevCalculation.id !== id),
+    );
+    setCalculationsToAddIndex((prev) => prev + 1);
+  };
+
+  const handleUpdateCalculationToAdd = (calculation: DisplayCalculation) => {
+    setCalculationsToAdd((prev) =>
+      prev.map((prevCalculation) => {
+        if (calculation.id === prevCalculation.id) {
+          return {
+            ...prevCalculation,
+            name: calculation.name,
+            type: calculation.type,
+            questions: calculation.questions,
+          };
+        }
+        return prevCalculation;
+      }),
+    );
+  };
+  //console.log(calculationsToAdd);
   const createNewVersion = (
     formId: number,
     oldQuestions: DisplayQuestion[],
@@ -170,7 +205,9 @@ const Client = ({
             cancelAddQuestion={cancelAddQuestion}
             questionsToRemove={questionsToRemove}
             handleQuestionsToRemove={handleQuestionsToRemove}
-            handleCalculationsToAdd={handleCalculationsToAdd}
+            addCalculationToAdd={addCalculationToAdd}
+            removeCalculationToAdd={removeCalculationToAdd}
+            handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
           />
         </div>
         <div className="col-span-2 h-full overflow-auto">
@@ -203,4 +240,4 @@ const Client = ({
       </div>;
 };
 export default Client;
-export type { DisplayQuestion, DisplayCalculation };
+export type { DisplayQuestion, DisplayCalculation, AddCalculationToAddObj };

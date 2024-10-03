@@ -5,8 +5,8 @@ import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
 import { CalculationTypes } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
-import { IconCalculator } from "@tabler/icons-react";
-import { useState } from "react";
+import { IconEdit } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -14,7 +14,7 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { AddCalculationToAddObj } from "./client";
+import { DisplayCalculation } from "./client";
 
 const QuestionComponent = ({
   checked,
@@ -48,22 +48,26 @@ const QuestionComponent = ({
   );
 };
 
-const CalculationCreationModal = ({
+const CalculationEditModal = ({
   category,
   subcategory,
   questions,
-  addCalculationToAdd,
+  calculation,
+  handleUpdateCalculationToAdd,
 }: {
   category: { id: number; name: string };
   subcategory: { id: number; name: string } | null;
   questions: { id: number; name: string }[];
-  addCalculationToAdd: (calculation: AddCalculationToAddObj) => void;
+  calculation: DisplayCalculation;
+  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
 }) => {
   const [selectedQuestions, setSelectedQuestions] = useState<
     { id: number; name: string }[]
-  >([]);
-  const [calculationName, setCalculationame] = useState<string>("");
-  const [type, setType] = useState<CalculationTypes>("SUM");
+  >(calculation.questions);
+  const [calculationName, setCalculationame] = useState<string>(
+    calculation.name,
+  );
+  const [type, setType] = useState<CalculationTypes>(calculation.type);
   const handleQuestionToCalculateChange = (
     question: { id: number; name: string },
     checked: boolean,
@@ -84,10 +88,16 @@ const CalculationCreationModal = ({
     }
   };
 
+  useEffect(() => {
+    setSelectedQuestions(calculation.questions);
+    setCalculationame(calculation.name);
+    setType(calculation.type);
+  }, [calculation]);
+
   return (
     <DialogTrigger>
       <Button className="items-center p-2">
-        <IconCalculator />
+        <IconEdit />
       </Button>
       <ModalOverlay
         className={({ isEntering, isExiting }) =>
@@ -105,7 +115,7 @@ const CalculationCreationModal = ({
               return (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-2xl">{`Criação de cálculo`}</h4>
+                    <h4 className="text-2xl">{`Edição de cálculo : ${calculation.name}`}</h4>
                     <Button
                       className="ml-auto"
                       variant={"ghost"}
@@ -126,6 +136,7 @@ const CalculationCreationModal = ({
                     id="calculation-name"
                     name="calculation-name"
                     onChange={(e) => setCalculationame(e)}
+                    value={calculationName}
                   />
                   <label htmlFor="calculation-type">Tipo:</label>
                   <Select
@@ -133,6 +144,7 @@ const CalculationCreationModal = ({
                     onChange={(e) =>
                       setType(e.target.value as CalculationTypes)
                     }
+                    value={type}
                   >
                     <option value="SUM">Soma</option>
                     <option value="AVERAGE">Média</option>
@@ -164,18 +176,18 @@ const CalculationCreationModal = ({
                       variant={"constructive"}
                       className="w-fit"
                       onPress={() => {
-                        addCalculationToAdd({
+                        handleUpdateCalculationToAdd({
+                          id: calculation.id,
                           name: calculationName,
-                          category: category,
-                          subcategory: subcategory,
+                          category: calculation.category,
+                          subcategory: calculation.subcategory,
                           questions: selectedQuestions,
                           type: type,
                         });
                         close();
-                        setSelectedQuestions([]);
                       }}
                     >
-                      Criar
+                      Editar
                     </Button>
                   </span>
                 </div>
@@ -188,4 +200,4 @@ const CalculationCreationModal = ({
   );
 };
 
-export { CalculationCreationModal };
+export { CalculationEditModal };

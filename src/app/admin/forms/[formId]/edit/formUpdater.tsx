@@ -7,13 +7,17 @@ import {
   handleDelete,
   updateForm,
 } from "@/serverActions/formUtil";
-import { IconEdit } from "@tabler/icons-react";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { CalculationCreationModal } from "./calculationCreationModal";
-import { DisplayCalculation, DisplayQuestion } from "./client";
+import { CalculationEditModal } from "./calculationEditModal";
+import {
+  AddCalculationToAddObj,
+  DisplayCalculation,
+  DisplayQuestion,
+} from "./client";
 
 const initialState = {
   statusCode: 0,
@@ -25,14 +29,15 @@ const calculationTypesPortugueseMap = new Map([
 ]);
 
 const CalculationComponent = ({
+  questions,
   calculation,
-  handleCalculationsToAdd,
+  removeCalculationToAdd,
+  handleUpdateCalculationToAdd,
 }: {
+  questions: { id: number; name: string }[];
   calculation: DisplayCalculation;
-  handleCalculationsToAdd: (
-    calculation: DisplayCalculation,
-    add: boolean,
-  ) => void;
+  removeCalculationToAdd: (id: number) => void;
+  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
 }) => {
   return (
     <li className="flex w-full flex-row items-center">
@@ -41,13 +46,18 @@ const CalculationComponent = ({
         {calculationTypesPortugueseMap.get(calculation.type)}
       </span>
       <span className="ml-auto space-x-2 px-3 py-2">
-        <Button className="ml-auto items-center p-2">
-          <IconEdit />
-        </Button>
+        <CalculationEditModal
+          category={calculation.category}
+          subcategory={calculation.subcategory}
+          questions={questions}
+          calculation={calculation}
+          handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
+        />
+
         <Button
           className="items-center p-2"
           variant={"destructive"}
-          onPress={() => handleCalculationsToAdd(calculation, false)}
+          onPress={() => removeCalculationToAdd(calculation.id)}
         >
           <IconSquareRoundedMinus />
         </Button>
@@ -62,7 +72,9 @@ const FormUpdater = ({
   cancelAddQuestion,
   questionsToRemove,
   handleQuestionsToRemove,
-  handleCalculationsToAdd,
+  addCalculationToAdd,
+  removeCalculationToAdd,
+  handleUpdateCalculationToAdd,
 }: {
   form: FormToEditPage;
   questionsToAdd: DisplayQuestion[];
@@ -70,10 +82,9 @@ const FormUpdater = ({
   cancelAddQuestion: (questionId: number) => void;
   questionsToRemove: DisplayQuestion[];
   handleQuestionsToRemove: (questionId: number) => void;
-  handleCalculationsToAdd: (
-    calculationId: DisplayCalculation,
-    add: boolean,
-  ) => void;
+  addCalculationToAdd: (calculation: AddCalculationToAddObj) => void;
+  removeCalculationToAdd: (id: number) => void;
+  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
 }) => {
   const [, formAction] = useActionState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -365,7 +376,7 @@ const FormUpdater = ({
                     <h4 className="text-2xl">{category.name}</h4>
                     <span className="ml-auto px-3">
                       <CalculationCreationModal
-                        handleCalculationsToAdd={handleCalculationsToAdd}
+                        addCalculationToAdd={addCalculationToAdd}
                         category={{ id: category.id, name: category.name }}
                         subcategory={null}
                         questions={category.questions
@@ -456,8 +467,27 @@ const FormUpdater = ({
                         return (
                           <CalculationComponent
                             key={calculation.name}
+                            questions={category.questions
+                              .filter(
+                                (question) =>
+                                  !questionsToRemove.some(
+                                    (questionToRemove) =>
+                                      questionToRemove.id === question.id,
+                                  ),
+                              )
+                              .concat(
+                                questionsToAdd.filter((question) => {
+                                  return (
+                                    question.category.id === category.id &&
+                                    !question.subcategory
+                                  );
+                                }),
+                              )}
                             calculation={calculation}
-                            handleCalculationsToAdd={handleCalculationsToAdd}
+                            removeCalculationToAdd={removeCalculationToAdd}
+                            handleUpdateCalculationToAdd={
+                              handleUpdateCalculationToAdd
+                            }
                           />
                         );
                       })}
@@ -469,7 +499,7 @@ const FormUpdater = ({
                           <h5 className="text-xl">{subcategory.name}</h5>
                           <span className="ml-auto px-3">
                             <CalculationCreationModal
-                              handleCalculationsToAdd={handleCalculationsToAdd}
+                              addCalculationToAdd={addCalculationToAdd}
                               category={{
                                 id: category.id,
                                 name: category.name,
@@ -567,9 +597,28 @@ const FormUpdater = ({
                               return (
                                 <CalculationComponent
                                   key={calculation.name}
+                                  questions={subcategory.questions
+                                    .filter(
+                                      (question) =>
+                                        !questionsToRemove.some(
+                                          (questionToRemove) =>
+                                            questionToRemove.id === question.id,
+                                        ),
+                                    )
+                                    .concat(
+                                      questionsToAdd.filter((question) => {
+                                        return (
+                                          question.subcategory?.id ===
+                                          subcategory.id
+                                        );
+                                      }),
+                                    )}
                                   calculation={calculation}
-                                  handleCalculationsToAdd={
-                                    handleCalculationsToAdd
+                                  removeCalculationToAdd={
+                                    removeCalculationToAdd
+                                  }
+                                  handleUpdateCalculationToAdd={
+                                    handleUpdateCalculationToAdd
                                   }
                                 />
                               );
@@ -593,7 +642,7 @@ const FormUpdater = ({
                     </h4>
                     <span className="ml-auto px-3">
                       <CalculationCreationModal
-                        handleCalculationsToAdd={handleCalculationsToAdd}
+                        addCalculationToAdd={addCalculationToAdd}
                         category={{ id: category.id, name: category.name }}
                         subcategory={null}
                         questions={questionsToAdd.filter((question) => {
@@ -650,8 +699,17 @@ const FormUpdater = ({
                         return (
                           <CalculationComponent
                             key={calculation.name}
+                            questions={questionsToAdd.filter((question) => {
+                              return (
+                                question.category.id === category.id &&
+                                !question.subcategory
+                              );
+                            })}
                             calculation={calculation}
-                            handleCalculationsToAdd={handleCalculationsToAdd}
+                            removeCalculationToAdd={removeCalculationToAdd}
+                            handleUpdateCalculationToAdd={
+                              handleUpdateCalculationToAdd
+                            }
                           />
                         );
                       })}
@@ -665,7 +723,7 @@ const FormUpdater = ({
                           </h5>
                           <span className="ml-auto px-3">
                             <CalculationCreationModal
-                              handleCalculationsToAdd={handleCalculationsToAdd}
+                              addCalculationToAdd={addCalculationToAdd}
                               category={{
                                 id: category.id,
                                 name: category.name,
@@ -726,9 +784,20 @@ const FormUpdater = ({
                               return (
                                 <CalculationComponent
                                   key={calculation.name}
+                                  questions={questionsToAdd.filter(
+                                    (question) => {
+                                      return (
+                                        question.subcategory?.id ===
+                                        subcategory.id
+                                      );
+                                    },
+                                  )}
                                   calculation={calculation}
-                                  handleCalculationsToAdd={
-                                    handleCalculationsToAdd
+                                  removeCalculationToAdd={
+                                    removeCalculationToAdd
+                                  }
+                                  handleUpdateCalculationToAdd={
+                                    handleUpdateCalculationToAdd
                                   }
                                 />
                               );
