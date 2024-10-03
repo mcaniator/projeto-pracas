@@ -136,6 +136,7 @@ const CalculationCreationModal = ({
                   >
                     <option value="SUM">Soma</option>
                     <option value="AVERAGE">Média</option>
+                    <option value="PERCENTAGE">Porcentagem</option>
                   </Select>
                   <label htmlFor="questions-select">Questões: </label>
                   <ul className="list-disc" id="questions-select">

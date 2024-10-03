@@ -26,6 +26,7 @@ const initialState = {
 const calculationTypesPortugueseMap = new Map([
   ["AVERAGE", "Média"],
   ["SUM", "Soma"],
+  ["PERCENTAGE", "Porcentagem"],
 ]);
 
 const CalculationComponent = ({

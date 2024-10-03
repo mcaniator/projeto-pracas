@@ -89,8 +89,9 @@ enum UserTypes {
 }
 
 enum CalculationTypes {
-  SUM     @map("Sum")
-  AVERAGE @map("Average")
+  SUM        @map("Sum")
+  AVERAGE    @map("Average")
+  PERCENTAGE @map("Percentage")
 
   @@map("calculation_types")
 }
