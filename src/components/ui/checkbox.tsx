@@ -28,7 +28,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, variant, ...props }, ref) => {
     const { children, ...attributes } = props;
     return (
-      <label className={"flex w-fit select-none gap-1"}>
+      <label className={"relative flex w-fit select-none gap-1"}>
         <input
           type="checkbox"
           className={cn(checkboxVariant({ variant, className }))}

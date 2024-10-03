@@ -21,6 +21,7 @@ const Page = async ({
     return (
       <TallysDataPage
         locationName={locationName}
+        locationId={Number(params.locationId)}
         tallys={tallys}
         tallysIds={tallysIds}
       />

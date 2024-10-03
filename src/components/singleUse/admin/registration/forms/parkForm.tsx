@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
+const LocationComponent = ({ id, name }: { id: number; name: string }) => {
   const router = useRouter();
 
   return (
@@ -22,7 +22,7 @@ const LocationComponent = ({ id, nome }: { id: number; nome: string }) => {
             className="w-full justify-start px-2"
           >
             <span className="-mb-1 overflow-hidden overflow-ellipsis whitespace-nowrap text-[22px]/[30px] font-semibold">
-              {nome}
+              {name}
             </span>
           </Button>
         </Link>

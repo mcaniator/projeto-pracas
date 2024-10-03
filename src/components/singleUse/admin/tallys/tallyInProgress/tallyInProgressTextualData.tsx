@@ -22,7 +22,9 @@ interface ongoingTallyDataFetched {
   };
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;
@@ -49,7 +51,7 @@ const TallyInProgressTextualData = ({
     <div className="flex flex-col overflow-auto py-1">
       <p>{`Data de início: ${tally.startDate.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })}`}</p>
       <p>{`Horário de início: ${tally.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}</p>
-      <p>{`Observador: ${tally.observer}`}</p>
+      <p>{`Observador: ${tally.user.username}`}</p>
       <p>{`Temperatura: ${temperature ? temperature + "°C" : "Não definido!"}`}</p>
       <p>{`Tempo: ${weather}`}</p>
       <p>{`Pets: ${complementaryData.animalsAmount}`}</p>

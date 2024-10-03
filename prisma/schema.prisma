@@ -194,8 +194,9 @@ model User {
 
   auth_session Session[]
 
-  assessmentId Int?        @map("assessment_id")
-  Assessment   Assessment? @relation(fields: [assessmentId], references: [id])
+  response       Response[]
+  responseOption ResponseOption[]
+  tally          Tally[]
 
   @@index([username])
   @@map("user")
@@ -227,10 +228,26 @@ model Category {
   active   Boolean    @default(true)
   question Question[]
 
+  subcategory Subcategory[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("category")
+}
+
+model Subcategory {
+  id Int @id @default(autoincrement())
+
+  name     String     @db.VarChar(255)
+  optional Boolean    @default(false)
+  active   Boolean    @default(true)
+  question Question[]
+
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@map("subcategory")
 }
 
 model Question {
@@ -249,9 +266,11 @@ model Question {
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?               @map("maximum_selections")
 
-  categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
-  options    Option[]
+  categoryId    Int          @map("category_id")
+  category      Category     @relation(fields: [categoryId], references: [id])
+  subcategoryId Int?         @map("subcategory_id")
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  options       Option[]
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
@@ -261,14 +280,18 @@ model Question {
 }
 
 model Response {
-  id         Int           @id @default(autoincrement())
-  type       QuestionTypes
-  frequency  Int           @default(1)
-  locationId Int           @map("location_id")
-  location   Location      @relation(fields: [locationId], references: [id])
+  id   Int           @id @default(autoincrement())
+  type QuestionTypes
 
-  formId Int  @map("form_id")
-  form   Form @relation(fields: [formId], references: [id])
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  formId      Int  @map("form_id")
+  form        Form @relation(fields: [formId], references: [id])
+  formVersion Int  @map("form_version")
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -296,12 +319,15 @@ model Option {
 
 model ResponseOption {
   id         Int      @id @default(autoincrement())
-  frequency  Int      @default(1)
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  formId Int  @map("form_id")
-  form   Form @relation(fields: [formId], references: [id])
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  formId      Int  @map("form_id")
+  form        Form @relation(fields: [formId], references: [id])
+  formVersion Int  @map("form_version")
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -311,8 +337,7 @@ model ResponseOption {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  // @@map("response_option")
-  @@map("responseOption")
+  @@map("response_option")
 }
 
 model Form {
@@ -457,7 +482,6 @@ model Assessment {
 
   startDate DateTime @map("start_date") @db.Timestamptz()
   endDate   DateTime @map("end_date") @db.Timestamptz()
-  user      User[]
 
   changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
   hasWifi             Boolean  @map("has_wifi")
@@ -707,13 +731,15 @@ model Tally {
   //tallyGroup Int       @map("tally_group")
   startDate DateTime  @map("start_date") @db.Timestamptz(0)
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
-  observer  String    @db.VarChar(255)
 
   animalsAmount        Int?               @map("animals_amount")
   temperature          Float?
   weatherCondition     WeatherConditions? @map("weather_condition")
   groups               Int?
   commercialActivities Json?              @map("commercial_activities")
+
+  userId String @map("user_id") @db.VarChar(255)
+  user   User   @relation(fields: [userId], references: [id])
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])

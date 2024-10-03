@@ -16,6 +16,7 @@ const TallysDataPageActions = ({
   setDataTypeToShow,
   dataTypeToShow,
   tallyIds,
+  locationId,
   booleanConditionsFilter,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
@@ -26,6 +27,7 @@ const TallysDataPageActions = ({
   >;
   dataTypeToShow: DataTypesInTallyVisualization;
   tallyIds: number[];
+  locationId: number;
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
 }) => {
   const [actionsCategory, setActionsCategory] =
@@ -60,7 +62,7 @@ const TallysDataPageActions = ({
         />
       )}
       {actionsCategory === "DELETION" && (
-        <DeleteTallySection tallyIds={tallyIds} />
+        <DeleteTallySection tallyIds={tallyIds} locationId={locationId} />
       )}
     </div>
   );
