@@ -302,7 +302,7 @@ model Calculation {
 
   type          CalculationTypes
   name          String           @db.VarChar(255)
-  question      Question[]
+  questions     Question[]
   categoryId    Int              @map("category_id")
   category      Category         @relation(fields: [categoryId], references: [id])
   subcategoryId Int?             @map("subcategory_id")

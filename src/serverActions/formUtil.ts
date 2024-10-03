@@ -17,6 +17,7 @@ interface FormToEditPage {
   name: string;
   version: number;
   questions: QuestionWithCategories[];
+  calculations: DisplayCalculation[];
 }
 
 const handleDelete = async (formID: number) => {
@@ -111,6 +112,24 @@ const searchFormById = async (id: number) => {
                     categoryId: true,
                   },
                 },
+              },
+            },
+            calculations: {
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    categoryId: true,
+                  },
+                },
+                questions: true,
               },
             },
           },
@@ -221,11 +240,13 @@ const createVersion = async (
           create: calculationsToCreate.map((calculation) => ({
             type: calculation.type,
             name: calculation.name,
-            question: {
+            questions: {
               connect: calculation.questions.map((q) => ({ id: q.id })),
             },
             category: { connect: { id: calculation.category.id } },
-            subcategory: { connect: { id: calculation.subcategory?.id } },
+            ...(calculation.subcategory ?
+              { subcategory: { connect: { id: calculation.subcategory.id } } }
+            : {}),
           })),
         },
       },
@@ -233,6 +254,7 @@ const createVersion = async (
 
     newFormId = newForm.id;
   } catch (e) {
+    console.log(e);
     return {
       message: "erro do servidor",
     };

@@ -75,8 +75,14 @@ const Client = ({
   );
   const [calculationsToAdd, setCalculationsToAdd] = useState<
     DisplayCalculation[]
-  >([]);
-  const [calculationsToAddIndex, setCalculationsToAddIndex] = useState(0);
+  >(form.calculations);
+  const [calculationsToAddIndex, setCalculationsToAddIndex] = useState(() => {
+    const biggestId =
+      calculationsToAdd.length > 0 ?
+        Math.max(...calculationsToAdd.map((calc) => calc.id))
+      : 0;
+    return biggestId + 1;
+  });
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
