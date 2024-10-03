@@ -389,11 +389,13 @@ const FormUpdater = ({
                           )
                           .concat(
                             questionsToAdd.filter((question) => {
-                              return (
-                                question.category.id === category.id &&
-                                !question.subcategory
-                              );
+                              return question.category.id === category.id;
                             }),
+                          )
+                          .concat(
+                            category.subcategories.flatMap(
+                              (subcateogry) => subcateogry.questions,
+                            ),
                           )}
                       />
                     </span>
@@ -482,6 +484,11 @@ const FormUpdater = ({
                                     !question.subcategory
                                   );
                                 }),
+                              )
+                              .concat(
+                                category.subcategories.flatMap(
+                                  (subcateogry) => subcateogry.questions,
+                                ),
                               )}
                             calculation={calculation}
                             removeCalculationToAdd={removeCalculationToAdd}
@@ -646,10 +653,7 @@ const FormUpdater = ({
                         category={{ id: category.id, name: category.name }}
                         subcategory={null}
                         questions={questionsToAdd.filter((question) => {
-                          return (
-                            question.category.id === category.id &&
-                            !question.subcategory
-                          );
+                          return question.category.id === category.id;
                         })}
                       />
                     </span>
