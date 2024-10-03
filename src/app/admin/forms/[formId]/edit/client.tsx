@@ -191,7 +191,7 @@ const Client = ({
       );
     }
 
-    void createVersion(formId, filteredQuestions);
+    void createVersion(formId, filteredQuestions, calculationsToAdd);
   };
 
   return form == null ?

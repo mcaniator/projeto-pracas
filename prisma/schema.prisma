@@ -307,6 +307,7 @@ model Calculation {
   category      Category         @relation(fields: [categoryId], references: [id])
   subcategoryId Int?             @map("subcategory_id")
   subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
+  form          Form[]
 
   @@map("calculation")
 }
@@ -372,9 +373,10 @@ model Form {
   id      Int @id @default(autoincrement())
   version Int @default(0)
 
-  name       String       @db.VarChar(255)
-  questions  Question[]
-  assessment Assessment[]
+  name         String        @db.VarChar(255)
+  questions    Question[]
+  assessment   Assessment[]
+  calculations Calculation[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

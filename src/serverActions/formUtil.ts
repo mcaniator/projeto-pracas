@@ -1,6 +1,9 @@
 "use server";
 
-import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
+import {
+  DisplayCalculation,
+  DisplayQuestion,
+} from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
@@ -183,7 +186,11 @@ const updateForm = async (
   };
 };
 
-const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
+const createVersion = async (
+  formId: number,
+  questions: DisplayQuestion[],
+  calculationsToCreate: DisplayCalculation[],
+) => {
   const formType = Prisma.validator<Prisma.FormDefaultArgs>()({
     select: { id: true, name: true, version: true },
   });
@@ -209,6 +216,17 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
         version: form.version + 1,
         questions: {
           connect: questions.map((question) => ({ id: question.id })),
+        },
+        calculations: {
+          create: calculationsToCreate.map((calculation) => ({
+            type: calculation.type,
+            name: calculation.name,
+            question: {
+              connect: calculation.questions.map((q) => ({ id: q.id })),
+            },
+            category: { connect: { id: calculation.category.id } },
+            subcategory: { connect: { id: calculation.subcategory?.id } },
+          })),
         },
       },
     });
