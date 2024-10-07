@@ -1,6 +1,6 @@
 import { validateRequest } from "@/lib/lucia";
 import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
-import { searchFormsById } from "@/serverActions/formUtil";
+import { searchFormById } from "@/serverActions/formUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
 
@@ -20,7 +20,7 @@ const Responses = async ({
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
-  const form = await searchFormsById(parseInt(params.selectedFormId));
+  const form = await searchFormById(parseInt(params.selectedFormId));
 
   const assessment = await fetchAssessmentWithResponses(
     Number(params.selectedAssessmentId),

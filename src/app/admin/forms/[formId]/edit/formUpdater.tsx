@@ -7,6 +7,7 @@ import {
   handleDelete,
   updateForm,
 } from "@/serverActions/formUtil";
+import { QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -35,7 +36,11 @@ const CalculationComponent = ({
   removeCalculationToAdd,
   handleUpdateCalculationToAdd,
 }: {
-  questions: { id: number; name: string }[];
+  questions: {
+    id: number;
+    name: string;
+    characterType: QuestionResponseCharacterTypes;
+  }[];
   calculation: DisplayCalculation;
   removeCalculationToAdd: (id: number) => void;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
@@ -261,12 +266,20 @@ const FormUpdater = ({
   const categories: {
     id: number;
     name: string;
-    questions: { id: number; name: string }[];
+    questions: {
+      id: number;
+      name: string;
+      characterType: QuestionResponseCharacterTypes;
+    }[];
     subcategories: {
       id: number;
       name: string;
       categoryId: number;
-      questions: { id: number; name: string }[];
+      questions: {
+        id: number;
+        name: string;
+        characterType: QuestionResponseCharacterTypes;
+      }[];
     }[];
   }[] = [];
 
@@ -301,11 +314,13 @@ const FormUpdater = ({
       subcategoryGroup.questions.push({
         id: question.id,
         name: question.name,
+        characterType: question.characterType,
       });
     } else {
       categoryGroup.questions.push({
         id: question.id,
         name: question.name,
+        characterType: question.characterType,
       });
     }
   });

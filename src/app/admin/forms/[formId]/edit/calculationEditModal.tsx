@@ -3,7 +3,10 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
-import { CalculationTypes } from "@prisma/client";
+import {
+  CalculationTypes,
+  QuestionResponseCharacterTypes,
+} from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
 import { IconEdit } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -57,10 +60,17 @@ const CalculationEditModal = ({
 }: {
   category: { id: number; name: string };
   subcategory: { id: number; name: string } | null;
-  questions: { id: number; name: string }[];
+  questions: {
+    id: number;
+    name: string;
+    characterType: QuestionResponseCharacterTypes;
+  }[];
   calculation: DisplayCalculation;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
 }) => {
+  const numberQuestions = questions.filter(
+    (question) => question.characterType === "NUMBER",
+  );
   const [selectedQuestions, setSelectedQuestions] = useState<
     { id: number; name: string }[]
   >(calculation.questions);
@@ -151,7 +161,7 @@ const CalculationEditModal = ({
                   </Select>
                   <label htmlFor="questions-select">Questões: </label>
                   <ul className="list-disc" id="questions-select">
-                    {questions.map((question) => {
+                    {numberQuestions.map((question) => {
                       return (
                         <li
                           key={question.id}

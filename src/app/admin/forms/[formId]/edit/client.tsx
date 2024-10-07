@@ -4,7 +4,10 @@ import { Button } from "@/components/button";
 import { QuestionForm } from "@/components/singleUse/admin/question/questionForm";
 import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
-import { CalculationTypes } from "@prisma/client";
+import {
+  CalculationTypes,
+  QuestionResponseCharacterTypes,
+} from "@prisma/client";
 import { useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
@@ -12,6 +15,7 @@ import { FormUpdater } from "./formUpdater";
 interface DisplayQuestion {
   id: number;
   name: string;
+  characterType: QuestionResponseCharacterTypes;
   category: {
     id: number;
     name: string;
