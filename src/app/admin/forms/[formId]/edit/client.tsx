@@ -8,7 +8,7 @@ import {
   CalculationTypes,
   QuestionResponseCharacterTypes,
 } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
 
@@ -79,6 +79,9 @@ const Client = ({
   );
   const [calculationsToAdd, setCalculationsToAdd] = useState<
     DisplayCalculation[]
+  >([]);
+  const [initialCalculations, setInitialCalculations] = useState<
+    DisplayCalculation[]
   >(form.calculations);
   const [calculationsToAddIndex, setCalculationsToAddIndex] = useState(() => {
     const biggestId =
@@ -118,6 +121,19 @@ const Client = ({
     }
   };
 
+  useEffect(() => {
+    setInitialCalculations((prev) =>
+      prev.map((calc) => ({
+        ...calc,
+        questions: calc.questions.filter(
+          (question) =>
+            !questionsToRemove.some((q) => q.id === question.id) ||
+            questionsToAdd.some((q) => q.id === question.id),
+        ),
+      })),
+    );
+  }, [questionsToAdd, questionsToRemove]);
+
   const addCalculationToAdd = (calculation: AddCalculationToAddObj) => {
     setCalculationsToAdd((prev) => [
       ...prev,
@@ -140,6 +156,12 @@ const Client = ({
     setCalculationsToAddIndex((prev) => prev + 1);
   };
 
+  const removeInitialCalculation = (id: number) => {
+    setInitialCalculations((prev) =>
+      prev.filter((prevCalculation) => prevCalculation.id !== id),
+    );
+  };
+
   const handleUpdateCalculationToAdd = (calculation: DisplayCalculation) => {
     setCalculationsToAdd((prev) =>
       prev.map((prevCalculation) => {
@@ -155,7 +177,7 @@ const Client = ({
       }),
     );
   };
-  //console.log(calculationsToAdd);
+
   const createNewVersion = (
     formId: number,
     oldQuestions: DisplayQuestion[],
@@ -201,7 +223,11 @@ const Client = ({
       );
     }
 
-    void createVersion(formId, filteredQuestions, calculationsToAdd);
+    void createVersion(
+      formId,
+      filteredQuestions,
+      calculationsToAdd.concat(initialCalculations),
+    );
   };
 
   return form == null ?
@@ -212,11 +238,13 @@ const Client = ({
             form={form}
             questionsToAdd={questionsToAdd}
             calculationsToAdd={calculationsToAdd}
+            initialCalculations={initialCalculations}
             cancelAddQuestion={cancelAddQuestion}
             questionsToRemove={questionsToRemove}
             handleQuestionsToRemove={handleQuestionsToRemove}
             addCalculationToAdd={addCalculationToAdd}
             removeCalculationToAdd={removeCalculationToAdd}
+            removeInitialCalculation={removeInitialCalculation}
             handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
           />
         </div>
