@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
@@ -36,7 +37,9 @@ const QuestionForm = ({
   const [type, setType] = useState("");
   const [characterType, setCharacterType] = useState<CharacterType | null>();
   const [optionType, setOptionType] = useState("RADIO");
-
+  const [hasAssocieatedGeometry, setHasAssociatedGeometry] =
+    useState<boolean>(false);
+  const [geometryTypes, setGeometryTypes] = useState<string[]>(["POINT"]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
 
@@ -53,6 +56,16 @@ const QuestionForm = ({
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentCategoryId(Number(e.target.value));
+  };
+
+  const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      if (!geometryTypes.includes(e.target.value)) {
+        setGeometryTypes((prev) => [...prev, e.target.value]);
+      }
+    } else if (geometryTypes.length > 1) {
+      setGeometryTypes((prev) => prev.filter((p) => p !== e.target.value));
+    }
   };
   // TODO: add error handling
   return (
@@ -112,7 +125,7 @@ const QuestionForm = ({
         </div>
 
         <div className={"flex flex-col"}>
-          <label htmlFor={"text"}>Tipo de pergunta:</label>
+          <h4>Tipo de pergunta:</h4>
           <div
             className={
               "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
@@ -149,6 +162,78 @@ const QuestionForm = ({
             </RadioButton>
           </div>
         </div>
+        <div className={"flex flex-col"}>
+          <h4>Possui geometria associada?</h4>
+          <div
+            className={
+              "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+            }
+          >
+            <RadioButton
+              type={"radio"}
+              variant={"admin"}
+              id={"hasGeometry"}
+              name="hasAssociatedGeometry"
+              onClick={() => {
+                setHasAssociatedGeometry(true);
+              }}
+              className={"border-white"}
+              checked={hasAssocieatedGeometry}
+              required
+            >
+              Sim
+            </RadioButton>
+            <RadioButton
+              type="radio"
+              variant={"admin"}
+              id="noGeometry"
+              name="hasAssociatedGeometry"
+              onClick={() => {
+                setHasAssociatedGeometry(false);
+              }}
+              className={"border-white"}
+              checked={!hasAssocieatedGeometry}
+              required
+            >
+              Não
+            </RadioButton>
+          </div>
+        </div>
+        {hasAssocieatedGeometry && (
+          <div className="flex flex-col">
+            <h4>Selecione os tipos de geometria para esta questão:</h4>
+            <div
+              className={
+                "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+              }
+            >
+              <Checkbox
+                variant={"admin"}
+                value={"POINT"}
+                checked={geometryTypes.includes("POINT")}
+                onChange={(e) => handleGeometryTypeChange(e)}
+              >
+                Ponto
+              </Checkbox>
+              <Checkbox
+                variant={"admin"}
+                value={"POLYGON"}
+                checked={geometryTypes.includes("POLYGON")}
+                onChange={(e) => handleGeometryTypeChange(e)}
+              >
+                Poligono
+              </Checkbox>
+              <Checkbox
+                variant={"admin"}
+                value={"MULTIPOLYGON"}
+                checked={geometryTypes.includes("MULTIPOLYGON")}
+                onChange={(e) => handleGeometryTypeChange(e)}
+              >
+                Múltiplos poligonos
+              </Checkbox>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>

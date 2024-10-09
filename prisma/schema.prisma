@@ -115,6 +115,12 @@ enum QuestionResponseCharacterTypes {
   NUMBER @map("Number")
 }
 
+enum QuestionGeometryTypes {
+  POINT        @map("Point")
+  POLYGON      @map("Polygon")
+  MULTIPOLYGON @map("Multipolygon")
+}
+
 enum OptionTypes {
   RADIO    @map("radio")
   CHECKBOX @map("checkbox")
@@ -267,19 +273,21 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String                         @db.VarChar(255)
-  optional          Boolean                        @default(false)
-  active            Boolean                        @default(true)
-  type              QuestionTypes
-  characterType     QuestionResponseCharacterTypes @map("character_type")
-  forms             Form[]
-  response          Response[]
-  responseCharLimit Int?                           @map("char_limit")
-  minValue          Int?
-  maxValue          Int?
-  optionType        OptionTypes?                   @map("option_type")
+  name                  String                         @db.VarChar(255)
+  optional              Boolean                        @default(false)
+  active                Boolean                        @default(true)
+  type                  QuestionTypes
+  characterType         QuestionResponseCharacterTypes @map("character_type")
+  forms                 Form[]
+  response              Response[]
+  responseCharLimit     Int?                           @map("char_limit")
+  minValue              Int?
+  maxValue              Int?
+  optionType            OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?                           @map("maximum_selections")
+  maximumSelections     Int?                           @map("maximum_selections")
+  hasAssociatedGeometry Boolean                        @map("has_associated_geometry")
+  geometryType          QuestionGeometryTypes[]        @map("geometryType")
 
   assessment Assessment[]
 
@@ -325,6 +333,8 @@ model Response {
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
+  geometry Unsupported("Geometry")?
+
   response  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -362,6 +372,8 @@ model ResponseOption {
 
   optionId Int?    @map("option_id")
   option   Option? @relation(fields: [optionId], references: [id])
+
+  geometry Unsupported("Geometry")?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
