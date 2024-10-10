@@ -116,9 +116,8 @@ enum QuestionResponseCharacterTypes {
 }
 
 enum QuestionGeometryTypes {
-  POINT        @map("Point")
-  POLYGON      @map("Polygon")
-  MULTIPOLYGON @map("Multipolygon")
+  POINT   @map("Point")
+  POLYGON @map("Polygon")
 }
 
 enum OptionTypes {
@@ -287,7 +286,7 @@ model Question {
   // Should only have a value if optionType == CHECKBOX
   maximumSelections     Int?                           @map("maximum_selections")
   hasAssociatedGeometry Boolean                        @map("has_associated_geometry")
-  geometryType          QuestionGeometryTypes[]        @map("geometryType")
+  geometryTypes         QuestionGeometryTypes[]        @map("geometryType")
 
   assessment Assessment[]
 

@@ -79,6 +79,7 @@ const QuestionForm = ({
           formRef.current?.reset();
           setType("");
           setAddedOptions(undefined);
+          setHasAssociatedGeometry(false);
         }, 1)
       }
     >
@@ -173,8 +174,9 @@ const QuestionForm = ({
               type={"radio"}
               variant={"admin"}
               id={"hasGeometry"}
+              value={"true"}
               name="hasAssociatedGeometry"
-              onClick={() => {
+              onChange={() => {
                 setHasAssociatedGeometry(true);
               }}
               className={"border-white"}
@@ -187,8 +189,9 @@ const QuestionForm = ({
               type="radio"
               variant={"admin"}
               id="noGeometry"
+              value={"false"}
               name="hasAssociatedGeometry"
-              onClick={() => {
+              onChange={() => {
                 setHasAssociatedGeometry(false);
               }}
               className={"border-white"}
@@ -201,7 +204,7 @@ const QuestionForm = ({
         </div>
         {hasAssocieatedGeometry && (
           <div className="flex flex-col">
-            <h4>Selecione os tipos de geometria para esta questão:</h4>
+            <h4>Selecione os tipos de geometria aceitos:</h4>
             <div
               className={
                 "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
@@ -210,6 +213,7 @@ const QuestionForm = ({
               <Checkbox
                 variant={"admin"}
                 value={"POINT"}
+                name="geometryTypes"
                 checked={geometryTypes.includes("POINT")}
                 onChange={(e) => handleGeometryTypeChange(e)}
               >
@@ -218,18 +222,11 @@ const QuestionForm = ({
               <Checkbox
                 variant={"admin"}
                 value={"POLYGON"}
+                name="geometryTypes"
                 checked={geometryTypes.includes("POLYGON")}
                 onChange={(e) => handleGeometryTypeChange(e)}
               >
                 Poligono
-              </Checkbox>
-              <Checkbox
-                variant={"admin"}
-                value={"MULTIPOLYGON"}
-                checked={geometryTypes.includes("MULTIPOLYGON")}
-                onChange={(e) => handleGeometryTypeChange(e)}
-              >
-                Múltiplos poligonos
               </Checkbox>
             </div>
           </div>

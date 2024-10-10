@@ -9,6 +9,7 @@ import {
   NoiseLocation,
   NoiseTypes,
   OptionTypes,
+  QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
   UserTypes,
@@ -63,6 +64,8 @@ const questionSchema = z.object({
   maxValue: z.coerce.number().finite().optional(),
   optionType: z.nativeEnum(OptionTypes).optional(),
   maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
+  hasAssociatedGeometry: z.boolean(),
+  geometryTypes: z.array(z.nativeEnum(QuestionGeometryTypes)).optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
   subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
