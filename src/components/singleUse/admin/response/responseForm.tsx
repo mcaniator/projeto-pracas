@@ -208,7 +208,85 @@ const ResponseForm = ({
     });
     return sum;
   };
-  console.log(responses);
+
+  const calculateAverage = (calculation: ResponseCalculation) => {
+    let sum = 0;
+    let questionsAmount = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses[question.id];
+      if (questionResponse) {
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              questionsAmount++;
+            }
+          });
+        } else {
+          const questionOptions =
+            options.filter((opt) => opt && opt.questionId === question.id) ||
+            [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              questionsAmount++;
+            }
+          });
+        }
+      }
+    });
+
+    const average = sum / questionsAmount;
+    if (Number.isNaN(average)) {
+      return 0;
+    }
+    return average;
+  };
+
+  const calculatePercentages = (calculation: ResponseCalculation) => {
+    const responsesByQuestion = new Map<string, number>();
+    let sum = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses[question.id];
+      if (questionResponse) {
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              responsesByQuestion.set(question.name, questionResponseValue);
+            }
+          });
+        } else {
+          const questionOptions =
+            options.filter((opt) => opt && opt.questionId === question.id) ||
+            [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              responsesByQuestion.set(question.name, questionResponseValue);
+            }
+          });
+        }
+      }
+    });
+    let percentagesStr = "";
+    responsesByQuestion.forEach(
+      (value, key) =>
+        (percentagesStr +=
+          `${key}: ` +
+          `${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%` +
+          ", "),
+    );
+    return percentagesStr;
+  };
   useEffect(() => {}, [responses, assessmentEnded]);
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
@@ -312,19 +390,30 @@ const ResponseForm = ({
                     );
                   })}
                 </ul>
-                <h5>Calculos:</h5>
-                <ul className="list-disc p-3">
-                  {category.calculations.map((calculation) => {
-                    return (
-                      <li key={calculation.id}>
-                        <span>{calculation.name + ": "} </span>
-                        {calculation.type === "SUM" && (
-                          <span>{calculateSum(calculation)}</span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                {category.calculations.length > 0 && (
+                  <div>
+                    <h5>Calculos:</h5>
+                    <ul className="list-disc p-3">
+                      {category.calculations.map((calculation) => {
+                        return (
+                          <li key={calculation.id}>
+                            <span>{calculation.name + ": "} </span>
+                            {calculation.type === "SUM" && (
+                              <span>{calculateSum(calculation)}</span>
+                            )}
+                            {calculation.type === "AVERAGE" && (
+                              <span>{calculateAverage(calculation)}</span>
+                            )}
+                            {calculation.type === "PERCENTAGE" && (
+                              <div>{calculatePercentages(calculation)}</div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
                 {category.subcategories.map((subcategory) => {
                   return (
                     <React.Fragment key={subcategory.id}>
@@ -419,6 +508,31 @@ const ResponseForm = ({
                           );
                         })}
                       </ul>
+                      {subcategory.calculations.length > 0 && (
+                        <div>
+                          <h5>Cálculos:</h5>
+                          <ul className="list-disc p-3">
+                            {subcategory.calculations.map((calculation) => {
+                              return (
+                                <li key={calculation.id}>
+                                  <span>{calculation.name + ": "} </span>
+                                  {calculation.type === "SUM" && (
+                                    <span>{calculateSum(calculation)}</span>
+                                  )}
+                                  {calculation.type === "AVERAGE" && (
+                                    <span>{calculateAverage(calculation)}</span>
+                                  )}
+                                  {calculation.type === "PERCENTAGE" && (
+                                    <div>
+                                      {calculatePercentages(calculation)}
+                                    </div>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
                     </React.Fragment>
                   );
                 })}
