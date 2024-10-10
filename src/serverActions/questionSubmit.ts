@@ -40,8 +40,6 @@ const questionSubmit = async (
               Number(formData.get("subcategoryId")) > 0 ?
                 formData.get("subcategoryId")
               : undefined,
-            hasAssociatedGeometry:
-              formData.get("hasAssociatedGeometry") === "true",
             geometryTypes:
               (
                 formData.getAll("geometryTypes").length > 0 &&
@@ -62,8 +60,6 @@ const questionSubmit = async (
               : undefined,
             minValue: formData.get("minValue"),
             maxValue: formData.get("maxValue"),
-            hasAssociatedGeometry:
-              formData.get("hasAssociatedGeometry") === "true",
             geometryTypes:
               (
                 formData.getAll("geometryTypes").length > 0 &&
@@ -88,7 +84,6 @@ const questionSubmit = async (
             responseCharLimit: writtenQuestionParsed.responseCharLimit,
             minValue: writtenQuestionParsed.minValue,
             maxValue: writtenQuestionParsed.maxValue,
-            hasAssociatedGeometry: writtenQuestionParsed.hasAssociatedGeometry,
             geometryTypes: writtenQuestionParsed.geometryTypes,
           },
         });
@@ -122,8 +117,7 @@ const questionSubmit = async (
           characterType: questionCharacterType,
           categoryId,
           subcategoryId,
-          hasAssociatedGeometry:
-            formData.get("hasAssociatedGeometry") === "true",
+
           geometryTypes:
             (
               formData.getAll("geometryTypes").length > 0 &&
@@ -154,7 +148,6 @@ const questionSubmit = async (
             subcategoryId: optionsQuestionParsed.subcategoryId,
             optionType: optionsQuestionParsed.optionType,
             maximumSelections: optionsQuestionParsed.maximumSelections,
-            hasAssociatedGeometry: optionsQuestionParsed.hasAssociatedGeometry,
             geometryTypes: optionsQuestionParsed.geometryTypes,
           },
         });

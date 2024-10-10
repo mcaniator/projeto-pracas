@@ -272,21 +272,20 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name                  String                         @db.VarChar(255)
-  optional              Boolean                        @default(false)
-  active                Boolean                        @default(true)
-  type                  QuestionTypes
-  characterType         QuestionResponseCharacterTypes @map("character_type")
-  forms                 Form[]
-  response              Response[]
-  responseCharLimit     Int?                           @map("char_limit")
-  minValue              Int?
-  maxValue              Int?
-  optionType            OptionTypes?                   @map("option_type")
+  name              String                         @db.VarChar(255)
+  optional          Boolean                        @default(false)
+  active            Boolean                        @default(true)
+  type              QuestionTypes
+  characterType     QuestionResponseCharacterTypes @map("character_type")
+  forms             Form[]
+  response          Response[]
+  responseCharLimit Int?                           @map("char_limit")
+  minValue          Int?
+  maxValue          Int?
+  optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
-  maximumSelections     Int?                           @map("maximum_selections")
-  hasAssociatedGeometry Boolean                        @map("has_associated_geometry")
-  geometryTypes         QuestionGeometryTypes[]        @map("geometryType")
+  maximumSelections Int?                           @map("maximum_selections")
+  geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
 
   assessment Assessment[]
 
