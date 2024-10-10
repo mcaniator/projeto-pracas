@@ -37,6 +37,7 @@ const CalculationComponent = ({
   removeCalculationToAdd,
   removeInitialCalculation,
   handleUpdateCalculationToAdd,
+  handleUpdateInitialCalculation,
 }: {
   questions: {
     id: number;
@@ -48,6 +49,7 @@ const CalculationComponent = ({
   removeCalculationToAdd: (id: number) => void;
   removeInitialCalculation: (id: number) => void;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
 }) => {
   return (
     <li className="flex w-full flex-row items-center">
@@ -61,7 +63,9 @@ const CalculationComponent = ({
           subcategory={calculation.subcategory}
           questions={questions}
           calculation={calculation}
+          isInitialCalculation={isInitialCalculation}
           handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
+          handleUpdateInitialCalculation={handleUpdateInitialCalculation}
         />
 
         <Button
@@ -91,6 +95,7 @@ const FormUpdater = ({
   removeCalculationToAdd,
   removeInitialCalculation,
   handleUpdateCalculationToAdd,
+  handleUpdateInitialCalculation,
 }: {
   form: FormToEditPage;
   questionsToAdd: DisplayQuestion[];
@@ -103,6 +108,7 @@ const FormUpdater = ({
   removeCalculationToAdd: (id: number) => void;
   removeInitialCalculation: (id: number) => void;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
 }) => {
   const [, formAction] = useActionState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -445,6 +451,9 @@ const FormUpdater = ({
                             handleUpdateCalculationToAdd={
                               handleUpdateCalculationToAdd
                             }
+                            handleUpdateInitialCalculation={
+                              handleUpdateInitialCalculation
+                            }
                           />
                         );
                       })}
@@ -487,6 +496,9 @@ const FormUpdater = ({
                             removeInitialCalculation={removeInitialCalculation}
                             handleUpdateCalculationToAdd={
                               handleUpdateCalculationToAdd
+                            }
+                            handleUpdateInitialCalculation={
+                              handleUpdateInitialCalculation
                             }
                           />
                         );
@@ -628,6 +640,9 @@ const FormUpdater = ({
                                   handleUpdateCalculationToAdd={
                                     handleUpdateCalculationToAdd
                                   }
+                                  handleUpdateInitialCalculation={
+                                    handleUpdateInitialCalculation
+                                  }
                                 />
                               );
                             })}
@@ -668,6 +683,9 @@ const FormUpdater = ({
                                   }
                                   handleUpdateCalculationToAdd={
                                     handleUpdateCalculationToAdd
+                                  }
+                                  handleUpdateInitialCalculation={
+                                    handleUpdateInitialCalculation
                                   }
                                 />
                               );
@@ -757,6 +775,9 @@ const FormUpdater = ({
                             removeInitialCalculation={removeInitialCalculation}
                             handleUpdateCalculationToAdd={
                               handleUpdateCalculationToAdd
+                            }
+                            handleUpdateInitialCalculation={
+                              handleUpdateInitialCalculation
                             }
                           />
                         );
@@ -850,6 +871,9 @@ const FormUpdater = ({
                                   }
                                   handleUpdateCalculationToAdd={
                                     handleUpdateCalculationToAdd
+                                  }
+                                  handleUpdateInitialCalculation={
+                                    handleUpdateInitialCalculation
                                   }
                                 />
                               );

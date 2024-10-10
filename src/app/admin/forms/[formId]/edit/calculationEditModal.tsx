@@ -56,7 +56,9 @@ const CalculationEditModal = ({
   subcategory,
   questions,
   calculation,
+  isInitialCalculation,
   handleUpdateCalculationToAdd,
+  handleUpdateInitialCalculation,
 }: {
   category: { id: number; name: string };
   subcategory: { id: number; name: string } | null;
@@ -66,7 +68,9 @@ const CalculationEditModal = ({
     characterType: QuestionResponseCharacterTypes;
   }[];
   calculation: DisplayCalculation;
+  isInitialCalculation: boolean;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
 }) => {
   const numberQuestions = questions.filter(
     (question) => question.characterType === "NUMBER",
@@ -130,7 +134,10 @@ const CalculationEditModal = ({
                       className="ml-auto"
                       variant={"ghost"}
                       size={"icon"}
-                      onPress={close}
+                      onPress={() => {
+                        setSelectedQuestions(calculation.questions);
+                        close();
+                      }}
                     >
                       <IconX />
                     </Button>
@@ -158,6 +165,7 @@ const CalculationEditModal = ({
                   >
                     <option value="SUM">Soma</option>
                     <option value="AVERAGE">Média</option>
+                    <option value="PERCENTAGE">Porcentagem</option>
                   </Select>
                   <label htmlFor="questions-select">Questões: </label>
                   <ul className="list-disc" id="questions-select">
@@ -186,14 +194,26 @@ const CalculationEditModal = ({
                       variant={"constructive"}
                       className="w-fit"
                       onPress={() => {
-                        handleUpdateCalculationToAdd({
-                          id: calculation.id,
-                          name: calculationName,
-                          category: calculation.category,
-                          subcategory: calculation.subcategory,
-                          questions: selectedQuestions,
-                          type: type,
-                        });
+                        if (isInitialCalculation) {
+                          handleUpdateInitialCalculation({
+                            id: calculation.id,
+                            name: calculationName,
+                            category: calculation.category,
+                            subcategory: calculation.subcategory,
+                            questions: selectedQuestions,
+                            type: type,
+                          });
+                        } else {
+                          handleUpdateCalculationToAdd({
+                            id: calculation.id,
+                            name: calculationName,
+                            category: calculation.category,
+                            subcategory: calculation.subcategory,
+                            questions: selectedQuestions,
+                            type: type,
+                          });
+                        }
+
                         close();
                       }}
                     >

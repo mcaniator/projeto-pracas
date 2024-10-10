@@ -90,6 +90,8 @@ const Client = ({
       : 0;
     return biggestId + 1;
   });
+  const [initialCalculationsModified, setInitialCalculationsModified] =
+    useState(false);
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
@@ -160,6 +162,7 @@ const Client = ({
     setInitialCalculations((prev) =>
       prev.filter((prevCalculation) => prevCalculation.id !== id),
     );
+    setInitialCalculationsModified(true);
   };
 
   const handleUpdateCalculationToAdd = (calculation: DisplayCalculation) => {
@@ -176,6 +179,23 @@ const Client = ({
         return prevCalculation;
       }),
     );
+  };
+
+  const handleUpdateInitialCalculation = (calculation: DisplayCalculation) => {
+    setInitialCalculations((prev) =>
+      prev.map((prevCalculation) => {
+        if (calculation.id === prevCalculation.id) {
+          return {
+            ...prevCalculation,
+            name: calculation.name,
+            type: calculation.type,
+            questions: calculation.questions,
+          };
+        }
+        return prevCalculation;
+      }),
+    );
+    setInitialCalculationsModified(true);
   };
 
   const createNewVersion = (
@@ -246,6 +266,7 @@ const Client = ({
             removeCalculationToAdd={removeCalculationToAdd}
             removeInitialCalculation={removeInitialCalculation}
             handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
+            handleUpdateInitialCalculation={handleUpdateInitialCalculation}
           />
         </div>
         <div className="col-span-2 h-full overflow-auto">
@@ -259,7 +280,9 @@ const Client = ({
           />
         </div>
         <div className="col-span-4 flex justify-center">
-          {updatedQuestions.length !== 0 && (
+          {(updatedQuestions.length !== 0 ||
+            calculationsToAdd.length !== 0 ||
+            initialCalculationsModified) && (
             <Button
               variant={"admin"}
               onPress={() =>

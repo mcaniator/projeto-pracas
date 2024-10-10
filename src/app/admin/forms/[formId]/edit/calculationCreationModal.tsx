@@ -120,7 +120,10 @@ const CalculationCreationModal = ({
                       className="ml-auto"
                       variant={"ghost"}
                       size={"icon"}
-                      onPress={close}
+                      onPress={() => {
+                        setSelectedQuestions([]);
+                        close();
+                      }}
                     >
                       <IconX />
                     </Button>
