@@ -65,10 +65,10 @@ const searchQuestionsByFormId = async (formId: number) => {
 
 const searchQuestionsByStatement = async (statement: string) => {
   const cachedQuestions = unstable_cache(
-    async (statement: string): Promise<QuestionSearchedByStatement[]> => {
+    async (statement: string): Promise<DisplayQuestion[]> => {
       if (statement.length < 2) return [];
 
-      let foundQuestions: QuestionSearchedByStatement[] = [];
+      let foundQuestions: DisplayQuestion[] = [];
 
       try {
         foundQuestions = await prisma.question.findMany({
@@ -81,6 +81,7 @@ const searchQuestionsByStatement = async (statement: string) => {
           select: {
             id: true,
             name: true,
+            characterType: true,
             category: {
               select: {
                 id: true,
@@ -129,6 +130,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
           select: {
             id: true,
             name: true,
+            characterType: true,
             category: {
               select: {
                 id: true,

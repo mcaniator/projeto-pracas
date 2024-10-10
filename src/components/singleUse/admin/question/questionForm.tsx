@@ -6,11 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import {
-  QuestionSearchedByStatement,
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByStatement,
 } from "@/serverActions/questionUtil";
-import { Question } from "@prisma/client";
+import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
@@ -41,7 +40,7 @@ const QuestionForm = ({
     useState<SearchMethods>("CATEGORY");
   // TODO: corrigir o tipo de setFoundQuestions
   const [foundQuestions, setFoundQuestions] =
-    useState<Promise<QuestionSearchedByStatement[]>>();
+    useState<Promise<DisplayQuestion[]>>();
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
     useState<Promise<DisplayQuestion[]>>();
   useEffect(() => {
@@ -178,6 +177,7 @@ const SearchedQuestionList = ({
     {
       id: number;
       name: string;
+      characterType: QuestionResponseCharacterTypes;
       category: { id: number; name: string };
       subcategory: { id: number; name: string; categoryId: number } | null;
     }[]
@@ -214,6 +214,7 @@ const SearchedQuestionList = ({
         <QuestionComponent
           key={question.id}
           questionId={question.id}
+          characterType={question.characterType}
           name={question.name}
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
@@ -269,6 +270,7 @@ const QuestionList = ({
         <QuestionComponent
           key={question.id}
           questionId={question.id}
+          characterType={question.characterType}
           name={question.name}
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
@@ -285,6 +287,7 @@ const QuestionList = ({
 
 const QuestionComponent = ({
   questionId,
+  characterType,
   handleQuestionsToAdd,
   name,
   showCategory,
@@ -294,6 +297,7 @@ const QuestionComponent = ({
   subcategoryName,
 }: {
   questionId: number;
+  characterType: QuestionResponseCharacterTypes;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
   name: string;
   formId?: number;
@@ -324,6 +328,7 @@ const QuestionComponent = ({
               subcategoryId && subcategoryName ?
                 { id: subcategoryId, name: subcategoryName, categoryId }
               : null,
+            characterType: characterType,
           })
         }
       >

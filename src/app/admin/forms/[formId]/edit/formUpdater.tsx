@@ -113,115 +113,42 @@ const FormUpdater = ({
       name: string;
       subcategories: { id: number; name: string }[];
     }[]
-  >(() => {
-    const initialCategoriesMap = new Map<
-      number,
-      {
-        id: number;
-        name: string;
-        subcategories: { id: number; name: string }[];
-      }
-    >();
+  >([]);
 
-    form.questions.forEach((question) => {
-      if (!initialCategoriesMap.has(question.category.id)) {
-        initialCategoriesMap.set(question.category.id, {
-          id: question.category.id,
-          name: question.category.name,
-          subcategories: [],
+  const initialCategoriesMap = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      subcategories: { id: number; name: string }[];
+    }
+  >();
+
+  form.questions.forEach((question) => {
+    if (!initialCategoriesMap.has(question.category.id)) {
+      initialCategoriesMap.set(question.category.id, {
+        id: question.category.id,
+        name: question.category.name,
+        subcategories: [],
+      });
+    }
+
+    if (question.subcategory) {
+      const existingCategory = initialCategoriesMap.get(question.category.id)!;
+      const subcategoryExists = existingCategory.subcategories.some(
+        (subcategory) => subcategory.id === question.subcategory?.id,
+      );
+
+      if (!subcategoryExists) {
+        existingCategory.subcategories.push({
+          id: question.subcategory.id,
+          name: question.subcategory.name,
         });
       }
-
-      if (question.subcategory) {
-        const existingCategory = initialCategoriesMap.get(
-          question.category.id,
-        )!;
-        const subcategoryExists = existingCategory.subcategories.some(
-          (subcategory) => subcategory.id === question.subcategory?.id,
-        );
-
-        if (!subcategoryExists) {
-          existingCategory.subcategories.push({
-            id: question.subcategory.id,
-            name: question.subcategory.name,
-          });
-        }
-      }
-    });
-
-    const categoriesToAddMap = new Map<
-      number,
-      {
-        id: number;
-        name: string;
-        subcategories: { id: number; name: string }[];
-      }
-    >();
-
-    questionsToAdd.forEach((question) => {
-      if (!categoriesToAddMap.has(question.category.id)) {
-        categoriesToAddMap.set(question.category.id, {
-          id: question.category.id,
-          name: question.category.name,
-          subcategories: [],
-        });
-      }
-
-      if (question.subcategory) {
-        const existingCategory = categoriesToAddMap.get(question.category.id)!;
-        const subcategoryExists = existingCategory.subcategories.some(
-          (subcategory) => subcategory.id === question.subcategory?.id,
-        );
-
-        if (!subcategoryExists) {
-          existingCategory.subcategories.push({
-            id: question.subcategory.id,
-            name: question.subcategory.name,
-          });
-        }
-      }
-    });
-
-    return Array.from(categoriesToAddMap.values());
+    }
   });
-
   useEffect(() => {
     setCategoriesToAdd(() => {
-      const initialCategoriesMap = new Map<
-        number,
-        {
-          id: number;
-          name: string;
-          subcategories: { id: number; name: string }[];
-        }
-      >();
-
-      form.questions.forEach((question) => {
-        if (!initialCategoriesMap.has(question.category.id)) {
-          initialCategoriesMap.set(question.category.id, {
-            id: question.category.id,
-            name: question.category.name,
-            subcategories: [],
-          });
-        }
-
-        if (question.subcategory) {
-          const existingCategory = initialCategoriesMap.get(
-            question.category.id,
-          )!;
-          const subcategoryExists = existingCategory.subcategories.some(
-            (subcategory) => subcategory.id === question.subcategory?.id,
-          );
-
-          if (!subcategoryExists) {
-            existingCategory.subcategories.push({
-              id: question.subcategory.id,
-              name: question.subcategory.name,
-            });
-          }
-        }
-      });
-
       const categoriesToAddMap = new Map<
         number,
         {
@@ -232,29 +159,17 @@ const FormUpdater = ({
       >();
 
       questionsToAdd.forEach((question) => {
-        if (
-          (!question.subcategory &&
-            !initialCategoriesMap.has(question.category.id)) ||
-          (question.subcategory &&
-            (!initialCategoriesMap.get(question.category.id) ||
-              !initialCategoriesMap
-                .get(question.category.id)
-                ?.subcategories.some(
-                  (subcategory) => subcategory.id === question.subcategory?.id,
-                )))
-        ) {
-          categoriesToAddMap.set(question.category.id, {
+        let existingCategory = categoriesToAddMap.get(question.category.id)!;
+        if (!existingCategory) {
+          existingCategory = {
             id: question.category.id,
             name: question.category.name,
             subcategories: [],
-          });
+          };
+          categoriesToAddMap.set(question.category.id, existingCategory);
         }
 
         if (question.subcategory) {
-          const existingCategory = categoriesToAddMap.get(
-            question.category.id,
-          )!;
-
           if (
             existingCategory &&
             !existingCategory.subcategories.some(
