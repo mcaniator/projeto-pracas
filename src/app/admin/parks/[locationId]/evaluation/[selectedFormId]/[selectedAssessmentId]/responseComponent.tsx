@@ -1,11 +1,19 @@
 import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
 import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
-import { Question } from "@prisma/client";
+import { CalculationTypes, Question } from "@prisma/client";
+
+interface ResponseCalculation {
+  id: number;
+  name: string;
+  type: CalculationTypes;
+  questions: Question[];
+}
 
 interface SubcategoryWithQuestion {
   id: number;
   name: string;
   questions: Question[];
+  calculations: ResponseCalculation[];
 }
 
 interface CategoryWithSubcategoryAndQuestion {
@@ -13,6 +21,7 @@ interface CategoryWithSubcategoryAndQuestion {
   name: string;
   subcategories: SubcategoryWithQuestion[];
   questions: Question[];
+  calculations: ResponseCalculation[];
 }
 
 type AssessmentWithResposes = NonNullable<
@@ -42,6 +51,7 @@ const ResponseComponent = ({
         name: categoryName,
         subcategories: [],
         questions: [],
+        calculations: [],
       });
     }
 
@@ -57,6 +67,7 @@ const ResponseComponent = ({
           id: subcategory.id,
           name: subcategory.name,
           questions: [],
+          calculations: [],
         };
         category.subcategories.push(subcategoryInCategory);
       }
@@ -67,11 +78,27 @@ const ResponseComponent = ({
     }
   });
 
+  const calculations = assessment.form.calculations;
+
+  calculations.forEach((calculation) => {
+    const calculationCategory = categoriesMap.get(calculation.categoryId);
+    if (calculationCategory) {
+      if (!calculation.subcategoryId) {
+        calculationCategory.calculations.push(calculation);
+      } else {
+        const calculationSubcategory = calculationCategory.subcategories.find(
+          (subcategory) => subcategory.id === calculation.subcategoryId,
+        );
+        calculationSubcategory?.calculations.push(calculation);
+      }
+    }
+  });
+
   const categories = Array.from(categoriesMap.values());
 
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex w-full flex-col gap-5 text-white">
+    <div className={"flex h-full min-h-0 flex-grow gap-5 overflow-auto p-5"}>
+      <div className="flex h-full w-full flex-col gap-5 overflow-auto text-white">
         <ResponseForm
           userId={userId}
           locationId={locationId}
@@ -84,4 +111,8 @@ const ResponseComponent = ({
 };
 
 export { ResponseComponent };
-export { type CategoryWithSubcategoryAndQuestion, type AssessmentWithResposes };
+export {
+  type CategoryWithSubcategoryAndQuestion,
+  type AssessmentWithResposes,
+  type ResponseCalculation,
+};

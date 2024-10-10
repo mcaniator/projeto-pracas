@@ -29,18 +29,18 @@ const Responses = async ({
   // TODO: add error handling
   return locationName == null ?
       <div>Localização não encontrada</div>
-    : <div>
+    : <div className="h-full">
         <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
           Avaliando: {locationName} com o formulário: {form?.name}
         </h3>
         {assessment?.formId !== null && assessment?.formId !== undefined ?
-          <ul className="list-disc p-3">
+          <div className="h-full overflow-auto">
             <ResponseComponent
               assessment={assessment}
               userId={user.id}
               locationId={Number(params.locationId)}
             />
-          </ul>
+          </div>
         : <div className="text-redwood">
             Ainda não há perguntas no formulário
           </div>

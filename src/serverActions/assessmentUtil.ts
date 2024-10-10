@@ -167,6 +167,11 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
               },
             },
           },
+          calculations: {
+            include: {
+              questions: true,
+            },
+          },
         },
       },
     },

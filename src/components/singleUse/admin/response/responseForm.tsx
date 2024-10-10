@@ -3,6 +3,7 @@
 import {
   AssessmentWithResposes,
   CategoryWithSubcategoryAndQuestion,
+  ResponseCalculation,
 } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -178,6 +179,22 @@ const ResponseForm = ({
     redirectToFormsList(locationId);
   };
 
+  const calculateSum = (calculation: ResponseCalculation) => {
+    let sum = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses[question.id];
+      if (questionResponse) {
+        questionResponse.value.forEach((v) => {
+          const questionResponseValue = Number(v);
+          if (!Number.isNaN(questionResponseValue)) {
+            sum += questionResponseValue;
+          }
+        });
+      }
+    });
+    return sum;
+  };
+
   useEffect(() => {}, [responses, assessmentEnded]);
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
@@ -194,6 +211,106 @@ const ResponseForm = ({
             return (
               <React.Fragment key={category.id}>
                 <h3 className="text-xl font-bold">{category.name}</h3>
+                <ul className="list-disc p-3">
+                  {category.questions.map((question) => {
+                    const questionOptions =
+                      options.filter((opt) => opt.questionId === question.id) ||
+                      [];
+                    return (
+                      <li key={question.id}>
+                        <label htmlFor={`response${question.id}`}>
+                          {question.name}
+                        </label>
+                        {question.type === QuestionTypes.OPTIONS ?
+                          <div>
+                            {question.optionType === "RADIO" &&
+                              questionOptions.map((option) => (
+                                <div key={option.id}>
+                                  <input
+                                    type="radio"
+                                    id={`option${option.id}`}
+                                    name={`response${question.id}`}
+                                    value={option.id}
+                                    checked={responses[
+                                      question.id
+                                    ]?.value.includes(String(option.id))}
+                                    onClick={() =>
+                                      handleRadialButtonResponseChange(
+                                        question.id,
+                                        question.type,
+                                        String(option.id),
+                                      )
+                                    }
+                                    readOnly
+                                  />
+                                  <label htmlFor={`option${option.id}`}>
+                                    {option.text}
+                                  </label>
+                                </div>
+                              ))}
+                            {question.optionType === "CHECKBOX" && (
+                              <React.Fragment>
+                                <h5>
+                                  Máximo de seleções:{" "}
+                                  {question.maximumSelections}
+                                </h5>
+                                {questionOptions.map((option) => (
+                                  <div key={option.id}>
+                                    <Checkbox
+                                      id={`option${option.id}`}
+                                      name={`response${question.id}`}
+                                      value={option.id}
+                                      checked={responses[
+                                        question.id
+                                      ]?.value.includes(String(option.id))}
+                                      onChange={(e) =>
+                                        handleCheckboxResponseChange(
+                                          e.target.checked,
+                                          question.id,
+                                          question.type,
+                                          e.target.value,
+                                          question.maximumSelections,
+                                        )
+                                      }
+                                    >
+                                      {option.text}
+                                    </Checkbox>
+                                  </div>
+                                ))}
+                              </React.Fragment>
+                            )}
+                          </div>
+                        : <Input
+                            type="text"
+                            name={`response${question.id}`}
+                            id={`response${question.id}`}
+                            value={responses[question.id]?.value || ""}
+                            onChange={(e) =>
+                              handleResponseChange(
+                                question.id,
+                                question.type,
+                                e.target.value,
+                              )
+                            }
+                          />
+                        }
+                      </li>
+                    );
+                  })}
+                </ul>
+                <h5>Calculos:</h5>
+                <ul className="list-disc p-3">
+                  {category.calculations.map((calculation) => {
+                    return (
+                      <li key={calculation.id}>
+                        <span>{calculation.name + ": "} </span>
+                        {calculation.type === "SUM" && (
+                          <span>{calculateSum(calculation)}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
                 {category.subcategories.map((subcategory) => {
                   return (
                     <React.Fragment key={subcategory.id}>
@@ -291,93 +408,6 @@ const ResponseForm = ({
                     </React.Fragment>
                   );
                 })}
-                <ul className="list-disc p-3">
-                  {category.questions.map((question) => {
-                    const questionOptions =
-                      options.filter((opt) => opt.questionId === question.id) ||
-                      [];
-                    return (
-                      <li key={question.id}>
-                        <label htmlFor={`response${question.id}`}>
-                          {question.name}
-                        </label>
-                        {question.type === QuestionTypes.OPTIONS ?
-                          <div>
-                            {question.optionType === "RADIO" &&
-                              questionOptions.map((option) => (
-                                <div key={option.id}>
-                                  <input
-                                    type="radio"
-                                    id={`option${option.id}`}
-                                    name={`response${question.id}`}
-                                    value={option.id}
-                                    checked={responses[
-                                      question.id
-                                    ]?.value.includes(String(option.id))}
-                                    onClick={() =>
-                                      handleRadialButtonResponseChange(
-                                        question.id,
-                                        question.type,
-                                        String(option.id),
-                                      )
-                                    }
-                                    readOnly
-                                  />
-                                  <label htmlFor={`option${option.id}`}>
-                                    {option.text}
-                                  </label>
-                                </div>
-                              ))}
-                            {question.optionType === "CHECKBOX" && (
-                              <React.Fragment>
-                                <h5>
-                                  Máximo de seleções:{" "}
-                                  {question.maximumSelections}
-                                </h5>
-                                {questionOptions.map((option) => (
-                                  <div key={option.id}>
-                                    <Checkbox
-                                      id={`option${option.id}`}
-                                      name={`response${question.id}`}
-                                      value={option.id}
-                                      checked={responses[
-                                        question.id
-                                      ]?.value.includes(String(option.id))}
-                                      onChange={(e) =>
-                                        handleCheckboxResponseChange(
-                                          e.target.checked,
-                                          question.id,
-                                          question.type,
-                                          e.target.value,
-                                          question.maximumSelections,
-                                        )
-                                      }
-                                    >
-                                      {option.text}
-                                    </Checkbox>
-                                  </div>
-                                ))}
-                              </React.Fragment>
-                            )}
-                          </div>
-                        : <Input
-                            type="text"
-                            name={`response${question.id}`}
-                            id={`response${question.id}`}
-                            value={responses[question.id]?.value || ""}
-                            onChange={(e) =>
-                              handleResponseChange(
-                                question.id,
-                                question.type,
-                                e.target.value,
-                              )
-                            }
-                          />
-                        }
-                      </li>
-                    );
-                  })}
-                </ul>
               </React.Fragment>
             );
           })}
