@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/button";
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
+import { QuestionTypes } from "@prisma/client";
 import {
   IconCaretDownFilled,
   IconCaretUpFilled,
   IconCircleFilled,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { FrequencyObjByCategory } from "./frequencyTable";
 
 type SingleAssessment = AssessmentsWithResposes[number];
@@ -19,6 +21,154 @@ const AssessmentComponent = ({
 }: {
   assessment: SingleAssessment;
 }) => {
+  const options = useRef(
+    assessment.form.questions.flatMap((question) => {
+      return question.options;
+    }),
+  );
+  const responses = useRef<{
+    [key: number]: { value: string[]; type: QuestionTypes };
+  }>(
+    assessment.form.questions.reduce(
+      (acc, question) => {
+        const valueArray: string[] = [];
+        if (question.type === "WRITTEN") {
+          const currentResponseArray = assessment.response.filter(
+            (respose) => respose.questionId === question.id,
+          );
+          const currentResponse = currentResponseArray[0];
+          if (currentResponse && currentResponse.response) {
+            valueArray.push(currentResponse.response);
+          }
+        } else {
+          const currentResponseArray = assessment.responseOption.filter(
+            (resposeOption) => resposeOption.questionId === question.id,
+          );
+          for (const currentResponse of currentResponseArray) {
+            if (currentResponse.option)
+              valueArray.push(currentResponse.option.id.toString());
+          }
+          if (valueArray.length === 0) {
+            valueArray.push("null");
+          }
+        }
+        acc[question.id] = { value: valueArray, type: question.type };
+        return acc;
+      },
+      {} as { [key: number]: { value: string[]; type: QuestionTypes } },
+    ) || {},
+  );
+  const calculateSum = (calculation: ResponseCalculation) => {
+    let sum = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses.current[question.id];
+      if (questionResponse) {
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+            }
+          });
+        } else {
+          const questionOptions =
+            options.current.filter(
+              (opt) => opt && opt.questionId === question.id,
+            ) || [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+            }
+          });
+        }
+      }
+    });
+    return sum;
+  };
+
+  const calculateAverage = (calculation: ResponseCalculation) => {
+    let sum = 0;
+    let questionsAmount = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses.current[question.id];
+      if (questionResponse) {
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              questionsAmount++;
+            }
+          });
+        } else {
+          const questionOptions =
+            options.current.filter(
+              (opt) => opt && opt.questionId === question.id,
+            ) || [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              questionsAmount++;
+            }
+          });
+        }
+      }
+    });
+
+    const average = sum / questionsAmount;
+    if (Number.isNaN(average)) {
+      return 0;
+    }
+    return average;
+  };
+
+  const calculatePercentages = (calculation: ResponseCalculation) => {
+    const responsesByQuestion = new Map<string, number>();
+    let sum = 0;
+    calculation.questions.forEach((question) => {
+      const questionResponse = responses.current[question.id];
+      if (questionResponse) {
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              responsesByQuestion.set(question.name, questionResponseValue);
+            }
+          });
+        } else {
+          const questionOptions =
+            options.current.filter(
+              (opt) => opt && opt.questionId === question.id,
+            ) || [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+              responsesByQuestion.set(question.name, questionResponseValue);
+            }
+          });
+        }
+      }
+    });
+    let percentagesStr = "";
+    responsesByQuestion.forEach(
+      (value, key) =>
+        (percentagesStr +=
+          `${key}: ` +
+          `${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%` +
+          ", "),
+    );
+    return percentagesStr;
+  };
   const [expanded, setExpanded] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
   assessment.form.questions.forEach((question) => {
@@ -28,6 +178,7 @@ const AssessmentComponent = ({
         categoryName: question.category.name,
         questions: [],
         subcategories: [],
+        calculations: [],
       });
     }
     const currentCategoryObj = frequencies.find(
@@ -45,6 +196,7 @@ const AssessmentComponent = ({
           id: questionSubcategory.id,
           subcategoryName: questionSubcategory.name,
           questions: [],
+          calculations: [],
         });
       }
       if (questionSubcategory) {
@@ -192,6 +344,20 @@ const AssessmentComponent = ({
       }
     }
   });
+  frequencies.forEach((category) => {
+    const currentCategoryCalculations = assessment.form.calculations.filter(
+      (calculation) =>
+        calculation.categoryId === category.id && !calculation.subcategoryId,
+    );
+    category.calculations = currentCategoryCalculations;
+    category.subcategories.forEach((subcategory) => {
+      const currentSubcategoryCalculations =
+        assessment.form.calculations.filter(
+          (calculation) => calculation.subcategoryId === subcategory.id,
+        );
+      subcategory.calculations = currentSubcategoryCalculations;
+    });
+  });
 
   return (
     <div className="mb-2 flex flex-col rounded bg-gray-400/30 p-2 shadow-inner">
@@ -248,6 +414,29 @@ const AssessmentComponent = ({
                     </div>
                   );
                 })}
+                {category.calculations.length > 0 && (
+                  <div>
+                    <h5>Calculos:</h5>
+                    <ul className="list-disc p-3">
+                      {category.calculations.map((calculation) => {
+                        return (
+                          <li key={calculation.id}>
+                            <span>{calculation.name + ": "} </span>
+                            {calculation.type === "SUM" && (
+                              <span>{calculateSum(calculation)}</span>
+                            )}
+                            {calculation.type === "AVERAGE" && (
+                              <span>{calculateAverage(calculation)}</span>
+                            )}
+                            {calculation.type === "PERCENTAGE" && (
+                              <div>{calculatePercentages(calculation)}</div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
                 {category.subcategories.map((subcategory) => {
                   return (
                     <div key={subcategory.id}>

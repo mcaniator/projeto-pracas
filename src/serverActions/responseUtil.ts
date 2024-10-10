@@ -25,7 +25,7 @@ const addResponses = async (
   endAssessment: boolean,
 ) => {
   const responsesTextNumeric = responses.filter(
-    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+    (response) => response.type === "WRITTEN",
   );
   const responsesOption = responses.filter(
     (response) => response.type === "OPTIONS",
@@ -182,7 +182,7 @@ const updateResponses = async (responses: ResponseToUpdate[]) => {
     | ReturnType<typeof prisma.responseOption.deleteMany>;
 
   const responsesTextNumeric = responses.filter(
-    (response) => response.type === "NUMERIC" || response.type === "TEXT",
+    (response) => response.type === "WRITTEN",
   );
   const responsesOption = responses.filter(
     (response) => response.type === "OPTIONS",

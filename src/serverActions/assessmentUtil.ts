@@ -122,6 +122,11 @@ const fetchMultipleAssessmentsWithResponses = async (
               },
             },
           },
+          calculations: {
+            include: {
+              questions: true,
+            },
+          },
         },
       },
       response: true,

@@ -1,6 +1,8 @@
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
 import { QuestionTypes } from "@prisma/client";
 
+import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
+
 interface FrequencyObjByCategory {
   id: number;
   categoryName: string;
@@ -16,6 +18,7 @@ interface FrequencyObjByCategory {
         frequency: number;
       }[];
     }[];
+    calculations: ResponseCalculation[];
   }[];
   questions: {
     id: number;
@@ -26,6 +29,7 @@ interface FrequencyObjByCategory {
       frequency: number;
     }[];
   }[];
+  calculations: ResponseCalculation[];
 }
 
 const FrequencyTable = ({
@@ -44,6 +48,7 @@ const FrequencyTable = ({
           categoryName: question.category.name,
           questions: [],
           subcategories: [],
+          calculations: [],
         });
       }
       const currentCategoryObj = frequencies.find(
@@ -61,6 +66,7 @@ const FrequencyTable = ({
             id: questionSubcategory.id,
             subcategoryName: questionSubcategory.name,
             questions: [],
+            calculations: [],
           });
         }
         if (questionSubcategory) {
