@@ -373,7 +373,11 @@ const ResponseForm = ({
                             )}
                           </div>
                         : <Input
-                            type="text"
+                            type={
+                              question.characterType === "TEXT" ?
+                                "text"
+                              : "number"
+                            }
                             name={`response${question.id}`}
                             id={`response${question.id}`}
                             value={responses[question.id]?.value || ""}
@@ -491,7 +495,11 @@ const ResponseForm = ({
                                   )}
                                 </div>
                               : <Input
-                                  type="text"
+                                  type={
+                                    question.characterType === "TEXT" ?
+                                      "text"
+                                    : "number"
+                                  }
                                   name={`response${question.id}`}
                                   id={`response${question.id}`}
                                   value={responses[question.id]?.value || ""}
