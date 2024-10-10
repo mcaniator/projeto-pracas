@@ -40,14 +40,16 @@ const AssessmentComponent = ({
 const AssessmentList = ({
   locationId,
   formId,
+  formName,
   assessments,
 }: {
   locationId: number;
   formId: number;
+  formName: string;
   assessments: AssessmentDataFetchedToAssessmentList[];
 }) => {
   return assessments === undefined || assessments.length === 0 ?
-      <h3>{`Nenhuma avaliação com o formulário ${formId} em andamento nesta praça`}</h3>
+      <h3>{`Nenhuma avaliação com o formulário ${formName} em andamento nesta praça`}</h3>
     : <div className="w-full text-black">
         {assessments.map((assessment) => (
           <AssessmentComponent

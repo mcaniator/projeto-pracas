@@ -48,6 +48,7 @@ const AssessmentPage = async ({
             <AssessmentList
               locationId={locationId}
               formId={formId}
+              formName={formName}
               assessments={assessments}
             />
           </div>

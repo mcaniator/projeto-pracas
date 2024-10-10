@@ -34,7 +34,7 @@ const ResponseForm = ({
     assessment.form.questions.reduce(
       (acc, question) => {
         const valueArray: string[] = [];
-        if (question.type === "NUMERIC" || question.type === "TEXT") {
+        if (question.type === "WRITTEN") {
           const currentResponseArray = assessment.response.filter(
             (respose) => respose.questionId === question.id,
           );
