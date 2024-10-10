@@ -184,17 +184,31 @@ const ResponseForm = ({
     calculation.questions.forEach((question) => {
       const questionResponse = responses[question.id];
       if (questionResponse) {
-        questionResponse.value.forEach((v) => {
-          const questionResponseValue = Number(v);
-          if (!Number.isNaN(questionResponseValue)) {
-            sum += questionResponseValue;
-          }
-        });
+        if (question.type === "WRITTEN") {
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(v);
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+            }
+          });
+        } else {
+          const questionOptions =
+            options.filter((opt) => opt && opt.questionId === question.id) ||
+            [];
+          questionResponse.value.forEach((v) => {
+            const questionResponseValue = Number(
+              questionOptions.find((opt) => opt.id === Number(v))?.text,
+            );
+            if (!Number.isNaN(questionResponseValue)) {
+              sum += questionResponseValue;
+            }
+          });
+        }
       }
     });
     return sum;
   };
-
+  console.log(responses);
   useEffect(() => {}, [responses, assessmentEnded]);
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
