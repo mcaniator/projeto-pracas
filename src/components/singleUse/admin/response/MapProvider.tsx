@@ -4,7 +4,7 @@ import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
 import { Point, Polygon } from "ol/geom";
-import { Draw } from "ol/interaction";
+import { Draw, Modify } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import "ol/ol.css";
@@ -88,9 +88,16 @@ const MapProvider = forwardRef(
       );
       const draw = new Draw({
         source: vectorSource.current,
-        type: "Point",
+        type: "Polygon",
       });
       map.addInteraction(draw);
+
+      const modify = new Modify({ source: vectorSource.current });
+      map.addInteraction(modify);
+
+      return () => {
+        map.setTarget(undefined);
+      };
     }, [map, view]);
 
     const loadInitialGeometries = useCallback(() => {
@@ -100,8 +107,9 @@ const MapProvider = forwardRef(
           if (geometry.type === "Point") {
             feature = new Feature(new Point(geometry.coordinates as number[]));
           } else if (geometry.type === "Polygon") {
+            console.log(geometry.coordinates);
             feature = new Feature(
-              new Polygon([geometry.coordinates as number[][]]),
+              new Polygon(geometry.coordinates as number[]),
             );
           }
           if (feature) {

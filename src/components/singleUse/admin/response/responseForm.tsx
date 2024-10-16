@@ -79,6 +79,7 @@ const ResponseForm = ({
     questionId: number,
     modalGeometries: ModalGeometry[],
   ) => {
+    //console.log(modalGeometries);
     setGeometries((prev) => {
       if (prev.some((p) => p.questionId === questionId)) {
         return prev.map((p) => {
