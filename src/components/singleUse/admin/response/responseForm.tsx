@@ -15,8 +15,17 @@ import {
 import { addResponses } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 import Link from "next/link";
+import { Coordinate } from "ol/coordinate";
+import { Type } from "ol/geom/Geometry";
 import React from "react";
 import { useEffect, useState } from "react";
+
+import { MapPopup } from "./MapPopup";
+
+interface ModalGeometry {
+  type: Type;
+  coordinates: Coordinate | Coordinate[];
+}
 
 const ResponseForm = ({
   userId,
@@ -61,8 +70,33 @@ const ResponseForm = ({
       {} as { [key: number]: { value: string[]; type: QuestionTypes } },
     ) || {},
   );
-  const [assessmentEnded, setAssessmentEnded] = useState(false);
 
+  const [geometries, setGeometries] = useState<
+    { questionId: number; geometries: ModalGeometry[] }[]
+  >([]);
+
+  const handleQuestionGeometryChange = (
+    questionId: number,
+    modalGeometries: ModalGeometry[],
+  ) => {
+    setGeometries((prev) => {
+      if (prev.some((p) => p.questionId === questionId)) {
+        return prev.map((p) => {
+          if (p.questionId === questionId) {
+            return { questionId: questionId, geometries: modalGeometries };
+          } else {
+            return p;
+          }
+        });
+      } else {
+        prev.push({ questionId: questionId, geometries: modalGeometries });
+        return [...prev];
+      }
+    });
+  };
+
+  const [assessmentEnded, setAssessmentEnded] = useState(false);
+  console.log(geometries);
   const handleCheckboxResponseChange = (
     checked: boolean,
     questionId: number,
@@ -305,6 +339,20 @@ const ResponseForm = ({
                 <h3 className="text-xl font-bold">{category.name}</h3>
                 <ul className="list-disc p-3">
                   {category.questions.map((question) => {
+                    {
+                      question.geometryTypes.length > 0 && (
+                        <MapPopup
+                          questionId={question.id}
+                          initialGeometries={
+                            geometries.find((g) => g.questionId === question.id)
+                              ?.geometries
+                          }
+                          handleQuestionGeometryChange={
+                            handleQuestionGeometryChange
+                          }
+                        />
+                      );
+                    }
                     const questionOptions =
                       options.filter((opt) => opt.questionId === question.id) ||
                       [];
@@ -433,6 +481,21 @@ const ResponseForm = ({
                               <label htmlFor={`response${question.id}`}>
                                 {question.name}
                               </label>
+                              {question.geometryTypes.length > 0 && (
+                                <span className="px-2">
+                                  <MapPopup
+                                    questionId={question.id}
+                                    initialGeometries={
+                                      geometries.find(
+                                        (g) => g.questionId === question.id,
+                                      )?.geometries
+                                    }
+                                    handleQuestionGeometryChange={
+                                      handleQuestionGeometryChange
+                                    }
+                                  />
+                                </span>
+                              )}
                               {question.type === QuestionTypes.OPTIONS ?
                                 <div>
                                   {question.optionType === "RADIO" &&
@@ -587,3 +650,4 @@ const ResponseForm = ({
 };
 
 export { ResponseForm };
+export { type ModalGeometry };
