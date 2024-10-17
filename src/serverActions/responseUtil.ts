@@ -1,8 +1,11 @@
 "use server";
 
+import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
 import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
+import { Console } from "console";
 import { revalidateTag } from "next/cache";
+import { Coordinate } from "ol/coordinate";
 
 interface ResponseToAdd {
   questionId: number;
@@ -21,6 +24,7 @@ interface ResponseToUpdate {
 const addResponses = async (
   assessmentId: number,
   responses: ResponseToAdd[],
+  geometriesByQuestion: { questionId: number; geometries: ModalGeometry[] }[],
   userId: string,
   endAssessment: boolean,
 ) => {
@@ -172,6 +176,49 @@ const addResponses = async (
     return {
       statusCode: 2,
     };
+  }
+  //GEOMETRIES
+
+  //console.log(geometriesByQuestion);
+
+  for (const geometryByQuestion of geometriesByQuestion) {
+    const { questionId, geometries } = geometryByQuestion;
+    const wktGeometries = geometries
+      .map((geometry) => {
+        const { type, coordinates } = geometry;
+        if (type === "Point") {
+          const [longitude, latitude] = coordinates as number[];
+          return `POINT(${longitude} ${latitude})`;
+        } else if (type === "Polygon") {
+          const polygonCoordinates = (coordinates as Coordinate[][])
+            .map((ring) =>
+              ring
+                .map(([longitude, latitude]) => `${longitude} ${latitude}`)
+                .join(", "),
+            )
+            .join("), (");
+
+          return `POLYGON((${polygonCoordinates}))`;
+        }
+      })
+      .join(", ");
+
+    if (wktGeometries.length !== 0) {
+      const geoText = `GEOMETRYCOLLECTION(${wktGeometries})`;
+      await prisma.$executeRaw`
+  INSERT INTO question_geometry (assessment_id, question_id, geometry)
+  VALUES (${assessmentId}, ${questionId}, ST_GeomFromText(${geoText}, 4326))
+  ON CONFLICT (assessment_id, question_id)
+  DO UPDATE SET geometry = ST_GeomFromText(${geoText}, 4326)
+`;
+    } else {
+      await prisma.$executeRaw`
+  INSERT INTO question_geometry (assessment_id, question_id, geometry)
+  VALUES (${assessmentId}, ${questionId}, NULL)
+  ON CONFLICT (assessment_id, question_id)
+  DO UPDATE SET geometry = NULL
+`;
+    }
   }
 };
 

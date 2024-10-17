@@ -3,6 +3,7 @@
 import {
   AssessmentWithResposes,
   CategoryWithSubcategoryAndQuestion,
+  FetchedAssessmentGeometries,
   ResponseCalculation,
 } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { Button } from "@/components/button";
@@ -34,11 +35,13 @@ const ResponseForm = ({
   locationId,
   categoriesObj,
   assessment,
+  fetchedGeometries,
 }: {
   userId: string;
   locationId: number;
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
   assessment: AssessmentWithResposes;
+  fetchedGeometries: FetchedAssessmentGeometries;
 }) => {
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
@@ -75,7 +78,18 @@ const ResponseForm = ({
 
   const [geometries, setGeometries] = useState<
     { questionId: number; geometries: ModalGeometry[] }[]
-  >([]);
+  >(() => {
+    return fetchedGeometries.map((fetchedGeometry) => {
+      const { questionId, geometry } = fetchedGeometry;
+      if (!geometry) {
+        return { questionId, geometries: [] };
+      }
+
+      //TODO: transform WKT to ModalGeometry
+      return { questionId, geometries: [] };
+      const geometries: ModalGeometry[] = [];
+    });
+  });
 
   const handleQuestionGeometryChange = (
     questionId: number,
@@ -99,7 +113,6 @@ const ResponseForm = ({
   };
 
   const [assessmentEnded, setAssessmentEnded] = useState(false);
-  console.log(geometries);
   const handleCheckboxResponseChange = (
     checked: boolean,
     questionId: number,
@@ -207,7 +220,13 @@ const ResponseForm = ({
         response: value,
       }),
     );
-    void addResponses(assessment.id, responsesArray, userId, endAssessment);
+    void addResponses(
+      assessment.id,
+      responsesArray,
+      geometries,
+      userId,
+      endAssessment,
+    );
     setAssessmentEnded(endAssessment);
   };
 

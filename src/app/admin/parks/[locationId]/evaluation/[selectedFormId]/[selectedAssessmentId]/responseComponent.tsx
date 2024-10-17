@@ -1,5 +1,8 @@
 import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
-import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
+import {
+  fetchAssessmentGeometries,
+  fetchAssessmentWithResponses,
+} from "@/serverActions/assessmentUtil";
 import { CalculationTypes, Question } from "@prisma/client";
 
 interface ResponseCalculation {
@@ -28,14 +31,20 @@ type AssessmentWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentWithResponses>>
 >;
 
+type FetchedAssessmentGeometries = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentGeometries>>
+>;
+
 const ResponseComponent = ({
   locationId,
   userId,
   assessment,
+  initialGeometries,
 }: {
   locationId: number;
   userId: string;
   assessment: AssessmentWithResposes;
+  initialGeometries: FetchedAssessmentGeometries;
 }) => {
   const questions = assessment?.form.questions;
 
@@ -104,6 +113,7 @@ const ResponseComponent = ({
           locationId={locationId}
           categoriesObj={categories}
           assessment={assessment}
+          fetchedGeometries={initialGeometries}
         />
       </div>
     </div>
@@ -115,4 +125,5 @@ export {
   type CategoryWithSubcategoryAndQuestion,
   type AssessmentWithResposes,
   type ResponseCalculation,
+  type FetchedAssessmentGeometries,
 };

@@ -1,5 +1,8 @@
 import { validateRequest } from "@/lib/lucia";
-import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
+import {
+  fetchAssessmentGeometries,
+  fetchAssessmentWithResponses,
+} from "@/serverActions/assessmentUtil";
 import { searchFormById } from "@/serverActions/formUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
@@ -25,6 +28,9 @@ const Responses = async ({
   const assessment = await fetchAssessmentWithResponses(
     Number(params.selectedAssessmentId),
   );
+  const initialGeometries = await fetchAssessmentGeometries(
+    Number(params.selectedAssessmentId),
+  );
   if (assessment?.userId !== user.id) redirect("/error");
   // TODO: add error handling
   return locationName == null ?
@@ -39,6 +45,7 @@ const Responses = async ({
               assessment={assessment}
               userId={user.id}
               locationId={Number(params.locationId)}
+              initialGeometries={initialGeometries}
             />
           </div>
         : <div className="text-redwood">

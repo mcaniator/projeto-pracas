@@ -146,6 +146,18 @@ const fetchMultipleAssessmentsWithResponses = async (
   return assessments;
 };
 
+const fetchAssessmentGeometries = async (assessmentId: number) => {
+  const geometries = await prisma.$queryRaw<
+    { questionId: number; geometry: string | null }[]
+  >`
+    SELECT question_id as "questionId", ST_AsText(geometry) as geometry
+    FROM question_geometry
+    WHERE assessment_id = ${assessmentId}
+  `;
+
+  return geometries;
+};
+
 const fetchAssessmentWithResponses = async (assessmentId: number) => {
   const assessment = await prisma.assessment.findUnique({
     where: {
@@ -205,6 +217,7 @@ const redirectToFormsList = (locationId: number) => {
 export {
   createAssessment,
   deleteAssessment,
+  fetchAssessmentGeometries,
   fetchAssessmentsInProgresss,
   fetchAssessmentsForAssessmentList,
   fetchMultipleAssessmentsWithResponses,

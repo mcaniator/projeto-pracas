@@ -300,7 +300,22 @@ model Question {
   updatedAt      DateTime         @updatedAt @map("updated_at")
   ResponseOption ResponseOption[]
 
+  geometries QuestionGeometry[]
+
   @@map("question")
+}
+
+model QuestionGeometry {
+  id           Int        @id @default(autoincrement())
+  questionId   Int        @map("question_id")
+  question     Question   @relation(fields: [questionId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+
+  geometry Unsupported("Geometry")?
+
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@map("question_geometry")
 }
 
 model Calculation {
@@ -330,8 +345,6 @@ model Response {
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
-
-  geometry Unsupported("Geometry")?
 
   response  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
@@ -370,8 +383,6 @@ model ResponseOption {
 
   optionId Int?    @map("option_id")
   option   Option? @relation(fields: [optionId], references: [id])
-
-  geometry Unsupported("Geometry")?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -521,6 +532,8 @@ model Assessment {
   question       Question[]
   response       Response[]
   responseOption ResponseOption[]
+
+  geometries QuestionGeometry[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

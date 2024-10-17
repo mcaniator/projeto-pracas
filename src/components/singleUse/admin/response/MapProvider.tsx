@@ -182,7 +182,6 @@ const MapProvider = forwardRef(
         setSelectedFeature(null);
       }
     };
-    console.log(mapMode);
     const switchMode = () => {
       if (mapMode === "DRAW") {
         const interactions = map.getInteractions();
