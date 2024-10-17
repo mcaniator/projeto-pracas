@@ -89,9 +89,13 @@ const MapProvider = forwardRef(
         },
       );
       const interactions = map.getInteractions();
+      let hasModifyListener = false;
       interactions.forEach((interaction) => {
         if (interaction instanceof Draw) {
           map.removeInteraction(interaction);
+        }
+        if (interaction instanceof Modify) {
+          hasModifyListener = true;
         }
       });
       const draw = new Draw({
@@ -99,9 +103,10 @@ const MapProvider = forwardRef(
         type: drawType,
       });
       map.addInteraction(draw);
-
-      const modify = new Modify({ source: vectorSource.current });
-      map.addInteraction(modify);
+      if (!hasModifyListener) {
+        const modify = new Modify({ source: vectorSource.current });
+        map.addInteraction(modify);
+      }
 
       return () => {
         map.setTarget(undefined);
