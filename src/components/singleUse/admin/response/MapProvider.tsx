@@ -110,6 +110,7 @@ const MapProvider = forwardRef(
 
     const loadInitialGeometries = useCallback(() => {
       if (initialGeometries) {
+        vectorSource.current.clear();
         initialGeometries.forEach((geometry) => {
           let feature;
           if (geometry.type === "Point") {
