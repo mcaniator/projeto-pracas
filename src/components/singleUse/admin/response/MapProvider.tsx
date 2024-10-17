@@ -26,6 +26,7 @@ import { ModalGeometry } from "./responseForm";
 interface MapProviderProps {
   questionId: number;
   initialGeometries: ModalGeometry[] | undefined;
+  drawType: "Point" | "Polygon";
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ModalGeometry[],
@@ -39,6 +40,7 @@ const MapProvider = forwardRef(
     {
       questionId,
       initialGeometries,
+      drawType,
       handleQuestionGeometryChange,
     }: MapProviderProps,
     ref,
@@ -86,9 +88,15 @@ const MapProvider = forwardRef(
           timeout: 60000,
         },
       );
+      const interactions = map.getInteractions();
+      interactions.forEach((interaction) => {
+        if (interaction instanceof Draw) {
+          map.removeInteraction(interaction);
+        }
+      });
       const draw = new Draw({
         source: vectorSource.current,
-        type: "Polygon",
+        type: drawType,
       });
       map.addInteraction(draw);
 
@@ -98,7 +106,7 @@ const MapProvider = forwardRef(
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, view]);
+    }, [map, view, drawType]);
 
     const loadInitialGeometries = useCallback(() => {
       if (initialGeometries) {
@@ -107,7 +115,7 @@ const MapProvider = forwardRef(
           if (geometry.type === "Point") {
             feature = new Feature(new Point(geometry.coordinates as number[]));
           } else if (geometry.type === "Polygon") {
-            console.log(geometry.coordinates);
+            //console.log(geometry.coordinates);
             feature = new Feature(
               new Polygon(geometry.coordinates as number[]),
             );
@@ -125,18 +133,17 @@ const MapProvider = forwardRef(
 
     const getGeometries = useCallback(() => {
       const features = vectorSource.current.getFeatures();
-      const geometries = features.map((feature) => {
-        const geometry = feature.getGeometry();
-        if (
-          geometry &&
-          (geometry instanceof Point || geometry instanceof Polygon)
-        ) {
-          return {
-            type: geometry.getType(),
-            coordinates: geometry.getCoordinates(),
-          };
-        }
-      });
+      const geometries = features
+        .map((feature) => {
+          const geometry = feature.getGeometry();
+          if (geometry instanceof Point || geometry instanceof Polygon) {
+            return {
+              type: geometry.getType(),
+              coordinates: geometry.getCoordinates(),
+            };
+          }
+        })
+        .filter((g) => g !== undefined);
       if (geometries !== undefined) {
         handleQuestionGeometryChange(questionId, geometries);
       }

@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import { IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -12,20 +12,26 @@ import {
 } from "react-aria-components";
 
 import MapProvider from "./MapProvider";
-import { ModalGeometry } from "./responseForm";
+import { ModalGeometry, ResponseGeometry } from "./responseForm";
 
 const MapPopup = ({
   questionId,
   initialGeometries,
+  geometryType,
   handleQuestionGeometryChange,
 }: {
   questionId: number;
   initialGeometries: ModalGeometry[] | undefined;
+  geometryType: ResponseGeometry;
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ModalGeometry[],
   ) => void;
 }) => {
+  const [currentGeometryType, setCurrentGeometryType] =
+    useState<ResponseGeometry>(
+      geometryType === "POINT_AND_POLYGON" ? "POINT" : geometryType,
+    );
   const mapProviderRef = useRef<{
     saveGeometries: () => void;
   } | null>(null);
@@ -73,6 +79,26 @@ const MapPopup = ({
                       <IconX />
                     </Button>
                   </div>
+                  {geometryType === "POINT" && <div>Ponto</div>}
+                  {geometryType === "POLYGON" && <div>Polígono</div>}
+                  {geometryType === "POINT_AND_POLYGON" && (
+                    <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                      <Button
+                        variant={"ghost"}
+                        onPress={() => setCurrentGeometryType("POINT")}
+                        className={`rounded-xl px-4 py-1 ${currentGeometryType === "POINT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      >
+                        Ponto
+                      </Button>
+                      <Button
+                        variant={"ghost"}
+                        onPress={() => setCurrentGeometryType("POLYGON")}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 ${currentGeometryType === "POLYGON" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      >
+                        Poligono
+                      </Button>
+                    </div>
+                  )}
 
                   <div className="h-96 w-full rounded-lg bg-gray-200">
                     <MapProvider
@@ -80,6 +106,9 @@ const MapPopup = ({
                       initialGeometries={initialGeometries}
                       handleQuestionGeometryChange={
                         handleQuestionGeometryChange
+                      }
+                      drawType={
+                        currentGeometryType === "POINT" ? "Point" : "Polygon"
                       }
                       ref={mapProviderRef}
                     ></MapProvider>

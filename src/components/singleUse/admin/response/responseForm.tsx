@@ -24,8 +24,10 @@ import { MapPopup } from "./MapPopup";
 
 interface ModalGeometry {
   type: Type;
-  coordinates: Coordinate | Coordinate[];
+  coordinates: Coordinate | Coordinate[][];
 }
+
+type ResponseGeometry = "POINT" | "POLYGON" | "POINT_AND_POLYGON";
 
 const ResponseForm = ({
   userId,
@@ -77,8 +79,9 @@ const ResponseForm = ({
 
   const handleQuestionGeometryChange = (
     questionId: number,
-    modalGeometries: ModalGeometry[],
+    modalGeometries: ModalGeometry[] | undefined,
   ) => {
+    if (!modalGeometries) return;
     //console.log(modalGeometries);
     setGeometries((prev) => {
       if (prev.some((p) => p.questionId === questionId)) {
@@ -348,6 +351,11 @@ const ResponseForm = ({
                             geometries.find((g) => g.questionId === question.id)
                               ?.geometries
                           }
+                          geometryType={
+                            question.geometryTypes.length > 1 ?
+                              "POINT_AND_POLYGON"
+                            : question.geometryTypes[0]!
+                          }
                           handleQuestionGeometryChange={
                             handleQuestionGeometryChange
                           }
@@ -490,6 +498,11 @@ const ResponseForm = ({
                                       geometries.find(
                                         (g) => g.questionId === question.id,
                                       )?.geometries
+                                    }
+                                    geometryType={
+                                      question.geometryTypes.length > 1 ?
+                                        "POINT_AND_POLYGON"
+                                      : question.geometryTypes[0]!
                                     }
                                     handleQuestionGeometryChange={
                                       handleQuestionGeometryChange
@@ -651,4 +664,4 @@ const ResponseForm = ({
 };
 
 export { ResponseForm };
-export { type ModalGeometry };
+export { type ModalGeometry, type ResponseGeometry };
