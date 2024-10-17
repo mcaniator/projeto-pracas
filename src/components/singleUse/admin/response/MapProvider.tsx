@@ -1,10 +1,12 @@
 "use client";
 
+import { Button } from "@/components/button";
+import { IconPointer, IconShape } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
 import { Point, Polygon } from "ol/geom";
-import { Draw, Modify } from "ol/interaction";
+import { Draw, Modify, Select } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import "ol/ol.css";
@@ -19,9 +21,12 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from "react";
 
 import { ModalGeometry } from "./responseForm";
+
+type MapMode = "DRAW" | "SELECT";
 
 interface MapProviderProps {
   questionId: number;
@@ -46,6 +51,10 @@ const MapProvider = forwardRef(
     ref,
   ) => {
     useGeographic();
+    const [mapMode, setMapMode] = useState<MapMode>("DRAW");
+    const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
+      null,
+    );
     const vectorSource = useRef<VectorSource>(new VectorSource());
 
     const mapRef = useRef<HTMLDivElement>(null);
@@ -104,8 +113,20 @@ const MapProvider = forwardRef(
       });
       map.addInteraction(draw);
       if (!hasModifyListener) {
-        const modify = new Modify({ source: vectorSource.current });
+        const modify = new Modify({
+          source: vectorSource.current,
+        });
         map.addInteraction(modify);
+        const selectInteraction = new Select();
+        map.addInteraction(selectInteraction);
+        selectInteraction.on("select", (event) => {
+          const selected = event.selected[0];
+          if (selected) {
+            setSelectedFeature(selected);
+          } else {
+            setSelectedFeature(null);
+          }
+        });
       }
 
       return () => {
@@ -155,8 +176,35 @@ const MapProvider = forwardRef(
       }
     }, [handleQuestionGeometryChange, questionId]);
 
+    const removeSelectedFeature = () => {
+      if (selectedFeature) {
+        vectorSource.current.removeFeature(selectedFeature);
+        setSelectedFeature(null);
+      }
+    };
+    console.log(mapMode);
+    const switchMode = () => {
+      if (mapMode === "DRAW") {
+        const interactions = map.getInteractions();
+        interactions.forEach((interaction) => {
+          if (interaction instanceof Draw) {
+            map.removeInteraction(interaction);
+          }
+        });
+        setMapMode("SELECT");
+      } else {
+        const draw = new Draw({
+          source: vectorSource.current,
+          type: drawType,
+        });
+        map.addInteraction(draw);
+        setMapMode("DRAW");
+      }
+    };
+
     useImperativeHandle(ref, () => ({
       saveGeometries: getGeometries,
+      removeSelectedFeature: removeSelectedFeature,
     }));
 
     return (
@@ -165,6 +213,10 @@ const MapProvider = forwardRef(
         className={"h-full w-full overflow-clip rounded-tl-3xl"}
         ref={mapRef}
       >
+        <Button variant={"admin"} onPress={() => switchMode()}>
+          {mapMode === "DRAW" && <IconPointer></IconPointer>}
+          {mapMode === "SELECT" && <IconShape></IconShape>}
+        </Button>
         <MapContext.Provider value={map}></MapContext.Provider>
       </div>
     );

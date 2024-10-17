@@ -34,11 +34,18 @@ const MapPopup = ({
     );
   const mapProviderRef = useRef<{
     saveGeometries: () => void;
+    removeSelectedFeature: () => void;
   } | null>(null);
 
   const handleConcluir = () => {
     if (mapProviderRef.current) {
       mapProviderRef.current.saveGeometries();
+    }
+  };
+
+  const handleDeleteGeometry = () => {
+    if (mapProviderRef.current) {
+      mapProviderRef.current.removeSelectedFeature();
     }
   };
   //console.log("Geometrias salvas:", geometries);
@@ -113,8 +120,15 @@ const MapPopup = ({
                       ref={mapProviderRef}
                     ></MapProvider>
                   </div>
+                  <span className="flex justify-between">
+                    <Button
+                      variant={"destructive"}
+                      className="w-fit"
+                      onPress={() => handleDeleteGeometry()}
+                    >
+                      Excluir geometria selecionada
+                    </Button>
 
-                  <span className="ml-auto">
                     <Button
                       variant={"constructive"}
                       className="w-fit"
