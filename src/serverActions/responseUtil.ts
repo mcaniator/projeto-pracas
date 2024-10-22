@@ -179,8 +179,6 @@ const addResponses = async (
   }
   //GEOMETRIES
 
-  //console.log(geometriesByQuestion);
-
   for (const geometryByQuestion of geometriesByQuestion) {
     const { questionId, geometries } = geometryByQuestion;
     const wktGeometries = geometries

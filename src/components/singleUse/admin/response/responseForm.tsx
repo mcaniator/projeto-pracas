@@ -86,11 +86,32 @@ const ResponseForm = ({
       }
 
       //TODO: transform WKT to ModalGeometry
-      return { questionId, geometries: [] };
+
       const geometries: ModalGeometry[] = [];
+      const geometriesWithoutCollection = geometry
+        .replace("GEOMETRYCOLLECTION(", "")
+        .slice(0, -1);
+      const geometriesStrs = geometriesWithoutCollection.split(
+        /,(?=(?:[^()]*\([^()]*\))*[^()]*$)/,
+      );
+      //console.log(geometriesStrs);
+      for (const geometry of geometriesStrs) {
+        if (geometry.startsWith("POINT")) {
+          const geometryPointsStr = geometry
+            .replace("POINT(", "")
+            .replace(")", "");
+          const geometryPoints = geometryPointsStr.split(" ");
+          const geometryPointsNumber: number[] = [];
+          for (const geo of geometryPoints) {
+            geometryPointsNumber.push(Number(geo));
+          }
+          geometries.push({ type: "Point", coordinates: geometryPointsNumber });
+        }
+      }
+      return { questionId, geometries: geometries };
     });
   });
-
+  console.log(geometries);
   const handleQuestionGeometryChange = (
     questionId: number,
     modalGeometries: ModalGeometry[] | undefined,
