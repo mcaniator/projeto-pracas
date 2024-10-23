@@ -30,7 +30,7 @@ const LocationComponent = ({
           handleSelectedLocationsAddition({
             id,
             tallysIds: [],
-            responses: [],
+            assessments: [],
             exportRegistrationInfo: false,
           });
         }}

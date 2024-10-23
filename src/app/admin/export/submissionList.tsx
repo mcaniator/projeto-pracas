@@ -1,23 +1,23 @@
 "use client";
 
-import { SubmissionGroup } from "./editPage";
+import { LocationAssessment } from "@/serverActions/assessmentUtil";
 
 const SubmissionComponent = ({
   checked,
-  submissionGroup,
-  handleSubmissionGroupChange,
+  assessment,
+  handleAssessmentChange,
 }: {
   checked: boolean;
-  submissionGroup: SubmissionGroup;
-  handleSubmissionGroupChange(
+  assessment: LocationAssessment;
+  handleAssessmentChange: (
     checked: boolean,
-    submissionGroup: SubmissionGroup,
+    assessment: LocationAssessment,
     removeSaveState: boolean,
-  ): void;
+  ) => void;
 }) => {
   const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!(e.target instanceof HTMLInputElement)) {
-      handleSubmissionGroupChange(!checked, submissionGroup, true);
+      handleAssessmentChange(!checked, assessment, true);
     }
   };
   return (
@@ -31,14 +31,10 @@ const SubmissionComponent = ({
           checked={checked}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
-            handleSubmissionGroupChange(
-              e.target.checked,
-              submissionGroup,
-              true,
-            );
+            handleAssessmentChange(e.target.checked, assessment, true);
           }}
         />
-        {submissionGroup.date.toLocaleString("pt-BR", {
+        {assessment.startDate.toLocaleString("pt-BR", {
           weekday: "short",
           day: "2-digit",
           month: "2-digit",
@@ -47,44 +43,43 @@ const SubmissionComponent = ({
           minute: "2-digit",
         }) +
           ", " +
-          submissionGroup.formName +
+          assessment.form.name +
           ", Versão: " +
-          submissionGroup.formVersion +
+          assessment.form.version +
           ", " +
-          submissionGroup.username}
+          assessment.user.username}
       </span>
     </div>
   );
 };
 
 const SubmissionList = ({
-  submissionsGroups,
-  selectedSubmissionsGroups,
-  handleSubmissionGroupChange,
+  assessments,
+  selectedAssessments,
+  handleAssessmentChange,
 }: {
-  submissionsGroups: SubmissionGroup[];
-  selectedSubmissionsGroups: SubmissionGroup[];
-  handleSubmissionGroupChange(
+  assessments: LocationAssessment[];
+  selectedAssessments: LocationAssessment[];
+  handleAssessmentChange: (
     checked: boolean,
-    submissionGroup: SubmissionGroup,
+    assessment: LocationAssessment,
     removeSaveState: boolean,
-  ): void;
+  ) => void;
 }) => {
-  submissionsGroups.sort((a, b) => b.date.getTime() - a.date.getTime());
-  return submissionsGroups === undefined ?
+  assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+  return assessments === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
     : <div className="w-full overflow-auto p-2 text-black">
-        {submissionsGroups.map((submissionGroup) => {
-          const checked = selectedSubmissionsGroups?.some(
-            (selectedSubmissionsGroup) =>
-              selectedSubmissionsGroup.id === submissionGroup.id,
+        {assessments.map((assessment) => {
+          const checked = selectedAssessments?.some(
+            (selectedAssessment) => selectedAssessment.id === assessment.id,
           );
           return (
             <SubmissionComponent
-              key={submissionGroup.id}
+              key={assessment.id}
               checked={checked}
-              submissionGroup={submissionGroup}
-              handleSubmissionGroupChange={handleSubmissionGroupChange}
+              assessment={assessment}
+              handleAssessmentChange={handleAssessmentChange}
             />
           );
         })}

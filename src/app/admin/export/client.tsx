@@ -1,6 +1,6 @@
 "use client";
 
-import { FetchedSubmission } from "@/serverActions/exportToCSV";
+import { LocationAssessment } from "@/serverActions/assessmentUtil";
 import { useState } from "react";
 
 import { EditPage } from "./editPage";
@@ -9,7 +9,7 @@ import { ExportHome } from "./exportHome";
 type ExportPageModes = "HOME" | "EDIT";
 interface SelectedLocationObj {
   id: number;
-  responses: FetchedSubmission[];
+  assessments: LocationAssessment[];
   exportRegistrationInfo: boolean;
   tallysIds: number[];
 }
@@ -51,7 +51,7 @@ const ExportClientPage = ({
   };
   const handleSelectedLocationObjChange = (
     locationId: number,
-    responses: FetchedSubmission[],
+    assessments: LocationAssessment[],
     tallysIds: number[] | undefined,
     exportRegistrationInfo: boolean,
   ) => {
@@ -61,7 +61,7 @@ const ExportClientPage = ({
           {
             ...locationObj,
             exportRegistrationInfo: exportRegistrationInfo,
-            ...(responses && { responses: responses }),
+            ...(assessments && { assessments: assessments }),
             ...(tallysIds && { tallysIds: tallysIds }),
           }
         : locationObj,
@@ -104,7 +104,7 @@ const ExportClientPage = ({
   ) => {
     setPageState({ pageMode, currentLocation: id });
   };
-  //console.log(selectedLocationsObjs);
+
   return (
     <div className="flex h-full max-h-full min-h-0 max-w-full gap-5 p-5">
       <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">

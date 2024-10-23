@@ -70,10 +70,14 @@ const ExportHome = ({
     }
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
-      (location) => location.responses.length > 0,
+      (location) => location.assessments.length > 0,
     );
     const csvObjs = await exportEvaluation(
-      locationsToExportEvaluations.map((location) => location.responses).flat(),
+      locationsToExportEvaluations
+        .map((location) =>
+          location.assessments.map((assessment) => assessment.id),
+        )
+        .flat(),
     );
     for (const csvObj of csvObjs) {
       const blob = new Blob([csvObj.csvString]);

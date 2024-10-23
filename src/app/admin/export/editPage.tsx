@@ -3,11 +3,10 @@
 import { Button } from "@/components/button";
 import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FetchedSubmission } from "@/serverActions/exportToCSV";
 import {
-  searchResponsesByLocation,
-  searchResponsesOptionsByLocation,
-} from "@/serverActions/responseUtil";
+  LocationAssessment,
+  fetchAssessmentsByLocation,
+} from "@/serverActions/assessmentUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import {
   IconArrowBackUp,
@@ -17,7 +16,7 @@ import {
   IconDeviceFloppy,
   IconX,
 } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 
 import {
@@ -29,14 +28,6 @@ import { SubmissionList } from "./submissionList";
 import { TallyList } from "./tallyList";
 
 type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
-
-interface SubmissionGroup {
-  id: number;
-  date: Date;
-  username: string;
-  formName: string;
-  formVersion: number;
-}
 
 const EditPage = ({
   locationId,
@@ -61,7 +52,7 @@ const EditPage = ({
   ) => void;
   handleSelectedLocationObjChange: (
     locationId: number,
-    responses: FetchedSubmission[],
+    assessments: LocationAssessment[],
     tallysIds: number[] | undefined,
     exportRegistrationInfo: boolean,
   ) => void;
@@ -72,10 +63,10 @@ const EditPage = ({
   const [fetchedTallys, setFetchedTallys] = useState<
     TallyDataFetchedToTallyList[] | null
   >(null);
-  const [fetchedSubmissionsStatus, setFetchedSubmissionsStatus] =
+  const [fetchedAssessmentsStatus, setFetchedAssessmentsStatus] =
     useState<FetchedDataStatus>("LOADING");
-  const [fetchedSubmissionsGroups, setFetchedSubmissionsGroups] = useState<
-    SubmissionGroup[]
+  const [fetchedAssessments, setFetchedAssessments] = useState<
+    LocationAssessment[]
   >([]);
   useEffect(() => {
     setCurrentLocationId(locationId);
@@ -91,69 +82,26 @@ const EditPage = ({
           setFetchedTallysStatus("ERROR");
         }
       };
-      const fetchSubmissions = async () => {
+      const fetchAssessments = async () => {
+        if (!currentLocationId) {
+          setFetchedAssessmentsStatus("ERROR");
+          return;
+        }
         try {
-          const responses = await searchResponsesByLocation(currentLocationId);
-          const responsesWithType: FetchedSubmission[] = responses.map(
-            (response) => ({ ...response, type: "RESPONSE" }),
-          );
-          const responsesOptions =
-            await searchResponsesOptionsByLocation(currentLocationId);
-          const responsesOptionsWithType: FetchedSubmission[] =
-            responsesOptions.map((responseOption) => ({
-              ...responseOption,
-              type: "RESPONSE_OPTION",
-            }));
-          const allResponsesWithType = responsesWithType.concat(
-            responsesOptionsWithType,
-          );
-          allResponsesWithTypeRef.current = allResponsesWithType;
-          const groupedResponses = allResponsesWithType.reduce(
-            (acc, response) => {
-              const date = response.createdAt.toISOString();
-              if (date) {
-                const key = `${date}-${response.form.id}-${response.formVersion}-${response.user.id}`;
-                if (!acc[key]) {
-                  acc[key] = [];
-                }
-                acc[key].push(response);
-              }
-              return acc;
-            },
-            {} as { [key: string]: typeof responses },
-          );
-          const groupedResponsesKeys = Object.keys(groupedResponses);
-          const groupedResponsesObjs: SubmissionGroup[] = [];
-          for (let i = 0; i < groupedResponsesKeys.length; i++) {
-            const key = groupedResponsesKeys[i];
-            if (key) {
-              const currentGroup = groupedResponses[key];
-              if (currentGroup)
-                groupedResponsesObjs.push({
-                  id: i,
-                  date: currentGroup[0]?.createdAt || new Date(0),
-                  formVersion: currentGroup[0]?.formVersion || -1,
-                  formName: currentGroup[0]?.form.name || "ERRO",
-                  username: currentGroup[0]?.user.username || "",
-                });
-            }
-          }
-          setFetchedSubmissionsGroups(groupedResponsesObjs);
-          setFetchedSubmissionsStatus("LOADED");
+          const assessments =
+            await fetchAssessmentsByLocation(currentLocationId);
+          setFetchedAssessments(assessments);
+          setFetchedAssessmentsStatus("LOADED");
         } catch (error) {
-          setFetchedSubmissionsStatus("ERROR");
+          setFetchedAssessmentsStatus("ERROR");
         }
       };
       fetchTallys().catch(() => ({ statusCode: 1 }));
-      fetchSubmissions().catch(() => ({ statusCode: 1 }));
+      fetchAssessments().catch(() => ({ statusCode: 1 }));
     }
   }, [currentLocationId]);
-  const [selectedSubmissionsGroups, setSelectedSubmissionsGroups] = useState<
-    SubmissionGroup[]
-  >([]);
-  const allResponsesWithTypeRef = useRef<FetchedSubmission[]>([]);
-  const [selectedSubmissions, setSelectedSubmissions] = useState<
-    FetchedSubmission[]
+  const [selectedAssessments, setSelectedAssessments] = useState<
+    LocationAssessment[]
   >([]);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
   const [exportRegistrationInfo, setExportRegistrationInfo] =
@@ -169,7 +117,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
-            selectedSubmissions,
+            selectedAssessments,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -189,7 +137,7 @@ const EditPage = ({
           handleSelectedLocationsSaveChange(currentLocationId, true);
           handleSelectedLocationObjChange(
             currentLocationId,
-            selectedSubmissions,
+            selectedAssessments,
             selectedTallys,
             exportRegistrationInfo,
           );
@@ -207,28 +155,26 @@ const EditPage = ({
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
   };
-  const handleSubmissionGroupChange = (
+  const handleAssessmentChange = (
     checked: boolean,
-    submissionGroup: SubmissionGroup,
+    assessment: LocationAssessment,
     removeSaveState: boolean,
   ) => {
     if (checked) {
-      if (!selectedSubmissionsGroups.includes(submissionGroup)) {
-        setSelectedSubmissionsGroups((prev) => [...prev, submissionGroup]);
+      if (!selectedAssessments.some((a) => a.id === assessment.id)) {
+        setSelectedAssessments((prev) => [...prev, assessment]);
       }
-    } else if (selectedSubmissionsGroups.includes(submissionGroup)) {
-      setSelectedSubmissionsGroups((prev) =>
-        prev.filter(
-          (prevSubmissionGroup) =>
-            prevSubmissionGroup.id !== submissionGroup.id,
-        ),
+    } else if (selectedAssessments.some((a) => a.id === assessment.id)) {
+      setSelectedAssessments((prev) =>
+        prev.filter((prevAssesssment) => prevAssesssment.id !== assessment.id),
       );
     }
     if (removeSaveState && currentLocationId) {
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
   };
-  useEffect(() => {
+  //console.log(selectedLocationsObjs);
+  /*useEffect(() => {
     const submissionsToAddDates = fetchedSubmissionsGroups
       .filter((group) =>
         selectedSubmissionsGroups.some(
@@ -244,7 +190,7 @@ const EditPage = ({
         ),
       ),
     );
-  }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);
+  }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);*/
 
   const handleTallyChange = (
     checked: boolean,
@@ -268,23 +214,22 @@ const EditPage = ({
     if (currentLocationObj) {
       setSelectedTallys(currentLocationObj.tallysIds);
       setExportRegistrationInfo(currentLocationObj.exportRegistrationInfo);
-      setSelectedSubmissionsGroups(
-        fetchedSubmissionsGroups.filter((fetchedSubmissionGroup) =>
-          currentLocationObj.responses.some(
-            (response) =>
-              response.createdAt.toISOString() ===
-              fetchedSubmissionGroup.date.toISOString(),
+      setSelectedAssessments(
+        fetchedAssessments.filter((fetchedAssessment) =>
+          currentLocationObj.assessments.some(
+            (assessment) => assessment.id === fetchedAssessment.id,
           ),
         ),
       );
     }
-  }, [currentLocationId, selectedLocationsObjs, fetchedSubmissionsGroups]);
+  }, [currentLocationId, selectedLocationsObjs, fetchedAssessments]);
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
   const locationName =
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
+  //console.log(selectedAssessments);
   return (
     <div className="flex h-full flex-col gap-1 overflow-auto">
       <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
@@ -297,17 +242,17 @@ const EditPage = ({
         <label htmlFor="registration-info">Informações de cadastro</label>
       </div>
       <h5>Avaliações físicas</h5>
-      {fetchedSubmissionsStatus === "LOADING" && <span>Carregando...</span>}
-      {fetchedSubmissionsStatus === "ERROR" && <span>Erro!</span>}
-      {fetchedSubmissionsStatus === "LOADED" &&
-        fetchedSubmissionsGroups?.length === 0 && (
+      {fetchedAssessmentsStatus === "LOADING" && <span>Carregando...</span>}
+      {fetchedAssessmentsStatus === "ERROR" && <span>Erro!</span>}
+      {fetchedAssessmentsStatus === "LOADED" &&
+        fetchedAssessments?.length === 0 && (
           <span>Nenhuma avaliação física encontrada!</span>
         )}
-      {fetchedSubmissionsGroups && (
+      {fetchedAssessments && (
         <SubmissionList
-          submissionsGroups={fetchedSubmissionsGroups}
-          selectedSubmissionsGroups={selectedSubmissionsGroups}
-          handleSubmissionGroupChange={handleSubmissionGroupChange}
+          assessments={fetchedAssessments}
+          selectedAssessments={selectedAssessments}
+          handleAssessmentChange={handleAssessmentChange}
         ></SubmissionList>
       )}
       <h5>Contagens</h5>
@@ -356,7 +301,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
-                  selectedSubmissions,
+                  selectedAssessments,
                   selectedTallys,
                   exportRegistrationInfo,
                 );
@@ -437,7 +382,7 @@ const EditPage = ({
                 handleSelectedLocationsSaveChange(currentLocationId, true);
                 handleSelectedLocationObjChange(
                   currentLocationId,
-                  selectedSubmissions,
+                  selectedAssessments,
                   selectedTallys,
                   exportRegistrationInfo,
                 );
@@ -469,4 +414,4 @@ const EditPage = ({
 };
 
 export { EditPage };
-export { type SubmissionGroup };
+///export { type SubmissionGroup };
