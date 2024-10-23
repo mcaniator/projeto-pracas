@@ -88,6 +88,14 @@ enum UserTypes {
   @@map("user_types")
 }
 
+enum CalculationTypes {
+  SUM        @map("Sum")
+  AVERAGE    @map("Average")
+  PERCENTAGE @map("Percentage")
+
+  @@map("calculation_types")
+}
+
 enum CategoryTypes {
   FOR_SOCIAL_PRACTICES              @map("for Social Practices")
   OPEN_SPACE_FOR_NON_COLLECTIVE_USE @map("Open Space for non-Collective Use")
@@ -96,11 +104,20 @@ enum CategoryTypes {
 }
 
 enum QuestionTypes {
-  TEXT    @map("Text")
-  NUMERIC @map("Numeric")
+  WRITTEN @map("Written")
   OPTIONS @map("Options")
 
   @@map("question_types")
+}
+
+enum QuestionResponseCharacterTypes {
+  TEXT   @map("Text")
+  NUMBER @map("Number")
+}
+
+enum QuestionGeometryTypes {
+  POINT   @map("Point")
+  POLYGON @map("Polygon")
 }
 
 enum OptionTypes {
@@ -193,6 +210,8 @@ model User {
 
   auth_session Session[]
 
+  assessment Assessment[]
+
   response       Response[]
   responseOption ResponseOption[]
   tally          Tally[]
@@ -222,10 +241,11 @@ model Session {
 model Category {
   id Int @id @default(autoincrement())
 
-  name     String     @db.VarChar(255)
-  optional Boolean    @default(false)
-  active   Boolean    @default(true)
-  question Question[]
+  name        String        @db.VarChar(255)
+  optional    Boolean       @default(false)
+  active      Boolean       @default(true)
+  question    Question[]
+  calculation Calculation[]
 
   subcategory Subcategory[]
 
@@ -238,10 +258,11 @@ model Category {
 model Subcategory {
   id Int @id @default(autoincrement())
 
-  name     String     @db.VarChar(255)
-  optional Boolean    @default(false)
-  active   Boolean    @default(true)
-  question Question[]
+  name        String        @db.VarChar(255)
+  optional    Boolean       @default(false)
+  active      Boolean       @default(true)
+  question    Question[]
+  calculation Calculation[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
@@ -252,30 +273,65 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String             @db.VarChar(255)
-  optional          Boolean            @default(false)
-  active            Boolean            @default(true)
+  name              String                         @db.VarChar(255)
+  optional          Boolean                        @default(false)
+  active            Boolean                        @default(true)
   type              QuestionTypes
-  forms             QuestionsOnForms[]
+  characterType     QuestionResponseCharacterTypes @map("character_type")
+  forms             Form[]
   response          Response[]
-  responseCharLimit Int?               @map("char_limit")
+  responseCharLimit Int?                           @map("char_limit")
   minValue          Int?
   maxValue          Int?
-  optionType        OptionTypes?       @map("option_type")
+  optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?               @map("maximum_selections")
+  maximumSelections Int?                           @map("maximum_selections")
+  geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
 
-  categoryId    Int          @map("category_id")
-  category      Category     @relation(fields: [categoryId], references: [id])
-  subcategoryId Int?         @map("subcategory_id")
-  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  assessment Assessment[]
+
+  categoryId    Int           @map("category_id")
+  category      Category      @relation(fields: [categoryId], references: [id])
+  subcategoryId Int?          @map("subcategory_id")
+  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id])
   options       Option[]
+  calculation   Calculation[]
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   ResponseOption ResponseOption[]
 
+  geometries QuestionGeometry[]
+
   @@map("question")
+}
+
+model QuestionGeometry {
+  id           Int        @id @default(autoincrement())
+  questionId   Int        @map("question_id")
+  question     Question   @relation(fields: [questionId], references: [id])
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+
+  geometry Unsupported("Geometry")?
+
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@map("question_geometry")
+}
+
+model Calculation {
+  id Int @id @default(autoincrement())
+
+  type          CalculationTypes
+  name          String           @db.VarChar(255)
+  questions     Question[]
+  categoryId    Int              @map("category_id")
+  category      Category         @relation(fields: [categoryId], references: [id])
+  subcategoryId Int?             @map("subcategory_id")
+  subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
+  form          Form[]
+
+  @@map("calculation")
 }
 
 model Response {
@@ -285,19 +341,17 @@ model Response {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
-
-  formId      Int  @map("form_id")
-  form        Form @relation(fields: [formId], references: [id])
-  formVersion Int  @map("form_version")
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
   response  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("response")
 }
 
@@ -317,16 +371,13 @@ model Option {
 }
 
 model ResponseOption {
-  id         Int      @id @default(autoincrement())
-  locationId Int      @map("location_id")
-  location   Location @relation(fields: [locationId], references: [id])
+  id Int @id @default(autoincrement())
 
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  formId      Int  @map("form_id")
-  form        Form @relation(fields: [formId], references: [id])
-  formVersion Int  @map("form_version")
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -335,6 +386,7 @@ model ResponseOption {
   option   Option? @relation(fields: [optionId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("response_option")
 }
@@ -343,26 +395,15 @@ model Form {
   id      Int @id @default(autoincrement())
   version Int @default(0)
 
-  name      String             @db.VarChar(255)
-  questions QuestionsOnForms[]
-  response  Response[]
+  name         String        @db.VarChar(255)
+  questions    Question[]
+  assessment   Assessment[]
+  calculations Calculation[]
 
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  ResponseOption ResponseOption[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("form")
-}
-
-model QuestionsOnForms {
-  id Int @id @default(autoincrement())
-
-  formId     Int      @map("form_id")
-  form       Form     @relation(fields: [formId], references: [id])
-  questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  @@map("questions_on_forms")
 }
 
 // #endregion
@@ -402,13 +443,11 @@ model Location {
   broadAdministrativeUnitId        Int?
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  response   Response[]
   assessment Assessment[]
   tally      Tally[]
 
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
-  ResponseOption ResponseOption[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("location")
 }
@@ -480,49 +519,28 @@ model BroadAdministrativeUnit {
 model Assessment {
   id Int @id @default(autoincrement())
 
-  startDate DateTime @map("start_date") @db.Timestamptz()
-  endDate   DateTime @map("end_date") @db.Timestamptz()
+  startDate DateTime  @map("start_date") @db.Timestamptz()
+  endDate   DateTime? @map("end_date") @db.Timestamptz()
 
-  changedDelimitation Boolean? @map("changed_delimitation") // ? o que é alteração limites?
-  hasWifi             Boolean  @map("has_wifi")
-
-  pavedSidewalk            Boolean @map("paved_sidewalk")
-  trashCanAmount           Int     @map("trash_can_amount")
-  bathroomAmount           Int     @map("bathroom_amount")
-  payphoneAmount           Int     @map("payphone_amount")
-  drinkingFountainAmount   Int     @map("drinking_fountain_amount")
-  artworkAmount            Int     @map("artwork_amount")
-  plannedLandscapingAmount Int     @map("planned_landscaping_amount")
-  movableSeatsAmount       Int     @map("movable_seats_amount")
-
-  sidewalkCondition           Condition @map("sidewalk_condition")
-  trashCanCondition           Condition @map("trash_can_condition")
-  bathroomCondition           Condition @map("bathroom_condition")
-  payphoneCondition           Condition @map("payphone_condition")
-  drinkingFountainCondition   Condition @map("drinking_fountain_condition")
-  artworkCondition            Condition @map("artwork_condition")
-  plannedLandscapingCondition Condition @map("planned_landscaping_condition")
-  movableSeatsCondition       Condition @map("movable_seats_condition")
-
-  accessibility       Accessibility?
-  parkAccess          SurroundingArea?
-  activitiesArea      ActivitiesArea[]
-  destruction         Destruction?
-  landscaping         Landscaping[]
-  seating             Seating[]
-  event               Events?
-  trafficSafety       TrafficSafety?
-  surroundingActivity SurroundingActivity?
-  security            Security?
-  noise               Noise[]
+  userId String @db.VarChar(255)
+  user   User   @relation(fields: [userId], references: [id])
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  question       Question[]
+  response       Response[]
+  responseOption ResponseOption[]
+
+  geometries QuestionGeometry[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("Assessment")
+  @@map("assessment")
 }
 
 // #endregion
@@ -532,190 +550,18 @@ model Assessment {
 //  Campos das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-model Accessibility {
+model Noise {
   id Int @id @default(autoincrement())
 
-  surroundingSidewalkUnrestrictedLane Boolean @map("surrounding_sidewalk_unrestricted_lane")
-  surroundingSidewalkServiceLane      Boolean @map("surrounding_sidewalk_service_lane")
-  ampleHeight                         Boolean @map("ample_height")
-  signaledCrosswalk                   Boolean @map("signaled_crosswalk")
-  clearPaths                          Boolean @map("clear_paths")
-  maximumIncline                      Boolean @map("maximum_incline")
-  longitudinalIncline                 Boolean @map("longitudinal_incline")
-  tactileSignage                      Boolean @map("tactile_signage")
-  safetyCoatedFlooring                Boolean @map("safety_coated_flooring")
-  impairedParkingAmount               Int     @map("impaired_parking_amount")
-  elderlyParkingAmount                Int     @map("elderly_parking_amount")
-  accessibleRoute                     Boolean @map("accessible_route")
-  accessibleEquipment                 Boolean @map("accessible_equipment")
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  location   NoiseLocation
+  soundLevel Float                                 @map("sound_level")
+  point      Unsupported("Geometry(Point, 4326)")?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("accessibility")
-}
-
-model SurroundingArea {
-  id Int @id @default(autoincrement())
-
-  fencedWithOperatingHours Boolean @map("fenced_with_operating_hours")
-  nameplate                Boolean
-  busStandsAmount          Int     @map("bus_stands_amount")
-  taxiParkingAmount        Int     @map("taxi_parking_amount")
-  carParkingAmount         Int     @map("car_parking_amount")
-  motorcycleParkingAmount  Int     @map("motorcycle_parking_amount")
-  bikeLane                 Boolean @map("bike_lane")
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("surrounding_area")
-}
-
-model ActivitiesArea {
-  id Int @id @default(autoincrement())
-
-  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  requiredShade Boolean   @map("required_shade")
-  lighting      Boolean
-  fencing       Boolean
-  benches       Boolean
-  condition     Condition
-  report        String?   @db.Text
-
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("activities_area")
-}
-
-model Destruction {
-  id Int @id @default(autoincrement())
-
-  graffitiInterferenceLevel Interference @map("graffiti_interference_level")
-  neglectInterferenceLevel  Interference @map("neglect_interference_level")
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("destruction")
-}
-
-model Landscaping {
-  id Int @id @default(autoincrement())
-
-  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  requiredShade Boolean   @map("required_shade")
-  lighting      Boolean
-  fencing       Boolean
-  benches       Boolean
-  condition     Condition
-  report        String?   @db.Text
-
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("landscaping")
-}
-
-// ↑ condensar esses dois em um modelo só? ↓
-model Seating {
-  id Int @id @default(autoincrement())
-
-  category      Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  requiredShade Boolean   @map("required_shade")
-  lighting      Boolean
-  fencing       Boolean
-  benches       Boolean
-  condition     Condition
-  report        String?   @db.Text
-
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("seating")
-}
-
-model Events {
-  id Int @id @default(autoincrement())
-
-  yearlyIncidence Int @map("yearly_incidence")
-
-  // TODO mudar para refletir o que o Klaus falou na reunião
-  category   Int // ? Talvez seja melhor referenciar outra tabela para esse valores, assim deixando que sejam adicionados mais futuramente e que possamos ter auto-complete para o usuário
-  maintainer String @db.VarChar(255) // pelo que entendi seria o nome do responsável pela praça, não por evento
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("events")
-}
-
-model TrafficSafety {
-  id Int @id @default(autoincrement())
-
-  crosswalk    Boolean
-  trafficLight Boolean @map("traffic_light")
-  speedSignage Boolean @map("speed_signage")
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("traffic_safety")
-}
-
-model SurroundingActivity {
-  id Int @id @default(autoincrement())
-
-  surroundingEstablishments String @map("surrounding_establishments") @db.Text
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("surrounding_activity")
-}
-
-model Security {
-  id Int @id @default(autoincrement())
-
-  cameras         Boolean
-  policeStation   Boolean    @map("police_station")
-  visibilityLevel Visibility @map("visibility_level")
-
-  assessmentId Int        @unique @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("security")
+  @@index([point], name: "location_idx", type: Gist)
+  @@map("noise")
 }
 
 // #endregion
@@ -785,23 +631,6 @@ model Person {
 
   @@unique([ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "person_characteristics")
   @@map("person")
-}
-
-model Noise {
-  id Int @id @default(autoincrement())
-
-  location   NoiseLocation
-  soundLevel Float                                 @map("sound_level")
-  point      Unsupported("Geometry(Point, 4326)")?
-
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([point], name: "location_idx", type: Gist)
-  @@map("noise")
 }
 
 // #endregion

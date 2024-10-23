@@ -1,8 +1,24 @@
 "use server";
 
+import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
-import { Option, Question } from "@prisma/client";
+import { Option } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
+
+interface QuestionSearchedByStatement {
+  id: number;
+  name: string;
+  category: {
+    id: number;
+    name: string;
+  };
+
+  subcategory: {
+    id: number;
+    name: string;
+    categoryId: number;
+  } | null;
+}
 
 const handleDelete = async (questionId: number) => {
   try {
@@ -17,12 +33,42 @@ const handleDelete = async (questionId: number) => {
   }
 };
 
+const searchQuestionsByFormId = async (formId: number) => {
+  const questions = await prisma.question.findMany({
+    where: {
+      forms: {
+        some: {
+          id: formId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          categoryId: true,
+        },
+      },
+    },
+  });
+  return questions;
+};
+
 const searchQuestionsByStatement = async (statement: string) => {
   const cachedQuestions = unstable_cache(
-    async (statement: string): Promise<Question[]> => {
+    async (statement: string): Promise<DisplayQuestion[]> => {
       if (statement.length < 2) return [];
 
-      let foundQuestions: Question[] = [];
+      let foundQuestions: DisplayQuestion[] = [];
 
       try {
         foundQuestions = await prisma.question.findMany({
@@ -30,6 +76,24 @@ const searchQuestionsByStatement = async (statement: string) => {
             name: {
               contains: statement,
               mode: "insensitive",
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            characterType: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
             },
           },
         });
@@ -44,6 +108,60 @@ const searchQuestionsByStatement = async (statement: string) => {
   );
 
   return await cachedQuestions(statement);
+};
+
+const searchQuestionsByCategoryAndSubcategory = async (
+  categoryId: number | undefined,
+  subcategoryId: number | undefined,
+) => {
+  const cachedQuestions = unstable_cache(
+    async (
+      categoryId: number | undefined,
+      subcategoryId: number | undefined,
+    ): Promise<DisplayQuestion[]> => {
+      let foundQuestions: DisplayQuestion[] = [];
+      if (!categoryId) return [];
+      try {
+        foundQuestions = await prisma.question.findMany({
+          where: {
+            categoryId,
+            subcategoryId: subcategoryId ? subcategoryId : null,
+          },
+          select: {
+            id: true,
+            name: true,
+            characterType: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
+            },
+          },
+        });
+      } catch (err) {
+        // console.error(err);
+      }
+
+      return foundQuestions;
+    },
+    ["searchQuestionsByStatementCache"],
+    { tags: ["question"] },
+  );
+  const questions = await cachedQuestions(categoryId, subcategoryId);
+  questions.sort((a, b) => {
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+    return 0;
+  });
+  return questions;
 };
 
 const searchOptionsByQuestionId = async (
@@ -62,4 +180,12 @@ const searchOptionsByQuestionId = async (
   }
 };
 
-export { handleDelete, searchQuestionsByStatement, searchOptionsByQuestionId };
+export {
+  handleDelete,
+  searchQuestionsByStatement,
+  searchOptionsByQuestionId,
+  searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByFormId,
+};
+
+export { type QuestionSearchedByStatement };

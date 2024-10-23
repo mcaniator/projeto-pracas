@@ -1,11 +1,24 @@
 "use server";
 
-import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
+import {
+  DisplayCalculation,
+  DisplayQuestion,
+} from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
+
+import { QuestionWithCategories } from "./questionSubmit";
+
+interface FormToEditPage {
+  id: number;
+  name: string;
+  version: number;
+  questions: QuestionWithCategories[];
+  calculations: DisplayCalculation[];
+}
 
 const handleDelete = async (formID: number) => {
   try {
@@ -25,6 +38,11 @@ const fetchForms = async () => {
 
   try {
     forms = await prisma.form.findMany({
+      where: {
+        version: {
+          not: 0,
+        },
+      },
       select: {
         id: true,
         name: true,
@@ -66,14 +84,54 @@ const fetchFormsLatest = async () => {
   return forms;
 };
 
-const searchFormsById = async (id: number) => {
-  const cachedForms = unstable_cache(
-    async (id: number): Promise<Form | undefined | null> => {
+const searchFormById = async (id: number) => {
+  const cachedForm = unstable_cache(
+    async (id: number): Promise<FormToEditPage | undefined | null> => {
       let foundForm;
       try {
         foundForm = await prisma.form.findUnique({
           where: {
             id: id,
+          },
+          select: {
+            id: true,
+            name: true,
+            version: true,
+            questions: {
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    categoryId: true,
+                  },
+                },
+              },
+            },
+            calculations: {
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    categoryId: true,
+                  },
+                },
+                questions: true,
+              },
+            },
           },
         });
       } catch (err) {
@@ -83,10 +141,22 @@ const searchFormsById = async (id: number) => {
       return foundForm;
     },
     ["searchLocationsByIdCache"],
-    { tags: ["location", "form"] },
+    { tags: ["location", "form", "question"] },
   );
 
-  return await cachedForms(id);
+  return await cachedForm(id);
+};
+
+const searchformNameById = async (formId: number) => {
+  const formName = await prisma.form.findUnique({
+    where: {
+      id: formId,
+    },
+    select: {
+      name: true,
+    },
+  });
+  return formName?.name;
 };
 
 const updateForm = async (
@@ -135,22 +205,11 @@ const updateForm = async (
   };
 };
 
-const addQuestion = async (formId: number, questionId: number) => {
-  try {
-    await prisma.questionsOnForms.create({
-      data: { formId: formId, questionId: questionId },
-    });
-  } catch (err) {
-    return { statusCode: 2 };
-  }
-
-  revalidateTag("questionOnForm");
-  return {
-    statusCode: 0,
-  };
-};
-
-const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
+const createVersion = async (
+  formId: number,
+  questions: DisplayQuestion[],
+  calculationsToCreate: DisplayCalculation[],
+) => {
   const formType = Prisma.validator<Prisma.FormDefaultArgs>()({
     select: { id: true, name: true, version: true },
   });
@@ -174,83 +233,44 @@ const createVersion = async (formId: number, questions: DisplayQuestion[]) => {
       data: {
         name: form.name,
         version: form.version + 1,
+        questions: {
+          connect: questions.map((question) => ({ id: question.id })),
+        },
+        calculations: {
+          create: calculationsToCreate.map((calculation) => ({
+            type: calculation.type,
+            name: calculation.name,
+            questions: {
+              connect: calculation.questions.map((q) => ({ id: q.id })),
+            },
+            category: { connect: { id: calculation.category.id } },
+            ...(calculation.subcategory ?
+              { subcategory: { connect: { id: calculation.subcategory.id } } }
+            : {}),
+          })),
+        },
       },
     });
 
     newFormId = newForm.id;
   } catch (e) {
+    console.log(e);
     return {
       message: "erro do servidor",
     };
-  }
-
-  try {
-    const createManyParams = questions.map((question) => ({
-      formId: newFormId,
-      questionId: question.id,
-    }));
-
-    await prisma.questionsOnForms.createMany({
-      data: createManyParams,
-    });
-  } catch (err) {
-    return { statusCode: 2 };
   }
 
   revalidateTag("questionOnForm");
   return { statusCode: 0, newFormId };
 };
 
-const addQuestions = async (formId: number, questions: DisplayQuestion[]) => {
-  try {
-    const createManyParams = questions.map((question) => ({
-      formId: formId,
-      questionId: question.id,
-    }));
-
-    await prisma.questionsOnForms.createMany({
-      data: createManyParams,
-    });
-  } catch (err) {
-    return { statusCode: 2 };
-  }
-
-  revalidateTag("questionOnForm");
-  return {
-    statusCode: 0,
-  };
-};
-
-const removeQuestions = async (
-  formId: number,
-  questionIds: DisplayQuestion[],
-) => {
-  const questionsIds = questionIds.map((question) => question.id);
-  try {
-    await prisma.questionsOnForms.deleteMany({
-      where: {
-        formId: formId,
-        questionId: { in: questionsIds },
-      },
-    });
-  } catch (err) {
-    return { statusCode: 2 };
-  }
-
-  revalidateTag("questionOnForm");
-  return {
-    statusCode: 0,
-  };
-};
-
 export {
   fetchForms,
   handleDelete,
-  searchFormsById,
+  searchFormById,
+  searchformNameById,
   updateForm,
-  addQuestion,
-  addQuestions,
-  removeQuestions,
   createVersion,
   fetchFormsLatest,
 };
+export { type FormToEditPage };

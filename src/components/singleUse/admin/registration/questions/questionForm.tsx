@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
@@ -19,6 +20,7 @@ interface AvaliableSubcategories {
   active: boolean;
   optional: boolean;
 }
+type CharacterType = "text" | "number";
 const QuestionForm = ({
   availableCategories,
   availableSubcategories,
@@ -33,8 +35,11 @@ const QuestionForm = ({
   >(availableCategories[0]?.id);
 
   const [type, setType] = useState("");
+  const [characterType, setCharacterType] = useState<CharacterType | null>();
   const [optionType, setOptionType] = useState("RADIO");
-
+  const [hasAssocieatedGeometry, setHasAssociatedGeometry] =
+    useState<boolean>(false);
+  const [geometryTypes, setGeometryTypes] = useState<string[]>(["POINT"]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
 
@@ -52,6 +57,16 @@ const QuestionForm = ({
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCurrentCategoryId(Number(e.target.value));
   };
+
+  const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      if (!geometryTypes.includes(e.target.value)) {
+        setGeometryTypes((prev) => [...prev, e.target.value]);
+      }
+    } else if (geometryTypes.length > 1) {
+      setGeometryTypes((prev) => prev.filter((p) => p !== e.target.value));
+    }
+  };
   // TODO: add error handling
   return (
     <form
@@ -64,6 +79,7 @@ const QuestionForm = ({
           formRef.current?.reset();
           setType("");
           setAddedOptions(undefined);
+          setHasAssociatedGeometry(false);
         }, 1)
       }
     >
@@ -110,7 +126,7 @@ const QuestionForm = ({
         </div>
 
         <div className={"flex flex-col"}>
-          <label htmlFor={"text"}>Tipo de pergunta:</label>
+          <h4>Tipo de pergunta:</h4>
           <div
             className={
               "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
@@ -120,36 +136,21 @@ const QuestionForm = ({
               type={"radio"}
               variant={"admin"}
               id={"text"}
-              value={"TEXT"}
+              value={"WRITTEN"}
               name="questionType"
               onClick={() => {
-                setType("text");
+                setType("written");
                 setAddedOptions(undefined);
               }}
               className={"border-white"}
               required
             >
-              Texto
+              Escrito
             </RadioButton>
             <RadioButton
               type="radio"
               variant={"admin"}
               id="numeric"
-              value={"NUMERIC"}
-              name="questionType"
-              onClick={() => {
-                setType("numeric");
-                setAddedOptions(undefined);
-              }}
-              className={"border-white"}
-              required
-            >
-              Numérico
-            </RadioButton>
-            <RadioButton
-              type="radio"
-              variant={"admin"}
-              id="option"
               value={"OPTIONS"}
               name="questionType"
               onClick={() => {
@@ -162,27 +163,125 @@ const QuestionForm = ({
             </RadioButton>
           </div>
         </div>
+        <div className={"flex flex-col"}>
+          <h4>Possui geometria associada?</h4>
+          <div
+            className={
+              "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+            }
+          >
+            <RadioButton
+              type={"radio"}
+              variant={"admin"}
+              id={"hasGeometry"}
+              value={"true"}
+              name="hasAssociatedGeometry"
+              onChange={() => {
+                setHasAssociatedGeometry(true);
+              }}
+              className={"border-white"}
+              checked={hasAssocieatedGeometry}
+              required
+            >
+              Sim
+            </RadioButton>
+            <RadioButton
+              type="radio"
+              variant={"admin"}
+              id="noGeometry"
+              value={"false"}
+              name="hasAssociatedGeometry"
+              onChange={() => {
+                setHasAssociatedGeometry(false);
+              }}
+              className={"border-white"}
+              checked={!hasAssocieatedGeometry}
+              required
+            >
+              Não
+            </RadioButton>
+          </div>
+        </div>
+        {hasAssocieatedGeometry && (
+          <div className="flex flex-col">
+            <h4>Selecione os tipos de geometria aceitos:</h4>
+            <div
+              className={
+                "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+              }
+            >
+              <Checkbox
+                variant={"admin"}
+                value={"POINT"}
+                name="geometryTypes"
+                checked={geometryTypes.includes("POINT")}
+                onChange={(e) => handleGeometryTypeChange(e)}
+              >
+                Ponto
+              </Checkbox>
+              <Checkbox
+                variant={"admin"}
+                value={"POLYGON"}
+                name="geometryTypes"
+                checked={geometryTypes.includes("POLYGON")}
+                onChange={(e) => handleGeometryTypeChange(e)}
+              >
+                Poligono
+              </Checkbox>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
-        {type == "text" && (
+        {type == "written" && (
           <div>
-            <label htmlFor={"charLimit"}>Limite de caracteres:</label>
-            <Input type="number" name={"charLimit"} id={"charLimit"} />
+            <div>
+              <label htmlFor={"text"}>Tipo de caracteres:</label>
+              <div
+                className={
+                  "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+                }
+              >
+                <RadioButton
+                  name="characterType"
+                  value={"TEXT"}
+                  onChange={() => setCharacterType("text")}
+                  checked={characterType === "text"}
+                  required
+                >
+                  Texto
+                </RadioButton>
+                <RadioButton
+                  name="characterType"
+                  value={"NUMBER"}
+                  onChange={() => setCharacterType("number")}
+                  checked={characterType === "number"}
+                  required
+                >
+                  Numérico
+                </RadioButton>
+              </div>
+            </div>
+            {characterType === "text" && (
+              <div>
+                <label htmlFor={"charLimit"}>Limite de caracteres:</label>
+                <Input type="number" name={"charLimit"} id={"charLimit"} />
+              </div>
+            )}
+            {characterType === "number" && (
+              <div>
+                <div>
+                  <label htmlFor={"minValue"}>Valor mínimo:</label>
+                  <Input type="number" name={"minValue"} id={"minValue"} />
+                </div>
+                <div>
+                  <label htmlFor={"maxValue"}>Valor máximo:</label>
+                  <Input type="number" name={"maxValue"} id={"maxValue"} />
+                </div>
+              </div>
+            )}
           </div>
-        )}
-
-        {type == "numeric" && (
-          <>
-            <div>
-              <label htmlFor={"minValue"}>Valor mínimo:</label>
-              <Input type="number" name={"minValue"} id={"minValue"} />
-            </div>
-            <div>
-              <label htmlFor={"maxValue"}>Valor máximo:</label>
-              <Input type="number" name={"maxValue"} id={"maxValue"} />
-            </div>
-          </>
         )}
 
         {type == "option" && (
@@ -201,34 +300,66 @@ const QuestionForm = ({
               </Select>
             </div>
 
-            <div className={"flex flex-col gap-2"}>
-              <div>
-                <label htmlFor={"opcao"}>Digite as suas opções:</label>
-                <Input
-                  id={"opcao"}
-                  type="text"
-                  value={currentOption}
-                  onChange={(e) => {
-                    setCurrentOption(e.target.value);
-                  }}
-                />
-              </div>
-              <Button
-                type="button"
-                variant={"admin"}
-                isDisabled={currentOption == ""}
-                onPress={() => {
-                  if (addedOptions != undefined)
-                    setAddedOptions([...addedOptions, { text: currentOption }]);
-                  else setAddedOptions([{ text: currentOption }]);
-
-                  setCurrentOption("");
-                }}
-                className={"transition-all"}
+            <div>
+              <label htmlFor={"text"}>Tipo de caracteres:</label>
+              <div
+                className={
+                  "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
+                }
               >
-                Adicionar
-              </Button>
+                <RadioButton
+                  name="characterType"
+                  value={"TEXT"}
+                  onChange={() => setCharacterType("text")}
+                  checked={characterType === "text"}
+                  required
+                >
+                  Texto
+                </RadioButton>
+                <RadioButton
+                  name="characterType"
+                  value={"NUMBER"}
+                  onChange={() => setCharacterType("number")}
+                  checked={characterType === "number"}
+                  required
+                >
+                  Numérico
+                </RadioButton>
+              </div>
             </div>
+            {characterType !== null && (
+              <div className={"flex flex-col gap-2"}>
+                <div>
+                  <label htmlFor={"opcao"}>Digite as suas opções:</label>
+                  <Input
+                    id={"opcao"}
+                    type={characterType}
+                    value={currentOption}
+                    onChange={(e) => {
+                      setCurrentOption(e.target.value);
+                    }}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant={"admin"}
+                  isDisabled={currentOption == ""}
+                  onPress={() => {
+                    if (addedOptions != undefined)
+                      setAddedOptions([
+                        ...addedOptions,
+                        { text: currentOption },
+                      ]);
+                    else setAddedOptions([{ text: currentOption }]);
+
+                    setCurrentOption("");
+                  }}
+                  className={"transition-all"}
+                >
+                  Adicionar
+                </Button>
+              </div>
+            )}
 
             {optionType == "CHECKBOX" && (
               <div>
@@ -244,7 +375,7 @@ const QuestionForm = ({
           </>
         )}
 
-        {type && (
+        {type && characterType !== null && (
           <Button
             isDisabled={disabled}
             variant={"admin"}

@@ -33,7 +33,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                   <Button>Ver Respostas</Button>
                 </Link>
                 <Link
-                  href={`/admin/parks/${locationIdNumber}/responses?action=evaluation`}
+                  href={`/admin/parks/${locationIdNumber}/evaluation`}
                   className="ml-auto"
                 >
                   <Button>Avaliar</Button>
