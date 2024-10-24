@@ -2,14 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { Location, WeatherConditions } from "@prisma/client";
+import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-
-import { LocationAssessment } from "./assessmentUtil";
-
-type AssessmentForEvaluationExport = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentsForEvaluationExport>>
->[number];
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
@@ -61,51 +55,6 @@ interface TallyDataToProcessTypeWithoutLocation {
   commercialActivities: JsonValue | null;
   locationId: number;
   tallyPerson: TallyPerson[];
-}
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Subcategory {
-  id: number;
-  name: string;
-}
-interface EvaluationDataType {
-  type: string;
-  location: Location;
-  createdAt: Date;
-  question: {
-    id: number;
-    name: string;
-    category: Category;
-    subcategory: Subcategory | null;
-  };
-  value: string | null | undefined;
-  user: {
-    id: string;
-    username: string;
-  };
-}
-
-interface groupedDataType {
-  [key: string]: {
-    form: {
-      id: number;
-      version: number;
-      name: string;
-      createdAt: Date;
-    };
-    formVersion: number;
-    data: EvaluationDataType[];
-  };
-}
-
-interface GroupedAssessmentsByForm {
-  [key: string]: {
-    form: { id: number; name: string; version: number };
-    data: EvaluationDataType[];
-  };
 }
 
 const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
