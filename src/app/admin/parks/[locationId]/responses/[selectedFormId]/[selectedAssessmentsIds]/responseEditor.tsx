@@ -3,10 +3,7 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  ResponseToUpdate,
-  updateResponses,
-} from "@/serverActions/responseUtil";
+import { ResponseToUpdate } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
@@ -141,8 +138,6 @@ const ResponseEditor = ({
         }
       }
     }
-
-    void updateResponses(responsesToUpdate);
 
     setResponsesSent(true);
     if (onSave) {

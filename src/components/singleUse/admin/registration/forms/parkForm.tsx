@@ -5,12 +5,9 @@ import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 const LocationComponent = ({ id, name }: { id: number; name: string }) => {
-  const router = useRouter();
-
   return (
     <div className="flex gap-2 text-white">
       <div className="flex-1 overflow-hidden">
