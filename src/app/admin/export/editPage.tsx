@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/button";
 import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
-import { Select } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  LocationAssessment,
+  fetchAssessmentsByLocation,
+} from "@/serverActions/assessmentUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import {
   IconArrowBackUp,
@@ -17,24 +21,26 @@ import React from "react";
 
 import {
   ExportPageModes,
+  SelectedLocationObj,
   SelectedLocationSavedObj,
-  SelectedLocationTallyObj,
 } from "./client";
+import { SubmissionList } from "./submissionList";
 import { TallyList } from "./tallyList";
 
-type FetchedTallysStatus = "LOADING" | "LOADED" | "ERROR";
+type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
+
 const EditPage = ({
   locationId,
   locations,
-  selectedLocationsTallys,
+  selectedLocationsObjs,
   selectedLocationsSaved,
   handlePageStateChange,
   handleSelectedLocationsSaveChange,
-  handleSelectedLocationsTallyChange,
+  handleSelectedLocationObjChange,
 }: {
   locationId: number | undefined;
   locations: { id: number; name: string }[];
-  selectedLocationsTallys: SelectedLocationTallyObj[];
+  selectedLocationsObjs: SelectedLocationObj[];
   selectedLocationsSaved: SelectedLocationSavedObj[];
   handlePageStateChange: (
     id: number | undefined,
@@ -44,17 +50,24 @@ const EditPage = ({
     locationId: number,
     save: boolean,
   ) => void;
-  handleSelectedLocationsTallyChange: (
+  handleSelectedLocationObjChange: (
     locationId: number,
+    assessments: LocationAssessment[],
     tallysIds: number[] | undefined,
+    exportRegistrationInfo: boolean,
   ) => void;
 }) => {
   const [currentLocationId, setCurrentLocationId] = useState<number>();
   const [fetchedTallysStatus, setFetchedTallysStatus] =
-    useState<FetchedTallysStatus>("LOADING");
+    useState<FetchedDataStatus>("LOADING");
   const [fetchedTallys, setFetchedTallys] = useState<
     TallyDataFetchedToTallyList[] | null
   >(null);
+  const [fetchedAssessmentsStatus, setFetchedAssessmentsStatus] =
+    useState<FetchedDataStatus>("LOADING");
+  const [fetchedAssessments, setFetchedAssessments] = useState<
+    LocationAssessment[]
+  >([]);
   useEffect(() => {
     setCurrentLocationId(locationId);
   }, [locationId]);
@@ -69,78 +82,179 @@ const EditPage = ({
           setFetchedTallysStatus("ERROR");
         }
       };
+      const fetchAssessments = async () => {
+        if (!currentLocationId) {
+          setFetchedAssessmentsStatus("ERROR");
+          return;
+        }
+        try {
+          const assessments =
+            await fetchAssessmentsByLocation(currentLocationId);
+          setFetchedAssessments(assessments);
+          setFetchedAssessmentsStatus("LOADED");
+        } catch (error) {
+          setFetchedAssessmentsStatus("ERROR");
+        }
+      };
       fetchTallys().catch(() => ({ statusCode: 1 }));
+      fetchAssessments().catch(() => ({ statusCode: 1 }));
     }
   }, [currentLocationId]);
+  const [selectedAssessments, setSelectedAssessments] = useState<
+    LocationAssessment[]
+  >([]);
   const [selectedTallys, setSelectedTallys] = useState<number[]>([]);
+  const [exportRegistrationInfo, setExportRegistrationInfo] =
+    useState<boolean>(false);
   const goToNextLocation = (save: boolean) => {
-    const currentLocationIndex = selectedLocationsTallys.findIndex(
+    const currentLocationIndex = selectedLocationsObjs.findIndex(
       (location) => location.id === currentLocationId,
     );
-    if (currentLocationIndex < selectedLocationsTallys.length - 1) {
-      const nextLocation = selectedLocationsTallys[currentLocationIndex + 1];
+    if (currentLocationIndex < selectedLocationsObjs.length - 1) {
+      const nextLocation = selectedLocationsObjs[currentLocationIndex + 1];
       if (nextLocation && currentLocationId) {
         if (save) {
           handleSelectedLocationsSaveChange(currentLocationId, true);
-          handleSelectedLocationsTallyChange(currentLocationId, selectedTallys);
+          handleSelectedLocationObjChange(
+            currentLocationId,
+            selectedAssessments,
+            selectedTallys,
+            exportRegistrationInfo,
+          );
         }
         setCurrentLocationId(nextLocation.id);
       }
     }
   };
   const goToPreviousLocation = (save: boolean) => {
-    const currentLocationIndex = selectedLocationsTallys.findIndex(
+    const currentLocationIndex = selectedLocationsObjs.findIndex(
       (location) => location.id === currentLocationId,
     );
     if (currentLocationIndex > 0) {
-      const previousLocation =
-        selectedLocationsTallys[currentLocationIndex - 1];
+      const previousLocation = selectedLocationsObjs[currentLocationIndex - 1];
       if (previousLocation && currentLocationId) {
         if (save) {
           handleSelectedLocationsSaveChange(currentLocationId, true);
-          handleSelectedLocationsTallyChange(currentLocationId, selectedTallys);
+          handleSelectedLocationObjChange(
+            currentLocationId,
+            selectedAssessments,
+            selectedTallys,
+            exportRegistrationInfo,
+          );
         }
         setCurrentLocationId(previousLocation.id);
       }
     }
   };
-  const handleTallyChange = (
+  const handleRegistrationInfoChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     removeSaveState: boolean,
   ) => {
-    if (e.target.checked) {
-      if (!selectedTallys.includes(Number(e.target.value)))
-        setSelectedTallys((prev) => [...prev, Number(e.target.value)]);
-    } else if (selectedTallys.includes(Number(e.target.value))) {
-      setSelectedTallys((prev) =>
-        prev.filter((tallyId) => tallyId !== Number(e.target.value)),
+    setExportRegistrationInfo(e.target.checked);
+    if (removeSaveState && currentLocationId) {
+      handleSelectedLocationsSaveChange(currentLocationId, false);
+    }
+  };
+  const handleAssessmentChange = (
+    checked: boolean,
+    assessment: LocationAssessment,
+    removeSaveState: boolean,
+  ) => {
+    if (checked) {
+      if (!selectedAssessments.some((a) => a.id === assessment.id)) {
+        setSelectedAssessments((prev) => [...prev, assessment]);
+      }
+    } else if (selectedAssessments.some((a) => a.id === assessment.id)) {
+      setSelectedAssessments((prev) =>
+        prev.filter((prevAssesssment) => prevAssesssment.id !== assessment.id),
       );
     }
     if (removeSaveState && currentLocationId) {
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
   };
+  //console.log(selectedLocationsObjs);
+  /*useEffect(() => {
+    const submissionsToAddDates = fetchedSubmissionsGroups
+      .filter((group) =>
+        selectedSubmissionsGroups.some(
+          (selectedSubmissionGroup) => selectedSubmissionGroup.id === group.id,
+        ),
+      )
+      .map((group) => group.date);
+    setSelectedSubmissions(
+      allResponsesWithTypeRef.current.filter((response) =>
+        submissionsToAddDates.some(
+          (element) =>
+            element.toISOString() === response.createdAt.toISOString(),
+        ),
+      ),
+    );
+  }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);*/
+
+  const handleTallyChange = (
+    checked: boolean,
+    value: number,
+    removeSaveState: boolean,
+  ) => {
+    if (checked) {
+      if (!selectedTallys.includes(value))
+        setSelectedTallys((prev) => [...prev, value]);
+    } else if (selectedTallys.includes(value)) {
+      setSelectedTallys((prev) => prev.filter((tallyId) => tallyId !== value));
+    }
+    if (removeSaveState && currentLocationId) {
+      handleSelectedLocationsSaveChange(currentLocationId, false);
+    }
+  };
   useEffect(() => {
-    const currentLocationObj = selectedLocationsTallys.find(
+    const currentLocationObj = selectedLocationsObjs.find(
       (location) => location.id === currentLocationId,
     );
-    if (currentLocationObj?.tallysIds)
-      setSelectedTallys(currentLocationObj?.tallysIds);
-  }, [currentLocationId, selectedLocationsTallys]);
+    if (currentLocationObj) {
+      setSelectedTallys(currentLocationObj.tallysIds);
+      setExportRegistrationInfo(currentLocationObj.exportRegistrationInfo);
+      setSelectedAssessments(
+        fetchedAssessments.filter((fetchedAssessment) =>
+          currentLocationObj.assessments.some(
+            (assessment) => assessment.id === fetchedAssessment.id,
+          ),
+        ),
+      );
+    }
+  }, [currentLocationId, selectedLocationsObjs, fetchedAssessments]);
   if (!locationId) {
     return <h4 className="text-xl font-semibold">Erro!</h4>;
   }
-
   const locationName =
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
+  //console.log(selectedAssessments);
   return (
     <div className="flex h-full flex-col gap-1 overflow-auto">
       <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
-      <label htmlFor="assessment">Avaliação física</label>
-      <Select id="assessment">
-        <option value="NONE">Nenhuma</option>
-      </Select>
+      <div className="flex flex-row items-center gap-1">
+        <Checkbox
+          id="registration-info"
+          onChange={(e) => handleRegistrationInfoChange(e, true)}
+          checked={exportRegistrationInfo}
+        />
+        <label htmlFor="registration-info">Informações de cadastro</label>
+      </div>
+      <h5>Avaliações físicas</h5>
+      {fetchedAssessmentsStatus === "LOADING" && <span>Carregando...</span>}
+      {fetchedAssessmentsStatus === "ERROR" && <span>Erro!</span>}
+      {fetchedAssessmentsStatus === "LOADED" &&
+        fetchedAssessments?.length === 0 && (
+          <span>Nenhuma avaliação física encontrada!</span>
+        )}
+      {fetchedAssessments && (
+        <SubmissionList
+          assessments={fetchedAssessments}
+          selectedAssessments={selectedAssessments}
+          handleAssessmentChange={handleAssessmentChange}
+        ></SubmissionList>
+      )}
       <h5>Contagens</h5>
       {fetchedTallysStatus === "LOADING" && <span>Carregando...</span>}
       {fetchedTallysStatus === "ERROR" && <span>Erro!</span>}
@@ -185,9 +299,11 @@ const EditPage = ({
             onPress={() => {
               if (currentLocationId) {
                 handleSelectedLocationsSaveChange(currentLocationId, true);
-                handleSelectedLocationsTallyChange(
+                handleSelectedLocationObjChange(
                   currentLocationId,
+                  selectedAssessments,
                   selectedTallys,
+                  exportRegistrationInfo,
                 );
               }
             }}
@@ -201,7 +317,7 @@ const EditPage = ({
           <Button
             className={
               (
-                selectedLocationsTallys.findIndex(
+                selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
                 ) === 0
               ) ?
@@ -210,7 +326,7 @@ const EditPage = ({
             }
             onPress={() => goToPreviousLocation(false)}
             isDisabled={
-              selectedLocationsTallys.findIndex(
+              selectedLocationsObjs.findIndex(
                 (location) => location.id === currentLocationId,
               ) === 0
             }
@@ -220,7 +336,7 @@ const EditPage = ({
           <Button
             className={
               (
-                selectedLocationsTallys.findIndex(
+                selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
                 ) === 0
               ) ?
@@ -229,7 +345,7 @@ const EditPage = ({
             }
             onPress={() => goToPreviousLocation(true)}
             isDisabled={
-              selectedLocationsTallys.findIndex(
+              selectedLocationsObjs.findIndex(
                 (location) => location.id === currentLocationId,
               ) === 0
             }
@@ -243,10 +359,10 @@ const EditPage = ({
             onPress={() => goToNextLocation(false)}
             className={
               (
-                selectedLocationsTallys.findIndex(
+                selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
                 ) ===
-                selectedLocationsTallys.length - 1
+                selectedLocationsObjs.length - 1
               ) ?
                 "opacity-0"
               : ""
@@ -257,16 +373,18 @@ const EditPage = ({
           <Button
             onPress={() => {
               if (
-                selectedLocationsTallys.findIndex(
+                selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
                 ) ===
-                  selectedLocationsTallys.length - 1 &&
+                  selectedLocationsObjs.length - 1 &&
                 currentLocationId
               ) {
                 handleSelectedLocationsSaveChange(currentLocationId, true);
-                handleSelectedLocationsTallyChange(
+                handleSelectedLocationObjChange(
                   currentLocationId,
+                  selectedAssessments,
                   selectedTallys,
+                  exportRegistrationInfo,
                 );
                 handlePageStateChange(undefined, "HOME");
               } else {
@@ -276,10 +394,10 @@ const EditPage = ({
             variant={"constructive"}
           >
             {(
-              selectedLocationsTallys.findIndex(
+              selectedLocationsObjs.findIndex(
                 (location) => location.id === currentLocationId,
               ) ===
-              selectedLocationsTallys.length - 1
+              selectedLocationsObjs.length - 1
             ) ?
               <React.Fragment>
                 <IconDeviceFloppy /> + <IconArrowBackUpDouble />
@@ -296,3 +414,4 @@ const EditPage = ({
 };
 
 export { EditPage };
+///export { type SubmissionGroup };

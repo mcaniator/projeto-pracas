@@ -423,12 +423,64 @@ const searchResponsesByQuestionFormLocation = async (
   });
 };
 
+/*const searchResponsesByLocation = async (locationId: number) => {
+  return await prisma.response.findMany({
+    where: {
+      locationId: locationId,
+    },
+    select: {
+      id: true,
+      formVersion: true,
+      createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+};*/
+
+/*const searchResponsesOptionsByLocation = async (locationId: number) => {
+  return await prisma.responseOption.findMany({
+    where: {
+      locationId: locationId,
+    },
+    select: {
+      id: true,
+      formVersion: true,
+      createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+};*/
+
 export {
   addResponses,
   updateResponses,
   searchResponsesByQuestionId,
   searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
+  /*searchResponsesByLocation,
+  searchResponsesOptionsByLocation,*/
 };
 
 export { type ResponseToUpdate };

@@ -214,6 +214,7 @@ model User {
 
   response       Response[]
   responseOption ResponseOption[]
+  tally          Tally[]
 
   @@index([username])
   @@map("user")
@@ -416,6 +417,7 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String    @db.VarChar(255)
+  popularName         String?   @db.VarChar(255)
   firstStreet         String    @db.VarChar(255)
   secondStreet        String    @db.VarChar(255)
   isPark              Boolean?  @map("is_park")
@@ -575,13 +577,15 @@ model Tally {
   //tallyGroup Int       @map("tally_group")
   startDate DateTime  @map("start_date") @db.Timestamptz(0)
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
-  observer  String    @db.VarChar(255)
 
   animalsAmount        Int?               @map("animals_amount")
   temperature          Float?
   weatherCondition     WeatherConditions? @map("weather_condition")
   groups               Int?
   commercialActivities Json?              @map("commercial_activities")
+
+  userId String @map("user_id") @db.VarChar(255)
+  user   User   @relation(fields: [userId], references: [id])
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])

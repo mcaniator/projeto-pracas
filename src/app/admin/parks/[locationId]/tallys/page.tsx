@@ -1,12 +1,16 @@
 import TallyPage from "@/components/singleUse/admin/tallys/tallyListPage";
+import { validateRequest } from "@/lib/lucia";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
+import { redirect } from "next/navigation";
 
 const Tallys = async ({ params }: { params: { locationId: string } }) => {
   const tallys = await fetchTallysByLocationId(Number(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
+  const { user } = await validateRequest();
+  if (user === null || user.type !== "ADMIN") redirect("/error");
   let endedTallys;
   let ongoingTallys;
   if (tallys) {
@@ -20,6 +24,7 @@ const Tallys = async ({ params }: { params: { locationId: string } }) => {
       locationName={locationName}
       tallys={endedTallys}
       ongoingTallys={ongoingTallys}
+      userId={user.id}
     ></TallyPage>
   );
 };

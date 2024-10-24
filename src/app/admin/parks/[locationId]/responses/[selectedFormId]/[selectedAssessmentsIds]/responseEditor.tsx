@@ -8,7 +8,6 @@ import {
   updateResponses,
 } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
-import { Response } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -20,7 +19,6 @@ const ResponseEditor = ({
   options,
   initialResponses,
   onSave,
-  responses,
 }: {
   locationId: number;
   formId: number;
@@ -34,7 +32,6 @@ const ResponseEditor = ({
     };
   };
   onSave?: () => void;
-  responses: Response[];
 }) => {
   const [responsesState, setResponsesState] = useState<{
     [key: number]: {
@@ -57,7 +54,6 @@ const ResponseEditor = ({
     : {},
   );
   const [responsesSent, setResponsesSent] = useState(false);
-  //console.log(responsesState);
   const handleResponseChange = (
     questionId: number,
     questionType: QuestionTypes,
@@ -148,31 +144,11 @@ const ResponseEditor = ({
 
     void updateResponses(responsesToUpdate);
 
-    responses.forEach((response) => {
-      //console.log(response);
-      const { questionId } = response;
-      const updatedResponse = responsesState[questionId];
-      if (
-        updatedResponse &&
-        true /*updatedResponse.value !== response.response*/
-      ) {
-        /*void updateResponse(
-          response.id,
-          locationId,
-          formId,
-          questionId,
-          updatedResponse.type,
-          updatedResponse.value,
-        );*/
-        //console.log(updatedResponse);
-      }
-    });
     setResponsesSent(true);
     if (onSave) {
       onSave();
     }
   };
-  //console.log(responsesState);
   useEffect(() => {
     if (initialResponses) {
       setResponsesState(

@@ -4,16 +4,11 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
-import {
-  exportDailyTallysWithDateInfo,
-  exportIndividualTallysToCSV,
-} from "@/serverActions/exportToCSV";
 import Link from "next/link";
-import React, { useState } from "react";
+import React from "react";
 
 const AssessmentsFilter = ({
   locationId,
-  locationName,
   formId,
   filteredAssessments,
   handleWeekdayChange,
@@ -28,48 +23,6 @@ const AssessmentsFilter = ({
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
-  const [loadingExport, setLoadingExport] = useState({
-    individual: false,
-    added: false,
-  });
-  const handleTallysExport = async (addedContent: boolean) => {
-    const assessmentsIds = filteredAssessments?.map(
-      (assessment) => assessment.id,
-    );
-    if (!assessmentsIds || assessmentsIds.length === 0) return;
-
-    let csvString = "";
-    if (addedContent) {
-      setLoadingExport({ individual: false, added: true });
-      csvString = await exportDailyTallysWithDateInfo(assessmentsIds, [
-        "name",
-        "id",
-        "date",
-      ]);
-    } else {
-      setLoadingExport({ individual: true, added: false });
-      csvString = await exportIndividualTallysToCSV(assessmentsIds, [
-        "name",
-        "id",
-        "date",
-      ]);
-    }
-
-    const blob = new Blob([csvString]);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      (addedContent ?
-        `Avaliações diárias ${locationName}`
-      : `Avaliações Individuais ${locationName}`) + `${locationName}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setLoadingExport({ individual: false, added: false });
-  };
   let filteredAssessmentsIdsString;
   if (filteredAssessments)
     filteredAssessmentsIdsString = `${filteredAssessments.map((assessment) => assessment.id).join("-")}`;
@@ -197,28 +150,6 @@ const AssessmentsFilter = ({
                   </Link>
                 </Button>
               </div>
-              <div>
-                <Button
-                  onPress={() => {
-                    handleTallysExport(false).catch(() => ({ statusCode: 1 }));
-                  }}
-                >
-                  {loadingExport.individual ?
-                    "Exportando..."
-                  : "Exportar individualmente"}
-                </Button>
-              </div>
-            </div>
-            <div>
-              <Button
-                onPress={() => {
-                  handleTallysExport(true).catch(() => ({ statusCode: 1 }));
-                }}
-              >
-                {loadingExport.added ?
-                  "Exportando"
-                : "Exportar Avaliações por dia"}
-              </Button>
             </div>
           </div>
         </div>

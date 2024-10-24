@@ -1,14 +1,16 @@
 "use client";
 
+import { LocationAssessment } from "@/serverActions/assessmentUtil";
 import { useState } from "react";
 
 import { EditPage } from "./editPage";
 import { ExportHome } from "./exportHome";
 
 type ExportPageModes = "HOME" | "EDIT";
-interface SelectedLocationTallyObj {
+interface SelectedLocationObj {
   id: number;
-  assessmentId: number | undefined;
+  assessments: LocationAssessment[];
+  exportRegistrationInfo: boolean;
   tallysIds: number[];
 }
 interface SelectedLocationSavedObj {
@@ -20,8 +22,8 @@ const ExportClientPage = ({
 }: {
   locations: { id: number; name: string }[];
 }) => {
-  const [selectedLocationsTallys, setSelectedLocationsTallys] = useState<
-    SelectedLocationTallyObj[]
+  const [selectedLocationsObjs, setSelectedLocationsObjs] = useState<
+    SelectedLocationObj[]
   >([]);
   const [selectedLocationsSaved, setSelectedLocationsSaved] = useState<
     SelectedLocationSavedObj[]
@@ -31,14 +33,12 @@ const ExportClientPage = ({
     currentLocation: number | undefined;
   }>({ pageMode: "HOME", currentLocation: undefined });
   const handleSelectedLocationsAddition = (
-    locationObj: SelectedLocationTallyObj,
+    locationObj: SelectedLocationObj,
   ) => {
     if (
-      !selectedLocationsTallys.some(
-        (location) => location.id === locationObj.id,
-      )
+      !selectedLocationsObjs.some((location) => location.id === locationObj.id)
     ) {
-      setSelectedLocationsTallys((prev) => [...prev, locationObj]);
+      setSelectedLocationsObjs((prev) => [...prev, locationObj]);
     }
     if (
       !selectedLocationsSaved.some((location) => location.id === locationObj.id)
@@ -49,17 +49,32 @@ const ExportClientPage = ({
       ]);
     }
   };
-  const handleSelectedLocationsTallyChange = (
+  const handleSelectedLocationObjChange = (
     locationId: number,
+    assessments: LocationAssessment[],
     tallysIds: number[] | undefined,
+    exportRegistrationInfo: boolean,
   ) => {
-    setSelectedLocationsTallys((prev) =>
+    setSelectedLocationsObjs((prev) =>
       prev.map((locationObj) =>
         locationObj.id === locationId ?
-          { ...locationObj, ...(tallysIds && { tallysIds: tallysIds }) }
+          {
+            ...locationObj,
+            exportRegistrationInfo: exportRegistrationInfo,
+            ...(assessments && { assessments: assessments }),
+            ...(tallysIds && { tallysIds: tallysIds }),
+          }
         : locationObj,
       ),
     );
+
+    /*setSelectedLocationsObjs((prev) =>
+      prev.map((locationObj) =>
+        locationObj.id === locationId ?
+          { ...locationObj, exportRegistrationInfo }
+        : locationObj,
+      ),
+    );*/
   };
   const handleSelectedLocationsSaveChange = (
     locationId: number,
@@ -74,10 +89,8 @@ const ExportClientPage = ({
     );
   };
   const handleSelectedLocationsRemoval = (id: number) => {
-    if (selectedLocationsTallys.some((location) => location.id === id)) {
-      setSelectedLocationsTallys((prev) =>
-        prev.filter((item) => item.id !== id),
-      );
+    if (selectedLocationsObjs.some((location) => location.id === id)) {
+      setSelectedLocationsObjs((prev) => prev.filter((item) => item.id !== id));
     }
     if (selectedLocationsSaved.some((location) => location.id === id)) {
       setSelectedLocationsSaved((prev) =>
@@ -99,7 +112,7 @@ const ExportClientPage = ({
         {pageState.pageMode === "HOME" && (
           <ExportHome
             locations={locations}
-            selectedLocationsTallys={selectedLocationsTallys}
+            selectedLocationsObjs={selectedLocationsObjs}
             selectedLocationsSaved={selectedLocationsSaved}
             handleSelectedLocationsAddition={handleSelectedLocationsAddition}
             handleSelectedLocationsRemoval={handleSelectedLocationsRemoval}
@@ -110,15 +123,13 @@ const ExportClientPage = ({
           <EditPage
             locationId={pageState.currentLocation}
             locations={locations}
-            selectedLocationsTallys={selectedLocationsTallys}
+            selectedLocationsObjs={selectedLocationsObjs}
             selectedLocationsSaved={selectedLocationsSaved}
             handlePageStateChange={handlePageStateChange}
             handleSelectedLocationsSaveChange={
               handleSelectedLocationsSaveChange
             }
-            handleSelectedLocationsTallyChange={
-              handleSelectedLocationsTallyChange
-            }
+            handleSelectedLocationObjChange={handleSelectedLocationObjChange}
           />
         )}
       </div>
@@ -129,6 +140,6 @@ const ExportClientPage = ({
 export { ExportClientPage };
 export {
   type ExportPageModes,
-  type SelectedLocationTallyObj,
+  type SelectedLocationObj,
   type SelectedLocationSavedObj,
 };

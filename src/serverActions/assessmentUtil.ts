@@ -11,6 +11,10 @@ type AssessmentsWithResposes = NonNullable<
 type FinalizedAssessmentsList = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentsForAssessmentList>>
 >;
+type LocationAssessment = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentsByLocation>>
+>[number];
+
 const createAssessment = async (
   prevState: AssessmentCreationFormType | undefined,
   formData: FormData,
@@ -67,6 +71,33 @@ const fetchAssessmentsInProgresss = async (
       user: {
         select: {
           username: true,
+        },
+      },
+    },
+  });
+  return assessments;
+};
+
+const fetchAssessmentsByLocation = async (locationId: number) => {
+  const assessments = await prisma.assessment.findMany({
+    where: {
+      locationId,
+      endDate: {
+        not: null,
+      },
+    },
+    select: {
+      id: true,
+      startDate: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+      form: {
+        select: {
+          name: true,
+          version: true,
         },
       },
     },
@@ -223,6 +254,11 @@ export {
   fetchMultipleAssessmentsWithResponses,
   fetchAssessmentWithResponses,
   redirectToFormsList,
+  fetchAssessmentsByLocation,
 };
 
-export { type AssessmentsWithResposes, type FinalizedAssessmentsList };
+export {
+  type AssessmentsWithResposes,
+  type FinalizedAssessmentsList,
+  type LocationAssessment,
+};

@@ -20,7 +20,9 @@ interface TallyDataFetched {
   id: number;
   startDate: Date;
   endDate: Date | null;
-  observer: string;
+  user: {
+    username: string;
+  };
   animalsAmount: number | null;
   groups: number | null;
   temperature: number | null;
@@ -66,7 +68,7 @@ const immutableTallyData = (tallys: TallyDataFetched[]) => {
   for (const tally of tallys) {
     commercialActivitiesMap.set(tally.id, {
       tallyInfo: {
-        observer: tally.observer,
+        observer: tally.user.username,
         startDate: tally.startDate.toLocaleString(),
       },
       commercialActivities: tally.commercialActivities,
@@ -249,10 +251,12 @@ interface TallyPerson {
 
 const TallysDataPage = ({
   locationName,
+  locationId,
   tallys,
   tallysIds,
 }: {
   locationName: string;
+  locationId: number;
   tallys: TallyDataFetched[];
   tallysIds: number[];
 }) => {
@@ -320,6 +324,7 @@ const TallysDataPage = ({
               setDataTypeToShow={setDataTypeToShow}
               dataTypeToShow={dataTypeToShow}
               tallyIds={tallysIds}
+              locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
 

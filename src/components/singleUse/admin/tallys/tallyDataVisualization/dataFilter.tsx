@@ -122,7 +122,6 @@ const DataFilter = ({
                   <Checkbox
                     id="default"
                     value={"DEFAULT"}
-                    variant={"default"}
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes}
                   />
@@ -149,7 +148,6 @@ const DataFilter = ({
                   <Checkbox
                     id="isTraversing"
                     value={"isTraversing"}
-                    variant={"default"}
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -176,7 +174,6 @@ const DataFilter = ({
                   <Checkbox
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
-                    variant={"default"}
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -204,7 +201,6 @@ const DataFilter = ({
                   <Checkbox
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
-                    variant={"default"}
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
@@ -232,7 +228,6 @@ const DataFilter = ({
                   <Checkbox
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
-                    variant={"default"}
                     onChange={handleFilterChange}
                     disabled={!enableCheckboxes || !enableNonDefaultCheckboxes}
                   />
