@@ -14,28 +14,12 @@ const basicAnswerSchema = z.object({
     .min(1, { message: "Esse campo é obrigatório" })
     .max(255, { message: "Valor excedou o limite de caracteres" }),
 });
-const basicAnswerLabels = ["Nome", "Primeira Rua", "Segunda Rua"] as const;
+const basicAnswerLabels = ["Nome", "Primeira Rua", "Segunda Rua"];
 const basicAnswerDescriptions = [
   undefined,
   "Uma das ruas da interseção",
   "A outra rua da interseção",
-] as const;
-const basicAnswerMap: {
-  [Property in (typeof basicAnswerLabels)[number]]: {
-    label: keyof z.infer<typeof basicAnswerSchema>;
-    description: (typeof basicAnswerDescriptions)[number];
-  };
-} = {
-  Nome: { label: "name", description: undefined },
-  "Primeira Rua": {
-    label: "firstStreet",
-    description: "Uma das ruas da interseção",
-  },
-  "Segunda Rua": {
-    label: "secondStreet",
-    description: "A outra rua da interseção",
-  },
-};
+];
 
 const extraAnswerSchema = z.object({
   creationYear: z
@@ -104,7 +88,7 @@ const extraAnswerLabels = [
   "Legislação",
   "Área Registrada na Prefeitura",
   "Inclinação",
-] as const;
+];
 const extraAnswerDescriptions = [
   undefined,
   undefined,
@@ -112,48 +96,13 @@ const extraAnswerDescriptions = [
   undefined,
   'Digite apenas os números do valor em m² e use "." como separador decimal',
   'Digite apenas os números do valor em º e use "." como separador decimal',
-] as const;
-const extraAnswerMap: {
-  [Property in (typeof extraAnswerLabels)[number]]: {
-    label: keyof z.infer<typeof extraAnswerSchema>;
-    description: (typeof extraAnswerDescriptions)[number];
-  };
-} = {
-  "Ano de Criação": {
-    label: "creationYear",
-    description: undefined,
-  },
-  "Último Ano de Manutenção": {
-    label: "lastMaintenanceYear",
-    description: undefined,
-  },
-  "Prefeito Criador": {
-    label: "overseeingMayor",
-    description: undefined,
-  },
-  Legislação: {
-    label: "legislation",
-    description: undefined,
-  },
-  "Área Registrada na Prefeitura": {
-    label: "legalArea",
-    description:
-      'Digite apenas os números do valor em m² e use "." como separador decimal',
-  },
-  Inclinação: {
-    label: "incline",
-    description:
-      'Digite apenas os números do valor em º e use "." como separador decimal',
-  },
-};
+];
 
 export {
   basicAnswerSchema,
   basicAnswerLabels,
   basicAnswerDescriptions,
-  basicAnswerMap,
   extraAnswerSchema,
   extraAnswerLabels,
   extraAnswerDescriptions,
-  extraAnswerMap,
 };

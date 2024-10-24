@@ -7,7 +7,10 @@ import {
   Interference,
   LocationTypes,
   NoiseLocation,
+  NoiseTypes,
   OptionTypes,
+  QuestionGeometryTypes,
+  QuestionResponseCharacterTypes,
   QuestionTypes,
   UserTypes,
   Visibility,
@@ -55,13 +58,16 @@ const questionSchema = z.object({
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
+  characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
   minValue: z.coerce.number().finite().optional(),
   maxValue: z.coerce.number().finite().optional(),
   optionType: z.nativeEnum(OptionTypes).optional(),
   maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
+  geometryTypes: z.array(z.nativeEnum(QuestionGeometryTypes)).optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
+  subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
 const questionsOnFormsSchema = z.object({
@@ -134,7 +140,6 @@ export type { categoryType, formType, questionType };
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
-
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
@@ -396,10 +401,10 @@ const personSchema = z.object({
 });
 
 const noiseSchema = z.object({
-  location: z.nativeEnum(NoiseLocation),
+  date: z.coerce.date(),
+  noiseType: z.nativeEnum(NoiseTypes),
+  description: z.string().trim().optional(),
   soundLevel: z.coerce.number().finite().nonnegative(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
 });
 
 type tallyType = z.infer<typeof tallySchema>;

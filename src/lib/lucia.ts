@@ -12,7 +12,6 @@ const lucia = new Lucia(prismaAdapter, {
     email: attributes.email,
     username: attributes.username,
     type: attributes.type,
-    assessmentId: attributes.assessmentId,
   }),
   sessionCookie: {
     expires: false,

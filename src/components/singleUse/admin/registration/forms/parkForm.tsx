@@ -3,7 +3,6 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { search } from "@/lib/search";
-import { IconListCheck, IconPencil, IconTrashX } from "@tabler/icons-react";
 import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,25 +26,6 @@ const LocationComponent = ({ id, name }: { id: number; name: string }) => {
           </Button>
         </Link>
       </div>
-
-      <div className="flex gap-2">
-        <Button
-          variant={"admin"}
-          size={"icon"}
-          onPress={() => {
-            router.replace(`/admin/parks?id=${id}`);
-          }}
-        >
-          <IconListCheck size={28} />
-        </Button>
-
-        <Button variant={"admin"} size={"icon"}>
-          <IconPencil size={28} />
-        </Button>
-        <Button variant={"destructive"} size={"icon"}>
-          <IconTrashX size={28} />
-        </Button>
-      </div>
     </div>
   );
 };
@@ -56,7 +36,7 @@ const LocationList = ({
   locations: FuseResult<{ id: number; name: string }>[];
 }) => {
   return (
-    <div className="grid w-full grid-cols-2 gap-2 text-black">
+    <div className="grid w-full grid-cols-1 gap-2 text-black">
       {locations.map((location, index) => (
         <LocationComponent
           key={index}
@@ -75,7 +55,7 @@ const ParkForm = ({
 }) => {
   const sortedLocations = useMemo(
     () =>
-      location.toSorted((a, b) => {
+      location.sort((a, b) => {
         if (a.name === b.name) return 0;
         else if (a.name > b.name) return 1;
         else return -1;

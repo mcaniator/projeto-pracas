@@ -1,38 +1,69 @@
-import { searchFormsById } from "@/serverActions/formUtil";
-import { searchLocationsById } from "@/serverActions/locationUtil";
-import { searchQuestionsByFormId } from "@/serverActions/questionSubmit";
+import { validateRequest } from "@/lib/lucia";
+import { fetchAssessmentsInProgresss } from "@/serverActions/assessmentUtil";
+import { searchformNameById } from "@/serverActions/formUtil";
+import { searchLocationNameById } from "@/serverActions/locationUtil";
+import { redirect } from "next/navigation";
 
-import { ResponseComponent } from "./responseComponent";
+import AssessmentCreation from "./assessmentCreation";
+import { AssessmentList } from "./assessmentList";
 
-const Responses = async ({
+interface AssessmentDataFetchedToAssessmentList {
+  id: number;
+  startDate: Date;
+  user: {
+    username: string;
+  };
+}
+
+const AssessmentPage = async ({
   params,
 }: {
-  params: {
-    locationId: string;
-    selectedFormId: string;
-  };
+  params: { locationId: string; selectedFormId: string };
 }) => {
-  const location = await searchLocationsById(parseInt(params.locationId));
-  const form = await searchFormsById(parseInt(params.selectedFormId));
-  const questions = await searchQuestionsByFormId(
-    parseInt(params.selectedFormId),
-  );
+  const { user } = await validateRequest();
+  if (user === null || user.type !== "ADMIN") redirect("/error");
 
-  // TODO: add error handling
-  return location == null ?
-      <div>Localização não encontrada</div>
-    : <div>
-        <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
-          Avaliando: {location.name} com o formulário: {form?.name}
-        </h3>
-        {questions !== null && form !== null && form !== undefined ?
-          <ul className="list-disc p-3 ">
-            <ResponseComponent locationId={location.id} formId={form.id} />
-          </ul>
-        : <div className="text-redwood">
-            Ainda não há perguntas no formulário
+  const locationId = Number(params.locationId);
+  const formId = Number(params.selectedFormId);
+  const assessments = await fetchAssessmentsInProgresss(locationId, formId);
+  const locationName = await searchLocationNameById(Number(params.locationId));
+  const formName =
+    (await searchformNameById(Number(params.selectedFormId))) || "ERRO";
+  return (
+    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
+      <div className="flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+        <div>
+          <h3 className={"text-2xl font-semibold"}>
+            {`Avaliações em andamento do formulário ${formName} em ${locationName}`}
+          </h3>
+          <div className="flex">
+            <span>
+              <h3 className="text-xl font-semibold">Data</h3>
+            </span>
+            <span className="ml-auto">
+              <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
+            </span>
           </div>
-        }
-      </div>;
+          <div className="overflow-auto rounded">
+            <AssessmentList
+              locationId={locationId}
+              formId={formId}
+              formName={formName}
+              assessments={assessments}
+            />
+          </div>
+        </div>
+
+        <AssessmentCreation
+          locationId={locationId}
+          formId={formId}
+          userId={user.id}
+        />
+      </div>
+    </div>
+  );
 };
-export default Responses;
+
+export default AssessmentPage;
+
+export { type AssessmentDataFetchedToAssessmentList };

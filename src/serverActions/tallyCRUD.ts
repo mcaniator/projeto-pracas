@@ -3,10 +3,15 @@
 import { prisma } from "@/lib/prisma";
 import { personType, tallyType } from "@/lib/zodValidators";
 
-const createTally = async (content: tallyType) => {
+const createTally = async (content: tallyType, locationId: number) => {
   try {
     await prisma.tally.create({
-      data: content,
+      data: {
+        ...content,
+        location: {
+          connect: { id: locationId },
+        },
+      },
     });
   } catch (error) {
     return {

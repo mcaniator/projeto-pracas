@@ -52,7 +52,7 @@ const CreationModal = ({
     typeof basicAnswerSchema
   > | null>({});
 
-  const checkBasicValidity = (key: keyof typeof basicAnswerValues) => {
+  const checkBasicValidity = (key: keyof z.infer<typeof basicAnswerSchema>) => {
     const result = basicAnswerSchema.safeParse(basicAnswerValues);
 
     if (result.success) {
@@ -82,7 +82,7 @@ const CreationModal = ({
     typeof extraAnswerSchema
   > | null>(null);
 
-  const checkExtraValidity = (key: keyof typeof extraAnswerValues) => {
+  const checkExtraValidity = (key: keyof z.infer<typeof extraAnswerSchema>) => {
     const result = extraAnswerSchema.safeParse(extraAnswerValues);
 
     if (result.success) {
@@ -233,7 +233,7 @@ const CreationModal = ({
                         <div className="flex flex-col gap-2">
                           {Object.keys(basicAnswerValues).map(
                             (value, index) => (
-                              <FormInput
+                              <FormInput<z.infer<typeof basicAnswerSchema>>
                                 key={index}
                                 // @ts-expect-error TS doesn't realize that value is always a key of basicAnswerSchema,
                                 // this could be solved by manually typing every field but this is cooler lol
@@ -274,7 +274,7 @@ const CreationModal = ({
                         <div className="flex flex-col gap-2">
                           {Object.keys(extraAnswerValues).map(
                             (value, index) => (
-                              <FormInput
+                              <FormInput<z.infer<typeof extraAnswerSchema>>
                                 key={index}
                                 // @ts-expect-error same thing as the previous one
                                 objectKey={value}

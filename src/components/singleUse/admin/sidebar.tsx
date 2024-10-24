@@ -12,6 +12,7 @@ import {
   IconListDetails,
   IconMail,
   IconMapSearch,
+  IconTableExport,
   IconUserCog,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -36,12 +37,17 @@ const Sidebar = () => {
       name: "Formulários",
       path: "/admin/forms",
     },
+    {
+      icon: <IconTableExport size={34} />,
+      name: "Exportar",
+      path: "/admin/export",
+    },
   ];
 
   return (
     <nav
       className={cn(
-        "flex h-full w-64 basis-[15%] flex-col p-5 text-xl text-white",
+        "flex h-full w-64 flex-col p-5 text-xl text-white",
         titillium_web.className,
       )}
     >

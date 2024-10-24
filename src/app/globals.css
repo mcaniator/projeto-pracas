@@ -2,28 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-::-webkit-scrollbar {
-  overflow: overlay;
-  width: 7px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: rgba(217, 217, 217, 0.7);
-  border-radius: 10rem;
-}
-
-::-webkit-scrollbar-track-piece:start {
-  background: transparent;
-}
-
-::-webkit-scrollbar-track-piece:end {
-  background: transparent;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;

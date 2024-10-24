@@ -1,145 +1,367 @@
 "use server";
 
+import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
 import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
 import { revalidateTag } from "next/cache";
+import { Coordinate } from "ol/coordinate";
+
+interface ResponseToAdd {
+  questionId: number;
+  type: QuestionTypes;
+  response?: string[];
+}
+interface ResponseToUpdate {
+  responseId: number[];
+  locationId: number;
+  formId: number;
+  questionId: number;
+  type: QuestionTypes;
+  value: string[];
+}
 
 const addResponses = async (
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  response?: string,
+  assessmentId: number,
+  responses: ResponseToAdd[],
+  geometriesByQuestion: { questionId: number; geometries: ModalGeometry[] }[],
+  userId: string,
+  endAssessment: boolean,
 ) => {
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "WRITTEN",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
   try {
-    if (questionType === QuestionTypes.NUMERIC && response) {
-      const existingResponse = await prisma.response.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
-          locationId: locationId,
-          type: QuestionTypes.NUMERIC,
-          response: response,
-        },
-      });
-
-      if (existingResponse) {
-        await prisma.response.update({
-          where: {
-            id: existingResponse.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
+    await prisma.assessment.update({
+      where: {
+        id: assessmentId,
+      },
+      data: {
+        endDate: endAssessment ? new Date() : null,
+        response: {
+          upsert: responsesTextNumeric.map((response) => ({
+            where: {
+              assessmentId_questionId: {
+                assessmentId,
+                questionId: response.questionId,
+              },
             },
-          },
-        });
-      } else {
-        await prisma.response.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            type: questionType,
-            response: response,
-            frequency: 1,
-          },
-        });
-      }
-    } else if (questionType === QuestionTypes.TEXT && response) {
-      await prisma.response.create({
-        data: {
-          locationId: locationId,
-          formId: formId,
-          questionId: questionId,
-          type: questionType,
-          response: response,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS && response) {
-      const optionId = parseInt(response);
-
-      const existingResponseOption = await prisma.responseOption.findFirst({
-        where: {
-          questionId: questionId,
-          formId: formId,
-          locationId: locationId,
-          optionId: optionId,
-        },
-      });
-
-      if (existingResponseOption) {
-        await prisma.responseOption.update({
-          where: {
-            id: existingResponseOption.id,
-          },
-          data: {
-            frequency: {
-              increment: 1,
+            update: {
+              response: response.response ? response.response[0] : undefined,
             },
-          },
-        });
+            create: {
+              type: response.type,
+              response: response.response ? response.response[0] : undefined,
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+              question: {
+                connect: {
+                  id: response.questionId,
+                },
+              },
+            },
+          })),
+        },
+      },
+    });
+    const existingResponseOptions = await prisma.responseOption.findMany({
+      where: {
+        assessmentId,
+        userId,
+      },
+    });
+    for (const currentResponseOption of responsesOption) {
+      const existingResponseOptionsToCurrentQuestion =
+        existingResponseOptions.filter(
+          (responseOption) =>
+            responseOption.questionId === currentResponseOption.questionId,
+        );
+
+      if (currentResponseOption.response?.includes("null")) {
+        if (existingResponseOptionsToCurrentQuestion.length === 0) {
+          await prisma.responseOption.create({
+            data: {
+              user: {
+                connect: { id: userId },
+              },
+              question: {
+                connect: { id: currentResponseOption.questionId },
+              },
+              assessment: {
+                connect: { id: assessmentId },
+              },
+            },
+          });
+        } else {
+          await prisma.responseOption.updateMany({
+            where: {
+              assessmentId,
+              questionId: currentResponseOption.questionId,
+              userId,
+            },
+            data: {
+              optionId: null,
+            },
+          });
+        }
       } else {
-        await prisma.responseOption.create({
-          data: {
-            locationId: locationId,
-            formId: formId,
-            questionId: questionId,
-            optionId: optionId,
-            frequency: 1,
-          },
-        });
+        const optionIds =
+          currentResponseOption.response?.map((id) => Number(id)) || [];
+
+        for (let i = 0; i < optionIds.length; i++) {
+          const optionId = optionIds[i];
+
+          if (i < existingResponseOptionsToCurrentQuestion.length) {
+            const currentExistingResponseOptionsToCurrentQuestion =
+              existingResponseOptionsToCurrentQuestion[i];
+            if (currentExistingResponseOptionsToCurrentQuestion) {
+              await prisma.responseOption.update({
+                where: {
+                  id: currentExistingResponseOptionsToCurrentQuestion.id,
+                },
+                data: {
+                  option: {
+                    connect: { id: optionId },
+                  },
+                },
+              });
+            }
+          } else {
+            await prisma.responseOption.create({
+              data: {
+                user: {
+                  connect: { id: userId },
+                },
+                question: {
+                  connect: { id: currentResponseOption.questionId },
+                },
+                assessment: {
+                  connect: { id: assessmentId },
+                },
+                option: {
+                  connect: { id: optionId },
+                },
+              },
+            });
+          }
+        }
+
+        if (
+          existingResponseOptionsToCurrentQuestion.length > optionIds.length
+        ) {
+          const excessResponseOptions =
+            existingResponseOptionsToCurrentQuestion.slice(optionIds.length);
+          await prisma.responseOption.updateMany({
+            where: {
+              id: {
+                in: excessResponseOptions.map(
+                  (excessResponseOption) => excessResponseOption.id,
+                ),
+              },
+            },
+            data: {
+              optionId: null,
+            },
+          });
+        }
       }
     }
-  } catch (err) {
-    return { statusCode: 2 };
+  } catch (e) {
+    return {
+      statusCode: 2,
+    };
   }
+  //GEOMETRIES
 
-  revalidateTag("response");
-  return {
-    statusCode: 0,
-  };
+  for (const geometryByQuestion of geometriesByQuestion) {
+    const { questionId, geometries } = geometryByQuestion;
+    const wktGeometries = geometries
+      .map((geometry) => {
+        const { type, coordinates } = geometry;
+        if (type === "Point") {
+          const [longitude, latitude] = coordinates as number[];
+          return `POINT(${longitude} ${latitude})`;
+        } else if (type === "Polygon") {
+          const polygonCoordinates = (coordinates as Coordinate[][])
+            .map((ring) =>
+              ring
+                .map(([longitude, latitude]) => `${longitude} ${latitude}`)
+                .join(", "),
+            )
+            .join("), (");
+
+          return `POLYGON((${polygonCoordinates}))`;
+        }
+      })
+      .join(", ");
+
+    if (wktGeometries.length !== 0) {
+      const geoText = `GEOMETRYCOLLECTION(${wktGeometries})`;
+      await prisma.$executeRaw`
+  INSERT INTO question_geometry (assessment_id, question_id, geometry)
+  VALUES (${assessmentId}, ${questionId}, ST_GeomFromText(${geoText}, 4326))
+  ON CONFLICT (assessment_id, question_id)
+  DO UPDATE SET geometry = ST_GeomFromText(${geoText}, 4326)
+`;
+    } else {
+      await prisma.$executeRaw`
+  INSERT INTO question_geometry (assessment_id, question_id, geometry)
+  VALUES (${assessmentId}, ${questionId}, NULL)
+  ON CONFLICT (assessment_id, question_id)
+  DO UPDATE SET geometry = NULL
+`;
+    }
+  }
 };
 
-const updateResponse = async (
-  responseId: number,
-  locationId: number,
-  formId: number,
-  questionId: number,
-  questionType: QuestionTypes,
-  newResponse: string,
-) => {
-  try {
-    if (questionType === QuestionTypes.NUMERIC) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.TEXT) {
-      await prisma.response.update({
-        where: {
-          id: responseId,
-        },
-        data: {
-          response: newResponse,
-        },
-      });
-    } else if (questionType === QuestionTypes.OPTIONS) {
-      const optionId = parseInt(newResponse);
+const updateResponses = async (responses: ResponseToUpdate[]) => {
+  type ResponsePromise =
+    | ReturnType<typeof prisma.response.update>
+    | ReturnType<typeof prisma.responseOption.upsert>
+    | ReturnType<typeof prisma.responseOption.deleteMany>;
 
-      await prisma.responseOption.update({
+  const responsesTextNumeric = responses.filter(
+    (response) => response.type === "WRITTEN",
+  );
+  const responsesOption = responses.filter(
+    (response) => response.type === "OPTIONS",
+  );
+  try {
+    let submmitData: {
+      createdAt: Date;
+      userId: string;
+      formVersion: number;
+    };
+    if (responsesOption[0]) {
+      const responseObj = await prisma.responseOption.findUnique({
         where: {
-          id: responseId,
+          id: Number(responsesOption[0].responseId[0]),
         },
-        data: {
-          optionId: optionId,
+        select: {
+          createdAt: true,
+          userId: true,
+          formVersion: true,
         },
       });
+      if (responseObj) {
+        submmitData = responseObj;
+      }
     }
+
+    await prisma.$transaction([
+      ...responsesTextNumeric.map((response) =>
+        prisma.response.update({
+          where: {
+            id: response.responseId[0],
+          },
+          data: {
+            response: response.value[0],
+          },
+        }),
+      ),
+      ...responsesOption.flatMap((response) => {
+        const transactionPromises: ResponsePromise[] = [];
+        if (response.responseId.length >= response.value.length) {
+          const quantityResponsesOptionToNullify =
+            response.responseId.length - response.value.length;
+          const responsesOptionToNullifyIds: number[] = [];
+          for (let i = 0; i < quantityResponsesOptionToNullify; i++) {
+            if (response.responseId[0]) {
+              responsesOptionToNullifyIds.push(response.responseId[0]);
+              response.responseId.shift();
+            }
+          }
+          transactionPromises.push(
+            prisma.responseOption.updateMany({
+              where: {
+                id: {
+                  in: responsesOptionToNullifyIds,
+                },
+              },
+              data: {
+                optionId: null,
+              },
+            }),
+          );
+
+          for (let i = 0; i < response.value.length; i++) {
+            transactionPromises.push(
+              prisma.responseOption.update({
+                where: {
+                  id: response.responseId[i],
+                },
+                data: {
+                  option: {
+                    connect: {
+                      id: Number(response.value[i]),
+                    },
+                  },
+                },
+              }),
+            );
+          }
+        } else {
+          for (let i = 0; i < response.value.length; i++) {
+            if (response.responseId[i]) {
+              transactionPromises.push(
+                prisma.responseOption.update({
+                  where: {
+                    id: Number(response.responseId[i]),
+                  },
+                  data: {
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
+            } else {
+              transactionPromises.push(
+                prisma.responseOption.create({
+                  data: {
+                    location: {
+                      connect: {
+                        id: response.locationId,
+                      },
+                    },
+                    question: {
+                      connect: {
+                        id: response.questionId,
+                      },
+                    },
+                    user: {
+                      connect: {
+                        id: submmitData.userId,
+                      },
+                    },
+                    form: {
+                      connect: {
+                        id: response.formId,
+                      },
+                    },
+                    formVersion: submmitData.formVersion,
+                    createdAt: submmitData.createdAt,
+                    option: {
+                      connect: {
+                        id: Number(response.value[i]),
+                      },
+                    },
+                  },
+                }),
+              );
+            }
+          }
+        }
+        return transactionPromises;
+      }),
+    ]);
   } catch (err) {
     return { statusCode: 2 };
   }
@@ -158,10 +380,23 @@ const searchResponsesByQuestionId = async (questionId: number) => {
   });
 };
 
-const searchResponsesOptionsByQuestionId = async (questionId: number) => {
+const searchResponsesOptionsByQuestionFormLocation = async (
+  questionId: number,
+  formId: number,
+  locationId: number,
+) => {
   return await prisma.responseOption.findMany({
     where: {
-      questionId: questionId,
+      questionId,
+      locationId,
+      formId,
+    },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 };
@@ -177,13 +412,74 @@ const searchResponsesByQuestionFormLocation = async (
       formId: formId,
       locationId: locationId,
     },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
   });
 };
 
+/*const searchResponsesByLocation = async (locationId: number) => {
+  return await prisma.response.findMany({
+    where: {
+      locationId: locationId,
+    },
+    select: {
+      id: true,
+      formVersion: true,
+      createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+};*/
+
+/*const searchResponsesOptionsByLocation = async (locationId: number) => {
+  return await prisma.responseOption.findMany({
+    where: {
+      locationId: locationId,
+    },
+    select: {
+      id: true,
+      formVersion: true,
+      createdAt: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+    },
+  });
+};*/
+
 export {
   addResponses,
-  updateResponse,
+  updateResponses,
   searchResponsesByQuestionId,
-  searchResponsesOptionsByQuestionId,
+  searchResponsesOptionsByQuestionFormLocation,
   searchResponsesByQuestionFormLocation,
+  /*searchResponsesByLocation,
+  searchResponsesOptionsByLocation,*/
 };
+
+export { type ResponseToUpdate };

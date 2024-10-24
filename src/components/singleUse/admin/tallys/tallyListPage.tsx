@@ -171,7 +171,7 @@ const TallyPage = ({
 
         <div
           className={
-            "flex max-h-72 w-fit flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+            "flex h-fit w-fit flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
           }
         >
           <TallyFilter
@@ -179,6 +179,7 @@ const TallyPage = ({
             handleFinalDateChange={handleFinalDateChange}
             handleWeekdayChange={handleWeekdayChange}
             locationId={parseInt(locationId)}
+            locationName={locationName}
             activeTallys={activeTallys}
           ></TallyFilter>
         </div>

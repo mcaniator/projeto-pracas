@@ -2,25 +2,73 @@
 
 import { prisma } from "@/lib/prisma";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
-import { Question, QuestionsOnForms } from "@prisma/client";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { Question } from "@prisma/client";
+import { revalidateTag } from "next/cache";
+
+interface QuestionWithCategories extends Question {
+  category: {
+    id: number;
+    name: string;
+  };
+  subcategory: {
+    id: number;
+    name: string;
+    categoryId: number;
+  } | null;
+}
 
 const questionSubmit = async (
   prevState: { statusCode: number },
   formData: FormData,
 ) => {
   const questionType = formData.get("questionType");
+  const questionCharacterType = formData.get("characterType");
 
   switch (questionType) {
-    case "TEXT": {
-      let textQuestionParsed;
+    case "WRITTEN": {
+      let writtenQuestionParsed;
+
       try {
-        textQuestionParsed = questionSchema.parse({
-          name: formData.get("name"),
-          type: questionType,
-          categoryId: formData.get("categoryId"),
-          responseCharLimit: formData.get("charLimit"),
-        });
+        if (questionCharacterType === "TEXT") {
+          writtenQuestionParsed = questionSchema.parse({
+            name: formData.get("name"),
+            type: questionType,
+            characterType: questionCharacterType,
+            categoryId: formData.get("categoryId"),
+            responseCharLimit: formData.get("charLimit"),
+            subcategoryId:
+              Number(formData.get("subcategoryId")) > 0 ?
+                formData.get("subcategoryId")
+              : undefined,
+            geometryTypes:
+              (
+                formData.getAll("geometryTypes").length > 0 &&
+                formData.get("hasAssociatedGeometry") === "true"
+              ) ?
+                formData.getAll("geometryTypes")
+              : undefined,
+          });
+        } else {
+          writtenQuestionParsed = questionSchema.parse({
+            name: formData.get("name"),
+            type: questionType,
+            characterType: questionCharacterType,
+            categoryId: formData.get("categoryId"),
+            subcategoryId:
+              Number(formData.get("subcategoryId")) > 0 ?
+                formData.get("subcategoryId")
+              : undefined,
+            minValue: formData.get("minValue"),
+            maxValue: formData.get("maxValue"),
+            geometryTypes:
+              (
+                formData.getAll("geometryTypes").length > 0 &&
+                formData.get("hasAssociatedGeometry") === "true"
+              ) ?
+                formData.getAll("geometryTypes")
+              : undefined,
+          });
+        }
       } catch (err) {
         return { statusCode: 1 };
       }
@@ -28,10 +76,15 @@ const questionSubmit = async (
       try {
         await prisma.question.create({
           data: {
-            name: textQuestionParsed.name,
-            type: textQuestionParsed.type,
-            categoryId: textQuestionParsed.categoryId,
-            responseCharLimit: textQuestionParsed.responseCharLimit,
+            name: writtenQuestionParsed.name,
+            type: writtenQuestionParsed.type,
+            characterType: writtenQuestionParsed.characterType,
+            categoryId: writtenQuestionParsed.categoryId,
+            subcategoryId: writtenQuestionParsed.subcategoryId,
+            responseCharLimit: writtenQuestionParsed.responseCharLimit,
+            minValue: writtenQuestionParsed.minValue,
+            maxValue: writtenQuestionParsed.maxValue,
+            geometryTypes: writtenQuestionParsed.geometryTypes,
           },
         });
       } catch (err) {
@@ -40,41 +93,16 @@ const questionSubmit = async (
 
       break;
     }
-    case "NUMERIC": {
-      let numericQuestionParsed;
-      try {
-        numericQuestionParsed = questionSchema.parse({
-          name: formData.get("name"),
-          type: questionType,
-          categoryId: formData.get("categoryId"),
-          min: formData.get("min"),
-          max: formData.get("max"),
-        });
-      } catch (err) {
-        return { statusCode: 1 };
-      }
 
-      try {
-        await prisma.question.create({
-          data: {
-            name: numericQuestionParsed.name,
-            type: numericQuestionParsed.type,
-            categoryId: numericQuestionParsed.categoryId,
-            minValue: numericQuestionParsed.minValue,
-            maxValue: numericQuestionParsed.maxValue,
-          },
-        });
-      } catch (err) {
-        return { statusCode: 2 };
-      }
-
-      break;
-    }
     case "OPTIONS": {
       const optionType = formData.get("optionType");
       const maximumSelections = formData.get("maximumSelection");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
+      const subcategoryId =
+        Number(formData.get("subcategoryId")) > 0 ?
+          formData.get("subcategoryId")
+        : undefined;
 
       const optionsQuestionObject =
         optionType === "CHECKBOX" ?
@@ -86,29 +114,41 @@ const questionSubmit = async (
         optionsQuestionParsed = questionSchema.parse({
           name,
           type: questionType,
+          characterType: questionCharacterType,
           categoryId,
+          subcategoryId,
+
+          geometryTypes:
+            (
+              formData.getAll("geometryTypes").length > 0 &&
+              formData.get("hasAssociatedGeometry") === "true"
+            ) ?
+              formData.getAll("geometryTypes")
+            : undefined,
           ...optionsQuestionObject,
         });
       } catch (err) {
         return { statusCode: 1 };
       }
-
       if (
-        optionsQuestionParsed.maximumSelections !== undefined
+        optionsQuestionParsed.optionType === "CHECKBOX" &&
+        optionsQuestionParsed.maximumSelections === undefined
         //  &&
         // optionsQuestionParsed.maximumSelections > options.length
       ) {
         return { statusCode: 3 };
       }
-
       try {
         const newQuestion = await prisma.question.create({
           data: {
             name: optionsQuestionParsed.name,
             type: questionType,
+            characterType: optionsQuestionParsed.characterType,
             categoryId: optionsQuestionParsed.categoryId,
+            subcategoryId: optionsQuestionParsed.subcategoryId,
             optionType: optionsQuestionParsed.optionType,
             maximumSelections: optionsQuestionParsed.maximumSelections,
+            geometryTypes: optionsQuestionParsed.geometryTypes,
           },
         });
         const options = formData.getAll("options").map((value) => ({
@@ -142,46 +182,6 @@ const questionSubmit = async (
   return { statusCode: 0 };
 };
 
-const searchQuestionsByFormId = async (id: number) => {
-  const cachedQuestions = unstable_cache(
-    async (id: number): Promise<Question[]> => {
-      let foundQuestionsOnForms: QuestionsOnForms[] = [];
-      let foundQuestions: Question[] = [];
+export { questionSubmit };
 
-      try {
-        foundQuestionsOnForms = await prisma.questionsOnForms.findMany({
-          where: {
-            formId: id,
-          },
-        });
-      } catch (err) {
-        // console.error(err);
-      }
-
-      try {
-        const foundQuestionsIds = foundQuestionsOnForms.map(
-          (questionOnForm) => questionOnForm.questionId,
-        );
-
-        foundQuestions = await prisma.question.findMany({
-          where: {
-            id: {
-              in: foundQuestionsIds,
-            },
-          },
-        });
-      } catch (err) {
-        // console.error(err);
-      }
-
-      return foundQuestions;
-    },
-    ["searchQuestionsByFormIdCache"],
-    { tags: ["question", "questionOnForm", "form"] },
-  );
-
-  if ((await cachedQuestions(id)).length === 0) return null;
-  else return await cachedQuestions(id);
-};
-
-export { questionSubmit, searchQuestionsByFormId };
+export { type QuestionWithCategories };
