@@ -5,6 +5,12 @@ import { personType } from "@/lib/zodValidators";
 import { Location, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 
+import { LocationAssessment } from "./assessmentUtil";
+
+type AssessmentForEvaluationExport = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentsForEvaluationExport>>
+>[number];
+
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
   id: number;
@@ -91,6 +97,13 @@ interface groupedDataType {
       createdAt: Date;
     };
     formVersion: number;
+    data: EvaluationDataType[];
+  };
+}
+
+interface GroupedAssessmentsByForm {
+  [key: string]: {
+    form: { id: number; name: string; version: number };
     data: EvaluationDataType[];
   };
 }
@@ -196,15 +209,98 @@ const exportRegistrationData = async (locationsIds: number[]) => {
   return CSVstring;
 };
 
-const exportEvaluation = async (responsesWithType: FetchedSubmission[]) => {
-  const responsesIds = responsesWithType
+const fetchAssessmentsForEvaluationExport = async (
+  assessmentsIds: number[],
+) => {
+  const assessments = await prisma.assessment.findMany({
+    where: {
+      id: {
+        in: assessmentsIds,
+      },
+    },
+    include: {
+      location: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+        },
+      },
+      form: {
+        select: {
+          id: true,
+          name: true,
+          version: true,
+          calculations: {
+            include: {
+              category: true,
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      response: {
+        include: {
+          question: {
+            include: {
+              category: true,
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+          user: {
+            select: {
+              username: true,
+              id: true,
+            },
+          },
+        },
+      },
+      responseOption: {
+        include: {
+          question: {
+            include: {
+              category: true,
+              subcategory: {
+                include: {
+                  category: true,
+                },
+              },
+            },
+          },
+          option: true,
+          user: {
+            select: {
+              username: true,
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return assessments;
+};
+
+const exportEvaluation = async (assessmentsIds: number[]) => {
+  const assessments = await fetchAssessmentsForEvaluationExport(assessmentsIds);
+
+  /*const responsesIds = responsesWithType
     .filter((response) => response.type === "RESPONSE")
     .map((response) => response.id);
   const responsesOptionsIds = responsesWithType
     .filter((response) => response.type === "RESPONSE_OPTION")
-    .map((response) => response.id);
+    .map((response) => response.id);*/
 
-  const responses = await prisma.response.findMany({
+  /*const responses = await prisma.response.findMany({
     where: {
       id: {
         in: responsesIds,
@@ -258,194 +354,329 @@ const exportEvaluation = async (responsesWithType: FetchedSubmission[]) => {
         },
       },
     },
-  });
+  });*/
 
   // Grouping by form and formVersion. Each group will form a different table.
-  const groupedDataByFormAndFormVersion: groupedDataType = {};
-  responses.forEach((response) => {
-    const key = `${response.form.id}-${response.formVersion}`;
-    if (!groupedDataByFormAndFormVersion[key]) {
-      groupedDataByFormAndFormVersion[key] = {
-        form: response.form,
-        formVersion: response.formVersion,
-        data: [],
-      };
-    }
-    groupedDataByFormAndFormVersion[key].data.push({
-      type: "response",
-      location: response.location,
-      createdAt: response.createdAt,
-      question: response.question,
-      value: response.response,
-      user: response.user,
-    });
-  });
 
-  responseOptions.forEach((responseOption) => {
-    const key = `${responseOption.form.id}-${responseOption.formVersion}`;
-    if (!groupedDataByFormAndFormVersion[key]) {
-      groupedDataByFormAndFormVersion[key] = {
-        form: responseOption.form,
-        formVersion: responseOption.formVersion,
-        data: [],
+  const groupedByFormAndFormVersion: {
+    [key: number]: {
+      form: { id: number; name: string; version: number };
+      assessments: {
+        id: number;
+        startDate: Date;
+        user: { id: string; username: string };
+        location: {
+          id: number;
+          name: string;
+        };
+        categories: {
+          id: number;
+          name: string;
+          questions: {
+            id: number;
+            name: string;
+            responses: (string | null | undefined)[];
+          }[];
+          subcategories: {
+            id: number;
+            name: string;
+            questions: {
+              id: number;
+              name: string;
+              responses: (string | null | undefined)[];
+            }[];
+          }[];
+        }[];
+      }[];
+    };
+  } = {};
+  for (const assessment of assessments) {
+    const key = assessment.form.id;
+    if (!groupedByFormAndFormVersion[key]) {
+      groupedByFormAndFormVersion[key] = {
+        form: assessment.form,
+        assessments: [],
       };
     }
-    groupedDataByFormAndFormVersion[key].data.push({
-      type: "responseOption",
-      location: responseOption.location,
-      createdAt: responseOption.createdAt,
-      question: responseOption.question,
-      value: responseOption.option?.text,
-      user: responseOption.user,
-    });
-  });
+    const currentTable = groupedByFormAndFormVersion[assessment.formId];
+
+    if (!currentTable?.assessments.some((a) => a.id === assessment.id)) {
+      currentTable?.assessments.push({
+        id: assessment.id,
+        startDate: assessment.startDate,
+        user: { id: assessment.user.id, username: assessment.user.username },
+        location: {
+          id: assessment.location.id,
+          name: assessment.location.name,
+        },
+        categories: [],
+      });
+    }
+
+    const currentTableAssessment = currentTable?.assessments.find(
+      (a) => a.id === assessment.id,
+    );
+    if (currentTableAssessment) {
+      assessment.response.forEach((response) => {
+        const questionCategory = response.question.category;
+        if (
+          !currentTableAssessment.categories.some(
+            (c) => c.id === questionCategory.id,
+          )
+        ) {
+          currentTableAssessment.categories.push({
+            id: questionCategory.id,
+            name: questionCategory.name,
+            questions: [],
+            subcategories: [],
+          });
+        }
+        const currentTableAssessmentCategory =
+          currentTableAssessment.categories.find(
+            (c) => c.id === questionCategory.id,
+          );
+        if (!response.question.subcategory) {
+          if (currentTableAssessmentCategory) {
+            if (
+              !currentTableAssessmentCategory.questions.some(
+                (q) => q.id === response.question.id,
+              )
+            ) {
+              currentTableAssessmentCategory.questions.push({
+                id: response.question.id,
+                name: response.question.name,
+                responses: [],
+              });
+            }
+            const currentTableAssessmentCategoryQuestion =
+              currentTableAssessmentCategory.questions.find(
+                (q) => q.id === response.question.id,
+              );
+            currentTableAssessmentCategoryQuestion?.responses.push(
+              response.response,
+            );
+          }
+        } else {
+          if (currentTableAssessmentCategory) {
+            if (
+              !currentTableAssessmentCategory.subcategories.some(
+                (s) => s.id === response.question.subcategoryId,
+              )
+            ) {
+              currentTableAssessmentCategory.subcategories.push({
+                id: response.question.subcategory.id,
+                name: response.question.subcategory.name,
+                questions: [],
+              });
+            }
+            const currentTableAssessmentCategorySubcategory =
+              currentTableAssessmentCategory.subcategories.find(
+                (s) => s.id === response.question.subcategoryId,
+              );
+            if (currentTableAssessmentCategorySubcategory) {
+              if (
+                !currentTableAssessmentCategorySubcategory.questions.some(
+                  (q) => q.id === response.question.id,
+                )
+              ) {
+                currentTableAssessmentCategorySubcategory.questions.push({
+                  id: response.question.id,
+                  name: response.question.name,
+                  responses: [],
+                });
+              }
+            }
+            const currentTableAssessmentCategorySubcategoryQuestion =
+              currentTableAssessmentCategorySubcategory?.questions.find(
+                (q) => q.id === response.questionId,
+              );
+            currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
+              response.response,
+            );
+          }
+        }
+      });
+
+      assessment.responseOption.forEach((response) => {
+        const questionCategory = response.question.category;
+        if (
+          !currentTableAssessment.categories.some(
+            (c) => c.id === questionCategory.id,
+          )
+        ) {
+          currentTableAssessment.categories.push({
+            id: questionCategory.id,
+            name: questionCategory.name,
+            questions: [],
+            subcategories: [],
+          });
+        }
+        const currentTableAssessmentCategory =
+          currentTableAssessment.categories.find(
+            (c) => c.id === questionCategory.id,
+          );
+        if (!response.question.subcategory) {
+          if (currentTableAssessmentCategory) {
+            if (
+              !currentTableAssessmentCategory.questions.some(
+                (q) => q.id === response.question.id,
+              )
+            ) {
+              currentTableAssessmentCategory.questions.push({
+                id: response.question.id,
+                name: response.question.name,
+                responses: [],
+              });
+            }
+            const currentTableAssessmentCategoryQuestion =
+              currentTableAssessmentCategory.questions.find(
+                (q) => q.id === response.question.id,
+              );
+            currentTableAssessmentCategoryQuestion?.responses.push(
+              response.option?.text,
+            );
+          }
+        } else {
+          if (currentTableAssessmentCategory) {
+            if (
+              !currentTableAssessmentCategory.subcategories.some(
+                (s) => s.id === response.question.subcategoryId,
+              )
+            ) {
+              currentTableAssessmentCategory.subcategories.push({
+                id: response.question.subcategory.id,
+                name: response.question.subcategory.name,
+                questions: [],
+              });
+            }
+            const currentTableAssessmentCategorySubcategory =
+              currentTableAssessmentCategory.subcategories.find(
+                (s) => s.id === response.question.subcategoryId,
+              );
+            if (currentTableAssessmentCategorySubcategory) {
+              if (
+                !currentTableAssessmentCategorySubcategory.questions.some(
+                  (q) => q.id === response.question.id,
+                )
+              ) {
+                currentTableAssessmentCategorySubcategory.questions.push({
+                  id: response.question.id,
+                  name: response.question.name,
+                  responses: [],
+                });
+              }
+            }
+            const currentTableAssessmentCategorySubcategoryQuestion =
+              currentTableAssessmentCategorySubcategory?.questions.find(
+                (q) => q.id === response.questionId,
+              );
+            currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
+              response.option?.text,
+            );
+          }
+        }
+      });
+    }
+  }
 
   const csvObjs: {
     formName: string;
     formVersion: number;
     csvString: string;
   }[] = [];
-  for (const key in groupedDataByFormAndFormVersion) {
-    const currentGroup = groupedDataByFormAndFormVersion[key];
+  for (const key in groupedByFormAndFormVersion) {
+    const currentGroup = groupedByFormAndFormVersion[key];
     if (currentGroup) {
-      const categories: {
-        [key: number]: {
-          name: string;
-          questionCount: number;
-          processedQuestions: Set<number>;
-        };
-      } = {};
-      const subcategories: {
-        [key: number]: {
-          name: string;
-          questionCount: number;
-          processedQuestions: Set<number>;
-        };
-      } = {};
-      const questions: { [key: number]: string } = {};
-
-      const { form, formVersion, data } = currentGroup;
-
-      data.forEach((response) => {
-        const question = response.question;
-
-        if (!categories[question.category.id]) {
-          categories[question.category.id] = {
-            name: question.category.name,
-            questionCount: 0,
-            processedQuestions: new Set(),
-          };
-        }
-        const currentCategory = categories[question.category.id];
-        if (currentCategory) {
-          if (!currentCategory.processedQuestions.has(question.id)) {
-            currentCategory.questionCount += 1;
-            currentCategory.processedQuestions.add(question.id);
-          }
-        }
-
-        if (question.subcategory) {
-          if (!subcategories[question.subcategory.id]) {
-            subcategories[question.subcategory.id] = {
-              name: question.subcategory.name,
-              questionCount: 0,
-              processedQuestions: new Set(),
-            };
-          }
-
-          const currentSubcategory = subcategories[question.subcategory.id];
-          if (currentSubcategory) {
-            if (!currentSubcategory.processedQuestions.has(question.id)) {
-              currentSubcategory.questionCount += 1;
-              currentSubcategory.processedQuestions.add(question.id);
-            }
-          }
-        }
-
-        if (!questions[question.id]) {
-          questions[question.id] = question.name;
-        }
-      });
+      const { form, assessments } = currentGroup;
 
       const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
-        categories,
+        assessments[0]!.categories,
       )
         .map((category) =>
-          Array(category.questionCount).fill(category.name).join(","),
+          Array(
+            category.questions.length +
+              category.subcategories.reduce(
+                (sum, subcategory) => sum + subcategory.questions.length,
+                0,
+              ),
+          )
+            .fill(category.name)
+            .join(","),
         )
         .join(",")}`;
 
-      const subcategoryLine = `,,,,,,${Object.values(subcategories)
-        .map((subcategory) =>
-          Array(subcategory.questionCount).fill(subcategory.name).join(","),
-        )
-        .join(",")}`;
-      const questionLine = `Identificador,Nome da praça,Avaliador,Dia,Data,Horário,${Object.values(questions).join(",")}`;
+      const subcategoryLine = assessments[0].categories
+        .map((category) => {
+          // Colunas em branco para as questões da categoria principal que não têm subcategoria
+          const blankColumns = Array(category.questions.length)
+            .fill("")
+            .join(",");
 
-      let csvContent = `${categoryLine}\n${subcategoryLine}\n${questionLine}\n`;
+          // Colunas com o nome das subcategorias, alinhadas com o número de questões
+          const subcategoryColumns = category.subcategories
+            .map((subcategory) =>
+              Array(subcategory.questions.length)
+                .fill(subcategory.name)
+                .join(","),
+            )
+            .join(",");
 
-      const groupedDataByLocationDateUser: {
-        [key: string]: EvaluationDataType[];
-      } = {}; //Each group will form a line.
+          return `${subcategoryColumns ? `${subcategoryColumns},${blankColumns}` : `${blankColumns}`}`;
+        })
+        .join(",");
+      const questionsStr = assessments[0]?.categories
+        .map((category) => {
+          const subcategoriesResponses = category.subcategories
+            .map((subcategory) => {
+              return subcategory.questions
+                .map((question) => {
+                  return question.name;
+                })
+                .join(",");
+            })
+            .join(",");
+          const categoryResponses = category.questions
+            .map((question) => {
+              return question.name;
+            })
+            .join(",");
+          return `${subcategoriesResponses},${categoryResponses}`;
+        })
+        .join(",");
+      const questionLine = `Identificador,Nome da praça,Avaliador,Dia,Data,Horário,${questionsStr}`;
 
-      data.forEach((response) => {
-        const key = `${response.location.id}-${response.createdAt.toISOString()}-${response.user.id}`;
-        if (!groupedDataByLocationDateUser[key]) {
-          groupedDataByLocationDateUser[key] = [];
-        }
-        groupedDataByLocationDateUser[key].push(response);
-      });
-      const sortedGroupedDataByLocationDateUser: {
-        [
-          key: string
-        ]: (typeof groupedDataByLocationDateUser)[keyof typeof groupedDataByLocationDateUser];
-      } = {};
+      let csvContent = `${categoryLine}\n,,,,,,${subcategoryLine}\n${questionLine}\n`;
 
-      Object.keys(groupedDataByLocationDateUser)
-        .sort()
-        .forEach((key) => {
-          const currentGroup = groupedDataByLocationDateUser[key];
-          if (currentGroup)
-            sortedGroupedDataByLocationDateUser[key] = currentGroup;
-        });
-      for (const key in sortedGroupedDataByLocationDateUser) {
-        const groupedData = sortedGroupedDataByLocationDateUser[key];
-        if (groupedData) {
-          const firstResponse = groupedData[0];
-          if (firstResponse) {
-            const locationId = firstResponse.location.id;
-            const locationName = firstResponse.location.name;
-            const username = firstResponse.user.username;
-            const dateTime = new Date(firstResponse.createdAt);
-            const weekday = dateTime.toLocaleString("pt-BR", {
-              weekday: "short",
-            });
-            const date = dateTime.toLocaleDateString();
-            const time = dateTime.toLocaleTimeString();
-
-            const responseValues = Object.keys(questions).map((questionId) => {
-              const currentQuestionResponses = groupedData.filter(
-                (response) => response.question.id === parseInt(questionId),
-              );
-              if (currentQuestionResponses.length > 0) {
-                return currentQuestionResponses
-                  .filter(
-                    (response) =>
-                      response.value !== null && response.value !== undefined,
-                  )
-                  .map((response) => response.value)
-                  .join(" / ");
-              }
-              return "";
-            });
-            csvContent += `${locationId},${locationName},${username},${weekday},${date},${time},${responseValues.join(",")}\n`;
-          }
-        }
+      for (const assessment of currentGroup.assessments) {
+        const responseValues = assessment.categories
+          .map((category) => {
+            const subcategoriesResponses = category.subcategories
+              .map((subcategory) => {
+                return subcategory.questions
+                  .map((question) => {
+                    return question.responses
+                      .map((response) => (response ? response : ""))
+                      .join(",");
+                  })
+                  .join(",");
+              })
+              .join(",");
+            const categoryResponses = category.questions
+              .map((question) => {
+                return question.responses
+                  .map((response) => (response ? response : ""))
+                  .join(",");
+              })
+              .join(",");
+            return `${subcategoriesResponses},${categoryResponses}`;
+          })
+          .join(",");
+        csvContent += `${assessment.location.id},${assessment.location.name},${assessment.user.username},${assessment.startDate.toLocaleString("pt-BR", { weekday: "short" })},${assessment.startDate.toLocaleDateString()},${assessment.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })},${responseValues}\n`;
       }
 
       csvObjs.push({
         formName: form.name,
-        formVersion: formVersion,
+        formVersion: form.version,
         csvString: csvContent,
       });
     }
