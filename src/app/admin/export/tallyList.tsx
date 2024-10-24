@@ -26,11 +26,11 @@ const TallyComponent = ({
   observer: string;
   tallyId: number;
   checked: boolean;
-  handleTallyChange(
+  handleTallyChange: (
     checked: boolean,
     value: number,
     removeSaveState: boolean,
-  ): void;
+  ) => void;
 }) => {
   const handleDivClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!(e.target instanceof HTMLInputElement)) {
@@ -67,11 +67,11 @@ const TallyList = ({
 }: {
   tallys: TallyDataFetchedToTallyList[];
   selectedTallys: number[];
-  handleTallyChange(
+  handleTallyChange: (
     checked: boolean,
     value: number,
     removeSaveState: boolean,
-  ): void;
+  ) => void;
 }) => {
   tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return tallys === undefined ?
