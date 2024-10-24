@@ -16,7 +16,7 @@ const createCalculationIfNotExists = async (
       name,
       categoryId,
       subcategoryId,
-      question: {
+      questions: {
         every: {
           id: {
             in: questionsIds,
@@ -40,7 +40,7 @@ const createCalculationIfNotExists = async (
       name,
       categoryId,
       subcategoryId,
-      question: {
+      questions: {
         connect: questionsIds.map((questionId) => ({ id: questionId })),
       },
     },
