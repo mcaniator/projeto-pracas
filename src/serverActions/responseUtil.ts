@@ -3,7 +3,6 @@
 import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
 import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
-import { Console } from "console";
 import { revalidateTag } from "next/cache";
 import { Coordinate } from "ol/coordinate";
 
