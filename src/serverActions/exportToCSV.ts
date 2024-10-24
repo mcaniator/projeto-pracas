@@ -293,69 +293,6 @@ const fetchAssessmentsForEvaluationExport = async (
 const exportEvaluation = async (assessmentsIds: number[]) => {
   const assessments = await fetchAssessmentsForEvaluationExport(assessmentsIds);
 
-  /*const responsesIds = responsesWithType
-    .filter((response) => response.type === "RESPONSE")
-    .map((response) => response.id);
-  const responsesOptionsIds = responsesWithType
-    .filter((response) => response.type === "RESPONSE_OPTION")
-    .map((response) => response.id);*/
-
-  /*const responses = await prisma.response.findMany({
-    where: {
-      id: {
-        in: responsesIds,
-      },
-    },
-    include: {
-      location: true,
-      form: true,
-      question: {
-        include: {
-          category: true,
-          subcategory: {
-            include: {
-              category: true,
-            },
-          },
-        },
-      },
-      user: {
-        select: {
-          username: true,
-          id: true,
-        },
-      },
-    },
-  });
-  const responseOptions = await prisma.responseOption.findMany({
-    where: {
-      id: {
-        in: responsesOptionsIds,
-      },
-    },
-    include: {
-      location: true,
-      form: true,
-      question: {
-        include: {
-          category: true,
-          subcategory: {
-            include: {
-              category: true,
-            },
-          },
-        },
-      },
-      option: true,
-      user: {
-        select: {
-          username: true,
-          id: true,
-        },
-      },
-    },
-  });*/
-
   // Grouping by form and formVersion. Each group will form a different table.
 
   const groupedByFormAndFormVersion: {
@@ -587,10 +524,11 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
   for (const key in groupedByFormAndFormVersion) {
     const currentGroup = groupedByFormAndFormVersion[key];
     if (currentGroup) {
-      const { form, assessments } = currentGroup;
+      const currentGroupAssessments = currentGroup.assessments;
+      const currentGroupform = currentGroup.form;
 
       const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
-        assessments[0]!.categories,
+        currentGroupAssessments[0]!.categories,
       )
         .map((category) =>
           Array(
@@ -605,14 +543,12 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
         )
         .join(",")}`;
 
-      const subcategoryLine = assessments[0].categories
+      const subcategoryLine = currentGroupAssessments[0]!.categories
         .map((category) => {
-          // Colunas em branco para as questões da categoria principal que não têm subcategoria
           const blankColumns = Array(category.questions.length)
             .fill("")
             .join(",");
 
-          // Colunas com o nome das subcategorias, alinhadas com o número de questões
           const subcategoryColumns = category.subcategories
             .map((subcategory) =>
               Array(subcategory.questions.length)
@@ -624,7 +560,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
           return `${subcategoryColumns ? `${subcategoryColumns},${blankColumns}` : `${blankColumns}`}`;
         })
         .join(",");
-      const questionsStr = assessments[0]?.categories
+      const questionsStr = currentGroupAssessments[0]?.categories
         .map((category) => {
           const subcategoriesResponses = category.subcategories
             .map((subcategory) => {
@@ -675,8 +611,8 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
       }
 
       csvObjs.push({
-        formName: form.name,
-        formVersion: form.version,
+        formName: currentGroupform.name,
+        formVersion: currentGroupform.version,
         csvString: csvContent,
       });
     }
