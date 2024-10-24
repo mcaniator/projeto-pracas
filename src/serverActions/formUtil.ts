@@ -254,7 +254,6 @@ const createVersion = async (
 
     newFormId = newForm.id;
   } catch (e) {
-    console.log(e);
     return {
       message: "erro do servidor",
     };
