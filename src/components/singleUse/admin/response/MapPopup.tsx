@@ -3,6 +3,7 @@
 import { Button } from "@/components/button";
 import { IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import {
   Dialog,
@@ -11,8 +12,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import MapProvider from "./MapProvider";
 import { ModalGeometry, ResponseGeometry } from "./responseForm";
+
+const MapProvider = dynamic(() => import("./MapProvider"), { ssr: false });
 
 const MapPopup = ({
   questionId,
@@ -48,7 +50,6 @@ const MapPopup = ({
       mapProviderRef.current.removeSelectedFeature();
     }
   };
-  //console.log("Geometrias salvas:", geometries);
   return (
     <DialogTrigger>
       <Button className="items-center p-2">
