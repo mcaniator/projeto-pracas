@@ -36,6 +36,7 @@ interface MapProviderProps {
     questionId: number,
     geometries: ModalGeometry[],
   ) => void;
+  handleChangeIsInSelectMode: (val: boolean) => void;
 }
 
 const MapContext = createContext(new Map());
@@ -47,6 +48,7 @@ const MapProvider = forwardRef(
       initialGeometries,
       drawType,
       handleQuestionGeometryChange,
+      handleChangeIsInSelectMode,
     }: MapProviderProps,
     ref,
   ) => {
@@ -160,11 +162,7 @@ const MapProvider = forwardRef(
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
-          if (
-            interaction instanceof Draw ||
-            interaction instanceof Select ||
-            interaction instanceof Modify
-          ) {
+          if (interaction instanceof Draw || interaction instanceof Modify) {
             map.removeInteraction(interaction);
           }
         });
@@ -175,9 +173,9 @@ const MapProvider = forwardRef(
         });
         selectInteraction.on("select", (event) => {
           const selected = event.selected[0];
-
           if (selected) {
             setSelectedFeature(selected);
+            handleChangeIsInSelectMode(true);
           } else {
             setSelectedFeature(null);
           }
@@ -187,7 +185,7 @@ const MapProvider = forwardRef(
       } else if (newMode === "DRAW") {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
-          if (interaction instanceof Modify) {
+          if (interaction instanceof Modify || Select) {
             map.removeInteraction(interaction);
           }
         });
@@ -197,6 +195,7 @@ const MapProvider = forwardRef(
         });
         map.addInteraction(draw);
         setMapMode("DRAW");
+        handleChangeIsInSelectMode(false);
       } else {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
@@ -207,6 +206,7 @@ const MapProvider = forwardRef(
         const modify = new Modify({ source: vectorSource.current });
         map.addInteraction(modify);
         setMapMode("DRAG");
+        handleChangeIsInSelectMode(false);
       }
     };
 
