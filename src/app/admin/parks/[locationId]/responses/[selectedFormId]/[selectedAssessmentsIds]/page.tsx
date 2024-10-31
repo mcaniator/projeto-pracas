@@ -27,7 +27,8 @@ const ResponsesFetcher = async ({
   const assessments =
     await fetchMultipleAssessmentsWithResponses(assessmentsIds);
   assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-  const assessmentsGeometries = fetchAssessmentsGeometries(assessmentsIds);
+  const assessmentsGeometries =
+    await fetchAssessmentsGeometries(assessmentsIds);
 
   // TODO: add error handling
   return (
@@ -39,7 +40,10 @@ const ResponsesFetcher = async ({
       <div className="flex h-full gap-5 overflow-auto p-5 text-white">
         <FrequencyTable assessments={assessments} />
 
-        <AssessmentsWithResponsesList assessments={assessments} />
+        <AssessmentsWithResponsesList
+          assessments={assessments}
+          assessmentsGeometries={assessmentsGeometries}
+        />
       </div>
     </div>
   );

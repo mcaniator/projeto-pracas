@@ -191,7 +191,7 @@ const fetchAssessmentGeometries = async (assessmentId: number) => {
 
 const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
   const geometries = await Promise.all(
-    assessmentsIds.map((a) => fetchAssessmentGeometries(a)),
+    assessmentsIds.flatMap((a) => fetchAssessmentGeometries(a)),
   );
   return geometries;
 };
