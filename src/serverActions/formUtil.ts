@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { QuestionWithCategories } from "./questionSubmit";
@@ -260,6 +261,7 @@ const createVersion = async (
   }
 
   revalidateTag("questionOnForm");
+  redirect("/admin/forms");
   return { statusCode: 0, newFormId };
 };
 

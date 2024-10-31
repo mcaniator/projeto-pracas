@@ -16,7 +16,6 @@ import VectorSource from "ol/source/Vector";
 import {
   createContext,
   forwardRef,
-  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -134,7 +133,7 @@ const MapProvider = forwardRef(
       };
     }, [map, view, drawType]);
 
-    const loadInitialGeometries = useCallback(() => {
+    useEffect(() => {
       if (initialGeometries) {
         vectorSource.current.clear();
         initialGeometries.forEach((geometry) => {
@@ -142,7 +141,6 @@ const MapProvider = forwardRef(
           if (geometry.type === "Point") {
             feature = new Feature(new Point(geometry.coordinates as number[]));
           } else if (geometry.type === "Polygon") {
-            //console.log(geometry.coordinates);
             feature = new Feature(
               new Polygon(geometry.coordinates as number[]),
             );
@@ -154,11 +152,7 @@ const MapProvider = forwardRef(
       }
     }, [initialGeometries]);
 
-    useEffect(() => {
-      loadInitialGeometries();
-    }, [loadInitialGeometries]);
-
-    const getGeometries = useCallback(() => {
+    const getGeometries = () => {
       const features = vectorSource.current.getFeatures();
       const geometries = features
         .map((feature) => {
@@ -174,7 +168,7 @@ const MapProvider = forwardRef(
       if (geometries !== undefined) {
         handleQuestionGeometryChange(questionId, geometries);
       }
-    }, [handleQuestionGeometryChange, questionId]);
+    };
 
     const removeSelectedFeature = () => {
       if (selectedFeature) {

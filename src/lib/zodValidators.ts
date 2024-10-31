@@ -2,18 +2,13 @@ import {
   Activity,
   AgeGroup,
   CategoryTypes,
-  Condition,
   Gender,
-  Interference,
   LocationTypes,
-  NoiseLocation,
-  NoiseTypes,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
   UserTypes,
-  Visibility,
   WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
@@ -192,39 +187,6 @@ export type { administrativeUnitsType, cityType, locationType };
 //  Informações das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-const assessmentSchema = z
-  .object({
-    startDate: z.date(),
-    endDate: z.date(),
-    changedDelimitation: z.boolean().optional(),
-    hasWifi: z.boolean(),
-
-    pavedSidewalk: z.boolean(),
-    trashCanAmount: z.coerce.number().int().finite().nonnegative(),
-    bathroomAmount: z.coerce.number().int().finite().nonnegative(),
-    payphoneAmount: z.coerce.number().int().finite().nonnegative(),
-    drinkingFountainAmount: z.coerce.number().int().finite().nonnegative(),
-    artworkAmount: z.coerce.number().int().finite().nonnegative(),
-    plannedLandscapingAmount: z.coerce.number().int().finite().nonnegative(),
-    movableSeatsAmount: z.coerce.number().int().finite().nonnegative(),
-
-    sidewalkCondition: z.nativeEnum(Condition),
-    trashCanCondition: z.nativeEnum(Condition),
-    bathroomCondition: z.nativeEnum(Condition),
-    payphoneCondition: z.nativeEnum(Condition),
-    drinkingFountainCondition: z.nativeEnum(Condition),
-    artworkCondition: z.nativeEnum(Condition),
-    plannedLandscapingCondition: z.nativeEnum(Condition),
-    movableSeatsCondition: z.nativeEnum(Condition),
-
-    locationId: z.coerce.number().int().finite().nonnegative(),
-  })
-  .refine((value) => value.endDate >= value.startDate);
-
-type assessmentType = z.infer<typeof assessmentSchema>;
-
-export { assessmentSchema };
-export type { assessmentType };
 // #endregion
 
 // #region Campos das Avaliações
@@ -232,144 +194,6 @@ export type { assessmentType };
 //  Campos das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-const accessibilitySchema = z.object({
-  surroundingSidewalkUnrestrictedLane: z.boolean(),
-  surroundingSidewalkServiceLane: z.boolean(),
-  ampleHeight: z.boolean(),
-  signaledCrosswalk: z.boolean(),
-  clearPaths: z.boolean(),
-  maximumIncline: z.boolean(),
-  longitudinalIncline: z.boolean(),
-  tactileSignage: z.boolean(),
-  safetyCoatedFlooring: z.boolean(),
-  impairedParkingAmount: z.coerce.number().int().finite().nonnegative(),
-  elderlyParkingAmount: z.coerce.number().int().finite().nonnegative(),
-  accessibleRoute: z.boolean(),
-  accessibleEquipment: z.boolean(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const surroundingAreaSchema = z.object({
-  fencedWithOperatingHours: z.boolean(),
-  nameplate: z.boolean(),
-  busStandsAmount: z.coerce.number().int().finite().nonnegative(),
-  taxiParkingAmount: z.coerce.number().int().finite().nonnegative(),
-  carParkingAmount: z.coerce.number().int().finite().nonnegative(),
-  motorcycleParkingAmount: z.coerce.number().int().finite().nonnegative(),
-  bikeLane: z.boolean(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const activitiesAreaSchema = z.object({
-  category: z.coerce.number().int().finite().nonnegative(),
-  requiredShade: z.boolean(),
-  lighting: z.boolean(),
-  fencing: z.boolean(),
-  benches: z.boolean(),
-  condition: z.nativeEnum(Condition),
-  report: z.string().trim().min(1).optional(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const destructionSchema = z.object({
-  graffitiInterferenceLevel: z.nativeEnum(Interference),
-  neglectInterferenceLevel: z.nativeEnum(Interference),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const landscapingSchema = z.object({
-  category: z.coerce.number().int().finite().nonnegative(),
-  requiredShade: z.boolean(),
-  lighting: z.boolean(),
-  fencing: z.boolean(),
-  benches: z.boolean(),
-  condition: z.boolean(),
-  report: z.string().trim().min(1).optional(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const seatingSchema = z.object({
-  category: z.coerce.number().int().finite().nonnegative(),
-  requiredShade: z.boolean(),
-  lighting: z.boolean(),
-  fencing: z.boolean(),
-  benches: z.boolean(),
-  condition: z.boolean(),
-  report: z.string().trim().min(1).optional(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const eventsSchema = z.object({
-  yearlyIncidence: z.coerce.number().int().finite().nonnegative(),
-  category: z.coerce.number().int().finite().nonnegative(),
-  maintainer: z.string().trim().min(1).max(255),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const trafficSafetySchema = z.object({
-  crosswalk: z.boolean(),
-  trafficLight: z.boolean(),
-  speedSignage: z.boolean(),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const surroundingActivitySchema = z.object({
-  surroundingEstablishments: z.string().trim().min(1),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-const securitySchema = z.object({
-  cameras: z.boolean(),
-  policeStation: z.boolean(),
-  visibilityLevel: z.nativeEnum(Visibility),
-
-  assessmentId: z.coerce.number().int().finite().nonnegative(),
-});
-
-type accessibilityType = z.infer<typeof accessibilitySchema>;
-type surroundingAreaType = z.infer<typeof surroundingAreaSchema>;
-type activitiesAreaType = z.infer<typeof activitiesAreaSchema>;
-type destructionType = z.infer<typeof destructionSchema>;
-type landscapingType = z.infer<typeof landscapingSchema>;
-type seatingType = z.infer<typeof seatingSchema>;
-type eventsType = z.infer<typeof eventsSchema>;
-type trafficSafetyType = z.infer<typeof trafficSafetySchema>;
-type surroundingActivityType = z.infer<typeof surroundingActivitySchema>;
-type securityType = z.infer<typeof securitySchema>;
-
-export {
-  accessibilitySchema,
-  activitiesAreaSchema,
-  destructionSchema,
-  eventsSchema,
-  landscapingSchema,
-  seatingSchema,
-  securitySchema,
-  surroundingActivitySchema,
-  surroundingAreaSchema,
-  trafficSafetySchema,
-};
-export type {
-  accessibilityType,
-  activitiesAreaType,
-  destructionType,
-  eventsType,
-  landscapingType,
-  seatingType,
-  securityType,
-  surroundingActivityType,
-  surroundingAreaType,
-  trafficSafetyType,
-};
 // #endregion
 
 // #region Campos das Avaliações Não Relacionados à Avaliação Física
@@ -400,17 +224,9 @@ const personSchema = z.object({
   isPersonWithoutHousing: z.boolean(),
 });
 
-const noiseSchema = z.object({
-  date: z.coerce.date(),
-  noiseType: z.nativeEnum(NoiseTypes),
-  description: z.string().trim().optional(),
-  soundLevel: z.coerce.number().finite().nonnegative(),
-});
-
 type tallyType = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
-type noiseType = z.infer<typeof noiseSchema>;
 
-export { noiseSchema, personSchema, tallySchema, questionsOnFormsSchema };
-export type { noiseType, personType, tallyType };
+export { personSchema, tallySchema, questionsOnFormsSchema };
+export type { personType, tallyType };
 // #endregion

@@ -4,11 +4,10 @@ import { Location } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import dynamic from "next/dynamic";
 
+import PolygonProvider from "./polygonProvider";
+
 const MapProvider = dynamic(() => import("./mapProvider"), { ssr: false });
 const Client = dynamic(() => import("./client"), { ssr: false });
-const PolygonProvider = dynamic(() => import("./polygonProvider"), {
-  ssr: false,
-});
 
 interface fullLocation extends Location {
   st_asgeojson: string | null;
