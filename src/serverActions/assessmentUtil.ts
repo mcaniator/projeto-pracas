@@ -179,13 +179,20 @@ const fetchMultipleAssessmentsWithResponses = async (
 
 const fetchAssessmentGeometries = async (assessmentId: number) => {
   const geometries = await prisma.$queryRaw<
-    { questionId: number; geometry: string | null }[]
+    { assessmentId: number; questionId: number; geometry: string | null }[]
   >`
-    SELECT question_id as "questionId", ST_AsText(geometry) as geometry
+    SELECT assessment_id as "assessmentId", question_id as "questionId", ST_AsText(geometry) as geometry
     FROM question_geometry
     WHERE assessment_id = ${assessmentId}
   `;
 
+  return geometries;
+};
+
+const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
+  const geometries = await Promise.all(
+    assessmentsIds.map((a) => fetchAssessmentGeometries(a)),
+  );
   return geometries;
 };
 
@@ -255,6 +262,7 @@ export {
   fetchAssessmentWithResponses,
   redirectToFormsList,
   fetchAssessmentsByLocation,
+  fetchAssessmentsGeometries,
 };
 
 export {

@@ -1,5 +1,8 @@
 import { validateRequest } from "@/lib/lucia";
-import { fetchMultipleAssessmentsWithResponses } from "@/serverActions/assessmentUtil";
+import {
+  fetchAssessmentsGeometries,
+  fetchMultipleAssessmentsWithResponses,
+} from "@/serverActions/assessmentUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
 
@@ -24,6 +27,7 @@ const ResponsesFetcher = async ({
   const assessments =
     await fetchMultipleAssessmentsWithResponses(assessmentsIds);
   assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+  const assessmentsGeometries = fetchAssessmentsGeometries(assessmentsIds);
 
   // TODO: add error handling
   return (
