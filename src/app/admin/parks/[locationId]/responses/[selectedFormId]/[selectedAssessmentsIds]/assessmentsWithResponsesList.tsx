@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
+import { MapPopup } from "./MapPopup";
 import { FrequencyObjByCategory } from "./frequencyTable";
 
 type FetchedAssessmentGeometries = NonNullable<
@@ -25,8 +26,10 @@ type SingleAssessment = AssessmentsWithResposes[number];
 
 const AssessmentComponent = ({
   assessment,
+  assessmentGeometries,
 }: {
   assessment: SingleAssessment;
+  assessmentGeometries: FetchedAssessmentGeometries | undefined;
 }) => {
   const options = useRef(
     assessment.form.questions.flatMap((question) => {
@@ -418,6 +421,9 @@ const AssessmentComponent = ({
                           );
                         })
                       }
+                      {assessmentGeometries?.some(
+                        (geo) => geo.questionId === question.id,
+                      ) && <div>TEM GEOMETRIA</div>}
                     </div>
                   );
                 })}
@@ -477,6 +483,18 @@ const AssessmentComponent = ({
                                 );
                               })
                             }
+                            {assessmentGeometries?.some(
+                              (geo) => geo.questionId === question.id,
+                            ) && (
+                              <div>
+                                <MapPopup
+                                  questionName={question.questionName}
+                                  initialGeometries={assessmentGeometries.filter(
+                                    (geo) => geo.questionId === question.id,
+                                  )}
+                                ></MapPopup>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -510,7 +528,13 @@ const AssessmentsWithResponsesList = ({
     <div className="flex h-fit basis-2/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
       <h3 className="text-2xl font-semibold">Avaliações</h3>
       {assessments.map((assessment) => (
-        <AssessmentComponent key={assessment.id} assessment={assessment} />
+        <AssessmentComponent
+          key={assessment.id}
+          assessment={assessment}
+          assessmentGeometries={assessmentsGeometries.find(
+            (geometryGroup) => geometryGroup[0]?.assessmentId === assessment.id,
+          )}
+        />
       ))}
     </div>
   );
