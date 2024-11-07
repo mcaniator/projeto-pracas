@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconPointer, IconShape } from "@tabler/icons-react";
+import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
+import { click } from "ol/events/condition";
 import { Point, Polygon } from "ol/geom";
 import { Draw, Modify, Select } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
@@ -25,7 +26,7 @@ import {
 
 import { ModalGeometry } from "./responseForm";
 
-type MapMode = "DRAW" | "SELECT";
+type MapMode = "DRAW" | "SELECT" | "DRAG";
 
 interface MapProviderProps {
   questionId: number;
@@ -35,6 +36,7 @@ interface MapProviderProps {
     questionId: number,
     geometries: ModalGeometry[],
   ) => void;
+  handleChangeIsInSelectMode: (val: boolean) => void;
 }
 
 const MapContext = createContext(new Map());
@@ -46,6 +48,7 @@ const MapProvider = forwardRef(
       initialGeometries,
       drawType,
       handleQuestionGeometryChange,
+      handleChangeIsInSelectMode,
     }: MapProviderProps,
     ref,
   ) => {
@@ -78,7 +81,6 @@ const MapProvider = forwardRef(
       });
     }, []);
     const view = map.getView();
-
     useEffect(() => {
       if (mapRef.current !== null) map.setTarget(mapRef.current);
       navigator.geolocation.getCurrentPosition(
@@ -97,13 +99,9 @@ const MapProvider = forwardRef(
         },
       );
       const interactions = map.getInteractions();
-      let hasModifyListener = false;
       interactions.forEach((interaction) => {
         if (interaction instanceof Draw) {
           map.removeInteraction(interaction);
-        }
-        if (interaction instanceof Modify) {
-          hasModifyListener = true;
         }
       });
       const draw = new Draw({
@@ -111,22 +109,6 @@ const MapProvider = forwardRef(
         type: drawType,
       });
       map.addInteraction(draw);
-      if (!hasModifyListener) {
-        const modify = new Modify({
-          source: vectorSource.current,
-        });
-        map.addInteraction(modify);
-        const selectInteraction = new Select();
-        map.addInteraction(selectInteraction);
-        selectInteraction.on("select", (event) => {
-          const selected = event.selected[0];
-          if (selected) {
-            setSelectedFeature(selected);
-          } else {
-            setSelectedFeature(null);
-          }
-        });
-      }
 
       return () => {
         map.setTarget(undefined);
@@ -176,22 +158,55 @@ const MapProvider = forwardRef(
         setSelectedFeature(null);
       }
     };
-    const switchMode = () => {
-      if (mapMode === "DRAW") {
+    const switchMode = (newMode: MapMode) => {
+      if (newMode === "SELECT") {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
-          if (interaction instanceof Draw) {
+          if (interaction instanceof Draw || interaction instanceof Modify) {
             map.removeInteraction(interaction);
           }
         });
+
+        const selectInteraction = new Select({
+          condition: click,
+          hitTolerance: 10,
+        });
+        selectInteraction.on("select", (event) => {
+          const selected = event.selected[0];
+          if (selected) {
+            setSelectedFeature(selected);
+            handleChangeIsInSelectMode(true);
+          } else {
+            setSelectedFeature(null);
+          }
+        });
+        map.addInteraction(selectInteraction);
         setMapMode("SELECT");
-      } else {
+      } else if (newMode === "DRAW") {
+        const interactions = map.getInteractions();
+        interactions.forEach((interaction) => {
+          if (interaction instanceof Modify || Select) {
+            map.removeInteraction(interaction);
+          }
+        });
         const draw = new Draw({
           source: vectorSource.current,
           type: drawType,
         });
         map.addInteraction(draw);
         setMapMode("DRAW");
+        handleChangeIsInSelectMode(false);
+      } else {
+        const interactions = map.getInteractions();
+        interactions.forEach((interaction) => {
+          if (interaction instanceof Select || interaction instanceof Draw) {
+            map.removeInteraction(interaction);
+          }
+        });
+        const modify = new Modify({ source: vectorSource.current });
+        map.addInteraction(modify);
+        setMapMode("DRAG");
+        handleChangeIsInSelectMode(false);
       }
     };
 
@@ -203,14 +218,34 @@ const MapProvider = forwardRef(
     return (
       <div
         id="map"
-        className={"h-full w-full overflow-clip rounded-tl-3xl"}
+        className={"h-full w-full overflow-clip rounded-xl"}
         ref={mapRef}
       >
-        <Button variant={"admin"} onPress={() => switchMode()}>
-          {mapMode === "DRAW" && <IconPointer></IconPointer>}
-          {mapMode === "SELECT" && <IconShape></IconShape>}
-        </Button>
-        <MapContext.Provider value={map}></MapContext.Provider>
+        <MapContext.Provider value={map}>
+          <div className="fixed z-50 inline-flex w-fit gap-1 rounded-xl bg-gray-400 py-1 text-white shadow-inner">
+            <Button
+              variant={"ghost"}
+              onPress={() => switchMode("DRAW")}
+              className={`rounded-xl px-4 py-1 ${mapMode === "DRAW" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              <IconPolygon></IconPolygon>
+            </Button>
+            <Button
+              variant={"ghost"}
+              onPress={() => switchMode("SELECT")}
+              className={`rounded-xl bg-blue-500 px-4 py-1 ${mapMode === "SELECT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              <IconClick />
+            </Button>
+            <Button
+              variant={"ghost"}
+              onPress={() => switchMode("DRAG")}
+              className={`rounded-xl bg-blue-500 px-4 py-1 ${mapMode === "DRAG" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              <IconDragDrop />
+            </Button>
+          </div>
+        </MapContext.Provider>
       </div>
     );
   },

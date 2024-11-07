@@ -30,6 +30,7 @@ const MapPopup = ({
     geometries: ModalGeometry[],
   ) => void;
 }) => {
+  const [isInSelectMode, setIsInSelectMode] = useState(false);
   const [currentGeometryType, setCurrentGeometryType] =
     useState<ResponseGeometry>(
       geometryType === "POINT_AND_POLYGON" ? "POINT" : geometryType,
@@ -45,10 +46,15 @@ const MapPopup = ({
     }
   };
 
+  const handleChangeIsInSelectMode = (val: boolean) => {
+    setIsInSelectMode(val);
+  };
+
   const handleDeleteGeometry = () => {
     if (mapProviderRef.current) {
       mapProviderRef.current.removeSelectedFeature();
     }
+    handleChangeIsInSelectMode(false);
   };
   return (
     <DialogTrigger>
@@ -115,6 +121,7 @@ const MapPopup = ({
                       handleQuestionGeometryChange={
                         handleQuestionGeometryChange
                       }
+                      handleChangeIsInSelectMode={handleChangeIsInSelectMode}
                       drawType={
                         currentGeometryType === "POINT" ? "Point" : "Polygon"
                       }
@@ -122,13 +129,16 @@ const MapPopup = ({
                     ></MapProvider>
                   </div>
                   <span className="flex justify-between">
-                    <Button
-                      variant={"destructive"}
-                      className="w-fit"
-                      onPress={() => handleDeleteGeometry()}
-                    >
-                      Excluir geometria selecionada
-                    </Button>
+                    {isInSelectMode && (
+                      <Button
+                        variant={"destructive"}
+                        className="w-fit"
+                        onPress={() => handleDeleteGeometry()}
+                      >
+                        Excluir geometria selecionada
+                      </Button>
+                    )}
+                    {!isInSelectMode && <div></div>}
 
                     <Button
                       variant={"constructive"}
