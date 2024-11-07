@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { WeatherConditions } from "@prisma/client";
+import { CalculationTypes, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
@@ -183,6 +183,11 @@ const fetchAssessmentsForEvaluationExport = async (
           calculations: {
             include: {
               category: true,
+              questions: {
+                select: {
+                  id: true,
+                },
+              },
               subcategory: {
                 include: {
                   category: true,
@@ -263,6 +268,12 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             name: string;
             responses: (string | null | undefined)[];
           }[];
+          calculations: {
+            id: number;
+            name: string;
+            type: CalculationTypes;
+            questionsIds: number[];
+          }[];
           subcategories: {
             id: number;
             name: string;
@@ -270,6 +281,12 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
               id: number;
               name: string;
               responses: (string | null | undefined)[];
+            }[];
+            calculations: {
+              id: number;
+              name: string;
+              type: CalculationTypes;
+              questionsIds: number[];
             }[];
           }[];
         }[];
@@ -315,6 +332,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             name: questionCategory.name,
             questions: [],
             subcategories: [],
+            calculations: [],
           });
         }
         const currentTableAssessmentCategory =
@@ -342,6 +360,27 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
               response.response,
             );
           }
+          if (
+            !currentTableAssessmentCategory?.calculations.some(
+              (c) => c.id === response.question.id,
+            ) &&
+            assessment.form.calculations.some(
+              (c) =>
+                c.categoryId === response.question.categoryId &&
+                !c.subcategoryId,
+            )
+          ) {
+            currentTableAssessmentCategory?.calculations.push(
+              ...assessment.form.calculations
+                .filter((c) => c.categoryId === response.question.categoryId)
+                .map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  type: c.type,
+                  questionsIds: c.questions.map((q) => q.id),
+                })),
+            );
+          }
         } else {
           if (currentTableAssessmentCategory) {
             if (
@@ -353,6 +392,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
                 id: response.question.subcategory.id,
                 name: response.question.subcategory.name,
                 questions: [],
+                calculations: [],
               });
             }
             const currentTableAssessmentCategorySubcategory =
@@ -379,6 +419,27 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
               response.response,
             );
+            if (
+              !currentTableAssessmentCategory?.calculations.some(
+                (c) => c.id === response.question.id,
+              ) &&
+              assessment.form.calculations.some(
+                (c) =>
+                  c.categoryId === response.question.categoryId &&
+                  !c.subcategoryId,
+              )
+            ) {
+              currentTableAssessmentCategory?.calculations.push(
+                ...assessment.form.calculations
+                  .filter((c) => c.categoryId === response.question.categoryId)
+                  .map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    questionsIds: c.questions.map((q) => q.id),
+                  })),
+              );
+            }
           }
         }
       });
@@ -395,6 +456,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             name: questionCategory.name,
             questions: [],
             subcategories: [],
+            calculations: [],
           });
         }
         const currentTableAssessmentCategory =
@@ -421,6 +483,27 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             currentTableAssessmentCategoryQuestion?.responses.push(
               response.option?.text,
             );
+            if (
+              !currentTableAssessmentCategory?.calculations.some(
+                (c) => c.id === response.question.id,
+              ) &&
+              assessment.form.calculations.some(
+                (c) =>
+                  c.categoryId === response.question.categoryId &&
+                  !c.subcategoryId,
+              )
+            ) {
+              currentTableAssessmentCategory?.calculations.push(
+                ...assessment.form.calculations
+                  .filter((c) => c.categoryId === response.question.categoryId)
+                  .map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    questionsIds: c.questions.map((q) => q.id),
+                  })),
+              );
+            }
           }
         } else {
           if (currentTableAssessmentCategory) {
@@ -433,6 +516,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
                 id: response.question.subcategory.id,
                 name: response.question.subcategory.name,
                 questions: [],
+                calculations: [],
               });
             }
             const currentTableAssessmentCategorySubcategory =
@@ -459,9 +543,32 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
               response.option?.text,
             );
+            if (
+              !currentTableAssessmentCategory?.calculations.some(
+                (c) => c.id === response.question.id,
+              ) &&
+              assessment.form.calculations.some(
+                (c) =>
+                  c.categoryId === response.question.categoryId &&
+                  !c.subcategoryId,
+              )
+            ) {
+              currentTableAssessmentCategory?.calculations.push(
+                ...assessment.form.calculations
+                  .filter((c) => c.categoryId === response.question.categoryId)
+                  .map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    questionsIds: c.questions.map((q) => q.id),
+                  })),
+              );
+            }
           }
         }
       });
+
+      console.log(currentTableAssessment.categories[0]?.calculations);
     }
   }
 
@@ -479,17 +586,22 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
       const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
         currentGroupAssessments[0]!.categories,
       )
-        .map((category) =>
-          Array(
-            category.questions.length +
+        .map((category) => {
+          const fillCount =
+            category.questions.length + category.calculations.length;
+          return Array(
+            fillCount +
               category.subcategories.reduce(
-                (sum, subcategory) => sum + subcategory.questions.length,
+                (sum, subcategory) =>
+                  sum +
+                  subcategory.questions.length +
+                  subcategory.calculations.length,
                 0,
               ),
           )
             .fill(category.name)
-            .join(","),
-        )
+            .join(",");
+        })
         .join(",")}`;
 
       const subcategoryLine = currentGroupAssessments[0]!.categories
@@ -499,11 +611,11 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             .join(",");
 
           const subcategoryColumns = category.subcategories
-            .map((subcategory) =>
-              Array(subcategory.questions.length)
-                .fill(subcategory.name)
-                .join(","),
-            )
+            .map((subcategory) => {
+              const fillCount =
+                subcategory.questions.length + subcategory.calculations.length;
+              return Array(fillCount).fill(subcategory.name).join(",");
+            })
             .join(",");
 
           return `${subcategoryColumns ? `${subcategoryColumns},${blankColumns}` : `${blankColumns}`}`;
@@ -513,11 +625,20 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
         .map((category) => {
           const subcategoriesResponses = category.subcategories
             .map((subcategory) => {
-              return subcategory.questions
+              const questions = subcategory.questions
                 .map((question) => {
                   return question.name;
                 })
                 .join(",");
+
+              const subcategoryCalculations = subcategory.calculations
+                .map((calculation) => {
+                  return calculation.name;
+                })
+                .join(",");
+              if (subcategoryCalculations.length > 0)
+                return `${questions},${subcategoryCalculations}`;
+              return `${questions}`;
             })
             .join(",");
           const categoryResponses = category.questions
@@ -525,6 +646,13 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
               return question.name;
             })
             .join(",");
+          const categoryCalculations = category.calculations
+            .map((calculation) => {
+              return calculation.name;
+            })
+            .join(",");
+          if (categoryCalculations.length > 0)
+            return `${subcategoriesResponses},${categoryResponses},${categoryCalculations}`;
           return `${subcategoriesResponses},${categoryResponses}`;
         })
         .join(",");
@@ -553,7 +681,58 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
                   .join(",");
               })
               .join(",");
-            return `${subcategoriesResponses},${categoryResponses}`;
+            const categoryCalculations = category.calculations
+              .map((calculation) => {
+                const calculationQuestions = [
+                  ...category.questions.filter((q) =>
+                    calculation.questionsIds.includes(q.id),
+                  ),
+                  ...category.subcategories.flatMap((s) =>
+                    s.questions.filter((q) =>
+                      calculation.questionsIds.includes(q.id),
+                    ),
+                  ),
+                ];
+                if (calculation.type === "AVERAGE") {
+                  const sum = calculationQuestions.reduce((acc, q) => {
+                    return (
+                      acc +
+                      Number(
+                        q.responses.reduce((acc2, r) => {
+                          const num = r && !isNaN(Number(r)) ? Number(r) : 0;
+                          return acc2 + num;
+                        }, 0),
+                      )
+                    );
+                  }, 0);
+
+                  const numberOfResponses = calculationQuestions.reduce(
+                    (acc, q) => {
+                      return acc + q.responses.length;
+                    },
+                    0,
+                  );
+                  return sum / numberOfResponses;
+                } else if (calculation.type === "SUM") {
+                  return calculationQuestions.reduce((acc, q) => {
+                    return (
+                      acc +
+                      Number(
+                        q.responses.reduce((acc2, r) => {
+                          const num = r && !isNaN(Number(r)) ? Number(r) : 0;
+                          return acc2 + num;
+                        }, 0),
+                      )
+                    );
+                  }, 0);
+                } else {
+                  //TODO - PERCENTAGE
+                }
+
+                return 0;
+              })
+              .join(",");
+            return `${subcategoriesResponses},${categoryResponses},${categoryCalculations}`;
           })
           .join(",");
         csvContent += `${assessment.location.id},${assessment.location.name},${assessment.user.username},${assessment.startDate.toLocaleString("pt-BR", { weekday: "short" })},${assessment.startDate.toLocaleDateString()},${assessment.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })},${responseValues}\n`;
