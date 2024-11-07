@@ -177,6 +177,15 @@ enum WeatherConditions {
   @@map("weather_conditions")
 }
 
+enum LikertScale {
+  TERRIBLE   @map("terrible")
+  BAD @map("bad")
+  GOOD @map("good")
+  EXCELLENT @map("excellent")
+
+  @@map("likert_scale")
+}
+
 // #endregion
 
 // #region Auth

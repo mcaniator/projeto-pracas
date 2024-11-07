@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { RadioButton } from "@/components/ui/radioButton";
 import { Select } from "@/components/ui/select";
@@ -29,6 +30,30 @@ const QuestionForm = ({
   const formRef = useRef<HTMLFormElement>(null);
 
   const [disabled, setDisabled] = useState(false);
+
+  const handleScale = (isChecked: boolean) => {
+    if (isChecked) {
+      if (!addedOptions?.some((option) => option.text === "Péssimo")) {
+        setAddedOptions((prevOptions) => [
+          ...(prevOptions || []),
+          { text: "Péssimo" },
+          { text: "Ruim" },
+          { text: "Bom" },
+          { text: "Ótimo" },
+        ]);
+      }
+    } else {
+      setAddedOptions((prevOptions) =>
+        prevOptions?.filter(
+          (option) =>
+            option.text !== "Péssimo" &&
+            option.text !== "Ruim" &&
+            option.text !== "Bom" &&
+            option.text !== "Ótimo",
+        ),
+      );
+    }
+  };
 
   useEffect(() => {
     setDisabled(addedOptions == undefined && type == "option");
@@ -153,8 +178,8 @@ const QuestionForm = ({
                 }}
                 id={"tipoSelecao"}
               >
-                <option value={"SELECTION"}>Caixa de Seleção</option>
                 <option value={"RADIO"}>Botões Radias</option>
+                <option value={"SELECTION"}>Caixa de Seleção</option>
                 <option value={"CHECKBOX"}>Caixa de Checagem</option>
               </Select>
             </div>
@@ -171,6 +196,15 @@ const QuestionForm = ({
                   }}
                 />
               </div>
+              <Checkbox
+                id={"escala"}
+                variant={"default"}
+                onChange={(e) => {
+                  handleScale(e.target.checked);
+                }}
+              >
+                Usar escala
+              </Checkbox>
               <Button
                 type="button"
                 variant={"admin"}
