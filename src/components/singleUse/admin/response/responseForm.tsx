@@ -84,9 +84,6 @@ const ResponseForm = ({
       if (!geometry) {
         return { questionId, geometries: [] };
       }
-
-      //TODO: transform WKT to ModalGeometry
-
       const geometries: ModalGeometry[] = [];
       const geometriesWithoutCollection = geometry
         .replace("GEOMETRYCOLLECTION(", "")

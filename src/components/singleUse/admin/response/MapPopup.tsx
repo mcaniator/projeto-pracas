@@ -3,6 +3,7 @@
 import { Button } from "@/components/button";
 import { IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import {
   Dialog,
@@ -11,8 +12,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import MapProvider from "./MapProvider";
 import { ModalGeometry, ResponseGeometry } from "./responseForm";
+
+const MapProvider = dynamic(() => import("./MapProvider"), { ssr: false });
 
 const MapPopup = ({
   questionId,
@@ -28,6 +30,7 @@ const MapPopup = ({
     geometries: ModalGeometry[],
   ) => void;
 }) => {
+  const [isInSelectMode, setIsInSelectMode] = useState(false);
   const [currentGeometryType, setCurrentGeometryType] =
     useState<ResponseGeometry>(
       geometryType === "POINT_AND_POLYGON" ? "POINT" : geometryType,
@@ -43,12 +46,16 @@ const MapPopup = ({
     }
   };
 
+  const handleChangeIsInSelectMode = (val: boolean) => {
+    setIsInSelectMode(val);
+  };
+
   const handleDeleteGeometry = () => {
     if (mapProviderRef.current) {
       mapProviderRef.current.removeSelectedFeature();
     }
+    handleChangeIsInSelectMode(false);
   };
-  //console.log("Geometrias salvas:", geometries);
   return (
     <DialogTrigger>
       <Button className="items-center p-2">
@@ -114,6 +121,7 @@ const MapPopup = ({
                       handleQuestionGeometryChange={
                         handleQuestionGeometryChange
                       }
+                      handleChangeIsInSelectMode={handleChangeIsInSelectMode}
                       drawType={
                         currentGeometryType === "POINT" ? "Point" : "Polygon"
                       }
@@ -121,13 +129,16 @@ const MapPopup = ({
                     ></MapProvider>
                   </div>
                   <span className="flex justify-between">
-                    <Button
-                      variant={"destructive"}
-                      className="w-fit"
-                      onPress={() => handleDeleteGeometry()}
-                    >
-                      Excluir geometria selecionada
-                    </Button>
+                    {isInSelectMode && (
+                      <Button
+                        variant={"destructive"}
+                        className="w-fit"
+                        onPress={() => handleDeleteGeometry()}
+                      >
+                        Excluir geometria selecionada
+                      </Button>
+                    )}
+                    {!isInSelectMode && <div></div>}
 
                     <Button
                       variant={"constructive"}
