@@ -157,8 +157,15 @@ const CreationModal = ({
               firstStreet: "",
               secondStreet: "",
             });
-            setExtraAnswerValues({});
-            setExtraErrorValues({});
+            setExtraAnswerValues({
+              creationYear: undefined,
+              lastMaintenanceYear: undefined,
+              overseeingMayor: undefined,
+              legislation: undefined,
+              legalArea: undefined,
+              incline: undefined,
+            });
+            setExtraErrorValues(null);
           }, 200); // time required for the fade out to finish
         }
       }}
