@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { WeatherConditions } from "@prisma/client";
+import { CalculationTypes, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
@@ -183,6 +183,12 @@ const fetchAssessmentsForEvaluationExport = async (
           calculations: {
             include: {
               category: true,
+              questions: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
               subcategory: {
                 include: {
                   category: true,
@@ -247,6 +253,26 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
   const groupedByFormAndFormVersion: {
     [key: number]: {
       form: { id: number; name: string; version: number };
+      categoriesWithCalculations: {
+        id: number;
+        name: string;
+        calculations: {
+          id: number;
+          name: string;
+          type: CalculationTypes;
+          questions: { id: number; name: string }[];
+        }[];
+        subcategories: {
+          id: number;
+          name: string;
+          calculations: {
+            id: number;
+            name: string;
+            type: CalculationTypes;
+            questions: { id: number; name: string }[];
+          }[];
+        }[];
+      }[];
       assessments: {
         id: number;
         startDate: Date;
@@ -263,6 +289,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
             name: string;
             responses: (string | null | undefined)[];
           }[];
+
           subcategories: {
             id: number;
             name: string;
@@ -282,6 +309,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
       groupedByFormAndFormVersion[key] = {
         form: assessment.form,
         assessments: [],
+        categoriesWithCalculations: [],
       };
     }
     const currentTable = groupedByFormAndFormVersion[assessment.formId];
@@ -465,6 +493,148 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
     }
   }
 
+  const formsCalculations = assessments.reduce(
+    (acc, assessment) => {
+      const existingForm = acc.find((a) => a.formId === assessment.formId);
+      if (existingForm) {
+        return acc;
+      }
+
+      const newForm = { formId: assessment.formId, categories: [] } as {
+        formId: number;
+        categories: {
+          id: number;
+          name: string;
+          calculations: {
+            id: number;
+            name: string;
+            type: CalculationTypes;
+            questions: { id: number; name: string }[];
+          }[];
+
+          subcategories: {
+            id: number;
+            name: string;
+            calculations: {
+              id: number;
+              name: string;
+              type: CalculationTypes;
+              questions: { id: number; name: string }[];
+            }[];
+          }[];
+        }[];
+      };
+
+      for (const calculation of assessment.form.calculations) {
+        if (
+          !newForm.categories.some((cat) => cat.id === calculation.categoryId)
+        ) {
+          newForm.categories.push({
+            id: calculation.categoryId,
+            name: calculation.category.name,
+            calculations: [] as {
+              id: number;
+              name: string;
+              type: CalculationTypes;
+              questions: { id: number; name: string }[];
+            }[],
+            subcategories: [] as {
+              id: number;
+              name: string;
+              calculations: {
+                id: number;
+                name: string;
+                type: CalculationTypes;
+                questions: { id: number; name: string }[];
+              }[];
+            }[],
+          });
+        }
+        if (!calculation.subcategoryId) {
+          newForm.categories
+            .find((cat) => cat.id === calculation.categoryId)
+            ?.calculations.push({
+              id: calculation.id,
+              name: calculation.name,
+              type: calculation.type,
+              questions: calculation.questions.map((q) => ({
+                id: q.id,
+                name: q.name,
+              })),
+            });
+        } else {
+          const calculationCategory = newForm.categories.find(
+            (cat) => cat.id === calculation.categoryId,
+          );
+          if (
+            !calculationCategory?.subcategories.some(
+              (sub) => sub.id === calculation.subcategoryId,
+            )
+          ) {
+            calculationCategory?.subcategories.push({
+              id: calculation.subcategoryId,
+              name: calculation.subcategory!.name,
+              calculations: [] as {
+                id: number;
+                name: string;
+                type: CalculationTypes;
+                questions: { id: number; name: string }[];
+              }[],
+            });
+          }
+          calculationCategory?.subcategories
+            .find((sub) => sub.id === calculation.subcategoryId)
+            ?.calculations.push({
+              id: calculation.id,
+              name: calculation.name,
+              type: calculation.type,
+              questions: calculation.questions.map((q) => ({
+                id: q.id,
+                name: q.name,
+              })),
+            });
+        }
+      }
+
+      acc.push(newForm);
+      return acc;
+    },
+    [] as {
+      formId: number;
+      categories: {
+        id: number;
+        name: string;
+        calculations: {
+          id: number;
+          name: string;
+          type: CalculationTypes;
+          questions: { id: number; name: string }[];
+        }[];
+
+        subcategories: {
+          id: number;
+          name: string;
+          calculations: {
+            id: number;
+            name: string;
+            type: CalculationTypes;
+            questions: { id: number; name: string }[];
+          }[];
+        }[];
+      }[];
+    }[],
+  );
+
+  for (const key in groupedByFormAndFormVersion) {
+    const currentGroup = groupedByFormAndFormVersion[key];
+    const currentFormCalculation = formsCalculations.find(
+      (f) => f.formId === Number(key),
+    );
+    if (currentGroup && currentFormCalculation)
+      currentGroup.categoriesWithCalculations =
+        currentFormCalculation.categories;
+  }
+
   const csvObjs: {
     formName: string;
     formVersion: number;
@@ -475,35 +645,93 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
     if (currentGroup) {
       const currentGroupAssessments = currentGroup.assessments;
       const currentGroupform = currentGroup.form;
-
+      const currentGroupCategoriesWithCalculations =
+        currentGroup.categoriesWithCalculations;
       const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
         currentGroupAssessments[0]!.categories,
       )
-        .map((category) =>
-          Array(
+        .map((category) => {
+          const currentCategoryCalculations =
+            currentGroupCategoriesWithCalculations.find(
+              (c) => c.id === category.id,
+            );
+          const fillCount =
             category.questions.length +
+            (currentCategoryCalculations?.calculations.reduce((sum, calc) => {
+              if (calc.type === "PERCENTAGE") {
+                return sum + calc.questions.length;
+              }
+              return (sum += 1);
+            }, 0) || 0);
+
+          return Array(
+            fillCount +
               category.subcategories.reduce(
-                (sum, subcategory) => sum + subcategory.questions.length,
+                (sum, subcategory) => {
+                  return sum + subcategory.questions.length;
+                },
+
                 0,
-              ),
+              ) +
+              (currentCategoryCalculations?.subcategories.reduce(
+                (sum, subcategory) => {
+                  return (
+                    sum +
+                    subcategory.calculations.reduce((sum, calc) => {
+                      if (calc.type === "PERCENTAGE") {
+                        return sum + calc.questions.length;
+                      }
+                      return (sum += 1);
+                    }, 0)
+                  );
+                },
+                0,
+              ) || 0),
           )
             .fill(category.name)
-            .join(","),
-        )
+            .join(",");
+        })
         .join(",")}`;
 
       const subcategoryLine = currentGroupAssessments[0]!.categories
         .map((category) => {
-          const blankColumns = Array(category.questions.length)
+          const currentCategoryCalculations =
+            currentGroupCategoriesWithCalculations.find(
+              (c) => c.id === category.id,
+            );
+
+          const blankColumns = Array(
+            category.questions.length +
+              (currentCategoryCalculations?.calculations.reduce((sum, calc) => {
+                if (calc.type === "PERCENTAGE") {
+                  return sum + calc.questions.length;
+                }
+                return (sum += 1);
+              }, 0) || 0),
+          )
             .fill("")
             .join(",");
 
           const subcategoryColumns = category.subcategories
-            .map((subcategory) =>
-              Array(subcategory.questions.length)
-                .fill(subcategory.name)
-                .join(","),
-            )
+            .map((subcategory) => {
+              const currentSubcategoryCalculations =
+                currentCategoryCalculations?.subcategories.find(
+                  (s) => s.id === subcategory.id,
+                );
+
+              const fillCount =
+                subcategory.questions.length +
+                (currentSubcategoryCalculations?.calculations.reduce(
+                  (sum, calc) => {
+                    if (calc.type === "PERCENTAGE") {
+                      return sum + calc.questions.length;
+                    }
+                    return (sum += 1);
+                  },
+                  0,
+                ) || 0);
+              return Array(fillCount).fill(subcategory.name).join(",");
+            })
             .join(",");
 
           return `${subcategoryColumns ? `${subcategoryColumns},${blankColumns}` : `${blankColumns}`}`;
@@ -511,13 +739,33 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
         .join(",");
       const questionsStr = currentGroupAssessments[0]?.categories
         .map((category) => {
+          const currentCategoryCalculations =
+            currentGroupCategoriesWithCalculations.find(
+              (c) => c.id === category.id,
+            );
           const subcategoriesResponses = category.subcategories
             .map((subcategory) => {
-              return subcategory.questions
+              const questions = subcategory.questions
                 .map((question) => {
                   return question.name;
                 })
                 .join(",");
+              const currentSubcategoryCalculations =
+                currentCategoryCalculations?.subcategories.find(
+                  (s) => s.id === subcategory.id,
+                );
+              const subcategoryCalculations =
+                currentSubcategoryCalculations?.calculations
+                  .map((calculation) => {
+                    if (calculation.type === "PERCENTAGE") {
+                      return `${calculation.questions.map((q) => `%${q.name}`).join(",")}`;
+                    }
+                    return calculation.name;
+                  })
+                  .join(",");
+              if (subcategoryCalculations && subcategoryCalculations.length > 0)
+                return `${questions},${subcategoryCalculations}`;
+              return `${questions}`;
             })
             .join(",");
           const categoryResponses = category.questions
@@ -525,7 +773,28 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
               return question.name;
             })
             .join(",");
-          return `${subcategoriesResponses},${categoryResponses}`;
+          const categoryCalculations = currentCategoryCalculations?.calculations
+            .map((calculation) => {
+              if (calculation.type === "PERCENTAGE") {
+                return `${calculation.questions.map((q) => `%${q.name}`).join(",")}`;
+              }
+              return calculation.name;
+            })
+            .join(",");
+          let result = "";
+          result += subcategoriesResponses;
+          if (categoryResponses) {
+            if (result.length > 0) result += ",";
+            result += categoryResponses;
+          }
+          if (
+            currentCategoryCalculations &&
+            currentCategoryCalculations?.calculations.length > 0
+          ) {
+            if (result.length > 0) result += ",";
+            result += categoryCalculations;
+          }
+          return result;
         })
         .join(",");
       const questionLine = `Identificador,Nome da praça,Avaliador,Dia,Data,Horário,${questionsStr}`;
@@ -535,15 +804,103 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
       for (const assessment of currentGroup.assessments) {
         const responseValues = assessment.categories
           .map((category) => {
+            const currentCategoryCalculations =
+              currentGroupCategoriesWithCalculations.find(
+                (c) => c.id === category.id,
+              );
             const subcategoriesResponses = category.subcategories
               .map((subcategory) => {
-                return subcategory.questions
+                const responses = subcategory.questions
                   .map((question) => {
                     return question.responses
                       .map((response) => (response ? response : ""))
                       .join(",");
                   })
                   .join(",");
+
+                const currentSubcategoryCalculations =
+                  currentCategoryCalculations?.subcategories.find(
+                    (sub) => sub.id === subcategory.id,
+                  );
+                const subcategoryCalculations =
+                  currentSubcategoryCalculations?.calculations
+                    .map((calculation) => {
+                      const calculationQuestions = [
+                        ...category.questions.filter((q) =>
+                          calculation.questions.some((cq) => cq.id == q.id),
+                        ),
+                        ...category.subcategories.flatMap((s) =>
+                          s.questions.filter((q) =>
+                            calculation.questions.some((cq) => cq.id == q.id),
+                          ),
+                        ),
+                      ];
+                      if (calculation.type === "AVERAGE") {
+                        const sum = calculationQuestions.reduce((acc, q) => {
+                          return (
+                            acc +
+                            Number(
+                              q.responses.reduce((acc2, r) => {
+                                const num =
+                                  r && !isNaN(Number(r)) ? Number(r) : 0;
+                                return acc2 + num;
+                              }, 0),
+                            )
+                          );
+                        }, 0);
+
+                        const numberOfResponses = calculationQuestions.reduce(
+                          (acc, q) => {
+                            return acc + q.responses.length;
+                          },
+                          0,
+                        );
+                        return sum / numberOfResponses;
+                      } else if (calculation.type === "SUM") {
+                        return calculationQuestions.reduce((acc, q) => {
+                          return (
+                            acc +
+                            Number(
+                              q.responses.reduce((acc2, r) => {
+                                const num =
+                                  r && !isNaN(Number(r)) ? Number(r) : 0;
+                                return acc2 + num;
+                              }, 0),
+                            )
+                          );
+                        }, 0);
+                      } else {
+                        //PERCENTAGE
+                        return calculationQuestions
+                          .map((question, i, qes) => {
+                            return (
+                              (question.responses.reduce(
+                                (sum, r) => sum + Number(r),
+                                0,
+                              ) *
+                                100) /
+                              qes.reduce((sum, q) => {
+                                return (
+                                  sum +
+                                  q.responses.reduce(
+                                    (sum, r) => sum + Number(r),
+                                    0,
+                                  )
+                                );
+                              }, 0)
+                            ).toFixed(2);
+                          })
+                          .join(",");
+                      }
+                    })
+                    .join(",");
+                let result = "";
+                result += responses;
+                if (subcategoryCalculations) {
+                  if (result.length > 0) result += ",";
+                  result += subcategoryCalculations;
+                }
+                return result;
               })
               .join(",");
             const categoryResponses = category.questions
@@ -553,7 +910,87 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
                   .join(",");
               })
               .join(",");
-            return `${subcategoriesResponses},${categoryResponses}`;
+
+            const categoryCalculations =
+              currentCategoryCalculations?.calculations
+                .map((calculation) => {
+                  const calculationQuestions = [
+                    ...category.questions.filter((q) =>
+                      calculation.questions.some((cq) => cq.id == q.id),
+                    ),
+                    ...category.subcategories.flatMap((s) =>
+                      s.questions.filter((q) =>
+                        calculation.questions.some((cq) => cq.id == q.id),
+                      ),
+                    ),
+                  ];
+                  if (calculation.type === "AVERAGE") {
+                    const sum = calculationQuestions.reduce((acc, q) => {
+                      return (
+                        acc +
+                        Number(
+                          q.responses.reduce((acc2, r) => {
+                            const num = r && !isNaN(Number(r)) ? Number(r) : 0;
+                            return acc2 + num;
+                          }, 0),
+                        )
+                      );
+                    }, 0);
+
+                    const numberOfResponses = calculationQuestions.reduce(
+                      (acc, q) => {
+                        return acc + q.responses.length;
+                      },
+                      0,
+                    );
+                    return sum / numberOfResponses;
+                  } else if (calculation.type === "SUM") {
+                    return calculationQuestions.reduce((acc, q) => {
+                      return (
+                        acc +
+                        Number(
+                          q.responses.reduce((acc2, r) => {
+                            const num = r && !isNaN(Number(r)) ? Number(r) : 0;
+                            return acc2 + num;
+                          }, 0),
+                        )
+                      );
+                    }, 0);
+                  } else {
+                    //PERCENTAGE
+                    return calculationQuestions
+                      .map((question, i, qes) => {
+                        return (
+                          (question.responses.reduce(
+                            (sum, r) => sum + Number(r),
+                            0,
+                          ) *
+                            100) /
+                          qes.reduce((sum, q) => {
+                            return (
+                              sum +
+                              q.responses.reduce((sum, r) => sum + Number(r), 0)
+                            );
+                          }, 0)
+                        ).toFixed(2);
+                      })
+                      .join(",");
+                  }
+
+                  return 0;
+                })
+                .join(",");
+            let result = "";
+            result += subcategoriesResponses;
+            if (categoryResponses) {
+              if (result.length > 0) result += ",";
+              result += categoryResponses;
+            }
+            if (categoryCalculations) {
+              if (result.length > 0) result += ",";
+              result += categoryCalculations;
+            }
+            return result;
           })
           .join(",");
         csvContent += `${assessment.location.id},${assessment.location.name},${assessment.user.username},${assessment.startDate.toLocaleString("pt-BR", { weekday: "short" })},${assessment.startDate.toLocaleDateString()},${assessment.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })},${responseValues}\n`;
