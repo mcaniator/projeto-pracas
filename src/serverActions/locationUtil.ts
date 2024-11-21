@@ -2,12 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
-import { Location, Prisma } from "@prisma/client";
+import { BrazilianStates, Location, Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygonFromWKT } from "./managePolygons";
+
+interface LocationWithCity extends Location {
+  city: {
+    name: string;
+  } | null;
+}
 
 const handleDelete = async (parkID: number) => {
   try {
@@ -74,12 +80,20 @@ const searchLocationsByName = async (name: string) => {
 
 const searchLocationsById = async (id: number) => {
   const cachedLocations = unstable_cache(
-    async (id: number): Promise<Location | undefined | null> => {
+    async (id: number): Promise<LocationWithCity | undefined | null> => {
       let foundLocation;
       try {
         foundLocation = await prisma.location.findUnique({
           where: {
             id: id,
+          },
+          include: {
+            city: {
+              select: {
+                name: true,
+                state: true,
+              },
+            },
           },
         });
       } catch (err) {
@@ -127,6 +141,11 @@ const updateLocation = async (
   }
 
   let locationToUpdate;
+  const cityName = formData.get("cityName") as string | null;
+  const stateName = formData.get("stateName");
+  if (cityName && stateName === "NONE") {
+    return { statusCode: 1 };
+  }
   try {
     const lastMaintenanceYear = formData.get("lastMaintenanceYear");
     const creationYear = formData.get("creationYear");
@@ -182,7 +201,21 @@ const updateLocation = async (
   try {
     await prisma.location.update({
       where: { id: parseId },
-      data: locationToUpdate,
+      data: {
+        ...locationToUpdate,
+        city: {
+          connectOrCreate: {
+            where: {
+              name: cityName || undefined,
+              state: stateName,
+            },
+            create: {
+              name: cityName,
+              state: stateName,
+            },
+          },
+        },
+      },
     });
   } catch (e) {
     return {

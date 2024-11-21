@@ -3,23 +3,30 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
-import { Location } from "@prisma/client";
+import { BrazilianStates, Location } from "@prisma/client";
 import Link from "next/link";
 import { useActionState, useRef } from "react";
 
 import LoadingIcon from "../../../../../components/LoadingIcon";
 
+interface LocationWithCity extends Location {
+  city: {
+    name: string;
+    state: BrazilianStates;
+  } | null;
+}
+
 const initialState = {
   statusCode: 0,
 };
-const LocationUpdater = ({ location }: { location: Location }) => {
+const LocationUpdater = ({ location }: { location: LocationWithCity }) => {
   const [, formAction, isPending] = useActionState(
     updateLocation,
     initialState,
   );
   const formRef = useRef<HTMLFormElement>(null);
-
   // TODO: add error handling
   return (
     <div
@@ -64,6 +71,32 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                   id={"notes"}
                   defaultValue={location.notes === null ? "" : location.notes}
                 />
+
+                <label htmlFor="cityName">Cidade</label>
+                <Input
+                  type="text"
+                  name="cityName"
+                  id="cityName"
+                  defaultValue={location.city?.name}
+                />
+
+                <label htmlFor="stateName">Estado:</label>
+                <Select
+                  id="stateName"
+                  name="stateName"
+                  defaultValue={
+                    location.city ? (location.city.state as string) : "NONE"
+                  }
+                >
+                  <option value="NONE">NENHUM</option>
+                  {Object.entries(
+                    BrazilianStates as Record<string, string>,
+                  ).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
 
                 <label htmlFor="firstStreet">Primeira rua:</label>
                 <Input

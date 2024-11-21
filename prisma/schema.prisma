@@ -436,6 +436,8 @@ model Location {
   category CategoryTypes?                               @map("category")
   polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
 
+  cityId                           Int?
+  city                             City?                           @relation(fields: [cityId], references: [id])
   narrowAdministrativeUnitId       Int?
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
   intermediateAdministrativeUnitId Int?
@@ -455,8 +457,10 @@ model Location {
 model City {
   id Int @id @default(autoincrement())
 
-  name String @unique @db.VarChar(255)
+  name  String          @unique @db.VarChar(255)
+  state BrazilianStates
 
+  locations                      Location[]
   narrowAdministrativeUnit       NarrowAdministrativeUnit[]
   intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
   broadAdministrativeUnit        BroadAdministrativeUnit[]
@@ -464,6 +468,7 @@ model City {
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
+  @@unique([name, state])
   @@map("city")
 }
 

@@ -168,6 +168,36 @@ const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
 });
 
+const BrazilianStatesEnum = z.enum([
+  "ACRE",
+  "ALAGOAS",
+  "AMAPA",
+  "AMAZONAS",
+  "BAHIA",
+  "CEARA",
+  "DISTRITO_FEDERAL",
+  "ESPIRITO_SANTO",
+  "GOIAS",
+  "MARANHAO",
+  "MATO_GROSSO",
+  "MATO_GROSSO_DO_SUL",
+  "MINAS_GERAIS",
+  "PARA",
+  "PARAIBA",
+  "PARANA",
+  "PERNAMBUCO",
+  "PIAUI",
+  "RIO_DE_JANEIRO",
+  "RIO_GRANDE_DO_NORTE",
+  "RIO_GRANDE_DO_SUL",
+  "RONDONIA",
+  "RORAIMA",
+  "SANTA_CATARINA",
+  "SAO_PAULO",
+  "SERGIPE",
+  "TOCANTINS",
+]);
+
 const administrativeUnitsSchema = z.object({
   narrowAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
   intermediateAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
@@ -177,8 +207,14 @@ const administrativeUnitsSchema = z.object({
 type locationType = z.infer<typeof locationSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
+type BrazilianStatesEnum = z.infer<typeof BrazilianStatesEnum>;
 
-export { administrativeUnitsSchema, citySchema, locationSchema };
+export {
+  administrativeUnitsSchema,
+  citySchema,
+  locationSchema,
+  BrazilianStatesEnum,
+};
 export type { administrativeUnitsType, cityType, locationType };
 // #endregion
 
