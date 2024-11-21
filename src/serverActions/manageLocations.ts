@@ -5,7 +5,8 @@ import { locationSchema } from "@/lib/zodValidators";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { addPolygon } from "./managePolygons";
+import { getPolygonsFromShp } from "./getPolygonsFromShp";
+import { addPolygon, addPolygonFromWKT } from "./managePolygons";
 
 const createLocation = async (
   _curStatus: { errorCode: number; errorMessage: string },
@@ -50,16 +51,24 @@ const createLocation = async (
   } catch (err) {
     return { errorCode: 2, errorMessage: "Database error" };
   }
+  if (formData.get("featuresGeoJson")) {
+    try {
+      const featuresGeoJson = z.string().parse(formData.get("featuresGeoJson"));
 
-  try {
-    const featuresGeoJson = z.string().parse(formData.get("featuresGeoJson"));
+      await addPolygon(featuresGeoJson, result.id);
+    } catch (err) {
+      return {
+        errorCode: 3,
+        errorMessage: "Error inserting polygon into database",
+      };
+    }
+  }
 
-    await addPolygon(featuresGeoJson, result.id);
-  } catch (err) {
-    return {
-      errorCode: 3,
-      errorMessage: "Error inserting polygon into database",
-    };
+  if (formData.get("file")) {
+    const wkt = await getPolygonsFromShp(formData.get("file") as File);
+    if (wkt) {
+      await addPolygonFromWKT(wkt, result.id);
+    }
   }
 
   revalidateTag("location");

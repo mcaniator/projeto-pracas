@@ -33,7 +33,7 @@ import {
   extraAnswerSchema,
 } from "./answerSchemas";
 
-const CreationModal = ({
+const CreationDrawingModal = ({
   features,
   setCurrentId,
 }: {
@@ -370,4 +370,4 @@ const CreationModal = ({
   );
 };
 
-export { CreationModal };
+export { CreationDrawingModal };

@@ -13,7 +13,8 @@ import {
   useState,
 } from "react";
 
-import { CreationModal } from "./creationModal";
+import { CreationDrawingModal } from "./creationDrawingModal";
+import { CreationSelecion } from "./creationSelection";
 import { DrawingProviderVectorSourceContext } from "./drawingProvider";
 import { EditPolygonSubmitButton } from "./editPolygonSubmitButton";
 import { PolygonProviderVectorSourceContext } from "./polygonProvider";
@@ -113,11 +114,10 @@ const CreationPanel = ({
       features[i]?.set("description", i + 1 + "");
     }
   }, [features]);
-
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex gap-2">
-        {currentId === -1 ?
+        {/*currentId === -3 ?
           <CreationModal features={features} setCurrentId={setCurrentId} />
         : <EditPolygonSubmitButton
             id={currentId}
@@ -125,8 +125,24 @@ const CreationPanel = ({
             isDisabled={features.length === 0} // TODO: try to find a way to efficiently compare current features with the original ones
             setOriginalFeature={setOriginalFeatures}
             setCurrentId={setCurrentId}
+          />*/}
+
+        {currentId === -1 && <CreationSelecion setCurrentId={setCurrentId} />}
+        {currentId === -3 && (
+          <CreationDrawingModal
+            features={features}
+            setCurrentId={setCurrentId}
           />
-        }
+        )}
+        {currentId >= 0 && (
+          <EditPolygonSubmitButton
+            id={currentId}
+            features={features}
+            isDisabled={features.length === 0} // TODO: try to find a way to efficiently compare current features with the original ones
+            setOriginalFeature={setOriginalFeatures}
+            setCurrentId={setCurrentId}
+          />
+        )}
 
         <Button
           onPress={() => {

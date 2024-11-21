@@ -57,6 +57,15 @@ const addPolygon = async (featuresGeoJson: string, id: number) => {
   revalidateTag("location");
 };
 
+const addPolygonFromWKT = async (wkt: string, id: number) => {
+  await prisma.$executeRaw`
+    UPDATE location
+    SET polygon = ST_GeomFromText(${wkt}, 4326)
+    WHERE id = ${id};`;
+
+  revalidateTag("location");
+};
+
 const removePolygon = async (id: number) => {
   await prisma.$executeRaw`
     UPDATE location
@@ -66,4 +75,10 @@ const removePolygon = async (id: number) => {
   revalidateTag("location");
 };
 
-export { fetchPolygons, fetchSpecificPolygon, addPolygon, removePolygon };
+export {
+  fetchPolygons,
+  fetchSpecificPolygon,
+  addPolygon,
+  removePolygon,
+  addPolygonFromWKT,
+};

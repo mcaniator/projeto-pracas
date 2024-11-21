@@ -51,7 +51,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
                   setCurrentId(-1);
                 }}
               >
-                <span className="-mb-1 text-white">Iniciar Desenho</span>
+                <span className="-mb-1 text-white">Criar praça</span>
               </Button>
 
               <hr className="w-80 rounded-full border-2 border-off-white" />
