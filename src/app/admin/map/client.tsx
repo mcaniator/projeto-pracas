@@ -117,7 +117,7 @@ const ParkList = ({
   }, [sortedLocations, fuseHaystack]);
 
   return (
-    <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
+    <div className="flex flex-col gap-2 overflow-auto pt-1 text-white">
       <Input
         onChange={(value) => {
           setHay(search(value, sortedLocations, fuseHaystack));
