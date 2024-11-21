@@ -7,9 +7,10 @@ import { Select } from "@/components/ui/select";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { BrazilianStates, Location } from "@prisma/client";
 import Link from "next/link";
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import LoadingIcon from "../../../../../components/LoadingIcon";
+import { FetchCitiesType } from "../../../../../serverActions/cityUtil";
 
 interface LocationWithCity extends Location {
   city: {
@@ -21,13 +22,42 @@ interface LocationWithCity extends Location {
 const initialState = {
   statusCode: 0,
 };
-const LocationUpdater = ({ location }: { location: LocationWithCity }) => {
+const LocationUpdater = ({
+  location,
+  cities,
+}: {
+  location: LocationWithCity;
+  cities: FetchCitiesType;
+}) => {
   const [, formAction, isPending] = useActionState(
     updateLocation,
     initialState,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const [state, setState] = useState<BrazilianStates | "NENHUM">(
+    location.city?.state || "NENHUM",
+  );
+  const [stateCities, setStateCities] = useState<string[]>([]);
+  const [createCity, setCreateCity] = useState(location.city ? false : true);
+  const [selectedCity, setSelectedCity] = useState<string>(
+    location.city?.name || "CREATE",
+  );
+  const handleCitySelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCity(e.target.value);
+    if (e.target.value === "CREATE") {
+      setCreateCity(true);
+      return;
+    }
+    setCreateCity(false);
+  };
+  useEffect(() => {
+    setStateCities(
+      cities?.filter((city) => city.state === state).map((city) => city.name) ||
+        [],
+    );
+  }, [state]);
   // TODO: add error handling
+  console.log(location.city?.name);
   return (
     <div
       className={"flex max-h-full min-h-0 flex-grow gap-5 overflow-auto p-5"}
@@ -72,14 +102,6 @@ const LocationUpdater = ({ location }: { location: LocationWithCity }) => {
                   defaultValue={location.notes === null ? "" : location.notes}
                 />
 
-                <label htmlFor="cityName">Cidade</label>
-                <Input
-                  type="text"
-                  name="cityName"
-                  id="cityName"
-                  defaultValue={location.city?.name}
-                />
-
                 <label htmlFor="stateName">Estado:</label>
                 <Select
                   id="stateName"
@@ -87,6 +109,9 @@ const LocationUpdater = ({ location }: { location: LocationWithCity }) => {
                   defaultValue={
                     location.city ? (location.city.state as string) : "NONE"
                   }
+                  onChange={(e) => {
+                    setState((e.target.value as BrazilianStates) || "NENHUM");
+                  }}
                 >
                   <option value="NONE">NENHUM</option>
                   {Object.entries(
@@ -97,6 +122,27 @@ const LocationUpdater = ({ location }: { location: LocationWithCity }) => {
                     </option>
                   ))}
                 </Select>
+
+                <label htmlFor="cityName">Cidade</label>
+                <Select
+                  onChange={handleCitySelectChange}
+                  value={selectedCity}
+                  name="cityNameSelect"
+                  id="cityNameSelect"
+                >
+                  {stateCities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                  <option value="CREATE">REGISTRAR</option>
+                </Select>
+                {createCity && (
+                  <>
+                    <label htmlFor="cityName">Registrar cidade</label>
+                    <Input type="text" name="cityName" id="cityName" />
+                  </>
+                )}
 
                 <label htmlFor="firstStreet">Primeira rua:</label>
                 <Input

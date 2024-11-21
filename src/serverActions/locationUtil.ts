@@ -12,6 +12,7 @@ import { addPolygonFromWKT } from "./managePolygons";
 interface LocationWithCity extends Location {
   city: {
     name: string;
+    state: BrazilianStates;
   } | null;
 }
 
@@ -141,7 +142,10 @@ const updateLocation = async (
   }
 
   let locationToUpdate;
-  const cityName = formData.get("cityName") as string | null;
+  const cityName =
+    formData.get("cityNameSelect") !== "CREATE" ?
+      (formData.get("cityNameSelect") as string)
+    : (formData.get("cityName") as string | null);
   const stateName = formData.get("stateName");
   if (cityName && stateName === "NONE") {
     return { statusCode: 1 };
@@ -197,7 +201,6 @@ const updateLocation = async (
       statusCode: 1,
     };
   }
-
   try {
     await prisma.location.update({
       where: { id: parseId },
@@ -206,8 +209,10 @@ const updateLocation = async (
         city: {
           connectOrCreate: {
             where: {
-              name: cityName || undefined,
-              state: stateName,
+              name_state: {
+                name: cityName,
+                state: stateName,
+              },
             },
             create: {
               name: cityName,
