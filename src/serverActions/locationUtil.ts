@@ -6,6 +6,9 @@ import { Location, Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
 
+import { getPolygonsFromShp } from "./getPolygonsFromShp";
+import { addPolygonFromWKT } from "./managePolygons";
+
 const handleDelete = async (parkID: number) => {
   try {
     await prisma.location.delete({
@@ -130,6 +133,8 @@ const updateLocation = async (
 
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
+      firstStreet: formData.get("firstStreet"),
+      secondStreet: formData.get("secondStreet"),
       inactiveNotFound: formData.get("inactiveNotFound") === "on",
       isPark: formData.get("isPark") === "on",
       notes: formData.get("notes") !== "" ? formData.get("notes") : undefined,
@@ -169,7 +174,6 @@ const updateLocation = async (
         formData.get("incline") !== "" ? formData.get("incline") : undefined,
     });
   } catch (e) {
-    // console.log(e);
     return {
       statusCode: 1,
     };
@@ -184,6 +188,10 @@ const updateLocation = async (
     return {
       statusCode: 2,
     };
+  }
+  if (formData.get("file")) {
+    const WKT = await getPolygonsFromShp(formData.get("file") as File);
+    WKT && (await addPolygonFromWKT(WKT, parseId));
   }
 
   revalidateTag("location");

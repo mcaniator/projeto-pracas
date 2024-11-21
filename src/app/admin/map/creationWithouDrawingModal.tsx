@@ -256,7 +256,12 @@ const CreationWithoutDrawingModal = ({
                             <label className="text-2xl" htmlFor="file">
                               Arquivo shapefile
                             </label>
-                            <input type="file" id="file" name="file" />
+                            <input
+                              type="file"
+                              id="file"
+                              name="file"
+                              accept=".shp"
+                            />
                           </div>
 
                           {Object.keys(extraAnswerValues).map(

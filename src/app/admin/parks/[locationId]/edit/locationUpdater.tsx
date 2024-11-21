@@ -18,7 +18,9 @@ const LocationUpdater = ({ location }: { location: Location }) => {
 
   // TODO: add error handling
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
+    <div
+      className={"flex max-h-full min-h-0 flex-grow gap-5 overflow-auto p-5"}
+    >
       <div className="flex basis-3/5 flex-col gap-5 text-white">
         <div
           className={
@@ -51,6 +53,22 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 name="notes"
                 id={"notes"}
                 defaultValue={location.notes === null ? "" : location.notes}
+              />
+
+              <label htmlFor="firstStreet">Primeira rua:</label>
+              <Input
+                type="text"
+                name="firstStreet"
+                id="firstStreet"
+                defaultValue={location.firstStreet}
+              />
+
+              <label htmlFor="secondStreet">Segunda rua:</label>
+              <Input
+                type="text"
+                name="secondStreet"
+                id="secondStreet"
+                defaultValue={location.secondStreet}
               />
 
               <label htmlFor={"creationYear"}>Data de Criação:</label>
@@ -155,6 +173,10 @@ const LocationUpdater = ({ location }: { location: Location }) => {
                 >
                   Inativo ou não encontrado
                 </Checkbox>
+              </div>
+              <div className="flex flex-col">
+                <label htmlFor="file">Importar arquivo shapefile:</label>
+                <input type="file" name="file" id="file" accept=".shp" />
               </div>
             </div>
 
