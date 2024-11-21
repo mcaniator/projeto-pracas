@@ -3,7 +3,6 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { search } from "@/lib/search";
-import { removePolygon } from "@/serverActions/managePolygons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
 import {
@@ -12,7 +11,6 @@ import {
   IconMinus,
   IconPlus,
   IconPolygon,
-  IconPolygonOff,
 } from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import Link from "next/link";
@@ -200,13 +198,6 @@ const ParkList = ({
                         }}
                       >
                         <IconPolygon />
-                      </Button>
-                      <Button
-                        onPress={() => void removePolygon(location.item.id)}
-                        variant={"destructive"}
-                        size={"icon"}
-                      >
-                        <IconPolygonOff />
                       </Button>
                     </>
                   : <>

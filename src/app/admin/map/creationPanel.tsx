@@ -138,7 +138,6 @@ const CreationPanel = ({
           <EditPolygonSubmitButton
             id={currentId}
             features={features}
-            isDisabled={features.length === 0} // TODO: try to find a way to efficiently compare current features with the original ones
             setOriginalFeature={setOriginalFeatures}
             setCurrentId={setCurrentId}
           />
@@ -185,6 +184,11 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-scroll">
+      {features.length === 0 && (
+        <div className="flex w-full items-center justify-center text-2xl text-white">
+          Sem geometria!
+        </div>
+      )}
       {features.map((feature, index) => {
         return (
           <div key={index} className="flex w-full items-center">
