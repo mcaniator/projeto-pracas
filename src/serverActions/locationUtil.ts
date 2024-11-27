@@ -3,16 +3,36 @@
 import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location, Prisma } from "@prisma/client";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygonFromWKT } from "./managePolygons";
 
 interface LocationWithCity extends Location {
-  city: {
+  narrowAdministrativeUnit: {
+    id: number;
     name: string;
-    state: BrazilianStates;
+    city: {
+      name: string;
+      state: BrazilianStates;
+    } | null;
+  } | null;
+  intermediateAdministrativeUnit: {
+    id: number;
+    name: string;
+    city: {
+      name: string;
+      state: BrazilianStates;
+    } | null;
+  } | null;
+  broadAdministrativeUnit: {
+    id: number;
+    name: string;
+    city: {
+      name: string;
+      state: BrazilianStates;
+    } | null;
   } | null;
 }
 
@@ -89,10 +109,40 @@ const searchLocationsById = async (id: number) => {
             id: id,
           },
           include: {
-            city: {
+            narrowAdministrativeUnit: {
               select: {
+                id: true,
                 name: true,
-                state: true,
+                city: {
+                  select: {
+                    name: true,
+                    state: true,
+                  },
+                },
+              },
+            },
+            intermediateAdministrativeUnit: {
+              select: {
+                id: true,
+                name: true,
+                city: {
+                  select: {
+                    name: true,
+                    state: true,
+                  },
+                },
+              },
+            },
+            broadAdministrativeUnit: {
+              select: {
+                id: true,
+                name: true,
+                city: {
+                  select: {
+                    name: true,
+                    state: true,
+                  },
+                },
               },
             },
           },
@@ -142,6 +192,19 @@ const updateLocation = async (
   }
 
   let locationToUpdate;
+  const narrowAdministrativeUnit =
+    formData.get("narrowAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("narrowAdministrativeUnitSelect")
+    : formData.get("narrowAdministrativeUnit");
+  const intermediateAdministrativeUnit =
+    formData.get("intermediateAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("intermediateAdministrativeUnitSelect")
+    : formData.get("intermediateAdministrativeUnit");
+  const broadAdministrativeUnit =
+    formData.get("broadAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("broadAdministrativeUnitSelect")
+    : formData.get("broadAdministrativeUnit");
+
   const cityName =
     formData.get("cityNameSelect") !== "CREATE" ?
       (formData.get("cityNameSelect") as string)
@@ -202,27 +265,98 @@ const updateLocation = async (
     };
   }
   try {
+    let city = null;
+    if (cityName) {
+      city = await prisma.city.findUnique({
+        where: {
+          name_state: {
+            name: cityName,
+            state: stateName! as BrazilianStates,
+          },
+        },
+      });
+    }
+
     await prisma.location.update({
       where: { id: parseId },
       data: {
         ...locationToUpdate,
-        city: {
-          connectOrCreate: {
-            where: {
-              name_state: {
-                name: cityName,
-                state: stateName,
+        ...(narrowAdministrativeUnit && city ?
+          {
+            narrowAdministrativeUnit: {
+              connectOrCreate: {
+                where: {
+                  cityId_narrowUnitName: {
+                    cityId: city.id,
+                    name: narrowAdministrativeUnit as string,
+                  },
+                },
+                create: {
+                  name: narrowAdministrativeUnit as string,
+                  city: {
+                    connect: { id: city.id },
+                  },
+                },
               },
             },
-            create: {
-              name: cityName,
-              state: stateName,
+          }
+        : {
+            narrowAdministrativeUnit: {
+              disconnect: true,
             },
-          },
-        },
+          }),
+        ...(intermediateAdministrativeUnit && city ?
+          {
+            intermediateAdministrativeUnit: {
+              connectOrCreate: {
+                where: {
+                  cityId_intermediateUnitName: {
+                    cityId: city.id,
+                    name: intermediateAdministrativeUnit as string,
+                  },
+                },
+                create: {
+                  name: intermediateAdministrativeUnit as string,
+                  city: {
+                    connect: { id: city.id },
+                  },
+                },
+              },
+            },
+          }
+        : {
+            intermediateAdministrativeUnit: {
+              disconnect: true,
+            },
+          }),
+        ...(broadAdministrativeUnit && city ?
+          {
+            broadAdministrativeUnit: {
+              connectOrCreate: {
+                where: {
+                  cityId_broadUnitName: {
+                    cityId: city.id,
+                    name: broadAdministrativeUnit as string,
+                  },
+                },
+                create: {
+                  name: broadAdministrativeUnit as string,
+                  city: {
+                    connect: { id: city.id },
+                  },
+                },
+              },
+            },
+          }
+        : {
+            broadAdministrativeUnit: {
+              disconnect: true,
+            },
+          }),
       },
     });
   } catch (e) {
+    console.log(e);
     return {
       statusCode: 2,
     };
@@ -246,3 +380,5 @@ export {
   searchLocationNameById,
   updateLocation,
 };
+
+export type { LocationWithCity };

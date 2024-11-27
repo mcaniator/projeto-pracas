@@ -436,8 +436,6 @@ model Location {
   category CategoryTypes?                               @map("category")
   polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
 
-  cityId                           Int?
-  city                             City?                           @relation(fields: [cityId], references: [id])
   narrowAdministrativeUnitId       Int?
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
   intermediateAdministrativeUnitId Int?
@@ -460,7 +458,6 @@ model City {
   name  String          @db.VarChar(255)
   state BrazilianStates
 
-  locations                      Location[]
   narrowAdministrativeUnit       NarrowAdministrativeUnit[]
   intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
   broadAdministrativeUnit        BroadAdministrativeUnit[]
