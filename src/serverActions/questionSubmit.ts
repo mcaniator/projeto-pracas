@@ -6,6 +6,9 @@ import { Question } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 
 interface QuestionWithCategories extends Question {
+  options: {
+    text: string;
+  }[];
   category: {
     id: number;
     name: string;

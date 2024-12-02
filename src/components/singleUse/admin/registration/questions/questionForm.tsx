@@ -83,7 +83,7 @@ const QuestionForm = ({
         }, 1)
       }
     >
-      <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
+      <div className={"flex flex-col gap-2 pr-5"}>
         <div>
           <label htmlFor={"categories"}>Categoria</label>
           <Select
@@ -233,7 +233,7 @@ const QuestionForm = ({
         )}
       </div>
 
-      <div className={"flex basis-1/3 flex-col gap-2 pr-5"}>
+      <div className={"flex flex-col gap-2 pr-5"}>
         {type == "written" && (
           <div>
             <div>
@@ -388,7 +388,7 @@ const QuestionForm = ({
       </div>
 
       {addedOptions && addedOptions.length != 0 && (
-        <div className={"flex basis-1/3 flex-col"}>
+        <div className={"flex flex-col"}>
           <p>Opções atuais:</p>
           <div
             className={

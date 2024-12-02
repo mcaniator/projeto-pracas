@@ -276,6 +276,7 @@ model Question {
   name              String                         @db.VarChar(255)
   optional          Boolean                        @default(false)
   active            Boolean                        @default(true)
+  notes             String?                        @db.VarChar(255)
   type              QuestionTypes
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]

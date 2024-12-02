@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location, Prisma } from "@prisma/client";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import { getPolygonsFromShp } from "./getPolygonsFromShp";

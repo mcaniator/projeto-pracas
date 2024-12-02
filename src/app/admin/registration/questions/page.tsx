@@ -1,103 +1,163 @@
-//import { AddedOptions } from "@/components/singleUse/admin/registration/questions/addedOptions";
-import { CategoryForm } from "@/components/singleUse/admin/registration/questions/categoryForm";
-import { QuestionForm } from "@/components/singleUse/admin/registration/questions/questionForm";
-import { SubcategoryForm } from "@/components/singleUse/admin/registration/questions/subcategoryForm";
-import { prisma } from "@/lib/prisma";
-import { unstable_cache } from "next/cache";
-import { Suspense } from "react";
+"use client";
 
-const AdminComponentsPage = () => {
+import { useEffect, useState } from "react";
+
+import { Button } from "../../../../components/button";
+import { Select } from "../../../../components/ui/select";
+import {
+  FetchedCategories,
+  fetchCategories,
+} from "../../../../serverActions/categoryUtil";
+import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActions/questionUtil";
+import { DisplayQuestion } from "../../forms/[formId]/edit/client";
+
+const QuestionsPage = () => {
+  const [categories, setCategories] = useState<FetchedCategories>([]);
+  const [subcategories, setSubcategories] = useState<
+    {
+      id: number;
+      name: string;
+      optional: boolean;
+      active: boolean;
+      categoryId: number;
+    }[]
+  >([]);
+  const [
+    selectedCategoryAndSubcategoryId,
+    setSelectedCategoryAndSubcategoryId,
+  ] = useState<{
+    categoryId: number | undefined;
+    subcateogryId: number | undefined;
+    verifySubcategoryNullness: boolean;
+  }>({
+    categoryId: undefined,
+    subcateogryId: undefined,
+    verifySubcategoryNullness: true,
+  });
+  const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
+  useEffect(() => {
+    const fetchCat = async () => {
+      const cat = await fetchCategories();
+      setCategories(cat);
+      setSubcategories(cat[0]?.subcategory || []);
+    };
+    void fetchCat();
+  }, []);
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (selectedCategoryAndSubcategoryId) {
+        const questions = await searchQuestionsByCategoryAndSubcategory(
+          selectedCategoryAndSubcategoryId.categoryId,
+          selectedCategoryAndSubcategoryId?.subcateogryId,
+          selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+        );
+        setQuestions(questions);
+      }
+    };
+    void fetchQuestions();
+  }, [selectedCategoryAndSubcategoryId]);
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSubcategories(
+      categories.find((cat) => cat.id === parseInt(e.target.value))
+        ?.subcategory || [],
+    );
+    setSelectedCategoryAndSubcategoryId({
+      categoryId: parseInt(e.target.value),
+      subcateogryId: undefined,
+      verifySubcategoryNullness: true,
+    });
+  };
+  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const subcategory =
+      e.target.value === "NULL" || e.target.value === "ALL" ?
+        undefined
+      : parseInt(e.target.value);
+    setSelectedCategoryAndSubcategoryId({
+      ...selectedCategoryAndSubcategoryId,
+      subcateogryId: subcategory,
+      verifySubcategoryNullness: e.target.value === "ALL" ? false : true,
+    });
+  };
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-2/5 flex-col gap-5 text-white">
-        <div
-          className={
-            "flex h-full flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
-          }
-        >
-          <h3 className={"text-2xl font-semibold"}>Criação de Categorias</h3>
-          <CategoryForm />
-        </div>
-        <div className="flex h-full flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md">
-          <h3 className={"text-2xl font-semibold"}>Criação de Subcategorias</h3>
-          <SubcategoryFormRenderer />
-        </div>
-      </div>
+    <div
+      className={
+        "flex min-h-0 flex-grow flex-col gap-5 overflow-auto p-5 text-white"
+      }
+    >
       <div
         className={
-          "flex basis-3/5 flex-col overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+          "flex h-full flex-col gap-3 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
-        <h3 className={"text-2xl font-semibold"}>Criação de Perguntas</h3>
-        <QuestionFormRenderer />
+        <h3 className={"text-2xl font-semibold"}>Cadastro</h3>
+        <div className="flex w-fit flex-col gap-2 xl:flex-row">
+          <Button>Criar categoria</Button>
+          <Button>Criar subcategoria</Button>
+          <Button>Criar questão</Button>
+        </div>
+
+        <h3 className={"text-2xl font-semibold"}>Visualizar questões</h3>
+        <div className="flex flex-col gap-1">
+          <h4 className={"text-xl font-semibold"}>Selecionar Categoria</h4>
+          <Select onChange={handleCategoryChange}>
+            {categories.map((cat) => {
+              return (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              );
+            })}
+          </Select>
+          <h5>Selecionar subcategoria</h5>
+          <Select onChange={handleSubcategoryChange}>
+            {subcategories.map((sub) => {
+              return (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              );
+            })}
+            {subcategories.length > 0 && <option value="ALL">TODAS</option>}
+            <option value="NULL">NENHUMA</option>
+          </Select>
+        </div>
+
+        <div className="rounded-xl bg-gray-400/30 p-3 shadow-inner">
+          <h6 className={"text-xl font-semibold"}>Questões</h6>
+          {questions.length === 0 && (
+            <h6 className={"text-md font-semibold"}>
+              Nenhuma questão encontrada!
+            </h6>
+          )}
+          {questions.map((question) => {
+            return (
+              <div
+                key={question.id}
+                className="mb-2 flex flex-col rounded bg-white p-2 text-black"
+              >
+                <div className="flex">
+                  <span>{question.name}</span>
+                  <span className="ml-auto">{question.type}</span>
+                </div>
+                <p className="text-gray-700">{question.notes}</p>
+                <p>{question.characterType}</p>
+                {question.type === "OPTIONS" && (
+                  <div>
+                    <h6>Opções:</h6>
+                    <ul className="list-disc px-6">
+                      {question.options.map((option) => {
+                        return <li key={option.text}>{option.text}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 };
 
-const SubcategoryFormRenderer = async () => {
-  const getCacheCategories = unstable_cache(
-    async () => await prisma.category.findMany(),
-    ["all-categories"],
-    {
-      revalidate: 120,
-      tags: ["category", "database"],
-    },
-  );
-  const categories = await getCacheCategories();
-
-  return (
-    <Suspense fallback={<p>Loading</p>}>
-      {categories.length <= 0 ?
-        <div>
-          <p>Crie sua primeira categorias acima antes de criar uma pergunta!</p>
-          <p>
-            Já criou uma categoria previamente? Verifique o status do servidor
-            aqui!
-          </p>
-        </div>
-      : <SubcategoryForm availableCategories={categories} />}
-    </Suspense>
-  );
-};
-
-const QuestionFormRenderer = async () => {
-  const getCacheCategories = unstable_cache(
-    async () => await prisma.category.findMany(),
-    ["all-categories"],
-    {
-      revalidate: 120,
-      tags: ["category", "database"],
-    },
-  );
-  const getCacheSubcategories = unstable_cache(
-    async () => await prisma.subcategory.findMany(),
-    ["all-subcategories"],
-    {
-      revalidate: 120,
-      tags: ["category", "subcategory", "database"],
-    },
-  );
-  const categories = await getCacheCategories();
-  const subcategories = await getCacheSubcategories();
-
-  return (
-    <Suspense fallback={<p>Loading</p>}>
-      {categories.length <= 0 ?
-        <div>
-          <p>Crie sua primeira categorias acima antes de criar uma pergunta!</p>
-          <p>
-            Já criou uma categoria previamente? Verifique o status do servidor
-            aqui!
-          </p>
-        </div>
-      : <QuestionForm
-          availableCategories={categories}
-          availableSubcategories={subcategories}
-        />
-      }
-    </Suspense>
-  );
-};
-
-export default AdminComponentsPage;
+export default QuestionsPage;

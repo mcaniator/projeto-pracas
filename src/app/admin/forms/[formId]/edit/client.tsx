@@ -7,6 +7,7 @@ import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
 import {
   CalculationTypes,
   QuestionResponseCharacterTypes,
+  QuestionTypes,
 } from "@prisma/client";
 import { useEffect, useState } from "react";
 
@@ -15,7 +16,12 @@ import { FormUpdater } from "./formUpdater";
 interface DisplayQuestion {
   id: number;
   name: string;
+  notes: string | null;
+  type: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
+  options: {
+    text: string;
+  }[];
   category: {
     id: number;
     name: string;

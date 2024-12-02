@@ -113,11 +113,13 @@ const searchQuestionsByStatement = async (statement: string) => {
 const searchQuestionsByCategoryAndSubcategory = async (
   categoryId: number | undefined,
   subcategoryId: number | undefined,
+  verifySubcategoryNullness: boolean,
 ) => {
   const cachedQuestions = unstable_cache(
     async (
       categoryId: number | undefined,
       subcategoryId: number | undefined,
+      verifySubcategoryNullness: boolean,
     ): Promise<DisplayQuestion[]> => {
       let foundQuestions: DisplayQuestion[] = [];
       if (!categoryId) return [];
@@ -125,12 +127,20 @@ const searchQuestionsByCategoryAndSubcategory = async (
         foundQuestions = await prisma.question.findMany({
           where: {
             categoryId,
-            subcategoryId: subcategoryId ? subcategoryId : null,
+            ...(verifySubcategoryNullness && !subcategoryId ?
+              {
+                subcategoryId: null,
+              }
+            : !subcategoryId ? {}
+            : { subcategoryId }),
           },
           select: {
             id: true,
             name: true,
+            type: true,
+            notes: true,
             characterType: true,
+            options: true,
             category: {
               select: {
                 id: true,
@@ -155,7 +165,11 @@ const searchQuestionsByCategoryAndSubcategory = async (
     ["searchQuestionsByStatementCache"],
     { tags: ["question"] },
   );
-  const questions = await cachedQuestions(categoryId, subcategoryId);
+  const questions = await cachedQuestions(
+    categoryId,
+    subcategoryId,
+    verifySubcategoryNullness,
+  );
   questions.sort((a, b) => {
     if (a.name < b.name) return -1;
     if (a.name > b.name) return 1;
