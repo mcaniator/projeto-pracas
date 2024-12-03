@@ -10,6 +10,8 @@ import {
 } from "../../../../serverActions/categoryUtil";
 import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActions/questionUtil";
 import { DisplayQuestion } from "../../forms/[formId]/edit/client";
+import { CategoryCreationModal } from "./categoryCreationModal";
+import { SubcategoryCreationModal } from "./subcategoryCreationModal";
 
 const QuestionsPage = () => {
   const [categories, setCategories] = useState<FetchedCategories>([]);
@@ -32,14 +34,35 @@ const QuestionsPage = () => {
   }>({
     categoryId: undefined,
     subcateogryId: undefined,
-    verifySubcategoryNullness: true,
+    verifySubcategoryNullness: false,
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
+  const fetchCategoriesAfterCreation = () => {
+    const fetchCategoriesAfterCreation = async () => {
+      const cat = await fetchCategories();
+      const currentCategory = cat.find(
+        (c) => c.id === selectedCategoryAndSubcategoryId.categoryId,
+      );
+      setCategories(cat);
+      setSubcategories(currentCategory?.subcategory || []);
+      /*setSelectedCategoryAndSubcategoryId((prev) => ({
+        ...prev,
+        subcateogryId: undefined,
+      }));*/
+    };
+    void fetchCategoriesAfterCreation();
+  };
+
   useEffect(() => {
     const fetchCat = async () => {
       const cat = await fetchCategories();
       setCategories(cat);
       setSubcategories(cat[0]?.subcategory || []);
+      setSelectedCategoryAndSubcategoryId((prev) => ({
+        ...prev,
+        categoryId: cat[0]?.id,
+        subcateogryId: undefined,
+      }));
     };
     void fetchCat();
   }, []);
@@ -64,7 +87,7 @@ const QuestionsPage = () => {
     setSelectedCategoryAndSubcategoryId({
       categoryId: parseInt(e.target.value),
       subcateogryId: undefined,
-      verifySubcategoryNullness: true,
+      verifySubcategoryNullness: false,
     });
   };
   const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -91,15 +114,20 @@ const QuestionsPage = () => {
       >
         <h3 className={"text-2xl font-semibold"}>Cadastro</h3>
         <div className="flex w-fit flex-col gap-2 xl:flex-row">
-          <Button>Criar categoria</Button>
-          <Button>Criar subcategoria</Button>
           <Button>Criar questão</Button>
         </div>
-
-        <h3 className={"text-2xl font-semibold"}>Visualizar questões</h3>
         <div className="flex flex-col gap-1">
-          <h4 className={"text-xl font-semibold"}>Selecionar Categoria</h4>
-          <Select onChange={handleCategoryChange}>
+          <h4 className={"text-2xl font-semibold"}>Categoria</h4>
+          <div>
+            <CategoryCreationModal
+              fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+            />
+          </div>
+
+          <Select
+            onChange={handleCategoryChange}
+            value={selectedCategoryAndSubcategoryId.categoryId}
+          >
             {categories.map((cat) => {
               return (
                 <option key={cat.id} value={cat.id}>
@@ -108,8 +136,32 @@ const QuestionsPage = () => {
               );
             })}
           </Select>
-          <h5>Selecionar subcategoria</h5>
-          <Select onChange={handleSubcategoryChange}>
+          <h4>Subcategoria</h4>
+          {selectedCategoryAndSubcategoryId.categoryId && (
+            <div>
+              <SubcategoryCreationModal
+                categoryId={selectedCategoryAndSubcategoryId.categoryId}
+                categoryName={
+                  categories.find(
+                    (cat) =>
+                      cat.id === selectedCategoryAndSubcategoryId.categoryId,
+                  )?.name
+                }
+                fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+              />
+            </div>
+          )}
+
+          <Select
+            onChange={handleSubcategoryChange}
+            value={
+              selectedCategoryAndSubcategoryId.subcateogryId ?
+                selectedCategoryAndSubcategoryId.subcateogryId
+              : selectedCategoryAndSubcategoryId.verifySubcategoryNullness ?
+                "NULL"
+              : "ALL"
+            }
+          >
             {subcategories.map((sub) => {
               return (
                 <option key={sub.id} value={sub.id}>
@@ -117,44 +169,43 @@ const QuestionsPage = () => {
                 </option>
               );
             })}
-            {subcategories.length > 0 && <option value="ALL">TODAS</option>}
+
             <option value="NULL">NENHUMA</option>
+            {subcategories.length > 0 && <option value="ALL">TODAS</option>}
           </Select>
         </div>
 
-        <div className="rounded-xl bg-gray-400/30 p-3 shadow-inner">
-          <h6 className={"text-xl font-semibold"}>Questões</h6>
-          {questions.length === 0 && (
-            <h6 className={"text-md font-semibold"}>
-              Nenhuma questão encontrada!
-            </h6>
-          )}
-          {questions.map((question) => {
-            return (
-              <div
-                key={question.id}
-                className="mb-2 flex flex-col rounded bg-white p-2 text-black"
-              >
-                <div className="flex">
-                  <span>{question.name}</span>
-                  <span className="ml-auto">{question.type}</span>
-                </div>
-                <p className="text-gray-700">{question.notes}</p>
-                <p>{question.characterType}</p>
-                {question.type === "OPTIONS" && (
-                  <div>
-                    <h6>Opções:</h6>
-                    <ul className="list-disc px-6">
-                      {question.options.map((option) => {
-                        return <li key={option.text}>{option.text}</li>;
-                      })}
-                    </ul>
-                  </div>
-                )}
+        <h6 className={"text-xl font-semibold"}>Questões</h6>
+        {questions.length === 0 && (
+          <h6 className={"text-md font-semibold"}>
+            Nenhuma questão encontrada!
+          </h6>
+        )}
+        {questions.map((question) => {
+          return (
+            <div
+              key={question.id}
+              className="mb-2 flex flex-col rounded bg-white p-2 text-black"
+            >
+              <div className="flex">
+                <span>{question.name}</span>
+                <span className="ml-auto">{question.type}</span>
               </div>
-            );
-          })}
-        </div>
+              <p className="text-gray-700">{question.notes}</p>
+              <p>{question.characterType}</p>
+              {question.type === "OPTIONS" && (
+                <div>
+                  <h6>Opções:</h6>
+                  <ul className="list-disc px-6">
+                    {question.options.map((option) => {
+                      return <li key={option.text}>{option.text}</li>;
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

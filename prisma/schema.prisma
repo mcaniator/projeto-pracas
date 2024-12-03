@@ -241,7 +241,7 @@ model Session {
 model Category {
   id Int @id @default(autoincrement())
 
-  name        String        @db.VarChar(255)
+  name        String        @unique @db.VarChar(255)
   optional    Boolean       @default(false)
   active      Boolean       @default(true)
   question    Question[]
@@ -267,6 +267,7 @@ model Subcategory {
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
 
+  @@unique([categoryId, name])
   @@map("subcategory")
 }
 

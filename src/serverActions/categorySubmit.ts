@@ -2,14 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { categorySchema } from "@/lib/zodValidators";
-import { revalidateTag } from "next/cache";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 type CategoriesWithQuestions = NonNullable<
   Awaited<ReturnType<typeof getCategories>>
 >;
 
 const categorySubmit = async (
-  prevState: { statusCode: number },
+  prevState: { statusCode: number; categoryName: string | null },
   formData: FormData,
 ) => {
   let parse;
@@ -19,32 +20,33 @@ const categorySubmit = async (
     });
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
+      categoryName: null,
     };
   }
 
   try {
-    await prisma.category.create({ data: parse });
+    const category = await prisma.category.create({ data: parse });
+    revalidateTag("category");
+    return { statusCode: 201, categoryName: category.name };
   } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError)
+      if (e.code === "P2002") return { statusCode: 409, categoryName: null };
     return {
-      statusCode: 2,
+      statusCode: 500,
+      categoryName: null,
     };
   }
-
-  revalidateTag("category");
-  return {
-    statusCode: 0,
-  };
 };
 
 const subcategorySubmit = async (
-  prevState: { statusCode: number },
+  prevState: { statusCode: number; subcategoryName: string | null },
   formData: FormData,
 ) => {
   const categoryId = formData.get("category-id") as string;
   const subcategoryName = formData.get("subcategory-name") as string;
   try {
-    await prisma.subcategory.create({
+    const subcategory = await prisma.subcategory.create({
       data: {
         name: subcategoryName,
         category: {
@@ -54,13 +56,17 @@ const subcategorySubmit = async (
         },
       },
     });
+    revalidateTag("question");
+    revalidatePath("/");
+    return { statusCode: 201, subcategoryName: subcategory.name };
   } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError)
+      if (e.code === "P2002") return { statusCode: 409, subcategoryName: null };
     return {
-      statusCode: 2,
+      statusCode: 500,
+      subcategoryName: null,
     };
   }
-  revalidateTag("category");
-  return { statusCode: 0 };
 };
 
 const getCategories = async () => {
