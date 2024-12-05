@@ -21,12 +21,12 @@ interface QuestionWithCategories extends Question {
 }
 
 const questionSubmit = async (
-  prevState: { statusCode: number },
+  prevState: { statusCode: number; questionName: string | null } | null,
   formData: FormData,
-) => {
+): Promise<{ statusCode: number; questionName: string | null } | null> => {
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
-
+  const notes = formData.get("notes") as string;
   switch (questionType) {
     case "WRITTEN": {
       let writtenQuestionParsed;
@@ -35,6 +35,7 @@ const questionSubmit = async (
         if (questionCharacterType === "TEXT") {
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
+            notes: notes.length > 0 ? notes : null,
             type: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
@@ -54,6 +55,7 @@ const questionSubmit = async (
         } else {
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
+            notes: notes.length > 0 ? notes : null,
             type: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
@@ -73,28 +75,18 @@ const questionSubmit = async (
           });
         }
       } catch (err) {
-        return { statusCode: 1 };
+        return { statusCode: 400, questionName: null };
       }
 
       try {
-        await prisma.question.create({
-          data: {
-            name: writtenQuestionParsed.name,
-            type: writtenQuestionParsed.type,
-            characterType: writtenQuestionParsed.characterType,
-            categoryId: writtenQuestionParsed.categoryId,
-            subcategoryId: writtenQuestionParsed.subcategoryId,
-            responseCharLimit: writtenQuestionParsed.responseCharLimit,
-            minValue: writtenQuestionParsed.minValue,
-            maxValue: writtenQuestionParsed.maxValue,
-            geometryTypes: writtenQuestionParsed.geometryTypes,
-          },
+        const newQuestion = await prisma.question.create({
+          data: writtenQuestionParsed,
         });
+        revalidateTag("question");
+        return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
-        return { statusCode: 2 };
+        return { statusCode: 400, questionName: null };
       }
-
-      break;
     }
 
     case "OPTIONS": {
@@ -116,6 +108,7 @@ const questionSubmit = async (
       try {
         optionsQuestionParsed = questionSchema.parse({
           name,
+          notes: notes.length > 0 ? notes : null,
           type: questionType,
           characterType: questionCharacterType,
           categoryId,
@@ -131,7 +124,7 @@ const questionSubmit = async (
           ...optionsQuestionObject,
         });
       } catch (err) {
-        return { statusCode: 1 };
+        return { statusCode: 400, questionName: null };
       }
       if (
         optionsQuestionParsed.optionType === "CHECKBOX" &&
@@ -139,12 +132,13 @@ const questionSubmit = async (
         //  &&
         // optionsQuestionParsed.maximumSelections > options.length
       ) {
-        return { statusCode: 3 };
+        return { statusCode: 1, questionName: null };
       }
       try {
         const newQuestion = await prisma.question.create({
           data: {
             name: optionsQuestionParsed.name,
+            notes: optionsQuestionParsed.notes,
             type: questionType,
             characterType: optionsQuestionParsed.characterType,
             categoryId: optionsQuestionParsed.categoryId,
@@ -159,30 +153,20 @@ const questionSubmit = async (
           questionId: newQuestion.id,
         }));
 
-        let optionsParsed;
-        try {
-          optionsParsed = optionSchema.parse(options);
-        } catch (err) {
-          return { statusCode: 1 };
-        }
+        const optionsParsed = optionSchema.parse(options);
 
-        try {
-          await prisma.option.createMany({
-            data: optionsParsed,
-          });
-        } catch (err) {
-          return { statusCode: 2 };
-        }
+        await prisma.option.createMany({
+          data: optionsParsed,
+        });
+        revalidateTag("question");
+        return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
-        return { statusCode: 2 };
+        return { statusCode: 400, questionName: null };
       }
-
-      break;
     }
   }
 
-  revalidateTag("question");
-  return { statusCode: 0 };
+  return { statusCode: 400, questionName: null };
 };
 
 export { questionSubmit };

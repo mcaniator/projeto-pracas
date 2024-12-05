@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../../components/button";
 import { Select } from "../../../../components/ui/select";
 import {
   FetchedCategories,
@@ -12,6 +11,7 @@ import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActio
 import { DisplayQuestion } from "../../forms/[formId]/edit/client";
 import { CategoryCreationModal } from "./categoryCreationModal";
 import { CategoryDeletionModal } from "./categoryDeletionModal";
+import { QuestionCreationModal } from "./questionCreationModal";
 import { SubcategoryCreationModal } from "./subcategoryCreationModal";
 import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 
@@ -90,7 +90,7 @@ const QuestionsPage = () => {
       }
     };
     void fetchQuestions();
-  }, [selectedCategoryAndSubcategoryId]);
+  }, [selectedCategoryAndSubcategoryId, categories]);
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSubcategories(
       categories.find((cat) => cat.id === parseInt(e.target.value))
@@ -124,10 +124,7 @@ const QuestionsPage = () => {
           "flex h-full flex-col gap-3 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
-        <h3 className={"text-2xl font-semibold"}>Cadastro</h3>
-        <div className="flex w-fit flex-col gap-2 xl:flex-row">
-          <Button>Criar questão</Button>
-        </div>
+        <h3 className={"text-3xl font-semibold"}>Questões</h3>
         <div className="flex flex-col gap-1">
           <h4 className={"text-2xl font-semibold"}>Categoria</h4>
           <div>
@@ -161,7 +158,7 @@ const QuestionsPage = () => {
             />
           </div>
 
-          <h4>Subcategoria</h4>
+          <h4 className="text-2xl font-semibold">Subcategoria</h4>
           {selectedCategoryAndSubcategoryId.categoryId && (
             <div>
               <SubcategoryCreationModal
@@ -224,6 +221,28 @@ const QuestionsPage = () => {
         </div>
 
         <h6 className={"text-xl font-semibold"}>Questões</h6>
+        <div>
+          <QuestionCreationModal
+            categoryId={selectedCategoryAndSubcategoryId.categoryId}
+            categoryName={
+              categories.find(
+                (category) =>
+                  category.id === selectedCategoryAndSubcategoryId.categoryId,
+              )?.name
+            }
+            subcategoryId={selectedCategoryAndSubcategoryId.subcategoryId}
+            subcategoryName={
+              categories
+                .flatMap((category) => category.subcategory)
+                .find(
+                  (subcategory) =>
+                    subcategory.id ===
+                    selectedCategoryAndSubcategoryId.subcategoryId,
+                )?.name
+            }
+            fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+          />
+        </div>
         {questions.length === 0 && (
           <h6 className={"text-md font-semibold"}>
             Nenhuma questão encontrada!

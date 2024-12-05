@@ -50,6 +50,7 @@ const categorySchema = z.object({
 
 const questionSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  notes: z.string().trim().min(1).max(255).optional().nullable(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
