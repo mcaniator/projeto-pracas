@@ -140,6 +140,113 @@ const deleteCategory = async (
   }
 };
 
+const deleteSubcategory = async (
+  prevState: {
+    statusCode: number;
+    content: {
+      formsWithQuestions: {
+        id: number;
+        name: string;
+        questions: { id: number; name: string }[];
+      }[];
+      subcategoryName: string | null;
+    };
+  } | null,
+  formData: FormData,
+): Promise<{
+  statusCode: number;
+  content: {
+    formsWithQuestions: {
+      id: number;
+      name: string;
+      questions: { id: number; name: string }[];
+    }[];
+    subcategoryName: string | null;
+  };
+} | null> => {
+  const subcategoryId = parseInt(formData.get("subcategoryId") as string);
+  try {
+    const questionsInForms = await prisma.question.findMany({
+      where: {
+        subcategoryId: subcategoryId,
+        forms: {
+          some: {},
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        forms: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    const formsWithQuestions = questionsInForms.reduce(
+      (acc, question) => {
+        question.forms.forEach((form) => {
+          let formEntry = acc.find((f) => f.id === form.id);
+
+          if (!formEntry) {
+            formEntry = {
+              id: form.id,
+              name: form.name,
+              questions: [],
+            };
+            acc.push(formEntry);
+          }
+
+          formEntry.questions.push({
+            id: question.id,
+            name: question.name,
+          });
+        });
+        return acc;
+      },
+      [] as {
+        id: number;
+        name: string;
+        questions: { id: number; name: string }[];
+      }[],
+    );
+    if (questionsInForms.length > 0) {
+      return {
+        statusCode: 409,
+        content: {
+          formsWithQuestions: formsWithQuestions,
+          subcategoryName: null,
+        },
+      };
+    }
+  } catch (e) {
+    return {
+      statusCode: 500,
+      content: { formsWithQuestions: [], subcategoryName: null },
+    };
+  }
+  try {
+    const deletedSubcategory = await prisma.subcategory.delete({
+      where: {
+        id: subcategoryId,
+      },
+    });
+    return {
+      statusCode: 200,
+      content: {
+        formsWithQuestions: [],
+        subcategoryName: deletedSubcategory.name,
+      },
+    };
+  } catch (e) {
+    return {
+      statusCode: 500,
+      content: { formsWithQuestions: [], subcategoryName: null },
+    };
+  }
+};
+
 const subcategorySubmit = async (
   prevState: { statusCode: number; subcategoryName: string | null },
   formData: FormData,
@@ -185,5 +292,11 @@ const getCategories = async () => {
   });
   return categories;
 };
-export { categorySubmit, subcategorySubmit, getCategories, deleteCategory };
+export {
+  categorySubmit,
+  subcategorySubmit,
+  getCategories,
+  deleteCategory,
+  deleteSubcategory,
+};
 export { type CategoriesWithQuestions };

@@ -13,6 +13,7 @@ import { DisplayQuestion } from "../../forms/[formId]/edit/client";
 import { CategoryCreationModal } from "./categoryCreationModal";
 import { CategoryDeletionModal } from "./categoryDeletionModal";
 import { SubcategoryCreationModal } from "./subcategoryCreationModal";
+import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 
 const QuestionsPage = () => {
   const [categories, setCategories] = useState<FetchedCategories>([]);
@@ -30,11 +31,11 @@ const QuestionsPage = () => {
     setSelectedCategoryAndSubcategoryId,
   ] = useState<{
     categoryId: number | undefined;
-    subcateogryId: number | undefined;
+    subcategoryId: number | undefined;
     verifySubcategoryNullness: boolean;
   }>({
     categoryId: undefined,
-    subcateogryId: undefined,
+    subcategoryId: undefined,
     verifySubcategoryNullness: false,
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
@@ -46,10 +47,6 @@ const QuestionsPage = () => {
       );
       setCategories(cat);
       setSubcategories(currentCategory?.subcategory || []);
-      /*setSelectedCategoryAndSubcategoryId((prev) => ({
-        ...prev,
-        subcateogryId: undefined,
-      }));*/
     };
     void fetchCategoriesAfterCreation();
   };
@@ -61,7 +58,7 @@ const QuestionsPage = () => {
       setSubcategories(cat[0]?.subcategory || []);
       setSelectedCategoryAndSubcategoryId({
         categoryId: cat[0]?.id,
-        subcateogryId: undefined,
+        subcategoryId: undefined,
         verifySubcategoryNullness: false,
       });
     };
@@ -76,7 +73,7 @@ const QuestionsPage = () => {
       setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
         categoryId: cat[0]?.id,
-        subcateogryId: undefined,
+        subcatogoryId: undefined,
       }));
     };
     void fetchCat();
@@ -86,7 +83,7 @@ const QuestionsPage = () => {
       if (selectedCategoryAndSubcategoryId) {
         const questions = await searchQuestionsByCategoryAndSubcategory(
           selectedCategoryAndSubcategoryId.categoryId,
-          selectedCategoryAndSubcategoryId?.subcateogryId,
+          selectedCategoryAndSubcategoryId?.subcategoryId,
           selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
         );
         setQuestions(questions);
@@ -101,7 +98,7 @@ const QuestionsPage = () => {
     );
     setSelectedCategoryAndSubcategoryId({
       categoryId: parseInt(e.target.value),
-      subcateogryId: undefined,
+      subcategoryId: undefined,
       verifySubcategoryNullness: false,
     });
   };
@@ -112,7 +109,7 @@ const QuestionsPage = () => {
       : parseInt(e.target.value);
     setSelectedCategoryAndSubcategoryId({
       ...selectedCategoryAndSubcategoryId,
-      subcateogryId: subcategory,
+      subcategoryId: subcategory,
       verifySubcategoryNullness: e.target.value === "ALL" ? false : true,
     });
   };
@@ -183,8 +180,8 @@ const QuestionsPage = () => {
           <Select
             onChange={handleSubcategoryChange}
             value={
-              selectedCategoryAndSubcategoryId.subcateogryId ?
-                selectedCategoryAndSubcategoryId.subcateogryId
+              selectedCategoryAndSubcategoryId.subcategoryId ?
+                selectedCategoryAndSubcategoryId.subcategoryId
               : selectedCategoryAndSubcategoryId.verifySubcategoryNullness ?
                 "NULL"
               : "ALL"
@@ -201,6 +198,29 @@ const QuestionsPage = () => {
             <option value="NULL">NENHUMA</option>
             {subcategories.length > 0 && <option value="ALL">TODAS</option>}
           </Select>
+          <div>
+            {selectedCategoryAndSubcategoryId.subcategoryId && (
+              <SubcategoryDeletionModal
+                subcategoryId={selectedCategoryAndSubcategoryId.subcategoryId}
+                subcategoryName={
+                  categories
+                    .flatMap((category) => category.subcategory)
+                    .find(
+                      (subcategory) =>
+                        subcategory.id ===
+                        selectedCategoryAndSubcategoryId.subcategoryId,
+                    )?.name
+                }
+                categoryName={
+                  categories.find(
+                    (cat) =>
+                      cat.id === selectedCategoryAndSubcategoryId.categoryId,
+                  )?.name
+                }
+                fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+              />
+            )}
+          </div>
         </div>
 
         <h6 className={"text-xl font-semibold"}>Questões</h6>
