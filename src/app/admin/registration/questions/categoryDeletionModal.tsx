@@ -82,6 +82,10 @@ const CategoryDeletionModal = ({
                       className="flex h-96 w-full flex-col rounded-l"
                     >
                       <h5 className="text-2xl font-semibold">{categoryName}</h5>
+                      <h6 className="text-xl font-semibold text-red-500">
+                        Aviso: Esta ação também excluirá subcategorias e
+                        questões associadas!
+                      </h6>
                       <input
                         type="hidden"
                         id="categoryId"
@@ -98,8 +102,8 @@ const CategoryDeletionModal = ({
                   )}
                   {pageState === "SUCCESS" && (
                     <div>
-                      <h5 className="text-center text-xl font-semibold">
-                        {`Categoria excluída!`}
+                      <h5 className="text-center text-xl font-semibold text-green-500">
+                        {`Categoria "${state?.content.categoryName}" excluída!`}
                       </h5>
                       <div className="flex justify-center">
                         <IconCheck className="h-32 w-32 text-2xl text-green-500" />
@@ -114,7 +118,7 @@ const CategoryDeletionModal = ({
                         </h5>
                       )}
                       {state?.statusCode === 409 && (
-                        <h5 className="text-center text-xl font-semibold">
+                        <h5 className="text-center text-xl font-semibold text-red-500">
                           {`Esta categoria possui ${
                             state.content.formsWithQuestions.reduce(
                               (acc, f) => {
