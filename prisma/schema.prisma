@@ -265,7 +265,7 @@ model Subcategory {
   calculation Calculation[]
 
   categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([categoryId, name])
   @@map("subcategory")
@@ -293,9 +293,9 @@ model Question {
   assessment Assessment[]
 
   categoryId    Int           @map("category_id")
-  category      Category      @relation(fields: [categoryId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subcategoryId Int?          @map("subcategory_id")
-  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id])
+  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   options       Option[]
   calculation   Calculation[]
 

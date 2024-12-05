@@ -11,6 +11,7 @@ import {
 import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActions/questionUtil";
 import { DisplayQuestion } from "../../forms/[formId]/edit/client";
 import { CategoryCreationModal } from "./categoryCreationModal";
+import { CategoryDeletionModal } from "./categoryDeletionModal";
 import { SubcategoryCreationModal } from "./subcategoryCreationModal";
 
 const QuestionsPage = () => {
@@ -51,6 +52,20 @@ const QuestionsPage = () => {
       }));*/
     };
     void fetchCategoriesAfterCreation();
+  };
+
+  const fetchCategoriesAfterDeletion = () => {
+    const fetchCategoriesAfterDeletion = async () => {
+      const cat = await fetchCategories();
+      setCategories(cat);
+      setSubcategories(cat[0]?.subcategory || []);
+      setSelectedCategoryAndSubcategoryId({
+        categoryId: cat[0]?.id,
+        subcateogryId: undefined,
+        verifySubcategoryNullness: false,
+      });
+    };
+    void fetchCategoriesAfterDeletion();
   };
 
   useEffect(() => {
@@ -136,6 +151,19 @@ const QuestionsPage = () => {
               );
             })}
           </Select>
+          <div>
+            <CategoryDeletionModal
+              categoryId={selectedCategoryAndSubcategoryId.categoryId}
+              categoryName={
+                categories.find(
+                  (cat) =>
+                    cat.id === selectedCategoryAndSubcategoryId.categoryId,
+                )?.name
+              }
+              fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+            />
+          </div>
+
           <h4>Subcategoria</h4>
           {selectedCategoryAndSubcategoryId.categoryId && (
             <div>
@@ -188,7 +216,7 @@ const QuestionsPage = () => {
               className="mb-2 flex flex-col rounded bg-white p-2 text-black"
             >
               <div className="flex">
-                <span>{question.name}</span>
+                <span className="text-2xl font-semibold">{question.name}</span>
                 <span className="ml-auto">{question.type}</span>
               </div>
               <p className="text-gray-700">{question.notes}</p>
