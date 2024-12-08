@@ -134,21 +134,28 @@ const CategoryDeletionModal = ({
                       <div className="flex justify-center">
                         <IconX className="h-32 w-32 text-2xl text-red-500" />
                       </div>
-                      <h6 className="text-xl font-semibold">Formulários:</h6>
-                      <ul className="list-inside list-decimal break-words pl-3 font-semibold">
-                        {state?.content.formsWithQuestions.map((f) => {
-                          return (
-                            <li key={f.id}>
-                              {f.name}
-                              <ul className="list-inside list-disc pl-6 font-normal">
-                                {f.questions.map((q) => {
-                                  return <li key={q.id}>{q.name}</li>;
-                                })}
-                              </ul>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      {state?.content.formsWithQuestions &&
+                        state?.content.formsWithQuestions.length >= 1 && (
+                          <>
+                            <h6 className="text-xl font-semibold">
+                              Formulários:
+                            </h6>
+                            <ul className="list-inside list-decimal break-words pl-3 font-semibold">
+                              {state?.content.formsWithQuestions.map((f) => {
+                                return (
+                                  <li key={f.id}>
+                                    {f.name}
+                                    <ul className="list-inside list-disc pl-6 font-normal">
+                                      {f.questions.map((q) => {
+                                        return <li key={q.id}>{q.name}</li>;
+                                      })}
+                                    </ul>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </>
+                        )}
                     </div>
                   )}
                 </div>
