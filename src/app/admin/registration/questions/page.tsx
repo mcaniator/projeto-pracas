@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { Button } from "../../../../components/button";
 import { Select } from "../../../../components/ui/select";
 import {
   FetchedCategories,
@@ -12,6 +13,7 @@ import { DisplayQuestion } from "../../forms/[formId]/edit/client";
 import { CategoryCreationModal } from "./categoryCreationModal";
 import { CategoryDeletionModal } from "./categoryDeletionModal";
 import { QuestionCreationModal } from "./questionCreationModal";
+import { QuestionDeletionModal } from "./questionDeletionModal";
 import { SubcategoryCreationModal } from "./subcategoryCreationModal";
 import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 
@@ -270,6 +272,13 @@ const QuestionsPage = () => {
                   </ul>
                 </div>
               )}
+              <div>
+                <QuestionDeletionModal
+                  questionId={question.id}
+                  questionName={question.name}
+                  fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+                />
+              </div>
             </div>
           );
         })}

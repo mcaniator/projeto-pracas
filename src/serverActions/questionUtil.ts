@@ -20,16 +20,64 @@ interface QuestionSearchedByStatement {
   } | null;
 }
 
-const handleDelete = async (questionId: number) => {
+const deleteQuestion = async (
+  prevState: {
+    statusCode: number;
+    content: {
+      formsWithQuestion: {
+        id: number;
+        name: string;
+        version: number;
+      }[];
+      questionName: string | null;
+    } | null;
+  } | null,
+  formData: FormData,
+): Promise<{
+  statusCode: number;
+  content: {
+    formsWithQuestion: { name: string; id: number; version: number }[];
+    questionName: string | null;
+  } | null;
+}> => {
+  const questionId = parseInt(formData.get("questionId") as string);
   try {
-    await prisma.question.delete({
+    const formsWithQuestion = await prisma.form.findMany({
+      where: {
+        questions: {
+          some: {
+            id: questionId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        version: true,
+      },
+    });
+    if (formsWithQuestion.length > 0) {
+      return {
+        statusCode: 409,
+        content: { formsWithQuestion: formsWithQuestion, questionName: null },
+      };
+    }
+  } catch (e) {
+    return { statusCode: 500, content: null };
+  }
+  try {
+    const deletedQuestion = await prisma.question.delete({
       where: {
         id: questionId,
       },
     });
     revalidateTag("question");
+    return {
+      statusCode: 200,
+      content: { formsWithQuestion: [], questionName: deletedQuestion.name },
+    };
   } catch (err) {
-    // console.error(`Erro ao excluir o local: ${parkID}`, err);
+    return { statusCode: 500, content: null };
   }
 };
 
@@ -195,7 +243,7 @@ const searchOptionsByQuestionId = async (
 };
 
 export {
-  handleDelete,
+  deleteQuestion,
   searchQuestionsByStatement,
   searchOptionsByQuestionId,
   searchQuestionsByCategoryAndSubcategory,
