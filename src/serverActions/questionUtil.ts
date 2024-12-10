@@ -188,6 +188,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
             type: true,
             notes: true,
             characterType: true,
+            optionType: true,
             options: true,
             category: {
               select: {

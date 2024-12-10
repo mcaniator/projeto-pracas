@@ -19,9 +19,15 @@ const questionResponseCharacterTypesFormatter = new Map([
   ["NUMBER", "Número"],
 ]);
 
+const questionOptionTypesFormatter = new Map([
+  ["RADIO", "Botão radial"],
+  ["CHECKBOX", "Caixa de checagem"],
+]);
+
 export {
   calculationTypesFormatter,
   questionGeometryTypesFormatter,
   questionTypesFormatter,
   questionResponseCharacterTypesFormatter,
+  questionOptionTypesFormatter,
 };

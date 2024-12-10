@@ -6,6 +6,7 @@ import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
 import {
   CalculationTypes,
+  OptionTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
@@ -19,6 +20,7 @@ interface DisplayQuestion {
   notes: string | null;
   type: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
+  optionType: OptionTypes | null;
   options: {
     text: string;
   }[];

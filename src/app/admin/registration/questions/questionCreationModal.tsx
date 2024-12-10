@@ -93,6 +93,11 @@ const QuestionCreationModal = ({
                       size={"icon"}
                       onPress={() => {
                         setPageState("FORM");
+                        setType("");
+                        setCharacterType(null);
+                        setCurrentOption("");
+                        setAddedOptions([]);
+                        setGeometryTypes(["Point"]);
                         close();
                       }}
                     >

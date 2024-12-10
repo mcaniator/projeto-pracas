@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Select } from "../../../../components/ui/select";
 import {
+  questionOptionTypesFormatter,
   questionResponseCharacterTypesFormatter,
   questionTypesFormatter,
 } from "../../../../lib/enumsFormatation";
@@ -261,9 +262,13 @@ const QuestionsPage = () => {
             >
               <div className="flex">
                 <span className="text-2xl font-semibold">{question.name}</span>
-                <span className="ml-auto">
-                  {questionTypesFormatter.get(question.type)}
-                </span>
+                <div className="ml-auto">
+                  <div>{questionTypesFormatter.get(question.type)}</div>
+                  <div>
+                    {question.optionType &&
+                      questionOptionTypesFormatter.get(question.optionType)}
+                  </div>
+                </div>
               </div>
               <p className="text-gray-700">{question.notes}</p>
               <p>
@@ -272,14 +277,16 @@ const QuestionsPage = () => {
                 )}
               </p>
               {question.type === "OPTIONS" && (
-                <div>
-                  <h6>Opções:</h6>
-                  <ul className="list-disc px-6">
-                    {question.options.map((option) => {
-                      return <li key={option.text}>{option.text}</li>;
-                    })}
-                  </ul>
-                </div>
+                <>
+                  <div>
+                    <h6>Opções:</h6>
+                    <ul className="list-disc px-6">
+                      {question.options.map((option) => {
+                        return <li key={option.text}>{option.text}</li>;
+                      })}
+                    </ul>
+                  </div>
+                </>
               )}
               <div>
                 <QuestionDeletionModal
