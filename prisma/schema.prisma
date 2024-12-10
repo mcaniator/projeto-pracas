@@ -275,14 +275,11 @@ model Question {
   id Int @id @default(autoincrement())
 
   name              String                         @db.VarChar(255)
-  optional          Boolean                        @default(false)
-  active            Boolean                        @default(true)
   notes             String?                        @db.VarChar(255)
   type              QuestionTypes
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
   response          Response[]
-  responseCharLimit Int?                           @map("char_limit")
   minValue          Int?
   maxValue          Int?
   optionType        OptionTypes?                   @map("option_type")
@@ -363,7 +360,7 @@ model Option {
   text String @db.VarChar(255)
 
   questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
