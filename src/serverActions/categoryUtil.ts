@@ -11,6 +11,9 @@ const fetchCategories = async () => {
     include: {
       subcategory: true,
     },
+    orderBy: {
+      name: "asc",
+    },
   });
 
   return categories;
