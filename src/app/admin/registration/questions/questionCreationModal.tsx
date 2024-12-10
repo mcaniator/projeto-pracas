@@ -292,21 +292,6 @@ const QuestionCreationModal = ({
                                   </RadioButton>
                                 </div>
                               </div>
-                              {characterType === "text" && (
-                                <div>
-                                  <label
-                                    htmlFor={"charLimit"}
-                                    className="font-semibold"
-                                  >
-                                    Limite de caracteres:
-                                  </label>
-                                  <Input
-                                    type="number"
-                                    name={"charLimit"}
-                                    id={"charLimit"}
-                                  />
-                                </div>
-                              )}
                               {characterType === "number" && (
                                 <div>
                                   <div>

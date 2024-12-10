@@ -39,7 +39,6 @@ const questionSubmit = async (
             type: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
-            responseCharLimit: formData.get("charLimit"),
             subcategoryId:
               Number(formData.get("subcategoryId")) > 0 ?
                 formData.get("subcategoryId")

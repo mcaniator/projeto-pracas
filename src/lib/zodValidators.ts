@@ -55,7 +55,6 @@ const questionSchema = z.object({
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-  responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
   minValue: z.coerce.number().finite().optional(),
   maxValue: z.coerce.number().finite().optional(),
   optionType: z.nativeEnum(OptionTypes).optional(),

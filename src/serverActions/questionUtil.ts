@@ -1,9 +1,10 @@
 "use server";
 
-import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { Option } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
+
+import { DisplayQuestion } from "../app/admin/registration/forms/[formId]/edit/client";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -203,6 +204,9 @@ const searchQuestionsByCategoryAndSubcategory = async (
                 categoryId: true,
               },
             },
+          },
+          orderBy: {
+            name: "desc",
           },
         });
       } catch (err) {
