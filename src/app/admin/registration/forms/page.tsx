@@ -1,6 +1,11 @@
-import { FormForm } from "@/components/singleUse/admin/registration/forms/formForm";
+import { Form } from "@prisma/client";
 
-const AdminRoot = () => {
+import { FormComponent } from "../../../../components/singleUse/admin/registration/forms/formComponent";
+import { fetchFormsLatest } from "../../../../serverActions/formUtil";
+import { FormCreationModal } from "./formCreationModal";
+
+const AdminRoot = async () => {
+  const forms: Form[] = await fetchFormsLatest();
   return (
     <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
       <div className="flex basis-3/5 flex-col gap-5 text-white">
@@ -9,8 +14,27 @@ const AdminRoot = () => {
             "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
-          <h3 className={"text-2xl font-semibold"}>Criação de Formulários</h3>
-          <FormForm />
+          <div>
+            <FormCreationModal />
+          </div>
+
+          <div>
+            {forms.length > 0 ?
+              <div className="w-full text-black">
+                {forms.map((form) => (
+                  <FormComponent
+                    key={form.id}
+                    id={form.id}
+                    name={form.name}
+                    version={form.version}
+                  />
+                ))}
+              </div>
+            : <div className="text-redwood">
+                Ainda não há perguntas no formulário
+              </div>
+            }
+          </div>
         </div>
       </div>
     </div>

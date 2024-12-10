@@ -2,12 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidateTag } from "next/cache";
 
 const formSubmit = async (
-  prevState: { message: string },
+  prevState: { statusCode: number; formName: string | null } | null,
   formData: FormData,
-) => {
+): Promise<{ statusCode: number; formName: string | null } | null> => {
   let parse;
   try {
     parse = formSchema.parse({
@@ -15,22 +16,23 @@ const formSubmit = async (
     });
   } catch (e) {
     return {
-      message: "erro de tipagem",
+      statusCode: 400,
+      formName: null,
     };
   }
 
   try {
-    await prisma.form.create({ data: parse });
+    const createdForm = await prisma.form.create({ data: parse });
+    revalidateTag("form");
+    return { statusCode: 201, formName: createdForm.name };
   } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError)
+      if (e.code === "P2002") return { statusCode: 409, formName: null };
     return {
-      message: "erro do servidor",
+      statusCode: 500,
+      formName: null,
     };
   }
-
-  revalidateTag("form");
-  return {
-    message: "nenhum erro",
-  };
 };
 
 export { formSubmit };

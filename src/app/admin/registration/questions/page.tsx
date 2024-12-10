@@ -130,7 +130,6 @@ const QuestionsPage = () => {
           "flex h-full flex-col gap-3 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
-        <h3 className={"text-3xl font-semibold"}>Questões</h3>
         <div className="flex flex-col gap-1">
           <h4 className={"text-2xl font-semibold"}>Categoria</h4>
           <div>
