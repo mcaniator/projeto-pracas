@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../../components/button";
 import { Select } from "../../../../components/ui/select";
+import {
+  questionResponseCharacterTypesFormatter,
+  questionTypesFormatter,
+} from "../../../../lib/enumsFormatation";
 import {
   FetchedCategories,
   fetchCategories,
@@ -258,10 +261,16 @@ const QuestionsPage = () => {
             >
               <div className="flex">
                 <span className="text-2xl font-semibold">{question.name}</span>
-                <span className="ml-auto">{question.type}</span>
+                <span className="ml-auto">
+                  {questionTypesFormatter.get(question.type)}
+                </span>
               </div>
               <p className="text-gray-700">{question.notes}</p>
-              <p>{question.characterType}</p>
+              <p>
+                {questionResponseCharacterTypesFormatter.get(
+                  question.characterType,
+                )}
+              </p>
               {question.type === "OPTIONS" && (
                 <div>
                   <h6>Opções:</h6>
