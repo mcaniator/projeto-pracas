@@ -20,6 +20,7 @@ import { QuestionCreationModal } from "./questionCreationModal";
 import { QuestionDeletionModal } from "./questionDeletionModal";
 import { SubcategoryCreationModal } from "./subcategoryCreationModal";
 import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
+import SubcategorySelect from "./subcategorySelect";
 
 const QuestionsPage = () => {
   const [categories, setCategories] = useState<FetchedCategories>([]);
@@ -65,7 +66,8 @@ const QuestionsPage = () => {
       setSelectedCategoryAndSubcategoryId({
         categoryId: cat[0]?.id,
         subcategoryId: undefined,
-        verifySubcategoryNullness: false,
+        verifySubcategoryNullness:
+          cat[0]?.subcategory.length === 0 ? true : false,
       });
     };
     void fetchCategoriesAfterDeletion();
@@ -79,7 +81,7 @@ const QuestionsPage = () => {
       setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
         categoryId: cat[0]?.id,
-        subcatogoryId: undefined,
+        subcategoryId: undefined,
       }));
     };
     void fetchCat();
@@ -105,18 +107,24 @@ const QuestionsPage = () => {
     setSelectedCategoryAndSubcategoryId({
       categoryId: parseInt(e.target.value),
       subcategoryId: undefined,
-      verifySubcategoryNullness: false,
+      verifySubcategoryNullness:
+        (
+          categories.find((cat) => cat.id === parseInt(e.target.value))
+            ?.subcategory.length === 0
+        ) ?
+          true
+        : false,
     });
   };
-  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSubcategoryChange = (e: number | string) => {
     const subcategory =
-      e.target.value === "NULL" || e.target.value === "ALL" ?
-        undefined
-      : parseInt(e.target.value);
+      e === "NULL" || e === "ALL" ? undefined
+      : typeof e === "number" ? e
+      : parseInt(e);
     setSelectedCategoryAndSubcategoryId({
       ...selectedCategoryAndSubcategoryId,
       subcategoryId: subcategory,
-      verifySubcategoryNullness: e.target.value === "ALL" ? false : true,
+      verifySubcategoryNullness: e === "ALL" ? false : true,
     });
   };
   return (
@@ -131,10 +139,20 @@ const QuestionsPage = () => {
         }
       >
         <div className="flex flex-col gap-1">
-          <h4 className={"text-2xl font-semibold"}>Categoria</h4>
-          <div>
+          <h4 className={"text-3xl font-semibold"}>Categoria</h4>
+          <div className="flex gap-2">
             <CategoryCreationModal
               fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+            />
+            <CategoryDeletionModal
+              categoryId={selectedCategoryAndSubcategoryId.categoryId}
+              categoryName={
+                categories.find(
+                  (cat) =>
+                    cat.id === selectedCategoryAndSubcategoryId.categoryId,
+                )?.name
+              }
+              fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
             />
           </div>
 
@@ -150,153 +168,147 @@ const QuestionsPage = () => {
               );
             })}
           </Select>
-          <div>
-            <CategoryDeletionModal
-              categoryId={selectedCategoryAndSubcategoryId.categoryId}
-              categoryName={
-                categories.find(
-                  (cat) =>
-                    cat.id === selectedCategoryAndSubcategoryId.categoryId,
-                )?.name
-              }
-              fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
-            />
-          </div>
 
-          <h4 className="text-2xl font-semibold">Subcategoria</h4>
-          {selectedCategoryAndSubcategoryId.categoryId && (
-            <div>
-              <SubcategoryCreationModal
-                categoryId={selectedCategoryAndSubcategoryId.categoryId}
-                categoryName={
-                  categories.find(
-                    (cat) =>
-                      cat.id === selectedCategoryAndSubcategoryId.categoryId,
-                  )?.name
-                }
-                fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
-              />
-            </div>
-          )}
-
-          <Select
-            onChange={handleSubcategoryChange}
-            value={
-              selectedCategoryAndSubcategoryId.subcategoryId ?
-                selectedCategoryAndSubcategoryId.subcategoryId
-              : selectedCategoryAndSubcategoryId.verifySubcategoryNullness ?
-                "NULL"
-              : "ALL"
-            }
-          >
-            {subcategories.map((sub) => {
-              return (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              );
-            })}
-
-            <option value="NULL">NENHUMA</option>
-            {subcategories.length > 0 && <option value="ALL">TODAS</option>}
-          </Select>
-          <div>
-            {selectedCategoryAndSubcategoryId.subcategoryId && (
-              <SubcategoryDeletionModal
-                subcategoryId={selectedCategoryAndSubcategoryId.subcategoryId}
-                subcategoryName={
-                  categories
-                    .flatMap((category) => category.subcategory)
-                    .find(
-                      (subcategory) =>
-                        subcategory.id ===
-                        selectedCategoryAndSubcategoryId.subcategoryId,
+          <div className="flex flex-col gap-2 rounded-xl bg-gray-500/35 px-1 py-4 shadow-inner">
+            <h4 className="text-2xl font-semibold">Subcategoria</h4>
+            {selectedCategoryAndSubcategoryId.categoryId && (
+              <div className="flex gap-2">
+                <SubcategoryCreationModal
+                  categoryId={selectedCategoryAndSubcategoryId.categoryId}
+                  categoryName={
+                    categories.find(
+                      (cat) =>
+                        cat.id === selectedCategoryAndSubcategoryId.categoryId,
                     )?.name
-                }
-                categoryName={
-                  categories.find(
-                    (cat) =>
-                      cat.id === selectedCategoryAndSubcategoryId.categoryId,
-                  )?.name
-                }
-                fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
-              />
-            )}
-          </div>
-        </div>
-
-        <h6 className={"text-xl font-semibold"}>Questões</h6>
-        <div>
-          <QuestionCreationModal
-            categoryId={selectedCategoryAndSubcategoryId.categoryId}
-            categoryName={
-              categories.find(
-                (category) =>
-                  category.id === selectedCategoryAndSubcategoryId.categoryId,
-              )?.name
-            }
-            subcategoryId={selectedCategoryAndSubcategoryId.subcategoryId}
-            subcategoryName={
-              categories
-                .flatMap((category) => category.subcategory)
-                .find(
-                  (subcategory) =>
-                    subcategory.id ===
-                    selectedCategoryAndSubcategoryId.subcategoryId,
-                )?.name
-            }
-            fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
-          />
-        </div>
-        {questions.length === 0 && (
-          <h6 className={"text-md font-semibold"}>
-            Nenhuma questão encontrada!
-          </h6>
-        )}
-        {questions.map((question) => {
-          return (
-            <div
-              key={question.id}
-              className="mb-2 flex flex-col rounded bg-white p-2 text-black"
-            >
-              <div className="flex">
-                <span className="text-2xl font-semibold">{question.name}</span>
-                <div className="ml-auto">
-                  <div>{questionTypesFormatter.get(question.type)}</div>
-                  <div>
-                    {question.optionType &&
-                      questionOptionTypesFormatter.get(question.optionType)}
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-700">{question.notes}</p>
-              <p>
-                {questionResponseCharacterTypesFormatter.get(
-                  question.characterType,
-                )}
-              </p>
-              {question.type === "OPTIONS" && (
-                <>
-                  <div>
-                    <h6>Opções:</h6>
-                    <ul className="list-disc px-6">
-                      {question.options.map((option) => {
-                        return <li key={option.text}>{option.text}</li>;
-                      })}
-                    </ul>
-                  </div>
-                </>
-              )}
-              <div>
-                <QuestionDeletionModal
-                  questionId={question.id}
-                  questionName={question.name}
-                  fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+                  }
+                  fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
                 />
+                {selectedCategoryAndSubcategoryId.subcategoryId && (
+                  <SubcategoryDeletionModal
+                    subcategoryId={
+                      selectedCategoryAndSubcategoryId.subcategoryId
+                    }
+                    subcategoryName={
+                      categories
+                        .flatMap((category) => category.subcategory)
+                        .find(
+                          (subcategory) =>
+                            subcategory.id ===
+                            selectedCategoryAndSubcategoryId.subcategoryId,
+                        )?.name
+                    }
+                    categoryName={
+                      categories.find(
+                        (cat) =>
+                          cat.id ===
+                          selectedCategoryAndSubcategoryId.categoryId,
+                      )?.name
+                    }
+                    fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+                  />
+                )}
+              </div>
+            )}
+
+            <div>
+              <SubcategorySelect
+                subcategories={subcategories}
+                onChange={handleSubcategoryChange}
+                activeButton={
+                  selectedCategoryAndSubcategoryId.subcategoryId ?
+                    selectedCategoryAndSubcategoryId.subcategoryId
+                  : selectedCategoryAndSubcategoryId.verifySubcategoryNullness ?
+                    "NULL"
+                  : "ALL"
+                }
+              />
+
+              <div className="flex flex-col gap-2 bg-gray-900/50 px-1 py-4">
+                <h6 className={"text-xl font-semibold"}>Questões</h6>
+                <div>
+                  <QuestionCreationModal
+                    categoryId={selectedCategoryAndSubcategoryId.categoryId}
+                    categoryName={
+                      categories.find(
+                        (category) =>
+                          category.id ===
+                          selectedCategoryAndSubcategoryId.categoryId,
+                      )?.name
+                    }
+                    subcategoryId={
+                      selectedCategoryAndSubcategoryId.subcategoryId
+                    }
+                    subcategoryName={
+                      categories
+                        .flatMap((category) => category.subcategory)
+                        .find(
+                          (subcategory) =>
+                            subcategory.id ===
+                            selectedCategoryAndSubcategoryId.subcategoryId,
+                        )?.name
+                    }
+                    fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+                  />
+                </div>
+                {questions.length === 0 && (
+                  <h6 className={"text-md font-semibold"}>
+                    Nenhuma questão encontrada!
+                  </h6>
+                )}
+                {questions.map((question) => {
+                  return (
+                    <div
+                      key={question.id}
+                      className="mb-2 flex flex-col rounded bg-white p-2 text-black"
+                    >
+                      <div className="flex">
+                        <span className="text-2xl font-semibold">
+                          {question.name}
+                        </span>
+                        <div className="ml-auto">
+                          <div>{questionTypesFormatter.get(question.type)}</div>
+                          <div>
+                            {question.optionType &&
+                              questionOptionTypesFormatter.get(
+                                question.optionType,
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-gray-700">{question.notes}</p>
+                      <p>
+                        {questionResponseCharacterTypesFormatter.get(
+                          question.characterType,
+                        )}
+                      </p>
+                      {question.type === "OPTIONS" && (
+                        <>
+                          <div>
+                            <h6>Opções:</h6>
+                            <ul className="list-disc px-6">
+                              {question.options.map((option) => {
+                                return <li key={option.text}>{option.text}</li>;
+                              })}
+                            </ul>
+                          </div>
+                        </>
+                      )}
+                      <div>
+                        <QuestionDeletionModal
+                          questionId={question.id}
+                          questionName={question.name}
+                          fetchCategoriesAfterDeletion={
+                            fetchCategoriesAfterDeletion
+                          }
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
     </div>
   );
