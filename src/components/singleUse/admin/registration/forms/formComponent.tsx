@@ -14,7 +14,7 @@ const FormComponent = ({ id, name }: FormProps) => {
     <Link
       key={id}
       className="mb-2 flex items-center justify-between rounded bg-white p-2"
-      href={`/admin/forms/${id}`}
+      href={`/admin/registration/forms/${id}`}
     >
       {name}
       <IconLink size={24} />

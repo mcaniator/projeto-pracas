@@ -13,7 +13,7 @@ import {
   fetchCategories,
 } from "../../../../serverActions/categoryUtil";
 import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActions/questionUtil";
-import { DisplayQuestion } from "../../forms/[formId]/edit/client";
+import { DisplayQuestion } from "../forms/[formId]/edit/client";
 import { CategoryCreationModal } from "./categoryCreationModal";
 import { CategoryDeletionModal } from "./categoryDeletionModal";
 import { QuestionCreationModal } from "./questionCreationModal";
