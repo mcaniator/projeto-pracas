@@ -67,6 +67,23 @@ const QuestionCreationModal = ({
       );
     }
   };
+  const handleYesNoOptions = (isChecked: boolean) => {
+    if (isChecked) {
+      if (!addedOptions?.some((option) => option.text === "Sim")) {
+        setAddedOptions((prevOptions) => [
+          ...(prevOptions || []),
+          { text: "Sim" },
+          { text: "Não" },
+        ]);
+      }
+    } else {
+      setAddedOptions((prevOptions) =>
+        prevOptions?.filter(
+          (option) => option.text !== "Sim" && option.text !== "Não",
+        ),
+      );
+    }
+  };
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
@@ -413,6 +430,15 @@ const QuestionCreationModal = ({
                                     }}
                                   >
                                     Escala de qualidade
+                                  </Checkbox>
+                                  <Checkbox
+                                    id={"simNao"}
+                                    variant={"default"}
+                                    onChange={(e) => {
+                                      handleYesNoOptions(e.target.checked);
+                                    }}
+                                  >
+                                    Sim ou não
                                   </Checkbox>
                                   <label
                                     htmlFor={"opcao"}
