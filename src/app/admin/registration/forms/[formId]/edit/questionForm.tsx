@@ -1,6 +1,5 @@
 "use client";
 
-import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -9,8 +8,15 @@ import {
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByStatement,
 } from "@/serverActions/questionUtil";
-import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
+import {
+  OptionTypes,
+  Question,
+  QuestionResponseCharacterTypes,
+  QuestionTypes,
+} from "@prisma/client";
 import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
+
+import { DisplayQuestion } from "./client";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
 
@@ -30,12 +36,7 @@ const QuestionForm = ({
   categories: CategoriesWithQuestions;
 }) => {
   const [targetQuestion, setTargetQuestion] = useState("");
-  const [currentCategoryId, setCurrentCategoryId] = useState<
-    number | undefined
-  >(categories[0]?.id);
-  const [currentSubcategoryId, setCurrentSubcategoryId] = useState<
-    number | undefined
-  >();
+
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
   // TODO: corrigir o tipo de setFoundQuestions
@@ -43,6 +44,20 @@ const QuestionForm = ({
     useState<Promise<DisplayQuestion[]>>();
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
     useState<Promise<DisplayQuestion[]>>();
+
+  const [
+    selectedCategoryAndSubcategoryId,
+    setSelectedCategoryAndSubcategoryId,
+  ] = useState<{
+    categoryId: number | undefined;
+    subcategoryId: number | undefined;
+    verifySubcategoryNullness: boolean;
+  }>({
+    categoryId: undefined,
+    subcategoryId: undefined,
+    verifySubcategoryNullness: true,
+  });
+
   useEffect(() => {
     setFoundQuestions(searchQuestionsByStatement(targetQuestion));
   }, [targetQuestion]);
@@ -50,21 +65,31 @@ const QuestionForm = ({
   useEffect(() => {
     setFoundQuestionsByCategory(
       searchQuestionsByCategoryAndSubcategory(
-        currentCategoryId,
-        currentSubcategoryId,
+        selectedCategoryAndSubcategoryId.categoryId,
+        selectedCategoryAndSubcategoryId.subcategoryId,
+        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
       ),
     );
-  }, [currentCategoryId, currentSubcategoryId]);
+  }, [selectedCategoryAndSubcategoryId]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrentCategoryId(Number(e.target.value));
+    setSelectedCategoryAndSubcategoryId({
+      ...selectedCategoryAndSubcategoryId,
+      categoryId: Number(e.target.value),
+    });
   };
-  const handleSubcategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrentSubcategoryId(
-      e.target.value ? Number(e.target.value) : undefined,
-    );
+  const handleSubcategoryChange = (e: number | string) => {
+    const subcategory =
+      e === "NULL" || e === "ALL" ? undefined
+      : typeof e === "number" ? e
+      : parseInt(e);
+    setSelectedCategoryAndSubcategoryId({
+      ...selectedCategoryAndSubcategoryId,
+      subcategoryId: subcategory,
+      verifySubcategoryNullness: e === "ALL" ? false : true,
+    });
   };
   // TODO: add error handling
   return (
@@ -136,11 +161,17 @@ const QuestionForm = ({
               <label htmlFor="subcategory-select">Subcategoria: </label>
               <Select
                 name="subcategory-select"
-                onChange={handleSubcategoryChange}
+                onChange={(e) => handleSubcategoryChange(e.target.value)}
               >
-                <option value={undefined}>NENHUMA</option>
+                <option value="ALL">TODAS</option>
+                <option value="NULL">NENHUMA</option>
+
                 {categories
-                  .find((category) => category.id === currentCategoryId)
+                  .find(
+                    (category) =>
+                      category.id ===
+                      selectedCategoryAndSubcategoryId.categoryId,
+                  )
                   ?.subcategory.map((subcategory) => {
                     return (
                       <option value={subcategory.id} key={subcategory.id}>
@@ -173,15 +204,7 @@ const SearchedQuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<
-    {
-      id: number;
-      name: string;
-      characterType: QuestionResponseCharacterTypes;
-      category: { id: number; name: string };
-      subcategory: { id: number; name: string; categoryId: number } | null;
-    }[]
-  >;
+  questionPromise?: Promise<DisplayQuestion[]>;
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -216,6 +239,10 @@ const SearchedQuestionList = ({
           questionId={question.id}
           characterType={question.characterType}
           name={question.name}
+          notes={question.notes}
+          type={question.type}
+          optionType={question.optionType}
+          options={question.options}
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
           showCategory={true}
@@ -272,6 +299,10 @@ const QuestionList = ({
           questionId={question.id}
           characterType={question.characterType}
           name={question.name}
+          notes={question.notes}
+          type={question.type}
+          optionType={question.optionType}
+          options={question.options}
           formId={formId}
           handleQuestionsToAdd={handleQuestionsToAdd}
           showCategory={false}
@@ -290,6 +321,10 @@ const QuestionComponent = ({
   characterType,
   handleQuestionsToAdd,
   name,
+  notes,
+  type,
+  optionType,
+  options,
   showCategory,
   categoryId,
   subcategoryId,
@@ -300,6 +335,10 @@ const QuestionComponent = ({
   characterType: QuestionResponseCharacterTypes;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
   name: string;
+  notes: string | null;
+  type: QuestionTypes;
+  optionType: OptionTypes | null;
+  options: { text: string }[];
   formId?: number;
   showCategory: boolean;
   categoryId: number;
@@ -323,6 +362,10 @@ const QuestionComponent = ({
           handleQuestionsToAdd({
             id: questionId,
             name,
+            notes,
+            type,
+            optionType,
+            options,
             category: { id: categoryId, name: categoryName },
             subcategory:
               subcategoryId && subcategoryName ?
