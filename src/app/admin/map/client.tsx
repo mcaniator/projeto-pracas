@@ -22,6 +22,7 @@ import Geometry from "ol/geom/Geometry";
 import { useState } from "react";
 import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { Rnd } from "react-rnd";
 
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
@@ -48,13 +49,31 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
           variant="admin"
           className="bg-blue-600 text-white"
         >
-          {panelVisible ? "Finalizar" : "Desenhar"}
+          {panelVisible ? "Finalizar" : "Esconder"}
         </Button>
       </div>
 
       {panelVisible && (
-        <div className="fixed right-4 top-16 z-40 max-w-sm rounded-lg border border-gray-300 bg-ugly-white p-4 shadow-lg">
-          <div className="h-96 rounded-2xl p-3">
+        <Rnd
+          default={{
+            x: 100,
+            y: 100,
+            width: 320,
+            height: 480,
+          }}
+          bounds="window"
+          dragHandleClassName="drag-handle"
+          className="rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+          style={{
+            zIndex: 100,
+          }}
+          minWidth={150}
+          minHeight={250}
+        >
+          <div className="drag-handle min-w-4 cursor-move rounded-t-lg bg-gray-200">
+            <span className="text-gray-700">Janela de Desenho</span>
+          </div>
+          <div className="h-full p-4">
             {currentId === -2 ?
               <div className="flex h-full w-full flex-col gap-2" ref={panelRef}>
                 <Button
@@ -66,7 +85,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
                   <span className="-mb-1 text-white">Iniciar Desenho</span>
                 </Button>
 
-                <hr className="w-80 rounded-full border-2 border-off-white" />
+                <hr className="w-full rounded-full border-2 border-off-white" />
 
                 <ParkList
                   locations={locations}
@@ -86,7 +105,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
               </div>
             }
           </div>
-        </div>
+        </Rnd>
       )}
 
       <BottomControls />
