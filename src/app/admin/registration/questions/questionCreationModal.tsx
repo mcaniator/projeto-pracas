@@ -44,6 +44,29 @@ const QuestionCreationModal = ({
   const [geometryTypes, setGeometryTypes] = useState<string[]>(["POINT"]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
+  const handleScale = (isChecked: boolean) => {
+    if (isChecked) {
+      if (!addedOptions?.some((option) => option.text === "Péssimo")) {
+        setAddedOptions((prevOptions) => [
+          ...(prevOptions || []),
+          { text: "Péssimo" },
+          { text: "Ruim" },
+          { text: "Bom" },
+          { text: "Ótimo" },
+        ]);
+      }
+    } else {
+      setAddedOptions((prevOptions) =>
+        prevOptions?.filter(
+          (option) =>
+            option.text !== "Péssimo" &&
+            option.text !== "Ruim" &&
+            option.text !== "Bom" &&
+            option.text !== "Ótimo",
+        ),
+      );
+    }
+  };
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
@@ -382,6 +405,15 @@ const QuestionCreationModal = ({
                               </div>
                               {characterType !== null && (
                                 <div className={"flex flex-col"}>
+                                  <Checkbox
+                                    id={"escala"}
+                                    variant={"default"}
+                                    onChange={(e) => {
+                                      handleScale(e.target.checked);
+                                    }}
+                                  >
+                                    Escala de qualidade
+                                  </Checkbox>
                                   <label
                                     htmlFor={"opcao"}
                                     className="font-semibold"
