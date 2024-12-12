@@ -43,7 +43,7 @@ const QuestionsPage = () => {
   }>({
     categoryId: undefined,
     subcategoryId: undefined,
-    verifySubcategoryNullness: false,
+    verifySubcategoryNullness: true,
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
   const fetchCategoriesAfterCreation = () => {
