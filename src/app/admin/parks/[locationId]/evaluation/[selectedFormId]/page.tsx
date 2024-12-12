@@ -31,12 +31,12 @@ const AssessmentPage = async ({
     (await searchformNameById(Number(params.selectedFormId))) || "ERRO";
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
-      <div className="flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div>
+      <div className="flex flex-col gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md lg:flex-row">
+        <div className="flex-1">
           <h3 className={"text-2xl font-semibold"}>
             {`Avaliações em andamento do formulário ${formName} em ${locationName}`}
           </h3>
-          <div className="flex">
+          <div className="mt-3 flex">
             <span>
               <h3 className="text-xl font-semibold">Data</h3>
             </span>
@@ -44,7 +44,7 @@ const AssessmentPage = async ({
               <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
             </span>
           </div>
-          <div className="overflow-auto rounded">
+          <div className="mt-2 overflow-auto rounded">
             <AssessmentList
               locationId={locationId}
               formId={formId}
@@ -54,11 +54,13 @@ const AssessmentPage = async ({
           </div>
         </div>
 
-        <AssessmentCreation
-          locationId={locationId}
-          formId={formId}
-          userId={user.id}
-        />
+        <div className="mt-5 lg:ml-5 lg:mt-0">
+          <AssessmentCreation
+            locationId={locationId}
+            formId={formId}
+            userId={user.id}
+          />
+        </div>
       </div>
     </div>
   );
