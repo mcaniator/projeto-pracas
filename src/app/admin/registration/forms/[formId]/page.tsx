@@ -74,7 +74,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
                   Informações de {form?.name}
                 </h3>
                 <Link
-                  href={`/admin/forms/${formIdNumber}/edit`}
+                  href={`/admin/registration/forms/${formIdNumber}/edit`}
                   className="ml-auto"
                 >
                   <Button>Editar</Button>
