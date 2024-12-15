@@ -9,7 +9,6 @@ import {
   IconHome,
   IconInfoSquareRounded,
   IconListCheck,
-  IconListDetails,
   IconMail,
   IconMapSearch,
   IconMenu2,
@@ -32,14 +31,9 @@ const Sidebar = () => {
     { icon: <IconUserCog size={34} />, name: "Usuários", path: "/admin/users" },
     { icon: <IconMapSearch size={34} />, name: "Mapa", path: "/admin/map" },
     {
-      icon: <IconListDetails size={34} />,
-      name: "Cadastro",
-      path: "/admin/registration",
-    },
-    {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
-      path: "/admin/forms",
+      path: "/admin/registration",
     },
   ];
 
