@@ -116,7 +116,7 @@ const CreationPanel = ({
   }, [features]);
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {/*currentId === -3 ?
           <CreationModal features={features} setCurrentId={setCurrentId} />
         : <EditPolygonSubmitButton

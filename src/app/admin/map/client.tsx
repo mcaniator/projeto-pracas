@@ -3,6 +3,7 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { search } from "@/lib/search";
+import { removePolygon } from "@/serverActions/managePolygons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
 import {
@@ -11,14 +12,17 @@ import {
   IconMinus,
   IconPlus,
   IconPolygon,
+  IconPolygonOff,
 } from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { Rnd } from "react-rnd";
 
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
@@ -30,49 +34,79 @@ interface fullLocation extends Location {
 }
 
 const Client = ({ locations }: { locations: fullLocation[] }) => {
-  const [currentId, setCurrentId] = useState(-2); // -2 == not drawing, -1 == new park, everything else == currently edited park id
+  const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
     [],
   );
-
+  const [panelVisible, setPanelVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
 
   return (
-    <div>
-      <div className="fixed z-50 p-2">
-        <div className="h-96 rounded-2xl border-4 border-off-white bg-ugly-white p-3 shadow-lg">
-          {currentId === -2 ?
-            <div className="flex h-full w-full flex-col gap-2" ref={panelRef}>
-              <Button
-                variant={"admin"}
-                onPress={() => {
-                  setCurrentId(-1);
-                }}
-              >
-                <span className="-mb-1 text-white">Criar praça</span>
-              </Button>
+    <div className="relative">
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onPress={() => setPanelVisible(!panelVisible)}
+          variant="admin"
+          className="bg-blue-600 text-white"
+        >
+          {panelVisible ? "Finalizar" : "Esconder"}
+        </Button>
+      </div>
 
-              <hr className="w-80 rounded-full border-2 border-off-white" />
+      {panelVisible && (
+        <Rnd
+          default={{
+            x: 100,
+            y: 100,
+            width: 320,
+            height: 480,
+          }}
+          bounds="window"
+          dragHandleClassName="drag-handle"
+          className="rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+          style={{
+            zIndex: 100,
+          }}
+          minWidth={150}
+          minHeight={250}
+        >
+          <div className="drag-handle min-w-4 cursor-move rounded-t-lg bg-gray-200">
+            <span className="text-gray-700">Janela de Desenho</span>
+          </div>
+          <div className="h-full p-4">
+            {currentId === -2 ?
+              <div className="flex h-full w-full flex-col gap-2" ref={panelRef}>
+                <Button
+                  variant={"admin"}
+                  onPress={() => {
+                    setCurrentId(-1);
+                  }}
+                >
+                  <span className="-mb-1 text-white">Iniciar Desenho</span>
+                </Button>
 
-              <ParkList
-                locations={locations}
-                setOriginalFeatures={setOriginalFeatures}
-                setCurrentId={setCurrentId}
-              />
-            </div>
-          : <div>
-              <DrawingProvider>
-                <CreationPanel
-                  originalFeatures={originalFeatures}
+                <hr className="w-full rounded-full border-2 border-off-white" />
+
+                <ParkList
+                  locations={locations}
                   setOriginalFeatures={setOriginalFeatures}
-                  currentId={currentId}
                   setCurrentId={setCurrentId}
                 />
-              </DrawingProvider>
-            </div>
-          }
-        </div>
-      </div>
+              </div>
+            : <div>
+                <DrawingProvider>
+                  <CreationPanel
+                    originalFeatures={originalFeatures}
+                    setOriginalFeatures={setOriginalFeatures}
+                    currentId={currentId}
+                    setCurrentId={setCurrentId}
+                  />
+                </DrawingProvider>
+              </div>
+            }
+          </div>
+        </Rnd>
+      )}
 
       <BottomControls />
     </div>
@@ -90,9 +124,7 @@ const ParkList = ({
 }) => {
   const map = useContext(MapContext);
   const view = map.getView();
-
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
-
   const sortedLocations = useMemo(
     () =>
       locations.toSorted((a, b) => {
@@ -108,14 +140,12 @@ const ParkList = ({
   );
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
-  // couldn't figure out a better way to refresh the buttons when the
-  // locations cache is revalidated
   useEffect(() => {
     setHay(search("", sortedLocations, fuseHaystack));
   }, [sortedLocations, fuseHaystack]);
 
   return (
-    <div className="flex flex-col gap-2 overflow-auto pt-1 text-white">
+    <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
       <Input
         onChange={(value) => {
           setHay(search(value, sortedLocations, fuseHaystack));
@@ -198,6 +228,13 @@ const ParkList = ({
                         }}
                       >
                         <IconPolygon />
+                      </Button>
+                      <Button
+                        onPress={() => void removePolygon(location.item.id)}
+                        variant={"destructive"}
+                        size={"icon"}
+                      >
+                        <IconPolygonOff />
                       </Button>
                     </>
                   : <>

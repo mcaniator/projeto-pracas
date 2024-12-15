@@ -29,6 +29,7 @@
     "react-aria": "^3.33.1",
     "react-aria-components": "^1.2.1",
     "react-chartjs-2": "^5.2.0",
+    "react-rnd": "^10.4.13",
     "shpjs": "^5.0.1",
     "tailwind-merge": "^2.3.0",
     "zod": "^3.23.8"
