@@ -64,7 +64,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             className="px-3 py-6"
           >
             <IconTree size={34} />
-            <span className="text-2xl sm:text-3xl">Projeto Praças</span>
+            <span className="text-lg sm:text-3xl">Projeto Praças</span>
           </Button>
         </Link>
 
@@ -75,7 +75,9 @@ const Header = forwardRef<HTMLElement, headerProps>(
           >
             {user !== null && user !== undefined ?
               <div className="flex items-center gap-2">
-                <span className="text-2xl sm:text-3xl">{user.username}</span>
+                <span className="hidden sm:inline sm:text-3xl">
+                  {user.username}
+                </span>
                 <span className="h-8 w-8 rounded-lg bg-off-white" />
               </div>
             : <div className={"flex"}>
