@@ -35,7 +35,10 @@ const CategoryDeletionModal = ({
   }, [state, fetchCategoriesAfterDeletion]);
   return (
     <DialogTrigger>
-      <Button className="items-center p-2" variant={"destructive"}>
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"destructive"}
+      >
         Apagar categoria
       </Button>
       {
@@ -58,7 +61,9 @@ const CategoryDeletionModal = ({
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">Apagar categoria</h4>
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
+                      Apagar categoria
+                    </h4>
                     <Button
                       className="ml-auto"
                       variant={"ghost"}
@@ -79,10 +84,12 @@ const CategoryDeletionModal = ({
                   {!isPending && pageState === "FORM" && (
                     <form
                       action={formAction}
-                      className="flex h-96 w-full flex-col rounded-l"
+                      className="flex w-full flex-col rounded-l"
                     >
-                      <h5 className="text-2xl font-semibold">{categoryName}</h5>
-                      <h6 className="text-xl font-semibold text-red-500">
+                      <h5 className="text-base font-semibold sm:text-xl">
+                        {categoryName}
+                      </h5>
+                      <h6 className="text-base font-semibold text-red-500">
                         Aviso: Esta ação também excluirá subcategorias e
                         questões associadas!
                       </h6>
@@ -93,7 +100,7 @@ const CategoryDeletionModal = ({
                         value={categoryId}
                       />
 
-                      <div className="mt-auto flex justify-end">
+                      <div className="mt-3 flex justify-end">
                         <Button type="submit" variant={"destructive"}>
                           Excluir
                         </Button>
@@ -102,7 +109,7 @@ const CategoryDeletionModal = ({
                   )}
                   {pageState === "SUCCESS" && (
                     <div>
-                      <h5 className="text-center text-xl font-semibold text-green-500">
+                      <h5 className="text-center text-xl font-semibold">
                         {`Categoria "${state?.content.categoryName}" excluída!`}
                       </h5>
                       <div className="flex justify-center">

@@ -105,7 +105,9 @@ const QuestionCreationModal = ({
   };
   return (
     <DialogTrigger>
-      <Button className="items-center p-2">Criar questão</Button>
+      <Button className="items-center p-2 text-sm sm:text-xl">
+        Criar questão
+      </Button>
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
@@ -126,7 +128,9 @@ const QuestionCreationModal = ({
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">Criar questão</h4>
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
+                      Criar questão
+                    </h4>
                     <Button
                       className="ml-auto"
                       variant={"ghost"}
@@ -154,9 +158,13 @@ const QuestionCreationModal = ({
                       action={formAction}
                       className="flex h-96 w-full flex-col rounded-l"
                     >
-                      <h5 className="text-2xl font-semibold">{categoryName}</h5>
-                      <h6 className="text-xl font-semibold">
-                        {subcategoryName ? subcategoryName : "SEM SUBCATEGORIA"}
+                      <h5 className="text-base font-semibold sm:text-xl">
+                        {`Categoria: ${categoryName}`}
+                      </h5>
+                      <h6 className="my-2 text-base font-semibold sm:text-xl">
+                        {subcategoryName ?
+                          `Subcategoria: ${subcategoryName}`
+                        : "SEM SUBCATEGORIA"}
                       </h6>
                       <input
                         type="hidden"
@@ -536,11 +544,11 @@ const QuestionCreationModal = ({
                       {type && characterType !== null && (
                         <div className="mt-auto flex justify-end py-5">
                           <Button
-                            variant={"admin"}
+                            variant={"constructive"}
                             type="submit"
                             className={"w-24 transition-all"}
                           >
-                            Enviar
+                            Criar
                           </Button>
                         </div>
                       )}
@@ -548,7 +556,7 @@ const QuestionCreationModal = ({
                   )}
                   {pageState === "SUCCESS" && (
                     <div>
-                      <h5 className="text-center text-xl font-semibold text-green-500">
+                      <h5 className="text-center text-xl font-semibold">
                         {`Questão "${state?.questionName}" criada!`}
                       </h5>
                       <div className="flex justify-center">

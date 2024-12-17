@@ -130,16 +130,16 @@ const QuestionsPage = () => {
   return (
     <div
       className={
-        "flex min-h-0 flex-grow flex-col gap-5 overflow-auto p-5 text-white"
+        "overflow-x-none flex min-h-0 w-full flex-grow flex-col gap-5 overflow-y-auto p-5 text-white"
       }
     >
       <div
         className={
-          "flex h-full flex-col gap-3 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+          "overflow-x-none flex h-full w-full flex-col gap-3 overflow-y-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
-        <div className="flex flex-col gap-1">
-          <h4 className={"text-3xl font-semibold"}>Categoria</h4>
+        <div className="overflow-x-none flex w-full flex-col gap-2">
+          <h4 className={"text-2xl font-semibold sm:text-3xl"}>Categoria</h4>
           <div className="flex gap-2">
             <CategoryCreationModal
               fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
@@ -157,6 +157,7 @@ const QuestionsPage = () => {
           </div>
 
           <Select
+            className="max-w-full text-wrap rounded-md p-2 text-xs text-black"
             onChange={handleCategoryChange}
             value={selectedCategoryAndSubcategoryId.categoryId}
           >
@@ -170,7 +171,7 @@ const QuestionsPage = () => {
           </Select>
 
           <div className="flex flex-col gap-2 rounded-xl bg-gray-500/35 px-1 py-4 shadow-inner">
-            <h4 className="text-2xl font-semibold">Subcategoria</h4>
+            <h4 className="text-xl font-semibold sm:text-2xl">Subcategoria</h4>
             {selectedCategoryAndSubcategoryId.categoryId && (
               <div className="flex gap-2">
                 <SubcategoryCreationModal
@@ -261,25 +262,27 @@ const QuestionsPage = () => {
                       key={question.id}
                       className="mb-2 flex flex-col rounded bg-white p-2 text-black"
                     >
-                      <div className="flex">
-                        <span className="text-2xl font-semibold">
+                      <div className="flex flex-col sm:flex-row">
+                        <span className="text-base font-semibold sm:text-2xl">
                           {question.name}
                         </span>
-                        <div className="ml-auto">
-                          <div>{questionTypesFormatter.get(question.type)}</div>
+                        <div className="sm:ml-auto">
+                          <div>
+                            Tipo: {questionTypesFormatter.get(question.type)}
+                          </div>
                           <div>
                             {question.optionType &&
-                              questionOptionTypesFormatter.get(
+                              `Tipo de opções: ${questionOptionTypesFormatter.get(
                                 question.optionType,
-                              )}
+                              )}`}
                           </div>
                         </div>
                       </div>
                       <p className="text-gray-700">{question.notes}</p>
                       <p>
-                        {questionResponseCharacterTypesFormatter.get(
+                        {`Tipo de caracteres: ${questionResponseCharacterTypesFormatter.get(
                           question.characterType,
-                        )}
+                        )}`}
                       </p>
                       {question.type === "OPTIONS" && (
                         <>

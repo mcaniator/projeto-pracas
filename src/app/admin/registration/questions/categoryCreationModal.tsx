@@ -39,7 +39,9 @@ const CategoryCreationModal = ({
   }, [state, fetchCategoriesAfterCreation]);
   return (
     <DialogTrigger>
-      <Button className="items-center p-2">Criar categoria</Button>
+      <Button className="items-center p-2 text-sm sm:text-xl">
+        Criar categoria
+      </Button>
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
@@ -51,7 +53,7 @@ const CategoryCreationModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -60,7 +62,9 @@ const CategoryCreationModal = ({
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">Criar categoria</h4>
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
+                      Criar categoria
+                    </h4>
                     <Button
                       className="ml-auto"
                       variant={"ghost"}
@@ -81,23 +85,28 @@ const CategoryCreationModal = ({
                   {!isPending && pageState === "FORM" && (
                     <form
                       action={formAction}
-                      className="flex h-96 w-full flex-col rounded-l"
+                      className="flex w-full flex-col rounded-l"
                     >
-                      <label htmlFor="name" className="text-xl font-semibold">
+                      <label
+                        htmlFor="name"
+                        className="text-base font-semibold sm:text-xl"
+                      >
                         Nome da categoria
                       </label>
                       <Input
                         id="name"
                         name="name"
-                        className={`${state.statusCode === 409 ? "outline outline-2 outline-red-500" : ""}`}
+                        className={`${state.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                       ></Input>
                       {state.statusCode === 409 && (
                         <p className="text-red-500">
                           Esta categoria já existe!
                         </p>
                       )}
-                      <div className="mt-auto flex justify-end">
-                        <Button type="submit">Enviar</Button>
+                      <div className="mt-3 flex justify-end">
+                        <Button variant={"constructive"} type="submit">
+                          Criar
+                        </Button>
                       </div>
                     </form>
                   )}

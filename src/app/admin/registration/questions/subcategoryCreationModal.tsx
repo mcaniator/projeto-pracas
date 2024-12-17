@@ -43,7 +43,9 @@ const SubcategoryCreationModal = ({
   }, [state, fetchCategoriesAfterCreation]);
   return (
     <DialogTrigger>
-      <Button className="items-center p-2">Criar subcategoria</Button>
+      <Button className="items-center p-2 text-sm sm:text-xl">
+        Criar subcategoria
+      </Button>
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
@@ -55,7 +57,7 @@ const SubcategoryCreationModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -64,7 +66,7 @@ const SubcategoryCreationModal = ({
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
                       Criar subcategoria
                     </h4>
 
@@ -80,7 +82,7 @@ const SubcategoryCreationModal = ({
                       <IconX />
                     </Button>
                   </div>
-                  <h5 className="text-xl font-semibold text-gray-600">{`Categoria: ${categoryName}`}</h5>
+                  <h5 className="text-base font-semibold text-gray-600 sm:text-xl">{`Categoria: ${categoryName}`}</h5>
                   {isPending && (
                     <div className="flex justify-center">
                       <LoadingIcon className="h-32 w-32 text-2xl" />
@@ -89,7 +91,7 @@ const SubcategoryCreationModal = ({
                   {!isPending && pageState === "FORM" && (
                     <form
                       action={formAction}
-                      className="flex h-96 w-full flex-col rounded-l"
+                      className="flex h-full w-full flex-col rounded-l"
                     >
                       <input
                         type="hidden"
@@ -99,22 +101,24 @@ const SubcategoryCreationModal = ({
                       />
                       <label
                         htmlFor="subacategory-name"
-                        className="text-xl font-semibold"
+                        className="text-base font-semibold sm:text-xl"
                       >
                         Nome da subcategoria
                       </label>
                       <Input
                         id="subcategory-name"
                         name="subcategory-name"
-                        className={`${state.statusCode === 409 ? "outline outline-2 outline-red-500" : ""}`}
+                        className={`${state.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                       ></Input>
                       {state.statusCode === 409 && (
                         <p className="text-red-500">
                           {`Esta subcategoria já existe na categoria "${categoryName}"!`}
                         </p>
                       )}
-                      <div className="mt-auto flex justify-end">
-                        <Button type="submit">Enviar</Button>
+                      <div className="mt-3 flex justify-end">
+                        <Button variant={"constructive"} type="submit">
+                          Criar
+                        </Button>
                       </div>
                     </form>
                   )}

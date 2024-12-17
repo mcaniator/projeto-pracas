@@ -40,7 +40,10 @@ const SubcategoryDeletionModal = ({
   }, [state, fetchCategoriesAfterDeletion]);
   return (
     <DialogTrigger>
-      <Button className="items-center p-2" variant={"destructive"}>
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"destructive"}
+      >
         Apagar subcategoria
       </Button>
       {
@@ -63,7 +66,7 @@ const SubcategoryDeletionModal = ({
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
                       Apagar subcategoria
                     </h4>
                     <Button
@@ -86,16 +89,16 @@ const SubcategoryDeletionModal = ({
                   {!isPending && pageState === "FORM" && (
                     <form
                       action={formAction}
-                      className="flex h-96 w-full flex-col rounded-l"
+                      className="flex w-full flex-col rounded-l"
                     >
-                      <h5 className="text-2xl font-semibold">
+                      <h5 className="text-base font-semibold sm:text-xl">
                         {subcategoryName}
                       </h5>
                       <span className="text-gray-800">
                         {" "}
                         {`Categoria: ${categoryName}`}
                       </span>
-                      <h6 className="text-xl font-semibold text-red-500">
+                      <h6 className="font-semibold text-red-500">
                         Aviso: Esta ação também excluirá questões associadas!
                       </h6>
                       <input
@@ -105,7 +108,7 @@ const SubcategoryDeletionModal = ({
                         value={subcategoryId}
                       />
 
-                      <div className="mt-auto flex justify-end">
+                      <div className="mt-3 flex justify-end">
                         <Button type="submit" variant={"destructive"}>
                           Excluir
                         </Button>

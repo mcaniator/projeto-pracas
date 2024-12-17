@@ -28,7 +28,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, variant, ...props }, ref) => {
     const { children, ...attributes } = props;
     return (
-      <label className={"relative flex w-fit select-none gap-1"}>
+      <label className={"relative flex w-fit select-none items-center gap-1"}>
         <input
           type="checkbox"
           className={cn(checkboxVariant({ variant, className }))}
@@ -37,7 +37,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <IconCheck
           className={
-            "absolute translate-x-[5px] translate-y-[7px] text-white opacity-0 transition-all peer-checked:opacity-100"
+            "absolute translate-x-[5px] text-white opacity-0 transition-all peer-checked:opacity-100"
           }
           size={10}
           stroke={5}
