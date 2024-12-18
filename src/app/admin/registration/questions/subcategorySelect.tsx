@@ -13,7 +13,6 @@ const SubcategorySelect = ({
   activeButton: number | string;
   onChange: (value: number | string) => void;
 }) => {
-  //const [activeButton, setActiveButton] = useState<number | string>("NULL");
   const containerRef = useRef<HTMLDivElement>(null);
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(false);
