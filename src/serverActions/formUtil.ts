@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -21,16 +21,63 @@ interface FormToEditPage {
   calculations: DisplayCalculation[];
 }
 
-const handleDelete = async (formID: number) => {
+const deleteFormVersion = async (
+  prevState: {
+    statusCode: number;
+    content: {
+      assessmentsWithForm: {
+        id: number;
+        startDate: Date;
+      }[];
+      form: { name: string; version: number } | null;
+    };
+  } | null,
+  formData: FormData,
+): Promise<{
+  statusCode: number;
+  content: {
+    assessmentsWithForm: {
+      id: number;
+      startDate: Date;
+    }[];
+    form: { name: string; version: number } | null;
+  };
+} | null> => {
+  const formId = parseInt(formData.get("formId") as string);
   try {
-    await prisma.form.delete({
+    const assessments = await prisma.assessment.findMany({
       where: {
-        id: formID,
+        formId,
+      },
+      select: {
+        id: true,
+        startDate: true,
       },
     });
-    revalidatePath("/admin/forms");
+    if (assessments.length > 0) {
+      return {
+        statusCode: 409,
+        content: { form: null, assessmentsWithForm: assessments },
+      };
+    }
+    const form = await prisma.form.delete({
+      where: {
+        id: formId,
+      },
+      select: {
+        name: true,
+        version: true,
+      },
+    });
+    return {
+      statusCode: 200,
+      content: { form, assessmentsWithForm: [] },
+    };
   } catch (error) {
-    throw new Error(`Erro ao excluir o formulário:${formID}`);
+    return {
+      statusCode: 500,
+      content: { form: null, assessmentsWithForm: [] },
+    };
   }
 };
 
@@ -268,7 +315,7 @@ const createVersion = async (
 
 export {
   fetchForms,
-  handleDelete,
+  deleteFormVersion,
   searchFormById,
   searchformNameById,
   updateForm,

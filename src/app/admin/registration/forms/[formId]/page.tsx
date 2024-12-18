@@ -2,6 +2,8 @@ import { Button } from "@/components/button";
 import { searchFormById } from "@/serverActions/formUtil";
 import Link from "next/link";
 
+import { FormVersionDeletionModal } from "./formVersionDeletionModal";
+
 const Page = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormById(parseInt(params.formId));
   const formIdNumber = parseInt(params.formId);
@@ -97,14 +99,23 @@ const Page = async ({ params }: { params: { formId: string } }) => {
             >
               <div className="flex flex-col sm:flex-row">
                 <h3 className={"text-2xl font-semibold sm:text-3xl"}>
-                  Informações de {form?.name}
+                  {form?.name}
                 </h3>
-                <Link
-                  href={`/admin/registration/forms/${formIdNumber}/edit`}
-                  className="sm:ml-auto"
-                >
-                  <Button>Editar</Button>
-                </Link>
+                <div className="flex gap-2 sm:w-full">
+                  <Link
+                    href={`/admin/registration/forms/${formIdNumber}/edit`}
+                    className="sm:ml-auto"
+                  >
+                    <Button className="w-fit items-center p-2 text-sm sm:text-xl">
+                      Editar
+                    </Button>
+                  </Link>
+                  <FormVersionDeletionModal
+                    formId={form.id}
+                    formName={form.name}
+                    formVersion={form.version}
+                  />
+                </div>
               </div>
               <span>Versão: {form?.version}</span>
               <div>Perguntas do formulário:</div>
