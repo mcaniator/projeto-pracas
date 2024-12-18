@@ -48,7 +48,7 @@ const FormVersionDeletionModal = ({
   return (
     <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
       <Button
-        className="items-center p-2 text-sm sm:text-xl"
+        className="ml-auto items-center p-2 text-sm sm:ml-0 sm:text-xl"
         variant={"destructive"}
       >
         Excluir versão
