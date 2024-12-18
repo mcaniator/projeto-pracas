@@ -100,6 +100,8 @@ const Client = ({
   });
   const [initialCalculationsModified, setInitialCalculationsModified] =
     useState(false);
+
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1000);
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
@@ -143,6 +145,18 @@ const Client = ({
       })),
     );
   }, [questionsToAdd, questionsToRemove]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 1000);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const addCalculationToAdd = (calculation: AddCalculationToAddObj) => {
     setCalculationsToAdd((prev) => [
@@ -261,7 +275,9 @@ const Client = ({
   return form == null ?
       <div>Formulário não encontrado</div>
     : <div className="grid h-full grid-cols-5 overflow-auto">
-        <div className="col-span-3 overflow-auto">
+        <div
+          className={`${isMobileView ? "col-span-5" : "col-span-3"} overflow-auto`}
+        >
           <FormUpdater
             form={form}
             questionsToAdd={questionsToAdd}
@@ -277,7 +293,10 @@ const Client = ({
             handleUpdateInitialCalculation={handleUpdateInitialCalculation}
           />
         </div>
-        <div className="col-span-2 h-full overflow-auto">
+
+        <div
+          className={`col-span-2 h-full overflow-auto ${isMobileView ? "hidden" : ""}`}
+        >
           <QuestionForm
             formId={form.id}
             initialQuestions={form.questions}
@@ -287,6 +306,7 @@ const Client = ({
             categories={categories}
           />
         </div>
+
         <div className="col-span-4 flex justify-center">
           {(updatedQuestions.length !== 0 ||
             calculationsToAdd.length !== 0 ||
