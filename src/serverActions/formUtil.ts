@@ -1,9 +1,5 @@
 "use server";
 
-import {
-  DisplayCalculation,
-  DisplayQuestion,
-} from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
@@ -11,6 +7,10 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import {
+  DisplayCalculation,
+  DisplayQuestion,
+} from "../app/admin/registration/forms/[formId]/edit/client";
 import { QuestionWithCategories } from "./questionSubmit";
 
 interface FormToEditPage {
@@ -100,6 +100,7 @@ const searchFormById = async (id: number) => {
             version: true,
             questions: {
               include: {
+                options: true,
                 category: {
                   select: {
                     id: true,
