@@ -19,15 +19,24 @@ const FormCreationModal = () => {
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
     } else if (state?.statusCode === 400 || state?.statusCode === 500)
       setPageState("ERROR");
   }, [state]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPageState("FORM");
+    }
+  }, [isOpen]);
   return (
-    <DialogTrigger>
-      <Button className="items-center p-2">Criar formulário</Button>
+    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
+      <Button className="items-center p-2 text-sm sm:text-xl">
+        Criar formulário
+      </Button>
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
@@ -48,13 +57,15 @@ const FormCreationModal = () => {
               {({ close }) => (
                 <div className="flex flex-col gap-2">
                   <div className="flex">
-                    <h4 className="text-4xl font-semibold">Criar formulário</h4>
+                    <h4 className="text-2xl font-semibold sm:text-4xl">
+                      Criar formulário
+                    </h4>
                     <Button
                       className="ml-auto"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
-                        setPageState("FORM");
+                        setIsOpen(false);
                         close();
                       }}
                     >
@@ -75,7 +86,7 @@ const FormCreationModal = () => {
                           name="name"
                           required
                           id={"name"}
-                          className={`${state?.statusCode === 409 ? "outline outline-2 outline-red-500" : ""}`}
+                          className={`${state?.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                         />
                         {state?.statusCode === 409 && (
                           <p className="text-red-500">
@@ -84,11 +95,11 @@ const FormCreationModal = () => {
                         )}
                       </div>
                       <Button
-                        variant={"admin"}
+                        variant={"constructive"}
                         type="submit"
-                        className={"w-min"}
+                        className={"ml-auto w-min"}
                       >
-                        <span className={"-mb-1"}>Enviar</span>
+                        Criar
                       </Button>
                     </form>
                   )}
