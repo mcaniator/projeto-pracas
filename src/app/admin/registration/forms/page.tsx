@@ -7,11 +7,11 @@ import { FormCreationModal } from "./formCreationModal";
 const AdminRoot = async () => {
   const forms: Form[] = await fetchFormsLatest();
   return (
-    <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
+    <div className={"flex min-h-0 flex-grow gap-5 overflow-auto p-5"}>
       <div className="flex w-full flex-col gap-5 text-white">
         <div
           className={
-            "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+            "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
           <div>

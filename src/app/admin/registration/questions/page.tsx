@@ -130,12 +130,12 @@ const QuestionsPage = () => {
   return (
     <div
       className={
-        "overflow-x-none flex min-h-0 w-full flex-grow flex-col gap-5 overflow-y-auto p-5 text-white"
+        "flex min-h-0 w-full flex-grow flex-col gap-5 overflow-auto p-5 text-white"
       }
     >
       <div
         className={
-          "overflow-x-none flex h-full w-full flex-col gap-3 overflow-y-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+          "overflow-x-none flex w-full flex-col gap-3 rounded-3xl bg-gray-300/30 p-3 shadow-md"
         }
       >
         <div className="overflow-x-none flex w-full flex-col gap-2">

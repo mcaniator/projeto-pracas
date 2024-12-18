@@ -61,21 +61,21 @@ const Page = async ({ params }: { params: { formId: string } }) => {
   });
   if (form != null && form != undefined)
     return (
-      <div>
+      <div className="overflow-auto">
         <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-          <div className="flex basis-3/5 flex-col gap-5 text-white">
+          <div className="flex w-full flex-col gap-5 text-white">
             <div
               className={
-                "flex basis-1/5 flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+                "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
               }
             >
-              <div className="flex">
+              <div className="flex flex-col sm:flex-row">
                 <h3 className={"text-2xl font-semibold"}>
                   Informações de {form?.name}
                 </h3>
                 <Link
                   href={`/admin/registration/forms/${formIdNumber}/edit`}
-                  className="ml-auto"
+                  className="sm:ml-auto"
                 >
                   <Button>Editar</Button>
                 </Link>
