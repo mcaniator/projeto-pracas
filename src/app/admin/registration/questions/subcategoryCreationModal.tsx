@@ -34,6 +34,7 @@ const SubcategoryCreationModal = ({
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (state.statusCode === 201) {
       setPageState("SUCCESS");
@@ -41,8 +42,14 @@ const SubcategoryCreationModal = ({
     } else if (state.statusCode === 400 || state.statusCode === 500)
       setPageState("ERROR");
   }, [state, fetchCategoriesAfterCreation]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPageState("FORM");
+    }
+  }, [isOpen]);
   return (
-    <DialogTrigger>
+    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
       <Button className="items-center p-2 text-sm sm:text-xl">
         Criar subcategoria
       </Button>
@@ -75,7 +82,7 @@ const SubcategoryCreationModal = ({
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
-                        setPageState("FORM");
+                        setIsOpen(false);
                         close();
                       }}
                     >

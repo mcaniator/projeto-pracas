@@ -36,6 +36,7 @@ const QuestionCreationModal = ({
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );
+  const [isOpen, setIsOpen] = useState(false);
   const [type, setType] = useState("");
   const [characterType, setCharacterType] = useState<CharacterType | null>();
   const [optionType, setOptionType] = useState("RADIO");
@@ -103,8 +104,13 @@ const QuestionCreationModal = ({
   const handleRemoveOption = (option: string) => {
     setAddedOptions((prev) => prev?.filter((p) => p.text !== option));
   };
+  useEffect(() => {
+    if (!isOpen) {
+      setPageState("FORM");
+    }
+  }, [isOpen]);
   return (
-    <DialogTrigger>
+    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
       <Button className="items-center p-2 text-sm sm:text-xl">
         Criar questão
       </Button>
@@ -142,6 +148,7 @@ const QuestionCreationModal = ({
                         setCurrentOption("");
                         setAddedOptions([]);
                         setGeometryTypes(["Point"]);
+                        setIsOpen(false);
                         close();
                       }}
                     >
@@ -184,6 +191,7 @@ const QuestionCreationModal = ({
                             Título
                           </label>
                           <Input
+                            className="w-full"
                             type="text"
                             name="name"
                             id="question"
@@ -192,7 +200,12 @@ const QuestionCreationModal = ({
                         </div>
                         <div>
                           <label htmlFor="notes">Observações</label>
-                          <Input type="text" name="notes" id="notes" />
+                          <Input
+                            className="w-full"
+                            type="text"
+                            name="notes"
+                            id="notes"
+                          />
                         </div>
                         <div className={"flex flex-col"}>
                           <h4 className="font-semibold">Tipo de pergunta:</h4>
@@ -350,6 +363,7 @@ const QuestionCreationModal = ({
                                       Valor mínimo:
                                     </label>
                                     <Input
+                                      className="w-full"
                                       type="number"
                                       name={"minValue"}
                                       id={"minValue"}
@@ -363,6 +377,7 @@ const QuestionCreationModal = ({
                                       Valor máximo:
                                     </label>
                                     <Input
+                                      className="w-full"
                                       type="number"
                                       name={"maxValue"}
                                       id={"maxValue"}
@@ -455,6 +470,7 @@ const QuestionCreationModal = ({
                                     Digite as suas opções:
                                   </label>
                                   <Input
+                                    className="w-full"
                                     id={"opcao"}
                                     type={characterType}
                                     value={currentOption}
@@ -530,6 +546,7 @@ const QuestionCreationModal = ({
                                     Máximo de seleções:
                                   </label>
                                   <Input
+                                    className="w-full"
                                     type="number"
                                     name="maximumSelection"
                                     id={"optionLimit"}
