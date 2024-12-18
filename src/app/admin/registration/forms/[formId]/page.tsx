@@ -98,7 +98,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
               }
             >
               <div className="flex flex-col sm:flex-row">
-                <h3 className={"text-2xl font-semibold sm:text-3xl"}>
+                <h3 className={"w-full text-2xl font-semibold sm:text-3xl"}>
                   {form?.name}
                 </h3>
                 <div className="flex gap-2 sm:w-full">
