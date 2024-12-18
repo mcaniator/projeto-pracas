@@ -131,6 +131,10 @@ const searchQuestionsByStatement = async (statement: string) => {
             id: true,
             name: true,
             characterType: true,
+            notes: true,
+            type: true,
+            options: true,
+            optionType: true,
             category: {
               select: {
                 id: true,
