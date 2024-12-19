@@ -101,7 +101,7 @@ const Client = ({
   const [initialCalculationsModified, setInitialCalculationsModified] =
     useState(false);
 
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1000);
+  const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
@@ -152,7 +152,7 @@ const Client = ({
     };
 
     window.addEventListener("resize", handleResize);
-
+    handleResize();
     return () => {
       window.removeEventListener("resize", handleResize);
     };
