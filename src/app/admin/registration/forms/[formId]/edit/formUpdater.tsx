@@ -19,6 +19,7 @@ import {
   DisplayCalculation,
   DisplayQuestion,
 } from "./client";
+import { QuestionSearchModal } from "./questionSearchModal";
 
 const initialState = {
   statusCode: 0,
@@ -88,8 +89,10 @@ const FormUpdater = ({
   questionsToAdd,
   calculationsToAdd,
   initialCalculations,
-  cancelAddQuestion,
+
   questionsToRemove,
+  isMobileView,
+  cancelAddQuestion,
   handleQuestionsToRemove,
   addCalculationToAdd,
   removeCalculationToAdd,
@@ -101,8 +104,10 @@ const FormUpdater = ({
   questionsToAdd: DisplayQuestion[];
   calculationsToAdd: DisplayCalculation[];
   initialCalculations: DisplayCalculation[];
-  cancelAddQuestion: (questionId: number) => void;
+
   questionsToRemove: DisplayQuestion[];
+  isMobileView: boolean;
+  cancelAddQuestion: (questionId: number) => void;
   handleQuestionsToRemove: (questionId: number) => void;
   addCalculationToAdd: (calculation: AddCalculationToAddObj) => void;
   removeCalculationToAdd: (id: number) => void;
@@ -312,6 +317,7 @@ const FormUpdater = ({
                 </Button>
               </Link>
             </div>
+            {isMobileView && <QuestionSearchModal />}
           </form>
           <div>Perguntas nesse formulário:</div>
           <div className="flex flex-col gap-3 overflow-auto">
