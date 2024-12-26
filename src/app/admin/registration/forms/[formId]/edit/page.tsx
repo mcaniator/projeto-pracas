@@ -6,7 +6,7 @@ import Client from "./client";
 const Edit = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormById(parseInt(params.formId));
   const categories = await getCategories();
-  categories.sort((a, b) => {
+  /*categories.sort((a, b) => {
     if (a.name < b.name) return -1;
     if (a.name > b.name) return 1;
     return 0;
@@ -17,7 +17,7 @@ const Edit = async ({ params }: { params: { formId: string } }) => {
       if (a.name > b.name) return 1;
       return 0;
     });
-  });
+  });*/
   // TODO: add error handling
   if (form) return <Client form={form} categories={categories} />;
 };

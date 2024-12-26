@@ -7,11 +7,12 @@ import {
   handleDelete,
   updateForm,
 } from "@/serverActions/formUtil";
-import { QuestionResponseCharacterTypes } from "@prisma/client";
+import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
+import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { CalculationEditModal } from "./calculationEditModal";
 import {
@@ -89,7 +90,6 @@ const FormUpdater = ({
   questionsToAdd,
   calculationsToAdd,
   initialCalculations,
-
   questionsToRemove,
   isMobileView,
   cancelAddQuestion,
@@ -99,12 +99,15 @@ const FormUpdater = ({
   removeInitialCalculation,
   handleUpdateCalculationToAdd,
   handleUpdateInitialCalculation,
+  formId,
+  initialQuestions,
+  handleQuestionsToAdd,
+  categoriesToModal,
 }: {
   form: FormToEditPage;
   questionsToAdd: DisplayQuestion[];
   calculationsToAdd: DisplayCalculation[];
   initialCalculations: DisplayCalculation[];
-
   questionsToRemove: DisplayQuestion[];
   isMobileView: boolean;
   cancelAddQuestion: (questionId: number) => void;
@@ -114,6 +117,10 @@ const FormUpdater = ({
   removeInitialCalculation: (id: number) => void;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
   handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
+  formId?: number;
+  initialQuestions: Question[] | null;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  categoriesToModal: CategoriesWithQuestions;
 }) => {
   const [, formAction] = useActionState(updateForm, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -317,7 +324,16 @@ const FormUpdater = ({
                 </Button>
               </Link>
             </div>
-            {isMobileView && <QuestionSearchModal />}
+            {isMobileView && (
+              <QuestionSearchModal
+                formId={formId}
+                initialQuestions={initialQuestions}
+                handleQuestionsToAdd={handleQuestionsToAdd}
+                questionsToAdd={questionsToAdd}
+                questionsToRemove={questionsToRemove}
+                categories={categoriesToModal}
+              />
+            )}
           </form>
           <div>Perguntas nesse formulário:</div>
           <div className="flex flex-col gap-3 overflow-auto">

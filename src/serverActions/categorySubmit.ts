@@ -287,7 +287,13 @@ const getCategories = async () => {
           id: true,
           name: true,
         },
+        orderBy: {
+          name: "asc",
+        },
       },
+    },
+    orderBy: {
+      name: "asc",
     },
   });
   return categories;

@@ -1,8 +1,14 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconX } from "@tabler/icons-react";
-import { useState } from "react";
+import {
+  OptionTypes,
+  Question,
+  QuestionResponseCharacterTypes,
+  QuestionTypes,
+} from "@prisma/client";
+import { IconPlus, IconX } from "@tabler/icons-react";
+import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -12,9 +18,88 @@ import {
 
 import LoadingIcon from "../../../../../../components/LoadingIcon";
 import { Input } from "../../../../../../components/ui/input";
+import { Select } from "../../../../../../components/ui/select";
+import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
+import {
+  searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByStatement,
+} from "../../../../../../serverActions/questionUtil";
+import { DisplayQuestion } from "./client";
 
-const QuestionSearchModal = () => {
+type SearchMethods = "CATEGORY" | "STATEMENT";
+const QuestionSearchModal = ({
+  formId,
+  initialQuestions,
+  handleQuestionsToAdd,
+  questionsToAdd,
+  questionsToRemove,
+  categories,
+}: {
+  formId?: number;
+  initialQuestions: Question[] | null;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
+  categories: CategoriesWithQuestions;
+}) => {
   const [isPending, setIsPending] = useState(false);
+  const [targetQuestion, setTargetQuestion] = useState("");
+
+  const [currentSearchMethod, setCurrentSearchMethod] =
+    useState<SearchMethods>("CATEGORY");
+  // TODO: corrigir o tipo de setFoundQuestions
+  const [foundQuestions, setFoundQuestions] =
+    useState<Promise<DisplayQuestion[]>>();
+  const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
+    useState<Promise<DisplayQuestion[]>>();
+
+  const [
+    selectedCategoryAndSubcategoryId,
+    setSelectedCategoryAndSubcategoryId,
+  ] = useState<{
+    categoryId: number | undefined;
+    subcategoryId: number | undefined;
+    verifySubcategoryNullness: boolean;
+  }>({
+    categoryId: categories[0]?.id,
+    subcategoryId: categories[0]?.subcategory[0]?.id,
+    verifySubcategoryNullness: false,
+  });
+
+  useEffect(() => {
+    setFoundQuestions(searchQuestionsByStatement(targetQuestion));
+  }, [targetQuestion]);
+
+  useEffect(() => {
+    setFoundQuestionsByCategory(
+      searchQuestionsByCategoryAndSubcategory(
+        selectedCategoryAndSubcategoryId.categoryId,
+        selectedCategoryAndSubcategoryId.subcategoryId,
+        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+      ),
+    );
+  }, [selectedCategoryAndSubcategoryId]);
+
+  const deferredFoundQuestions = useDeferredValue(foundQuestions);
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCategoryAndSubcategoryId({
+      categoryId: Number(e.target.value),
+      subcategoryId: undefined,
+      verifySubcategoryNullness: false,
+    });
+  };
+  const handleSubcategoryChange = (e: number | string) => {
+    const subcategory =
+      e === "NULL" || e === "ALL" ? undefined
+      : typeof e === "number" ? e
+      : parseInt(e);
+    setSelectedCategoryAndSubcategoryId({
+      ...selectedCategoryAndSubcategoryId,
+      subcategoryId: subcategory,
+      verifySubcategoryNullness: e === "ALL" ? false : true,
+    });
+  };
   return (
     <DialogTrigger>
       <Button className="w-fit items-center p-2 text-sm sm:text-xl">
@@ -31,10 +116,11 @@ const QuestionSearchModal = () => {
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg transform overflow-auto rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
+            style={{}}
           >
             <Dialog className="outline-none data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring">
               {({ close }) => (
@@ -60,7 +146,104 @@ const QuestionSearchModal = () => {
                     </div>
                   )}
 
-                  <div></div>
+                  <div className={"flex flex-col gap-1 overflow-auto"}>
+                    <h3 className={"text-2xl font-semibold"}>
+                      Busca de Perguntas
+                    </h3>
+
+                    <Select
+                      defaultValue={"CATEGORY"}
+                      onChange={(e) =>
+                        setCurrentSearchMethod(e.target.value as SearchMethods)
+                      }
+                    >
+                      <option value="CATEGORY">Categorias</option>
+                      <option value="STATEMENT">Enunciado</option>
+                    </Select>
+
+                    {currentSearchMethod === "STATEMENT" && (
+                      <div className="flex flex-col gap-2 overflow-auto">
+                        <div className={"flex flex-col gap-2"}>
+                          <label htmlFor={"name"}>Buscar pelo enunciado:</label>
+                          <Input
+                            className="w-full"
+                            type="text"
+                            name="name"
+                            required
+                            id={"name"}
+                            autoComplete={"none"}
+                            value={targetQuestion}
+                            onChange={(e) => setTargetQuestion(e.target.value)}
+                          />
+                        </div>
+                        <Suspense>
+                          <SearchedQuestionList
+                            questionPromise={deferredFoundQuestions}
+                            formId={formId}
+                            initialQuestions={initialQuestions}
+                            handleQuestionsToAdd={handleQuestionsToAdd}
+                            questionsToAdd={questionsToAdd}
+                            questionsToRemove={questionsToRemove}
+                          />
+                        </Suspense>
+                      </div>
+                    )}
+                    {currentSearchMethod === "CATEGORY" && (
+                      <div className="flex flex-col gap-2 overflow-auto">
+                        <h4>Buscar por categoria: </h4>
+                        <label htmlFor="category-select">Categoria: </label>
+                        <Select
+                          name="category-select"
+                          onChange={handleCategoryChange}
+                        >
+                          {categories.map((category) => {
+                            return (
+                              <option value={category.id} key={category.id}>
+                                {category.name}
+                              </option>
+                            );
+                          })}
+                        </Select>
+                        <label htmlFor="subcategory-select">
+                          Subcategoria:{" "}
+                        </label>
+                        <Select
+                          name="subcategory-select"
+                          onChange={(e) =>
+                            handleSubcategoryChange(e.target.value)
+                          }
+                        >
+                          <option value="ALL">TODAS</option>
+                          <option value="NULL">NENHUMA</option>
+
+                          {categories
+                            .find(
+                              (category) =>
+                                category.id ===
+                                selectedCategoryAndSubcategoryId.categoryId,
+                            )
+                            ?.subcategory.map((subcategory) => {
+                              return (
+                                <option
+                                  value={subcategory.id}
+                                  key={subcategory.id}
+                                >
+                                  {subcategory.name}
+                                </option>
+                              );
+                            })}
+                        </Select>
+                        <QuestionList
+                          questionPromise={foundQuestionsByCategory}
+                          formId={formId}
+                          initialQuestions={initialQuestions}
+                          handleQuestionsToAdd={handleQuestionsToAdd}
+                          questionsToAdd={questionsToAdd}
+                          questionsToRemove={questionsToRemove}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </Dialog>
@@ -68,6 +251,193 @@ const QuestionSearchModal = () => {
         </ModalOverlay>
       }
     </DialogTrigger>
+  );
+};
+
+const SearchedQuestionList = ({
+  questionPromise,
+  formId,
+  initialQuestions,
+  handleQuestionsToAdd,
+  questionsToAdd,
+  questionsToRemove,
+}: {
+  questionPromise?: Promise<DisplayQuestion[]>;
+  formId?: number;
+  initialQuestions: Question[] | null;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
+}) => {
+  useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
+  if (questionPromise === undefined) return null;
+  const questions = use(questionPromise);
+
+  const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
+    questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
+  );
+
+  const filteredQuestions = questions.filter((question) => {
+    const isQuestionInInitial = initialQuestions?.some(
+      (q) => q.id === question.id,
+    );
+    const isQuestionAdded = questionsToAdd.some((q) => q.id === question.id);
+    const isQuestionToRemove = updatedQuestionsToRemove.some(
+      (q) => q.id === question.id,
+    );
+
+    return (!isQuestionInInitial && !isQuestionAdded) || isQuestionToRemove;
+  });
+
+  return (
+    <div className="w-full text-black">
+      {filteredQuestions.map((question) => (
+        <QuestionComponent
+          key={question.id}
+          questionId={question.id}
+          characterType={question.characterType}
+          name={question.name}
+          notes={question.notes}
+          type={question.type}
+          optionType={question.optionType}
+          options={question.options}
+          formId={formId}
+          handleQuestionsToAdd={handleQuestionsToAdd}
+          showCategory={true}
+          categoryId={question.category.id}
+          subcategoryId={question.subcategory?.id}
+          categoryName={question.category.name}
+          subcategoryName={question.subcategory?.name}
+        />
+      ))}
+    </div>
+  );
+};
+
+const QuestionList = ({
+  questionPromise,
+  formId,
+  initialQuestions,
+  handleQuestionsToAdd,
+  questionsToAdd,
+  questionsToRemove,
+}: {
+  questionPromise?: Promise<DisplayQuestion[]>;
+  formId?: number;
+  initialQuestions: Question[] | null;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  questionsToAdd: DisplayQuestion[];
+  questionsToRemove: DisplayQuestion[];
+}) => {
+  useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
+  if (questionPromise === undefined) return null;
+  const questions = use(questionPromise);
+
+  const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
+    questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
+  );
+
+  const filteredQuestions = questions.filter((question) => {
+    const isQuestionInInitial = initialQuestions?.some(
+      (q) => q.id === question.id,
+    );
+    const isQuestionAdded = questionsToAdd.some((q) => q.id === question.id);
+    const isQuestionToRemove = updatedQuestionsToRemove.some(
+      (q) => q.id === question.id,
+    );
+
+    return (!isQuestionInInitial && !isQuestionAdded) || isQuestionToRemove;
+  });
+
+  return (
+    <div className="w-full text-black">
+      {filteredQuestions.map((question) => (
+        <QuestionComponent
+          key={question.id}
+          questionId={question.id}
+          characterType={question.characterType}
+          name={question.name}
+          notes={question.notes}
+          type={question.type}
+          optionType={question.optionType}
+          options={question.options}
+          formId={formId}
+          handleQuestionsToAdd={handleQuestionsToAdd}
+          showCategory={false}
+          categoryId={question.category.id}
+          subcategoryId={question.subcategory?.id}
+          categoryName={question.category.name}
+          subcategoryName={question.subcategory?.name}
+        />
+      ))}
+    </div>
+  );
+};
+
+const QuestionComponent = ({
+  questionId,
+  characterType,
+  handleQuestionsToAdd,
+  name,
+  notes,
+  type,
+  optionType,
+  options,
+  showCategory,
+  categoryId,
+  subcategoryId,
+  categoryName,
+  subcategoryName,
+}: {
+  questionId: number;
+  characterType: QuestionResponseCharacterTypes;
+  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  name: string;
+  notes: string | null;
+  type: QuestionTypes;
+  optionType: OptionTypes | null;
+  options: { text: string }[];
+  formId?: number;
+  showCategory: boolean;
+  categoryId: number;
+  subcategoryId?: number;
+  categoryName: string;
+  subcategoryName?: string;
+}) => {
+  return (
+    <div
+      key={questionId}
+      className="mb-2 flex flex-col items-center justify-between rounded bg-white p-2"
+    >
+      {name}
+      {showCategory &&
+        `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
+      <Button
+        variant={"admin"}
+        type="submit"
+        className={"w-min"}
+        onPress={() =>
+          handleQuestionsToAdd({
+            id: questionId,
+            name,
+            notes,
+            type,
+            optionType,
+            options,
+            category: { id: categoryId, name: categoryName },
+            subcategory:
+              subcategoryId && subcategoryName ?
+                { id: subcategoryId, name: subcategoryName, categoryId }
+              : null,
+            characterType: characterType,
+          })
+        }
+      >
+        <span className={"-mb-1"}>
+          <IconPlus />
+        </span>
+      </Button>
+    </div>
   );
 };
 

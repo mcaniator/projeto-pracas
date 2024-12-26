@@ -292,6 +292,10 @@ const Client = ({
             removeInitialCalculation={removeInitialCalculation}
             handleUpdateCalculationToAdd={handleUpdateCalculationToAdd}
             handleUpdateInitialCalculation={handleUpdateInitialCalculation}
+            formId={form.id}
+            initialQuestions={form.questions}
+            handleQuestionsToAdd={handleQuestionsToAdd}
+            categoriesToModal={categories}
           />
         </div>
 
