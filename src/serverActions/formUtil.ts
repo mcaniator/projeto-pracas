@@ -242,16 +242,23 @@ const updateForm = async (
       where: { id: parseId },
       data: formToUpdate,
     });
-  } catch (e) {
+    revalidateTag("form");
     return {
-      statusCode: 2,
+      statusCode: 200,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      return {
+        statusCode: 409,
+      };
+    }
+    return {
+      statusCode: 500,
     };
   }
-
-  revalidateTag("form");
-  return {
-    statusCode: 0,
-  };
 };
 
 const createVersion = async (

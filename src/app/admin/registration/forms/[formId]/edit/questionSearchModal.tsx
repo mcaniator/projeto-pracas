@@ -180,7 +180,10 @@ const QuestionSearchModal = ({
                   </div>
 
                   <div className={"flex flex-col gap-1 overflow-auto"}>
+                    <label htmlFor="searchMethodSelect">Tipo de busca:</label>
                     <Select
+                      name="searchMethodSelect"
+                      id="searchMethodSelect"
                       defaultValue={"CATEGORY"}
                       onChange={(e) =>
                         setCurrentSearchMethod(e.target.value as SearchMethods)
@@ -230,7 +233,6 @@ const QuestionSearchModal = ({
 
                     {currentSearchMethod === "CATEGORY" && (
                       <div className="flex flex-col gap-2 overflow-auto">
-                        <h4>Buscar por categoria: </h4>
                         <label htmlFor="category-select">Categoria: </label>
                         <Select
                           name="category-select"

@@ -7,6 +7,7 @@ import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 
+import LoadingIcon from "../../../../../../components/LoadingIcon";
 import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { CalculationEditModal } from "./calculationEditModal";
@@ -50,7 +51,7 @@ const CalculationComponent = ({
 }) => {
   return (
     <li className="flex w-full flex-row items-center">
-      <span className={isInitialCalculation ? "p-2" : "p-2 text-blue-500"}>
+      <span className={isInitialCalculation ? "p-2" : "p-2 text-blue-200"}>
         {calculation.name} -{" "}
         {calculationTypesPortugueseMap.get(calculation.type)}
       </span>
@@ -117,9 +118,11 @@ const FormUpdater = ({
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
   categoriesToModal: CategoriesWithQuestions;
 }) => {
-  const [, formAction] = useActionState(updateForm, initialState);
+  const [formState, formAction, isPending] = useActionState(
+    updateForm,
+    initialState,
+  );
   const formRef = useRef<HTMLFormElement>(null);
-
   const [categoriesToAdd, setCategoriesToAdd] = useState<
     {
       id: number;
@@ -291,35 +294,53 @@ const FormUpdater = ({
               className={"hidden"}
               defaultValue={form.id}
             />
-
-            <div>
-              <label htmlFor={"name"}>Nome:</label>
-              <Input
-                type="text"
-                name="name"
-                required
-                id={"name"}
-                defaultValue={form.name === null ? "" : form.name}
-              />
-              <div>Versão: {form.version}</div>
-            </div>
-
-            <div className="mb-2 flex items-center justify-between rounded p-2">
-              <Button variant={"admin"} type="submit" className={"w-min"}>
-                <span className={"-mb-1"}>Enviar</span>
-              </Button>
-            </div>
-            {isMobileView && (
-              <QuestionSearchModal
-                formId={formId}
-                initialQuestions={initialQuestions}
-                handleQuestionsToAdd={handleQuestionsToAdd}
-                questionsToAdd={questionsToAdd}
-                questionsToRemove={questionsToRemove}
-                categories={categoriesToModal}
-              />
+            <h3 className="text-xl font-semibold sm:text-2xl">{form.name}</h3>
+            {form.version === 0 && (
+              <>
+                <div>
+                  <label htmlFor={"name"}>Editar nome:</label>
+                  <Input
+                    className="w-full"
+                    type="text"
+                    name="name"
+                    required
+                    id={"name"}
+                    defaultValue={form.name === null ? "" : form.name}
+                  />
+                  <div>Versão: {form.version}</div>
+                </div>
+                <div className="mb-2 flex items-center justify-between rounded p-2">
+                  <Button variant={"admin"} type="submit" className={"w-min"}>
+                    <span className={"-mb-1"}>Enviar</span>
+                  </Button>
+                </div>
+              </>
             )}
           </form>
+          {isPending ?
+            <div className="flex justify-center">
+              <LoadingIcon className="h-32 w-32 text-2xl" />
+            </div>
+          : formState.statusCode === 409 ?
+            <p className="text-red-700">
+              Já existe um formulário com este nome!
+            </p>
+          : formState.statusCode === 500 ?
+            <p className="text-red-700">Algo deu errado!</p>
+          : formState.statusCode === 200 && (
+              <p className="text-green-400">Nome atualizado!</p>
+            )
+          }
+          {isMobileView && (
+            <QuestionSearchModal
+              formId={formId}
+              initialQuestions={initialQuestions}
+              handleQuestionsToAdd={handleQuestionsToAdd}
+              questionsToAdd={questionsToAdd}
+              questionsToRemove={questionsToRemove}
+              categories={categoriesToModal}
+            />
+          )}
           <div>Perguntas nesse formulário:</div>
           <div className="flex flex-col gap-3 overflow-auto">
             {categories.map((category) => {
@@ -395,7 +416,7 @@ const FormUpdater = ({
                             key={question.id}
                             className="flex w-full flex-row items-center justify-between"
                           >
-                            <span className="p-2 text-blue-500">
+                            <span className="p-2 text-blue-100">
                               {question.name}
                             </span>
                             <Button
@@ -586,7 +607,7 @@ const FormUpdater = ({
                                   key={question.id}
                                   className="flex w-full flex-row items-center justify-between"
                                 >
-                                  <span className="p-2 text-blue-500">
+                                  <span className="p-2 text-blue-200">
                                     {question.name}
                                   </span>
                                   <Button
@@ -711,7 +732,7 @@ const FormUpdater = ({
                   className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
                 >
                   <div className="flex gap-2">
-                    <h4 key={category.id} className="text-2xl text-blue-500">
+                    <h4 key={category.id} className="text-2xl text-blue-200">
                       {category.name}
                     </h4>
                     <span className="ml-auto px-3">
@@ -740,7 +761,7 @@ const FormUpdater = ({
                             key={question.id}
                             className="flex w-full flex-row items-center justify-between"
                           >
-                            <span className="p-2 text-blue-500">
+                            <span className="p-2 text-blue-200">
                               {question.name}
                             </span>
                             <Button
@@ -794,7 +815,7 @@ const FormUpdater = ({
                     return (
                       <div key={subcategory.id}>
                         <div className="flex gap-2">
-                          <h5 className="text-xl text-blue-500">
+                          <h5 className="text-xl text-blue-200">
                             {subcategory.name}
                           </h5>
                           <span className="ml-auto px-3">
@@ -830,7 +851,7 @@ const FormUpdater = ({
                                   key={question.id}
                                   className="flex w-full flex-row items-center justify-between"
                                 >
-                                  <span className="p-2 text-blue-500">
+                                  <span className="p-2 text-blue-200">
                                     {question.name}
                                   </span>
                                   <Button
