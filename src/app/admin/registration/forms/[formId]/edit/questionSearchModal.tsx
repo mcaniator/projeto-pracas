@@ -8,7 +8,7 @@ import {
   QuestionTypes,
 } from "@prisma/client";
 import { IconPlus, IconX } from "@tabler/icons-react";
-import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -42,14 +42,15 @@ const QuestionSearchModal = ({
   questionsToRemove: DisplayQuestion[];
   categories: CategoriesWithQuestions;
 }) => {
-  const [isPending, setIsPending] = useState(false);
+  const [questionsListState, setQuestionsListState] = useState<
+    "LOADING" | "LOADED" | "ERROR"
+  >("LOADING");
   const [targetQuestion, setTargetQuestion] = useState("");
+  const [debouncedTargetQuestion, setDebouncedTargetQuestion] = useState("");
 
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
-  // TODO: corrigir o tipo de setFoundQuestions
-  const [foundQuestions, setFoundQuestions] =
-    useState<Promise<DisplayQuestion[]>>();
+  const [foundQuestions, setFoundQuestions] = useState<DisplayQuestion[]>([]);
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
     DisplayQuestion[]
   >([]);
@@ -68,34 +69,52 @@ const QuestionSearchModal = ({
   });
 
   useEffect(() => {
-    setFoundQuestions(searchQuestionsByStatement(targetQuestion));
+    const handler = setTimeout(() => {
+      setDebouncedTargetQuestion(targetQuestion);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [targetQuestion]);
 
   useEffect(() => {
-    setIsPending(true);
+    setQuestionsListState("LOADING");
+    searchQuestionsByStatement(debouncedTargetQuestion)
+      .then((questions) => {
+        setQuestionsListState("LOADED");
+        setFoundQuestions(questions);
+      })
+      .catch(() => {
+        setQuestionsListState("ERROR");
+      });
+  }, [debouncedTargetQuestion]);
+
+  useEffect(() => {
+    setQuestionsListState("LOADING");
     searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
       .then((questions) => {
-        setIsPending(false);
+        setQuestionsListState("LOADED");
         setFoundQuestionsByCategory(questions);
       })
-      .catch((error) => {
-        //TODO: tratar erro
+      .catch(() => {
+        setQuestionsListState("ERROR");
       });
   }, [categories]);
 
   useEffect(() => {
-    setIsPending(true);
+    setQuestionsListState("LOADING");
     searchQuestionsByCategoryAndSubcategory(
       selectedCategoryAndSubcategoryId.categoryId,
       selectedCategoryAndSubcategoryId.subcategoryId,
       selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
     )
       .then((questions) => {
-        setIsPending(false);
+        setQuestionsListState("LOADED");
         setFoundQuestionsByCategory(questions);
       })
-      .catch((error) => {
-        //TODO: tratar erro
+      .catch(() => {
+        setQuestionsListState("ERROR");
       });
   }, [selectedCategoryAndSubcategoryId]);
 
@@ -161,10 +180,6 @@ const QuestionSearchModal = ({
                   </div>
 
                   <div className={"flex flex-col gap-1 overflow-auto"}>
-                    <h3 className={"text-2xl font-semibold"}>
-                      Busca de Perguntas
-                    </h3>
-
                     <Select
                       defaultValue={"CATEGORY"}
                       onChange={(e) =>
@@ -190,16 +205,26 @@ const QuestionSearchModal = ({
                             onChange={(e) => setTargetQuestion(e.target.value)}
                           />
                         </div>
-                        <Suspense>
+                        {questionsListState === "LOADING" ?
+                          <div className="flex justify-center">
+                            <LoadingIcon className="h-32 w-32 text-2xl" />
+                          </div>
+                        : questionsListState === "LOADED" ?
                           <SearchedQuestionList
-                            questionPromise={deferredFoundQuestions}
+                            questions={deferredFoundQuestions}
                             formId={formId}
                             initialQuestions={initialQuestions}
                             handleQuestionsToAdd={handleQuestionsToAdd}
                             questionsToAdd={questionsToAdd}
                             questionsToRemove={questionsToRemove}
                           />
-                        </Suspense>
+                        : <div className="flex flex-col justify-center">
+                            <p className="text-center">
+                              Erro ao carregar questões
+                            </p>
+                            <IconX className="h-32 w-32 text-2xl" />
+                          </div>
+                        }
                       </div>
                     )}
 
@@ -248,11 +273,12 @@ const QuestionSearchModal = ({
                               );
                             })}
                         </Select>
-                        {isPending ?
+                        {questionsListState === "LOADING" ?
                           <div className="flex justify-center">
                             <LoadingIcon className="h-32 w-32 text-2xl" />
                           </div>
-                        : <QuestionList
+                        : questionsListState === "LOADED" ?
+                          <QuestionList
                             questions={foundQuestionsByCategory}
                             formId={formId}
                             initialQuestions={initialQuestions}
@@ -260,6 +286,12 @@ const QuestionSearchModal = ({
                             questionsToAdd={questionsToAdd}
                             questionsToRemove={questionsToRemove}
                           />
+                        : <div className="flex flex-col justify-center">
+                            <p className="text-center">
+                              Erro ao carregar questões
+                            </p>
+                            <IconX className="h-32 w-32 text-2xl" />
+                          </div>
                         }
                       </div>
                     )}
@@ -275,14 +307,14 @@ const QuestionSearchModal = ({
 };
 
 const SearchedQuestionList = ({
-  questionPromise,
+  questions,
   formId,
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<DisplayQuestion[]>;
+  questions: DisplayQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -290,8 +322,6 @@ const SearchedQuestionList = ({
   questionsToRemove: DisplayQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
-  if (questionPromise === undefined) return null;
-  const questions = use(questionPromise);
 
   const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
     questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
