@@ -72,8 +72,10 @@ const QuestionSearchModal = ({
   }, [targetQuestion]);
 
   useEffect(() => {
+    setIsPending(true);
     searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
       .then((questions) => {
+        setIsPending(false);
         setFoundQuestionsByCategory(questions);
       })
       .catch((error) => {
@@ -82,12 +84,14 @@ const QuestionSearchModal = ({
   }, [categories]);
 
   useEffect(() => {
+    setIsPending(true);
     searchQuestionsByCategoryAndSubcategory(
       selectedCategoryAndSubcategoryId.categoryId,
       selectedCategoryAndSubcategoryId.subcategoryId,
       selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
     )
       .then((questions) => {
+        setIsPending(false);
         setFoundQuestionsByCategory(questions);
       })
       .catch((error) => {
@@ -155,11 +159,6 @@ const QuestionSearchModal = ({
                       <IconX />
                     </Button>
                   </div>
-                  {isPending && (
-                    <div className="flex justify-center">
-                      <LoadingIcon className="h-32 w-32 text-2xl" />
-                    </div>
-                  )}
 
                   <div className={"flex flex-col gap-1 overflow-auto"}>
                     <h3 className={"text-2xl font-semibold"}>
@@ -203,6 +202,7 @@ const QuestionSearchModal = ({
                         </Suspense>
                       </div>
                     )}
+
                     {currentSearchMethod === "CATEGORY" && (
                       <div className="flex flex-col gap-2 overflow-auto">
                         <h4>Buscar por categoria: </h4>
@@ -248,14 +248,19 @@ const QuestionSearchModal = ({
                               );
                             })}
                         </Select>
-                        <QuestionList
-                          questions={foundQuestionsByCategory}
-                          formId={formId}
-                          initialQuestions={initialQuestions}
-                          handleQuestionsToAdd={handleQuestionsToAdd}
-                          questionsToAdd={questionsToAdd}
-                          questionsToRemove={questionsToRemove}
-                        />
+                        {isPending ?
+                          <div className="flex justify-center">
+                            <LoadingIcon className="h-32 w-32 text-2xl" />
+                          </div>
+                        : <QuestionList
+                            questions={foundQuestionsByCategory}
+                            formId={formId}
+                            initialQuestions={initialQuestions}
+                            handleQuestionsToAdd={handleQuestionsToAdd}
+                            questionsToAdd={questionsToAdd}
+                            questionsToRemove={questionsToRemove}
+                          />
+                        }
                       </div>
                     )}
                   </div>
