@@ -14,8 +14,10 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { Suspense, use, useDeferredValue, useEffect, useState } from "react";
+import { IconX } from "@tabler/icons-react";
+import { useDeferredValue, useEffect, useState } from "react";
 
+import LoadingIcon from "../../../../../../components/LoadingIcon";
 import { DisplayQuestion } from "./client";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
@@ -35,15 +37,18 @@ const QuestionForm = ({
   questionsToRemove: DisplayQuestion[];
   categories: CategoriesWithQuestions;
 }) => {
+  const [questionsListState, setQuestionsListState] = useState<
+    "LOADING" | "LOADED" | "ERROR"
+  >("LOADING");
   const [targetQuestion, setTargetQuestion] = useState("");
+  const [debouncedTargetQuestion, setDebouncedTargetQuestion] = useState("");
 
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
-  // TODO: corrigir o tipo de setFoundQuestions
-  const [foundQuestions, setFoundQuestions] =
-    useState<Promise<DisplayQuestion[]>>();
-  const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
-    useState<Promise<DisplayQuestion[]>>();
+  const [foundQuestions, setFoundQuestions] = useState<DisplayQuestion[]>([]);
+  const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
+    DisplayQuestion[]
+  >([]);
 
   const [
     selectedCategoryAndSubcategoryId,
@@ -53,23 +58,59 @@ const QuestionForm = ({
     subcategoryId: number | undefined;
     verifySubcategoryNullness: boolean;
   }>({
-    categoryId: undefined,
+    categoryId: categories[0]?.id,
     subcategoryId: undefined,
-    verifySubcategoryNullness: true,
+    verifySubcategoryNullness: false,
   });
 
   useEffect(() => {
-    setFoundQuestions(searchQuestionsByStatement(targetQuestion));
+    const handler = setTimeout(() => {
+      setDebouncedTargetQuestion(targetQuestion);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [targetQuestion]);
 
   useEffect(() => {
-    setFoundQuestionsByCategory(
-      searchQuestionsByCategoryAndSubcategory(
-        selectedCategoryAndSubcategoryId.categoryId,
-        selectedCategoryAndSubcategoryId.subcategoryId,
-        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
-      ),
-    );
+    setQuestionsListState("LOADING");
+    searchQuestionsByStatement(debouncedTargetQuestion)
+      .then((questions) => {
+        setQuestionsListState("LOADED");
+        setFoundQuestions(questions);
+      })
+      .catch(() => {
+        setQuestionsListState("ERROR");
+      });
+  }, [debouncedTargetQuestion]);
+
+  useEffect(() => {
+    setQuestionsListState("LOADING");
+    searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
+      .then((questions) => {
+        setQuestionsListState("LOADED");
+        setFoundQuestionsByCategory(questions);
+      })
+      .catch(() => {
+        setQuestionsListState("ERROR");
+      });
+  }, [categories]);
+
+  useEffect(() => {
+    setQuestionsListState("LOADING");
+    searchQuestionsByCategoryAndSubcategory(
+      selectedCategoryAndSubcategoryId.categoryId,
+      selectedCategoryAndSubcategoryId.subcategoryId,
+      selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+    )
+      .then((questions) => {
+        setQuestionsListState("LOADED");
+        setFoundQuestionsByCategory(questions);
+      })
+      .catch(() => {
+        setQuestionsListState("ERROR");
+      });
   }, [selectedCategoryAndSubcategoryId]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
@@ -124,6 +165,7 @@ const QuestionForm = ({
               <div className={"flex flex-col gap-2"}>
                 <label htmlFor={"name"}>Buscar pelo enunciado:</label>
                 <Input
+                  className="w-full"
                   type="text"
                   name="name"
                   required
@@ -133,18 +175,27 @@ const QuestionForm = ({
                   onChange={(e) => setTargetQuestion(e.target.value)}
                 />
               </div>
-              <Suspense>
+              {questionsListState === "LOADING" ?
+                <div className="flex justify-center">
+                  <LoadingIcon className="h-32 w-32 text-2xl" />
+                </div>
+              : questionsListState === "LOADED" ?
                 <SearchedQuestionList
-                  questionPromise={deferredFoundQuestions}
+                  questions={deferredFoundQuestions}
                   formId={formId}
                   initialQuestions={initialQuestions}
                   handleQuestionsToAdd={handleQuestionsToAdd}
                   questionsToAdd={questionsToAdd}
                   questionsToRemove={questionsToRemove}
                 />
-              </Suspense>
+              : <div className="flex flex-col justify-center">
+                  <p className="text-center">Erro ao carregar questões</p>
+                  <IconX className="h-32 w-32 text-2xl" />
+                </div>
+              }
             </div>
           )}
+
           {currentSearchMethod === "CATEGORY" && (
             <div className="flex flex-col gap-2 overflow-auto">
               <h4>Buscar por categoria: </h4>
@@ -180,14 +231,24 @@ const QuestionForm = ({
                     );
                   })}
               </Select>
-              <QuestionList
-                questionPromise={foundQuestionsByCategory}
-                formId={formId}
-                initialQuestions={initialQuestions}
-                handleQuestionsToAdd={handleQuestionsToAdd}
-                questionsToAdd={questionsToAdd}
-                questionsToRemove={questionsToRemove}
-              />
+              {questionsListState === "LOADING" ?
+                <div className="flex justify-center">
+                  <LoadingIcon className="h-32 w-32 text-2xl" />
+                </div>
+              : questionsListState === "LOADED" ?
+                <QuestionList
+                  questions={foundQuestionsByCategory}
+                  formId={formId}
+                  initialQuestions={initialQuestions}
+                  handleQuestionsToAdd={handleQuestionsToAdd}
+                  questionsToAdd={questionsToAdd}
+                  questionsToRemove={questionsToRemove}
+                />
+              : <div className="flex flex-col justify-center">
+                  <p className="text-center">Erro ao carregar questões</p>
+                  <IconX className="h-32 w-32 text-2xl" />
+                </div>
+              }
             </div>
           )}
         </div>
@@ -197,14 +258,14 @@ const QuestionForm = ({
 };
 
 const SearchedQuestionList = ({
-  questionPromise,
+  questions,
   formId,
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<DisplayQuestion[]>;
+  questions: DisplayQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -212,8 +273,6 @@ const SearchedQuestionList = ({
   questionsToRemove: DisplayQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
-  if (questionPromise === undefined) return null;
-  const questions = use(questionPromise);
 
   const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
     questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
@@ -257,14 +316,14 @@ const SearchedQuestionList = ({
 };
 
 const QuestionList = ({
-  questionPromise,
+  questions,
   formId,
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<DisplayQuestion[]>;
+  questions: DisplayQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -272,8 +331,6 @@ const QuestionList = ({
   questionsToRemove: DisplayQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
-  if (questionPromise === undefined) return null;
-  const questions = use(questionPromise);
 
   const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
     questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),
