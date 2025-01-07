@@ -50,8 +50,9 @@ const QuestionSearchModal = ({
   // TODO: corrigir o tipo de setFoundQuestions
   const [foundQuestions, setFoundQuestions] =
     useState<Promise<DisplayQuestion[]>>();
-  const [foundQuestionsByCategory, setFoundQuestionsByCategory] =
-    useState<Promise<DisplayQuestion[]>>();
+  const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
+    DisplayQuestion[]
+  >([]);
 
   const [
     selectedCategoryAndSubcategoryId,
@@ -62,7 +63,7 @@ const QuestionSearchModal = ({
     verifySubcategoryNullness: boolean;
   }>({
     categoryId: categories[0]?.id,
-    subcategoryId: categories[0]?.subcategory[0]?.id,
+    subcategoryId: undefined,
     verifySubcategoryNullness: false,
   });
 
@@ -71,13 +72,27 @@ const QuestionSearchModal = ({
   }, [targetQuestion]);
 
   useEffect(() => {
-    setFoundQuestionsByCategory(
-      searchQuestionsByCategoryAndSubcategory(
-        selectedCategoryAndSubcategoryId.categoryId,
-        selectedCategoryAndSubcategoryId.subcategoryId,
-        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
-      ),
-    );
+    searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
+      .then((questions) => {
+        setFoundQuestionsByCategory(questions);
+      })
+      .catch((error) => {
+        //TODO: tratar erro
+      });
+  }, [categories]);
+
+  useEffect(() => {
+    searchQuestionsByCategoryAndSubcategory(
+      selectedCategoryAndSubcategoryId.categoryId,
+      selectedCategoryAndSubcategoryId.subcategoryId,
+      selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+    )
+      .then((questions) => {
+        setFoundQuestionsByCategory(questions);
+      })
+      .catch((error) => {
+        //TODO: tratar erro
+      });
   }, [selectedCategoryAndSubcategoryId]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
@@ -234,7 +249,7 @@ const QuestionSearchModal = ({
                             })}
                         </Select>
                         <QuestionList
-                          questionPromise={foundQuestionsByCategory}
+                          questions={foundQuestionsByCategory}
                           formId={formId}
                           initialQuestions={initialQuestions}
                           handleQuestionsToAdd={handleQuestionsToAdd}
@@ -315,14 +330,14 @@ const SearchedQuestionList = ({
 };
 
 const QuestionList = ({
-  questionPromise,
+  questions,
   formId,
   initialQuestions,
   handleQuestionsToAdd,
   questionsToAdd,
   questionsToRemove,
 }: {
-  questionPromise?: Promise<DisplayQuestion[]>;
+  questions: DisplayQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -330,8 +345,6 @@ const QuestionList = ({
   questionsToRemove: DisplayQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
-  if (questionPromise === undefined) return null;
-  const questions = use(questionPromise);
 
   const updatedQuestionsToRemove = questionsToRemove.filter((qToRemove) =>
     questionsToAdd.every((qAdded) => qToRemove.id !== qAdded.id),

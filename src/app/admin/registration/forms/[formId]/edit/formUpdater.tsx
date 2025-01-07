@@ -2,14 +2,9 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
-import {
-  FormToEditPage,
-  handleDelete,
-  updateForm,
-} from "@/serverActions/formUtil";
+import { FormToEditPage, updateForm } from "@/serverActions/formUtil";
 import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
-import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
@@ -313,16 +308,6 @@ const FormUpdater = ({
               <Button variant={"admin"} type="submit" className={"w-min"}>
                 <span className={"-mb-1"}>Enviar</span>
               </Button>
-
-              <Link href={"/admin/forms"}>
-                <Button
-                  variant={"destructive"}
-                  onPress={() => void handleDelete(form.id)}
-                  className={"w-min"}
-                >
-                  <span className={"-mb-1"}>Deletar</span>
-                </Button>
-              </Link>
             </div>
             {isMobileView && (
               <QuestionSearchModal
