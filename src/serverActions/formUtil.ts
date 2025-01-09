@@ -316,7 +316,7 @@ const createVersion = async (
   }
 
   revalidateTag("questionOnForm");
-  redirect("/admin/forms");
+  redirect("/admin/registration/forms");
   return { statusCode: 0, newFormId };
 };
 

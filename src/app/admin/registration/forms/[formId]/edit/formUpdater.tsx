@@ -88,6 +88,8 @@ const FormUpdater = ({
   initialCalculations,
   questionsToRemove,
   isMobileView,
+  updatedQuestions,
+  initialCalculationsModified,
   cancelAddQuestion,
   handleQuestionsToRemove,
   addCalculationToAdd,
@@ -95,6 +97,7 @@ const FormUpdater = ({
   removeInitialCalculation,
   handleUpdateCalculationToAdd,
   handleUpdateInitialCalculation,
+  handleCreateVersion,
   formId,
   initialQuestions,
   handleQuestionsToAdd,
@@ -106,6 +109,8 @@ const FormUpdater = ({
   initialCalculations: DisplayCalculation[];
   questionsToRemove: DisplayQuestion[];
   isMobileView: boolean;
+  updatedQuestions: DisplayQuestion[];
+  initialCalculationsModified: boolean;
   cancelAddQuestion: (questionId: number) => void;
   handleQuestionsToRemove: (questionId: number) => void;
   addCalculationToAdd: (calculation: AddCalculationToAddObj) => void;
@@ -113,6 +118,12 @@ const FormUpdater = ({
   removeInitialCalculation: (id: number) => void;
   handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
   handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
+  handleCreateVersion: (
+    formId: number,
+    oldQuestions: DisplayQuestion[],
+    questionsToAdd: DisplayQuestion[],
+    questionsToRemove: DisplayQuestion[],
+  ) => Promise<void>;
   formId?: number;
   initialQuestions: Question[] | null;
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
@@ -271,10 +282,10 @@ const FormUpdater = ({
   // TODO: add error handling
   return (
     <div className={"flex h-full min-h-0 flex-grow gap-5 p-5"}>
-      <div className="flex basis-full flex-col gap-5 overflow-auto text-white">
+      <div className="flex basis-full flex-col gap-5 overflow-x-auto text-white">
         <div
           className={
-            "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
+            "flex flex-col gap-1 overflow-x-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
           <form
@@ -342,7 +353,7 @@ const FormUpdater = ({
             />
           )}
           <div>Perguntas nesse formulário:</div>
-          <div className="flex flex-col gap-3 overflow-auto">
+          <div className="flex flex-col gap-3 overflow-x-auto">
             {categories.map((category) => {
               return (
                 <div
@@ -913,6 +924,25 @@ const FormUpdater = ({
                 </div>
               );
             })}
+            <div className="col-span-4 flex justify-center">
+              {(updatedQuestions.length !== 0 ||
+                calculationsToAdd.length !== 0 ||
+                initialCalculationsModified) && (
+                <Button
+                  variant={"admin"}
+                  onPress={() =>
+                    void handleCreateVersion(
+                      form.id,
+                      form.questions,
+                      questionsToAdd,
+                      questionsToRemove,
+                    )
+                  }
+                >
+                  Criar nova versão
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
