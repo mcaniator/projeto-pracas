@@ -51,6 +51,15 @@ const CalculationComponent = ({
 }) => {
   return (
     <li className="flex w-full flex-row items-center rounded-sm bg-white">
+      {/*<div>
+        {calculation.questions.map((q) => {
+          return (
+            <div className="text-black" key={q.id}>
+              {q.name}
+            </div>
+          );
+        })}
+      </div>*/}
       <span
         className={
           isInitialCalculation ? "p-2 text-black" : "p-2 text-blue-800"
@@ -154,7 +163,7 @@ const FormUpdater = ({
       subcategories: { id: number; name: string }[];
     }
   >();
-
+  console.log(calculationsToAdd);
   form.questions.forEach((question) => {
     if (!initialCategoriesMap.has(question.category.id)) {
       initialCategoriesMap.set(question.category.id, {
@@ -663,7 +672,7 @@ const FormUpdater = ({
                             ).length > 0) && (
                             <div className="rounded-md bg-gray-600 p-1 shadow-sm">
                               <h6>Calculos</h6>
-                              <ul>
+                              <ul className="flex flex-col gap-1">
                                 {initialCalculations
                                   .filter(
                                     (calculation) =>
@@ -711,7 +720,7 @@ const FormUpdater = ({
                                     );
                                   })}
                               </ul>
-                              <ul>
+                              <ul className="flex flex-col gap-1">
                                 {calculationsToAdd
                                   .filter(
                                     (calculation) =>
@@ -828,7 +837,7 @@ const FormUpdater = ({
                   ).length > 0 && (
                     <div className="rounded-md bg-gray-600 p-1 shadow-sm">
                       <h6>Calculos</h6>
-                      <ul>
+                      <ul className="flex flex-col gap-1">
                         {calculationsToAdd
                           .filter(
                             (calculation) =>
@@ -930,7 +939,7 @@ const FormUpdater = ({
                           ).length > 0 && (
                             <div className="rounded-md bg-gray-600 p-1 shadow-sm">
                               <h6>Calculos</h6>
-                              <ul>
+                              <ul className="flex flex-col gap-1">
                                 {calculationsToAdd
                                   .filter(
                                     (calculation) =>
