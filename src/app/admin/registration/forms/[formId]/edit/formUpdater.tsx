@@ -50,12 +50,16 @@ const CalculationComponent = ({
   handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
 }) => {
   return (
-    <li className="flex w-full flex-row items-center">
-      <span className={isInitialCalculation ? "p-2" : "p-2 text-blue-200"}>
+    <li className="flex w-full flex-row items-center rounded-sm bg-white">
+      <span
+        className={
+          isInitialCalculation ? "p-2 text-black" : "p-2 text-blue-800"
+        }
+      >
         {calculation.name} -{" "}
         {calculationTypesPortugueseMap.get(calculation.type)}
       </span>
-      <span className="ml-auto space-x-2 px-3 py-2">
+      <div className="ml-auto flex flex-col gap-2 px-3 py-2 sm:flex-row">
         <CalculationEditModal
           category={calculation.category}
           subcategory={calculation.subcategory}
@@ -77,7 +81,7 @@ const CalculationComponent = ({
         >
           <IconSquareRoundedMinus />
         </Button>
-      </span>
+      </div>
     </li>
   );
 };
@@ -450,99 +454,108 @@ const FormUpdater = ({
                       (calculation) =>
                         calculation.category.id === category.id &&
                         !calculation.subcategory,
-                    ).length > 0) && <h6>Calculos</h6>}
-                  <ul>
-                    {initialCalculations
-                      .filter(
-                        (calculation) =>
-                          calculation.category.id === category.id &&
-                          !calculation.subcategory,
-                      )
-                      .map((calculation) => {
-                        return (
-                          <CalculationComponent
-                            key={calculation.name}
-                            isInitialCalculation={true}
-                            questions={category.questions
-                              .filter(
-                                (question) =>
-                                  !questionsToRemove.some(
-                                    (questionToRemove) =>
-                                      questionToRemove.id === question.id,
-                                  ),
-                              )
-                              .concat(
-                                questionsToAdd.filter((question) => {
-                                  return (
-                                    question.category.id === category.id &&
-                                    !question.subcategory
-                                  );
-                                }),
-                              )
-                              .concat(
-                                category.subcategories.flatMap(
-                                  (subcateogry) => subcateogry.questions,
-                                ),
-                              )}
-                            calculation={calculation}
-                            removeCalculationToAdd={removeCalculationToAdd}
-                            removeInitialCalculation={removeInitialCalculation}
-                            handleUpdateCalculationToAdd={
-                              handleUpdateCalculationToAdd
-                            }
-                            handleUpdateInitialCalculation={
-                              handleUpdateInitialCalculation
-                            }
-                          />
-                        );
-                      })}
-                  </ul>
-                  <ul>
-                    {calculationsToAdd
-                      .filter(
-                        (calculation) =>
-                          calculation.category.id === category.id &&
-                          !calculation.subcategory,
-                      )
-                      .map((calculation) => {
-                        return (
-                          <CalculationComponent
-                            key={calculation.name}
-                            isInitialCalculation={false}
-                            questions={category.questions
-                              .filter(
-                                (question) =>
-                                  !questionsToRemove.some(
-                                    (questionToRemove) =>
-                                      questionToRemove.id === question.id,
-                                  ),
-                              )
-                              .concat(
-                                questionsToAdd.filter((question) => {
-                                  return (
-                                    question.category.id === category.id &&
-                                    !question.subcategory
-                                  );
-                                }),
-                              )
-                              .concat(
-                                category.subcategories.flatMap(
-                                  (subcateogry) => subcateogry.questions,
-                                ),
-                              )}
-                            calculation={calculation}
-                            removeCalculationToAdd={removeCalculationToAdd}
-                            removeInitialCalculation={removeInitialCalculation}
-                            handleUpdateCalculationToAdd={
-                              handleUpdateCalculationToAdd
-                            }
-                            handleUpdateInitialCalculation={
-                              handleUpdateInitialCalculation
-                            }
-                          />
-                        );
-                      })}
-                  </ul>
+                    ).length > 0) && (
+                    <div className="rounded-md bg-gray-600 p-1 shadow-sm">
+                      <h6>Calculos</h6>
+                      <ul className="flex flex-col gap-1">
+                        {initialCalculations
+                          .filter(
+                            (calculation) =>
+                              calculation.category.id === category.id &&
+                              !calculation.subcategory,
+                          )
+                          .map((calculation) => {
+                            return (
+                              <CalculationComponent
+                                key={calculation.name}
+                                isInitialCalculation={true}
+                                questions={category.questions
+                                  .filter(
+                                    (question) =>
+                                      !questionsToRemove.some(
+                                        (questionToRemove) =>
+                                          questionToRemove.id === question.id,
+                                      ),
+                                  )
+                                  .concat(
+                                    questionsToAdd.filter((question) => {
+                                      return (
+                                        question.category.id === category.id &&
+                                        !question.subcategory
+                                      );
+                                    }),
+                                  )
+                                  .concat(
+                                    category.subcategories.flatMap(
+                                      (subcateogry) => subcateogry.questions,
+                                    ),
+                                  )}
+                                calculation={calculation}
+                                removeCalculationToAdd={removeCalculationToAdd}
+                                removeInitialCalculation={
+                                  removeInitialCalculation
+                                }
+                                handleUpdateCalculationToAdd={
+                                  handleUpdateCalculationToAdd
+                                }
+                                handleUpdateInitialCalculation={
+                                  handleUpdateInitialCalculation
+                                }
+                              />
+                            );
+                          })}
+                      </ul>
+                      <ul className="flex flex-col gap-1">
+                        {calculationsToAdd
+                          .filter(
+                            (calculation) =>
+                              calculation.category.id === category.id &&
+                              !calculation.subcategory,
+                          )
+                          .map((calculation) => {
+                            return (
+                              <CalculationComponent
+                                key={calculation.name}
+                                isInitialCalculation={false}
+                                questions={category.questions
+                                  .filter(
+                                    (question) =>
+                                      !questionsToRemove.some(
+                                        (questionToRemove) =>
+                                          questionToRemove.id === question.id,
+                                      ),
+                                  )
+                                  .concat(
+                                    questionsToAdd.filter((question) => {
+                                      return (
+                                        question.category.id === category.id &&
+                                        !question.subcategory
+                                      );
+                                    }),
+                                  )
+                                  .concat(
+                                    category.subcategories.flatMap(
+                                      (subcateogry) => subcateogry.questions,
+                                    ),
+                                  )}
+                                calculation={calculation}
+                                removeCalculationToAdd={removeCalculationToAdd}
+                                removeInitialCalculation={
+                                  removeInitialCalculation
+                                }
+                                handleUpdateCalculationToAdd={
+                                  handleUpdateCalculationToAdd
+                                }
+                                handleUpdateInitialCalculation={
+                                  handleUpdateInitialCalculation
+                                }
+                              />
+                            );
+                          })}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-1">
                     {category.subcategories.map((subcategory) => {
                       return (
@@ -647,99 +660,107 @@ const FormUpdater = ({
                             initialCalculations.filter(
                               (calculation) =>
                                 calculation.subcategory?.id === subcategory.id,
-                            ).length > 0) && <h6>Calculos</h6>}
-                          <ul>
-                            {initialCalculations
-                              .filter(
-                                (calculation) =>
-                                  calculation.subcategory?.id ===
-                                  subcategory.id,
-                              )
-                              .map((calculation) => {
-                                return (
-                                  <CalculationComponent
-                                    key={calculation.name}
-                                    isInitialCalculation={true}
-                                    questions={subcategory.questions
-                                      .filter(
-                                        (question) =>
-                                          !questionsToRemove.some(
-                                            (questionToRemove) =>
-                                              questionToRemove.id ===
-                                              question.id,
-                                          ),
-                                      )
-                                      .concat(
-                                        questionsToAdd.filter((question) => {
-                                          return (
-                                            question.subcategory?.id ===
-                                            subcategory.id
-                                          );
-                                        }),
-                                      )}
-                                    calculation={calculation}
-                                    removeCalculationToAdd={
-                                      removeCalculationToAdd
-                                    }
-                                    removeInitialCalculation={
-                                      removeInitialCalculation
-                                    }
-                                    handleUpdateCalculationToAdd={
-                                      handleUpdateCalculationToAdd
-                                    }
-                                    handleUpdateInitialCalculation={
-                                      handleUpdateInitialCalculation
-                                    }
-                                  />
-                                );
-                              })}
-                          </ul>
-                          <ul>
-                            {calculationsToAdd
-                              .filter(
-                                (calculation) =>
-                                  calculation.subcategory?.id ===
-                                  subcategory.id,
-                              )
-                              .map((calculation) => {
-                                return (
-                                  <CalculationComponent
-                                    key={calculation.name}
-                                    isInitialCalculation={false}
-                                    questions={subcategory.questions
-                                      .filter(
-                                        (question) =>
-                                          !questionsToRemove.some(
-                                            (questionToRemove) =>
-                                              questionToRemove.id ===
-                                              question.id,
-                                          ),
-                                      )
-                                      .concat(
-                                        questionsToAdd.filter((question) => {
-                                          return (
-                                            question.subcategory?.id ===
-                                            subcategory.id
-                                          );
-                                        }),
-                                      )}
-                                    calculation={calculation}
-                                    removeCalculationToAdd={
-                                      removeCalculationToAdd
-                                    }
-                                    removeInitialCalculation={
-                                      removeInitialCalculation
-                                    }
-                                    handleUpdateCalculationToAdd={
-                                      handleUpdateCalculationToAdd
-                                    }
-                                    handleUpdateInitialCalculation={
-                                      handleUpdateInitialCalculation
-                                    }
-                                  />
-                                );
-                              })}
-                          </ul>
+                            ).length > 0) && (
+                            <div className="rounded-md bg-gray-600 p-1 shadow-sm">
+                              <h6>Calculos</h6>
+                              <ul>
+                                {initialCalculations
+                                  .filter(
+                                    (calculation) =>
+                                      calculation.subcategory?.id ===
+                                      subcategory.id,
+                                  )
+                                  .map((calculation) => {
+                                    return (
+                                      <CalculationComponent
+                                        key={calculation.name}
+                                        isInitialCalculation={true}
+                                        questions={subcategory.questions
+                                          .filter(
+                                            (question) =>
+                                              !questionsToRemove.some(
+                                                (questionToRemove) =>
+                                                  questionToRemove.id ===
+                                                  question.id,
+                                              ),
+                                          )
+                                          .concat(
+                                            questionsToAdd.filter(
+                                              (question) => {
+                                                return (
+                                                  question.subcategory?.id ===
+                                                  subcategory.id
+                                                );
+                                              },
+                                            ),
+                                          )}
+                                        calculation={calculation}
+                                        removeCalculationToAdd={
+                                          removeCalculationToAdd
+                                        }
+                                        removeInitialCalculation={
+                                          removeInitialCalculation
+                                        }
+                                        handleUpdateCalculationToAdd={
+                                          handleUpdateCalculationToAdd
+                                        }
+                                        handleUpdateInitialCalculation={
+                                          handleUpdateInitialCalculation
+                                        }
+                                      />
+                                    );
+                                  })}
+                              </ul>
+                              <ul>
+                                {calculationsToAdd
+                                  .filter(
+                                    (calculation) =>
+                                      calculation.subcategory?.id ===
+                                      subcategory.id,
+                                  )
+                                  .map((calculation) => {
+                                    return (
+                                      <CalculationComponent
+                                        key={calculation.name}
+                                        isInitialCalculation={false}
+                                        questions={subcategory.questions
+                                          .filter(
+                                            (question) =>
+                                              !questionsToRemove.some(
+                                                (questionToRemove) =>
+                                                  questionToRemove.id ===
+                                                  question.id,
+                                              ),
+                                          )
+                                          .concat(
+                                            questionsToAdd.filter(
+                                              (question) => {
+                                                return (
+                                                  question.subcategory?.id ===
+                                                  subcategory.id
+                                                );
+                                              },
+                                            ),
+                                          )}
+                                        calculation={calculation}
+                                        removeCalculationToAdd={
+                                          removeCalculationToAdd
+                                        }
+                                        removeInitialCalculation={
+                                          removeInitialCalculation
+                                        }
+                                        handleUpdateCalculationToAdd={
+                                          handleUpdateCalculationToAdd
+                                        }
+                                        handleUpdateInitialCalculation={
+                                          handleUpdateInitialCalculation
+                                        }
+                                      />
+                                    );
+                                  })}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -804,38 +825,45 @@ const FormUpdater = ({
                     (calculation) =>
                       calculation.category.id === category.id &&
                       !calculation.subcategory,
-                  ).length > 0 && <h6>Calculos</h6>}
-                  <ul>
-                    {calculationsToAdd
-                      .filter(
-                        (calculation) =>
-                          calculation.category.id === category.id &&
-                          !calculation.subcategory,
-                      )
-                      .map((calculation) => {
-                        return (
-                          <CalculationComponent
-                            key={calculation.name}
-                            isInitialCalculation={false}
-                            questions={questionsToAdd.filter((question) => {
-                              return (
-                                question.category.id === category.id &&
-                                !question.subcategory
-                              );
-                            })}
-                            calculation={calculation}
-                            removeCalculationToAdd={removeCalculationToAdd}
-                            removeInitialCalculation={removeInitialCalculation}
-                            handleUpdateCalculationToAdd={
-                              handleUpdateCalculationToAdd
-                            }
-                            handleUpdateInitialCalculation={
-                              handleUpdateInitialCalculation
-                            }
-                          />
-                        );
-                      })}
-                  </ul>
+                  ).length > 0 && (
+                    <div className="rounded-md bg-gray-600 p-1 shadow-sm">
+                      <h6>Calculos</h6>
+                      <ul>
+                        {calculationsToAdd
+                          .filter(
+                            (calculation) =>
+                              calculation.category.id === category.id &&
+                              !calculation.subcategory,
+                          )
+                          .map((calculation) => {
+                            return (
+                              <CalculationComponent
+                                key={calculation.name}
+                                isInitialCalculation={false}
+                                questions={questionsToAdd.filter((question) => {
+                                  return (
+                                    question.category.id === category.id &&
+                                    !question.subcategory
+                                  );
+                                })}
+                                calculation={calculation}
+                                removeCalculationToAdd={removeCalculationToAdd}
+                                removeInitialCalculation={
+                                  removeInitialCalculation
+                                }
+                                handleUpdateCalculationToAdd={
+                                  handleUpdateCalculationToAdd
+                                }
+                                handleUpdateInitialCalculation={
+                                  handleUpdateInitialCalculation
+                                }
+                              />
+                            );
+                          })}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-1">
                     {category.subcategories.map((subcategory) => {
                       return (
@@ -899,44 +927,48 @@ const FormUpdater = ({
                           {calculationsToAdd.filter(
                             (calculation) =>
                               calculation.subcategory?.id === subcategory.id,
-                          ).length > 0 && <h6>Calculos</h6>}
-                          <ul>
-                            {calculationsToAdd
-                              .filter(
-                                (calculation) =>
-                                  calculation.subcategory?.id ===
-                                  subcategory.id,
-                              )
-                              .map((calculation) => {
-                                return (
-                                  <CalculationComponent
-                                    key={calculation.name}
-                                    isInitialCalculation={false}
-                                    questions={questionsToAdd.filter(
-                                      (question) => {
-                                        return (
-                                          question.subcategory?.id ===
-                                          subcategory.id
-                                        );
-                                      },
-                                    )}
-                                    calculation={calculation}
-                                    removeCalculationToAdd={
-                                      removeCalculationToAdd
-                                    }
-                                    removeInitialCalculation={
-                                      removeInitialCalculation
-                                    }
-                                    handleUpdateCalculationToAdd={
-                                      handleUpdateCalculationToAdd
-                                    }
-                                    handleUpdateInitialCalculation={
-                                      handleUpdateInitialCalculation
-                                    }
-                                  />
-                                );
-                              })}
-                          </ul>
+                          ).length > 0 && (
+                            <div className="rounded-md bg-gray-600 p-1 shadow-sm">
+                              <h6>Calculos</h6>
+                              <ul>
+                                {calculationsToAdd
+                                  .filter(
+                                    (calculation) =>
+                                      calculation.subcategory?.id ===
+                                      subcategory.id,
+                                  )
+                                  .map((calculation) => {
+                                    return (
+                                      <CalculationComponent
+                                        key={calculation.name}
+                                        isInitialCalculation={false}
+                                        questions={questionsToAdd.filter(
+                                          (question) => {
+                                            return (
+                                              question.subcategory?.id ===
+                                              subcategory.id
+                                            );
+                                          },
+                                        )}
+                                        calculation={calculation}
+                                        removeCalculationToAdd={
+                                          removeCalculationToAdd
+                                        }
+                                        removeInitialCalculation={
+                                          removeInitialCalculation
+                                        }
+                                        handleUpdateCalculationToAdd={
+                                          handleUpdateCalculationToAdd
+                                        }
+                                        handleUpdateInitialCalculation={
+                                          handleUpdateInitialCalculation
+                                        }
+                                      />
+                                    );
+                                  })}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
