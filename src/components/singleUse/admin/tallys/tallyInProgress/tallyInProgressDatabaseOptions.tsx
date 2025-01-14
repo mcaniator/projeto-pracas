@@ -11,6 +11,8 @@ import { WeatherConditions } from "@prisma/client";
 import { useRef, useState } from "react";
 import React from "react";
 
+import { SubmittingObj } from "./tallyInProgressPage";
+
 interface WeatherStats {
   temperature: number | null;
   weather: WeatherConditions;
@@ -22,11 +24,7 @@ interface ComplementaryDataObject {
   animalsAmount: number;
   groupsAmount: number;
 }
-interface SubmittingObj {
-  submitting: boolean;
-  finishing: boolean;
-  deleting: boolean;
-}
+
 type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const TallyInProgressDatabaseOptions = ({
   tallyId,
