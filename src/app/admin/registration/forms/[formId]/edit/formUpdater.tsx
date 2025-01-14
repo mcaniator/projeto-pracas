@@ -366,7 +366,7 @@ const FormUpdater = ({
             />
           )}
           <div>Perguntas nesse formulário:</div>
-          <div className="flex flex-col gap-3 overflow-x-auto">
+          <div className="flex flex-col gap-3">
             {categories.map((category) => {
               return (
                 <div
@@ -375,7 +375,7 @@ const FormUpdater = ({
                 >
                   <div className="flex gap-2">
                     <h4 className="text-lx sm:text-2xl">{category.name}</h4>
-                    <span className="ml-auto px-3">
+                    <span className="ml-auto">
                       <CalculationCreationModal
                         addCalculationToAdd={addCalculationToAdd}
                         category={{ id: category.id, name: category.name }}
@@ -573,8 +573,10 @@ const FormUpdater = ({
                           key={subcategory.id}
                         >
                           <div className="flex gap-2">
-                            <h5 className="text-xl">{subcategory.name}</h5>
-                            <span className="ml-auto px-3">
+                            <h5 className="break-words text-xl">
+                              {subcategory.name}
+                            </h5>
+                            <span className="ml-auto">
                               <CalculationCreationModal
                                 addCalculationToAdd={addCalculationToAdd}
                                 category={{
@@ -790,7 +792,7 @@ const FormUpdater = ({
                     >
                       {category.name}
                     </h4>
-                    <span className="ml-auto px-3">
+                    <span className="ml-auto">
                       <CalculationCreationModal
                         addCalculationToAdd={addCalculationToAdd}
                         category={{ id: category.id, name: category.name }}
@@ -884,7 +886,7 @@ const FormUpdater = ({
                             <h5 className="text-xl text-blue-200">
                               {subcategory.name}
                             </h5>
-                            <span className="ml-auto px-3">
+                            <span className="ml-auto">
                               <CalculationCreationModal
                                 addCalculationToAdd={addCalculationToAdd}
                                 category={{
