@@ -163,7 +163,7 @@ const FormUpdater = ({
       subcategories: { id: number; name: string }[];
     }
   >();
-  console.log(calculationsToAdd);
+
   form.questions.forEach((question) => {
     if (!initialCategoriesMap.has(question.category.id)) {
       initialCategoriesMap.set(question.category.id, {
@@ -466,7 +466,7 @@ const FormUpdater = ({
                     ).length > 0) && (
                     <div className="rounded-md bg-gray-600 p-1 shadow-sm">
                       <h6>Calculos</h6>
-                      <ul className="flex flex-col gap-1">
+                      <ul className="mb-1 flex flex-col gap-1">
                         {initialCalculations
                           .filter(
                             (calculation) =>
@@ -672,7 +672,7 @@ const FormUpdater = ({
                             ).length > 0) && (
                             <div className="rounded-md bg-gray-600 p-1 shadow-sm">
                               <h6>Calculos</h6>
-                              <ul className="flex flex-col gap-1">
+                              <ul className="mb-1 flex flex-col gap-1">
                                 {initialCalculations
                                   .filter(
                                     (calculation) =>
