@@ -284,10 +284,11 @@ const TallyInProgressPage = ({
             <div className="flex flex-col">
               <h4 className="text-2xl font-semibold">Pessoas</h4>
               <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 rounded-md bg-blue-800/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Homens</h5>
-                  <div>
-                    <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+
+                  <div className="flex w-full items-center justify-center">
+                    <div className="inline-flex w-auto flex-col gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner sm:flex-row">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -327,7 +328,7 @@ const TallyInProgressPage = ({
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-2 py-1">
+                  <div className="flex flex-wrap justify-center gap-2 py-1">
                     <Checkbox
                       onChange={(e) =>
                         setPersonCharacteristics((prev) => ({
@@ -385,7 +386,7 @@ const TallyInProgressPage = ({
                       Situação de rua
                     </Checkbox>
                   </div>
-                  <div className="flex flex-row gap-5">
+                  <div className="flex flex-wrap justify-center gap-5">
                     <div className="flex flex-col items-center">
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
@@ -525,10 +526,10 @@ const TallyInProgressPage = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 rounded-md bg-red-900/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Mulheres</h5>
-                  <div>
-                    <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                  <div className="flex w-full items-center justify-center">
+                    <div className="inline-flex w-auto flex-col gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner sm:flex-row">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -568,7 +569,7 @@ const TallyInProgressPage = ({
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-2 py-1">
+                  <div className="flex flex-wrap justify-center gap-2 py-1">
                     <Checkbox
                       onChange={(e) =>
                         setPersonCharacteristics((prev) => ({
@@ -626,7 +627,7 @@ const TallyInProgressPage = ({
                       Situação de rua
                     </Checkbox>
                   </div>
-                  <div className="flex flex-row gap-5">
+                  <div className="flex flex-wrap justify-center gap-5">
                     <div className="flex flex-col items-center">
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
@@ -773,7 +774,7 @@ const TallyInProgressPage = ({
             <div className="flex flex-col">
               <h4 className="text-2xl font-semibold">Dados complementares</h4>
               <div className="flex flex-col gap-5">
-                <div className="flex flex-row gap-5">
+                <div className="flex flex-wrap justify-center gap-5">
                   <div className="flex flex-col items-center">
                     <h6 className="text-xl font-semibold">Pets</h6>
                     <div className="flex flex-row items-center gap-1">
@@ -845,7 +846,7 @@ const TallyInProgressPage = ({
                   <h4 className="text-xl font-semibold">
                     Atividades comerciais itinerantes
                   </h4>
-                  <div className="flex flex-row items-center gap-3">
+                  <div className="flex flex-row items-center justify-center gap-3">
                     <div>
                       <Select
                         onChange={(e) =>
