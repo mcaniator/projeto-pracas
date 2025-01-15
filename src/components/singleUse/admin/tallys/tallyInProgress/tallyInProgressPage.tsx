@@ -224,9 +224,9 @@ const TallyInProgressPage = ({
     return count;
   };
   return (
-    <div className="flex max-h-full min-h-0 w-full gap-5 lg:w-fit lg:p-5">
+    <div className="flex h-full max-h-full min-h-0 w-full">
       <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className="flex w-full flex-col">
+        <div className="flex basis-2/3 flex-col">
           <h3 className="text-2xl font-semibold">
             Contagem em {tally?.location.name}
           </h3>
@@ -980,7 +980,7 @@ const TallyInProgressPage = ({
             </div>
           </div>
         </div>
-        <div className="hidden rounded-3xl bg-gray-400/20 shadow-inner lg:block">
+        <div className="hidden basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner lg:block">
           <TallyInProgressReview
             submittingObj={submittingObj}
             tallyId={tallyId}
