@@ -14,6 +14,7 @@ import { useDeferredValue, useState } from "react";
 import React from "react";
 
 import TallyInProgressReview from "./tallyInProgressReview";
+import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
 
 interface CommercialActivitiesObject {
   [key: string]: number;
@@ -226,10 +227,16 @@ const TallyInProgressPage = ({
   return (
     <div className="flex h-full max-h-full min-h-0 w-full">
       <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className="flex basis-2/3 flex-col">
-          <h3 className="text-2xl font-semibold">
-            Contagem em {tally?.location.name}
-          </h3>
+        <div className="flex basis-full flex-col xl:basis-2/3">
+          <div className="flex">
+            <h3 className="inline text-2xl font-semibold">
+              Contagem em {tally?.location.name}
+            </h3>
+            <div className="ml-auto block xl:hidden">
+              <TallyInProgressReviewModal />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-5 overflow-auto">
             <div className="flex flex-col gap-1">
               <h4 className="text-2xl font-semibold">Dados climáticos</h4>
@@ -980,7 +987,7 @@ const TallyInProgressPage = ({
             </div>
           </div>
         </div>
-        <div className="hidden basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner lg:block">
+        <div className="hidden basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner xl:block">
           <TallyInProgressReview
             submittingObj={submittingObj}
             tallyId={tallyId}
