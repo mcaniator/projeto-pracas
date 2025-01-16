@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 import { IconSelector } from "@tabler/icons-react";
-import { SelectHTMLAttributes } from "react";
+import React, { ReactElement, SelectHTMLAttributes } from "react";
 
 interface selectProps extends SelectHTMLAttributes<HTMLSelectElement> {}
 const Select = ({ ...props }: selectProps) => {
@@ -17,7 +17,15 @@ const Select = ({ ...props }: selectProps) => {
         )}
         {...props}
       >
-        {children}
+        {React.Children.map(children, (child) => {
+          if (React.isValidElement(child) && child.type === "option") {
+            const optionChild = child as ReactElement<HTMLOptionElement>;
+            return React.cloneElement(optionChild, {
+              className: `${optionChild.props.className || ""} text-black`,
+            });
+          }
+          return child;
+        })}
       </select>
       <div className={"pointer-events-none relative -ml-7 flex items-center"}>
         <IconSelector className={"absolute"} />
