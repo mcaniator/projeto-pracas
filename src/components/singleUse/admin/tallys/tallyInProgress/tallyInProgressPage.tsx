@@ -997,7 +997,7 @@ const TallyInProgressPage = ({
             </div>
           </div>
         </div>
-        <div className="hidden basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner xl:block">
+        <div className="hidden min-w-[525px] basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner xl:block">
           <TallyInProgressReview
             submittingObj={submittingObj}
             tallyId={tallyId}

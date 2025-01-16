@@ -11,6 +11,7 @@ import { WeatherConditions } from "@prisma/client";
 import { useRef, useState } from "react";
 import React from "react";
 
+import LoadingIcon from "../../../../LoadingIcon";
 import { SubmittingObj } from "./tallyInProgressPage";
 
 interface WeatherStats {
@@ -85,21 +86,22 @@ const TallyInProgressDatabaseOptions = ({
     <div className="flex flex-col gap-3 overflow-auto py-1">
       <div>
         <h5 className="text-xl font-semibold">Salvar dados</h5>
-        <Button
-          isDisabled={submittingObj.submitting}
-          onPress={() => {
-            handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
-          }}
-          variant={"secondary"}
-        >
-          {(
-            submittingObj.submitting &&
-            !submittingObj.finishing &&
-            !submittingObj.deleting
-          ) ?
-            "Salvando..."
-          : "Salvar"}
-        </Button>
+        {(
+          submittingObj.submitting &&
+          !submittingObj.finishing &&
+          !submittingObj.deleting
+        ) ?
+          <LoadingIcon className="h-32 w-32" />
+        : <Button
+            isDisabled={submittingObj.submitting}
+            onPress={() => {
+              handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
+            }}
+            variant={"secondary"}
+          >
+            Salvar
+          </Button>
+        }
       </div>
       <div>
         <h5 className="text-xl font-semibold">Finalizar contagem</h5>
@@ -122,21 +124,25 @@ const TallyInProgressDatabaseOptions = ({
               type="datetime-local"
             ></Input>
           </div>
-          <Button
-            className="w-48"
-            isDisabled={submittingObj.submitting}
-            variant={"constructive"}
-            onPress={() => {
-              if (!endDate.current || isNaN(endDate.current.getTime())) {
-                setValidEndDate(false);
-                return;
-              } else {
-                setSaveDeleteState("SAVE");
-              }
-            }}
-          >
-            {submittingObj.finishing ? "Salvando..." : "Salvar e finalizar"}
-          </Button>
+          {submittingObj.finishing ?
+            <LoadingIcon className="h-32 w-32" />
+          : <Button
+              className="w-48"
+              isDisabled={submittingObj.submitting}
+              variant={"constructive"}
+              onPress={() => {
+                if (!endDate.current || isNaN(endDate.current.getTime())) {
+                  setValidEndDate(false);
+                  return;
+                } else {
+                  setSaveDeleteState("SAVE");
+                }
+              }}
+            >
+              Salvar e finalizar
+            </Button>
+          }
+
           {saveDeleteState === "SAVE" && (
             <React.Fragment>
               <p>

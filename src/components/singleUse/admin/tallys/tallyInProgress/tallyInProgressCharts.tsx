@@ -240,10 +240,9 @@ const TallyInProgressCharts = ({
   return (
     <div
       style={{
-        width: `${isOnModal ? "full" : "30rem"}`,
         height: isOnModal ? "50vh" : "full",
       }}
-      className="flex flex-col overflow-auto"
+      className="flex w-full flex-col overflow-auto"
     >
       <Bar
         className="h-full"
