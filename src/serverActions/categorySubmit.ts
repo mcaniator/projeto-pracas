@@ -58,6 +58,7 @@ const deleteCategory = async (
     formsWithQuestions: {
       id: number;
       name: string;
+      version: number;
       questions: { id: number; name: string }[];
     }[];
     categoryName: string | null;
@@ -79,6 +80,7 @@ const deleteCategory = async (
           select: {
             id: true,
             name: true,
+            version: true,
           },
         },
       },
@@ -92,6 +94,7 @@ const deleteCategory = async (
             formEntry = {
               id: form.id,
               name: form.name,
+              version: form.version,
               questions: [],
             };
             acc.push(formEntry);
@@ -107,6 +110,7 @@ const deleteCategory = async (
       [] as {
         id: number;
         name: string;
+        version: number;
         questions: { id: number; name: string }[];
       }[],
     );
@@ -159,6 +163,7 @@ const deleteSubcategory = async (
     formsWithQuestions: {
       id: number;
       name: string;
+      version: number;
       questions: { id: number; name: string }[];
     }[];
     subcategoryName: string | null;
@@ -180,6 +185,7 @@ const deleteSubcategory = async (
           select: {
             id: true,
             name: true,
+            version: true,
           },
         },
       },
@@ -193,6 +199,7 @@ const deleteSubcategory = async (
             formEntry = {
               id: form.id,
               name: form.name,
+              version: form.version,
               questions: [],
             };
             acc.push(formEntry);
@@ -208,6 +215,7 @@ const deleteSubcategory = async (
       [] as {
         id: number;
         name: string;
+        version: number;
         questions: { id: number; name: string }[];
       }[],
     );

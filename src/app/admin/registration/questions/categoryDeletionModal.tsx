@@ -151,7 +151,7 @@ const CategoryDeletionModal = ({
                               {state?.content.formsWithQuestions.map((f) => {
                                 return (
                                   <li key={f.id}>
-                                    {f.name}
+                                    {`${f.name}, versão ${f.version}`}
                                     <ul className="list-inside list-disc pl-6 font-normal">
                                       {f.questions.map((q) => {
                                         return <li key={q.id}>{q.name}</li>;
