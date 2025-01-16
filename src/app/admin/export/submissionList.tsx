@@ -69,7 +69,7 @@ const SubmissionList = ({
   assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return assessments === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
-    : <div className="w-full overflow-auto p-2 text-black">
+    : <div className="w-full p-2 text-black">
         {assessments.map((assessment) => {
           const checked = selectedAssessments?.some(
             (selectedAssessment) => selectedAssessment.id === assessment.id,

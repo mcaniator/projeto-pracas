@@ -192,6 +192,17 @@ const EditPage = ({
     );
   }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);*/
 
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 360);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleTallyChange = (
     checked: boolean,
     value: number,
@@ -230,8 +241,9 @@ const EditPage = ({
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
   //console.log(selectedAssessments);
+
   return (
-    <div className="flex h-full flex-col gap-1 overflow-auto">
+    <div className="flex h-full flex-col gap-1">
       <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
       <div className="flex flex-row items-center gap-1">
         <Checkbox
@@ -287,15 +299,20 @@ const EditPage = ({
       <div className="my-2 mt-auto flex flex-row gap-1">
         <div className="flex flex-col gap-1">
           <Button
+            className="text-xs sm:text-base"
             onPress={() => {
               handlePageStateChange(undefined, "HOME");
             }}
           >
-            <IconArrowBackUpDouble size={24} />
+            <IconArrowBackUpDouble
+              className="h-4 w-4 sm:h-6 sm:w-6"
+              size={24}
+            />
             Voltar às praças
           </Button>
 
           <Button
+            className="text-sm sm:text-base"
             onPress={() => {
               if (currentLocationId) {
                 handleSelectedLocationsSaveChange(currentLocationId, true);
@@ -309,13 +326,13 @@ const EditPage = ({
             }}
             variant={"constructive"}
           >
-            <IconDeviceFloppy size={24} />
+            <IconDeviceFloppy className="h-4 w-4 sm:h-6 sm:w-6" size={24} />
             Salvar
           </Button>
         </div>
         <div className={"flex flex-col gap-1"}>
           <Button
-            className={
+            className={`text-sm sm:text-base ${
               (
                 selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
@@ -323,7 +340,7 @@ const EditPage = ({
               ) ?
                 "opacity-0"
               : ""
-            }
+            }`}
             onPress={() => goToPreviousLocation(false)}
             isDisabled={
               selectedLocationsObjs.findIndex(
@@ -331,10 +348,11 @@ const EditPage = ({
               ) === 0
             }
           >
-            <IconArrowBackUp /> Praça anteterior
+            <IconArrowBackUp className="h-4 w-4 sm:h-6 sm:w-6" />
+            {!isSmallScreen && "Praça anterior"}
           </Button>
           <Button
-            className={
+            className={`text-sm sm:text-base ${
               (
                 selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
@@ -342,7 +360,7 @@ const EditPage = ({
               ) ?
                 "opacity-0"
               : ""
-            }
+            }`}
             onPress={() => goToPreviousLocation(true)}
             isDisabled={
               selectedLocationsObjs.findIndex(
@@ -351,13 +369,14 @@ const EditPage = ({
             }
             variant={"constructive"}
           >
-            <IconDeviceFloppy /> + <IconArrowBackUp />
+            <IconDeviceFloppy className="h-4 w-4 sm:h-6 sm:w-6" /> +{" "}
+            <IconArrowBackUp className="h-4 w-4 sm:h-6 sm:w-6" />
           </Button>
         </div>
         <div className="flex flex-col gap-1">
           <Button
             onPress={() => goToNextLocation(false)}
-            className={
+            className={`text-sm sm:text-base ${
               (
                 selectedLocationsObjs.findIndex(
                   (location) => location.id === currentLocationId,
@@ -366,11 +385,13 @@ const EditPage = ({
               ) ?
                 "opacity-0"
               : ""
-            }
+            }`}
           >
-            Próxima praça <IconArrowForwardUp />
+            {!isSmallScreen && "Próxima praça"}{" "}
+            <IconArrowForwardUp className="h-4 w-4 sm:h-6 sm:w-6" />
           </Button>
           <Button
+            className="text-sm sm:text-base"
             onPress={() => {
               if (
                 selectedLocationsObjs.findIndex(
@@ -400,10 +421,12 @@ const EditPage = ({
               selectedLocationsObjs.length - 1
             ) ?
               <React.Fragment>
-                <IconDeviceFloppy /> + <IconArrowBackUpDouble />
+                <IconDeviceFloppy className="h-4 w-4 sm:h-6 sm:w-6" /> +{" "}
+                <IconArrowBackUpDouble className="h-4 w-4 sm:h-6 sm:w-6" />
               </React.Fragment>
             : <React.Fragment>
-                <IconDeviceFloppy /> + <IconArrowForwardUp />
+                <IconDeviceFloppy className="h-4 w-4 sm:h-6 sm:w-6" /> +{" "}
+                <IconArrowForwardUp className="h-4 w-4 sm:h-6 sm:w-6" />
               </React.Fragment>
             }
           </Button>

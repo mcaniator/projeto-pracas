@@ -186,6 +186,7 @@ const SelectedParks = ({
           )}
         <Button
           isDisabled={loadingExport.registrationsData}
+          className="h-fit"
           onPress={() => {
             if (
               selectedLocationsSaved.filter((location) => !location.saved)
@@ -203,6 +204,7 @@ const SelectedParks = ({
           : "Exportar dados de cadastro"}
         </Button>
         <Button
+          className="h-fit"
           isDisabled={loadingExport.evaluations}
           onPress={() => {
             if (
@@ -221,6 +223,7 @@ const SelectedParks = ({
           : "Exportar avaliações físicas"}
         </Button>
         <Button
+          className="h-fit"
           isDisabled={loadingExport.tallys}
           onPress={() => {
             if (
