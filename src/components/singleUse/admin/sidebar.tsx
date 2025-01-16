@@ -12,6 +12,7 @@ import {
   IconMail,
   IconMapSearch,
   IconMenu2,
+  IconTableExport,
   IconUserCog,
   IconX,
 } from "@tabler/icons-react";
@@ -35,6 +36,11 @@ const Sidebar = () => {
       name: "Formulários",
       path: "/admin/registration",
     },
+    {
+      icon: <IconTableExport size={34} />,
+      name: "Exportar",
+      path: "/admin/export",
+    },
   ];
 
   return (
@@ -48,7 +54,7 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-64 bg-gray-800 p-5 text-xl text-white shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-50 flex h-full w-64 flex-col bg-gray-800 p-5 text-xl text-white shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}
