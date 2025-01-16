@@ -6,6 +6,7 @@ import {
   SelectedLocationSavedObj,
 } from "./client";
 import { ParkSearch } from "./parkSearch";
+import { ParkSearchModal } from "./parkSearchModal";
 import SelectedParks from "./selectedParks";
 
 const ExportHome = ({
@@ -36,8 +37,15 @@ const ExportHome = ({
         />
       </div>
 
-      <div className="flex w-full flex-col overflow-auto p-0 text-white sm:bg-gray-400/20 lg:w-fit lg:rounded-3xl lg:p-3 lg:shadow-inner">
+      <div className="flex w-full flex-col gap-2 overflow-auto p-0 text-white sm:bg-gray-400/20 lg:w-fit lg:rounded-3xl lg:p-3 lg:shadow-inner">
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
+        <div className="inline lg:hidden">
+          <ParkSearchModal
+            locations={locations}
+            selectedLocationsObjs={selectedLocationsObjs}
+            handleSelectedLocationsAddition={handleSelectedLocationsAddition}
+          />
+        </div>
         <SelectedParks
           locations={locations}
           selectedLocationsObjs={selectedLocationsObjs}
