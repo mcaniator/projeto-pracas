@@ -106,7 +106,7 @@ const ResponseComponent = ({
   const categories = Array.from(categoriesMap.values());
 
   return (
-    <div className={"flex h-full min-h-0 flex-grow gap-5 overflow-auto p-5"}>
+    <div className={"flex h-full min-h-0 flex-grow gap-5 overflow-auto"}>
       <div className="flex h-full w-full flex-col gap-5 overflow-auto text-white">
         <ResponseForm
           userId={userId}

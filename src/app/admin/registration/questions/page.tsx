@@ -130,7 +130,7 @@ const QuestionsPage = () => {
   return (
     <div
       className={
-        "flex min-h-0 w-full flex-grow flex-col gap-5 overflow-auto p-5 text-white"
+        "flex min-h-0 w-full flex-grow flex-col gap-5 overflow-auto text-white"
       }
     >
       <div

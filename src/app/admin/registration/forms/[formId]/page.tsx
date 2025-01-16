@@ -89,85 +89,82 @@ const Page = async ({ params }: { params: { formId: string } }) => {
 
   if (form != null && form != undefined)
     return (
-      <div className="overflow-auto">
-        <div className={"flex min-h-0 flex-grow gap-5 p-5"}>
-          <div className="flex w-full flex-col gap-5 text-white">
-            <div
-              className={
-                "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
-              }
-            >
-              <div className="flex flex-col sm:flex-row">
-                <h3 className={"w-full text-2xl font-semibold sm:text-3xl"}>
-                  {form?.name}
-                </h3>
-                <div className="flex gap-2 sm:w-full">
-                  <Link
-                    href={`/admin/registration/forms/${formIdNumber}/edit`}
-                    className="sm:ml-auto"
+      <div className={"flex min-h-0 flex-grow gap-5 overflow-auto"}>
+        <div className="flex w-full flex-col gap-5 text-white">
+          <div
+            className={
+              "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
+            }
+          >
+            <div className="flex flex-col sm:flex-row">
+              <h3 className={"w-full text-2xl font-semibold sm:text-3xl"}>
+                {form?.name}
+              </h3>
+              <div className="flex gap-2 sm:w-full">
+                <Link
+                  href={`/admin/registration/forms/${formIdNumber}/edit`}
+                  className="sm:ml-auto"
+                >
+                  <Button className="w-fit items-center p-2 text-sm sm:text-xl">
+                    Editar
+                  </Button>
+                </Link>
+                <FormVersionDeletionModal
+                  formId={form.id}
+                  formName={form.name}
+                  formVersion={form.version}
+                />
+              </div>
+            </div>
+            <span>Versão: {form?.version}</span>
+            <div>Perguntas do formulário:</div>
+            <div className="flex flex-col gap-3">
+              {categories.map((category) => {
+                return (
+                  <div
+                    key={category.id}
+                    className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-md"
                   >
-                    <Button className="w-fit items-center p-2 text-sm sm:text-xl">
-                      Editar
-                    </Button>
-                  </Link>
-                  <FormVersionDeletionModal
-                    formId={form.id}
-                    formName={form.name}
-                    formVersion={form.version}
-                  />
-                </div>
-              </div>
-              <span>Versão: {form?.version}</span>
-              <div>Perguntas do formulário:</div>
-              <div className="flex flex-col gap-3">
-                {categories.map((category) => {
-                  return (
-                    <div
-                      key={category.id}
-                      className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-md"
-                    >
-                      <h4 className="text-2xl">{category.name}</h4>
-                      <ul className="list-disc p-3">
-                        {category.questions.map((question) => (
-                          <li key={question.id} className="py-3">
-                            {question.name}
-                          </li>
-                        ))}
-                      </ul>
-                      <h6>{category.calculations.length > 0 && "Cálculos"}</h6>
-                      <ul className="list-disc px-8 py-3">
-                        {category.calculations.map((calculation) => (
-                          <li key={calculation.id}>{calculation.name}</li>
-                        ))}
-                      </ul>
-                      {category.subcategories.map((subcategory) => {
-                        return (
-                          <div
-                            key={subcategory.id}
-                            className="my-2 rounded-md bg-gray-500/40 p-2 shadow-inner"
-                          >
-                            <h5 className="text-xl">{subcategory.name}</h5>
-                            <ul className="list-disc p-3">
-                              {subcategory.questions.map((question) => (
-                                <li key={question.id}>{question.name}</li>
-                              ))}
-                            </ul>
-                            <h6>
-                              {subcategory.calculations.length > 0 &&
-                                "Cálculos"}
-                            </h6>
-                            <ul className="list-disc px-8 py-3">
-                              {subcategory.calculations.map((calculation) => (
-                                <li key={calculation.id}>{calculation.name}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
+                    <h4 className="text-2xl">{category.name}</h4>
+                    <ul className="list-disc p-3">
+                      {category.questions.map((question) => (
+                        <li key={question.id} className="py-3">
+                          {question.name}
+                        </li>
+                      ))}
+                    </ul>
+                    <h6>{category.calculations.length > 0 && "Cálculos"}</h6>
+                    <ul className="list-disc px-8 py-3">
+                      {category.calculations.map((calculation) => (
+                        <li key={calculation.id}>{calculation.name}</li>
+                      ))}
+                    </ul>
+                    {category.subcategories.map((subcategory) => {
+                      return (
+                        <div
+                          key={subcategory.id}
+                          className="my-2 rounded-md bg-gray-500/40 p-2 shadow-inner"
+                        >
+                          <h5 className="text-xl">{subcategory.name}</h5>
+                          <ul className="list-disc p-3">
+                            {subcategory.questions.map((question) => (
+                              <li key={question.id}>{question.name}</li>
+                            ))}
+                          </ul>
+                          <h6>
+                            {subcategory.calculations.length > 0 && "Cálculos"}
+                          </h6>
+                          <ul className="list-disc px-8 py-3">
+                            {subcategory.calculations.map((calculation) => (
+                              <li key={calculation.id}>{calculation.name}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -37,7 +37,7 @@ const ResponsesFetcher = async ({
         Respostas ao formulario {assessments[0]?.form.name} referentes a
         localidade {locationName}
       </h3>
-      <div className="flex h-full gap-5 overflow-auto p-5 text-white">
+      <div className="flex h-full gap-5 overflow-auto text-white">
         <FrequencyTable assessments={assessments} />
 
         <AssessmentsWithResponsesList

@@ -134,7 +134,7 @@ const QuestionForm = ({
   };
   // TODO: add error handling
   return (
-    <div className={"flex h-full flex-grow gap-5 overflow-auto p-5"}>
+    <div className={"flex h-full flex-grow gap-5 overflow-auto"}>
       <div className="flex basis-full flex-col gap-5 overflow-auto text-white">
         <div
           className={

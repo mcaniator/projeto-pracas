@@ -268,7 +268,7 @@ const Client = ({
               </div>
             </div>
           </div>
-        : <div className="grid h-full grid-cols-5 overflow-auto">
+        : <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
             <div
               className={`${isMobileView ? "col-span-5" : "col-span-3"} overflow-auto`}
             >

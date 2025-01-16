@@ -105,7 +105,7 @@ const AssessmentsListPage = ({
     setActiveAssessments(filteredAssessments);
   };
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
+    <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
       <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
           <h3 className={"text-2xl font-semibold"}>

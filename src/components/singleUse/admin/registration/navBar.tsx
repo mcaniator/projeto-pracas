@@ -7,7 +7,7 @@ const NavBar = () => {
   const isComponents = usePathname() == "/admin/registration/questions";
 
   return (
-    <div className={"flex gap-3 p-5 pb-0"}>
+    <div className={"flex gap-3 p-2"}>
       {isComponents ?
         <>
           <h2 className={"-mb-1 text-2xl font-bold text-white sm:text-3xl"}>

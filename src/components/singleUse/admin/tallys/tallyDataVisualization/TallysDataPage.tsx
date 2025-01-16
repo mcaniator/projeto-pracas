@@ -275,7 +275,7 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
-    <div className="flex max-h-full min-h-0 max-w-full gap-5 p-5">
+    <div className="flex max-h-full min-h-0 max-w-full gap-5">
       <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         <div className="flex flex-row gap-5 overflow-auto">

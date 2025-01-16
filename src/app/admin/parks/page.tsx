@@ -7,7 +7,7 @@ const AdminRoot = async () => {
   });
 
   return (
-    <div className={"flex min-h-0 max-w-full flex-grow gap-5 p-5"}>
+    <div className={"flex min-h-0 max-w-full flex-grow gap-5"}>
       <div className="flex max-w-full basis-full flex-col gap-5 text-white">
         <div
           className={

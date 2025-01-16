@@ -30,7 +30,7 @@ const AssessmentPage = async ({
   const formName =
     (await searchformNameById(Number(params.selectedFormId))) || "ERRO";
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
+    <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
       <div className="flex flex-col gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md lg:flex-row">
         <div className="flex-1">
           <h3 className={"text-2xl font-semibold"}>

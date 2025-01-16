@@ -294,7 +294,7 @@ const FormUpdater = ({
 
   // TODO: add error handling
   return (
-    <div className={"flex h-full min-h-0 flex-grow gap-5 p-5"}>
+    <div className={"flex h-full min-h-0 flex-grow gap-5"}>
       <div className="flex basis-full flex-col gap-5 overflow-x-auto text-white">
         <div
           className={
