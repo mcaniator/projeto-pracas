@@ -24,7 +24,7 @@ import { useActionState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
 const headerVariants = cva(
-  "flex w-full py-5 pl-14 pr-7 text-white transition-all",
+  "flex w-full py-1 pl-14 pr-7 text-white transition-all md:py-5",
   {
     variants: {
       variant: {
@@ -75,7 +75,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
           >
             {user !== null && user !== undefined ?
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline sm:text-3xl">
+                <span className="hidden text-3xl md:inline">
                   {user.username}
                 </span>
                 <span className="h-8 w-8 rounded-lg bg-off-white" />
