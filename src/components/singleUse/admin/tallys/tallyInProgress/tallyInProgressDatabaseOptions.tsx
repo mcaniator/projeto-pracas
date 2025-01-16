@@ -104,7 +104,7 @@ const TallyInProgressDatabaseOptions = ({
       <div>
         <h5 className="text-xl font-semibold">Finalizar contagem</h5>
         <div className="flex flex-col gap-2">
-          <div className="flex flex-row items-center gap-1">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
             <label htmlFor="end-date">Fim da contagem em:</label>
             <Input
               className={

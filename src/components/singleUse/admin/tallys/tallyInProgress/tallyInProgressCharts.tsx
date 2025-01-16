@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
@@ -102,23 +103,35 @@ const calculateBooleanCharacteristicsArray = (
 };
 const TallyInProgressCharts = ({
   tallyMap,
+  isOnModal,
 }: {
   tallyMap: Map<string, number>;
+  isOnModal: boolean;
 }) => {
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   const options = {
-    indexAxis: "y" as const,
+    indexAxis: `${isOnModal ? "x" : "y"}` as const,
     responsive: true,
     plugins: {
       legend: {
         position: "top" as const,
         labels: {
-          color: "white",
+          color: `${isOnModal ? "black" : "white"}`,
         },
       },
       title: {
         display: true,
         text: "Título",
-        color: "white",
+        color: `${isOnModal ? "black" : "white"}`,
         font: {
           size: 14,
         },
@@ -126,47 +139,51 @@ const TallyInProgressCharts = ({
       datalabels: {
         anchor: "end" as const,
         align: "left" as const,
-        color: "white",
+        color: `${isOnModal ? "black" : "white"}`,
+        font: {
+          size: 14,
+        },
       },
     },
     scales: {
       x: {
         beginAtZero: true,
         ticks: {
-          color: "white",
+          color: `${isOnModal ? "black" : "white"}`,
           precision: 0,
         },
         grid: {
-          color: "white",
+          color: `${isOnModal ? "black" : "white"}`,
         },
       },
       y: {
         stacked: false,
         ticks: {
-          color: "white",
+          color: `${isOnModal ? "black" : "white"}`,
           font: {
             size: 14,
           },
         },
         grid: {
-          color: "white",
+          color: `${isOnModal ? "black" : "white"}`,
         },
       },
     },
+    barThickness: isOnModal ? 10 : 20,
   };
 
   const activityData = {
     labels: ["Sedentários  ", "Caminhando  ", "Vigorosos  "],
     datasets: [
       {
-        label: "Homens",
+        label: screenWidth < 340 ? "H" : "Homens",
         data: calculateActivityArray(tallyMap, "MALE"),
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
-        label: "Mulheres",
+        label: screenWidth < 340 ? "M" : "Mulheres",
         data: calculateActivityArray(tallyMap, "FEMALE"),
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
@@ -179,14 +196,14 @@ const TallyInProgressCharts = ({
     labels: ["Crianças  ", "Jovens  ", "Adultos  ", "Idosos  "],
     datasets: [
       {
-        label: "Homens",
+        label: screenWidth < 340 ? "H" : "Homens",
         data: calculateAgeGroupArray(tallyMap, "MALE"),
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
-        label: "Mulheres",
+        label: screenWidth < 340 ? "M" : "Mulheres",
         data: calculateAgeGroupArray(tallyMap, "FEMALE"),
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
@@ -205,14 +222,14 @@ const TallyInProgressCharts = ({
     ],
     datasets: [
       {
-        label: "Homens",
+        label: screenWidth < 340 ? "H" : "Homens",
         data: calculateBooleanCharacteristicsArray(tallyMap, "MALE"),
         backgroundColor: "rgba(79,109,255,255)",
         borderColor: "rgba(79,109,162,255)",
         borderWidth: 1,
       },
       {
-        label: "Mulheres",
+        label: screenWidth < 340 ? "M" : "Mulheres",
         data: calculateBooleanCharacteristicsArray(tallyMap, "FEMALE"),
         backgroundColor: "rgba(255,67,78,255)",
         borderColor: "rgba(155,67,78,255)",
@@ -221,11 +238,19 @@ const TallyInProgressCharts = ({
     ],
   };
   return (
-    <div style={{ width: "30rem" }} className="flex flex-col overflow-auto">
+    <div
+      style={{
+        width: `${isOnModal ? "full" : "30rem"}`,
+        height: isOnModal ? "50vh" : "full",
+      }}
+      className="flex flex-col overflow-auto"
+    >
       <Bar
+        className="h-full"
         data={activityData}
         options={{
           ...options,
+          maintainAspectRatio: false,
           plugins: {
             ...options.plugins,
             title: { ...options.plugins.title, text: "Atividades físicas" },
@@ -233,9 +258,11 @@ const TallyInProgressCharts = ({
         }}
       />
       <Bar
+        className="h-full"
         data={ageGroupData}
         options={{
           ...options,
+          maintainAspectRatio: false,
           plugins: {
             ...options.plugins,
             title: { ...options.plugins.title, text: "Faixa etária" },
@@ -246,6 +273,7 @@ const TallyInProgressCharts = ({
         data={booleanCharacteristicsData}
         options={{
           ...options,
+          maintainAspectRatio: false,
           plugins: {
             ...options.plugins,
             title: {

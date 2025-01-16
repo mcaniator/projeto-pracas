@@ -233,7 +233,17 @@ const TallyInProgressPage = ({
               Contagem em {tally?.location.name}
             </h3>
             <div className="ml-auto block xl:hidden">
-              <TallyInProgressReviewModal />
+              <TallyInProgressReviewModal
+                submittingObj={submittingObj}
+                tallyId={tallyId}
+                locationId={locationId}
+                tally={tally}
+                weatherStats={weatherStats}
+                complementaryData={complementaryData}
+                commercialActivities={commercialActivities}
+                tallyMap={tallyMap}
+                setSubmittingObj={setSubmittingObj}
+              />
             </div>
           </div>
 

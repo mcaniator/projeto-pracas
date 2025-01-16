@@ -50,7 +50,7 @@ const TallyInProgressReview = ({
   const [assistBarState, setAssistBarState] =
     useState<AssistBarStates>("TEXTUAL_DATA");
   return (
-    <div className="flex flex-col gap-1 overflow-auto p-3 text-white">
+    <div className="flex h-full flex-col gap-1 p-3 text-white">
       <h4 className="text-xl font-semibold">Acompanhamento</h4>
       <div>
         <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
@@ -92,7 +92,7 @@ const TallyInProgressReview = ({
         />
       )}
       {assistBarState === "CHARTS" && (
-        <TallyInProgressCharts tallyMap={tallyMap} />
+        <TallyInProgressCharts tallyMap={tallyMap} isOnModal={false} />
       )}
       {assistBarState === "SAVE_DELETE" && (
         <TallyInProgressDatabaseOptions
@@ -111,3 +111,5 @@ const TallyInProgressReview = ({
 };
 
 export default TallyInProgressReview;
+export { weatherNameMap };
+export { type AssistBarStates };
