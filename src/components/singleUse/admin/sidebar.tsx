@@ -74,7 +74,7 @@ const Sidebar = () => {
                 use={"link"}
                 className={cn(
                   currentLocation.startsWith(element.path) &&
-                    "bg-transparent/5",
+                    "bg-transparent/50",
                   "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
                 )}
               >
