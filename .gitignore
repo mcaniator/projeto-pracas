@@ -143,3 +143,10 @@ typings/
 
 # typescript
 ../../next-env.d.ts
+
+# nixos
+.envrc
+.direnv/
+
+# database
+/prisma.migrations/

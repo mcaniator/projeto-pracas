@@ -6,18 +6,24 @@ import { revalidateTag, unstable_cache } from "next/cache";
 const fetchPolygons = async () => {
   const cached = unstable_cache(
     async () => {
-      let polygons = await prisma.$queryRaw<
-        { st_asgeojson: string; id: number }[]
-      >`
-      SELECT st_asgeojson(polygon), id
-      FROM location;
-      `;
+      try {
+        const result = await prisma.$queryRaw<
+          Array<{ st_asgeojson: string; id: number }>
+        >`
+          SELECT 
+            id,
+            ST_AsGeoJSON(polygon)::text as st_asgeojson
+          FROM location 
+          WHERE polygon IS NOT NULL;
+        `;
 
-      polygons = polygons.filter((polygon) => polygon.st_asgeojson !== null);
-
-      return polygons;
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error("Erro ao buscar polígonos:", error);
+        return [];
+      }
     },
-    ["fetchsPolygons"],
+    ["fetchPolygons"],
     { tags: ["location", "database"] },
   );
 
@@ -27,21 +33,26 @@ const fetchPolygons = async () => {
 const fetchSpecificPolygon = async (id: number) => {
   const cached = unstable_cache(
     async () => {
-      const polygon = await prisma.$queryRaw<
-        {
-          st_asgeojson: string;
-          id: number;
-        }[]
-      >`
-        SELECT st_asgeojson(polygon), id
-        FROM location
-        WHERE id = ${id}`;
+      try {
+        if (!id) return null;
 
-      if (polygon.length === 1) return polygon;
-      else return null;
+        const result = await prisma.$queryRaw<
+          Array<{ st_asgeojson: string; id: number }>
+        >`
+          SELECT 
+            id,
+            ST_AsGeoJSON(polygon)::text as st_asgeojson
+          FROM location 
+          WHERE id = ${id} AND polygon IS NOT NULL;
+        `;
+
+        return Array.isArray(result) && result.length > 0 ? result : null;
+      } catch (error) {
+        console.error("Erro ao buscar polígono específico:", error);
+        return null;
+      }
     },
-
-    ["fetchsSpecificPolygon"],
+    ["fetchSpecificPolygon", id.toString()],
     { tags: ["location", "database"] },
   );
 
@@ -49,30 +60,66 @@ const fetchSpecificPolygon = async (id: number) => {
 };
 
 const addPolygon = async (featuresGeoJson: string, id: number) => {
-  await prisma.$executeRaw`
-    UPDATE location
-    SET polygon = st_geomfromgeojson(${featuresGeoJson})
-    WHERE id = ${id};`;
+  try {
+    if (!featuresGeoJson || !id) {
+      throw new Error("featuresGeoJson e id são obrigatórios");
+    }
 
-  revalidateTag("location");
+    await prisma.$executeRaw`
+      UPDATE location
+      SET 
+        polygon = ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(${featuresGeoJson}), 4326)),
+        polygon_area = ST_Area(ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(${featuresGeoJson}), 4326), 3857))
+      WHERE id = ${id};
+    `;
+
+    revalidateTag("location");
+  } catch (error) {
+    console.error("Erro ao adicionar polígono:", error);
+    throw error;
+  }
 };
 
 const addPolygonFromWKT = async (wkt: string, id: number) => {
-  await prisma.$executeRaw`
-    UPDATE location
-    SET polygon = ST_GeomFromText(${wkt}, 4326)
-    WHERE id = ${id};`;
+  try {
+    if (!wkt || !id) {
+      throw new Error("WKT e id são obrigatórios");
+    }
 
-  revalidateTag("location");
+    await prisma.$executeRaw`
+      UPDATE location
+      SET 
+        polygon = ST_Multi(ST_SetSRID(ST_GeomFromText(${wkt}), 4326)),
+        polygon_area = ST_Area(ST_Transform(ST_SetSRID(ST_GeomFromText(${wkt}), 4326), 3857))
+      WHERE id = ${id};
+    `;
+
+    revalidateTag("location");
+  } catch (error) {
+    console.error("Erro ao adicionar polígono from WKT:", error);
+    throw error;
+  }
 };
 
 const removePolygon = async (id: number) => {
-  await prisma.$executeRaw`
-    UPDATE location
-    SET polygon = null
-    WHERE id = ${id}`;
+  try {
+    if (!id) {
+      throw new Error("id é obrigatório");
+    }
 
-  revalidateTag("location");
+    await prisma.$executeRaw`
+      UPDATE location
+      SET 
+        polygon = NULL,
+        polygon_area = NULL
+      WHERE id = ${id};
+    `;
+
+    revalidateTag("location");
+  } catch (error) {
+    console.error("Erro ao remover polígono:", error);
+    throw error;
+  }
 };
 
 export {
