@@ -240,12 +240,12 @@ const TallyInProgressCharts = ({
   return (
     <div
       style={{
-        height: isOnModal ? "50vh" : "full",
+        height: isOnModal ? "full" : "full",
       }}
       className="flex w-full flex-col overflow-auto"
     >
       <Bar
-        className="h-full"
+        className="h-full max-h-[70vh]"
         data={activityData}
         options={{
           ...options,
@@ -257,7 +257,7 @@ const TallyInProgressCharts = ({
         }}
       />
       <Bar
-        className="h-full"
+        className="h-full max-h-[70vh]"
         data={ageGroupData}
         options={{
           ...options,
@@ -269,6 +269,7 @@ const TallyInProgressCharts = ({
         }}
       />
       <Bar
+        className="h-full max-h-[70vh]"
         data={booleanCharacteristicsData}
         options={{
           ...options,
