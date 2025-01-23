@@ -1,5 +1,5 @@
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
-import { QuestionTypes } from "@prisma/client";
+import { OptionTypes, QuestionTypes } from "@prisma/client";
 
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 
@@ -13,6 +13,7 @@ interface FrequencyObjByCategory {
       id: number;
       questionName: string;
       type: QuestionTypes;
+      optionType: OptionTypes | null;
       responses: {
         text: string;
         frequency: number;
@@ -24,6 +25,7 @@ interface FrequencyObjByCategory {
     id: number;
     questionName: string;
     type: QuestionTypes;
+    optionType: OptionTypes | null;
     responses: {
       text: string;
       frequency: number;
@@ -83,6 +85,7 @@ const FrequencyTable = ({
                 id: question.id,
                 questionName: question.name,
                 type: question.type,
+                optionType: question.optionType,
                 responses: [],
               });
             }
@@ -158,6 +161,7 @@ const FrequencyTable = ({
               id: question.id,
               questionName: question.name,
               type: question.type,
+              optionType: question.optionType,
               responses: [],
             });
           }
@@ -224,16 +228,16 @@ const FrequencyTable = ({
   return (
     <div className="h-full overflow-auto">
       <h3 className="text-2xl font-semibold">Dados somados</h3>
-      <ul className="list-disc p-3">
+      <ul className="list-disc p-3 text-sm xl:text-base">
         {frequencies.map((category) => {
           return (
             <div key={category.id}>
-              <span className="text-2xl font-bold">
+              <span className="text-xl font-bold xl:text-2xl">
                 {category.categoryName}
               </span>
               {category.questions.map((question) => {
                 return (
-                  <div key={question.id} className="flex flex-col">
+                  <div key={question.id} className="my-4 flex flex-col">
                     <span className="font-bold">{question.questionName}</span>
 
                     {question.responses.length === 0 ?
@@ -242,7 +246,7 @@ const FrequencyTable = ({
                         return (
                           <span key={response.text}>
                             {response.text}
-                            <span className="font-bold text-blue-800">{`  - Frequência: ${response.frequency}`}</span>
+                            <span className="font-bold text-blue-800">{`  - Presente em ${response.frequency} ${response.frequency > 1 ? "avaliações" : "avaliação"}`}</span>
                           </span>
                         );
                       })
@@ -253,13 +257,13 @@ const FrequencyTable = ({
               {category.subcategories.map((subcategory) => {
                 return (
                   <div key={subcategory.id}>
-                    <span className="text-xl font-bold">
+                    <span className="text-lg font-bold xl:text-xl">
                       {subcategory.subcategoryName}
                     </span>
 
                     {subcategory.questions.map((question) => {
                       return (
-                        <div key={question.id} className="flex flex-col">
+                        <div key={question.id} className="my-4 flex flex-col">
                           <span className="font-bold">
                             {question.questionName}
                           </span>
@@ -270,7 +274,7 @@ const FrequencyTable = ({
                               return (
                                 <span key={`${question.id}-${response.text}`}>
                                   {response.text}
-                                  <span className="font-bold text-blue-800">{` - Frequência: ${response.frequency}`}</span>
+                                  <span className="font-bold text-blue-800">{` - Presente em ${response.frequency} ${response.frequency > 1 ? "avaliações" : "avaliação"}`}</span>
                                 </span>
                               );
                             })

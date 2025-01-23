@@ -6,14 +6,12 @@ import {
   fetchAssessmentGeometries,
 } from "@/serverActions/assessmentUtil";
 import { QuestionTypes } from "@prisma/client";
-import {
-  IconCaretDownFilled,
-  IconCaretUpFilled,
-  IconCircleFilled,
-} from "@tabler/icons-react";
+import { IconCaretDownFilled, IconCaretUpFilled } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { Checkbox } from "../../../../../../../components/ui/checkbox";
+import { RadioButton } from "../../../../../../../components/ui/radioButton";
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { MapPopup } from "./MapPopup";
 import { FrequencyObjByCategory } from "./frequencyTable";
@@ -223,6 +221,7 @@ const AssessmentComponent = ({
               id: question.id,
               questionName: question.name,
               type: question.type,
+              optionType: question.optionType,
               responses: [],
             });
           }
@@ -293,6 +292,7 @@ const AssessmentComponent = ({
             id: question.id,
             questionName: question.name,
             type: question.type,
+            optionType: question.optionType,
             responses: [],
           });
         }
@@ -407,16 +407,21 @@ const AssessmentComponent = ({
                       : question.responses.map((response) => {
                           return (
                             <div
-                              className="flex"
+                              className="flex gap-1"
                               key={`${question.id}-${response.text}`}
                             >
+                              {question.type === "OPTIONS" &&
+                                (question.optionType === "RADIO" ?
+                                  <RadioButton
+                                    disabled
+                                    checked={response.frequency !== 0}
+                                  />
+                                : <Checkbox
+                                    disabled
+                                    checked={response.frequency !== 0}
+                                  />)}
+
                               <span>{response.text}</span>
-                              <span className="font-bold text-blue-500">
-                                {question.type === "OPTIONS" &&
-                                  response.frequency !== 0 && (
-                                    <IconCircleFilled />
-                                  )}
-                              </span>
                             </div>
                           );
                         })
@@ -469,16 +474,21 @@ const AssessmentComponent = ({
                             : question.responses.map((response) => {
                                 return (
                                   <div
-                                    className="flex"
+                                    className="flex gap-1"
                                     key={`${question.id}-${response.text}`}
                                   >
+                                    {question.type === "OPTIONS" &&
+                                      (question.optionType === "RADIO" ?
+                                        <RadioButton
+                                          disabled
+                                          checked={response.frequency !== 0}
+                                        />
+                                      : <Checkbox
+                                          disabled
+                                          checked={response.frequency !== 0}
+                                        />)}
+
                                     <span>{response.text}</span>
-                                    <span className="font-bold text-blue-500">
-                                      {question.type === "OPTIONS" &&
-                                        response.frequency !== 0 && (
-                                          <IconCircleFilled />
-                                        )}
-                                    </span>
                                   </div>
                                 );
                               })
