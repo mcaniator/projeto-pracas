@@ -222,11 +222,7 @@ const FrequencyTable = ({
     });
   });
   return (
-    <div
-      className={
-        "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
-      }
-    >
+    <div className="h-full overflow-auto">
       <h3 className="text-2xl font-semibold">Dados somados</h3>
       <ul className="list-disc p-3">
         {frequencies.map((category) => {
@@ -246,7 +242,7 @@ const FrequencyTable = ({
                         return (
                           <span key={response.text}>
                             {response.text}
-                            <span className="font-bold text-blue-500">{`  - Frequência: ${response.frequency}`}</span>
+                            <span className="font-bold text-blue-800">{`  - Frequência: ${response.frequency}`}</span>
                           </span>
                         );
                       })
@@ -274,7 +270,7 @@ const FrequencyTable = ({
                               return (
                                 <span key={`${question.id}-${response.text}`}>
                                   {response.text}
-                                  <span className="font-bold text-blue-500">{` - Frequência: ${response.frequency}`}</span>
+                                  <span className="font-bold text-blue-800">{` - Frequência: ${response.frequency}`}</span>
                                 </span>
                               );
                             })

@@ -7,7 +7,7 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
 
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
-import { FrequencyTable } from "./frequencyTable";
+import MainContainer from "./mainContainer";
 
 const ResponsesFetcher = async ({
   params,
@@ -32,18 +32,27 @@ const ResponsesFetcher = async ({
 
   // TODO: add error handling
   return (
-    <div className="h-full overflow-auto">
-      <h3 className="flex basis-3/5 flex-col gap-5 text-2xl font-semibold text-white">
+    <div className="h-full overflow-auto rounded-3xl bg-gray-500 text-white">
+      <h3 className="hidden p-2 text-xl font-semibold text-white md:text-2xl xl:flex">
         Respostas ao formulario {assessments[0]?.form.name} referentes a
         localidade {locationName}
       </h3>
-      <div className="flex h-full gap-5 overflow-auto text-white">
-        <FrequencyTable assessments={assessments} />
+      <div className="flex h-full w-full gap-1">
+        <div className="flex w-full flex-row gap-5">
+          <div className="flex w-full overflow-auto xl:basis-1/2">
+            <MainContainer
+              assessments={assessments}
+              assessmentsGeometries={assessmentsGeometries}
+            />
+          </div>
 
-        <AssessmentsWithResponsesList
-          assessments={assessments}
-          assessmentsGeometries={assessmentsGeometries}
-        />
+          <div className="hidden h-full basis-1/2 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md xl:flex">
+            <AssessmentsWithResponsesList
+              assessments={assessments}
+              assessmentsGeometries={assessmentsGeometries}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

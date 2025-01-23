@@ -60,11 +60,12 @@ const TallyDeletionModal = ({
                       <IconX />
                     </Button>
                   </div>
-
-                  <DeleteTallySection
-                    tallyIds={tallyIds}
-                    locationId={locationId}
-                  />
+                  <div className="flex justify-center">
+                    <DeleteTallySection
+                      tallyIds={tallyIds}
+                      locationId={locationId}
+                    />
+                  </div>
                 </div>
               )}
             </Dialog>

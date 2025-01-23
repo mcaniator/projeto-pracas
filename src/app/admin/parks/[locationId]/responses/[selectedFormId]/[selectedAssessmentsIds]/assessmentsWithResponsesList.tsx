@@ -525,7 +525,7 @@ const AssessmentsWithResponsesList = ({
   assessmentsGeometries: FetchedAssessmentGeometries[];
 }) => {
   return (
-    <div className="flex h-fit basis-2/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+    <>
       <h3 className="text-2xl font-semibold">Avaliações</h3>
       {assessments.map((assessment) => (
         <AssessmentComponent
@@ -536,7 +536,7 @@ const AssessmentsWithResponsesList = ({
           )}
         />
       ))}
-    </div>
+    </>
   );
 };
 
