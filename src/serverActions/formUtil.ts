@@ -116,11 +116,7 @@ const fetchFormsLatest = async () => {
         createdAt: true,
         updatedAt: true,
       },
-      where: {
-        version: {
-          not: 0,
-        },
-      },
+
       distinct: ["name"],
       orderBy: [
         {

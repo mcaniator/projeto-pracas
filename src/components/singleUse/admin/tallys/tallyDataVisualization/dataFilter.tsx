@@ -8,12 +8,14 @@ import { BooleanPersonProperties } from "./TallysDataPage";
 const DataFilter = ({
   setBooleanConditionsFilter,
   booleanConditionsFilter,
+  blackCheckboxBorder,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
 
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
+  blackCheckboxBorder?: boolean;
 }) => {
   const [checkedNonDefaultCheckboxes, setCheckedNonDefaultCheckboxes] =
     useState<(BooleanPersonProperties | "DEFAULT")[]>([]);
@@ -54,7 +56,9 @@ const DataFilter = ({
                 </span>
                 <span className="ml-auto">
                   <Checkbox
-                    className="border-black"
+                    className={
+                      blackCheckboxBorder ? "border-black" : "border-white"
+                    }
                     id="default"
                     value={"DEFAULT"}
                     onChange={handleFilterChange}
@@ -79,7 +83,9 @@ const DataFilter = ({
                   }}
                 >
                   <Checkbox
-                    className="border-black"
+                    className={
+                      blackCheckboxBorder ? "border-black" : "border-white"
+                    }
                     id="isTraversing"
                     value={"isTraversing"}
                     onChange={handleFilterChange}
@@ -105,7 +111,9 @@ const DataFilter = ({
                   }}
                 >
                   <Checkbox
-                    className="border-black"
+                    className={
+                      blackCheckboxBorder ? "border-black" : "border-white"
+                    }
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
                     onChange={handleFilterChange}
@@ -134,7 +142,9 @@ const DataFilter = ({
                   }}
                 >
                   <Checkbox
-                    className="border-black"
+                    className={
+                      blackCheckboxBorder ? "border-black" : "border-white"
+                    }
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
                     onChange={handleFilterChange}
@@ -162,7 +172,9 @@ const DataFilter = ({
                   }}
                 >
                   <Checkbox
-                    className="border-black"
+                    className={
+                      blackCheckboxBorder ? "border-black" : "border-white"
+                    }
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
                     onChange={handleFilterChange}

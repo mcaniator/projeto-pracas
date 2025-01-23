@@ -65,6 +65,7 @@ const TallysDataPageFilterModal = ({
                   <DataFilter
                     setBooleanConditionsFilter={setBooleanConditionsFilter}
                     booleanConditionsFilter={booleanConditionsFilter}
+                    blackCheckboxBorder
                   />
                 </div>
               )}

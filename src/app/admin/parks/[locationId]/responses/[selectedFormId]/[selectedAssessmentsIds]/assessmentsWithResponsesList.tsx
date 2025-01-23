@@ -370,7 +370,7 @@ const AssessmentComponent = ({
   });
 
   return (
-    <div className="mb-2 flex flex-col rounded bg-gray-400/30 p-2 shadow-inner">
+    <div className="mb-2 flex flex-col rounded bg-gray-600/30 p-2 shadow-inner">
       <div className="flex items-center justify-between">
         <span>
           {assessment.startDate.toLocaleString("pt-BR", {
@@ -399,7 +399,7 @@ const AssessmentComponent = ({
                 </span>
                 {category.questions.map((question) => {
                   return (
-                    <div key={question.id} className="flex flex-col">
+                    <div key={question.id} className="my-2 flex flex-col">
                       <span className="font-bold">{question.questionName}</span>
 
                       {question.responses.length === 0 ?
@@ -464,7 +464,7 @@ const AssessmentComponent = ({
 
                       {subcategory.questions.map((question) => {
                         return (
-                          <div key={question.id} className="flex flex-col">
+                          <div key={question.id} className="my-2 flex flex-col">
                             <span className="font-bold">
                               {question.questionName}
                             </span>
@@ -535,7 +535,7 @@ const AssessmentsWithResponsesList = ({
   assessmentsGeometries: FetchedAssessmentGeometries[];
 }) => {
   return (
-    <>
+    <div className="h-full overflow-auto">
       <h3 className="text-2xl font-semibold">Avaliações</h3>
       {assessments.map((assessment) => (
         <AssessmentComponent
@@ -546,7 +546,7 @@ const AssessmentsWithResponsesList = ({
           )}
         />
       ))}
-    </>
+    </div>
   );
 };
 

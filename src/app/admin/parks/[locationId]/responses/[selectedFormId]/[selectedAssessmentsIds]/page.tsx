@@ -32,25 +32,29 @@ const ResponsesFetcher = async ({
 
   // TODO: add error handling
   return (
-    <div className="h-full overflow-auto rounded-3xl bg-gray-500 text-white">
-      <h3 className="hidden p-2 text-xl font-semibold text-white md:text-2xl xl:flex">
-        Respostas ao formulario {assessments[0]?.form.name} referentes a
-        localidade {locationName}
-      </h3>
-      <div className="flex h-full w-full gap-1">
-        <div className="flex w-full flex-row gap-5">
-          <div className="flex w-full overflow-auto xl:basis-1/2">
-            <MainContainer
-              assessments={assessments}
-              assessmentsGeometries={assessmentsGeometries}
-            />
-          </div>
+    <div className="flex h-full flex-col rounded-3xl bg-gray-500 text-white">
+      <div className="flex h-full flex-col">
+        <h3 className="hidden p-2 text-xl font-semibold text-white md:text-2xl xl:flex">
+          Respostas ao formulario {assessments[0]?.form.name} referentes a
+          localidade {locationName}
+        </h3>
 
-          <div className="hidden h-full basis-1/2 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md xl:flex">
-            <AssessmentsWithResponsesList
-              assessments={assessments}
-              assessmentsGeometries={assessmentsGeometries}
-            />
+        <div className="flex h-full w-full gap-1 overflow-auto">
+          <div className="flex w-full flex-row gap-5">
+            <div className="hidden h-full w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md xl:flex xl:basis-1/2">
+              <AssessmentsWithResponsesList
+                assessments={assessments}
+                assessmentsGeometries={assessmentsGeometries}
+              />
+            </div>
+
+            <div className="h-full w-full flex-col gap-1 xl:basis-1/2">
+              <MainContainer
+                assessments={assessments}
+                assessmentsGeometries={assessmentsGeometries}
+                locationName={locationName}
+              />
+            </div>
           </div>
         </div>
       </div>

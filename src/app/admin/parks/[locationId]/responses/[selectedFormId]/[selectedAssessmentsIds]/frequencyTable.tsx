@@ -228,11 +228,11 @@ const FrequencyTable = ({
   return (
     <div className="h-full overflow-auto">
       <h3 className="text-2xl font-semibold">Dados somados</h3>
-      <ul className="list-disc p-3 text-sm xl:text-base">
+      <ul className="list-disc p-3 text-sm sm:text-base">
         {frequencies.map((category) => {
           return (
             <div key={category.id}>
-              <span className="text-xl font-bold xl:text-2xl">
+              <span className="text-xl font-bold sm:text-2xl">
                 {category.categoryName}
               </span>
               {category.questions.map((question) => {
@@ -257,7 +257,7 @@ const FrequencyTable = ({
               {category.subcategories.map((subcategory) => {
                 return (
                   <div key={subcategory.id}>
-                    <span className="text-lg font-bold xl:text-xl">
+                    <span className="text-lg font-bold sm:text-xl">
                       {subcategory.subcategoryName}
                     </span>
 
