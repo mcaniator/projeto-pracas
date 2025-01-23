@@ -16,9 +16,57 @@ const CommercialActivitiesTable = ({
   totalCommercialActivities: number;
   sortedOccurrences: number[];
 }) => {
+  const commercialActivitiesWithTallys: {
+    [key: string]: { tally: string; occurrences: number }[];
+  } = {};
+  for (const tally of tallyWithCommercialActivities) {
+    const [, tallyObj] = tally;
+    const { tallyInfo, commercialActivities } = tallyObj;
+    const tallyUserAndDate = `${tallyInfo.observer} - ${tallyInfo.startDate}`;
+    if (!commercialActivities) {
+      continue;
+    }
+    const commercialActivitiesInTally = Object.keys(commercialActivities);
+    for (const commercialActivityInTally of commercialActivitiesInTally) {
+      if (!commercialActivitiesWithTallys[commercialActivityInTally]) {
+        commercialActivitiesWithTallys[commercialActivityInTally] = [];
+      }
+      commercialActivitiesWithTallys[commercialActivityInTally].push({
+        tally: tallyUserAndDate,
+        occurrences: commercialActivities[commercialActivityInTally] || 0,
+      });
+    }
+  }
   return (
     <div>
-      <table>
+      <div className="flex flex-col gap-2 p-1 xl:hidden">
+        <ul className="flex flex-col gap-2">
+          {sortedCommercialActivitiesNames.map((commercialActivity, key) => {
+            return (
+              <li
+                key={key}
+                className="flex flex-col gap-1 rounded-md p-2 outline outline-1 outline-white"
+              >
+                <strong>{commercialActivity}:</strong>
+                <div className="ml-2">
+                  <p>Total: {sortedOccurrences[key]}</p>
+                  {commercialActivitiesWithTallys[commercialActivity]?.map(
+                    (CAT, index) => {
+                      return (
+                        <p key={index}>{`${CAT.tally} - ${CAT.occurrences}`}</p>
+                      );
+                    },
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        <p>
+          <strong>Total de atividades:</strong> {totalCommercialActivities}
+        </p>
+      </div>
+      <table className="hidden text-sm sm:text-base xl:table">
         <thead>
           <tr>
             <th

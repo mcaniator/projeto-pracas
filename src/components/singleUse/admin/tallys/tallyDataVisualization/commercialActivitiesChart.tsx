@@ -30,6 +30,7 @@ const CommercialActivitiesChart = ({
   sortedOccurrences: number[];
 }) => {
   const options = {
+    maintainAspectRatio: false,
     responsive: true,
     plugins: {
       legend: {
@@ -87,6 +88,7 @@ const CommercialActivitiesChart = ({
   };
   return (
     <Bar
+      className="h-full max-h-[70vh]"
       data={commercialActivitiesData}
       options={{
         ...options,

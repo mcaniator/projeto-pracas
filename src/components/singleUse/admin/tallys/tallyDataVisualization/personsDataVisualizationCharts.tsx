@@ -34,6 +34,7 @@ const PersonsDataVisualizationCharts = ({
   booleanCharacteristicsArrays: TallyDataArraysByGender;
 }) => {
   const options = {
+    maintainAspectRatio: false,
     responsive: true,
     plugins: {
       legend: {
@@ -150,6 +151,7 @@ const PersonsDataVisualizationCharts = ({
   return (
     <div className="flex flex-col overflow-auto">
       <Bar
+        className="h-full max-h-[70vh]"
         data={activityData}
         options={{
           ...options,
@@ -160,6 +162,7 @@ const PersonsDataVisualizationCharts = ({
         }}
       />
       <Bar
+        className="h-full max-h-[70vh]"
         data={ageGroupData}
         options={{
           ...options,
@@ -170,6 +173,7 @@ const PersonsDataVisualizationCharts = ({
         }}
       />
       <Bar
+        className="h-full max-h-[70vh]"
         data={booleanCharacteristicsData}
         options={{
           ...options,
