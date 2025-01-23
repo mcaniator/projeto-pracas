@@ -4,7 +4,7 @@ import { VariantProps, cva } from "class-variance-authority";
 import { InputHTMLAttributes, forwardRef } from "react";
 
 const checkboxVariant = cva(
-  "peer m-0 h-5 w-5 appearance-none self-center rounded-lg border-[3px] border-white bg-clip-content p-[1.5px] transition-all",
+  "peer m-0 h-5 w-5 appearance-none self-center rounded-lg border-[3px] border-white bg-clip-content p-[0.2px] transition-all",
   {
     variants: {
       variant: {

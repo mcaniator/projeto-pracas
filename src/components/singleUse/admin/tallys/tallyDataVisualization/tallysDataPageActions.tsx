@@ -3,18 +3,13 @@
 import { Button } from "@/components/button";
 import { useState } from "react";
 
-import {
-  BooleanPersonProperties,
-  DataTypesInTallyVisualization,
-} from "./TallysDataPage";
+import { BooleanPersonProperties } from "./TallysDataPage";
 import { DataFilter } from "./dataFilter";
 import { DeleteTallySection } from "./deleteTallySection";
 
 type TallysVisualizationActionsCategories = "FILTERS" | "DELETION";
 const TallysDataPageActions = ({
   setBooleanConditionsFilter,
-  setDataTypeToShow,
-  dataTypeToShow,
   tallyIds,
   locationId,
   booleanConditionsFilter,
@@ -22,10 +17,7 @@ const TallysDataPageActions = ({
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
-  setDataTypeToShow: React.Dispatch<
-    React.SetStateAction<DataTypesInTallyVisualization>
-  >;
-  dataTypeToShow: DataTypesInTallyVisualization;
+
   tallyIds: number[];
   locationId: number;
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
@@ -56,8 +48,6 @@ const TallysDataPageActions = ({
       {actionsCategory === "FILTERS" && (
         <DataFilter
           setBooleanConditionsFilter={setBooleanConditionsFilter}
-          setDataTypeToShow={setDataTypeToShow}
-          dataTypeToShow={dataTypeToShow}
           booleanConditionsFilter={booleanConditionsFilter}
         />
       )}
@@ -69,3 +59,4 @@ const TallysDataPageActions = ({
 };
 
 export { TallysDataPageActions };
+export { type TallysVisualizationActionsCategories };

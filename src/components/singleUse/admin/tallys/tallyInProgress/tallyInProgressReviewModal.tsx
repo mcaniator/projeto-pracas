@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/button";
 import { WeatherConditions } from "@prisma/client";
-import { IconChartBar, IconX } from "@tabler/icons-react";
+import { IconChartBar, IconLogs, IconX } from "@tabler/icons-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -11,12 +11,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { Select } from "../../../../ui/select";
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
-import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
 import {
   CommercialActivitiesObject,
-  SubmittingObj,
   WeatherStats,
   ongoingTallyDataFetched,
 } from "./tallyInProgressPage";
@@ -24,23 +21,12 @@ import { AssistBarStates, weatherNameMap } from "./tallyInProgressReview";
 import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
 const TallyInProgressReviewModal = ({
-  submittingObj,
-  tallyId,
-  locationId,
   tally,
   weatherStats,
   complementaryData,
   commercialActivities,
   tallyMap,
-  setSubmittingObj,
 }: {
-  submittingObj: {
-    submitting: boolean;
-    finishing: boolean;
-    deleting: boolean;
-  };
-  tallyId: number;
-  locationId: number;
   tally: ongoingTallyDataFetched;
   weatherStats: WeatherStats;
   complementaryData: {
@@ -49,13 +35,9 @@ const TallyInProgressReviewModal = ({
   };
   commercialActivities: CommercialActivitiesObject;
   tallyMap: Map<string, number>;
-  setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const [modalState, setModalState] = useState<AssistBarStates>("TEXTUAL_DATA");
-  const handleModalStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newState = e.target.value as AssistBarStates;
-    setModalState(newState);
-  };
+
   return (
     <DialogTrigger>
       <Button className="items-center p-2 text-sm sm:text-xl">
@@ -72,7 +54,7 @@ const TallyInProgressReviewModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg transform overflow-auto rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -95,11 +77,23 @@ const TallyInProgressReviewModal = ({
                       <IconX />
                     </Button>
                   </div>
-                  <Select onChange={handleModalStateChange}>
-                    <option value="TEXTUAL_DATA">Dados textuais</option>
-                    <option value="CHARTS">Gráficos</option>
-                    <option value="SAVE_DELETE">Salvar/Excluir</option>
-                  </Select>
+                  <div className="inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
+                    <Button
+                      variant={"ghost"}
+                      className={`rounded-xl px-4 py-1 ${modalState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      onPress={() => setModalState("TEXTUAL_DATA")}
+                    >
+                      <IconLogs />
+                    </Button>
+                    <Button
+                      variant={"ghost"}
+                      className={`rounded-xl px-4 py-1 ${modalState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      onPress={() => setModalState("CHARTS")}
+                    >
+                      <IconChartBar />
+                    </Button>
+                  </div>
+
                   {modalState === "TEXTUAL_DATA" && (
                     <TallyInProgressTextualData
                       tally={tally}
@@ -117,18 +111,6 @@ const TallyInProgressReviewModal = ({
                     <TallyInProgressCharts
                       tallyMap={tallyMap}
                       isOnModal={true}
-                    />
-                  )}
-                  {modalState === "SAVE_DELETE" && (
-                    <TallyInProgressDatabaseOptions
-                      tallyId={tallyId}
-                      locationId={locationId}
-                      tallyMap={tallyMap}
-                      weatherStats={weatherStats}
-                      commercialActivities={commercialActivities}
-                      complementaryData={complementaryData}
-                      submittingObj={submittingObj}
-                      setSubmittingObj={setSubmittingObj}
                     />
                   )}
                 </div>

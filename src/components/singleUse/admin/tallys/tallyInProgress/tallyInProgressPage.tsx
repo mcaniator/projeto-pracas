@@ -15,6 +15,7 @@ import React from "react";
 
 import TallyInProgressReview from "./tallyInProgressReview";
 import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
+import TallyInProgressSaveModal from "./tallyInProgressSaveModal";
 
 interface CommercialActivitiesObject {
   [key: string]: number;
@@ -232,12 +233,18 @@ const TallyInProgressPage = ({
             <h3 className="inline text-2xl font-semibold">
               Contagem em {tally?.location.name}
             </h3>
-            <div className="ml-auto block xl:hidden">
+            <div className="ml-auto flex flex-row gap-1 xl:hidden">
               <TallyInProgressReviewModal
+                tally={tally}
+                weatherStats={weatherStats}
+                complementaryData={complementaryData}
+                commercialActivities={commercialActivities}
+                tallyMap={tallyMap}
+              />
+              <TallyInProgressSaveModal
                 submittingObj={submittingObj}
                 tallyId={tallyId}
                 locationId={locationId}
-                tally={tally}
                 weatherStats={weatherStats}
                 complementaryData={complementaryData}
                 commercialActivities={commercialActivities}
