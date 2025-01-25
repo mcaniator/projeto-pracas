@@ -5,8 +5,10 @@ import { CreationWithoutDrawingModal } from "./creationWithouDrawingModal";
 
 const CreationSelecion = ({
   setCurrentId,
+  setDrawingWindowVisible,
 }: {
   setCurrentId: Dispatch<SetStateAction<number>>;
+  setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const handleSetCurrentId = (id: number) => {
     setCurrentId(id);
@@ -14,9 +16,12 @@ const CreationSelecion = ({
   return (
     <div className="flex flex-col gap-2 text-white">
       <Button variant={"admin"} onPress={() => handleSetCurrentId(-3)}>
-        Desenhar
+        Próximo
       </Button>
-      <CreationWithoutDrawingModal setCurrentId={setCurrentId} />
+      <CreationWithoutDrawingModal
+        setCurrentId={setCurrentId}
+        setDrawingWindowVisible={setDrawingWindowVisible}
+      />
     </div>
   );
 };

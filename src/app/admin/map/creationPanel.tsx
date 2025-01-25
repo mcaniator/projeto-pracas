@@ -24,11 +24,13 @@ const CreationPanel = ({
   setOriginalFeatures,
   currentId,
   setCurrentId,
+  setDrawingWindowVisible,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   currentId: number;
   setCurrentId: Dispatch<SetStateAction<number>>;
+  setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
@@ -127,11 +129,17 @@ const CreationPanel = ({
             setCurrentId={setCurrentId}
           />*/}
 
-        {currentId === -1 && <CreationSelecion setCurrentId={setCurrentId} />}
+        {currentId === -1 && (
+          <CreationSelecion
+            setCurrentId={setCurrentId}
+            setDrawingWindowVisible={setDrawingWindowVisible}
+          />
+        )}
         {currentId === -3 && (
           <CreationDrawingModal
             features={features}
             setCurrentId={setCurrentId}
+            setDrawingWindowVisible={setDrawingWindowVisible}
           />
         )}
         {currentId >= 0 && (
@@ -186,7 +194,7 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
     <div className="flex h-full flex-col gap-2 overflow-scroll">
       {features.length === 0 && (
         <div className="flex w-full items-center justify-center text-2xl text-white">
-          Sem geometria!
+          Selecione o perímetro
         </div>
       )}
       {features.map((feature, index) => {

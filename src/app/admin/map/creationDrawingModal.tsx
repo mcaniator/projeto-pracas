@@ -36,9 +36,11 @@ import {
 const CreationDrawingModal = ({
   features,
   setCurrentId,
+  setDrawingWindowVisible,
 }: {
   features: Feature<Geometry>[];
   setCurrentId: Dispatch<SetStateAction<number>>;
+  setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const [basicAnswerValues, setBasicAnswerValues] = useState<
     z.infer<typeof basicAnswerSchema>
@@ -170,9 +172,14 @@ const CreationDrawingModal = ({
         }
       }}
     >
-      <Button type="button" isDisabled={features.length < 1} variant={"admin"}>
+      <Button
+        type="button"
+        isDisabled={features.length < 1}
+        variant={"admin"}
+        onPress={() => setDrawingWindowVisible(false)}
+      >
         <span className="-mb-1 text-white transition-all group-data-[disabled]:text-opacity-50">
-          Criar Praça
+          Confirmar e criar
         </span>
       </Button>
       <ModalOverlay
