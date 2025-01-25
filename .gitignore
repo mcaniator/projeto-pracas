@@ -149,4 +149,4 @@ typings/
 .direnv/
 
 # database
-/prisma.migrations/
+/prisma/migrations
