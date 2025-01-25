@@ -41,6 +41,11 @@ const Sidebar = () => {
       name: "Exportar",
       path: "/admin/export",
     },
+    {
+      icon: <IconTableExport size={34} />,
+      name: "Lista",
+      path: "/admin/list",
+    },
   ];
 
   return (
