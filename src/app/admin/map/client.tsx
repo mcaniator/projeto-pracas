@@ -39,20 +39,23 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
     [],
   );
   const [panelVisible, setPanelVisible] = useState(false);
+  const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
 
   return (
     <div className="relative">
       <div className="fixed bottom-4 right-4 z-50">
         <Button
-          onPress={() => setPanelVisible(!panelVisible)}
+          onPress={() => {
+            setPanelVisible(!panelVisible);
+            setDrawingWindowVisible(!drawingWindowVisible);
+          }}
           variant="admin"
           className="bg-blue-600 text-white"
         >
-          {panelVisible ? "Finalizar" : "Esconder"}
+          {panelVisible ? "Esconder" : "Criar"}
         </Button>
       </div>
-
       {panelVisible && (
         <Rnd
           default={{
@@ -63,26 +66,44 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
           }}
           bounds="window"
           dragHandleClassName="drag-handle"
-          className="rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+          className={`${
+            !drawingWindowVisible ? "hidden" : (
+              "rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+            )
+          }`}
           style={{
             zIndex: 100,
           }}
           minWidth={150}
           minHeight={250}
+          maxHeight={window.innerHeight - 50} // Ajusta dinamicamente a altura máxima
         >
-          <div className="drag-handle min-w-4 cursor-move rounded-t-lg bg-gray-200">
+          <div
+            className={`${
+              !drawingWindowVisible ? "hidden" : (
+                "drag-handle cursor-move rounded-t-lg bg-gray-200 p-2"
+              )
+            }`}
+          >
             <span className="text-gray-700">Janela de Desenho</span>
           </div>
-          <div className="h-full p-4">
-            {currentId === -2 ?
-              <div className="flex h-full w-full flex-col gap-2" ref={panelRef}>
+
+          <div
+            className={`${
+              !drawingWindowVisible ? "hidden" : (
+                "flex h-full max-h-[430px] flex-col gap-2 overflow-auto p-4"
+              )
+            }`}
+          >
+            {currentId === -2 && (
+              <div className="flex flex-col gap-2" ref={panelRef}>
                 <Button
-                  variant={"admin"}
+                  variant="admin"
                   onPress={() => {
                     setCurrentId(-1);
                   }}
                 >
-                  <span className="-mb-1 text-white">Iniciar Desenho</span>
+                  <span className="-mb-1 text-white">Iniciar Criação</span>
                 </Button>
 
                 <hr className="w-full rounded-full border-2 border-off-white" />
@@ -93,21 +114,20 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
                   setCurrentId={setCurrentId}
                 />
               </div>
-            : <div>
-                <DrawingProvider>
-                  <CreationPanel
-                    originalFeatures={originalFeatures}
-                    setOriginalFeatures={setOriginalFeatures}
-                    currentId={currentId}
-                    setCurrentId={setCurrentId}
-                  />
-                </DrawingProvider>
-              </div>
-            }
+            )}
+
+            <DrawingProvider>
+              <CreationPanel
+                originalFeatures={originalFeatures}
+                setOriginalFeatures={setOriginalFeatures}
+                currentId={currentId}
+                setCurrentId={setCurrentId}
+                setDrawingWindowVisible={setDrawingWindowVisible}
+              />
+            </DrawingProvider>
           </div>
         </Rnd>
       )}
-
       <BottomControls />
     </div>
   );
@@ -150,6 +170,7 @@ const ParkList = ({
         onChange={(value) => {
           setHay(search(value, sortedLocations, fuseHaystack));
         }}
+        // label={"Busca"}
       />
 
       <div className="overflow-scroll">

@@ -34,7 +34,7 @@ const TallyCreation = ({
     },
   } as TallyCreationFormType);
   return (
-    <React.Fragment>
+    <>
       <h4 className={"text-2xl font-semibold"}>Criação de contagens</h4>
       <div>
         <form action={newTallyFormAction} className="grid gap-3">
@@ -46,15 +46,15 @@ const TallyCreation = ({
               className={`${newTallyFormState.errors.userId ? "outline" : ""} outline-2 outline-redwood`}
               defaultValue={userId}
               required
-            ></Input>
+            />
 
             {newTallyFormState.errors.userId ?
               <span className="text-redwood">Obrigatório</span>
             : ""}
 
-            <Input type="hidden" name="locationId" value={locationId}></Input>
+            <Input type="hidden" name="locationId" value={locationId} />
           </div>
-          <div className="flex flex-row gap-1">
+          <div className="flex flex-col gap-1">
             <label htmlFor="dateTime" className="mr-1">
               Data/horário:
             </label>
@@ -76,7 +76,7 @@ const TallyCreation = ({
           </div>
         </form>
       </div>
-    </React.Fragment>
+    </>
   );
 };
 

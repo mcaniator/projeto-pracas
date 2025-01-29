@@ -25,7 +25,7 @@ const Tallys = async ({ params }: { params: { locationId: string } }) => {
       tallys={endedTallys}
       ongoingTallys={ongoingTallys}
       userId={user.id}
-    ></TallyPage>
+    />
   );
 };
 

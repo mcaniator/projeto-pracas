@@ -27,7 +27,7 @@ const AssessmentsFilter = ({
   if (filteredAssessments)
     filteredAssessmentsIdsString = `${filteredAssessments.map((assessment) => assessment.id).join("-")}`;
   return (
-    <React.Fragment>
+    <>
       <h4 className={"text-2xl font-semibold"}>Filtros</h4>
       <div className="flex flex-col gap-5">
         <div className="flex basis-1/5 flex-col">
@@ -154,7 +154,7 @@ const AssessmentsFilter = ({
           </div>
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 };
 

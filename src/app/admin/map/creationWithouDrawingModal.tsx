@@ -32,8 +32,10 @@ import {
 
 const CreationWithoutDrawingModal = ({
   setCurrentId,
+  setDrawingWindowVisible,
 }: {
   setCurrentId: Dispatch<SetStateAction<number>>;
+  setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const [basicAnswerValues, setBasicAnswerValues] = useState<
     z.infer<typeof basicAnswerSchema>
@@ -143,7 +145,11 @@ const CreationWithoutDrawingModal = ({
         }
       }}
     >
-      <Button type="button" variant={"admin"}>
+      <Button
+        type="button"
+        variant={"admin"}
+        onPress={() => setDrawingWindowVisible(false)}
+      >
         <span className="-mb-1 text-white transition-all group-data-[disabled]:text-opacity-50">
           Criar sem desenho
         </span>
