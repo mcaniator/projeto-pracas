@@ -1,75 +1,101 @@
-"use client";
+import {
+  IconCalendarCheck,
+  IconCalendarClock,
+  IconListCheck,
+  IconMapPin,
+} from "@tabler/icons-react";
+import Link from "next/link";
 
-import { Button } from "@/components/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { RadioButton } from "@/components/ui/radioButton";
+import { fetchRecentlyCompletedAssessments } from "../../../serverActions/assessmentUtil";
+import { fetchRecentlyCompletedTallys } from "../../../serverActions/tallyUtil";
 
-const AdminRoot = () => {
+const AdminRoot = async () => {
+  const assessments = await fetchRecentlyCompletedAssessments();
+  const tallys = await fetchRecentlyCompletedTallys();
   return (
-    <div className={"m-5 flex w-[500px] flex-col gap-5 text-white"}>
-      <div className={"flex gap-4 text-white"}>
-        <Checkbox variant={"default"} defaultChecked>
-          teste 1
-        </Checkbox>
-        <Checkbox variant={"admin"} defaultChecked>
-          teste 2
-        </Checkbox>
-        <Checkbox variant={"constructive"} defaultChecked>
-          teste 3
-        </Checkbox>
-        <Checkbox variant={"destructive"} defaultChecked>
-          teste 4
-        </Checkbox>
-      </div>
-      <div className={"flex gap-4 text-white"}>
-        <RadioButton variant={"default"} name={"teste"}>
-          teste 1
-        </RadioButton>
-        <RadioButton variant={"admin"} name={"teste"} defaultChecked>
-          teste 2
-        </RadioButton>
-        <RadioButton variant={"constructive"} name={"teste"}>
-          teste 3
-        </RadioButton>
-        <RadioButton variant={"destructive"} name={"teste"}>
-          teste 4
-        </RadioButton>
-      </div>
-      <div className={"flex flex-col gap-2"}>
-        <div className={"flex gap-2"}>
-          <Button type="button" variant={"default"}>
-            <span className={"-mb-1"}>teste 1</span>
-          </Button>
-          <Button type="button" variant={"admin"}>
-            <span className={"-mb-1"}>teste 2</span>
-          </Button>
-          <Button type="button" variant={"constructive"}>
-            <span className={"-mb-1"}>teste 3</span>
-          </Button>
-          <Button type="button" variant={"destructive"}>
-            <span className={"-mb-1"}>teste 4</span>
-          </Button>
+    <div className={"flex h-full flex-col gap-5 p-2 text-white"}>
+      <h2 className="text-2xl font-semibold">Bem vindo(a) ao Projeto praças</h2>
+      <div className="flex flex-col gap-5 overflow-auto xl:flex-row">
+        <div className="basis-1/2 overflow-auto rounded-lg bg-gray-700/30 p-2 shadow-inner">
+          <h3 className="text-2xl font-semibold">Últimas avaliações</h3>
+          <div className="flex flex-col gap-1">
+            {assessments.statusCode === 200 ?
+              assessments.assessments.map((assessment) => {
+                return (
+                  <Link
+                    key={assessment.id}
+                    href={`/admin/parks/${assessment.location.id}/responses/${assessment.form.id}/${assessment.id}`}
+                    className="bg-transparent p-2 hover:bg-transparent/10"
+                  >
+                    <p className="text-xl font-semibold">
+                      <IconMapPin className="mb-2 mr-1 inline" />
+                      {assessment.location.name}
+                    </p>
+                    <p className="text-xl font-semibold">
+                      <IconListCheck className="mb-2 mr-1 inline" />
+                      {assessment.form.name}
+                    </p>
+                    <p className="text-xl font-semibold">
+                      <IconCalendarClock className="mb-2 mr-1 inline" />
+                      {assessment.endDate?.toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </p>
+                  </Link>
+                );
+              })
+            : <p className="text-xl font-semibold">Erro!</p>}
+          </div>
         </div>
-        <div className={"flex gap-2"}>
-          <Button type="button" variant={"default"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 1</span>
-          </Button>
-          <Button type="button" variant={"admin"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 2</span>
-          </Button>
-          <Button type="button" variant={"constructive"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 3</span>
-          </Button>
-          <Button type="button" variant={"destructive"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 4</span>
-          </Button>
+        <div className="basis-1/2 overflow-auto rounded-lg bg-gray-700/30 p-2 shadow-inner">
+          <h3 className="text-2xl font-semibold">Últimas contagens</h3>
+          <div className="flex flex-col gap-1">
+            {tallys.statusCode === 200 ?
+              tallys.tallys.map((tally) => {
+                return (
+                  <Link
+                    key={tally.id}
+                    href={`/admin/parks/${tally.location.id}/tallys/dataVisualization/${tally.id}`}
+                    className="bg-transparent p-2 hover:bg-transparent/10"
+                  >
+                    <p className="text-xl font-semibold">
+                      <IconMapPin className="mb-2 mr-1 inline" />
+                      {tally.location.name}
+                    </p>
+
+                    <p className="text-xl font-semibold">
+                      <IconCalendarClock className="mb-2 mr-1 inline" />
+                      {tally.startDate.toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-xl font-semibold">
+                      <IconCalendarCheck className="mb-2 mr-1 inline" />
+                      {tally.endDate?.toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })}
+                    </p>
+                  </Link>
+                );
+              })
+            : <p className="text-xl font-semibold">Erro!</p>}
+          </div>
         </div>
-      </div>
-      <div className={"flex flex-col gap-2"}>
-        <Input state={"neutral"} />
-        <Input state={"constructive"} />
-        <Input state={"destructive"} />
       </div>
     </div>
   );

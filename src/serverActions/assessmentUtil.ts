@@ -234,6 +234,58 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
   return assessment;
 };
 
+const fetchRecentlyCompletedAssessments = async () => {
+  const returnObj: {
+    statusCode: number;
+    assessments: {
+      id: number;
+      endDate: Date | null;
+      location: {
+        id: number;
+        name: string;
+      };
+      form: {
+        id: number;
+        name: string;
+      };
+    }[];
+  } = { statusCode: 500, assessments: [] };
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        NOT: {
+          endDate: null,
+        },
+      },
+      orderBy: {
+        endDate: "desc",
+      },
+      select: {
+        id: true,
+        endDate: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      take: 10,
+    });
+    returnObj.statusCode = 200;
+    returnObj.assessments = assessments;
+    return returnObj;
+  } catch (e) {
+    return returnObj;
+  }
+};
+
 const deleteAssessment = async (assessmentId: number) => {
   try {
     await prisma.assessment.delete({
@@ -263,6 +315,7 @@ export {
   redirectToFormsList,
   fetchAssessmentsByLocation,
   fetchAssessmentsGeometries,
+  fetchRecentlyCompletedAssessments,
 };
 
 export {
