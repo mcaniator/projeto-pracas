@@ -9,16 +9,12 @@ import {
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  deleteAssessment,
-  redirectToFormsList,
-} from "@/serverActions/assessmentUtil";
 import { addResponses } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
 import {
+  IconCheck,
   IconDeviceFloppy,
   IconFileCheck,
-  IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Coordinate } from "ol/coordinate";
@@ -26,7 +22,9 @@ import { Type } from "ol/geom/Geometry";
 import React from "react";
 import { useEffect, useState } from "react";
 
+import LoadingIcon from "../../../LoadingIcon";
 import { MapPopup } from "./MapPopup";
+import { DeleteAssessmentModal } from "./deleteAssessmentModal";
 
 interface ModalGeometry {
   type: Type;
@@ -163,6 +161,10 @@ const ResponseForm = ({
   };
 
   const [assessmentEnded, setAssessmentEnded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"NULL" | "SUCCESS" | "ERROR">(
+    "NULL",
+  );
   const handleCheckboxResponseChange = (
     checked: boolean,
     questionId: number,
@@ -262,7 +264,7 @@ const ResponseForm = ({
     });
   };
 
-  const handleSubmitResponse = (endAssessment: boolean) => {
+  const handleSubmitResponse = async (endAssessment: boolean) => {
     const responsesArray = Object.entries(responses).map(
       ([questionId, { value, type }]) => ({
         questionId: Number(questionId),
@@ -270,19 +272,17 @@ const ResponseForm = ({
         response: value,
       }),
     );
-    void addResponses(
+    setIsLoading(true);
+    const response = await addResponses(
       assessment.id,
       responsesArray,
       geometries,
       userId,
       endAssessment,
     );
+    setIsLoading(false);
+    setSaveStatus(response.statusCode !== 500 ? "SUCCESS" : "ERROR");
     setAssessmentEnded(endAssessment);
-  };
-
-  const handleDeleteAssessment = () => {
-    void deleteAssessment(assessment.id);
-    redirectToFormsList(locationId);
   };
 
   const calculateSum = (calculation: ResponseCalculation) => {
@@ -397,219 +397,201 @@ const ResponseForm = ({
   const options = assessment.form.questions.flatMap((question) => {
     return question.options;
   });
-  return (
-    <div>
-      {assessment.form.questions !== null && assessmentEnded === false ?
-        <>
-          {categoriesObj.map((category) => {
-            return (
-              <React.Fragment key={category.id}>
-                <h3 className="text-xl font-bold">{category.name}</h3>
-                <ul className="list-disc p-3">
-                  {category.questions.map((question) => {
-                    {
-                      question.geometryTypes.length > 0 && (
-                        <MapPopup
-                          questionId={question.id}
-                          initialGeometries={
-                            geometries.find((g) => g.questionId === question.id)
-                              ?.geometries
-                          }
-                          geometryType={
-                            question.geometryTypes.length > 1 ?
-                              "POINT_AND_POLYGON"
-                            : question.geometryTypes[0]!
-                          }
-                          handleQuestionGeometryChange={
-                            handleQuestionGeometryChange
-                          }
-                        />
-                      );
-                    }
-                    const questionOptions =
-                      options.filter((opt) => opt.questionId === question.id) ||
-                      [];
-                    return (
-                      <li key={question.id}>
-                        <label htmlFor={`response${question.id}`}>
-                          {question.name}
-                        </label>
-                        {question.type === QuestionTypes.OPTIONS ?
-                          <div>
-                            {question.optionType === "RADIO" &&
-                              questionOptions.map((option) => (
-                                <div key={option.id}>
-                                  <input
-                                    type="radio"
-                                    id={`option${option.id}`}
-                                    name={`response${question.id}`}
-                                    value={option.id}
-                                    checked={responses[
-                                      question.id
-                                    ]?.value.includes(String(option.id))}
-                                    onClick={() =>
-                                      handleRadialButtonResponseChange(
-                                        question.id,
-                                        question.type,
-                                        String(option.id),
-                                      )
-                                    }
-                                    readOnly
-                                  />
-                                  <label htmlFor={`option${option.id}`}>
-                                    {option.text}
-                                  </label>
-                                </div>
-                              ))}
-                            {question.optionType === "CHECKBOX" && (
-                              <React.Fragment>
-                                <h5>
-                                  Máximo de seleções:{" "}
-                                  {question.maximumSelections}
-                                </h5>
-                                {questionOptions.map((option) => (
+  return isLoading ?
+      <div className="flex justify-center">
+        <LoadingIcon className="h-32 w-32" />
+      </div>
+    : <div>
+        {saveStatus !== "NULL" &&
+          (saveStatus === "SUCCESS" ?
+            <p className="text-green-400">Respostas salvas!</p>
+          : <p className="text-red-500">Erro ao salvar!</p>)}
+        {assessment.form.questions !== null && assessmentEnded === false ?
+          <>
+            {categoriesObj.map((category) => {
+              return (
+                <React.Fragment key={category.id}>
+                  <h3 className="text-xl font-bold">{category.name}</h3>
+                  <ul className="list-disc p-3">
+                    {category.questions.map((question) => {
+                      {
+                        question.geometryTypes.length > 0 && (
+                          <MapPopup
+                            questionId={question.id}
+                            initialGeometries={
+                              geometries.find(
+                                (g) => g.questionId === question.id,
+                              )?.geometries
+                            }
+                            geometryType={
+                              question.geometryTypes.length > 1 ?
+                                "POINT_AND_POLYGON"
+                              : question.geometryTypes[0]!
+                            }
+                            handleQuestionGeometryChange={
+                              handleQuestionGeometryChange
+                            }
+                          />
+                        );
+                      }
+                      const questionOptions =
+                        options.filter(
+                          (opt) => opt.questionId === question.id,
+                        ) || [];
+                      return (
+                        <li key={question.id}>
+                          <label htmlFor={`response${question.id}`}>
+                            {question.name}
+                          </label>
+                          {question.type === QuestionTypes.OPTIONS ?
+                            <div>
+                              {question.optionType === "RADIO" &&
+                                questionOptions.map((option) => (
                                   <div key={option.id}>
-                                    <Checkbox
+                                    <input
+                                      type="radio"
                                       id={`option${option.id}`}
                                       name={`response${question.id}`}
                                       value={option.id}
                                       checked={responses[
                                         question.id
                                       ]?.value.includes(String(option.id))}
-                                      onChange={(e) =>
-                                        handleCheckboxResponseChange(
-                                          e.target.checked,
+                                      onClick={() =>
+                                        handleRadialButtonResponseChange(
                                           question.id,
                                           question.type,
-                                          e.target.value,
-                                          question.maximumSelections,
+                                          String(option.id),
                                         )
                                       }
-                                    >
+                                      readOnly
+                                    />
+                                    <label htmlFor={`option${option.id}`}>
                                       {option.text}
-                                    </Checkbox>
+                                    </label>
                                   </div>
                                 ))}
-                              </React.Fragment>
-                            )}
-                          </div>
-                        : <Input
-                            type={
-                              question.characterType === "TEXT" ?
-                                "text"
-                              : "number"
-                            }
-                            name={`response${question.id}`}
-                            id={`response${question.id}`}
-                            value={responses[question.id]?.value || ""}
-                            onChange={(e) =>
-                              handleResponseChange(
-                                question.id,
-                                question.type,
-                                e.target.value,
-                              )
-                            }
-                          />
-                        }
-                      </li>
-                    );
-                  })}
-                </ul>
-                {category.calculations.length > 0 && (
-                  <div>
-                    <h5>Calculos:</h5>
-                    <ul className="list-disc p-3">
-                      {category.calculations.map((calculation) => {
-                        return (
-                          <li key={calculation.id}>
-                            <span>{calculation.name + ": "} </span>
-                            {calculation.type === "SUM" && (
-                              <span>{calculateSum(calculation)}</span>
-                            )}
-                            {calculation.type === "AVERAGE" && (
-                              <span>{calculateAverage(calculation)}</span>
-                            )}
-                            {calculation.type === "PERCENTAGE" && (
-                              <div>{calculatePercentages(calculation)}</div>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
-
-                {category.subcategories.map((subcategory) => {
-                  return (
-                    <React.Fragment key={subcategory.id}>
-                      <h4 className="text-lg font-bold">{subcategory.name}</h4>
-                      <ul className="list-disc p-3">
-                        {subcategory.questions.map((question) => {
-                          const questionOptions =
-                            options.filter(
-                              (opt) => opt && opt.questionId === question.id,
-                            ) || [];
-                          return (
-                            <li key={question.id}>
-                              <label htmlFor={`response${question.id}`}>
-                                {question.name}
-                              </label>
-                              {question.geometryTypes.length > 0 && (
-                                <span className="px-2">
-                                  <MapPopup
-                                    questionId={question.id}
-                                    initialGeometries={
-                                      geometries.find(
-                                        (g) => g.questionId === question.id,
-                                      )?.geometries
-                                    }
-                                    geometryType={
-                                      question.geometryTypes.length > 1 ?
-                                        "POINT_AND_POLYGON"
-                                      : question.geometryTypes[0]!
-                                    }
-                                    handleQuestionGeometryChange={
-                                      handleQuestionGeometryChange
-                                    }
-                                  />
-                                </span>
+                              {question.optionType === "CHECKBOX" && (
+                                <React.Fragment>
+                                  <h5>
+                                    Máximo de seleções:{" "}
+                                    {question.maximumSelections}
+                                  </h5>
+                                  {questionOptions.map((option) => (
+                                    <div key={option.id}>
+                                      <Checkbox
+                                        id={`option${option.id}`}
+                                        name={`response${question.id}`}
+                                        value={option.id}
+                                        checked={responses[
+                                          question.id
+                                        ]?.value.includes(String(option.id))}
+                                        onChange={(e) =>
+                                          handleCheckboxResponseChange(
+                                            e.target.checked,
+                                            question.id,
+                                            question.type,
+                                            e.target.value,
+                                            question.maximumSelections,
+                                          )
+                                        }
+                                      >
+                                        {option.text}
+                                      </Checkbox>
+                                    </div>
+                                  ))}
+                                </React.Fragment>
                               )}
-                              {question.type === QuestionTypes.OPTIONS ?
-                                <div>
-                                  {question.optionType === "RADIO" &&
-                                    questionOptions.map((option) => (
-                                      <div key={option.id}>
-                                        <input
-                                          type="radio"
-                                          id={`option${option.id}`}
-                                          name={`response${question.id}`}
-                                          value={option.id}
-                                          checked={responses[
-                                            question.id
-                                          ]?.value.includes(String(option.id))}
-                                          onClick={() =>
-                                            handleRadialButtonResponseChange(
-                                              question.id,
-                                              question.type,
-                                              String(option.id),
-                                            )
-                                          }
-                                          readOnly
-                                        />
-                                        <label htmlFor={`option${option.id}`}>
-                                          {option.text}
-                                        </label>
-                                      </div>
-                                    ))}
-                                  {question.optionType === "CHECKBOX" && (
-                                    <React.Fragment>
-                                      <h5>
-                                        Máximo de seleções:{" "}
-                                        {question.maximumSelections}
-                                      </h5>
-                                      {questionOptions.map((option) => (
+                            </div>
+                          : <Input
+                              type={
+                                question.characterType === "TEXT" ?
+                                  "text"
+                                : "number"
+                              }
+                              name={`response${question.id}`}
+                              id={`response${question.id}`}
+                              value={responses[question.id]?.value || ""}
+                              onChange={(e) =>
+                                handleResponseChange(
+                                  question.id,
+                                  question.type,
+                                  e.target.value,
+                                )
+                              }
+                            />
+                          }
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {category.calculations.length > 0 && (
+                    <div>
+                      <h5>Calculos:</h5>
+                      <ul className="list-disc p-3">
+                        {category.calculations.map((calculation) => {
+                          return (
+                            <li key={calculation.id}>
+                              <span>{calculation.name + ": "} </span>
+                              {calculation.type === "SUM" && (
+                                <span>{calculateSum(calculation)}</span>
+                              )}
+                              {calculation.type === "AVERAGE" && (
+                                <span>{calculateAverage(calculation)}</span>
+                              )}
+                              {calculation.type === "PERCENTAGE" && (
+                                <div>{calculatePercentages(calculation)}</div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  {category.subcategories.map((subcategory) => {
+                    return (
+                      <React.Fragment key={subcategory.id}>
+                        <h4 className="text-lg font-bold">
+                          {subcategory.name}
+                        </h4>
+                        <ul className="list-disc p-3">
+                          {subcategory.questions.map((question) => {
+                            const questionOptions =
+                              options.filter(
+                                (opt) => opt && opt.questionId === question.id,
+                              ) || [];
+                            return (
+                              <li key={question.id}>
+                                <label htmlFor={`response${question.id}`}>
+                                  {question.name}
+                                </label>
+                                {question.geometryTypes.length > 0 && (
+                                  <span className="px-2">
+                                    <MapPopup
+                                      questionId={question.id}
+                                      initialGeometries={
+                                        geometries.find(
+                                          (g) => g.questionId === question.id,
+                                        )?.geometries
+                                      }
+                                      geometryType={
+                                        question.geometryTypes.length > 1 ?
+                                          "POINT_AND_POLYGON"
+                                        : question.geometryTypes[0]!
+                                      }
+                                      handleQuestionGeometryChange={
+                                        handleQuestionGeometryChange
+                                      }
+                                    />
+                                  </span>
+                                )}
+                                {question.type === QuestionTypes.OPTIONS ?
+                                  <div>
+                                    {question.optionType === "RADIO" &&
+                                      questionOptions.map((option) => (
                                         <div key={option.id}>
-                                          <Checkbox
+                                          <input
+                                            type="radio"
                                             id={`option${option.id}`}
                                             name={`response${question.id}`}
                                             value={option.id}
@@ -618,116 +600,157 @@ const ResponseForm = ({
                                             ]?.value.includes(
                                               String(option.id),
                                             )}
-                                            onChange={(e) =>
-                                              handleCheckboxResponseChange(
-                                                e.target.checked,
+                                            onClick={() =>
+                                              handleRadialButtonResponseChange(
                                                 question.id,
                                                 question.type,
-                                                e.target.value,
-                                                question.maximumSelections,
+                                                String(option.id),
                                               )
                                             }
-                                          >
+                                            readOnly
+                                          />
+                                          <label htmlFor={`option${option.id}`}>
                                             {option.text}
-                                          </Checkbox>
+                                          </label>
                                         </div>
                                       ))}
-                                    </React.Fragment>
-                                  )}
-                                </div>
-                              : <Input
-                                  type={
-                                    question.characterType === "TEXT" ?
-                                      "text"
-                                    : "number"
-                                  }
-                                  name={`response${question.id}`}
-                                  id={`response${question.id}`}
-                                  value={responses[question.id]?.value || ""}
-                                  onChange={(e) =>
-                                    handleResponseChange(
-                                      question.id,
-                                      question.type,
-                                      e.target.value,
-                                    )
-                                  }
-                                />
-                              }
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {subcategory.calculations.length > 0 && (
-                        <div>
-                          <h5>Cálculos:</h5>
-                          <ul className="list-disc p-3">
-                            {subcategory.calculations.map((calculation) => {
-                              return (
-                                <li key={calculation.id}>
-                                  <span>{calculation.name + ": "} </span>
-                                  {calculation.type === "SUM" && (
-                                    <span>{calculateSum(calculation)}</span>
-                                  )}
-                                  {calculation.type === "AVERAGE" && (
-                                    <span>{calculateAverage(calculation)}</span>
-                                  )}
-                                  {calculation.type === "PERCENTAGE" && (
-                                    <div>
-                                      {calculatePercentages(calculation)}
-                                    </div>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </React.Fragment>
-            );
-          })}
-          <div className="mb-2 flex items-center justify-between gap-2 rounded p-2">
-            {assessment.endDate === null && (
-              <Button
-                variant={"secondary"}
-                onPress={() => handleSubmitResponse(false)}
-              >
-                <IconDeviceFloppy />
-              </Button>
-            )}
+                                    {question.optionType === "CHECKBOX" && (
+                                      <React.Fragment>
+                                        <h5>
+                                          Máximo de seleções:{" "}
+                                          {question.maximumSelections}
+                                        </h5>
+                                        {questionOptions.map((option) => (
+                                          <div key={option.id}>
+                                            <Checkbox
+                                              id={`option${option.id}`}
+                                              name={`response${question.id}`}
+                                              value={option.id}
+                                              checked={responses[
+                                                question.id
+                                              ]?.value.includes(
+                                                String(option.id),
+                                              )}
+                                              onChange={(e) =>
+                                                handleCheckboxResponseChange(
+                                                  e.target.checked,
+                                                  question.id,
+                                                  question.type,
+                                                  e.target.value,
+                                                  question.maximumSelections,
+                                                )
+                                              }
+                                            >
+                                              {option.text}
+                                            </Checkbox>
+                                          </div>
+                                        ))}
+                                      </React.Fragment>
+                                    )}
+                                  </div>
+                                : <Input
+                                    type={
+                                      question.characterType === "TEXT" ?
+                                        "text"
+                                      : "number"
+                                    }
+                                    name={`response${question.id}`}
+                                    id={`response${question.id}`}
+                                    value={responses[question.id]?.value || ""}
+                                    onChange={(e) =>
+                                      handleResponseChange(
+                                        question.id,
+                                        question.type,
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                }
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {subcategory.calculations.length > 0 && (
+                          <div>
+                            <h5>Cálculos:</h5>
+                            <ul className="list-disc p-3">
+                              {subcategory.calculations.map((calculation) => {
+                                return (
+                                  <li key={calculation.id}>
+                                    <span>{calculation.name + ": "} </span>
+                                    {calculation.type === "SUM" && (
+                                      <span>{calculateSum(calculation)}</span>
+                                    )}
+                                    {calculation.type === "AVERAGE" && (
+                                      <span>
+                                        {calculateAverage(calculation)}
+                                      </span>
+                                    )}
+                                    {calculation.type === "PERCENTAGE" && (
+                                      <div>
+                                        {calculatePercentages(calculation)}
+                                      </div>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded p-2">
+              {assessment.endDate === null && (
+                <Button
+                  variant={"secondary"}
+                  onPress={() => {
+                    void handleSubmitResponse(false);
+                  }}
+                >
+                  <IconDeviceFloppy />
+                </Button>
+              )}
 
-            <Button
-              variant={"constructive"}
-              type="button"
-              onPress={() => handleSubmitResponse(true)}
-            >
-              <p>
-                <IconDeviceFloppy className="inline" /> +{" "}
-                <IconFileCheck className="inline" />
-              </p>
-            </Button>
-            <Button variant={"destructive"} onPress={handleDeleteAssessment}>
-              <IconTrash />
-            </Button>
-          </div>
-        </>
-      : assessmentEnded === true ?
-        <div className="flex-row text-4xl">
-          Respostas enviadas com sucesso!
-          <div>
-            <Link href={"/admin/parks/"}>
-              <Button className="text-white" variant={"default"}>
-                <span className="-mb-1">Voltar à seleção</span>
+              <Button
+                variant={"constructive"}
+                type="button"
+                onPress={() => {
+                  void handleSubmitResponse(true);
+                }}
+              >
+                <p>
+                  <IconDeviceFloppy className="inline" /> +{" "}
+                  <IconFileCheck className="inline" />
+                </p>
               </Button>
-            </Link>
+
+              <DeleteAssessmentModal
+                assessmentId={assessment.id}
+                locationId={locationId}
+              />
+            </div>
+          </>
+        : assessmentEnded === true ?
+          <div className="flex w-full flex-col items-center text-4xl">
+            <IconCheck className="h-32 w-32 text-green-500" />
+            Respostas enviadas com sucesso!
+            <div className="flex justify-center">
+              <Link href={"/admin/parks/"}>
+                <Button className="text-white" variant={"default"}>
+                  Voltar às praças
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      : <div className="text-redwood">Ainda não há perguntas no formulário</div>
-      }
-    </div>
-  );
+        : <div className="text-redwood">
+            Ainda não há perguntas no formulário
+          </div>
+        }
+      </div>;
 };
 
 export { ResponseForm };

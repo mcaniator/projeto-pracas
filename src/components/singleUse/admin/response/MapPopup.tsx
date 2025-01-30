@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconX } from "@tabler/icons-react";
+import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
@@ -128,14 +128,14 @@ const MapPopup = ({
                       ref={mapProviderRef}
                     ></MapProvider>
                   </div>
-                  <span className="flex justify-between">
+                  <span className="flex justify-between text-white">
                     {isInSelectMode && (
                       <Button
                         variant={"destructive"}
                         className="w-fit"
                         onPress={() => handleDeleteGeometry()}
                       >
-                        Excluir geometria selecionada
+                        <IconTrash />
                       </Button>
                     )}
                     {!isInSelectMode && <div></div>}
@@ -148,7 +148,7 @@ const MapPopup = ({
                         close();
                       }}
                     >
-                      Concluir
+                      <IconCheck />
                     </Button>
                   </span>
                 </div>
