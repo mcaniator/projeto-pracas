@@ -119,14 +119,14 @@ const LocationUpdater = ({
             }, 1)
           }
         >
-          <div>
+          <div className="w-full max-w-[70rem]">
             <label htmlFor={"name"}>Nome:</label>
             <Input
               type="text"
               name="name"
               required
               id={"name"}
-              className="w-full max-w-[70rem]"
+              className="w-full"
               defaultValue={location.name === null ? "" : location.name}
             />
 
@@ -135,7 +135,7 @@ const LocationUpdater = ({
               type="text"
               name="notes"
               id={"notes"}
-              className="w-full max-w-[70rem]"
+              className="w-full"
               defaultValue={location.notes === null ? "" : location.notes}
             />
 
@@ -209,7 +209,7 @@ const LocationUpdater = ({
                       Registrar unidade administrativa estreita
                     </label>
                     <Input
-                      className="w-full max-w-[70rem]"
+                      className="w-full"
                       id="narrowAdministrativeUnit"
                       name="narrowAdministrativeUnit"
                     ></Input>
@@ -252,6 +252,7 @@ const LocationUpdater = ({
                     <Input
                       id="intermediateAdministrativeUnit"
                       name="intermediateAdministrativeUnit"
+                      className="w-full"
                     ></Input>
                   </>
                 )}
@@ -290,7 +291,7 @@ const LocationUpdater = ({
                       Registrar região administrativa ampla
                     </label>
                     <Input
-                      className="w-full max-w-[70rem]"
+                      className="w-full"
                       id="broadAdministrativeUnit"
                       name="broadAdministrativeUnit"
                     ></Input>
@@ -305,12 +306,12 @@ const LocationUpdater = ({
               name="firstStreet"
               id="firstStreet"
               defaultValue={location.firstStreet}
-              className="w-full max-w-[70rem]"
+              className="w-full"
             />
 
             <label htmlFor="secondStreet">Segunda rua:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="text"
               name="secondStreet"
               id="secondStreet"
@@ -319,7 +320,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"creationYear"}>Data de Criação:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="date"
               name="creationYear"
               id={"creationYear"}
@@ -334,7 +335,7 @@ const LocationUpdater = ({
               Data da Última Manutenção:
             </label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="date"
               name="lastMaintenanceYear"
               id={"lastMaintenanceYear"}
@@ -349,7 +350,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"overseeingMayor"}>Prefeito Inaugurador:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="text"
               name="overseeingMayor"
               id={"overseeingMayor"}
@@ -362,7 +363,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"legislation"}>Legislação:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="text"
               name="legislation"
               id={"legislation"}
@@ -373,7 +374,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"usableArea"}>Área Útil:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="number"
               name="usableArea"
               id={"usableArea"}
@@ -384,7 +385,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"legalArea"}>Área Prefeitura:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="number"
               name="legalArea"
               id={"legalArea"}
@@ -395,7 +396,7 @@ const LocationUpdater = ({
 
             <label htmlFor={"incline"}>Inclinação:</label>
             <Input
-              className="w-full max-w-[70rem]"
+              className="w-full"
               type="number"
               name="incline"
               id={"incline"}
