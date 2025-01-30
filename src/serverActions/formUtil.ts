@@ -133,6 +133,39 @@ const fetchFormsLatest = async () => {
   return forms;
 };
 
+const fetchLatestNonVersionZeroForms = async () => {
+  let forms: Form[];
+  try {
+    forms = await prisma.form.findMany({
+      where: {
+        NOT: {
+          version: 0,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+
+      distinct: ["name"],
+      orderBy: [
+        {
+          name: "asc",
+        },
+        {
+          version: "desc",
+        },
+      ],
+    });
+  } catch (e) {
+    forms = [];
+  }
+  return forms;
+};
+
 const searchFormById = async (id: number) => {
   const cachedForm = unstable_cache(
     async (id: number): Promise<FormToEditPage | undefined | null> => {
@@ -329,5 +362,6 @@ export {
   updateForm,
   createVersion,
   fetchFormsLatest,
+  fetchLatestNonVersionZeroForms,
 };
 export { type FormToEditPage };

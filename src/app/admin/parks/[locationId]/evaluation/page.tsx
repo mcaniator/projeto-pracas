@@ -1,9 +1,9 @@
-import { fetchFormsLatest } from "@/serverActions/formUtil";
+import { fetchLatestNonVersionZeroForms } from "@/serverActions/formUtil";
 
 import { FormComponent } from "./formComponent";
 
 const Evaluation = async ({ params }: { params: { locationId: string } }) => {
-  const forms = await fetchFormsLatest();
+  const forms = await fetchLatestNonVersionZeroForms();
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
       <div className="flex max-h-full flex-col gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">

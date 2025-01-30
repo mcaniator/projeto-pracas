@@ -15,6 +15,11 @@ import {
 } from "@/serverActions/assessmentUtil";
 import { addResponses } from "@/serverActions/responseUtil";
 import { QuestionTypes } from "@prisma/client";
+import {
+  IconDeviceFloppy,
+  IconFileCheck,
+  IconTrash,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { Coordinate } from "ol/coordinate";
 import { Type } from "ol/geom/Geometry";
@@ -393,11 +398,7 @@ const ResponseForm = ({
     return question.options;
   });
   return (
-    <div
-      className={
-        "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
-      }
-    >
+    <div>
       {assessment.form.questions !== null && assessmentEnded === false ?
         <>
           {categoriesObj.map((category) => {
@@ -693,7 +694,7 @@ const ResponseForm = ({
                 variant={"secondary"}
                 onPress={() => handleSubmitResponse(false)}
               >
-                Salvar respostas
+                <IconDeviceFloppy />
               </Button>
             )}
 
@@ -702,10 +703,13 @@ const ResponseForm = ({
               type="button"
               onPress={() => handleSubmitResponse(true)}
             >
-              <span className={"-mb-1"}>Salvar e finalizar</span>
+              <p>
+                <IconDeviceFloppy className="inline" /> +{" "}
+                <IconFileCheck className="inline" />
+              </p>
             </Button>
             <Button variant={"destructive"} onPress={handleDeleteAssessment}>
-              Excluir avaliação
+              <IconTrash />
             </Button>
           </div>
         </>
