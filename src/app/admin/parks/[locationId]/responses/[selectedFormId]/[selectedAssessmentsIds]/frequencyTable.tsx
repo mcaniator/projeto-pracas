@@ -1,6 +1,11 @@
+"use client";
+
 import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
 import { OptionTypes, QuestionTypes } from "@prisma/client";
+import { IconHelp } from "@tabler/icons-react";
+import { useState } from "react";
 
+import { Button } from "../../../../../../../components/button";
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 
 interface FrequencyObjByCategory {
@@ -39,6 +44,7 @@ const FrequencyTable = ({
 }: {
   assessments: AssessmentsWithResposes;
 }) => {
+  const [showHelp, setShowHelp] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
   assessments.forEach((assessment) => {
     assessment.form.questions.forEach((question) => {
@@ -227,7 +233,23 @@ const FrequencyTable = ({
   });
   return (
     <div className="h-full overflow-auto">
-      <h3 className="text-2xl font-semibold">Dados somados</h3>
+      <div className="flex items-center">
+        <h3 className="text-2xl font-semibold">Dados somados</h3>
+        <Button
+          variant={"ghost"}
+          className="group relative"
+          onPress={() => setShowHelp((prev) => !prev)}
+        >
+          <IconHelp />
+          <div
+            className={`absolute top-10 transform rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 group-hover:opacity-100 ${showHelp ? "opacity-100" : "opacity-0"}`}
+          >
+            O número ao lado de cada resposta corresponde à quantidade de vezes
+            que aquela resposta foi dada no conjunto de avaliações.
+          </div>
+        </Button>
+      </div>
+
       <ul className="list-disc p-3 text-sm sm:text-base">
         {frequencies.map((category) => {
           return (
@@ -246,7 +268,7 @@ const FrequencyTable = ({
                         return (
                           <span key={response.text}>
                             {response.text}
-                            <span className="font-bold text-blue-800">{`  - Presente em ${response.frequency} ${response.frequency > 1 ? "avaliações" : "avaliação"}`}</span>
+                            <span className="font-bold">{` (x${response.frequency})`}</span>
                           </span>
                         );
                       })
@@ -274,7 +296,7 @@ const FrequencyTable = ({
                               return (
                                 <span key={`${question.id}-${response.text}`}>
                                   {response.text}
-                                  <span className="font-bold text-blue-800">{` - Presente em ${response.frequency} ${response.frequency > 1 ? "avaliações" : "avaliação"}`}</span>
+                                  <span className="font-bold">{` (x${response.frequency})`}</span>
                                 </span>
                               );
                             })

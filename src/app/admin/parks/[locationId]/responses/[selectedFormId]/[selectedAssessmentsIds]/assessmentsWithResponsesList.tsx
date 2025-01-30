@@ -167,15 +167,12 @@ const AssessmentComponent = ({
         }
       }
     });
-    let percentagesStr = "";
-    responsesByQuestion.forEach(
-      (value, key) =>
-        (percentagesStr +=
-          `${key}: ` +
-          `${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%` +
-          ", "),
-    );
-    return percentagesStr;
+    return Array.from(responsesByQuestion).map(([key, value]) => (
+      <p>
+        {`${key}: 
+          ${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%`}
+      </p>
+    ));
   };
   const [expanded, setExpanded] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
@@ -399,7 +396,7 @@ const AssessmentComponent = ({
                 </span>
                 {category.questions.map((question) => {
                   return (
-                    <div key={question.id} className="my-2 flex flex-col">
+                    <div key={question.id} className="my-4 flex flex-col">
                       <span className="font-bold">{question.questionName}</span>
 
                       {question.responses.length === 0 ?
@@ -464,7 +461,7 @@ const AssessmentComponent = ({
 
                       {subcategory.questions.map((question) => {
                         return (
-                          <div key={question.id} className="my-2 flex flex-col">
+                          <div key={question.id} className="my-4 flex flex-col">
                             <span className="font-bold">
                               {question.questionName}
                             </span>
