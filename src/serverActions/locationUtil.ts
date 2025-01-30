@@ -358,7 +358,7 @@ const updateLocation = async (
     });
   } catch (e) {
     return {
-      statusCode: 2,
+      statusCode: 500,
     };
   }
   if (formData.get("file")) {
@@ -368,9 +368,6 @@ const updateLocation = async (
 
   revalidateTag("location");
   redirect("/admin/parks");
-  return {
-    statusCode: 0,
-  };
 };
 
 export {
