@@ -168,7 +168,7 @@ const AssessmentComponent = ({
       }
     });
     return Array.from(responsesByQuestion).map(([key, value]) => (
-      <p>
+      <p key={key}>
         {`${key}: 
           ${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%`}
       </p>

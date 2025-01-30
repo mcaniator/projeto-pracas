@@ -13,7 +13,7 @@ const Select = ({ ...props }: selectProps) => {
         id={id}
         className={cn(
           className,
-          "appearance-none rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-3 py-1 text-lg shadow-md",
+          "w-full appearance-none rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-3 py-1 text-lg shadow-md",
         )}
         {...props}
       >

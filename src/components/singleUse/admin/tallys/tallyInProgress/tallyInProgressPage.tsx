@@ -9,9 +9,13 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { IconTemperature } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import React from "react";
+import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
+import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
+import { TiWeatherPartlySunny } from "react-icons/ti";
 
 import TallyInProgressReview from "./tallyInProgressReview";
 import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
@@ -228,12 +232,12 @@ const TallyInProgressPage = ({
   return (
     <div className="flex h-full max-h-full min-h-0 w-full">
       <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className="flex basis-full flex-col xl:basis-2/3">
-          <div className="flex">
+        <div className="flex w-full flex-col xl:basis-2/3">
+          <div className="flex flex-wrap">
             <h3 className="inline text-2xl font-semibold">
               Contagem em {tally?.location.name}
             </h3>
-            <div className="ml-auto flex flex-row gap-1 xl:hidden">
+            <div className="ml-auto flex flex-wrap gap-1 xl:hidden">
               <TallyInProgressReviewModal
                 tally={tally}
                 weatherStats={weatherStats}
@@ -260,7 +264,7 @@ const TallyInProgressPage = ({
               <div className="flex flex-col gap-5 md:flex-row">
                 <div className="flex flex-row items-center">
                   <label htmlFor="temperature-input" className="mr-1">
-                    {"Temperatura (°C):"}
+                    <IconTemperature className="h-8 w-8" />
                   </label>
                   <Input
                     value={
@@ -282,10 +286,11 @@ const TallyInProgressPage = ({
                     className="w-14"
                     type="number"
                   ></Input>
+                  <span className="ml-1">°C</span>
                 </div>
                 <div className="flex flex-grow flex-row items-center">
                   <label htmlFor="weatherSelect" className="mr-1">
-                    Tempo:
+                    <TiWeatherPartlySunny className="h-8 w-8" />
                   </label>
                   <Select
                     value={weatherStats.weather}
@@ -310,7 +315,7 @@ const TallyInProgressPage = ({
                   <h5 className="text-xl font-semibold">Homens</h5>
 
                   <div className="flex w-full items-center justify-center">
-                    <div className="inline-flex w-auto flex-col gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner sm:flex-row">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -321,7 +326,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Sedentário
+                        <BsPersonStanding />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -333,7 +338,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Caminhando
+                        <FaPersonWalking />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -345,7 +350,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Vigoroso
+                        <FaPersonRunning />
                       </Button>
                     </div>
                   </div>
@@ -551,7 +556,7 @@ const TallyInProgressPage = ({
                 <div className="flex flex-col gap-1 rounded-md bg-red-900/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Mulheres</h5>
                   <div className="flex w-full items-center justify-center">
-                    <div className="inline-flex w-auto flex-col gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner sm:flex-row">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -562,7 +567,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Sedentária
+                        <BsPersonStandingDress />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -574,7 +579,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Caminhando
+                        <FaPersonWalking />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -586,7 +591,7 @@ const TallyInProgressPage = ({
                         }
                         className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Vigorosa
+                        <FaPersonRunning />
                       </Button>
                     </div>
                   </div>

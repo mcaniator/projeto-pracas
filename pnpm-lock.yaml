@@ -72,6 +72,9 @@ importers:
       react-chartjs-2:
         specifier: ^5.3.0
         version: 5.3.0(chart.js@4.4.7)(react@19.0.0-rc-a26e3f403e-20240611)
+      react-icons:
+        specifier: ^5.4.0
+        version: 5.4.0(react@19.0.0-rc-a26e3f403e-20240611)
       react-rnd:
         specifier: ^10.4.14
         version: 10.4.14(react-dom@19.0.0-rc-a26e3f403e-20240611(react@19.0.0-rc-a26e3f403e-20240611))(react@19.0.0-rc-a26e3f403e-20240611)
@@ -3107,6 +3110,11 @@ packages:
     peerDependencies:
       react: '>= 16.3.0'
       react-dom: '>= 16.3.0'
+
+  react-icons@5.4.0:
+    resolution: {integrity: sha512-7eltJxgVt7X64oHh6wSWNwwbKTCtMfK35hcjvJS0yxEAhPM8oUKdS3+kqaW1vicIltw+kR2unHaa12S9pPALoQ==}
+    peerDependencies:
+      react: '*'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -7232,6 +7240,10 @@ snapshots:
       prop-types: 15.8.1
       react: 19.0.0-rc-a26e3f403e-20240611
       react-dom: 19.0.0-rc-a26e3f403e-20240611(react@19.0.0-rc-a26e3f403e-20240611)
+
+  react-icons@5.4.0(react@19.0.0-rc-a26e3f403e-20240611):
+    dependencies:
+      react: 19.0.0-rc-a26e3f403e-20240611
 
   react-is@16.13.1: {}
 
