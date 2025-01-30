@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location, Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
@@ -356,7 +357,6 @@ const updateLocation = async (
       },
     });
   } catch (e) {
-    console.log(e);
     return {
       statusCode: 2,
     };
@@ -367,6 +367,7 @@ const updateLocation = async (
   }
 
   revalidateTag("location");
+  redirect("/admin/parks");
   return {
     statusCode: 0,
   };

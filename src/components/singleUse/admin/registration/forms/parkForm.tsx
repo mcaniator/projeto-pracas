@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import Fuse, { FuseResult } from "fuse.js";
@@ -9,21 +8,13 @@ import { useMemo, useState } from "react";
 
 const LocationComponent = ({ id, name }: { id: number; name: string }) => {
   return (
-    <div className="flex gap-2 text-white">
-      <div className="flex-1 overflow-hidden">
-        <Link key={id} href={`/admin/parks/${id}`}>
-          <Button
-            variant={"ghost"}
-            use={"link"}
-            className="w-full justify-start px-2"
-          >
-            <span className="-mb-1 overflow-hidden overflow-ellipsis whitespace-nowrap text-[22px]/[30px] font-semibold">
-              {name}
-            </span>
-          </Button>
-        </Link>
-      </div>
-    </div>
+    <Link
+      className="b w-full bg-transparent p-2 text-white hover:bg-transparent/10 hover:underline"
+      key={id}
+      href={`/admin/parks/${id}`}
+    >
+      <p className="text-xl font-semibold">{name}</p>
+    </Link>
   );
 };
 
@@ -64,9 +55,8 @@ const ParkForm = ({
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-4 overflow-auto py-1">
       <div className={"flex flex-col gap-2"}>
-        <h3 className={"text-2xl font-semibold"}>Busca</h3>
         <Input
           name="name"
           id={"name"}
