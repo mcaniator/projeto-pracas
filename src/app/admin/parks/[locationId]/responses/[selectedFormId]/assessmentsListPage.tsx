@@ -1,6 +1,7 @@
 "use client";
 
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
+import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 import React, { useRef, useState } from "react";
 
 import { AssessmentsFilter } from "./assessmentsFilter";
@@ -116,10 +117,14 @@ const AssessmentsListPage = ({
           : <React.Fragment>
               <div className="flex">
                 <span>
-                  <h3 className="text-xl font-semibold">Data</h3>
+                  <h3 className="text-xl font-semibold">
+                    <IconCalendarClock />
+                  </h3>
                 </span>
                 <span className="ml-auto">
-                  <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
+                  <h3 className="text-xl font-semibold">
+                    <IconUser />
+                  </h3>
                 </span>
               </div>
               <div className="overflow-auto rounded">

@@ -535,7 +535,7 @@ const AssessmentsWithResponsesList = ({
   assessmentsGeometries: FetchedAssessmentGeometries[];
 }) => {
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full">
       <h3 className="text-2xl font-semibold">Avaliações</h3>
       {assessments.map((assessment) => (
         <AssessmentComponent

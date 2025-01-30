@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/select";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { LocationWithCity } from "@/serverActions/locationUtil";
 import { BrazilianStates } from "@prisma/client";
+import { IconDeviceFloppy, IconTrash } from "@tabler/icons-react";
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 
@@ -162,7 +163,6 @@ const LocationUpdater = ({
               <div>
                 <label htmlFor="cityName">Cidade</label>
                 <Select
-                  className="w-full max-w-[70rem]"
                   onChange={handleCitySelectChange}
                   value={selectedCity}
                   name="cityNameSelect"
@@ -179,7 +179,6 @@ const LocationUpdater = ({
                   Região administrativa estreita
                 </label>
                 <Select
-                  className="w-full max-w-[70rem]"
                   id="narrowAdministrativeUnitSelect"
                   name="narrowAdministrativeUnitSelect"
                   defaultValue={
@@ -221,7 +220,6 @@ const LocationUpdater = ({
                   Região administrativa intermediária
                 </label>
                 <Select
-                  className="w-full max-w-[70rem]"
                   id="intermediateAdministrativeUnitSelect"
                   name="intermediateAdministrativeUnitSelect"
                   defaultValue={
@@ -252,7 +250,6 @@ const LocationUpdater = ({
                       Registrar unidade administrativa intermediária
                     </label>
                     <Input
-                      className="w-full max-w-[70rem]"
                       id="intermediateAdministrativeUnit"
                       name="intermediateAdministrativeUnit"
                     ></Input>
@@ -263,7 +260,6 @@ const LocationUpdater = ({
                   Região administrativa ampla
                 </label>
                 <Select
-                  className="w-full max-w-[70rem]"
                   id="broadAdministrativeUnitSelect"
                   name="broadAdministrativeUnitSelect"
                   defaultValue={
@@ -437,11 +433,7 @@ const LocationUpdater = ({
             </div>
           </div>
 
-          <div className="mb-2 flex items-center justify-between rounded p-2">
-            <Button variant={"admin"} type="submit" className={"w-min"}>
-              <span className={"-mb-1"}>Enviar</span>
-            </Button>
-
+          <div className="mb-2 flex w-full max-w-[70rem] items-center justify-between rounded p-2">
             <Link href={"/admin/parks"}>
               <Button
                 type="button"
@@ -449,9 +441,12 @@ const LocationUpdater = ({
                 onPress={() => void handleDelete(location.id)}
                 className={"w-min"}
               >
-                <span className={"-mb-1"}>Deletar</span>
+                <IconTrash />
               </Button>
             </Link>
+            <Button variant={"constructive"} type="submit">
+              <IconDeviceFloppy />
+            </Button>
           </div>
         </form>
       )}

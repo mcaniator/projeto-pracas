@@ -1,5 +1,6 @@
 "use client";
 
+import { IconListCheck, IconSum } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "../../../../../../../components/button";
@@ -31,25 +32,25 @@ const MainContainer = ({
   }, []);
 
   return (
-    <div className="flex h-full w-full flex-col gap-1 rounded-3xl bg-gray-300/30 p-2">
-      <h3 className="flex p-2 text-xl font-semibold text-white md:text-2xl xl:hidden">
+    <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-2">
+      <h3 className="flex overflow-auto p-2 text-xl font-semibold text-white md:text-2xl xl:hidden">
         Respostas ao formulario {assessments[0]?.form.name} referentes a
         localidade {locationName}
       </h3>
-      <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner xl:hidden">
+      <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-500/30 py-1 text-white shadow-inner xl:hidden">
         <Button
           variant={"ghost"}
           className={`rounded-xl px-4 py-1 text-sm xl:text-base ${mainContent === "ASSESSMENTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
           onPress={() => setMainContent("ASSESSMENTS")}
         >
-          Avaliações
+          <IconListCheck />
         </Button>
         <Button
           variant={"ghost"}
           className={`rounded-xl px-4 py-1 text-sm xl:text-base ${mainContent === "FREQUENCIES" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
           onPress={() => setMainContent("FREQUENCIES")}
         >
-          Frequências
+          <IconSum />
         </Button>
       </div>
       {mainContent === "ASSESSMENTS" ?

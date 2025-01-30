@@ -4,6 +4,7 @@ import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
+import { IconFilter } from "@tabler/icons-react";
 import Link from "next/link";
 import React from "react";
 
@@ -28,10 +29,11 @@ const AssessmentsFilter = ({
     filteredAssessmentsIdsString = `${filteredAssessments.map((assessment) => assessment.id).join("-")}`;
   return (
     <>
-      <h4 className={"text-2xl font-semibold"}>Filtros</h4>
+      <h4 className={"text-2xl font-semibold"}>
+        <IconFilter />
+      </h4>
       <div className="flex flex-col gap-5">
         <div className="flex basis-1/5 flex-col">
-          <h5 className="text-xl font-semibold">Filtro por data</h5>
           <div className="flex-cols-2 flex gap-6">
             <div className="flex flex-row items-center">
               <label htmlFor="initial-date" className="mr-2">
@@ -57,7 +59,6 @@ const AssessmentsFilter = ({
           </div>
         </div>
         <div className="flex basis-1/5 flex-col">
-          <h5 className="text-xl font-semibold">Filtro por dia da semana</h5>
           <div className="flex gap-4">
             <div className="flex">
               <label htmlFor="sun" className="mr-1">

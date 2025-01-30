@@ -123,10 +123,8 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 </Button>
               </Link>
 
-              <Link
-                href={`/admin/parks/${locationIdNumber}/responses?action=responses`}
-              >
-                <Button className="w-full">Ver Respostas</Button>
+              <Link href={`/admin/parks/${locationIdNumber}/responses`}>
+                <Button className="w-full">Ver Avaliações</Button>
               </Link>
 
               <Link href={`/admin/parks/${locationIdNumber}/evaluation`}>
