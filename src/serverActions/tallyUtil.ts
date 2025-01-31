@@ -61,6 +61,9 @@ const fetchRecentlyCompletedTallys = async () => {
         name: string;
         id: number;
       };
+      user: {
+        username: string;
+      };
     }[];
   } = { statusCode: 500, tallys: [] };
   try {
@@ -81,6 +84,11 @@ const fetchRecentlyCompletedTallys = async () => {
           select: {
             id: true,
             name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
           },
         },
       },

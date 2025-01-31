@@ -9,6 +9,7 @@ import {
   IconHome,
   IconInfoSquareRounded,
   IconListCheck,
+  IconLogs,
   IconMail,
   IconMapSearch,
   IconMenu2,
@@ -42,9 +43,9 @@ const Sidebar = () => {
       path: "/admin/export",
     },
     {
-      icon: <IconTableExport size={34} />,
-      name: "Lista",
-      path: "/admin/list",
+      icon: <IconLogs size={34} />,
+      name: "Atividade",
+      path: "/admin/activity",
     },
   ];
 

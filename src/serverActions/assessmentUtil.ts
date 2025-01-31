@@ -248,6 +248,9 @@ const fetchRecentlyCompletedAssessments = async () => {
         id: number;
         name: string;
       };
+      user: {
+        username: string;
+      };
     }[];
   } = { statusCode: 500, assessments: [] };
   try {
@@ -273,6 +276,11 @@ const fetchRecentlyCompletedAssessments = async () => {
           select: {
             id: true,
             name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
           },
         },
       },
