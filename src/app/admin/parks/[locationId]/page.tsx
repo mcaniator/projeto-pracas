@@ -1,4 +1,3 @@
-import { Button } from "@/components/button";
 import { searchLocationsById } from "@/serverActions/locationUtil";
 import Link from "next/link";
 
@@ -117,22 +116,32 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
             </div>
 
             <div className="grid grid-cols-1 place-content-start gap-4">
-              <Link href={`/admin/parks/${locationIdNumber}/edit`}>
-                <Button type="button" className="w-full">
-                  Editar
-                </Button>
+              <Link
+                className="flex items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+                href={`/admin/parks/${locationIdNumber}/edit`}
+              >
+                Editar
               </Link>
 
-              <Link href={`/admin/parks/${locationIdNumber}/responses`}>
-                <Button className="w-full">Ver Avaliações</Button>
+              <Link
+                className="flex items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+                href={`/admin/parks/${locationIdNumber}/responses`}
+              >
+                Ver Avaliações
               </Link>
 
-              <Link href={`/admin/parks/${locationIdNumber}/evaluation`}>
-                <Button className="w-full">Avaliar</Button>
+              <Link
+                className="flex items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+                href={`/admin/parks/${locationIdNumber}/evaluation`}
+              >
+                Avaliar
               </Link>
 
-              <Link href={`/admin/parks/${locationIdNumber}/tallys`}>
-                <Button className="w-full">Contagens</Button>
+              <Link
+                className="flex items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+                href={`/admin/parks/${locationIdNumber}/tallys`}
+              >
+                Contagens
               </Link>
             </div>
           </div>

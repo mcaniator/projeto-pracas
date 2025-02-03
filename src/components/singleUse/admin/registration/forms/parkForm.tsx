@@ -6,33 +6,23 @@ import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-const LocationComponent = ({ id, name }: { id: number; name: string }) => {
-  return (
-    <Link
-      className="b w-full bg-transparent p-2 text-white hover:bg-transparent/10 hover:underline"
-      key={id}
-      href={`/admin/parks/${id}`}
-    >
-      <p className="text-xl font-semibold">{name}</p>
-    </Link>
-  );
-};
-
 const LocationList = ({
   locations,
 }: {
   locations: FuseResult<{ id: number; name: string }>[];
 }) => {
   return (
-    <div className="grid w-full grid-cols-1 gap-2 text-black">
+    <>
       {locations.map((location, index) => (
-        <LocationComponent
+        <Link
+          className={`b w-full ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 text-white hover:bg-transparent/10 hover:underline`}
           key={index}
-          id={location.item.id}
-          name={location.item.name}
-        />
+          href={`/admin/parks/${location.item.id}`}
+        >
+          <p className="text-xl font-semibold">{location.item.name}</p>
+        </Link>
       ))}
-    </div>
+    </>
   );
 };
 
@@ -66,7 +56,7 @@ const ParkForm = ({
         />
       </div>
 
-      <div className="overflow-y-scroll">
+      <div className="flex w-full flex-col overflow-y-scroll rounded-md text-white">
         <LocationList locations={hay} />
       </div>
     </div>

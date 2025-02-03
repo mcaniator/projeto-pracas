@@ -2,6 +2,7 @@ import { validateRequest } from "@/lib/lucia";
 import { fetchAssessmentsInProgresss } from "@/serverActions/assessmentUtil";
 import { searchformNameById } from "@/serverActions/formUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
+import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
 import AssessmentCreation from "./assessmentCreation";
@@ -38,10 +39,14 @@ const AssessmentPage = async ({
           </h3>
           <div className="mt-3 flex">
             <span>
-              <h3 className="text-xl font-semibold">Data</h3>
+              <h3 className="text-xl font-semibold">
+                <IconCalendarClock />
+              </h3>
             </span>
             <span className="ml-auto">
-              <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
+              <h3 className="text-xl font-semibold">
+                <IconUser />
+              </h3>
             </span>
           </div>
           <div className="mt-2 overflow-auto rounded">

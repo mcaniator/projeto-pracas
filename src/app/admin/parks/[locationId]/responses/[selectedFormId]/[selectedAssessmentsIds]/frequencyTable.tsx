@@ -242,7 +242,7 @@ const FrequencyTable = ({
         >
           <IconHelp />
           <div
-            className={`absolute top-10 transform rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 group-hover:opacity-100 ${showHelp ? "opacity-100" : "opacity-0"}`}
+            className={`absolute -left-7 top-10 w-[40vw] rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 group-hover:opacity-100 sm:left-5 sm:w-[25vw] ${showHelp ? "opacity-100" : "opacity-0"}`}
           >
             O número ao lado de cada resposta corresponde à quantidade de vezes
             que aquela resposta foi dada no conjunto de avaliações.
