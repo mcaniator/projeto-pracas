@@ -25,7 +25,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 {location.inactiveNotFound !== undefined ?
                   <span>
                     Inativo ou não encontrado:{" "}
-                    {location.inactiveNotFound ? "Verdadeiro" : "Falso"}
+                    {location.inactiveNotFound ? "Sim" : "Não"}
                   </span>
                 : <span>
                     Inativo ou não encontrado:{" "}
@@ -34,9 +34,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 }
 
                 {location.isPark !== undefined ?
-                  <span>
-                    É Praça: {location.isPark ? "Verdadeiro" : "Falso"}
-                  </span>
+                  <span>É Praça: {location.isPark ? "Sim" : "Não"}</span>
                 : <span>
                     É Praça:{" "}
                     <span className="text-redwood">Não preenchido</span>
@@ -52,7 +50,12 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
 
                 {location.creationYear ?
                   <span>
-                    Data de Criação: {location.creationYear.toString()}
+                    Data de Criação:{" "}
+                    {new Date(location.creationYear).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })}
                   </span>
                 : <span>
                     Data de Criação:{" "}
@@ -63,7 +66,14 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
                 {location.lastMaintenanceYear ?
                   <span>
                     Data da Última Manutenção:{" "}
-                    {location.lastMaintenanceYear.toString()}
+                    {new Date(location.lastMaintenanceYear).toLocaleString(
+                      "pt-BR",
+                      {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                      },
+                    )}
                   </span>
                 : <span>
                     Data da Última Manutenção:{" "}
