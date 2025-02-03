@@ -15,6 +15,8 @@ import {
   IconCheck,
   IconDeviceFloppy,
   IconFileCheck,
+  IconHelp,
+  IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { Coordinate } from "ol/coordinate";
@@ -46,6 +48,7 @@ const ResponseForm = ({
   assessment: AssessmentWithResposes;
   fetchedGeometries: FetchedAssessmentGeometries;
 }) => {
+  const [showHelp, setShowHelp] = useState(false);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
   }>(
@@ -407,7 +410,7 @@ const ResponseForm = ({
             <p className="text-green-400">Respostas salvas!</p>
           : <p className="text-red-500">Erro ao salvar!</p>)}
         {assessment.form.questions !== null && assessmentEnded === false ?
-          <>
+          <div className="py-5">
             {categoriesObj.map((category) => {
               return (
                 <React.Fragment key={category.id}>
@@ -703,37 +706,64 @@ const ResponseForm = ({
                 </React.Fragment>
               );
             })}
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded p-2">
-              {assessment.endDate === null && (
+            <div className="flex flex-col rounded-lg bg-gray-500 p-1">
+              <div className="flex items-center">
+                <h3 className="text-2xl font-semibold">Ações</h3>
                 <Button
-                  variant={"secondary"}
+                  variant={"ghost"}
+                  className="group relative"
+                  onPress={() => setShowHelp((prev) => !prev)}
+                >
+                  <IconHelp />
+                  <div
+                    className={`absolute -top-28 w-[75vw] max-w-[220px] rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 sm:left-5 sm:w-[25vw] ${showHelp ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+                  >
+                    <div className="flex items-center">
+                      <IconDeviceFloppy size={30} />: Salvar
+                    </div>
+                    <div className="flex items-center">
+                      <IconDeviceFloppy size={30} /> +{" "}
+                      <IconFileCheck size={30} />: Salvar e concluir
+                    </div>
+                    <div className="flex items-center">
+                      <IconTrash size={30} />: Excluir
+                    </div>
+                  </div>
+                </Button>
+              </div>
+
+              <div className="mb-2 flex flex-wrap items-center gap-2 rounded p-2">
+                {assessment.endDate === null && (
+                  <Button
+                    variant={"secondary"}
+                    onPress={() => {
+                      void handleSubmitResponse(false);
+                    }}
+                  >
+                    <IconDeviceFloppy />
+                  </Button>
+                )}
+
+                <Button
+                  variant={"constructive"}
+                  type="button"
                   onPress={() => {
-                    void handleSubmitResponse(false);
+                    void handleSubmitResponse(true);
                   }}
                 >
-                  <IconDeviceFloppy />
+                  <p>
+                    <IconDeviceFloppy className="inline" /> +{" "}
+                    <IconFileCheck className="inline" />
+                  </p>
                 </Button>
-              )}
 
-              <Button
-                variant={"constructive"}
-                type="button"
-                onPress={() => {
-                  void handleSubmitResponse(true);
-                }}
-              >
-                <p>
-                  <IconDeviceFloppy className="inline" /> +{" "}
-                  <IconFileCheck className="inline" />
-                </p>
-              </Button>
-
-              <DeleteAssessmentModal
-                assessmentId={assessment.id}
-                locationId={locationId}
-              />
+                <DeleteAssessmentModal
+                  assessmentId={assessment.id}
+                  locationId={locationId}
+                />
+              </div>
             </div>
-          </>
+          </div>
         : assessmentEnded === true ?
           <div className="flex w-full flex-col items-center text-4xl">
             <IconCheck className="h-32 w-32 text-green-500" />

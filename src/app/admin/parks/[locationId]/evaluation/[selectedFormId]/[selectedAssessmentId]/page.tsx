@@ -35,7 +35,7 @@ const Responses = async ({
   return locationName == null ?
       <div>Localização não encontrada</div>
     : <div className="flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <h3 className="flex flex-col gap-5 text-2xl font-semibold text-white">
+        <h3 className="flex flex-col gap-5 text-2xl font-semibold">
           Avaliando: {locationName} com o formulário: {form?.name}
         </h3>
         {assessment?.formId !== null && assessment?.formId !== undefined ?
