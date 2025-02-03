@@ -33,8 +33,8 @@ const AssessmentsFilter = ({
         <IconFilter />
       </h4>
       <div className="flex flex-col gap-5">
-        <div className="flex basis-1/5 flex-col">
-          <div className="flex-cols-2 flex gap-6">
+        <div className="flex flex-col">
+          <div className="flex w-fit flex-wrap gap-6">
             <div className="flex flex-row items-center">
               <label htmlFor="initial-date" className="mr-2">
                 De:
@@ -58,8 +58,8 @@ const AssessmentsFilter = ({
             </div>
           </div>
         </div>
-        <div className="flex basis-1/5 flex-col">
-          <div className="flex gap-4">
+        <div className="flex flex-col">
+          <div className="flex flex-wrap justify-center gap-4">
             <div className="flex">
               <label htmlFor="sun" className="mr-1">
                 Dom.
