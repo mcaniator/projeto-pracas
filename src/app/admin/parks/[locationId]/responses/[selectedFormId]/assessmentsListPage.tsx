@@ -147,9 +147,7 @@ const AssessmentsListPage = ({
         )}
 
         <div
-          className={
-            "flex h-fit min-w-[530px] flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner"
-          }
+          className={`flex h-fit ${!isMobileView && "min-w-[530px]"} flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner`}
         >
           <AssessmentsFilter
             locationId={locationId}
