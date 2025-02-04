@@ -2,9 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
+import { BrazilianStates } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
+import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygon, addPolygonFromWKT } from "./managePolygons";
 
@@ -45,9 +47,108 @@ const createLocation = async (
     return { errorCode: 1, errorMessage: "Invalid data" };
   }
 
+  const cityName = formData.get("cityNameSelect");
+  const stateName = ufToStateMap.get(formData.get("stateName") as string);
+  const narrowAdministrativeUnitName =
+    formData.get("narrowAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("narrowAdministrativeUnitSelect")
+    : formData.get("narrowAdministrativeUnit");
+  const intermediateAdministrativeUnitName =
+    formData.get("intermediateAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("intermediateAdministrativeUnitSelect")
+    : formData.get("intermediateAdministrativeUnit");
+  const broadAdministrativeUnitName =
+    formData.get("broadAdministrativeUnitSelect") !== "CREATE" ?
+      formData.get("broadAdministrativeUnitSelect")
+    : formData.get("broadAdministrativeUnit");
   let result;
   try {
-    result = await prisma.location.create({ data: location });
+    if (cityName) {
+      const city = await prisma.city.upsert({
+        where: {
+          name_state: {
+            name: cityName as string,
+            state: stateName as BrazilianStates,
+          },
+        },
+        update: {},
+        create: {
+          name: cityName as string,
+          state: stateName as BrazilianStates,
+        },
+      });
+      let narrowAdministrativeUnitId: number | null = null;
+      let intermediateAdministrativeUnitId: number | null = null;
+      let broadAdministrativeUnitId: number | null = null;
+      if (narrowAdministrativeUnitName) {
+        const narrowAdministrativeUnit =
+          await prisma.narrowAdministrativeUnit.upsert({
+            where: {
+              cityId_narrowUnitName: {
+                cityId: city.id,
+                name: narrowAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: narrowAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
+      }
+      if (intermediateAdministrativeUnitName) {
+        const intermediateAdministrativeUnit =
+          await prisma.intermediateAdministrativeUnit.upsert({
+            where: {
+              cityId_intermediateUnitName: {
+                cityId: city.id,
+                name: intermediateAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: intermediateAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
+      }
+      if (broadAdministrativeUnitName) {
+        const broadAdministrativeUnit =
+          await prisma.broadAdministrativeUnit.upsert({
+            where: {
+              cityId_broadUnitName: {
+                cityId: city.id,
+                name: broadAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: broadAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        broadAdministrativeUnitId = broadAdministrativeUnit.id;
+      }
+
+      result = await prisma.location.create({
+        data: {
+          ...location,
+          narrowAdministrativeUnitId,
+          intermediateAdministrativeUnitId,
+          broadAdministrativeUnitId,
+        },
+      });
+    } else {
+      result = await prisma.location.create({ data: location });
+    }
   } catch (err) {
     return { errorCode: 2, errorMessage: "Database error" };
   }
