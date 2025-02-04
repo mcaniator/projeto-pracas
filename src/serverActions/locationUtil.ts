@@ -7,6 +7,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygonFromWKT } from "./managePolygons";
 
@@ -211,7 +212,8 @@ const updateLocation = async (
     formData.get("cityNameSelect") !== "CREATE" ?
       (formData.get("cityNameSelect") as string)
     : (formData.get("cityName") as string | null);
-  const stateName = formData.get("stateName");
+  const UFName = formData.get("stateName") as string;
+  const stateName = ufToStateMap.get(UFName);
   if (cityName && stateName === "NONE") {
     return { statusCode: 1 };
   }
@@ -358,6 +360,7 @@ const updateLocation = async (
       },
     });
   } catch (e) {
+    console.log(e);
     return {
       statusCode: 500,
     };

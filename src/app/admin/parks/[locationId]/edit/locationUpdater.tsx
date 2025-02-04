@@ -8,10 +8,19 @@ import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { LocationWithCity } from "@/serverActions/locationUtil";
 import { BrazilianStates } from "@prisma/client";
 import { IconDeviceFloppy, IconTrash } from "@tabler/icons-react";
-import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import LoadingIcon from "../../../../../components/LoadingIcon";
+import {
+  stateToFederativeUnitMap,
+  ufToStateMap,
+} from "../../../../../lib/types/brazilianFederativeUnits";
 import { FetchCitiesType } from "../../../../../serverActions/cityUtil";
 
 type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
@@ -31,20 +40,45 @@ const LocationUpdater = ({
     initialState,
   );
   const formRef = useRef<HTMLFormElement>(null);
-  const [selectedState, setSelectedState] = useState<
-    BrazilianStates | "SELECIONAR"
-  >(
-    location.narrowAdministrativeUnit?.city?.state ||
-      location.intermediateAdministrativeUnit?.city?.state ||
-      location.broadAdministrativeUnit?.city?.state ||
-      "SELECIONAR",
+  const locationCity = useRef(
+    location.narrowAdministrativeUnit?.city?.name ||
+      location.intermediateAdministrativeUnit?.city?.name ||
+      location.broadAdministrativeUnit?.city?.name,
   );
-  const [stateCities, setStateCities] = useState<string[]>([]);
+  const locationState = useRef(
+    stateToFederativeUnitMap.get(
+      location.narrowAdministrativeUnit?.city?.state || "",
+    ) ||
+      stateToFederativeUnitMap.get(
+        location.intermediateAdministrativeUnit?.city?.state || "",
+      ) ||
+      stateToFederativeUnitMap.get(
+        location.broadAdministrativeUnit?.city?.state || "",
+      ),
+  );
+  const [selectedState, setSelectedState] = useState<string>(() => {
+    const locationState =
+      location.narrowAdministrativeUnit?.city?.state ||
+      location.intermediateAdministrativeUnit?.city?.state ||
+      location.broadAdministrativeUnit?.city?.state;
+    if (locationState) {
+      const locationUF = stateToFederativeUnitMap.get(locationState);
+      return locationUF ?? "SELECIONAR";
+    } else {
+      return "SELECIONAR";
+    }
+  });
+
+  const [stateCities, setStateCities] = useState<{
+    loading: boolean;
+    error: boolean;
+    names: string[];
+  }>({ loading: false, error: false, names: [] });
   const [selectedCity, setSelectedCity] = useState<string>(
     location.narrowAdministrativeUnit?.city?.name ||
       location.intermediateAdministrativeUnit?.city?.name ||
       location.broadAdministrativeUnit?.city?.name ||
-      stateCities[0] ||
+      stateCities.names[0] ||
       "NENHUMA CIDADE ENCONTRADA!",
   );
   const [administrativeUnitInput, setAdministrativeUnitInput] = useState<{
@@ -56,7 +90,44 @@ const LocationUpdater = ({
     intermediate: location.intermediateAdministrativeUnitId === null,
     broad: location.broadAdministrativeUnitId === null,
   });
-  const handleCitySelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const fetchStateCities = useCallback(
+    async (state: string) => {
+      try {
+        setStateCities(() => ({ loading: true, error: false, names: [] }));
+        const fetchedCities = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios`,
+          { method: "GET" },
+        );
+        const citiesData: { nome: string }[] =
+          (await fetchedCities.json()) as Array<{ nome: string }>;
+        citiesData.sort((a, b) => a.nome.localeCompare(b.nome));
+        setStateCities({
+          loading: false,
+          error: false,
+          names: citiesData.map((city) => city.nome),
+        });
+
+        if (
+          locationCity.current &&
+          locationState.current &&
+          locationState.current === selectedState &&
+          citiesData.some((cityData) => cityData.nome === locationCity.current)
+        ) {
+          setSelectedCity(locationCity.current);
+        } else {
+          setSelectedCity(citiesData[0]?.nome || "NENHUMA CIDADE ENCONTRADA");
+        }
+      } catch (e) {
+        setStateCities({ loading: false, error: true, names: [] });
+      }
+    },
+    [selectedState, locationCity, locationState],
+  );
+  const handleCitySelectChange = (
+    e:
+      | React.ChangeEvent<HTMLSelectElement>
+      | React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setSelectedCity(e.target.value);
   };
   const handleAdministrativeUnitChange = (
@@ -80,26 +151,9 @@ const LocationUpdater = ({
       }));
   };
   useEffect(() => {
-    setStateCities(
-      cities
-        ?.filter((city) => city.state === selectedState)
-        .map((city) => city.name) || [],
-    );
-  }, [selectedState, cities]);
-  useEffect(() => {
-    setSelectedCity(
-      location.narrowAdministrativeUnit?.city?.name ||
-        location.intermediateAdministrativeUnit?.city?.name ||
-        location.broadAdministrativeUnit?.city?.name ||
-        stateCities[0] ||
-        "NENHUMA CIDADE ENCONTRADA!",
-    );
-  }, [
-    stateCities,
-    location.broadAdministrativeUnit?.city?.name,
-    location.intermediateAdministrativeUnit?.city?.name,
-    location.narrowAdministrativeUnit?.city?.name,
-  ]);
+    if (selectedState !== "SELECIONAR") void fetchStateCities(selectedState);
+  }, [selectedState, cities, fetchStateCities]);
+
   // TODO: add error handling
   return (
     <div>
@@ -143,7 +197,7 @@ const LocationUpdater = ({
             <Select
               id="stateName"
               name="stateName"
-              defaultValue={selectedState}
+              value={selectedState}
               onChange={(e) => {
                 setSelectedState(
                   (e.target.value as BrazilianStates) || "SELECIONAR",
@@ -153,7 +207,10 @@ const LocationUpdater = ({
               <option value={"SELECIONAR"}>SELECIONAR</option>
               {Object.entries(BrazilianStates as Record<string, string>).map(
                 ([key, value]) => (
-                  <option key={key} value={value}>
+                  <option
+                    key={key}
+                    value={stateToFederativeUnitMap.get(value) || "SELECIONAR"}
+                  >
                     {value}
                   </option>
                 ),
@@ -162,18 +219,30 @@ const LocationUpdater = ({
             {selectedState !== "SELECIONAR" && (
               <div>
                 <label htmlFor="cityName">Cidade</label>
-                <Select
-                  onChange={handleCitySelectChange}
-                  value={selectedCity}
-                  name="cityNameSelect"
-                  id="cityNameSelect"
-                >
-                  {stateCities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </Select>
+                {stateCities.loading ?
+                  <div className="flex justify-center">
+                    <LoadingIcon className="h-32 w-32" />
+                  </div>
+                : stateCities.error ?
+                  <Input
+                    name="cityNameSelect"
+                    id="cityNameSelect"
+                    className="w-full"
+                    onChange={handleCitySelectChange}
+                  />
+                : <Select
+                    onChange={handleCitySelectChange}
+                    value={selectedCity}
+                    name="cityNameSelect"
+                    id="cityNameSelect"
+                  >
+                    {stateCities.names.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </Select>
+                }
 
                 <label htmlFor="narrowAdministrativeUnit">
                   Região administrativa estreita
@@ -192,7 +261,7 @@ const LocationUpdater = ({
                     ?.find(
                       (city) =>
                         city.name === selectedCity &&
-                        city.state === selectedState,
+                        city.state === ufToStateMap.get(selectedState),
                     )
                     ?.narrowAdministrativeUnit.map((ad) => {
                       return (
@@ -233,7 +302,7 @@ const LocationUpdater = ({
                     ?.find(
                       (city) =>
                         city.name === selectedCity &&
-                        city.state === selectedState,
+                        city.state === ufToStateMap.get(selectedState),
                     )
                     ?.intermediateAdministrativeUnit.map((ad) => {
                       return (
@@ -274,7 +343,7 @@ const LocationUpdater = ({
                     ?.find(
                       (city) =>
                         city.name === selectedCity &&
-                        city.state === selectedState,
+                        city.state === ufToStateMap.get(selectedState),
                     )
                     ?.broadAdministrativeUnit.map((ad) => {
                       return (

@@ -47,7 +47,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
     intermediate: true,
     broad: true,
   });
-  const fetchStateCities = async (state: BrazilianStates) => {
+  const fetchStateCities = async (state: string) => {
     try {
       setStateCities(() => ({ loading: true, error: false, names: [] }));
       const fetchedCities = await fetch(
