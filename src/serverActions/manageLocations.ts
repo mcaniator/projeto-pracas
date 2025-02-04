@@ -166,9 +166,16 @@ const createLocation = async (
   }
 
   if (formData.get("file")) {
-    const wkt = await getPolygonsFromShp(formData.get("file") as File);
-    if (wkt) {
-      await addPolygonFromWKT(wkt, result.id);
+    try {
+      const wkt = await getPolygonsFromShp(formData.get("file") as File);
+      if (wkt) {
+        await addPolygonFromWKT(wkt, result.id);
+      }
+    } catch (err) {
+      return {
+        errorCode: 3,
+        errorMessage: "Error inserting polygon into database",
+      };
     }
   }
 

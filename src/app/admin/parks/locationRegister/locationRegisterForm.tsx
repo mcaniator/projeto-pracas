@@ -66,7 +66,6 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
       setStateCities({ loading: false, error: true, names: [] });
     }
   };
-  //console.log(stateCities);
   const handleCitySelectChange = (
     e:
       | React.ChangeEvent<HTMLSelectElement>
