@@ -45,8 +45,9 @@ const handleDelete = async (parkID: number) => {
       },
     });
     revalidateTag("location");
+    return { statusCode: 200 };
   } catch (err) {
-    // console.error(`Erro ao excluir o local: ${parkID}`, err);
+    return { statusCode: 500 };
   }
 };
 

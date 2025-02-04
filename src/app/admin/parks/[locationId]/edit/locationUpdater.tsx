@@ -435,16 +435,15 @@ const LocationUpdater = ({
           </div>
 
           <div className="mb-2 flex w-full max-w-[70rem] items-center justify-between rounded p-2">
-            <Link href={"/admin/parks"}>
-              <Button
-                type="button"
-                variant={"destructive"}
-                onPress={() => void handleDelete(location.id)}
-                className={"w-min"}
-              >
-                <IconTrash />
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant={"destructive"}
+              onPress={() => void handleDelete(location.id)}
+              className={"w-min"}
+            >
+              <IconTrash />
+            </Button>
+
             <Button variant={"constructive"} type="submit">
               <IconDeviceFloppy />
             </Button>

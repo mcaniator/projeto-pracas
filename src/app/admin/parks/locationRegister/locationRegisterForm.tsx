@@ -52,6 +52,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
         (await fetchedCities.json()) as Array<{ nome: string }>;
       citiesData.sort((a, b) => a.nome.localeCompare(b.nome));
       setStateCities(citiesData.map((city) => city.nome));
+      setSelectedCity(citiesData[0]?.nome || "NENHUMA CIDADE ENCONTRADA");
     } catch (e) {
       console.log(e);
     }
