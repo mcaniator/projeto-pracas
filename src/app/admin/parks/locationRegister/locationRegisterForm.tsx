@@ -73,6 +73,11 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
       | React.ChangeEvent<HTMLInputElement>,
   ) => {
     setSelectedCity(e.target.value);
+    setAdministrativeUnitInput({
+      narrow: true,
+      intermediate: true,
+      broad: true,
+    });
   };
   const handleAdministrativeUnitChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
