@@ -2,7 +2,7 @@
 
 import { BrazilianStates } from "@prisma/client";
 import { IconDeviceFloppy } from "@tabler/icons-react";
-import { useActionState, useEffect, useState } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Button } from "../../../../components/button";
@@ -29,7 +29,11 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
   const [selectedState, setSelectedState] = useState<
     BrazilianStates | "SELECIONAR"
   >("SELECIONAR");
-  const [stateCities, setStateCities] = useState<string[]>([]);
+  const [stateCities, setStateCities] = useState<{
+    loading: boolean;
+    error: boolean;
+    names: string[];
+  }>({ loading: false, error: false, names: [] });
   const [selectedCity, setSelectedCity] = useState<string>(
     "NENHUMA CIDADE ENCONTRADA!",
   );
@@ -44,6 +48,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
   });
   const fetchStateCities = async (state: BrazilianStates) => {
     try {
+      setStateCities(() => ({ loading: true, error: false, names: [] }));
       const fetchedCities = await fetch(
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${state}/municipios`,
         { method: "GET" },
@@ -51,14 +56,22 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
       const citiesData: { nome: string }[] =
         (await fetchedCities.json()) as Array<{ nome: string }>;
       citiesData.sort((a, b) => a.nome.localeCompare(b.nome));
-      setStateCities(citiesData.map((city) => city.nome));
+      setStateCities({
+        loading: false,
+        error: false,
+        names: citiesData.map((city) => city.nome),
+      });
       setSelectedCity(citiesData[0]?.nome || "NENHUMA CIDADE ENCONTRADA");
     } catch (e) {
-      console.log(e);
+      setStateCities({ loading: false, error: true, names: [] });
     }
   };
   //console.log(stateCities);
-  const handleCitySelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCitySelectChange = (
+    e:
+      | React.ChangeEvent<HTMLSelectElement>
+      | React.ChangeEvent<HTMLInputElement>,
+  ) => {
     setSelectedCity(e.target.value);
   };
   const handleAdministrativeUnitChange = (
@@ -132,18 +145,30 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
             {selectedState !== "SELECIONAR" && (
               <div>
                 <label htmlFor="cityName">Cidade</label>
-                <Select
-                  onChange={handleCitySelectChange}
-                  value={selectedCity}
-                  name="cityNameSelect"
-                  id="cityNameSelect"
-                >
-                  {stateCities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </Select>
+                {stateCities.loading ?
+                  <div className="flex justify-center">
+                    <LoadingIcon className="h-32 w-32" />
+                  </div>
+                : stateCities.error ?
+                  <Input
+                    name="cityNameSelect"
+                    id="cityNameSelect"
+                    className="w-full"
+                    onChange={handleCitySelectChange}
+                  />
+                : <Select
+                    onChange={handleCitySelectChange}
+                    value={selectedCity}
+                    name="cityNameSelect"
+                    id="cityNameSelect"
+                  >
+                    {stateCities.names.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </Select>
+                }
 
                 <label htmlFor="narrowAdministrativeUnit">
                   Região administrativa estreita
