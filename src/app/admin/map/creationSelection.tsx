@@ -16,7 +16,7 @@ const CreationSelecion = ({
   return (
     <div className="flex flex-col gap-2 text-white">
       <Button variant={"admin"} onPress={() => handleSetCurrentId(-3)}>
-        Próximo
+        Criar com desenho
       </Button>
       <CreationWithoutDrawingModal
         setCurrentId={setCurrentId}

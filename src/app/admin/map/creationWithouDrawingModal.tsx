@@ -6,7 +6,13 @@ import { Input } from "@/components/input";
 import type { zodErrorType } from "@/lib/zodValidators";
 import { createLocation } from "@/serverActions/manageLocations";
 import { IconX } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,9 +24,9 @@ import {
   TabPanel,
   Tabs,
 } from "react-aria-components";
-import { useFormState } from "react-dom";
 import { z } from "zod";
 
+import LoadingIcon from "../../../components/LoadingIcon";
 import {
   basicAnswerDescriptions,
   basicAnswerLabels,
@@ -94,18 +100,18 @@ const CreationWithoutDrawingModal = ({
     }
   };
 
-  const [state, formAction] = useFormState(createLocation, {
-    errorCode: -1,
-    errorMessage: "Initial",
+  const [state, formAction, isPending] = useActionState(createLocation, {
+    statusCode: -1,
+    message: "Initial",
   });
   const [buttonError, setButtoError] = useState(false);
   useEffect(() => {
-    if (state.errorCode === 0) {
+    if (state.statusCode === 201) {
       setOpen(false);
       setTimeout(() => {
         setCurrentId(-2);
       }, 200);
-    } else if (state.errorCode !== -1) {
+    } else if (state.statusCode !== -1) {
       setButtoError(true);
 
       setTimeout(() => {
@@ -169,182 +175,189 @@ const CreationWithoutDrawingModal = ({
             {({ close }) => {
               return (
                 <div className="flex flex-col gap-2">
-                  <form action={formAction}>
-                    <Tabs
-                      className={"flex flex-col"}
-                      selectedKey={selectedTab}
-                      onSelectionChange={setSelectedTab}
-                    >
-                      <div className="flex">
-                        <TabList className={"flex gap-2"}>
-                          <Tab id={"basic"} className={"group"}>
-                            <span
-                              className={`cursor-default text-4xl font-semibold opacity-50 transition-all group-data-[selected]:opacity-100 ${
-                                basicErrorValues !== null &&
-                                (basicErrorValues.name !== undefined ||
-                                  basicErrorValues.firstStreet !== undefined ||
-                                  basicErrorValues.secondStreet) &&
-                                "text-cordovan"
-                              }`}
-                            >
-                              Básico
-                            </span>
-                          </Tab>
+                  {isPending ?
+                    <div className="flex justify-center">
+                      <LoadingIcon className="h-64 w-64" />
+                    </div>
+                  : <form action={formAction}>
+                      <Tabs
+                        className={"flex flex-col"}
+                        selectedKey={selectedTab}
+                        onSelectionChange={setSelectedTab}
+                      >
+                        <div className="flex">
+                          <TabList className={"flex gap-2"}>
+                            <Tab id={"basic"} className={"group"}>
+                              <span
+                                className={`cursor-default text-4xl font-semibold opacity-50 transition-all group-data-[selected]:opacity-100 ${
+                                  basicErrorValues !== null &&
+                                  (basicErrorValues.name !== undefined ||
+                                    basicErrorValues.firstStreet !==
+                                      undefined ||
+                                    basicErrorValues.secondStreet) &&
+                                  "text-cordovan"
+                                }`}
+                              >
+                                Básico
+                              </span>
+                            </Tab>
 
-                          <Tab id={"extra"} className={"group"}>
-                            <span
-                              className={`cursor-default text-4xl font-semibold opacity-50 transition-all group-data-[selected]:opacity-100 ${
-                                extraErrorValues !== null && "text-cordovan"
-                              }`}
-                            >
-                              Extra
-                            </span>
-                          </Tab>
-                        </TabList>
+                            <Tab id={"extra"} className={"group"}>
+                              <span
+                                className={`cursor-default text-4xl font-semibold opacity-50 transition-all group-data-[selected]:opacity-100 ${
+                                  extraErrorValues !== null && "text-cordovan"
+                                }`}
+                              >
+                                Extra
+                              </span>
+                            </Tab>
+                          </TabList>
+                          <Button
+                            className="ml-auto"
+                            variant={"ghost"}
+                            size={"icon"}
+                            onPress={close}
+                          >
+                            <IconX />
+                          </Button>
+                        </div>
+
+                        <TabPanel id="basic">
+                          <h2 className="leading-tight text-gray-500">
+                            Informações mínimas necessárias para a criação de
+                            uma praça
+                          </h2>
+                          <div className="flex flex-col gap-2">
+                            {Object.keys(basicAnswerValues).map(
+                              (value, index) => (
+                                <FormInput<z.infer<typeof basicAnswerSchema>>
+                                  key={index}
+                                  // @ts-expect-error TS doesn't realize that value is always a key of basicAnswerSchema,
+                                  // this could be solved by manually typing every field but this is cooler lol
+                                  objectKey={value}
+                                  answerValues={basicAnswerValues}
+                                  setAnswerValues={setBasicAnswerValues}
+                                  errorValues={basicErrorValues}
+                                  checker={checkBasicValidity}
+                                  label={basicAnswerLabels[index]!}
+                                  description={basicAnswerDescriptions[index]}
+                                />
+                              ),
+                            )}
+
+                            {
+                              // mapping inputs that aren't currently being rendered so that they're sent to the server
+                              Object.entries(extraAnswerValues).map(
+                                (value, index) => {
+                                  return (
+                                    <Input
+                                      key={index}
+                                      type="hidden"
+                                      name={value[0]}
+                                      value={value[1]}
+                                    />
+                                  );
+                                },
+                              )
+                            }
+                          </div>
+                        </TabPanel>
+
+                        <TabPanel id="extra">
+                          <h2 className="leading-tight text-gray-500">
+                            Informações extras que podem ser adicionadas à uma
+                            praça
+                          </h2>
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <label className="text-2xl" htmlFor="file">
+                                Arquivo shapefile
+                              </label>
+                              <input
+                                type="file"
+                                id="file"
+                                name="file"
+                                accept=".shp"
+                              />
+                            </div>
+
+                            {Object.keys(extraAnswerValues).map(
+                              (value, index) => (
+                                <FormInput<z.infer<typeof extraAnswerSchema>>
+                                  key={index}
+                                  // @ts-expect-error same thing as the previous one
+                                  objectKey={value}
+                                  answerValues={extraAnswerValues}
+                                  setAnswerValues={setExtraAnswerValues}
+                                  errorValues={extraErrorValues}
+                                  checker={checkExtraValidity}
+                                  label={extraAnswerLabels[index]!}
+                                  description={extraAnswerDescriptions[index]}
+                                />
+                              ),
+                            )}
+
+                            {
+                              // mapping inputs that aren't currently being rendered so that they're sent to the server
+                              Object.entries(basicAnswerValues).map(
+                                (value, index) => {
+                                  return (
+                                    <Input
+                                      key={index}
+                                      type="hidden"
+                                      name={value[0]}
+                                      value={value[1]}
+                                    />
+                                  );
+                                },
+                              )
+                            }
+                          </div>
+                        </TabPanel>
+                      </Tabs>
+
+                      <div className="flex gap-2">
                         <Button
+                          type="button"
+                          variant={"admin"}
                           className="ml-auto"
-                          variant={"ghost"}
-                          size={"icon"}
-                          onPress={close}
+                          onPress={() => {
+                            const result =
+                              basicAnswerSchema.safeParse(basicAnswerValues);
+
+                            if (result.success) {
+                              setBasicErrorValues(null);
+
+                              if (selectedTab === "basic")
+                                setSelectedTab("extra");
+                              else setSelectedTab("basic");
+                            } else {
+                              setBasicErrorValues(
+                                result.error.flatten().fieldErrors,
+                              );
+                            }
+                          }}
                         >
-                          <IconX />
+                          <span className="-mb-1 text-white">
+                            {selectedTab === "basic" ? "Próximo" : "Anterior"}
+                          </span>
+                        </Button>
+
+                        <Button
+                          variant={buttonError ? "destructive" : "admin"}
+                          type="submit"
+                          isDisabled={
+                            basicErrorValues !== null ||
+                            extraErrorValues !== null
+                          }
+                        >
+                          <span className="-mb-1 text-white group-disabled:text-opacity-30">
+                            Enviar
+                          </span>
                         </Button>
                       </div>
-
-                      <TabPanel id="basic">
-                        <h2 className="leading-tight text-gray-500">
-                          Informações mínimas necessárias para a criação de uma
-                          praça
-                        </h2>
-                        <div className="flex flex-col gap-2">
-                          {Object.keys(basicAnswerValues).map(
-                            (value, index) => (
-                              <FormInput<z.infer<typeof basicAnswerSchema>>
-                                key={index}
-                                // @ts-expect-error TS doesn't realize that value is always a key of basicAnswerSchema,
-                                // this could be solved by manually typing every field but this is cooler lol
-                                objectKey={value}
-                                answerValues={basicAnswerValues}
-                                setAnswerValues={setBasicAnswerValues}
-                                errorValues={basicErrorValues}
-                                checker={checkBasicValidity}
-                                label={basicAnswerLabels[index]!}
-                                description={basicAnswerDescriptions[index]}
-                              />
-                            ),
-                          )}
-
-                          {
-                            // mapping inputs that aren't currently being rendered so that they're sent to the server
-                            Object.entries(extraAnswerValues).map(
-                              (value, index) => {
-                                return (
-                                  <Input
-                                    key={index}
-                                    type="hidden"
-                                    name={value[0]}
-                                    value={value[1]}
-                                  />
-                                );
-                              },
-                            )
-                          }
-                        </div>
-                      </TabPanel>
-
-                      <TabPanel id="extra">
-                        <h2 className="leading-tight text-gray-500">
-                          Informações extras que podem ser adicionadas à uma
-                          praça
-                        </h2>
-                        <div className="flex flex-col gap-2">
-                          <div>
-                            <label className="text-2xl" htmlFor="file">
-                              Arquivo shapefile
-                            </label>
-                            <input
-                              type="file"
-                              id="file"
-                              name="file"
-                              accept=".shp"
-                            />
-                          </div>
-
-                          {Object.keys(extraAnswerValues).map(
-                            (value, index) => (
-                              <FormInput<z.infer<typeof extraAnswerSchema>>
-                                key={index}
-                                // @ts-expect-error same thing as the previous one
-                                objectKey={value}
-                                answerValues={extraAnswerValues}
-                                setAnswerValues={setExtraAnswerValues}
-                                errorValues={extraErrorValues}
-                                checker={checkExtraValidity}
-                                label={extraAnswerLabels[index]!}
-                                description={extraAnswerDescriptions[index]}
-                              />
-                            ),
-                          )}
-
-                          {
-                            // mapping inputs that aren't currently being rendered so that they're sent to the server
-                            Object.entries(basicAnswerValues).map(
-                              (value, index) => {
-                                return (
-                                  <Input
-                                    key={index}
-                                    type="hidden"
-                                    name={value[0]}
-                                    value={value[1]}
-                                  />
-                                );
-                              },
-                            )
-                          }
-                        </div>
-                      </TabPanel>
-                    </Tabs>
-
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant={"admin"}
-                        className="ml-auto"
-                        onPress={() => {
-                          const result =
-                            basicAnswerSchema.safeParse(basicAnswerValues);
-
-                          if (result.success) {
-                            setBasicErrorValues(null);
-
-                            if (selectedTab === "basic")
-                              setSelectedTab("extra");
-                            else setSelectedTab("basic");
-                          } else {
-                            setBasicErrorValues(
-                              result.error.flatten().fieldErrors,
-                            );
-                          }
-                        }}
-                      >
-                        <span className="-mb-1 text-white">
-                          {selectedTab === "basic" ? "Próximo" : "Anterior"}
-                        </span>
-                      </Button>
-
-                      <Button
-                        variant={buttonError ? "destructive" : "admin"}
-                        type="submit"
-                        isDisabled={
-                          basicErrorValues !== null || extraErrorValues !== null
-                        }
-                      >
-                        <span className="-mb-1 text-white group-disabled:text-opacity-30">
-                          Enviar
-                        </span>
-                      </Button>
-                    </div>
-                  </form>
+                    </form>
+                  }
                 </div>
               );
             }}

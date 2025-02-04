@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconTrashX } from "@tabler/icons-react";
+import { IconCancel, IconTrashX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { VectorSourceEvent } from "ol/source/Vector";
@@ -178,7 +178,9 @@ const CreationPanel = ({
           }}
           variant={"destructive"}
         >
-          <span className="-mb-1 text-white">Cancelar</span>
+          <span className="text-white">
+            <IconCancel />
+          </span>
         </Button>
       </div>
       <hr className="rounded-full border-2 border-off-white" />
