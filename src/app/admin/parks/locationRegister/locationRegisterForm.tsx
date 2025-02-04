@@ -1,7 +1,8 @@
 "use client";
 
 import { BrazilianStates } from "@prisma/client";
-import { IconDeviceFloppy } from "@tabler/icons-react";
+import { IconCircleDashedCheck, IconDeviceFloppy } from "@tabler/icons-react";
+import Link from "next/link";
 import React, { useActionState, useEffect, useState } from "react";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
@@ -18,11 +19,11 @@ import { createLocation } from "../../../../serverActions/manageLocations";
 
 type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
 const initialState = {
-  errorCode: -1,
-  errorMessage: "Initial",
+  statusCode: -1,
+  message: "Initial",
 };
 const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
-  const [, formAction, isPending] = useActionState(
+  const [formState, formAction, isPending] = useActionState(
     createLocation,
     initialState,
   );
@@ -108,7 +109,12 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
           <LoadingIcon className="h-32 w-32 text-2xl" />
         </div>
       )}
-      {!isPending && (
+      {!isPending &&
+        formState.statusCode !== -1 &&
+        formState.statusCode !== 201 && (
+          <p className="text-xl text-red-500">Erro ao enviar!</p>
+        )}
+      {!isPending && formState.statusCode !== 201 && (
         <form action={formAction} className={"flex flex-col gap-2"}>
           <div className="w-full max-w-[70rem]">
             <label htmlFor={"name"}>Nome:</label>
@@ -296,6 +302,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
               name="firstStreet"
               id="firstStreet"
               className="w-full"
+              required
             />
 
             <label htmlFor="secondStreet">Segunda rua:</label>
@@ -304,6 +311,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
               type="text"
               name="secondStreet"
               id="secondStreet"
+              required
             />
 
             <label htmlFor={"creationYear"}>Data de Criação:</label>
@@ -385,6 +393,20 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
             </Button>
           </div>
         </form>
+      )}
+      {!isPending && formState.statusCode === 201 && (
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="text-2xl text-green-500">Localização registrada!</p>
+          <div className="flex justify-center text-green-500">
+            <IconCircleDashedCheck size={64} />
+          </div>
+          <Link
+            href={"/admin/parks"}
+            className="flex w-fit items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+          >
+            Voltar às praças
+          </Link>
+        </div>
       )}
     </div>
   );

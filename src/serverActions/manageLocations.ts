@@ -11,7 +11,7 @@ import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygon, addPolygonFromWKT } from "./managePolygons";
 
 const createLocation = async (
-  _curStatus: { errorCode: number; errorMessage: string },
+  _curStatus: { statusCode: number; message: string },
   formData: FormData,
 ) => {
   let location;
@@ -44,7 +44,7 @@ const createLocation = async (
         formData.get("incline") === "" ? undefined : formData.get("incline"),
     });
   } catch (err) {
-    return { errorCode: 1, errorMessage: "Invalid data" };
+    return { statusCode: 400, message: "Invalid data" };
   }
 
   const cityName = formData.get("cityNameSelect");
@@ -150,7 +150,7 @@ const createLocation = async (
       result = await prisma.location.create({ data: location });
     }
   } catch (err) {
-    return { errorCode: 2, errorMessage: "Database error" };
+    return { statusCode: 400, message: "Database error" };
   }
   if (formData.get("featuresGeoJson")) {
     try {
@@ -159,8 +159,8 @@ const createLocation = async (
       await addPolygon(featuresGeoJson, result.id);
     } catch (err) {
       return {
-        errorCode: 3,
-        errorMessage: "Error inserting polygon into database",
+        statusCode: 400,
+        message: "Error inserting polygon into database",
       };
     }
   }
@@ -173,15 +173,15 @@ const createLocation = async (
       }
     } catch (err) {
       return {
-        errorCode: 3,
-        errorMessage: "Error inserting polygon into database",
+        statusCode: 400,
+        message: "Error inserting polygon into database",
       };
     }
   }
 
   revalidateTag("location");
 
-  return { errorCode: 0, errorMessage: "" };
+  return { statusCode: 201, message: "locationCreated" };
 };
 
 const editLocationPolygon = async (id: number, featuresGeoJson: string) => {
