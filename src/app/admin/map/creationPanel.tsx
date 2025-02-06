@@ -24,12 +24,14 @@ const CreationPanel = ({
   setOriginalFeatures,
   currentId,
   setCurrentId,
+  drawingWindowVisible,
   setDrawingWindowVisible,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   currentId: number;
   setCurrentId: Dispatch<SetStateAction<number>>;
+  drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
@@ -139,6 +141,7 @@ const CreationPanel = ({
           <CreationDrawingModal
             features={features}
             setCurrentId={setCurrentId}
+            drawingWindowVisible={drawingWindowVisible}
             setDrawingWindowVisible={setDrawingWindowVisible}
           />
         )}

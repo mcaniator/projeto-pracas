@@ -42,10 +42,12 @@ import {
 const CreationDrawingModal = ({
   features,
   setCurrentId,
+  drawingWindowVisible,
   setDrawingWindowVisible,
 }: {
   features: Feature<Geometry>[];
   setCurrentId: Dispatch<SetStateAction<number>>;
+  drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
 }) => {
   const [basicAnswerValues, setBasicAnswerValues] = useState<
@@ -117,6 +119,7 @@ const CreationDrawingModal = ({
       setOpen(false);
       setTimeout(() => {
         setCurrentId(-2);
+        setDrawingWindowVisible(true);
       }, 200);
     } else if (state.statusCode !== -1) {
       setButtoError(true);
@@ -182,7 +185,7 @@ const CreationDrawingModal = ({
         type="button"
         isDisabled={features.length < 1}
         variant={"admin"}
-        onPress={() => setDrawingWindowVisible(false)}
+        onPress={() => setDrawingWindowVisible(!drawingWindowVisible)}
       >
         <span className="-mb-1 text-white transition-all group-data-[disabled]:text-opacity-50">
           Confirmar e criar

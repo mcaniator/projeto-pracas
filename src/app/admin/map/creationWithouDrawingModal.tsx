@@ -110,6 +110,7 @@ const CreationWithoutDrawingModal = ({
       setOpen(false);
       setTimeout(() => {
         setCurrentId(-2);
+        setDrawingWindowVisible(true);
       }, 200);
     } else if (state.statusCode !== -1) {
       setButtoError(true);
