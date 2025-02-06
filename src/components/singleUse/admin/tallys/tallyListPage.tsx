@@ -1,12 +1,10 @@
 "use client";
 
-import { TallyFilter } from "@/components/singleUse/admin/tallys/tallyFilter";
-import { TallyList } from "@/components/singleUse/admin/tallys/tallyList";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 
-import { TallyCreation } from "./tallyCreation";
-import { TallysInProgressList } from "./tallysInProgressList";
+import TallysInProgressSection from "./TallysInProgressSection";
+import FinalizedTallysSection from "./finalizedTallysSection";
 
 interface TallyDataFetchedToTallyList {
   id: number;
@@ -42,6 +40,7 @@ const TallyPage = ({
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
   userId: string;
 }) => {
+  const [isMobileView, setIsMobileView] = useState(false);
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
   const finalDateFilter = useRef(0);
@@ -112,78 +111,39 @@ const TallyPage = ({
     });
     setActiveTallys(filteredTallys);
   };
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      if (window.innerWidth < 1100) {
+        setIsMobileView(true);
+      } else {
+        setIsMobileView(false);
+      }
+    });
+    if (window.innerWidth < 1100) {
+      setIsMobileView(true);
+    } else {
+      setIsMobileView(false);
+    }
+  }, []);
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
-      <div className="flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className={"flex basis-3/5 flex-col gap-1 overflow-x-hidden"}>
-          <h3 className={"text-lg font-semibold lg:text-2xl"}>
-            {`Contagens em andamento de ${locationName}`}
-          </h3>
-          {!ongoingTallys || ongoingTallys.length === 0 ?
-            <h3>Nenhuma contagem em andamento para este local!</h3>
-          : <>
-              <div className="flex">
-                <span>
-                  <h3 className="text-xl font-semibold">Data</h3>
-                </span>
-                <span className="ml-auto">
-                  <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
-                </span>
-              </div>
-              <div className="overflow-x-hidden rounded">
-                <TallysInProgressList
-                  params={{ locationId: locationId }}
-                  activeTallys={ongoingTallys}
-                />
-              </div>
-            </>
-          }
-        </div>
-        <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
-          <TallyCreation locationId={locationId} userId={userId} />
-        </div>
-      </div>
-      <div className="flex gap-5 overflow-x-hidden rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className={"flex basis-3/5 flex-col gap-1 overflow-x-hidden"}>
-          <h3 className={"text-lg font-semibold lg:text-2xl"}>
-            {`Contagens finalizadas de ${locationName}`}
-          </h3>
-          {!activeTallys || activeTallys.length === 0 ?
-            <h3>Nenhuma contagem finalizada para este local!</h3>
-          : <>
-              <div className="flex">
-                <span>
-                  <h3 className="text-xl font-semibold">Data</h3>
-                </span>
-                <span className="ml-auto">
-                  <h3 className="text-xl font-semibold">{"Observador(a)"}</h3>
-                </span>
-              </div>
-              <div className="overflow-x-hidden rounded">
-                <TallyList
-                  params={{ locationId: locationId }}
-                  activeTallys={activeTallys}
-                />
-              </div>
-            </>
-          }
-        </div>
-
-        <div
-          className={
-            "flex h-fit w-fit flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
-          }
-        >
-          <TallyFilter
-            handleInitialDateChange={handleInitialDateChange}
-            handleFinalDateChange={handleFinalDateChange}
-            handleWeekdayChange={handleWeekdayChange}
-            locationId={parseInt(locationId)}
-            locationName={locationName}
-            activeTallys={activeTallys}
-          ></TallyFilter>
-        </div>
-      </div>
+      <TallysInProgressSection
+        locationId={locationId}
+        locationName={locationName}
+        userId={userId}
+        ongoingTallys={ongoingTallys}
+        isMobileView={isMobileView}
+      />
+      <FinalizedTallysSection
+        locationId={locationId}
+        locationName={locationName}
+        userId={userId}
+        activeTallys={activeTallys}
+        isMobileView={isMobileView}
+        handleInitialDateChange={handleInitialDateChange}
+        handleFinalDateChange={handleFinalDateChange}
+        handleWeekdayChange={handleWeekdayChange}
+      />
     </div>
   );
 };

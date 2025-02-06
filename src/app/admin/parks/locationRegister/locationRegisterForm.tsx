@@ -1,7 +1,11 @@
 "use client";
 
 import { BrazilianStates } from "@prisma/client";
-import { IconCircleDashedCheck, IconDeviceFloppy } from "@tabler/icons-react";
+import {
+  IconCircleDashedCheck,
+  IconDeviceFloppy,
+  IconHelp,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import React, { useActionState, useEffect, useState } from "react";
 
@@ -47,6 +51,7 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
     intermediate: true,
     broad: true,
   });
+  const [showHelp, setShowHelp] = useState(false);
   const fetchStateCities = async (state: string) => {
     try {
       setStateCities(() => ({ loading: true, error: false, names: [] }));
@@ -382,7 +387,21 @@ const ParkRegisterForm = ({ cities }: { cities: FetchCitiesType }) => {
               </Checkbox>
             </div>
             <div className="flex flex-col">
-              <label htmlFor="file">Importar arquivo shapefile:</label>
+              <div className="flex items-center">
+                <label htmlFor="file">Importar arquivo shapefile:</label>
+                <Button
+                  variant={"ghost"}
+                  className="group relative"
+                  onPress={() => setShowHelp((prev) => !prev)}
+                >
+                  <IconHelp />
+                  <div
+                    className={`absolute -left-48 -top-10 w-[75vw] max-w-[220px] rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 sm:w-[25vw] ${showHelp ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+                  >
+                    Suporta arquivo shapefile com codificação SRID 4326
+                  </div>
+                </Button>
+              </div>
               <input type="file" name="file" id="file" accept=".shp" />
             </div>
           </div>

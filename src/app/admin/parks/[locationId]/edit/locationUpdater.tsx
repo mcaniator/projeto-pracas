@@ -7,7 +7,13 @@ import { Select } from "@/components/ui/select";
 import { handleDelete, updateLocation } from "@/serverActions/locationUtil";
 import { LocationWithCity } from "@/serverActions/locationUtil";
 import { BrazilianStates } from "@prisma/client";
-import { IconDeviceFloppy, IconTrash } from "@tabler/icons-react";
+import {
+  IconCircleDashedCheck,
+  IconDeviceFloppy,
+  IconHelp,
+  IconTrash,
+} from "@tabler/icons-react";
+import Link from "next/link";
 import {
   useActionState,
   useCallback,
@@ -27,6 +33,7 @@ type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
 
 const initialState = {
   statusCode: 0,
+  message: "initial",
 };
 const LocationUpdater = ({
   location,
@@ -35,10 +42,11 @@ const LocationUpdater = ({
   location: LocationWithCity;
   cities: FetchCitiesType;
 }) => {
-  const [, formAction, isPending] = useActionState(
+  const [formState, formAction, isPending] = useActionState(
     updateLocation,
     initialState,
   );
+  const [showHelp, setShowHelp] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const locationCity = useRef(
     location.narrowAdministrativeUnit?.city?.name ||
@@ -68,7 +76,6 @@ const LocationUpdater = ({
       return "SELECIONAR";
     }
   });
-
   const [stateCities, setStateCities] = useState<{
     loading: boolean;
     error: boolean;
@@ -162,7 +169,12 @@ const LocationUpdater = ({
           <LoadingIcon className="h-32 w-32 text-2xl" />
         </div>
       )}
-      {!isPending && (
+      {!isPending &&
+        formState.statusCode !== 0 &&
+        formState.statusCode !== 200 && (
+          <p className="text-xl text-red-500">Erro ao enviar!</p>
+        )}
+      {!isPending && formState.statusCode !== 200 && (
         <form
           ref={formRef}
           action={formAction}
@@ -498,7 +510,22 @@ const LocationUpdater = ({
               </Checkbox>
             </div>
             <div className="flex flex-col">
-              <label htmlFor="file">Importar arquivo shapefile:</label>
+              <div className="flex items-center">
+                <label htmlFor="file">Importar arquivo shapefile:</label>
+                <Button
+                  variant={"ghost"}
+                  className="group relative"
+                  onPress={() => setShowHelp((prev) => !prev)}
+                >
+                  <IconHelp />
+                  <div
+                    className={`absolute -left-48 -top-10 w-[75vw] max-w-[220px] rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 sm:w-[25vw] ${showHelp ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+                  >
+                    Suporta arquivo shapefile com codificação SRID 4326
+                  </div>
+                </Button>
+              </div>
+
               <input type="file" name="file" id="file" accept=".shp" />
             </div>
           </div>
@@ -518,6 +545,20 @@ const LocationUpdater = ({
             </Button>
           </div>
         </form>
+      )}
+      {!isPending && formState.statusCode === 200 && (
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="text-2xl text-green-500">Localização atualizada!</p>
+          <div className="flex justify-center text-green-500">
+            <IconCircleDashedCheck size={64} />
+          </div>
+          <Link
+            href={"/admin/parks"}
+            className="flex w-fit items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+          >
+            Voltar às praças
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -16,30 +16,6 @@ const dateWithHoursFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-const TallyInProgressItemComponent = ({
-  id,
-  startDate,
-  observer,
-  locationId,
-}: {
-  id: number;
-  startDate: string;
-  observer: string;
-  locationId: string;
-}) => {
-  const startD = new Date(startDate);
-  const weekday = weekdayFormatter.format(startD);
-  return (
-    <Link
-      key={id}
-      className="mb-2 flex items-center justify-between rounded bg-white p-2"
-      href={`/admin/parks/${locationId}/tallys/tallyInProgress/${id}`}
-    >
-      <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(startD)}`}</span>
-      <span className="ml-auto">{observer}</span>
-    </Link>
-  );
-};
 
 const TallysInProgressList = ({
   params,
@@ -50,16 +26,20 @@ const TallysInProgressList = ({
 }) => {
   return activeTallys === undefined || activeTallys.length === 0 ?
       <h3>Nenhuma contagem em andamento encontrada para este local!</h3>
-    : <div className="w-full text-red-600">
-        {activeTallys.map((tally) => (
-          <TallyInProgressItemComponent
-            key={tally.id}
-            id={tally.id}
-            startDate={tally.startDate.toString()}
-            observer={tally.user.username}
-            locationId={params.locationId}
-          />
-        ))}
+    : <div className="w-full text-red-50">
+        {activeTallys.map((tally, index) => {
+          const weekday = weekdayFormatter.format(tally.startDate);
+          return (
+            <Link
+              key={tally.id}
+              className={`flex items-center justify-between ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
+              href={`/admin/parks/${Number(params.locationId)}/tallys/tallyInProgress/${tally.id}`}
+            >
+              <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(tally.startDate)}`}</span>
+              <span className="ml-auto">{tally.user.username}</span>
+            </Link>
+          );
+        })}
       </div>;
 };
 

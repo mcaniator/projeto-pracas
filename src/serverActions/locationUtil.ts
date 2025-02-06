@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location, Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
@@ -190,20 +189,21 @@ const updateLocation = async (
       .parse(formData.get("locationId"));
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
+      message: "Invalid id",
     };
   }
 
   let locationToUpdate;
-  const narrowAdministrativeUnit =
+  const narrowAdministrativeUnitName =
     formData.get("narrowAdministrativeUnitSelect") !== "CREATE" ?
       formData.get("narrowAdministrativeUnitSelect")
     : formData.get("narrowAdministrativeUnit");
-  const intermediateAdministrativeUnit =
+  const intermediateAdministrativeUnitName =
     formData.get("intermediateAdministrativeUnitSelect") !== "CREATE" ?
       formData.get("intermediateAdministrativeUnitSelect")
     : formData.get("intermediateAdministrativeUnit");
-  const broadAdministrativeUnit =
+  const broadAdministrativeUnitName =
     formData.get("broadAdministrativeUnitSelect") !== "CREATE" ?
       formData.get("broadAdministrativeUnitSelect")
     : formData.get("broadAdministrativeUnit");
@@ -215,7 +215,7 @@ const updateLocation = async (
   const UFName = formData.get("stateName") as string;
   const stateName = ufToStateMap.get(UFName);
   if (cityName && stateName === "NONE") {
-    return { statusCode: 1 };
+    return { statusCode: 400, message: "City sent without state" };
   }
   try {
     const lastMaintenanceYear = formData.get("lastMaintenanceYear");
@@ -265,113 +265,137 @@ const updateLocation = async (
     });
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
+      message: "Invalid data",
     };
   }
   try {
-    let city = null;
     if (cityName) {
-      city = await prisma.city.findUnique({
+      const city = await prisma.city.upsert({
         where: {
           name_state: {
             name: cityName,
-            state: stateName! as BrazilianStates,
+            state: stateName as BrazilianStates,
           },
         },
+        update: {},
+        create: {
+          name: cityName,
+          state: stateName as BrazilianStates,
+        },
       });
-    }
 
-    await prisma.location.update({
-      where: { id: parseId },
-      data: {
-        ...locationToUpdate,
-        ...(narrowAdministrativeUnit && city ?
-          {
+      let narrowAdministrativeUnitId: number | null = null;
+      let intermediateAdministrativeUnitId: number | null = null;
+      let broadAdministrativeUnitId: number | null = null;
+      if (narrowAdministrativeUnitName) {
+        const narrowAdministrativeUnit =
+          await prisma.narrowAdministrativeUnit.upsert({
+            where: {
+              cityId_narrowUnitName: {
+                cityId: city.id,
+                name: narrowAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: narrowAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
+      }
+      if (intermediateAdministrativeUnitName) {
+        const intermediateAdministrativeUnit =
+          await prisma.intermediateAdministrativeUnit.upsert({
+            where: {
+              cityId_intermediateUnitName: {
+                cityId: city.id,
+                name: intermediateAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: intermediateAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
+      }
+      if (broadAdministrativeUnitName) {
+        const broadAdministrativeUnit =
+          await prisma.broadAdministrativeUnit.upsert({
+            where: {
+              cityId_broadUnitName: {
+                cityId: city.id,
+                name: broadAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: broadAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        broadAdministrativeUnitId = broadAdministrativeUnit.id;
+      }
+      await prisma.location.update({
+        where: { id: parseId },
+        data: {
+          ...locationToUpdate,
+          ...(narrowAdministrativeUnitId && {
             narrowAdministrativeUnit: {
-              connectOrCreate: {
-                where: {
-                  cityId_narrowUnitName: {
-                    cityId: city.id,
-                    name: narrowAdministrativeUnit as string,
-                  },
-                },
-                create: {
-                  name: narrowAdministrativeUnit as string,
-                  city: {
-                    connect: { id: city.id },
-                  },
-                },
-              },
-            },
-          }
-        : {
-            narrowAdministrativeUnit: {
-              disconnect: true,
+              connect: { id: narrowAdministrativeUnitId },
             },
           }),
-        ...(intermediateAdministrativeUnit && city ?
-          {
+          ...(intermediateAdministrativeUnitId && {
             intermediateAdministrativeUnit: {
-              connectOrCreate: {
-                where: {
-                  cityId_intermediateUnitName: {
-                    cityId: city.id,
-                    name: intermediateAdministrativeUnit as string,
-                  },
-                },
-                create: {
-                  name: intermediateAdministrativeUnit as string,
-                  city: {
-                    connect: { id: city.id },
-                  },
-                },
-              },
-            },
-          }
-        : {
-            intermediateAdministrativeUnit: {
-              disconnect: true,
+              connect: { id: intermediateAdministrativeUnitId },
             },
           }),
-        ...(broadAdministrativeUnit && city ?
-          {
+          ...(broadAdministrativeUnitId && {
             broadAdministrativeUnit: {
-              connectOrCreate: {
-                where: {
-                  cityId_broadUnitName: {
-                    cityId: city.id,
-                    name: broadAdministrativeUnit as string,
-                  },
-                },
-                create: {
-                  name: broadAdministrativeUnit as string,
-                  city: {
-                    connect: { id: city.id },
-                  },
-                },
-              },
-            },
-          }
-        : {
-            broadAdministrativeUnit: {
-              disconnect: true,
+              connect: { id: broadAdministrativeUnitId },
             },
           }),
-      },
-    });
+        },
+      });
+      if (!formData.get("file")) {
+        revalidateTag("location");
+        return { statusCode: 200, message: "Location updated" };
+      }
+    } else {
+      await prisma.location.update({
+        where: { id: parseId },
+        data: locationToUpdate,
+      });
+      if (!formData.get("file")) {
+        revalidateTag("location");
+        return { statusCode: 200, message: "Location updated" };
+      }
+    }
   } catch (e) {
-    console.log(e);
+    revalidateTag("location");
     return {
       statusCode: 500,
+      message: "Internal server error",
     };
   }
-  if (formData.get("file")) {
+
+  try {
     const WKT = await getPolygonsFromShp(formData.get("file") as File);
     WKT && (await addPolygonFromWKT(WKT, parseId));
+    revalidateTag("location");
+    return { statusCode: 200, message: "Location updated" };
+  } catch (e) {
+    return { statusCode: 200, message: "Error during polygon save" };
   }
-
-  revalidateTag("location");
-  redirect("/admin/parks");
 };
 
 export {
