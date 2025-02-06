@@ -324,9 +324,9 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl px-4 py-6 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <BsPersonStanding />
+                        <BsPersonStanding size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -336,9 +336,9 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <FaPersonWalking />
+                        <FaPersonWalking size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -348,9 +348,9 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <FaPersonRunning />
+                        <FaPersonRunning size={32} />
                       </Button>
                     </div>
                   </div>
@@ -565,9 +565,9 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl px-4 py-6 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <BsPersonStandingDress />
+                        <BsPersonStandingDress size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -577,9 +577,9 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <FaPersonWalking />
+                        <FaPersonWalking size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -589,9 +589,9 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        <FaPersonRunning />
+                        <FaPersonRunning size={32} />
                       </Button>
                     </div>
                   </div>
