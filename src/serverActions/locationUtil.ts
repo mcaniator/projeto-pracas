@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location, Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
@@ -190,7 +189,8 @@ const updateLocation = async (
       .parse(formData.get("locationId"));
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
+      message: "Invalid id",
     };
   }
 
@@ -215,7 +215,7 @@ const updateLocation = async (
   const UFName = formData.get("stateName") as string;
   const stateName = ufToStateMap.get(UFName);
   if (cityName && stateName === "NONE") {
-    return { statusCode: 1 };
+    return { statusCode: 400, message: "City sent without state" };
   }
   try {
     const lastMaintenanceYear = formData.get("lastMaintenanceYear");
@@ -265,7 +265,8 @@ const updateLocation = async (
     });
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
+      message: "Invalid data",
     };
   }
   try {
@@ -365,24 +366,36 @@ const updateLocation = async (
           }),
         },
       });
+      if (!formData.get("file")) {
+        revalidateTag("location");
+        return { statusCode: 200, message: "Location updated" };
+      }
     } else {
       await prisma.location.update({
         where: { id: parseId },
         data: locationToUpdate,
       });
+      if (!formData.get("file")) {
+        revalidateTag("location");
+        return { statusCode: 200, message: "Location updated" };
+      }
     }
   } catch (e) {
+    revalidateTag("location");
     return {
       statusCode: 500,
+      message: "Internal server error",
     };
   }
-  if (formData.get("file")) {
+
+  try {
     const WKT = await getPolygonsFromShp(formData.get("file") as File);
     WKT && (await addPolygonFromWKT(WKT, parseId));
+    revalidateTag("location");
+    return { statusCode: 200, message: "Location updated" };
+  } catch (e) {
+    return { statusCode: 200, message: "Error during polygon save" };
   }
-
-  revalidateTag("location");
-  redirect("/admin/parks");
 };
 
 export {
