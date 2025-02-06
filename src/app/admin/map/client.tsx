@@ -76,7 +76,8 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
           }}
           minWidth={150}
           minHeight={250}
-          maxHeight={window.innerHeight - 50} // Ajusta dinamicamente a altura máxima
+          maxHeight={window.innerHeight - 50}
+          máxima
         >
           <div
             className={`${
@@ -122,6 +123,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
                 setOriginalFeatures={setOriginalFeatures}
                 currentId={currentId}
                 setCurrentId={setCurrentId}
+                drawingWindowVisible={drawingWindowVisible}
                 setDrawingWindowVisible={setDrawingWindowVisible}
               />
             </DrawingProvider>
