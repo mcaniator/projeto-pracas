@@ -2,6 +2,7 @@
 
 import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 
+import { Button } from "../../../button";
 import { TallyFilter } from "./tallyFilter";
 import { TallyList } from "./tallyList";
 import { TallyDataFetchedToTallyList } from "./tallyListPage";
@@ -11,18 +12,24 @@ const FinalizedTallysSection = ({
   locationName,
   activeTallys,
   isMobileView,
+  selectedScreen,
   handleInitialDateChange,
   handleFinalDateChange,
   handleWeekdayChange,
+  setSelectedScreen,
 }: {
   locationId: string;
   locationName: string;
   userId: string;
   activeTallys: TallyDataFetchedToTallyList[] | undefined;
   isMobileView: boolean;
+  selectedScreen: "IN_PROGRESS" | "FINALIZED";
   handleInitialDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  setSelectedScreen: (
+    value: React.SetStateAction<"IN_PROGRESS" | "FINALIZED">,
+  ) => void;
 }) => {
   return (
     <div
@@ -78,8 +85,25 @@ const FinalizedTallysSection = ({
       {isMobileView && (
         <>
           <h3 className={"text-lg font-semibold lg:text-2xl"}>
-            {`Contagens finalizadas de ${locationName}`}
+            {`Contagens em ${locationName}`}
           </h3>
+          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+            <Button
+              variant={"ghost"}
+              onPress={() => setSelectedScreen("IN_PROGRESS")}
+              className={`rounded-xl px-4 py-1 ${selectedScreen === "IN_PROGRESS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              Em andamento
+            </Button>
+            <Button
+              variant={"ghost"}
+              onPress={() => setSelectedScreen("FINALIZED")}
+              className={`rounded-xl px-4 py-1 ${selectedScreen === "FINALIZED" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              Finalizadas
+            </Button>
+          </div>
+
           <div
             className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner`}
           >

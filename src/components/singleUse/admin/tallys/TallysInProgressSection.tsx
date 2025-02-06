@@ -2,6 +2,7 @@
 
 import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 
+import { Button } from "../../../button";
 import { TallyCreation } from "./tallyCreation";
 import { TallyDataFetchedToTallyList } from "./tallyListPage";
 import { TallysInProgressList } from "./tallysInProgressList";
@@ -12,12 +13,18 @@ const TallysInProgressSection = ({
   userId,
   ongoingTallys,
   isMobileView,
+  selectedScreen,
+  setSelectedScreen,
 }: {
   locationId: string;
   locationName: string;
   userId: string;
   ongoingTallys: TallyDataFetchedToTallyList[] | undefined;
   isMobileView: boolean;
+  selectedScreen: "IN_PROGRESS" | "FINALIZED";
+  setSelectedScreen: (
+    value: React.SetStateAction<"IN_PROGRESS" | "FINALIZED">,
+  ) => void;
 }) => {
   return (
     <div
@@ -65,8 +72,24 @@ const TallysInProgressSection = ({
       {isMobileView && (
         <>
           <h3 className={"text-lg font-semibold lg:text-2xl"}>
-            {`Contagens em andamento de ${locationName}`}
+            {`Contagens em ${locationName}`}
           </h3>
+          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+            <Button
+              variant={"ghost"}
+              onPress={() => setSelectedScreen("IN_PROGRESS")}
+              className={`rounded-xl px-4 py-1 ${selectedScreen === "IN_PROGRESS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              Em andamento
+            </Button>
+            <Button
+              variant={"ghost"}
+              onPress={() => setSelectedScreen("FINALIZED")}
+              className={`rounded-xl px-4 py-1 ${selectedScreen === "FINALIZED" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+            >
+              Finalizadas
+            </Button>
+          </div>
           <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
             <TallyCreation locationId={locationId} userId={userId} />
           </div>

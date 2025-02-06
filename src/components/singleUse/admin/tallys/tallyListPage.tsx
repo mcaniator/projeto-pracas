@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 
-import { Button } from "../../../button";
 import TallysInProgressSection from "./TallysInProgressSection";
 import FinalizedTallysSection from "./finalizedTallysSection";
 
@@ -135,17 +134,6 @@ const TallyPage = ({
         "flex max-h-full min-h-0 flex-col gap-5 overflow-auto text-white"
       }
     >
-      {isMobileView && (
-        <div className="flex">
-          <Button onPress={() => setSelectedScreen("IN_PROGRESS")}>
-            Em andamento
-          </Button>
-          <Button onPress={() => setSelectedScreen("FINALIZED")}>
-            Finalizadas
-          </Button>
-        </div>
-      )}
-
       {(!isMobileView ||
         (isMobileView && selectedScreen === "IN_PROGRESS")) && (
         <div
@@ -157,6 +145,8 @@ const TallyPage = ({
             userId={userId}
             ongoingTallys={ongoingTallys}
             isMobileView={isMobileView}
+            selectedScreen={selectedScreen}
+            setSelectedScreen={setSelectedScreen}
           />
         </div>
       )}
@@ -168,9 +158,11 @@ const TallyPage = ({
             userId={userId}
             activeTallys={activeTallys}
             isMobileView={isMobileView}
+            selectedScreen={selectedScreen}
             handleInitialDateChange={handleInitialDateChange}
             handleFinalDateChange={handleFinalDateChange}
             handleWeekdayChange={handleWeekdayChange}
+            setSelectedScreen={setSelectedScreen}
           />
         </div>
       )}
