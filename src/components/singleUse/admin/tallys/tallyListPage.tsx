@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 
+import { Button } from "../../../button";
 import TallysInProgressSection from "./TallysInProgressSection";
 import FinalizedTallysSection from "./finalizedTallysSection";
 
@@ -41,6 +42,9 @@ const TallyPage = ({
   userId: string;
 }) => {
   const [isMobileView, setIsMobileView] = useState(false);
+  const [selectedScreen, setSelectedScreen] = useState<
+    "IN_PROGRESS" | "FINALIZED"
+  >("IN_PROGRESS");
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
   const finalDateFilter = useRef(0);
@@ -126,24 +130,50 @@ const TallyPage = ({
     }
   }, []);
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
-      <TallysInProgressSection
-        locationId={locationId}
-        locationName={locationName}
-        userId={userId}
-        ongoingTallys={ongoingTallys}
-        isMobileView={isMobileView}
-      />
-      <FinalizedTallysSection
-        locationId={locationId}
-        locationName={locationName}
-        userId={userId}
-        activeTallys={activeTallys}
-        isMobileView={isMobileView}
-        handleInitialDateChange={handleInitialDateChange}
-        handleFinalDateChange={handleFinalDateChange}
-        handleWeekdayChange={handleWeekdayChange}
-      />
+    <div
+      className={
+        "flex max-h-full min-h-0 flex-col gap-5 overflow-auto text-white"
+      }
+    >
+      {isMobileView && (
+        <div className="flex">
+          <Button onPress={() => setSelectedScreen("IN_PROGRESS")}>
+            Em andamento
+          </Button>
+          <Button onPress={() => setSelectedScreen("FINALIZED")}>
+            Finalizadas
+          </Button>
+        </div>
+      )}
+
+      {(!isMobileView ||
+        (isMobileView && selectedScreen === "IN_PROGRESS")) && (
+        <div
+          className={`${!isMobileView && "max-h-[30vh] min-h-[150px]"} overflow-auto`}
+        >
+          <TallysInProgressSection
+            locationId={locationId}
+            locationName={locationName}
+            userId={userId}
+            ongoingTallys={ongoingTallys}
+            isMobileView={isMobileView}
+          />
+        </div>
+      )}
+      {(!isMobileView || (isMobileView && selectedScreen === "FINALIZED")) && (
+        <div className={`min-h-[150px] overflow-auto`}>
+          <FinalizedTallysSection
+            locationId={locationId}
+            locationName={locationName}
+            userId={userId}
+            activeTallys={activeTallys}
+            isMobileView={isMobileView}
+            handleInitialDateChange={handleInitialDateChange}
+            handleFinalDateChange={handleFinalDateChange}
+            handleWeekdayChange={handleWeekdayChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

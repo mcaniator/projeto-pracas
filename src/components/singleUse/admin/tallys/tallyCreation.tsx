@@ -71,7 +71,7 @@ const TallyCreation = ({
               <div className="text-redwood">* Obrigatório</div>
             : ""}
           </div>
-          <div className="flex flex-grow">
+          <div className="flex justify-center">
             <CreateTallySubmitButton />
           </div>
         </form>

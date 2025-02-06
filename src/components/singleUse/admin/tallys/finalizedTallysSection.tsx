@@ -28,49 +28,99 @@ const FinalizedTallysSection = ({
     <div
       className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md ${isMobileView && "flex-col items-center"}`}
     >
-      <div className={"flex basis-3/5 flex-col gap-1 overflow-x-hidden"}>
-        <h3 className={"text-lg font-semibold lg:text-2xl"}>
-          {`Contagens finalizadas de ${locationName}`}
-        </h3>
-        {!activeTallys || activeTallys.length === 0 ?
-          <h3>Nenhuma contagem finalizada para este local!</h3>
-        : <>
-            <div className="flex">
-              <span>
-                <h3 className="text-xl font-semibold">
-                  <IconCalendarClock />
-                </h3>
-              </span>
-              <span className="ml-auto">
-                <h3 className="text-xl font-semibold">
-                  <IconUser />
-                </h3>
-              </span>
-            </div>
-            <div className="overflow-x-hidden rounded">
-              <TallyList
-                params={{ locationId: locationId }}
-                activeTallys={activeTallys}
-              />
-            </div>
-          </>
-        }
-      </div>
+      {!isMobileView && (
+        <>
+          <div
+            className={`flex ${isMobileView ? "w-full" : "basis-3/5 overflow-auto"} flex-col gap-1`}
+          >
+            <h3 className={"text-lg font-semibold lg:text-2xl"}>
+              {`Contagens finalizadas de ${locationName}`}
+            </h3>
+            {!activeTallys || activeTallys.length === 0 ?
+              <h3>Nenhuma contagem finalizada para este local!</h3>
+            : <>
+                <div className="flex">
+                  <span>
+                    <h3 className="text-xl font-semibold">
+                      <IconCalendarClock />
+                    </h3>
+                  </span>
+                  <span className="ml-auto">
+                    <h3 className="text-xl font-semibold">
+                      <IconUser />
+                    </h3>
+                  </span>
+                </div>
+                <div className="overflow-auto rounded">
+                  <TallyList
+                    params={{ locationId: locationId }}
+                    activeTallys={activeTallys}
+                  />
+                </div>
+              </>
+            }
+          </div>
 
-      <div
-        className={
-          "flex h-fit w-fit flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
-        }
-      >
-        <TallyFilter
-          handleInitialDateChange={handleInitialDateChange}
-          handleFinalDateChange={handleFinalDateChange}
-          handleWeekdayChange={handleWeekdayChange}
-          locationId={parseInt(locationId)}
-          locationName={locationName}
-          activeTallys={activeTallys}
-        ></TallyFilter>
-      </div>
+          <div
+            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner`}
+          >
+            <TallyFilter
+              handleInitialDateChange={handleInitialDateChange}
+              handleFinalDateChange={handleFinalDateChange}
+              handleWeekdayChange={handleWeekdayChange}
+              locationId={parseInt(locationId)}
+              locationName={locationName}
+              activeTallys={activeTallys}
+            ></TallyFilter>
+          </div>
+        </>
+      )}
+      {isMobileView && (
+        <>
+          <h3 className={"text-lg font-semibold lg:text-2xl"}>
+            {`Contagens finalizadas de ${locationName}`}
+          </h3>
+          <div
+            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner`}
+          >
+            <TallyFilter
+              handleInitialDateChange={handleInitialDateChange}
+              handleFinalDateChange={handleFinalDateChange}
+              handleWeekdayChange={handleWeekdayChange}
+              locationId={parseInt(locationId)}
+              locationName={locationName}
+              activeTallys={activeTallys}
+            ></TallyFilter>
+          </div>
+          <div
+            className={`flex ${isMobileView ? "w-full" : "basis-3/5 overflow-auto"} flex-col gap-1`}
+          >
+            {!activeTallys || activeTallys.length === 0 ?
+              <h3>Nenhuma contagem finalizada para este local!</h3>
+            : <>
+                <div className="flex">
+                  <span>
+                    <h3 className="text-xl font-semibold">
+                      <IconCalendarClock />
+                    </h3>
+                  </span>
+                  <span className="ml-auto">
+                    <h3 className="text-xl font-semibold">
+                      <IconUser />
+                    </h3>
+                  </span>
+                </div>
+                <div className="overflow-auto rounded">
+                  <TallyList
+                    params={{ locationId: locationId }}
+                    activeTallys={activeTallys}
+                  />
+                </div>
+              </>
+            }
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -133,7 +133,7 @@ const TallyFilter = ({
         {/* Export Buttons */}
         <div className="w-full">
           <h5 className="mb-3 text-xl font-semibold">Contagens Filtradas</h5>
-          <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex flex-col gap-4 sm:flex-wrap">
             <Button className="whitespace-nowrap">
               <Link
                 href={`/admin/parks/${locationId}/tallys/dataVisualization/${activeTallysIdsString}`}
