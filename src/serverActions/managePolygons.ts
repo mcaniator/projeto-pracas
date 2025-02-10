@@ -19,7 +19,6 @@ const fetchPolygons = async () => {
 
         return Array.isArray(result) ? result : [];
       } catch (error) {
-        console.error("Erro ao buscar polígonos:", error);
         return [];
       }
     },
@@ -48,7 +47,6 @@ const fetchSpecificPolygon = async (id: number) => {
 
         return Array.isArray(result) && result.length > 0 ? result : null;
       } catch (error) {
-        console.error("Erro ao buscar polígono específico:", error);
         return null;
       }
     },
@@ -60,12 +58,11 @@ const fetchSpecificPolygon = async (id: number) => {
 };
 
 const addPolygon = async (featuresGeoJson: string, id: number) => {
-  try {
-    if (!featuresGeoJson || !id) {
-      throw new Error("featuresGeoJson e id são obrigatórios");
-    }
+  if (!featuresGeoJson || !id) {
+    throw new Error("featuresGeoJson and id are mandatory");
+  }
 
-    await prisma.$executeRaw`
+  await prisma.$executeRaw`
       UPDATE location
       SET 
         polygon = ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(${featuresGeoJson}), 4326)),
@@ -73,20 +70,15 @@ const addPolygon = async (featuresGeoJson: string, id: number) => {
       WHERE id = ${id};
     `;
 
-    revalidateTag("location");
-  } catch (error) {
-    console.error("Erro ao adicionar polígono:", error);
-    throw error;
-  }
+  revalidateTag("location");
 };
 
 const addPolygonFromWKT = async (wkt: string, id: number) => {
-  try {
-    if (!wkt || !id) {
-      throw new Error("WKT e id são obrigatórios");
-    }
+  if (!wkt || !id) {
+    throw new Error("WKT and id are mandatory");
+  }
 
-    await prisma.$executeRaw`
+  await prisma.$executeRaw`
       UPDATE location
       SET 
         polygon = ST_Multi(ST_SetSRID(ST_GeomFromText(${wkt}), 4326)),
@@ -94,20 +86,15 @@ const addPolygonFromWKT = async (wkt: string, id: number) => {
       WHERE id = ${id};
     `;
 
-    revalidateTag("location");
-  } catch (error) {
-    console.error("Erro ao adicionar polígono from WKT:", error);
-    throw error;
-  }
+  revalidateTag("location");
 };
 
 const removePolygon = async (id: number) => {
-  try {
-    if (!id) {
-      throw new Error("id é obrigatório");
-    }
+  if (!id) {
+    throw new Error("id is mandatory");
+  }
 
-    await prisma.$executeRaw`
+  await prisma.$executeRaw`
       UPDATE location
       SET 
         polygon = NULL,
@@ -115,11 +102,7 @@ const removePolygon = async (id: number) => {
       WHERE id = ${id};
     `;
 
-    revalidateTag("location");
-  } catch (error) {
-    console.error("Erro ao remover polígono:", error);
-    throw error;
-  }
+  revalidateTag("location");
 };
 
 export {

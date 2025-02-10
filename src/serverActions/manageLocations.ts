@@ -42,120 +42,114 @@ const createLocation = async (
   const broadAdministrativeUnitName = formData.get("broadAdministrativeUnit");
   let result;
   try {
-    if (cityName) {
-      const city = await prisma.city.upsert({
-        where: {
-          name_state: {
+    await prisma.$transaction(async (prisma) => {
+      if (cityName) {
+        const city = await prisma.city.upsert({
+          where: {
+            name_state: {
+              name: cityName as string,
+              state: stateName as BrazilianStates,
+            },
+          },
+          update: {},
+          create: {
             name: cityName as string,
             state: stateName as BrazilianStates,
           },
-        },
-        update: {},
-        create: {
-          name: cityName as string,
-          state: stateName as BrazilianStates,
-        },
-      });
-      let narrowAdministrativeUnitId: number | null = null;
-      let intermediateAdministrativeUnitId: number | null = null;
-      let broadAdministrativeUnitId: number | null = null;
-      if (narrowAdministrativeUnitName) {
-        const narrowAdministrativeUnit =
-          await prisma.narrowAdministrativeUnit.upsert({
-            where: {
-              cityId_narrowUnitName: {
-                cityId: city.id,
+        });
+        let narrowAdministrativeUnitId: number | null = null;
+        let intermediateAdministrativeUnitId: number | null = null;
+        let broadAdministrativeUnitId: number | null = null;
+        if (narrowAdministrativeUnitName) {
+          const narrowAdministrativeUnit =
+            await prisma.narrowAdministrativeUnit.upsert({
+              where: {
+                cityId_narrowUnitName: {
+                  cityId: city.id,
+                  name: narrowAdministrativeUnitName as string,
+                },
+              },
+              update: {},
+              create: {
                 name: narrowAdministrativeUnitName as string,
+                city: {
+                  connect: { id: city.id },
+                },
               },
-            },
-            update: {},
-            create: {
-              name: narrowAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
+            });
+          narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
+        }
+        if (intermediateAdministrativeUnitName) {
+          const intermediateAdministrativeUnit =
+            await prisma.intermediateAdministrativeUnit.upsert({
+              where: {
+                cityId_intermediateUnitName: {
+                  cityId: city.id,
+                  name: intermediateAdministrativeUnitName as string,
+                },
               },
-            },
-          });
-        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
-      }
-      if (intermediateAdministrativeUnitName) {
-        const intermediateAdministrativeUnit =
-          await prisma.intermediateAdministrativeUnit.upsert({
-            where: {
-              cityId_intermediateUnitName: {
-                cityId: city.id,
+              update: {},
+              create: {
                 name: intermediateAdministrativeUnitName as string,
+                city: {
+                  connect: { id: city.id },
+                },
               },
-            },
-            update: {},
-            create: {
-              name: intermediateAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
+            });
+          intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
+        }
+        if (broadAdministrativeUnitName) {
+          const broadAdministrativeUnit =
+            await prisma.broadAdministrativeUnit.upsert({
+              where: {
+                cityId_broadUnitName: {
+                  cityId: city.id,
+                  name: broadAdministrativeUnitName as string,
+                },
               },
-            },
-          });
-        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
-      }
-      if (broadAdministrativeUnitName) {
-        const broadAdministrativeUnit =
-          await prisma.broadAdministrativeUnit.upsert({
-            where: {
-              cityId_broadUnitName: {
-                cityId: city.id,
+              update: {},
+              create: {
                 name: broadAdministrativeUnitName as string,
+                city: {
+                  connect: { id: city.id },
+                },
               },
-            },
-            update: {},
-            create: {
-              name: broadAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        broadAdministrativeUnitId = broadAdministrativeUnit.id;
-      }
+            });
+          broadAdministrativeUnitId = broadAdministrativeUnit.id;
+        }
 
-      result = await prisma.location.create({
-        data: {
-          ...location,
-          narrowAdministrativeUnitId,
-          intermediateAdministrativeUnitId,
-          broadAdministrativeUnitId,
-        },
-      });
-    } else {
-      result = await prisma.location.create({ data: location });
-    }
+        result = await prisma.location.create({
+          data: {
+            ...location,
+            narrowAdministrativeUnitId,
+            intermediateAdministrativeUnitId,
+            broadAdministrativeUnitId,
+          },
+        });
+      } else {
+        result = await prisma.location.create({ data: location });
+      }
+      try {
+        if (formData.get("featuresGeoJson")) {
+          const featuresGeoJson = z
+            .string()
+            .parse(formData.get("featuresGeoJson"));
+
+          await addPolygon(featuresGeoJson, result.id);
+        }
+
+        if (formData.get("file")) {
+          const wkt = await getPolygonsFromShp(formData.get("file") as File);
+          if (wkt) {
+            await addPolygonFromWKT(wkt, result.id);
+          }
+        }
+      } catch (err) {
+        throw new Error("Error inserting polygon into database");
+      }
+    });
   } catch (err) {
     return { statusCode: 400, message: "Database error" };
-  }
-  if (formData.get("featuresGeoJson")) {
-    try {
-      const featuresGeoJson = z.string().parse(formData.get("featuresGeoJson"));
-
-      await addPolygon(featuresGeoJson, result.id);
-    } catch (err) {
-      return {
-        statusCode: 400,
-        message: "Error inserting polygon into database",
-      };
-    }
-  }
-
-  if (formData.get("file")) {
-    try {
-      const wkt = await getPolygonsFromShp(formData.get("file") as File);
-      if (wkt) {
-        await addPolygonFromWKT(wkt, result.id);
-      }
-    } catch (err) {
-      return {
-        statusCode: 400,
-        message: "Error inserting polygon into database",
-      };
-    }
   }
 
   revalidateTag("location");

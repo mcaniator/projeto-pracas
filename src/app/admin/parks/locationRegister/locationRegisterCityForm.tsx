@@ -2,7 +2,7 @@
 
 import { BrazilianStates } from "@prisma/client";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Button } from "../../../../components/button";
@@ -43,7 +43,7 @@ const LocationRegisterCityForm = ({
     }>
   >;
 }) => {
-  const [firstFetch, setFirstFetch] = useState(true);
+  const initialState = useRef(parkData.state);
   const [selectedState, setSelectedState] = useState<string>(
     parkData.state ?? "%NONE",
   );
@@ -52,8 +52,44 @@ const LocationRegisterCityForm = ({
     error: boolean;
     names: string[];
   }>({ loading: false, error: false, names: [] });
-
   const [showError, setShowError] = useState(false);
+  const handleCitySelectChange = useCallback(
+    (
+      e:
+        | React.ChangeEvent<HTMLSelectElement>
+        | React.ChangeEvent<HTMLInputElement>
+        | string,
+    ) => {
+      if (typeof e === "string") {
+        setParkData((prev) => ({
+          ...prev,
+          city: e.trim() === "" ? null : e,
+          narrowAdministrativeUnit: null,
+          intermediateAdministrativeUnit: null,
+          broadAdministrativeUnit: null,
+        }));
+        setRegisterAdministrativeUnit({
+          narrow: false,
+          intermediate: false,
+          broad: false,
+        });
+        return;
+      }
+      setParkData((prev) => ({
+        ...prev,
+        city: e.target.value.trim() === "" ? null : e.target.value,
+        narrowAdministrativeUnit: null,
+        intermediateAdministrativeUnit: null,
+        broadAdministrativeUnit: null,
+      }));
+      setRegisterAdministrativeUnit({
+        narrow: false,
+        intermediate: false,
+        broad: false,
+      });
+    },
+    [setParkData, setRegisterAdministrativeUnit],
+  );
 
   const fetchStateCities = useCallback(
     async (state: string) => {
@@ -71,34 +107,14 @@ const LocationRegisterCityForm = ({
           error: false,
           names: citiesData.map((city) => city.nome),
         });
-        if (!firstFetch) {
-          setParkData((prev) => ({
-            ...prev,
-            city: citiesData[0]?.nome || null,
-          }));
-        }
-        setFirstFetch(true);
+        if (parkData.state === initialState.current) return;
+        handleCitySelectChange(citiesData[0]?.nome ?? "");
       } catch (e) {
         setStateCities({ loading: false, error: true, names: [] });
       }
     },
-    [setParkData],
+    [parkData.state, handleCitySelectChange],
   );
-  const handleCitySelectChange = (
-    e:
-      | React.ChangeEvent<HTMLSelectElement>
-      | React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    setParkData((prev) => ({
-      ...prev,
-      city: e.target.value.trim() === "" ? null : e.target.value,
-    }));
-    setRegisterAdministrativeUnit({
-      narrow: false,
-      intermediate: false,
-      broad: false,
-    });
-  };
 
   const handleAdministrativeUnitRegisterChange = (
     e: React.ChangeEvent<HTMLSelectElement>,
@@ -136,7 +152,6 @@ const LocationRegisterCityForm = ({
       goToNextPage();
     }
   };
-  console.log(parkData.city);
   useEffect(() => {
     if (selectedState !== "%NONE") void fetchStateCities(selectedState);
   }, [selectedState, fetchStateCities]);
