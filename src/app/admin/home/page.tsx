@@ -1,7 +1,7 @@
 "use server";
 
 import {
-  IconHome,
+  IconFountain,
   IconListCheck,
   IconLogs,
   IconMap,
@@ -20,7 +20,7 @@ const AdminRoot = () => {
           href="parks"
           className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
         >
-          <IconHome className="mb-1" size={34} />
+          <IconFountain className="mb-1" size={34} />
           Praças
         </Link>
         <Link

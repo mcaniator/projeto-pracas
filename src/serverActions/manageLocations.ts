@@ -20,47 +20,26 @@ const createLocation = async (
       name: formData.get("name"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
-      creationYear:
-        formData.get("creationYear") === "" ?
-          undefined
-        : formData.get("creationYear"),
-      lastMaintenanceYear:
-        formData.get("lastMaintenanceYear") === "" ?
-          undefined
-        : formData.get("lastMaintenanceYear"),
-      overseeingMayor:
-        formData.get("overseeingMayor") === "" ?
-          undefined
-        : formData.get("overseeingMayor"),
-      legislation:
-        formData.get("legislation") === "" ?
-          undefined
-        : formData.get("legislation"),
-      legalArea:
-        formData.get("legalArea") === "" ?
-          undefined
-        : formData.get("legalArea"),
-      incline:
-        formData.get("incline") === "" ? undefined : formData.get("incline"),
+      creationYear: formData.get("creationYear"),
+      lastMaintenanceYear: formData.get("lastMaintenanceYear"),
+      overseeingMayor: formData.get("overseeingMayor"),
+      legislation: formData.get("legislation"),
+      legalArea: formData.get("legalArea"),
+      usableArea: formData.get("usableArea"),
+      incline: formData.get("incline"),
+      notes: formData.get("notes"),
     });
   } catch (err) {
     return { statusCode: 400, message: "Invalid data" };
   }
 
-  const cityName = formData.get("cityNameSelect");
-  const stateName = ufToStateMap.get(formData.get("stateName") as string);
-  const narrowAdministrativeUnitName =
-    formData.get("narrowAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("narrowAdministrativeUnitSelect")
-    : formData.get("narrowAdministrativeUnit");
-  const intermediateAdministrativeUnitName =
-    formData.get("intermediateAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("intermediateAdministrativeUnitSelect")
-    : formData.get("intermediateAdministrativeUnit");
-  const broadAdministrativeUnitName =
-    formData.get("broadAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("broadAdministrativeUnitSelect")
-    : formData.get("broadAdministrativeUnit");
+  const cityName = formData.get("city");
+  const stateName = ufToStateMap.get(formData.get("state") as string);
+  const narrowAdministrativeUnitName = formData.get("narrowAdministrativeUnit");
+  const intermediateAdministrativeUnitName = formData.get(
+    "intermediateAdministrativeUnit",
+  );
+  const broadAdministrativeUnitName = formData.get("broadAdministrativeUnit");
   let result;
   try {
     if (cityName) {

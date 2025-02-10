@@ -140,26 +140,23 @@ const locationSchema = z
     name: z.string().trim().min(1).max(255),
     firstStreet: z.string().trim().min(1).max(255),
     secondStreet: z.string().trim().min(1).max(255),
-    isPark: z.boolean().optional(),
-    notes: z.string().trim().min(1).optional(),
-    creationYear: z.coerce.date().optional(),
-    lastMaintenanceYear: z.coerce.date().optional(),
-    overseeingMayor: z.string().trim().min(1).max(255).optional(),
-    legislation: z.string().trim().min(1).max(255).optional(),
-    usableArea: z.coerce.number().finite().nonnegative().optional(),
-    legalArea: z.coerce.number().finite().nonnegative().optional(),
-    incline: z.coerce.number().finite().nonnegative().optional(),
-    inactiveNotFound: z.boolean().optional(),
-    polygonArea: z.coerce.number().finite().nonnegative().optional(),
+    isPark: z.boolean().nullish(),
+    notes: z.string().trim().min(1).nullish(),
+    creationYear: z.coerce.date().nullish(),
+    lastMaintenanceYear: z.coerce.date().nullish(),
+    overseeingMayor: z.string().trim().min(1).max(255).nullish(),
+    legislation: z.string().trim().min(1).max(255).nullish(),
+    usableArea: z.coerce.number().finite().nonnegative().nullish(),
+    legalArea: z.coerce.number().finite().nonnegative().nullish(),
+    incline: z.coerce.number().finite().nonnegative().nullish(),
+    inactiveNotFound: z.boolean().nullish(),
+    polygonArea: z.coerce.number().finite().nonnegative().nullish(),
 
-    type: z.nativeEnum(LocationTypes).optional(),
-    category: z.nativeEnum(CategoryTypes).optional(),
+    type: z.nativeEnum(LocationTypes).nullish(),
+    category: z.nativeEnum(CategoryTypes).nullish(),
   })
   .refine((value) => {
-    if (
-      value.creationYear !== undefined &&
-      value.lastMaintenanceYear !== undefined
-    )
+    if (value.creationYear && value.lastMaintenanceYear)
       return value.lastMaintenanceYear >= value.creationYear;
     return true;
   });
