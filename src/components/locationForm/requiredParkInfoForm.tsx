@@ -3,8 +3,8 @@
 import { IconArrowForwardUp } from "@tabler/icons-react";
 import { useState } from "react";
 
-import { Button } from "../../../../components/button";
-import { Input } from "../../../../components/ui/input";
+import { Button } from "../button";
+import { Input } from "../ui/input";
 import { ParkData } from "./locationRegisterForm";
 
 const RequiredParkInfoForm = ({

@@ -7,9 +7,9 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
-import { Button } from "../../../../components/button";
-import { Checkbox } from "../../../../components/ui/checkbox";
-import { Input } from "../../../../components/ui/input";
+import { Button } from "../button";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
 import { ParkData } from "./locationRegisterForm";
 
 const LocationRegisterOptionalData = ({
@@ -50,6 +50,7 @@ const LocationRegisterOptionalData = ({
         type="date"
         name="creationYear"
         id={"creationYear"}
+        value={parkData.creationYear?.split("T")[0] ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -66,6 +67,7 @@ const LocationRegisterOptionalData = ({
         type="date"
         name="lastMaintenanceYear"
         id={"lastMaintenanceYear"}
+        value={parkData.lastMaintenanceYear?.split("T")[0] ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -83,6 +85,7 @@ const LocationRegisterOptionalData = ({
         type="text"
         name="overseeingMayor"
         id={"overseeingMayor"}
+        value={parkData.overseeingMayor ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -100,6 +103,7 @@ const LocationRegisterOptionalData = ({
         type="text"
         name="legislation"
         id={"legislation"}
+        value={parkData.legislation ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -116,6 +120,7 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="usableArea"
         id={"usableArea"}
+        value={parkData.usableArea ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -132,6 +137,7 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="legalArea"
         id={"legalArea"}
+        value={parkData.legalArea ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -148,6 +154,7 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="incline"
         id={"incline"}
+        value={parkData.incline ?? ""}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -157,11 +164,28 @@ const LocationRegisterOptionalData = ({
       />
 
       <div className="mt-3 flex gap-9">
-        <Checkbox name="isPark" id={"isPark"}>
+        <Checkbox
+          name="isPark"
+          id={"isPark"}
+          checked={parkData.isPark}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setParkData((prev) => ({ ...prev, isPark: e.target.checked }));
+          }}
+        >
           É Praça:
         </Checkbox>
 
-        <Checkbox name="inactiveNotFound" id={"inactiveNotFound"}>
+        <Checkbox
+          name="inactiveNotFound"
+          id={"inactiveNotFound"}
+          checked={parkData.inactiveNotFound}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            setParkData((prev) => ({
+              ...prev,
+              inactiveNotFound: e.target.checked,
+            }));
+          }}
+        >
           Inativo ou não encontrado
         </Checkbox>
       </div>

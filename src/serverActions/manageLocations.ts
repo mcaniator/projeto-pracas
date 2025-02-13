@@ -28,6 +28,8 @@ const createLocation = async (
       usableArea: formData.get("usableArea"),
       incline: formData.get("incline"),
       notes: formData.get("notes"),
+      isPark: formData.get("isPark") === "true",
+      inactiveNotFound: formData.get("inactiveNotFound") === "true",
     });
   } catch (err) {
     return { statusCode: 400, message: "Invalid data" };
@@ -153,7 +155,6 @@ const createLocation = async (
   }
 
   revalidateTag("location");
-
   return { statusCode: 201, message: "locationCreated" };
 };
 

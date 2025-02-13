@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
-import { addPolygonFromWKT } from "./managePolygons";
+import { addPolygonFromWKT, hasPolygon } from "./managePolygons";
 
 interface LocationWithCity extends Location {
   narrowAdministrativeUnit: {
@@ -37,7 +37,7 @@ interface LocationWithCity extends Location {
   } | null;
 }
 
-const handleDelete = async (parkID: number) => {
+const deleteLocation = async (parkID: number) => {
   try {
     await prisma.location.delete({
       where: {
@@ -149,6 +149,8 @@ const searchLocationsById = async (id: number) => {
             },
           },
         });
+        const locationHasPolygon = await hasPolygon(id);
+        //TODO
       } catch (err) {
         // console.error(err);
       }
@@ -176,7 +178,7 @@ const searchLocationNameById = async (id: number) => {
 };
 
 const updateLocation = async (
-  prevState: { statusCode: number },
+  prevState: { statusCode: number; message: string },
   formData: FormData,
 ) => {
   let parseId;
@@ -188,6 +190,7 @@ const updateLocation = async (
       .nonnegative()
       .parse(formData.get("locationId"));
   } catch (e) {
+    console.log(e);
     return {
       statusCode: 400,
       message: "Invalid id",
@@ -195,83 +198,151 @@ const updateLocation = async (
   }
 
   let locationToUpdate;
-  const narrowAdministrativeUnitName =
-    formData.get("narrowAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("narrowAdministrativeUnitSelect")
-    : formData.get("narrowAdministrativeUnit");
-  const intermediateAdministrativeUnitName =
-    formData.get("intermediateAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("intermediateAdministrativeUnitSelect")
-    : formData.get("intermediateAdministrativeUnit");
-  const broadAdministrativeUnitName =
-    formData.get("broadAdministrativeUnitSelect") !== "CREATE" ?
-      formData.get("broadAdministrativeUnitSelect")
-    : formData.get("broadAdministrativeUnit");
+  const narrowAdministrativeUnitName = formData.get("narrowAdministrativeUnit");
+  const intermediateAdministrativeUnitName = formData.get(
+    "intermediateAdministrativeUnit",
+  );
+  const broadAdministrativeUnitName = formData.get("broadAdministrativeUnit");
 
-  const cityName =
-    formData.get("cityNameSelect") !== "CREATE" ?
-      (formData.get("cityNameSelect") as string)
-    : (formData.get("cityName") as string | null);
-  const UFName = formData.get("stateName") as string;
-  const stateName = ufToStateMap.get(UFName);
+  const cityName = formData.get("city");
+  const stateName = ufToStateMap.get(formData.get("state") as string);
   if (cityName && stateName === "NONE") {
     return { statusCode: 400, message: "City sent without state" };
   }
   try {
-    const lastMaintenanceYear = formData.get("lastMaintenanceYear");
-    const creationYear = formData.get("creationYear");
-
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
-      inactiveNotFound: formData.get("inactiveNotFound") === "on",
-      isPark: formData.get("isPark") === "on",
-      notes: formData.get("notes") !== "" ? formData.get("notes") : undefined,
-      creationYear:
-        (
-          creationYear !== null &&
-          creationYear !== "" &&
-          !(creationYear instanceof File)
-        ) ?
-          new Date(creationYear).toISOString()
-        : undefined,
-      lastMaintenanceYear:
-        (
-          lastMaintenanceYear !== null &&
-          lastMaintenanceYear !== "" &&
-          !(lastMaintenanceYear instanceof File)
-        ) ?
-          new Date(lastMaintenanceYear).toISOString()
-        : undefined,
-      overseeingMayor:
-        formData.get("overseeingMayor") !== "" ?
-          formData.get("overseeingMayor")
-        : undefined,
-      legislation:
-        formData.get("legislation") !== "" ?
-          formData.get("legislation")
-        : undefined,
-      usableArea:
-        formData.get("usableArea") !== "" ?
-          formData.get("usableArea")
-        : undefined,
-      legalArea:
-        formData.get("legalArea") !== "" ?
-          formData.get("legalArea")
-        : undefined,
-      incline:
-        formData.get("incline") !== "" ? formData.get("incline") : undefined,
+      creationYear: formData.get("creationYear"),
+      lastMaintenanceYear: formData.get("lastMaintenanceYear"),
+      overseeingMayor: formData.get("overseeingMayor"),
+      legislation: formData.get("legislation"),
+      legalArea: formData.get("legalArea"),
+      usableArea: formData.get("usableArea"),
+      incline: formData.get("incline"),
+      notes: formData.get("notes"),
+      isPark: formData.get("isPark") === "true",
+      inactiveNotFound: formData.get("inactiveNotFound") === "true",
     });
   } catch (e) {
+    console.log(e);
     return {
       statusCode: 400,
       message: "Invalid data",
     };
   }
+  let result;
   try {
     if (cityName) {
       const city = await prisma.city.upsert({
+        where: {
+          name_state: {
+            name: cityName as string,
+            state: stateName as BrazilianStates,
+          },
+        },
+        update: {},
+        create: {
+          name: cityName as string,
+          state: stateName as BrazilianStates,
+        },
+      });
+      let narrowAdministrativeUnitId: number | null = null;
+      let intermediateAdministrativeUnitId: number | null = null;
+      let broadAdministrativeUnitId: number | null = null;
+      if (narrowAdministrativeUnitName) {
+        const narrowAdministrativeUnit =
+          await prisma.narrowAdministrativeUnit.upsert({
+            where: {
+              cityId_narrowUnitName: {
+                cityId: city.id,
+                name: narrowAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: narrowAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
+        console.log(narrowAdministrativeUnitId);
+      }
+      if (intermediateAdministrativeUnitName) {
+        const intermediateAdministrativeUnit =
+          await prisma.intermediateAdministrativeUnit.upsert({
+            where: {
+              cityId_intermediateUnitName: {
+                cityId: city.id,
+                name: intermediateAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: intermediateAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
+      }
+      if (broadAdministrativeUnitName) {
+        const broadAdministrativeUnit =
+          await prisma.broadAdministrativeUnit.upsert({
+            where: {
+              cityId_broadUnitName: {
+                cityId: city.id,
+                name: broadAdministrativeUnitName as string,
+              },
+            },
+            update: {},
+            create: {
+              name: broadAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        broadAdministrativeUnitId = broadAdministrativeUnit.id;
+      }
+      result = await prisma.location.update({
+        where: {
+          id: parseId,
+        },
+        data: {
+          ...locationToUpdate,
+          narrowAdministrativeUnitId,
+          intermediateAdministrativeUnitId,
+          broadAdministrativeUnitId,
+        },
+      });
+    } else {
+      result = await prisma.location.update({
+        where: {
+          id: parseId,
+        },
+        data: {
+          ...locationToUpdate,
+        },
+      });
+    }
+  } catch (e) {
+    console.log(e);
+    return { statusCode: 400, message: "Database error" };
+  }
+  console.log("success");
+  revalidateTag("location");
+  return { statusCode: 200, message: "Location updated" };
+};
+//TO DO -> UPDATE POLYGONS
+//      -> CHECK CACHE NOT RESETING
+//      -> CHECK ADMINISTRATIVE UNIT NOT UPDATING
+///////////////////////////////////
+/*const city = await prisma.city.upsert({
         where: {
           name_state: {
             name: cityName,
@@ -386,21 +457,20 @@ const updateLocation = async (
       statusCode: 500,
       message: "Internal server error",
     };
-  }
+  }*/
 
-  try {
+/*try {
     const WKT = await getPolygonsFromShp(formData.get("file") as File);
     WKT && (await addPolygonFromWKT(WKT, parseId));
     revalidateTag("location");
     return { statusCode: 200, message: "Location updated" };
   } catch (e) {
     return { statusCode: 200, message: "Error during polygon save" };
-  }
-};
+  }*/
 
 export {
   fetchLocations,
-  handleDelete,
+  deleteLocation,
   searchLocationsById,
   searchLocationsByName,
   searchLocationNameById,

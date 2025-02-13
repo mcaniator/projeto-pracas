@@ -140,7 +140,7 @@ const locationSchema = z
     name: z.string().trim().min(1).max(255),
     firstStreet: z.string().trim().min(1).max(255),
     secondStreet: z.string().trim().min(1).max(255),
-    isPark: z.boolean().nullish(),
+    isPark: z.boolean(),
     notes: z.string().trim().min(1).nullish(),
     creationYear: z.coerce.date().nullish(),
     lastMaintenanceYear: z.coerce.date().nullish(),
@@ -149,7 +149,7 @@ const locationSchema = z
     usableArea: z.coerce.number().finite().nonnegative().nullish(),
     legalArea: z.coerce.number().finite().nonnegative().nullish(),
     incline: z.coerce.number().finite().nonnegative().nullish(),
-    inactiveNotFound: z.boolean().nullish(),
+    inactiveNotFound: z.boolean(),
     polygonArea: z.coerce.number().finite().nonnegative().nullish(),
 
     type: z.nativeEnum(LocationTypes).nullish(),

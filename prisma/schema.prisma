@@ -420,7 +420,6 @@ model Location {
   popularName         String?   @db.VarChar(255)
   firstStreet         String    @db.VarChar(255)
   secondStreet        String    @db.VarChar(255)
-  isPark              Boolean?  @map("is_park")
   notes               String?   @db.Text
   creationYear        DateTime? @map("creation_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
   lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
@@ -429,7 +428,8 @@ model Location {
   usableArea          Float?    @map("usable_area")
   legalArea           Float?    @map("legal_area")
   incline             Float?
-  inactiveNotFound    Boolean?  @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
+  isPark              Boolean   @map("is_park")
+  inactiveNotFound    Boolean   @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
   polygonArea         Float?    @map("polygon_area")
 
   type     LocationTypes?
