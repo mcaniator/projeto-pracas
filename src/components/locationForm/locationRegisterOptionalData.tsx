@@ -14,14 +14,20 @@ import { ParkData } from "./locationRegisterForm";
 
 const LocationRegisterOptionalData = ({
   parkData,
+  shapefile,
   goToPreviousPage,
   setParkData,
   handleSubmit,
+  setShapefile,
 }: {
   parkData: ParkData;
+  shapefile: { file: Blob; name: string } | undefined;
   goToPreviousPage: () => void;
   setParkData: React.Dispatch<React.SetStateAction<ParkData>>;
   handleSubmit: () => void;
+  setShapefile: React.Dispatch<
+    React.SetStateAction<{ file: Blob; name: string } | undefined>
+  >;
 }) => {
   const [showHelp, setShowHelp] = useState(false);
   return (
@@ -205,7 +211,34 @@ const LocationRegisterOptionalData = ({
             </div>
           </Button>
         </div>
-        <input type="file" name="file" id="file" accept=".shp" />
+        {shapefile ?
+          <div>
+            <p>Arquivo selecionado: {shapefile.name}</p>
+            <Button
+              onPress={() => {
+                setShapefile(undefined);
+              }}
+            >
+              Remover arquivo
+            </Button>
+          </div>
+        : <input
+            type="file"
+            name="file"
+            id="file"
+            accept=".shp"
+            onChange={(e) => {
+              if (e.target.files) {
+                const file = e.target.files[0];
+                if (file) {
+                  setShapefile({ file: file, name: file.name });
+                  return;
+                }
+              }
+              setShapefile(undefined);
+            }}
+          />
+        }
       </div>
       <div className="mt-3 flex">
         <Button onPress={goToPreviousPage}>

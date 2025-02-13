@@ -335,8 +335,21 @@ const updateLocation = async (
     return { statusCode: 400, message: "Database error" };
   }
   console.log("success");
-  revalidateTag("location");
-  return { statusCode: 200, message: "Location updated" };
+  const shpFile = formData.get("file");
+  if (!shpFile) {
+    revalidateTag("location");
+    return { statusCode: 200, message: "Location updated" };
+  }
+  try {
+    const WKT = await getPolygonsFromShp(formData.get("file") as File);
+    console.log(WKT);
+    WKT && (await addPolygonFromWKT(WKT, parseId));
+    revalidateTag("location");
+    return { statusCode: 200, message: "Location updated" };
+  } catch (e) {
+    console.log(e);
+    return { statusCode: 400, message: "Error during polygon save" };
+  }
 };
 //TO DO -> UPDATE POLYGONS
 //      -> CHECK CACHE NOT RESETING

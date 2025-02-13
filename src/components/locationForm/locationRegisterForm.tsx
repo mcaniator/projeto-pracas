@@ -53,7 +53,7 @@ const ParkRegisterForm = ({
   location?: ParkData;
   formType: locationFormType;
   locationId?: number;
-  featuresGeoJson: string;
+  featuresGeoJson?: string;
   onSuccess?: () => void;
 }) => {
   const action = formType === "CREATE" ? createLocation : updateLocation;
@@ -86,6 +86,7 @@ const ParkRegisterForm = ({
       }
     ),
   );
+  const [shapefile, setShapefile] = useState<{ file: Blob; name: string }>();
   const [registerAdministrativeUnit, setRegisterAdministrativeUnit] = useState<{
     narrow: boolean;
     intermediate: boolean;
@@ -124,6 +125,9 @@ const ParkRegisterForm = ({
 
     if (featuresGeoJson) {
       formData.append("featuresGeoJson", featuresGeoJson); // Inclui o GeoJSON no formulário
+    }
+    if (shapefile) {
+      formData.append("file", shapefile.file);
     }
 
     formAction(formData);
@@ -170,6 +174,8 @@ const ParkRegisterForm = ({
                 setParkData={setParkData}
                 goToPreviousPage={goToPreviousPage}
                 handleSubmit={handleSubmit}
+                shapefile={shapefile}
+                setShapefile={setShapefile}
               />
             )}
             <Input
