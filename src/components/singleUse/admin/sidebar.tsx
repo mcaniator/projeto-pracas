@@ -78,6 +78,7 @@ const Sidebar = () => {
                 type="button"
                 variant={"ghost"}
                 use={"link"}
+                onPress={() => (window.location.href = `${element.path}`)}
                 className={cn(
                   currentLocation.startsWith(element.path) &&
                     "bg-transparent/50",

@@ -131,7 +131,12 @@ const UserInfo = ({ user }: { user: User }) => {
       </div>
       <div className="my-3 flex gap-4">
         <Link href={"/admin"} className="basis-1/2">
-          <Button type={"button"} className="w-full text-white" use={"link"}>
+          <Button
+            type={"button"}
+            className="w-full text-white"
+            use={"link"}
+            onPress={() => (window.location.href = "/admin")}
+          >
             <span className="-mb-1">Painel Admin</span>
           </Button>
         </Link>
