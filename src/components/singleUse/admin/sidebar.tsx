@@ -26,6 +26,13 @@ const Sidebar = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
   const toggleSidebar = () => setIsSidebarVisible(!isSidebarVisible);
+  const closeSidebar = () => setIsSidebarVisible(false);
+
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      closeSidebar();
+    }
+  };
 
   const topSidebar: { icon: ReactNode; name: string; path: string }[] = [
     { icon: <IconHome size={34} />, name: "Início", path: "/admin/home" },
@@ -58,6 +65,13 @@ const Sidebar = () => {
         {!isSidebarVisible && <IconMenu2 size={34} />}
       </button>
 
+      {isSidebarVisible && (
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={handleOverlayClick}
+        ></div>
+      )}
+
       <nav
         className={cn(
           "fixed left-0 top-0 z-50 flex h-full w-64 flex-col bg-gray-800 p-5 text-xl text-white shadow-lg transition-transform duration-300",
@@ -66,7 +80,7 @@ const Sidebar = () => {
         )}
       >
         <div className="mb-4 flex justify-end">
-          <button onClick={toggleSidebar} className="text-white">
+          <button onClick={closeSidebar} className="text-white">
             <IconX size={34} />
           </button>
         </div>
