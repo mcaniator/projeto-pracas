@@ -287,7 +287,7 @@ const BottomControls = () => {
   const view = map.getView();
 
   return (
-    <div className="fixed bottom-2 z-50 flex flex-col gap-1 p-2 pb-0">
+    <div className="fixed bottom-2 z-40 flex flex-col gap-1 p-2 pb-0">
       <Button
         type="button"
         className="text-white"
