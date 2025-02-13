@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { fetchCities } from "@/serverActions/cityUtil";
 import { fetchPolygons } from "@/serverActions/managePolygons";
 import { Location } from "@prisma/client";
 import { unstable_cache } from "next/cache";
@@ -15,6 +16,7 @@ interface fullLocation extends Location {
 
 const Page = async () => {
   const polygons = await fetchPolygons();
+  const cities = await fetchCities();
 
   const locationsCache = unstable_cache(
     async () => await prisma.location.findMany(),
@@ -41,7 +43,7 @@ const Page = async () => {
   return (
     <MapProvider>
       <PolygonProvider polygons={polygons} locations={locations}>
-        <Client locations={fullLocations} />
+        <Client locations={fullLocations} cities={cities} />
       </PolygonProvider>
     </MapProvider>
   );

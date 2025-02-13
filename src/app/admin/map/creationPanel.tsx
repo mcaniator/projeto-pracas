@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { IconCancel, IconTrashX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";
@@ -26,6 +27,7 @@ const CreationPanel = ({
   setCurrentId,
   drawingWindowVisible,
   setDrawingWindowVisible,
+  cities,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
@@ -33,6 +35,7 @@ const CreationPanel = ({
   setCurrentId: Dispatch<SetStateAction<number>>;
   drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
+  cities: FetchCitiesType;
 }) => {
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
@@ -143,6 +146,7 @@ const CreationPanel = ({
             setCurrentId={setCurrentId}
             drawingWindowVisible={drawingWindowVisible}
             setDrawingWindowVisible={setDrawingWindowVisible}
+            cities={cities}
           />
         )}
         {currentId >= 0 && (

@@ -3,6 +3,7 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { search } from "@/lib/search";
+import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { removePolygon } from "@/serverActions/managePolygons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
@@ -33,7 +34,13 @@ interface fullLocation extends Location {
   st_asgeojson: string | null;
 }
 
-const Client = ({ locations }: { locations: fullLocation[] }) => {
+const Client = ({
+  locations,
+  cities,
+}: {
+  locations: fullLocation[];
+  cities: FetchCitiesType;
+}) => {
   const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
     [],
@@ -77,7 +84,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
           minWidth={150}
           minHeight={250}
           maxHeight={window.innerHeight - 50}
-          máxima
+          //   máxima
         >
           <div
             className={`${
@@ -125,6 +132,7 @@ const Client = ({ locations }: { locations: fullLocation[] }) => {
                 setCurrentId={setCurrentId}
                 drawingWindowVisible={drawingWindowVisible}
                 setDrawingWindowVisible={setDrawingWindowVisible}
+                cities={cities}
               />
             </DrawingProvider>
           </div>

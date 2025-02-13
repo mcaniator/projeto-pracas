@@ -1,8 +1,9 @@
 "use client";
 
+import { Input } from "@/components/input";
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { useActionState, useState } from "react";
+import React, { useActionState, useEffect, useState } from "react";
 
 import { FetchCitiesType } from "../../serverActions/cityUtil";
 import { updateLocation } from "../../serverActions/locationUtil";
@@ -39,16 +40,21 @@ const initialState = {
   statusCode: -1,
   message: "Initial",
 };
+
 const ParkRegisterForm = ({
   cities,
   location,
   formType,
   locationId,
+  featuresGeoJson,
+  onSuccess,
 }: {
   cities: FetchCitiesType;
   location?: ParkData;
   formType: locationFormType;
   locationId?: number;
+  featuresGeoJson: string;
+  onSuccess?: () => void;
 }) => {
   const action = formType === "CREATE" ? createLocation : updateLocation;
   const [formState, formAction, isPending] = useActionState(
@@ -89,12 +95,21 @@ const ParkRegisterForm = ({
     intermediate: false,
     broad: false,
   });
+
+  useEffect(() => {
+    if (formState.statusCode === 201 || formState.statusCode === 200) {
+      onSuccess?.();
+    }
+  }, [formState.statusCode, onSuccess]);
+
   const goToPreviousPage = () => {
     setPage((prev) => prev - 1);
   };
+
   const goToNextPage = () => {
     setPage((prev) => prev + 1);
   };
+
   const handleSubmit = () => {
     const formData = new FormData();
     Object.entries(parkData).forEach(([key, value]) => {
@@ -102,12 +117,18 @@ const ParkRegisterForm = ({
         formData.append(key, value as string);
       }
     });
+
     if (locationId) {
       formData.append("locationId", locationId.toString());
     }
 
+    if (featuresGeoJson) {
+      formData.append("featuresGeoJson", featuresGeoJson); // Inclui o GeoJSON no formulário
+    }
+
     formAction(formData);
   };
+
   return (
     <div>
       {isPending && (
@@ -151,6 +172,11 @@ const ParkRegisterForm = ({
                 handleSubmit={handleSubmit}
               />
             )}
+            <Input
+              type="hidden"
+              value={featuresGeoJson}
+              name="featuresGeoJson"
+            />
           </form>
         )}
       {!isPending &&
