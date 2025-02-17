@@ -395,7 +395,7 @@ const LocationRegisterCityForm = ({
         </div>
       )}
       {showError && (
-        <p className="out text-lg font-semibold text-red-800">
+        <p className="out text-lg font-semibold text-red-500">
           Para salvar uma cidade deve-se associar pelo menos uma região
           administrativa à praça
         </p>

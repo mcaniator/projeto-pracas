@@ -160,6 +160,14 @@ const createLocation = async (
           );
         }
 
+        if (
+          !narrowAdministrativeUnitId &&
+          !intermediateAdministrativeUnitId &&
+          !broadAdministrativeUnitId
+        ) {
+          throw new Error("No administrative unit created or connect");
+        }
+
         console.log("Criando a localização...");
         result = await prisma.location.create({
           data: {

@@ -11,7 +11,7 @@ import Link from "next/link";
 
 const AdminRoot = () => {
   return (
-    <div className={"flex h-full flex-col items-center text-white"}>
+    <div className={"flex h-full flex-col items-center text-center text-white"}>
       <h2 className="p-2 text-4xl font-semibold">
         Bem vindo(a) ao Projeto praças
       </h2>

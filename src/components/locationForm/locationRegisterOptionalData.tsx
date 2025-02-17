@@ -33,7 +33,7 @@ const LocationRegisterOptionalData = ({
   return (
     <div className="flex w-full max-w-[70rem] flex-col">
       <h3>Informações extras (opcional)</h3>
-      <label htmlFor={"notes"}>Notas:</label>
+      <label htmlFor={"notes"}>Observações:</label>
       <Input
         value={parkData.notes ?? ""}
         type="text"
@@ -126,13 +126,13 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="usableArea"
         id={"usableArea"}
-        value={parkData.usableArea ?? ""}
-        onChange={(e) =>
+        value={parkData.usableArea ?? " "}
+        onChange={(e) => {
           setParkData((prev) => ({
             ...prev,
-            usableArea: e.target.value.trim() === "" ? null : e.target.value,
-          }))
-        }
+            usableArea: e.target.value === "" ? null : e.target.value,
+          }));
+        }}
       />
 
       <label htmlFor={"legalArea"} className="mt-3">
@@ -143,7 +143,7 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="legalArea"
         id={"legalArea"}
-        value={parkData.legalArea ?? ""}
+        value={parkData.legalArea ?? " "}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
@@ -160,7 +160,7 @@ const LocationRegisterOptionalData = ({
         type="number"
         name="incline"
         id={"incline"}
-        value={parkData.incline ?? ""}
+        value={parkData.incline ?? " "}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,

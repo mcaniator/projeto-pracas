@@ -45,7 +45,7 @@ const ParkForm = ({
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto py-1">
+    <div className="flex h-full flex-col gap-4 py-1">
       <h4 className="text-xl">Busca de locais</h4>
       <div className={"flex flex-col gap-2"}>
         <Input
@@ -57,7 +57,7 @@ const ParkForm = ({
         />
       </div>
 
-      <div className="flex w-full flex-col overflow-y-scroll rounded-md text-white">
+      <div className="flex w-full flex-col rounded-md text-white">
         <LocationList locations={hay} />
       </div>
     </div>
