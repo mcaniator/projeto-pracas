@@ -6,7 +6,6 @@ import { BrazilianStates } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { ufToStateMap } from "../lib/types/brazilianFederativeUnits";
 import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygon, addPolygonFromWKT } from "./managePolygons";
 
@@ -41,7 +40,7 @@ const createLocation = async (
   }
 
   const cityName = formData.get("city");
-  const stateName = ufToStateMap.get(formData.get("state") as string);
+  const stateName = formData.get("state") as string;
   const narrowAdministrativeUnitName = formData.get("narrowAdministrativeUnit");
   const intermediateAdministrativeUnitName = formData.get(
     "intermediateAdministrativeUnit",
@@ -60,158 +59,152 @@ const createLocation = async (
   try {
     console.log("Iniciando transação no banco de dados...");
     await prisma.$transaction(async (prisma) => {
-      if (cityName) {
-        console.log("Criando ou atualizando a cidade...");
-        const city = await prisma.city.upsert({
-          where: {
-            name_state: {
-              name: cityName as string,
-              state: stateName as BrazilianStates,
-            },
-          },
-          update: {},
-          create: {
+      console.log("Criando ou atualizando a cidade...");
+      const city = await prisma.city.upsert({
+        where: {
+          name_state: {
             name: cityName as string,
             state: stateName as BrazilianStates,
           },
-        });
-        console.log("Cidade criada/atualizada:", city);
+        },
+        update: {},
+        create: {
+          name: cityName as string,
+          state: stateName as BrazilianStates,
+        },
+      });
+      console.log("Cidade criada/atualizada:", city);
 
-        let narrowAdministrativeUnitId: number | null = null;
-        let intermediateAdministrativeUnitId: number | null = null;
-        let broadAdministrativeUnitId: number | null = null;
+      let narrowAdministrativeUnitId: number | null = null;
+      let intermediateAdministrativeUnitId: number | null = null;
+      let broadAdministrativeUnitId: number | null = null;
 
-        if (narrowAdministrativeUnitName) {
-          console.log(
-            "Criando ou atualizando unidade administrativa estreita...",
-          );
-          const narrowAdministrativeUnit =
-            await prisma.narrowAdministrativeUnit.upsert({
-              where: {
-                cityId_narrowUnitName: {
-                  cityId: city.id,
-                  name: narrowAdministrativeUnitName as string,
-                },
-              },
-              update: {},
-              create: {
+      if (narrowAdministrativeUnitName) {
+        console.log(
+          "Criando ou atualizando unidade administrativa estreita...",
+        );
+        const narrowAdministrativeUnit =
+          await prisma.narrowAdministrativeUnit.upsert({
+            where: {
+              cityId_narrowUnitName: {
+                cityId: city.id,
                 name: narrowAdministrativeUnitName as string,
-                city: {
-                  connect: { id: city.id },
-                },
               },
-            });
-          narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
-          console.log(
-            "Unidade administrativa estreita criada/atualizada:",
-            narrowAdministrativeUnit,
-          );
-        }
+            },
+            update: {},
+            create: {
+              name: narrowAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
+        console.log(
+          "Unidade administrativa estreita criada/atualizada:",
+          narrowAdministrativeUnit,
+        );
+      }
 
-        if (intermediateAdministrativeUnitName) {
-          console.log(
-            "Criando ou atualizando unidade administrativa intermediária...",
-          );
-          const intermediateAdministrativeUnit =
-            await prisma.intermediateAdministrativeUnit.upsert({
-              where: {
-                cityId_intermediateUnitName: {
-                  cityId: city.id,
-                  name: intermediateAdministrativeUnitName as string,
-                },
-              },
-              update: {},
-              create: {
+      if (intermediateAdministrativeUnitName) {
+        console.log(
+          "Criando ou atualizando unidade administrativa intermediária...",
+        );
+        const intermediateAdministrativeUnit =
+          await prisma.intermediateAdministrativeUnit.upsert({
+            where: {
+              cityId_intermediateUnitName: {
+                cityId: city.id,
                 name: intermediateAdministrativeUnitName as string,
-                city: {
-                  connect: { id: city.id },
-                },
               },
-            });
-          intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
-          console.log(
-            "Unidade administrativa intermediária criada/atualizada:",
-            intermediateAdministrativeUnit,
-          );
-        }
+            },
+            update: {},
+            create: {
+              name: intermediateAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
+        console.log(
+          "Unidade administrativa intermediária criada/atualizada:",
+          intermediateAdministrativeUnit,
+        );
+      }
 
-        if (broadAdministrativeUnitName) {
-          console.log("Criando ou atualizando unidade administrativa ampla...");
-          const broadAdministrativeUnit =
-            await prisma.broadAdministrativeUnit.upsert({
-              where: {
-                cityId_broadUnitName: {
-                  cityId: city.id,
-                  name: broadAdministrativeUnitName as string,
-                },
-              },
-              update: {},
-              create: {
+      if (broadAdministrativeUnitName) {
+        console.log("Criando ou atualizando unidade administrativa ampla...");
+        const broadAdministrativeUnit =
+          await prisma.broadAdministrativeUnit.upsert({
+            where: {
+              cityId_broadUnitName: {
+                cityId: city.id,
                 name: broadAdministrativeUnitName as string,
-                city: {
-                  connect: { id: city.id },
-                },
               },
-            });
-          broadAdministrativeUnitId = broadAdministrativeUnit.id;
-          console.log(
-            "Unidade administrativa ampla criada/atualizada:",
-            broadAdministrativeUnit,
-          );
+            },
+            update: {},
+            create: {
+              name: broadAdministrativeUnitName as string,
+              city: {
+                connect: { id: city.id },
+              },
+            },
+          });
+        broadAdministrativeUnitId = broadAdministrativeUnit.id;
+        console.log(
+          "Unidade administrativa ampla criada/atualizada:",
+          broadAdministrativeUnit,
+        );
+      }
+
+      if (
+        !narrowAdministrativeUnitId &&
+        !intermediateAdministrativeUnitId &&
+        !broadAdministrativeUnitId
+      ) {
+        throw new Error("No administrative unit created or connected");
+      }
+
+      console.log("Criando a localização...");
+      result = await prisma.location.create({
+        data: {
+          ...location,
+          narrowAdministrativeUnitId,
+          intermediateAdministrativeUnitId,
+          broadAdministrativeUnitId,
+        },
+      });
+      console.log("Localização criada com sucesso:", result);
+
+      // Após a criação da localização, adicionar os polígonos
+      try {
+        if (formData.get("featuresGeoJson")) {
+          console.log("Adicionando polígonos a partir de GeoJSON...");
+          const featuresGeoJson = z
+            .string()
+            .parse(formData.get("featuresGeoJson"));
+
+          await addPolygon(featuresGeoJson, result.id);
+          console.log("Valor de featuresGeoJson:", featuresGeoJson);
+          console.log("Polígonos adicionados com sucesso.");
         }
 
-        if (
-          !narrowAdministrativeUnitId &&
-          !intermediateAdministrativeUnitId &&
-          !broadAdministrativeUnitId
-        ) {
-          throw new Error("No administrative unit created or connect");
+        if (formData.get("file")) {
+          console.log("Adicionando polígonos a partir de arquivo shapefile...");
+          const wkt = await getPolygonsFromShp(formData.get("file") as File);
+          if (wkt) {
+            await addPolygonFromWKT(wkt, result.id);
+            console.log(
+              "Polígonos adicionados com sucesso a partir do shapefile.",
+            );
+          }
         }
-
-        console.log("Criando a localização...");
-        result = await prisma.location.create({
-          data: {
-            ...location,
-            narrowAdministrativeUnitId,
-            intermediateAdministrativeUnitId,
-            broadAdministrativeUnitId,
-          },
-        });
-        console.log("Localização criada com sucesso:", result);
-      } else {
-        console.log("Criando a localização sem cidade...");
-        result = await prisma.location.create({ data: location });
-        console.log("Localização criada com sucesso:", result);
+      } catch (err) {
+        console.error("Erro ao adicionar polígonos:", err);
+        throw new Error("Error inserting polygon into database");
       }
     });
-
-    // Após a criação da localização, adicionar os polígonos
-    try {
-      if (formData.get("featuresGeoJson")) {
-        console.log("Adicionando polígonos a partir de GeoJSON...");
-        const featuresGeoJson = z
-          .string()
-          .parse(formData.get("featuresGeoJson"));
-
-        await addPolygon(featuresGeoJson, result!.id);
-        console.log("Valor de featuresGeoJson:", featuresGeoJson);
-        console.log("Polígonos adicionados com sucesso.");
-      }
-
-      if (formData.get("file")) {
-        console.log("Adicionando polígonos a partir de arquivo shapefile...");
-        const wkt = await getPolygonsFromShp(formData.get("file") as File);
-        if (wkt) {
-          await addPolygonFromWKT(wkt, result!.id);
-          console.log(
-            "Polígonos adicionados com sucesso a partir do shapefile.",
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Erro ao adicionar polígonos:", err);
-      throw new Error("Error inserting polygon into database");
-    }
   } catch (err) {
     console.error("Erro na transação do banco de dados:", err);
     return { statusCode: 400, message: "Database error" };

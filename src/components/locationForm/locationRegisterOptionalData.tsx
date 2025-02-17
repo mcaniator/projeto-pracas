@@ -53,14 +53,15 @@ const LocationRegisterOptionalData = ({
       </label>
       <Input
         className="w-full"
-        type="date"
+        type="number"
         name="creationYear"
         id={"creationYear"}
-        value={parkData.creationYear?.split("T")[0] ?? ""}
+        value={parkData.creationYear ?? " "}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
-            creationYear: e.target.value.trim() === "" ? null : e.target.value,
+            creationYear:
+              e.target.value.trim() === "" ? null : parseInt(e.target.value),
           }))
         }
       />
@@ -70,15 +71,15 @@ const LocationRegisterOptionalData = ({
       </label>
       <Input
         className="w-full"
-        type="date"
+        type="number"
         name="lastMaintenanceYear"
         id={"lastMaintenanceYear"}
-        value={parkData.lastMaintenanceYear?.split("T")[0] ?? ""}
+        value={parkData.lastMaintenanceYear ?? " "}
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
             lastMaintenanceYear:
-              e.target.value.trim() === "" ? null : e.target.value,
+              e.target.value.trim() === "" ? null : parseInt(e.target.value),
           }))
         }
       />
@@ -147,7 +148,7 @@ const LocationRegisterOptionalData = ({
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
-            legalArea: e.target.value.trim() === "" ? null : e.target.value,
+            legalArea: e.target.value === "" ? null : e.target.value,
           }))
         }
       />
@@ -164,7 +165,7 @@ const LocationRegisterOptionalData = ({
         onChange={(e) =>
           setParkData((prev) => ({
             ...prev,
-            incline: e.target.value.trim() === "" ? null : e.target.value,
+            incline: e.target.value === "" ? null : e.target.value,
           }))
         }
       />

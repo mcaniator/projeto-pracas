@@ -11,6 +11,7 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
     location?.broadAdministrativeUnit?.city ??
     location?.intermediateAdministrativeUnit?.city ??
     location?.narrowAdministrativeUnit?.city;
+  //console.log(city);
   if (!location) {
     return (
       <div
@@ -89,14 +90,7 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
         }
 
         {location.creationYear ?
-          <span>
-            Data de Criação:{" "}
-            {new Date(location.creationYear).toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "2-digit",
-            })}
-          </span>
+          <span>Data de Criação: {location.creationYear}</span>
         : <span>
             Data de Criação:{" "}
             <span className="text-red-500">Não preenchido</span>
@@ -104,14 +98,7 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
         }
 
         {location.lastMaintenanceYear ?
-          <span>
-            Data da Última Manutenção:{" "}
-            {new Date(location.lastMaintenanceYear).toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "2-digit",
-            })}
-          </span>
+          <span>Data da Última Manutenção: {location.lastMaintenanceYear}</span>
         : <span>
             Data da Última Manutenção:{" "}
             <span className="text-red-500">Não preenchido</span>
@@ -136,16 +123,16 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
         }
 
         {location.usableArea ?
-          <span>Área Útil: {location.usableArea}</span>
+          <span>Área Útil(m²): {location.usableArea}</span>
         : <span>
-            Área Útil: <span className="text-red-500">Não preenchido</span>
+            Área Útil(m²): <span className="text-red-500">Não preenchido</span>
           </span>
         }
 
         {location.legalArea ?
-          <span>Área Prefeitura: {location.legalArea}</span>
+          <span>Área Prefeitura(m²): {location.legalArea}</span>
         : <span>
-            Área Prefeitura:{" "}
+            Área Prefeitura(m²):{" "}
             <span className="text-red-500">Não preenchido</span>
           </span>
         }
@@ -157,12 +144,14 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
           </span>
         }
       </div>
-      <Link
-        className="flex items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-        href={`/admin/parks/${location.id}`}
-      >
-        <IconArrowBackUp />
-      </Link>
+      <div>
+        <Link
+          className="flex max-w-[5rem] items-center justify-center rounded-lg bg-true-blue p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+          href={`/admin/parks/${location.id}`}
+        >
+          <IconArrowBackUp />
+        </Link>
+      </div>
     </div>
   );
 };

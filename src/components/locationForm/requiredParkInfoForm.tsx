@@ -18,7 +18,7 @@ const RequiredParkInfoForm = ({
 }) => {
   const [showError, setShowError] = useState(false);
   const handlePageChange = () => {
-    if (parkData.name && parkData.firstStreet && parkData.secondStreet) {
+    if (parkData.name && parkData.firstStreet) {
       goToNextPage();
     } else {
       setShowError(true);
@@ -65,7 +65,7 @@ const RequiredParkInfoForm = ({
         type="text"
         name="secondStreet"
         id="secondStreet"
-        className={`w-full ${showError && !parkData.secondStreet ? "border-red-500" : ""}`}
+        className={`w-full`}
         onChange={(e) => {
           setParkData((prev) => ({
             ...prev,

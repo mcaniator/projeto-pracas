@@ -1,9 +1,7 @@
 import {
   Activity,
   AgeGroup,
-  CategoryTypes,
   Gender,
-  LocationTypes,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -139,11 +137,16 @@ const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
     firstStreet: z.string().trim().min(1).max(255),
-    secondStreet: z.string().trim().min(1).max(255),
+    secondStreet: z.string().trim().min(1).max(255).nullish(),
     isPark: z.boolean(),
     notes: z.string().trim().min(1).nullish(),
-    creationYear: z.coerce.date().nullish(),
-    lastMaintenanceYear: z.coerce.date().nullish(),
+    creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
+    lastMaintenanceYear: z.coerce
+      .number()
+      .int()
+      .finite()
+      .nonnegative()
+      .nullish(),
     overseeingMayor: z.string().trim().min(1).max(255).nullish(),
     legislation: z.string().trim().min(1).max(255).nullish(),
     usableArea: z.coerce.number().finite().nonnegative().nullish(),
@@ -151,9 +154,6 @@ const locationSchema = z
     incline: z.coerce.number().finite().nonnegative().nullish(),
     inactiveNotFound: z.boolean(),
     polygonArea: z.coerce.number().finite().nonnegative().nullish(),
-
-    type: z.nativeEnum(LocationTypes).nullish(),
-    category: z.nativeEnum(CategoryTypes).nullish(),
   })
   .refine((value) => {
     if (value.creationYear && value.lastMaintenanceYear)
@@ -166,33 +166,33 @@ const citySchema = z.object({
 });
 
 const BrazilianStatesEnum = z.enum([
-  "ACRE",
-  "ALAGOAS",
-  "AMAPA",
-  "AMAZONAS",
-  "BAHIA",
-  "CEARA",
-  "DISTRITO_FEDERAL",
-  "ESPIRITO_SANTO",
-  "GOIAS",
-  "MARANHAO",
-  "MATO_GROSSO",
-  "MATO_GROSSO_DO_SUL",
-  "MINAS_GERAIS",
-  "PARA",
-  "PARAIBA",
-  "PARANA",
-  "PERNAMBUCO",
-  "PIAUI",
-  "RIO_DE_JANEIRO",
-  "RIO_GRANDE_DO_NORTE",
-  "RIO_GRANDE_DO_SUL",
-  "RONDONIA",
-  "RORAIMA",
-  "SANTA_CATARINA",
-  "SAO_PAULO",
-  "SERGIPE",
-  "TOCANTINS",
+  "Acre",
+  "Alagoas",
+  "Amapá",
+  "Amazonas",
+  "Bahia",
+  "Ceará",
+  "Distrito Federal",
+  "Espirito Santo",
+  "Goiás",
+  "Maranhão",
+  "Mato Grosso",
+  "Mato Grosso do Sul",
+  "Minas Gerais",
+  "Pará",
+  "Paraíba",
+  "Parná",
+  "Pernambuco",
+  "Piauí",
+  "Rio de Janeiro",
+  "Rio Grande do Norte",
+  "Rio Grande do Sul",
+  "Rondônia",
+  "Roraima",
+  "Santa Catarina",
+  "São Paulo",
+  "Sergipe",
+  "Tocantins",
 ]);
 
 const administrativeUnitsSchema = z.object({

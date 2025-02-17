@@ -363,8 +363,8 @@ model Location {
   firstStreet         String  @db.VarChar(255)
   secondStreet        String? @db.VarChar(255)
   notes               String? @db.Text
-  creationYear        String? @map("creation_year") @db.VarChar(4)
-  lastMaintenanceYear String? @map("last_maintenance_year") @db.VarChar(4)
+  creationYear        Int?    @map("creation_year")
+  lastMaintenanceYear Int?    @map("last_maintenance_year")
   overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
   legislation         String? @db.VarChar(255)
   usableArea          Float?  @map("usable_area")

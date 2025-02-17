@@ -22,8 +22,8 @@ interface ParkData {
   notes: string | null;
   isPark: boolean;
   inactiveNotFound: boolean;
-  creationYear: string | null;
-  lastMaintenanceYear: string | null;
+  creationYear: number | null;
+  lastMaintenanceYear: number | null;
   overseeingMayor: string | null;
   legislation: string | null;
   usableArea: string | null;
@@ -110,7 +110,7 @@ const ParkRegisterForm = ({
   const goToNextPage = () => {
     setPage((prev) => prev + 1);
   };
-
+  console.log(parkData);
   const handleSubmit = () => {
     const formData = new FormData();
     Object.entries(parkData).forEach(([key, value]) => {

@@ -3,7 +3,6 @@ import { searchLocationsById } from "@/serverActions/locationUtil";
 import ParkRegisterForm, {
   ParkData,
 } from "../../../../../components/locationForm/locationRegisterForm";
-import { stateToFederativeUnitMap } from "../../../../../lib/types/brazilianFederativeUnits";
 import { fetchCities } from "../../../../../serverActions/cityUtil";
 
 const Edit = async ({ params }: { params: { locationId: string } }) => {
@@ -22,10 +21,10 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     firstStreet: location.firstStreet,
     secondStreet: location.secondStreet,
     city: city?.name ?? null,
-    state: stateToFederativeUnitMap.get(city?.state ?? "") ?? null,
+    state: city?.state ?? null,
     notes: location.notes,
-    creationYear: location.creationYear?.toString() ?? null,
-    lastMaintenanceYear: location.lastMaintenanceYear?.toString() ?? null,
+    creationYear: location.creationYear ?? null,
+    lastMaintenanceYear: location.lastMaintenanceYear ?? null,
     overseeingMayor: location.overseeingMayor,
     legislation: location.legislation,
     usableArea: location.usableArea?.toString() ?? null,

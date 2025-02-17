@@ -4,10 +4,6 @@ import { BrazilianStates } from "@prisma/client";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  stateToFederativeUnitMap,
-  ufToStateMap,
-} from "../../lib/types/brazilianFederativeUnits";
 import { FetchCitiesType } from "../../serverActions/cityUtil";
 import LoadingIcon from "../LoadingIcon";
 import { Button } from "../button";
@@ -174,10 +170,7 @@ const LocationRegisterCityForm = ({
         <option value={"%NONE"}>NÃO SELECIONADO</option>
         {Object.entries(BrazilianStates as Record<string, string>).map(
           ([key, value]) => (
-            <option
-              key={key}
-              value={stateToFederativeUnitMap.get(value) || "%NONE"}
-            >
+            <option key={key} value={value || "%NONE"}>
               {value}
             </option>
           ),
@@ -243,8 +236,7 @@ const LocationRegisterCityForm = ({
             {cities
               ?.find(
                 (city) =>
-                  city.name === parkData.city &&
-                  city.state === ufToStateMap.get(selectedState),
+                  city.name === parkData.city && city.state === selectedState,
               )
               ?.narrowAdministrativeUnit.map((ad) => {
                 return (
@@ -302,8 +294,7 @@ const LocationRegisterCityForm = ({
             {cities
               ?.find(
                 (city) =>
-                  city.name === parkData.city &&
-                  city.state === ufToStateMap.get(selectedState),
+                  city.name === parkData.city && city.state === selectedState,
               )
               ?.intermediateAdministrativeUnit.map((ad) => {
                 return (
@@ -361,8 +352,7 @@ const LocationRegisterCityForm = ({
             {cities
               ?.find(
                 (city) =>
-                  city.name === parkData.city &&
-                  city.state === ufToStateMap.get(selectedState),
+                  city.name === parkData.city && city.state === selectedState,
               )
               ?.broadAdministrativeUnit.map((ad) => {
                 return (
