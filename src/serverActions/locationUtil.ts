@@ -157,6 +157,9 @@ const searchLocationsById = async (id: number) => {
         },
       },
     });
+    if (!foundLocation) {
+      return { statusCode: 404, location: null };
+    }
     const locationHasPolygon = await hasPolygon(id);
 
     foundLocation = {

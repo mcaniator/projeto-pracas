@@ -6,7 +6,8 @@ import Link from "next/link";
 import { searchLocationsById } from "../../../../../serverActions/locationUtil";
 
 const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
-  const location = await searchLocationsById(parseInt(params.locationId));
+  const location = (await searchLocationsById(parseInt(params.locationId)))
+    .location;
   const city =
     location?.broadAdministrativeUnit?.city ??
     location?.intermediateAdministrativeUnit?.city ??
