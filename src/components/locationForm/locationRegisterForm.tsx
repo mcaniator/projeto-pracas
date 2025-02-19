@@ -26,6 +26,7 @@ const LocationRegisterForm = async ({
 }) => {
   const locationCategories = await fetchLocationCategories();
   const locationTypes = await fetchLocationTypes();
+  console.log(locationCategories);
   return (
     <LocationRegisterFormClient
       cities={cities}

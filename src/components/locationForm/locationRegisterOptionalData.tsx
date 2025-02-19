@@ -33,6 +33,17 @@ const LocationRegisterOptionalData = ({
   return (
     <div className="flex w-full max-w-[70rem] flex-col">
       <h3>Informações extras (opcional)</h3>
+      <label htmlFor="popularName">Nome popular:</label>
+      <Input
+        value={parkData.popularName ?? ""}
+        type="text"
+        id="popularName"
+        name="popularName"
+        className="w-full"
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, popularName: e.target.value }));
+        }}
+      />
       <label htmlFor={"notes"}>Observações:</label>
       <Input
         value={parkData.notes ?? ""}

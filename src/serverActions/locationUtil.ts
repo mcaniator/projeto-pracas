@@ -221,6 +221,7 @@ const updateLocation = async (
   try {
     locationToUpdate = locationSchema.parse({
       name: formData.get("name"),
+      popularName: formData.get("popularName"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
       creationYear: formData.get("creationYear"),
@@ -324,6 +325,39 @@ const updateLocation = async (
       ) {
         throw new Error("No administrative unit created or connect");
       }
+
+      const category = formData.get("category");
+      const categoryValue =
+        category === "" || category === null ? null : String(category);
+      const type = formData.get("type");
+      const typeValue = category === "" || type === null ? null : String(type);
+      let locationTypeId: number | null = null;
+      if (typeValue) {
+        const locationType = await prisma.locationType.upsert({
+          where: {
+            name: typeValue,
+          },
+          update: {},
+          create: {
+            name: typeValue,
+          },
+        });
+        locationTypeId = locationType.id;
+      }
+      let locationCategoryId: number | null = null;
+      if (categoryValue) {
+        const locationCategory = await prisma.locationCategory.upsert({
+          where: {
+            name: categoryValue,
+          },
+          update: {},
+          create: {
+            name: categoryValue,
+          },
+        });
+        locationCategoryId = locationCategory.id;
+      }
+
       await prisma.location.update({
         where: {
           id: parseId,
@@ -333,6 +367,8 @@ const updateLocation = async (
           narrowAdministrativeUnitId,
           intermediateAdministrativeUnitId,
           broadAdministrativeUnitId,
+          typeId: locationTypeId,
+          categoryId: locationCategoryId,
         },
       });
     });

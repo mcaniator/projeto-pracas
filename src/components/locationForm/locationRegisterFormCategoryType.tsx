@@ -83,6 +83,7 @@ const LocationRegisterFormCategory = ({
       <Select
         id="locationCategory"
         name="locationCategory"
+        value={parkData.category ?? "%NONE"}
         onChange={(e) => {
           handleSelectChange(e, "CATEGORY");
         }}
@@ -103,6 +104,7 @@ const LocationRegisterFormCategory = ({
           <Input
             id="categoryRegister"
             name="categoryRegister"
+            value={parkData.category ?? ""}
             onChange={(e) => {
               setParkData((prev) => ({ ...prev, category: e.target.value }));
             }}
@@ -116,6 +118,7 @@ const LocationRegisterFormCategory = ({
       <Select
         id="locationType"
         name="locationType"
+        value={parkData.type ?? "%NONE"}
         onChange={(e) => {
           handleSelectChange(e, "TYPE");
         }}
@@ -136,6 +139,7 @@ const LocationRegisterFormCategory = ({
           <Input
             id="typeRegister"
             name="typeRegister"
+            value={parkData.type ?? ""}
             onChange={(e) => {
               setParkData((prev) => ({ ...prev, type: e.target.value }));
             }}

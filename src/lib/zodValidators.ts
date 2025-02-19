@@ -136,6 +136,7 @@ export type { categoryType, formType, questionType };
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
+    popularName: z.string().trim().nullish(),
     firstStreet: z.string().trim().min(1).max(255),
     secondStreet: z.string().trim().min(1).max(255).nullish(),
     isPark: z.boolean(),

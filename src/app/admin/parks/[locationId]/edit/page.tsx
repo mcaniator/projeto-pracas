@@ -17,6 +17,7 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     null;
   const formattedLocation: ParkData = {
     name: location.name,
+    popularName: location.popularName ?? null,
     firstStreet: location.firstStreet,
     secondStreet: location.secondStreet,
     city: city?.name ?? null,

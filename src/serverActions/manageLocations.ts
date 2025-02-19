@@ -20,6 +20,7 @@ const createLocation = async (
     console.log("Validando os dados do formulário...");
     location = locationSchema.parse({
       name: formData.get("name"),
+      popularName: formData.get("popularName"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
       creationYear: formData.get("creationYear"),

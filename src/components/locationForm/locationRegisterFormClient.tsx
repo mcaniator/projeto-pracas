@@ -19,6 +19,7 @@ import RequiredParkInfoForm from "./requiredParkInfoForm";
 
 interface ParkData {
   name: string | null;
+  popularName: string | null;
   firstStreet: string | null;
   secondStreet: string | null;
   city: string | null;
@@ -75,6 +76,7 @@ const LocationRegisterFormClient = ({
     location ? location : (
       {
         name: null,
+        popularName: null,
         firstStreet: null,
         secondStreet: null,
         city: null,

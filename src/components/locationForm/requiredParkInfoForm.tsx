@@ -26,8 +26,8 @@ const RequiredParkInfoForm = ({
   };
   return (
     <div className="flex w-full max-w-[70rem] flex-col">
-      <h3 className="text-lg">Informações obrigatórias</h3>
-      <label htmlFor={"name"}>Nome:</label>
+      <h3 className="text-lg">Informações Básicas</h3>
+      <label htmlFor={"name"}>Nome*:</label>
       <Input
         value={parkData.name ?? ""}
         type="text"
@@ -42,7 +42,7 @@ const RequiredParkInfoForm = ({
         }}
       />
       <label htmlFor="firstStreet" className="mt-3">
-        Primeira rua:
+        Primeira rua*:
       </label>
       <Input
         value={parkData.firstStreet ?? ""}
