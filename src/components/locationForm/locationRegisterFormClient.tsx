@@ -147,7 +147,6 @@ const LocationRegisterFormClient = ({
     formAction(formData);
   };
 
-  console.log(parkData);
   return (
     <div>
       {isPending && (

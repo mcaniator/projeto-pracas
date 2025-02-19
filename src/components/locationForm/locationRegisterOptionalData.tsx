@@ -60,7 +60,7 @@ const LocationRegisterOptionalData = ({
       />
 
       <label htmlFor={"creationYear"} className="mt-3">
-        Data de Criação:
+        Ano de Criação:
       </label>
       <Input
         className="w-full"
@@ -78,7 +78,7 @@ const LocationRegisterOptionalData = ({
       />
 
       <label htmlFor={"lastMaintenanceYear"} className="mt-3">
-        Data da Última Manutenção:
+        Ano da Última Manutenção:
       </label>
       <Input
         className="w-full"

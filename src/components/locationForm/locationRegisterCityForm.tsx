@@ -154,7 +154,7 @@ const LocationRegisterCityForm = ({
   return (
     <div className="flex w-full max-w-[70rem] flex-col">
       <h3 className="text-lg">Cidade</h3>
-      <label htmlFor="stateName">Estado:</label>
+      <label htmlFor="stateName">Estado*:</label>
       <Select
         id="stateName"
         name="stateName"
@@ -178,10 +178,13 @@ const LocationRegisterCityForm = ({
       </Select>
       {selectedState !== "%NONE" && (
         <div className="flex flex-col">
-          <label htmlFor="cityName" className="mt-3">
+          <label
+            htmlFor="cityName"
+            className={`mt-3 ${stateCities.error && "text-red-500"}`}
+          >
             {stateCities.error ?
-              "Houve um erro ao buscas as cidades. Por favor, escreva o nome da cidade:"
-            : "Cidade:"}
+              "Houve um erro ao buscar as cidades. Por favor, escreva o nome da cidade*:"
+            : "Cidade*:"}
           </label>
           {stateCities.loading ?
             <div className="flex justify-center">
