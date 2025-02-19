@@ -9,7 +9,7 @@ import LoadingIcon from "../LoadingIcon";
 import { Button } from "../button";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
-import { ParkData } from "./locationRegisterForm";
+import { ParkData } from "./locationRegisterFormClient";
 
 type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
 const LocationRegisterCityForm = ({

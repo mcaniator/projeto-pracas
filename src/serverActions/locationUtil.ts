@@ -10,6 +10,14 @@ import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygonFromWKT, hasPolygon } from "./managePolygons";
 
 interface LocationWithCity extends Location {
+  type: {
+    id: number;
+    name: string;
+  } | null;
+  category: {
+    id: number;
+    name: string;
+  } | null;
   narrowAdministrativeUnit: {
     id: number;
     name: string;
@@ -110,6 +118,8 @@ const searchLocationsById = async (id: number) => {
             id: id,
           },
           include: {
+            category: true,
+            type: true,
             narrowAdministrativeUnit: {
               select: {
                 id: true,

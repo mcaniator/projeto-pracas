@@ -1,6 +1,6 @@
 "use server";
 
-import ParkRegisterForm from "../../../../components/locationForm/locationRegisterForm";
+import LocationRegisterForm from "../../../../components/locationForm/locationRegisterForm";
 import { fetchCities } from "../../../../serverActions/cityUtil";
 
 const RegisterLocation = async () => {
@@ -12,7 +12,7 @@ const RegisterLocation = async () => {
       }
     >
       <h2 className="text-2xl font-semibold">Registrar praça</h2>
-      <ParkRegisterForm formType="CREATE" cities={cities} />
+      <LocationRegisterForm formType="CREATE" cities={cities} />
     </div>
   );
 };

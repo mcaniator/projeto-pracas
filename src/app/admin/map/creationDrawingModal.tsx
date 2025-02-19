@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import ParkRegisterForm from "@/components/locationForm/locationRegisterForm";
 import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { IconX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
@@ -18,6 +17,8 @@ import {
   TabList,
   Tabs,
 } from "react-aria-components";
+
+import LocationRegisterForm from "../../../components/locationForm/locationRegisterForm";
 
 const CreationDrawingModal = ({
   features,
@@ -97,7 +98,7 @@ const CreationDrawingModal = ({
                     <IconX />
                   </Button>
                 </div>
-                <ParkRegisterForm
+                <LocationRegisterForm
                   cities={cities}
                   formType="CREATE"
                   featuresGeoJson={featuresGeoJson}

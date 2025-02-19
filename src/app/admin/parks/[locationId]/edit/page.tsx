@@ -1,8 +1,7 @@
 import { searchLocationsById } from "@/serverActions/locationUtil";
 
-import ParkRegisterForm, {
-  ParkData,
-} from "../../../../../components/locationForm/locationRegisterForm";
+import LocationRegisterForm from "../../../../../components/locationForm/locationRegisterForm";
+import { ParkData } from "../../../../../components/locationForm/locationRegisterFormClient";
 import { fetchCities } from "../../../../../serverActions/cityUtil";
 
 const Edit = async ({ params }: { params: { locationId: string } }) => {
@@ -36,6 +35,8 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     broadAdministrativeUnit: location.broadAdministrativeUnit?.name ?? null,
     isPark: location.isPark,
     inactiveNotFound: location.inactiveNotFound,
+    category: location.category?.name ?? null,
+    type: location.type?.name ?? null,
   };
   // TODO: add error handling
   return (
@@ -47,7 +48,7 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
       <h2 className="text-2xl font-semibold">{`Editando ${location?.name}`}</h2>
       {location == null ?
         <div>Localização não encontrada</div>
-      : <ParkRegisterForm
+      : <LocationRegisterForm
           formType="EDIT"
           cities={cities}
           location={formattedLocation}

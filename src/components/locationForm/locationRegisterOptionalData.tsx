@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
-import { ParkData } from "./locationRegisterForm";
+import { ParkData } from "./locationRegisterFormClient";
 
 const LocationRegisterOptionalData = ({
   parkData,
