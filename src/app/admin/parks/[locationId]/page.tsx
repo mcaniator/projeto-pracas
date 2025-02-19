@@ -3,7 +3,8 @@ import { IconMapPin } from "@tabler/icons-react";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { locationId: string } }) => {
-  const location = await searchLocationsById(parseInt(params.locationId));
+  const location = (await searchLocationsById(parseInt(params.locationId)))
+    .location;
   const locationIdNumber = parseInt(params.locationId);
   const city =
     location?.narrowAdministrativeUnit?.city ??

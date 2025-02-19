@@ -5,7 +5,8 @@ import { ParkData } from "../../../../../components/locationForm/locationRegiste
 import { fetchCities } from "../../../../../serverActions/cityUtil";
 
 const Edit = async ({ params }: { params: { locationId: string } }) => {
-  const location = await searchLocationsById(parseInt(params.locationId));
+  const location = (await searchLocationsById(parseInt(params.locationId)))
+    .location;
   const cities = await fetchCities();
   if (!location) {
     return <div>Localização não encontrada</div>;
@@ -16,17 +17,17 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     location.broadAdministrativeUnit?.city ??
     null;
   const formattedLocation: ParkData = {
-    name: location.name,
+    name: location.name ?? null,
     popularName: location.popularName ?? null,
-    firstStreet: location.firstStreet,
-    secondStreet: location.secondStreet,
+    firstStreet: location.firstStreet ?? null,
+    secondStreet: location.secondStreet ?? null,
     city: city?.name ?? null,
     state: city?.state ?? null,
-    notes: location.notes,
+    notes: location.notes ?? null,
     creationYear: location.creationYear ?? null,
     lastMaintenanceYear: location.lastMaintenanceYear ?? null,
-    overseeingMayor: location.overseeingMayor,
-    legislation: location.legislation,
+    overseeingMayor: location.overseeingMayor ?? null,
+    legislation: location.legislation ?? null,
     usableArea: location.usableArea?.toString() ?? null,
     legalArea: location.legalArea?.toString() ?? null,
     incline: location.incline?.toString() ?? null,
@@ -34,10 +35,11 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     intermediateAdministrativeUnit:
       location.intermediateAdministrativeUnit?.name ?? null,
     broadAdministrativeUnit: location.broadAdministrativeUnit?.name ?? null,
-    isPark: location.isPark,
-    inactiveNotFound: location.inactiveNotFound,
+    isPark: location.isPark ?? true,
+    inactiveNotFound: location.inactiveNotFound ?? false,
     category: location.category?.name ?? null,
     type: location.type?.name ?? null,
+    hasGeometry: location.hasGeometry,
   };
   // TODO: add error handling
   return (

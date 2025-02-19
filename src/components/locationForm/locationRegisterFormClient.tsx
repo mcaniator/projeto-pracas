@@ -36,6 +36,7 @@ interface ParkData {
   incline: string | null;
   category: string | null;
   type: string | null;
+  hasGeometry: boolean;
   narrowAdministrativeUnit: string | null;
   intermediateAdministrativeUnit: string | null;
   broadAdministrativeUnit: string | null;
@@ -93,6 +94,7 @@ const LocationRegisterFormClient = ({
         incline: null,
         category: null,
         type: null,
+        hasGeometry: false,
         narrowAdministrativeUnit: null,
         intermediateAdministrativeUnit: null,
         broadAdministrativeUnit: null,

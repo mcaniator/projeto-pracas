@@ -107,13 +107,13 @@ const removePolygon = async (id: number) => {
 
 const hasPolygon = async (id: number) => {
   try {
-    const result = await prisma.$queryRaw<{ hasPolygon: boolean }[]>`
+    const result: { id: number; haspolygon: boolean }[] =
+      await prisma.$queryRaw`
   SELECT id, polygon IS NOT NULL AS hasPolygon FROM location WHERE id = ${id}
 `;
-
-    return result[0]?.hasPolygon;
+    return result[0]?.haspolygon;
   } catch (e) {
-    throw new Error("Error checking if has polygon");
+    throw new Error("Error checking if location has polygon");
   }
 };
 

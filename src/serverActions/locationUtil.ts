@@ -10,6 +10,7 @@ import { getPolygonsFromShp } from "./getPolygonsFromShp";
 import { addPolygonFromWKT, hasPolygon } from "./managePolygons";
 
 interface LocationWithCity extends Location {
+  hasGeometry: boolean;
   type: {
     id: number;
     name: string;
@@ -109,6 +110,67 @@ const searchLocationsByName = async (name: string) => {
 };
 
 const searchLocationsById = async (id: number) => {
+  let foundLocation;
+  try {
+    foundLocation = await prisma.location.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        category: true,
+        type: true,
+        narrowAdministrativeUnit: {
+          select: {
+            id: true,
+            name: true,
+            city: {
+              select: {
+                name: true,
+                state: true,
+              },
+            },
+          },
+        },
+        intermediateAdministrativeUnit: {
+          select: {
+            id: true,
+            name: true,
+            city: {
+              select: {
+                name: true,
+                state: true,
+              },
+            },
+          },
+        },
+        broadAdministrativeUnit: {
+          select: {
+            id: true,
+            name: true,
+            city: {
+              select: {
+                name: true,
+                state: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    const locationHasPolygon = await hasPolygon(id);
+
+    foundLocation = {
+      ...foundLocation,
+      hasGeometry: locationHasPolygon ?? false,
+    };
+    return { statusCode: 200, location: foundLocation };
+    //TODO
+  } catch (err) {
+    return { statusCode: 500, location: null };
+  }
+};
+
+/*const searchLocationsById = async (id: number) => {
   const cachedLocations = unstable_cache(
     async (id: number): Promise<LocationWithCity | undefined | null> => {
       let foundLocation;
@@ -159,6 +221,9 @@ const searchLocationsById = async (id: number) => {
           },
         });
         const locationHasPolygon = await hasPolygon(id);
+   
+          foundLocation = {...foundLocation, hasGeometry: locationHasPolygon ?? false}
+        return foundLocation
         //TODO
       } catch (err) {
         // console.error(err);
@@ -172,7 +237,7 @@ const searchLocationsById = async (id: number) => {
 
   return await cachedLocations(id);
 };
-
+*/
 const searchLocationNameById = async (id: number) => {
   const location = await prisma.location.findUnique({
     where: {
