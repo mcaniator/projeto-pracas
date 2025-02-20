@@ -35,6 +35,7 @@ const LocationRegisterOptionalData = ({
       <h3>Informações extras (opcional)</h3>
       <label htmlFor="popularName">Nome popular:</label>
       <Input
+        maxLength={255}
         value={parkData.popularName ?? ""}
         type="text"
         id="popularName"
@@ -46,6 +47,7 @@ const LocationRegisterOptionalData = ({
       />
       <label htmlFor={"notes"}>Observações:</label>
       <Input
+        maxLength={1024}
         value={parkData.notes ?? ""}
         type="text"
         name="notes"
@@ -99,6 +101,7 @@ const LocationRegisterOptionalData = ({
         Prefeito Inaugurador:
       </label>
       <Input
+        maxLength={255}
         className="w-full"
         type="text"
         name="overseeingMayor"
@@ -117,6 +120,7 @@ const LocationRegisterOptionalData = ({
         Legislação:
       </label>
       <Input
+        maxLength={255}
         className="w-full"
         type="text"
         name="legislation"

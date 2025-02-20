@@ -192,6 +192,7 @@ const LocationRegisterCityForm = ({
             </div>
           : stateCities.error ?
             <Input
+              maxLength={255}
               name="cityNameSelect"
               id="cityNameSelect"
               className="w-full"
@@ -255,6 +256,7 @@ const LocationRegisterCityForm = ({
                 Registrar unidade administrativa estreita:
               </label>
               <Input
+                maxLength={255}
                 className="w-full"
                 id="narrowAdministrativeUnit"
                 name="narrowAdministrativeUnit"
@@ -313,6 +315,7 @@ const LocationRegisterCityForm = ({
                 Registrar unidade administrativa intermediária:
               </label>
               <Input
+                maxLength={255}
                 id="intermediateAdministrativeUnit"
                 name="intermediateAdministrativeUnit"
                 className="w-full"
@@ -371,6 +374,7 @@ const LocationRegisterCityForm = ({
                 Registrar região administrativa ampla:
               </label>
               <Input
+                maxLength={255}
                 className="w-full"
                 id="broadAdministrativeUnit"
                 name="broadAdministrativeUnit"

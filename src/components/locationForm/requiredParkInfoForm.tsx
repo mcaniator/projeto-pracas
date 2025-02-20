@@ -29,6 +29,7 @@ const RequiredParkInfoForm = ({
       <h3 className="text-lg">Informações Básicas</h3>
       <label htmlFor={"name"}>Nome*:</label>
       <Input
+        maxLength={255}
         value={parkData.name ?? ""}
         type="text"
         name="name"
@@ -45,6 +46,7 @@ const RequiredParkInfoForm = ({
         Primeira rua*:
       </label>
       <Input
+        maxLength={255}
         value={parkData.firstStreet ?? ""}
         type="text"
         name="firstStreet"
@@ -61,6 +63,7 @@ const RequiredParkInfoForm = ({
         Segunda rua:
       </label>
       <Input
+        maxLength={255}
         value={parkData.secondStreet ?? ""}
         type="text"
         name="secondStreet"

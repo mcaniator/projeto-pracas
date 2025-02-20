@@ -102,6 +102,7 @@ const LocationRegisterFormCategory = ({
         <>
           <label htmlFor="categoryRegister">Registrar categoria:</label>
           <Input
+            maxLength={255}
             id="categoryRegister"
             name="categoryRegister"
             value={parkData.category ?? ""}
@@ -137,6 +138,7 @@ const LocationRegisterFormCategory = ({
         <>
           <label htmlFor="typeRegister">Registrar tipo:</label>
           <Input
+            maxLength={255}
             id="typeRegister"
             name="typeRegister"
             value={parkData.type ?? ""}
