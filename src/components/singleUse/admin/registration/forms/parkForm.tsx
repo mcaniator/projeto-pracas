@@ -1,10 +1,11 @@
 "use client";
 
-import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+
+import { Input } from "../../../../ui/input";
 
 const LocationList = ({
   locations,
@@ -51,8 +52,8 @@ const ParkForm = ({
         <Input
           name="name"
           id={"name"}
-          onChange={(value) => {
-            setHay(search(value, sortedLocations, fuseHaystack));
+          onChange={(e) => {
+            setHay(search(e.target.value, sortedLocations, fuseHaystack));
           }}
         />
       </div>

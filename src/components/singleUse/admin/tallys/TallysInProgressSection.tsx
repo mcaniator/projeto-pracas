@@ -1,6 +1,11 @@
 "use client";
 
-import { IconCalendarClock, IconUser } from "@tabler/icons-react";
+import {
+  IconCalendarClock,
+  IconClipboardTextFilled,
+  IconFileCheck,
+  IconUser,
+} from "@tabler/icons-react";
 
 import { Button } from "../../../button";
 import { TallyCreation } from "./tallyCreation";
@@ -80,14 +85,14 @@ const TallysInProgressSection = ({
               onPress={() => setSelectedScreen("IN_PROGRESS")}
               className={`rounded-xl px-4 py-1 ${selectedScreen === "IN_PROGRESS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
             >
-              Em andamento
+              <IconClipboardTextFilled />
             </Button>
             <Button
               variant={"ghost"}
               onPress={() => setSelectedScreen("FINALIZED")}
               className={`rounded-xl px-4 py-1 ${selectedScreen === "FINALIZED" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
             >
-              Finalizadas
+              <IconFileCheck />
             </Button>
           </div>
           <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">

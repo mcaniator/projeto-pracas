@@ -9,7 +9,7 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
-import { IconTemperature } from "@tabler/icons-react";
+import { IconCirclePlus, IconTemperature } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import React from "react";
@@ -892,73 +892,79 @@ const TallyInProgressPage = ({
                         </option>
                       </Select>
                     </div>
-                    <div
-                      className="flex flex-row items-center"
-                      style={{
-                        opacity:
-                          (
-                            selectedCommercialActivity !==
+                    {selectedCommercialActivity !==
+                      "createNewCommercialActivity" && (
+                      <div
+                        className="flex flex-row items-center"
+                        style={{
+                          opacity:
+                            (
+                              selectedCommercialActivity !==
+                              "createNewCommercialActivity"
+                            ) ?
+                              1
+                            : 0,
+                        }}
+                      >
+                        <Button
+                          variant={"admin"}
+                          className="h-8 w-8 text-3xl"
+                          isDisabled={
+                            selectedCommercialActivity ===
                             "createNewCommercialActivity"
-                          ) ?
-                            1
-                          : 0,
-                      }}
-                    >
-                      <Button
-                        variant={"admin"}
-                        className="h-8 w-8 text-3xl"
-                        isDisabled={
-                          selectedCommercialActivity ===
-                          "createNewCommercialActivity"
-                        }
-                        onPress={() => {
-                          const key = selectedCommercialActivity;
-                          if (key === "createNewCommercialActivity") return;
-                          setCommercialActivities((prev) => {
-                            const newObject = { ...prev };
-                            if (newObject[selectedCommercialActivity]) {
-                              newObject[selectedCommercialActivity] -= 1;
-                            }
-                            return newObject;
-                          });
-                        }}
-                      >
-                        -
-                      </Button>
-                      <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {commercialActivities[selectedCommercialActivity] ?
-                          commercialActivities[selectedCommercialActivity]
-                        : 0}
-                      </p>
-                      <Button
-                        variant={"admin"}
-                        className="h-8 w-8 text-3xl"
-                        isDisabled={
-                          selectedCommercialActivity ===
-                          "createNewCommercialActivity"
-                        }
-                        onPress={() => {
-                          const key = selectedCommercialActivity;
-                          if (key === "createNewCommercialActivity") return;
-                          setCommercialActivities((prev) => {
-                            const newObject = { ...prev };
-                            if (newObject[selectedCommercialActivity]) {
-                              newObject[selectedCommercialActivity] += 1;
-                            } else {
-                              newObject[selectedCommercialActivity] = 1;
-                            }
-                            return newObject;
-                          });
-                        }}
-                      >
-                        +
-                      </Button>
-                    </div>
+                          }
+                          onPress={() => {
+                            const key = selectedCommercialActivity;
+                            if (key === "createNewCommercialActivity") return;
+                            setCommercialActivities((prev) => {
+                              const newObject = { ...prev };
+                              if (newObject[selectedCommercialActivity]) {
+                                newObject[selectedCommercialActivity] -= 1;
+                              }
+                              return newObject;
+                            });
+                          }}
+                        >
+                          -
+                        </Button>
+                        <p
+                          style={{ minWidth: "1.8rem" }}
+                          className="text-center"
+                        >
+                          {commercialActivities[selectedCommercialActivity] ?
+                            commercialActivities[selectedCommercialActivity]
+                          : 0}
+                        </p>
+                        <Button
+                          variant={"admin"}
+                          className="h-8 w-8 text-3xl"
+                          isDisabled={
+                            selectedCommercialActivity ===
+                            "createNewCommercialActivity"
+                          }
+                          onPress={() => {
+                            const key = selectedCommercialActivity;
+                            if (key === "createNewCommercialActivity") return;
+                            setCommercialActivities((prev) => {
+                              const newObject = { ...prev };
+                              if (newObject[selectedCommercialActivity]) {
+                                newObject[selectedCommercialActivity] += 1;
+                              } else {
+                                newObject[selectedCommercialActivity] = 1;
+                              }
+                              return newObject;
+                            });
+                          }}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {(
                     selectedCommercialActivity === "createNewCommercialActivity"
                   ) ?
-                    <React.Fragment>
+                    <>
                       <p>Nova atividade comercial itinerante: </p>
                       <form
                         action={(formdata: FormData) => {
@@ -980,29 +986,35 @@ const TallyInProgressPage = ({
                               { value: activity, label: activity },
                             ]);
                         }}
-                        className="flex flex-row items-center gap-1"
+                        className="flex flex-row items-center justify-center gap-1"
                       >
-                        <Input
-                          name="activity"
-                          placeholder="Descrição da atividade itinerante"
-                          onChange={(e) =>
-                            setNewCommercialActivityInput(
-                              e.target.value.trim().charAt(0).toUpperCase() +
-                                e.target.value.trim().slice(1),
+                        <div className="flex max-w-full items-center gap-1">
+                          <Input
+                            name="activity"
+                            placeholder="Descrição da atividade itinerante"
+                            className="max-w-[60vw]"
+                            onChange={(e) =>
+                              setNewCommercialActivityInput(
+                                e.target.value.trim().charAt(0).toUpperCase() +
+                                  e.target.value.trim().slice(1),
+                              )
+                            }
+                          />
+                          {(
+                            commercialActivitiesOptions.some(
+                              (option) =>
+                                option.value ===
+                                deferredNewCommercialActivityInput.trim(),
                             )
+                          ) ?
+                            <p>Adicionado!</p>
+                          : <Button className="px-2" type="submit">
+                              <IconCirclePlus />
+                            </Button>
                           }
-                        />
-                        {(
-                          commercialActivitiesOptions.some(
-                            (option) =>
-                              option.value ===
-                              deferredNewCommercialActivityInput.trim(),
-                          )
-                        ) ?
-                          <p>Adicionado!</p>
-                        : <Button type="submit">Adicionar</Button>}
+                        </div>
                       </form>
-                    </React.Fragment>
+                    </>
                   : ""}
                 </div>
               </div>

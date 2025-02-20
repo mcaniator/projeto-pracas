@@ -152,7 +152,7 @@ const CalculationEditModal = ({
                     type="text"
                     id="calculation-name"
                     name="calculation-name"
-                    onChange={(e) => setCalculationame(e)}
+                    onChange={(e) => setCalculationame(e.target.value)}
                     value={calculationName}
                   />
                   <label htmlFor="calculation-type">Tipo:</label>
