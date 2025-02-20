@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/button";
 import { FormInput } from "@/components/formInput";
-import { Input } from "@/components/input";
 import type { zodErrorType } from "@/lib/zodValidators";
 import { createLocation } from "@/serverActions/manageLocations";
 import { IconX } from "@tabler/icons-react";
@@ -27,6 +26,7 @@ import {
 import { z } from "zod";
 
 import LoadingIcon from "../../../components/LoadingIcon";
+import { Input } from "../../../components/ui/input";
 import {
   basicAnswerDescriptions,
   basicAnswerLabels,

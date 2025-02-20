@@ -1,6 +1,5 @@
 "use client";
 
-import { Input } from "@/components/input";
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
 import React, { useActionState, useEffect, useState } from "react";
@@ -11,6 +10,7 @@ import { LocationTypes } from "../../serverActions/locationTypeUtil";
 import { updateLocation } from "../../serverActions/locationUtil";
 import { createLocation } from "../../serverActions/manageLocations";
 import LoadingIcon from "../LoadingIcon";
+import { Input } from "../ui/input";
 import LocationRegisterCityForm from "./locationRegisterCityForm";
 import { LocationFormType } from "./locationRegisterForm";
 import LocationRegisterFormCategory from "./locationRegisterFormCategoryType";

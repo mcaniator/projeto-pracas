@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { removePolygon } from "@/serverActions/managePolygons";
@@ -25,6 +24,7 @@ import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
 
+import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
 import { MapContext } from "./mapProvider";
@@ -177,8 +177,8 @@ const ParkList = ({
   return (
     <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
       <Input
-        onChange={(value) => {
-          setHay(search(value, sortedLocations, fuseHaystack));
+        onChange={(e) => {
+          setHay(search(e.target.value, sortedLocations, fuseHaystack));
         }}
         // label={"Busca"}
       />
