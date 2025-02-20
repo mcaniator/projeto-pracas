@@ -64,7 +64,25 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
           </span>
         }
         <span>Primeira rua: {location.firstStreet}</span>
-        <span>Segunda rua: {location.secondStreet}</span>
+        {location.secondStreet ?
+          <span>Segunda rua: {location.secondStreet}</span>
+        : <span>
+            Segunda rua: <span className="text-red-500">Não preenchido</span>
+          </span>
+        }
+        {location.type?.name ?
+          <span>Tipo: {location.type.name}</span>
+        : <span>
+            Tipo: <span className="text-red-500">Não preenchido</span>
+          </span>
+        }
+        {location.category?.name ?
+          <span>Categoria: {location.category.name}</span>
+        : <span>
+            Categoria: <span className="text-red-500">Não preenchido</span>
+          </span>
+        }
+
         {location.inactiveNotFound !== undefined ?
           <span>
             Inativo ou não encontrado:{" "}
