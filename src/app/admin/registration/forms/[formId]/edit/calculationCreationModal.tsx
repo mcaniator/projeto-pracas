@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
 import {
   CalculationTypes,
@@ -17,6 +16,7 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
+import { Input } from "../../../../../../components/ui/input";
 import { AddCalculationToAddObj } from "./client";
 
 const QuestionComponent = ({
@@ -138,7 +138,7 @@ const CalculationCreationModal = ({
                     type="text"
                     id="calculation-name"
                     name="calculation-name"
-                    onChange={(e) => setCalculationame(e)}
+                    onChange={(e) => setCalculationame(e.target.value)}
                   />
                   <label htmlFor="calculation-type">Tipo:</label>
                   <Select

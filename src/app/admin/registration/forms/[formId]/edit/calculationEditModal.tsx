@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
 import {
   CalculationTypes,
@@ -17,6 +16,7 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
+import { Input } from "../../../../../../components/ui/input";
 import { DisplayCalculation } from "./client";
 
 const QuestionComponent = ({
