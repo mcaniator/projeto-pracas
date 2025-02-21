@@ -157,7 +157,7 @@ const QuestionsPage = () => {
           </div>
 
           <Select
-            className="max-w-full text-wrap rounded-md p-2 text-xs text-black"
+            className="max-w-full text-wrap rounded-md p-2 text-black"
             onChange={handleCategoryChange}
             value={selectedCategoryAndSubcategoryId.categoryId}
           >

@@ -78,7 +78,7 @@ const Client = ({
           variant="admin"
           className="bg-blue-600 text-white"
         >
-          {panelVisible ? "Esconder" : "Criar"}
+          {panelVisible ? "Esconder" : "Menu"}
         </Button>
       </div>
       {panelVisible && (
