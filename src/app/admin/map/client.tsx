@@ -93,12 +93,9 @@ const Client = ({
           dragHandleClassName="drag-handle"
           className={`${
             !drawingWindowVisible ? "hidden" : (
-              "rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+              "z-10 rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
             )
           }`}
-          style={{
-            zIndex: 100,
-          }}
           minWidth={150}
           minHeight={250}
           maxHeight={window.innerHeight - 50}
