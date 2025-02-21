@@ -61,7 +61,7 @@ const fetchSpecificPolygon = async (id: number) => {
 const addPolygon = async (
   featuresGeoJson: string,
   id: number,
-  tx: Prisma.TransactionClient | undefined,
+  tx?: Prisma.TransactionClient,
 ) => {
   if (!featuresGeoJson || !id) {
     throw new Error("featuresGeoJson and id are mandatory");
@@ -76,7 +76,6 @@ const addPolygon = async (
       WHERE id = ${id};
     `;
   } catch (e) {
-    console.log(e);
     throw new Error();
   }
 };
@@ -89,18 +88,15 @@ const addPolygonFromWKT = async (
   if (!wkt || !id) {
     throw new Error("WKT and id are mandatory");
   }
-  console.log("wkt:", wkt, id);
   try {
-    const add = await prisma.$executeRaw`
+    await prisma.$executeRaw`
       UPDATE location
       SET 
         polygon = ST_Multi(ST_SetSRID(ST_GeomFromText(${wkt}), 4326)),
         polygon_area = ST_Area(ST_Transform(ST_SetSRID(ST_GeomFromText(${wkt}), 4326), 3857))
       WHERE id = ${id};
     `;
-    console.log(add);
   } catch (e) {
-    console.log(e);
     throw new Error();
   }
 };
