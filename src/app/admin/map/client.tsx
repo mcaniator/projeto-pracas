@@ -37,9 +37,27 @@ interface fullLocation extends Location {
 const Client = ({
   locations,
   cities,
+  locationCategories,
+  locationTypes,
 }: {
   locations: fullLocation[];
   cities: FetchCitiesType;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
 }) => {
   const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
@@ -133,6 +151,8 @@ const Client = ({
                 drawingWindowVisible={drawingWindowVisible}
                 setDrawingWindowVisible={setDrawingWindowVisible}
                 cities={cities}
+                locationCategories={locationCategories}
+                locationTypes={locationTypes}
               />
             </DrawingProvider>
           </div>

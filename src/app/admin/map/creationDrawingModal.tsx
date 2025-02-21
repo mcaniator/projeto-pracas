@@ -10,12 +10,8 @@ import { Dispatch, SetStateAction, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
-  Key,
   Modal,
   ModalOverlay,
-  Tab,
-  TabList,
-  Tabs,
 } from "react-aria-components";
 
 import LocationRegisterForm from "../../../components/locationForm/locationRegisterForm";
@@ -26,14 +22,31 @@ const CreationDrawingModal = ({
   drawingWindowVisible,
   setDrawingWindowVisible,
   cities,
+  locationCategories,
+  locationTypes,
 }: {
   features: Feature<Geometry>[];
   setCurrentId: Dispatch<SetStateAction<number>>;
   drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
   cities: FetchCitiesType;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
 }) => {
-  const [selectedTab, setSelectedTab] = useState<Key>("basic");
   const [open, setOpen] = useState(false);
   const [featuresGeoJson, setFeaturesGeoJson] = useState("");
 
@@ -102,6 +115,8 @@ const CreationDrawingModal = ({
                   cities={cities}
                   formType="CREATE"
                   featuresGeoJson={featuresGeoJson}
+                  locationCategories={locationCategories}
+                  locationTypes={locationTypes}
                   onSuccess={() => {
                     close();
                     setTimeout(() => {

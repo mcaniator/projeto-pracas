@@ -1,20 +1,20 @@
-"use server";
+"use client";
 
 import { FetchCitiesType } from "../../serverActions/cityUtil";
-import { fetchLocationCategories } from "../../serverActions/locationCategoryUtil";
-import { fetchLocationTypes } from "../../serverActions/locationTypeUtil";
 import LocationRegisterFormClient, {
   ParkData,
 } from "./locationRegisterFormClient";
 
 type LocationFormType = "CREATE" | "EDIT";
 
-const LocationRegisterForm = async ({
+const LocationRegisterForm = ({
   cities,
   location,
   formType,
   locationId,
   featuresGeoJson,
+  locationCategories,
+  locationTypes,
   onSuccess,
 }: {
   cities: FetchCitiesType;
@@ -22,10 +22,24 @@ const LocationRegisterForm = async ({
   formType: LocationFormType;
   locationId?: number;
   featuresGeoJson?: string;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
   onSuccess?: () => void;
 }) => {
-  const locationCategories = await fetchLocationCategories();
-  const locationTypes = await fetchLocationTypes();
   return (
     <LocationRegisterFormClient
       cities={cities}

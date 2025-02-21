@@ -28,6 +28,8 @@ const CreationPanel = ({
   drawingWindowVisible,
   setDrawingWindowVisible,
   cities,
+  locationCategories,
+  locationTypes,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
@@ -36,6 +38,22 @@ const CreationPanel = ({
   drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
   cities: FetchCitiesType;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
 }) => {
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
@@ -147,6 +165,8 @@ const CreationPanel = ({
             drawingWindowVisible={drawingWindowVisible}
             setDrawingWindowVisible={setDrawingWindowVisible}
             cities={cities}
+            locationCategories={locationCategories}
+            locationTypes={locationTypes}
           />
         )}
         {currentId >= 0 && (

@@ -218,7 +218,7 @@ const createLocation = async (
             .string()
             .parse(formData.get("featuresGeoJson"));
 
-          await addPolygon(featuresGeoJson, result.id);
+          await addPolygon(featuresGeoJson, result.id, prisma);
           console.log("Valor de featuresGeoJson:", featuresGeoJson);
           console.log("Polígonos adicionados com sucesso.");
         }
@@ -227,7 +227,7 @@ const createLocation = async (
           console.log("Adicionando polígonos a partir de arquivo shapefile...");
           const wkt = await getPolygonsFromShp(formData.get("file") as File);
           if (wkt) {
-            await addPolygonFromWKT(wkt, result.id);
+            await addPolygonFromWKT(wkt, result.id, prisma);
             console.log(
               "Polígonos adicionados com sucesso a partir do shapefile.",
             );
@@ -237,6 +237,7 @@ const createLocation = async (
         console.error("Erro ao adicionar polígonos:", err);
         throw new Error("Error inserting polygon into database");
       }
+      return { statusCode: 200, message: "Location created" };
     });
   } catch (err) {
     console.error("Erro na transação do banco de dados:", err);

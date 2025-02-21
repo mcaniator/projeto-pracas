@@ -230,7 +230,7 @@ const LocationRegisterOptionalData = ({
         {parkData.hasGeometry && (
           <p className="text-xl font-bold text-red-500">
             Aviso: Esta localização possui uma geometria registrada. Enviar um
-            arquivo Shapefile irá sobreescrever a geometria atual
+            arquivo Shapefile irá sobreescrever a geometria atual!
           </p>
         )}
         {shapefile ?

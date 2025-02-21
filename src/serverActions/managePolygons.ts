@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
 const fetchPolygons = async () => {
@@ -57,36 +58,51 @@ const fetchSpecificPolygon = async (id: number) => {
   return await cached();
 };
 
-const addPolygon = async (featuresGeoJson: string, id: number) => {
+const addPolygon = async (
+  featuresGeoJson: string,
+  id: number,
+  tx: Prisma.TransactionClient | undefined,
+) => {
   if (!featuresGeoJson || !id) {
     throw new Error("featuresGeoJson and id are mandatory");
   }
-
-  await prisma.$executeRaw`
+  const transaction = tx ?? prisma;
+  try {
+    await transaction.$executeRaw`
       UPDATE location
       SET 
         polygon = ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(${featuresGeoJson}), 4326)),
         polygon_area = ST_Area(ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON(${featuresGeoJson}), 4326), 3857))
       WHERE id = ${id};
     `;
-
-  revalidateTag("location");
+  } catch (e) {
+    console.log(e);
+    throw new Error();
+  }
 };
 
-const addPolygonFromWKT = async (wkt: string, id: number) => {
+const addPolygonFromWKT = async (
+  wkt: string,
+  id: number,
+  prisma: Prisma.TransactionClient,
+) => {
   if (!wkt || !id) {
     throw new Error("WKT and id are mandatory");
   }
-
-  await prisma.$executeRaw`
+  console.log("wkt:", wkt, id);
+  try {
+    const add = await prisma.$executeRaw`
       UPDATE location
       SET 
         polygon = ST_Multi(ST_SetSRID(ST_GeomFromText(${wkt}), 4326)),
         polygon_area = ST_Area(ST_Transform(ST_SetSRID(ST_GeomFromText(${wkt}), 4326), 3857))
       WHERE id = ${id};
     `;
-
-  revalidateTag("location");
+    console.log(add);
+  } catch (e) {
+    console.log(e);
+    throw new Error();
+  }
 };
 
 const removePolygon = async (id: number) => {

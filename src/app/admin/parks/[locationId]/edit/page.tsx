@@ -3,11 +3,15 @@ import { searchLocationsById } from "@/serverActions/locationUtil";
 import LocationRegisterForm from "../../../../../components/locationForm/locationRegisterForm";
 import { ParkData } from "../../../../../components/locationForm/locationRegisterFormClient";
 import { fetchCities } from "../../../../../serverActions/cityUtil";
+import { fetchLocationCategories } from "../../../../../serverActions/locationCategoryUtil";
+import { fetchLocationTypes } from "../../../../../serverActions/locationTypeUtil";
 
 const Edit = async ({ params }: { params: { locationId: string } }) => {
   const location = (await searchLocationsById(parseInt(params.locationId)))
     .location;
   const cities = await fetchCities();
+  const locationCategories = await fetchLocationCategories();
+  const locationTypes = await fetchLocationTypes();
   if (!location) {
     return <div>Localização não encontrada</div>;
   }
@@ -56,6 +60,8 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
           cities={cities}
           location={formattedLocation}
           locationId={location.id}
+          locationCategories={locationCategories}
+          locationTypes={locationTypes}
         />
       }
     </div>
