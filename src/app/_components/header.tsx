@@ -137,7 +137,7 @@ const UserInfo = ({ user }: { user: User }) => {
             use={"link"}
             onPress={() => (window.location.href = "/admin")}
           >
-            <span className="-mb-1">Painel Admin</span>
+            <span className="-mb-1">Painel</span>
           </Button>
         </Link>
         <Button
@@ -147,7 +147,7 @@ const UserInfo = ({ user }: { user: User }) => {
             void revalidateAllCache();
           }}
         >
-          <span className="-mb-1">Resetar cache</span>
+          <span className="-mb-1">Log out</span>
         </Button>
       </div>
       <div className="flex w-full items-center">
