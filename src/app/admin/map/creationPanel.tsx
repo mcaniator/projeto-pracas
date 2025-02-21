@@ -156,6 +156,9 @@ const CreationPanel = ({
           <CreationSelecion
             setCurrentId={setCurrentId}
             setDrawingWindowVisible={setDrawingWindowVisible}
+            cities={cities}
+            locationCategories={locationCategories}
+            locationTypes={locationTypes}
           />
         )}
         {currentId === -3 && (
