@@ -129,11 +129,7 @@ const TallyPage = ({
     }
   }, []);
   return (
-    <div
-      className={
-        "flex max-h-full min-h-0 flex-col gap-5 overflow-auto text-white"
-      }
-    >
+    <div className={"flex max-h-full min-h-0 flex-col gap-5 overflow-auto"}>
       {(!isMobileView ||
         (isMobileView && selectedScreen === "IN_PROGRESS")) && (
         <div

@@ -716,7 +716,7 @@ const ResponseForm = ({
                 >
                   <IconHelp />
                   <div
-                    className={`absolute -top-28 w-[75vw] max-w-[220px] rounded-lg bg-black px-3 py-1 text-sm text-white shadow-md transition-opacity duration-200 sm:left-5 sm:w-[25vw] ${showHelp ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+                    className={`absolute -top-28 w-[75vw] max-w-[220px] rounded-lg bg-black px-3 py-1 text-sm shadow-md transition-opacity duration-200 sm:left-5 sm:w-[25vw] ${showHelp ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
                   >
                     <div className="flex items-center">
                       <IconDeviceFloppy size={30} />: Salvar
@@ -770,9 +770,7 @@ const ResponseForm = ({
             Respostas enviadas com sucesso!
             <div className="flex justify-center">
               <Link href={"/admin/parks/"}>
-                <Button className="text-white" variant={"default"}>
-                  Voltar às praças
-                </Button>
+                <Button variant={"default"}>Voltar às praças</Button>
               </Link>
             </div>
           </div>

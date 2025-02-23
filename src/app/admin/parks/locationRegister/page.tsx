@@ -12,7 +12,7 @@ const RegisterLocation = async () => {
   return (
     <div
       className={
-        "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md"
+        "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
       }
     >
       <h2 className="text-2xl font-semibold">Registrar praça</h2>

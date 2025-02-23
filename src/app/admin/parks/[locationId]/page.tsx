@@ -14,7 +14,7 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
     return (
       <div
         className={
-          "flex h-full w-full flex-col items-center gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-6 text-center text-white shadow-md md:grid-cols-[1fr_auto]"
+          "flex h-full w-full flex-col items-center gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-6 text-center shadow-md md:grid-cols-[1fr_auto]"
         }
       >
         <h3 className="text-4xl font-semibold">{location?.name}</h3>

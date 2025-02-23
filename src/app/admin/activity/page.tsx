@@ -16,7 +16,7 @@ const Activity = async () => {
   const assessments = await fetchRecentlyCompletedAssessments();
   const tallys = await fetchRecentlyCompletedTallys();
   return (
-    <div className={"flex h-full flex-col text-white"}>
+    <div className={"flex h-full flex-col"}>
       <h2 className="p-2 text-2xl font-semibold">Atividade recente</h2>
       <div className="flex flex-col gap-5 overflow-auto xl:flex-row">
         <div className="basis-1/2 overflow-auto rounded-lg bg-gray-400/30 p-2 shadow-inner">

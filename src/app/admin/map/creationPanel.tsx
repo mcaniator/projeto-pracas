@@ -208,7 +208,7 @@ const CreationPanel = ({
           }}
           variant={"destructive"}
         >
-          <span className="text-white">
+          <span>
             <IconCancel />
           </span>
         </Button>
@@ -225,14 +225,14 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
   return (
     <div className="flex h-full flex-col gap-2 overflow-scroll">
       {features.length === 0 && (
-        <div className="flex w-full items-center justify-center text-2xl text-white">
+        <div className="flex w-full items-center justify-center text-2xl">
           Selecione o perímetro
         </div>
       )}
       {features.map((feature, index) => {
         return (
           <div key={index} className="flex w-full items-center">
-            <p className="-mb-1 text-xl text-white">Polígono {index + 1}</p>
+            <p className="-mb-1 text-xl">Polígono {index + 1}</p>
             <Button
               type="button"
               className="ml-auto"
@@ -242,7 +242,7 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
                 source.removeFeature(feature);
               }}
             >
-              <IconTrashX className="text-white" />
+              <IconTrashX />
             </Button>
           </div>
         );

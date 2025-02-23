@@ -37,7 +37,7 @@ const ExportHome = ({
         />
       </div>
 
-      <div className="flex w-full basis-2/5 flex-col gap-2 overflow-auto p-0 text-white sm:bg-gray-400/20 md:w-fit md:rounded-3xl md:p-3 md:shadow-inner">
+      <div className="flex w-full basis-2/5 flex-col gap-2 overflow-auto p-0 sm:bg-gray-400/20 md:w-fit md:rounded-3xl md:p-3 md:shadow-inner">
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
         <div className="inline md:hidden">
           <ParkSearchModal

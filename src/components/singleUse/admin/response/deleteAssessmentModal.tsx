@@ -78,7 +78,7 @@ const DeleteAssessmentModal = ({
                     </div>
                   : <>
                       Esta ação é permanente!
-                      <div className="flex w-full text-white">
+                      <div className="flex w-full">
                         <Button
                           className="ml-auto"
                           variant={"destructive"}

@@ -37,7 +37,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <IconCheck
           className={
-            "absolute translate-x-[5px] text-white opacity-0 transition-all peer-checked:opacity-100"
+            "absolute translate-x-[5px] opacity-0 transition-all peer-checked:opacity-100"
           }
           size={10}
           stroke={5}

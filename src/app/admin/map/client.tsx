@@ -76,7 +76,7 @@ const Client = ({
             setDrawingWindowVisible(!drawingWindowVisible);
           }}
           variant="admin"
-          className="bg-blue-600 text-white"
+          className="bg-blue-600"
         >
           {panelVisible ? "Esconder" : "Menu"}
         </Button>
@@ -126,7 +126,7 @@ const Client = ({
                     setCurrentId(-1);
                   }}
                 >
-                  <span className="-mb-1 text-white">Iniciar Criação</span>
+                  <span className="-mb-1">Iniciar Criação</span>
                 </Button>
 
                 <hr className="w-full rounded-full border-2 border-off-white" />
@@ -192,7 +192,7 @@ const ParkList = ({
   }, [sortedLocations, fuseHaystack]);
 
   return (
-    <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
+    <div className="flex flex-col gap-2 overflow-clip pt-1">
       <Input
         onChange={(e) => {
           setHay(search(e.target.value, sortedLocations, fuseHaystack));
@@ -315,7 +315,6 @@ const BottomControls = () => {
     <div className="fixed bottom-2 z-40 flex flex-col gap-1 p-2 pb-0">
       <Button
         type="button"
-        className="text-white"
         size={"icon"}
         variant={"admin"}
         onPress={() => {
@@ -342,7 +341,6 @@ const BottomControls = () => {
       <div className="flex gap-1">
         <Button
           type="button"
-          className="text-white"
           size={"icon"}
           variant={"admin"}
           onPress={() => {
@@ -358,7 +356,6 @@ const BottomControls = () => {
         </Button>
         <Button
           type="button"
-          className="text-white"
           size={"icon"}
           variant={"admin"}
           onPress={() => {

@@ -32,9 +32,9 @@ const ResponsesFetcher = async ({
 
   // TODO: add error handling
   return (
-    <div className="flex h-full flex-col rounded-3xl bg-gray-500 text-white">
+    <div className="flex h-full flex-col rounded-3xl bg-gray-500">
       <div className="flex h-full flex-col">
-        <h3 className="hidden p-2 text-xl font-semibold text-white md:text-2xl xl:flex">
+        <h3 className="hidden p-2 text-xl font-semibold md:text-2xl xl:flex">
           Respostas ao formulario {assessments[0]?.form.name} referentes a
           localidade {locationName}
         </h3>

@@ -60,7 +60,7 @@ const Sidebar = () => {
     <div className="relative z-50">
       <button
         onClick={toggleSidebar}
-        className="fixed left-4 top-2 z-50 items-center text-white md:top-3"
+        className="fixed left-4 top-2 z-50 items-center md:top-3"
       >
         {!isSidebarVisible && <IconMenu2 size={34} />}
       </button>
@@ -74,13 +74,13 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full w-64 flex-col bg-gray-800 p-5 text-xl text-white shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-50 flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}
       >
         <div className="mb-4 flex justify-end">
-          <button onClick={closeSidebar} className="text-white">
+          <button onClick={closeSidebar}>
             <IconX size={34} />
           </button>
         </div>

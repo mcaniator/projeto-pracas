@@ -38,7 +38,7 @@ const FinalizedTallysSection = ({
 }) => {
   return (
     <div
-      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md ${isMobileView && "flex-col items-center"}`}
+      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md ${isMobileView && "flex-col items-center"}`}
     >
       {!isMobileView && (
         <>
@@ -74,7 +74,7 @@ const FinalizedTallysSection = ({
           </div>
 
           <div
-            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner`}
+            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner`}
           >
             <TallyFilter
               handleInitialDateChange={handleInitialDateChange}
@@ -92,7 +92,7 @@ const FinalizedTallysSection = ({
           <h3 className={"text-lg font-semibold lg:text-2xl"}>
             {`Contagens em ${locationName}`}
           </h3>
-          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
             <Button
               variant={"ghost"}
               onPress={() => setSelectedScreen("IN_PROGRESS")}
@@ -110,7 +110,7 @@ const FinalizedTallysSection = ({
           </div>
 
           <div
-            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner`}
+            className={`flex h-fit ${isMobileView ? "w-full" : "w-fit"} flex-col flex-wrap gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner`}
           >
             <TallyFilter
               handleInitialDateChange={handleInitialDateChange}

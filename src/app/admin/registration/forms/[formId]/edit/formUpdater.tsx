@@ -295,7 +295,7 @@ const FormUpdater = ({
   // TODO: add error handling
   return (
     <div className={"flex h-full min-h-0 flex-grow gap-5"}>
-      <div className="flex basis-full flex-col gap-5 overflow-x-auto text-white">
+      <div className="flex basis-full flex-col gap-5 overflow-x-auto">
         <div
           className={
             "flex flex-col gap-1 overflow-x-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
@@ -371,7 +371,7 @@ const FormUpdater = ({
               return (
                 <div
                   key={category.id}
-                  className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+                  className="rounded-3xl bg-gray-400/20 p-3 shadow-inner"
                 >
                   <div className="flex gap-2">
                     <h4 className="text-lx sm:text-2xl">{category.name}</h4>
@@ -783,7 +783,7 @@ const FormUpdater = ({
               return (
                 <div
                   key={category.id}
-                  className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
+                  className="rounded-3xl bg-gray-400/20 p-3 shadow-inner"
                 >
                   <div className="flex gap-2">
                     <h4

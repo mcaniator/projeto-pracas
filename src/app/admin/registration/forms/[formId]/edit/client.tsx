@@ -262,7 +262,7 @@ const Client = ({
     : <>
         {isPending ?
           <div className="p-5">
-            <div className="flex w-full flex-col rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+            <div className="flex w-full flex-col rounded-3xl bg-gray-300/30 p-3 shadow-md">
               <div className="flex justify-center">
                 <LoadingIcon className="h-32 w-32 text-2xl" />
               </div>

@@ -231,7 +231,7 @@ const TallyInProgressPage = ({
   };
   return (
     <div className="flex h-full max-h-full min-h-0 w-full">
-      <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
         <div className="flex w-full flex-col xl:basis-2/3">
           <div className="flex flex-wrap">
             <h3 className="inline text-2xl font-semibold">
@@ -315,7 +315,7 @@ const TallyInProgressPage = ({
                   <h5 className="text-xl font-semibold">Homens</h5>
 
                   <div className="flex w-full items-center justify-center">
-                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -556,7 +556,7 @@ const TallyInProgressPage = ({
                 <div className="flex flex-col gap-1 rounded-md bg-red-900/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Mulheres</h5>
                   <div className="flex w-full items-center justify-center">
-                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>

@@ -270,7 +270,7 @@ const ResponseEditor = ({
           Respostas alteradas com sucesso!
           <div>
             <Link href={`/admin/parks/${locationId}/responses/${formId}`}>
-              <Button className="text-white" variant={"default"}>
+              <Button variant={"default"}>
                 <span className="-mb-1">Recarregar</span>
               </Button>
             </Link>

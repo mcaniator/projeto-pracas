@@ -17,7 +17,7 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
     return (
       <div
         className={
-          "flex h-full flex-col gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-6 text-white shadow-md md:grid-cols-[1fr_auto]"
+          "flex h-full flex-col gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-6 shadow-md md:grid-cols-[1fr_auto]"
         }
       >
         <h2 className="text-2xl text-red-500">Localização não encontrada</h2>
@@ -27,7 +27,7 @@ const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
   return (
     <div
       className={
-        "flex h-full flex-col gap-2 overflow-auto rounded-3xl bg-gray-300/30 p-6 text-white shadow-md md:grid-cols-[1fr_auto]"
+        "flex h-full flex-col gap-2 overflow-auto rounded-3xl bg-gray-300/30 p-6 shadow-md md:grid-cols-[1fr_auto]"
       }
     >
       <h2 className="text-2xl">{location?.name}</h2>

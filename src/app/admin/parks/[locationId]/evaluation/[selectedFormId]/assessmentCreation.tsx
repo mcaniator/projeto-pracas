@@ -39,7 +39,7 @@ const AssessmentCreation = ({
     } as AssessmentCreationFormType,
   );
   return (
-    <div className="max-h-52 w-full rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner sm:w-fit">
+    <div className="max-h-52 w-full rounded-3xl bg-gray-400/20 p-3 shadow-inner sm:w-fit">
       <h4 className={"text-2xl font-semibold"}>Criação de avaliações</h4>
       <div>
         <form action={newAssessmentFormAction} className="grid gap-3">

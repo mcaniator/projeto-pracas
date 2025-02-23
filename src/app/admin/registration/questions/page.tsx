@@ -129,9 +129,7 @@ const QuestionsPage = () => {
   };
   return (
     <div
-      className={
-        "flex min-h-0 w-full flex-grow flex-col gap-5 overflow-auto text-white"
-      }
+      className={"flex min-h-0 w-full flex-grow flex-col gap-5 overflow-auto"}
     >
       <div
         className={

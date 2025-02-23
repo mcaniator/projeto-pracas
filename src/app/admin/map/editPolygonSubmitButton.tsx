@@ -85,9 +85,7 @@ const EditPolygonSubmitButton = ({
         }}
         variant={state === "error" ? "destructive" : "admin"}
       >
-        <span className="-mb-1 text-white group-disabled:text-opacity-50">
-          Enviar
-        </span>
+        <span className="-mb-1 group-disabled:text-opacity-50">Enviar</span>
       </Button>
     </div>
   );

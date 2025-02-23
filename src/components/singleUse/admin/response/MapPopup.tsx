@@ -96,7 +96,7 @@ const MapPopup = ({
                   {geometryType === "POINT" && <div>Ponto</div>}
                   {geometryType === "POLYGON" && <div>Polígono</div>}
                   {geometryType === "POINT_AND_POLYGON" && (
-                    <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                    <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() => setCurrentGeometryType("POINT")}
@@ -128,7 +128,7 @@ const MapPopup = ({
                       ref={mapProviderRef}
                     ></MapProvider>
                   </div>
-                  <span className="flex justify-between text-white">
+                  <span className="flex justify-between">
                     {isInSelectMode && (
                       <Button
                         variant={"destructive"}

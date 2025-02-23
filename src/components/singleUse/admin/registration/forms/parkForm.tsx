@@ -16,7 +16,7 @@ const LocationList = ({
     <>
       {locations.map((location, index) => (
         <Link
-          className={`b w-full ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 text-white hover:bg-transparent/10 hover:underline`}
+          className={`b w-full ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
           key={index}
           href={`/admin/parks/${location.item.id}`}
         >
@@ -58,7 +58,7 @@ const ParkForm = ({
         />
       </div>
 
-      <div className="flex w-full flex-col rounded-md text-white">
+      <div className="flex w-full flex-col rounded-md">
         <LocationList locations={hay} />
       </div>
     </div>

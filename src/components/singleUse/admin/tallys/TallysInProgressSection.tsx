@@ -33,7 +33,7 @@ const TallysInProgressSection = ({
 }) => {
   return (
     <div
-      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md ${isMobileView && "flex-col items-center"}`}
+      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md ${isMobileView && "flex-col items-center"}`}
     >
       {!isMobileView && (
         <>
@@ -69,7 +69,7 @@ const TallysInProgressSection = ({
               </>
             }
           </div>
-          <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+          <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 shadow-inner">
             <TallyCreation locationId={locationId} userId={userId} />
           </div>
         </>
@@ -79,7 +79,7 @@ const TallysInProgressSection = ({
           <h3 className={"text-lg font-semibold lg:text-2xl"}>
             {`Contagens em ${locationName}`}
           </h3>
-          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+          <div className="my-1 inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
             <Button
               variant={"ghost"}
               onPress={() => setSelectedScreen("IN_PROGRESS")}
@@ -95,7 +95,7 @@ const TallysInProgressSection = ({
               <IconFileCheck />
             </Button>
           </div>
-          <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
+          <div className="max-h-52 w-fit rounded-3xl bg-gray-400/20 p-3 shadow-inner">
             <TallyCreation locationId={locationId} userId={userId} />
           </div>
           <div

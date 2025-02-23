@@ -83,7 +83,7 @@ const CreationDrawingModal = ({
         variant={"admin"}
         onPress={() => setDrawingWindowVisible(!drawingWindowVisible)}
       >
-        <span className="-mb-1 text-white transition-all group-data-[disabled]:text-opacity-50">
+        <span className="-mb-1 transition-all group-data-[disabled]:text-opacity-50">
           Confirmar e criar
         </span>
       </Button>

@@ -135,7 +135,7 @@ const QuestionForm = ({
   // TODO: add error handling
   return (
     <div className={"flex h-full flex-grow gap-5 overflow-auto"}>
-      <div className="flex basis-full flex-col gap-5 overflow-auto text-white">
+      <div className="flex basis-full flex-col gap-5 overflow-auto">
         <div
           className={
             "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
@@ -143,7 +143,7 @@ const QuestionForm = ({
         >
           <h3 className={"text-2xl font-semibold"}>Busca de Perguntas</h3>
           <div>
-            <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+            <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
               <Button
                 variant={"ghost"}
                 className={`rounded-xl px-4 py-1 ${currentSearchMethod === "CATEGORY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}

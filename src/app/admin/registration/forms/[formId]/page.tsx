@@ -90,7 +90,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
   if (form != null && form != undefined)
     return (
       <div className={"flex min-h-0 flex-grow gap-5 overflow-auto"}>
-        <div className="flex w-full flex-col gap-5 text-white">
+        <div className="flex w-full flex-col gap-5">
           <div
             className={
               "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
@@ -123,7 +123,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
                 return (
                   <div
                     key={category.id}
-                    className="rounded-3xl bg-gray-400/20 p-3 text-white shadow-md"
+                    className="rounded-3xl bg-gray-400/20 p-3 shadow-md"
                   >
                     <h4 className="text-2xl">{category.name}</h4>
                     <ul className="list-disc p-3">

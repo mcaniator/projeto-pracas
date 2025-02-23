@@ -65,7 +65,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             className="px-3 py-6"
           >
             <IconTree size={34} />
-            <span className="text-lg sm:text-xl">Projeto Praças</span>
+            <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
 

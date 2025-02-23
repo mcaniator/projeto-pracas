@@ -10,7 +10,7 @@ const AdminRoot = async () => {
 
   return (
     <div className={"flex h-full max-w-full flex-grow gap-5 overflow-auto"}>
-      <div className="flex max-w-full basis-full flex-col gap-5 overflow-auto text-white">
+      <div className="flex max-w-full basis-full flex-col gap-5 overflow-auto">
         <div
           className={
             "flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"

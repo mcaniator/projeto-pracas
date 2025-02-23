@@ -9,11 +9,11 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   if (user === null || user.type !== "ADMIN") redirect("/error");
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black">
+    <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
       <Header variant={"static"} user={user} />
       <div className="flex min-h-0 flex-grow justify-center">
         <Sidebar />
-        <div className="max-w-full basis-full rounded-tr-3xl bg-gray-700/10 shadow-inner">
+        <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
           {children}
         </div>
       </div>

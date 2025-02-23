@@ -279,7 +279,7 @@ const TallysDataPage = ({
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
     <div className="flex max-h-full min-h-0 max-w-full gap-5">
-      <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+      <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
         <div className="flex w-full flex-row gap-5 overflow-auto">
           <div
@@ -290,7 +290,7 @@ const TallysDataPage = ({
             }
           >
             <div className="flex flex-wrap gap-x-5 gap-y-2">
-              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                 <Button
                   variant={"ghost"}
                   className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
@@ -306,7 +306,7 @@ const TallysDataPage = ({
                   Gráficos
                 </Button>
               </div>
-              <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+              <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                 <Button
                   variant={"ghost"}
                   className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataTypeToShow === "PERSONS_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
@@ -349,14 +349,14 @@ const TallysDataPage = ({
               />
             }
           </div>
-          <div className="hidden h-full max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner xl:flex xl:basis-2/5">
+          <div className="hidden h-full max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 shadow-inner xl:flex xl:basis-2/5">
             <TallysDataPageActions
               setBooleanConditionsFilter={setBooleanConditionsFilter}
               tallyIds={tallysIds}
               locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
-            <div className="flex h-full min-h-56 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+            <div className="flex h-full min-h-56 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
               <IndividualDataTable tallys={tallys} />
             </div>
           </div>
