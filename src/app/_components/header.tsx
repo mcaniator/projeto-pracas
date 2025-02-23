@@ -15,6 +15,7 @@ import {
   IconPencil,
   IconSettings,
   IconTree,
+  IconUser,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import { User } from "lucia";
@@ -24,7 +25,7 @@ import { useActionState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
 const headerVariants = cva(
-  "flex w-full py-1 pl-14 pr-7 text-white transition-all md:py-5",
+  "flex w-full pl-14 pr-7 text-white transition-all md:py-1",
   {
     variants: {
       variant: {
@@ -64,7 +65,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             className="px-3 py-6"
           >
             <IconTree size={34} />
-            <span className="text-lg sm:text-3xl">Projeto Praças</span>
+            <span className="text-lg sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
 
@@ -75,10 +76,10 @@ const Header = forwardRef<HTMLElement, headerProps>(
           >
             {user !== null && user !== undefined ?
               <div className="flex items-center gap-2">
-                <span className="hidden text-3xl md:inline">
+                <span className="hidden text-xl md:inline">
                   {user.username}
                 </span>
-                <span className="h-8 w-8 rounded-lg bg-off-white" />
+                <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
               </div>
             : <div className={"flex"}>
                 <IconLogin size={34} />

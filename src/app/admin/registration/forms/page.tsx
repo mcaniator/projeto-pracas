@@ -30,10 +30,7 @@ const AdminRoot = async () => {
                   />
                 ))}
               </div>
-            : <div className="text-redwood">
-                Ainda não há perguntas no formulário
-              </div>
-            }
+            : <div className="text-red-500">Ainda não há formulários!</div>}
           </div>
         </div>
       </div>
