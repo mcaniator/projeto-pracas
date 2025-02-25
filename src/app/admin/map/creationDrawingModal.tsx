@@ -112,6 +112,7 @@ const CreationDrawingModal = ({
                   </Button>
                 </div>
                 <LocationRegisterForm
+                  hasDrawing={true}
                   cities={cities}
                   formType="CREATE"
                   featuresGeoJson={featuresGeoJson}

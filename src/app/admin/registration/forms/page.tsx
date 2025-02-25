@@ -1,6 +1,7 @@
 import { Form } from "@prisma/client";
+import { IconListCheck } from "@tabler/icons-react";
+import Link from "next/link";
 
-import { FormComponent } from "../../../../components/singleUse/admin/registration/forms/formComponent";
 import { fetchFormsLatest } from "../../../../serverActions/formUtil";
 import { FormCreationModal } from "./formCreationModal";
 
@@ -20,14 +21,16 @@ const AdminRoot = async () => {
 
           <div>
             {forms.length > 0 ?
-              <div className="w-full text-black">
-                {forms.map((form) => (
-                  <FormComponent
+              <div className="flex w-full flex-col">
+                {forms.map((form, index) => (
+                  <Link
                     key={form.id}
-                    id={form.id}
-                    name={form.name}
-                    version={form.version}
-                  />
+                    className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
+                    href={`/admin/registration/forms/${form.id}`}
+                  >
+                    <IconListCheck className="mb-1 inline" size={24} />
+                    <span className="inline">{form.name}</span>
+                  </Link>
                 ))}
               </div>
             : <div className="text-red-500">Ainda não há formulários!</div>}

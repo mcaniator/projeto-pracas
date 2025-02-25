@@ -72,7 +72,7 @@ const TallyInProgressSaveModal = ({
                       Salvar
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

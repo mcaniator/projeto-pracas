@@ -84,6 +84,7 @@ const CreationWithoutDrawingModal = ({
                     </Button>
                   </div>
                   <LocationRegisterForm
+                    hasDrawing={false}
                     cities={cities}
                     formType="CREATE"
                     locationCategories={locationCategories}

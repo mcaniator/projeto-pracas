@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -36,10 +36,10 @@ const QuestionDeletionModal = ({
   return (
     <DialogTrigger>
       <Button
-        className="items-center p-2 text-sm sm:text-xl"
+        className="items-center p-2 text-sm text-white sm:text-xl"
         variant={"destructive"}
       >
-        Apagar questão
+        <IconTrash />
       </Button>
       {
         <ModalOverlay
@@ -65,7 +65,7 @@ const QuestionDeletionModal = ({
                       Apagar questão
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

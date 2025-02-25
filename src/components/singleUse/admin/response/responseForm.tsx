@@ -315,7 +315,7 @@ const ResponseForm = ({
         }
       }
     });
-    return sum;
+    return parseFloat(sum.toFixed(2));
   };
 
   const calculateAverage = (calculation: ResponseCalculation) => {
@@ -326,7 +326,7 @@ const ResponseForm = ({
       if (questionResponse) {
         if (question.type === "WRITTEN") {
           questionResponse.value.forEach((v) => {
-            const questionResponseValue = Number(v);
+            const questionResponseValue = parseFloat(v);
             if (!Number.isNaN(questionResponseValue)) {
               sum += questionResponseValue;
               questionsAmount++;
@@ -338,7 +338,7 @@ const ResponseForm = ({
             [];
           questionResponse.value.forEach((v) => {
             const questionResponseValue = Number(
-              questionOptions.find((opt) => opt.id === Number(v))?.text,
+              questionOptions.find((opt) => opt.id === parseFloat(v))?.text,
             );
             if (!Number.isNaN(questionResponseValue)) {
               sum += questionResponseValue;
@@ -353,7 +353,7 @@ const ResponseForm = ({
     if (Number.isNaN(average)) {
       return 0;
     }
-    return average;
+    return parseFloat(average.toFixed(2));
   };
 
   const calculatePercentages = (calculation: ResponseCalculation) => {
@@ -364,7 +364,7 @@ const ResponseForm = ({
       if (questionResponse) {
         if (question.type === "WRITTEN") {
           questionResponse.value.forEach((v) => {
-            const questionResponseValue = Number(v);
+            const questionResponseValue = parseFloat(v);
             if (!Number.isNaN(questionResponseValue)) {
               sum += questionResponseValue;
               responsesByQuestion.set(question.name, questionResponseValue);
@@ -376,7 +376,7 @@ const ResponseForm = ({
             [];
           questionResponse.value.forEach((v) => {
             const questionResponseValue = Number(
-              questionOptions.find((opt) => opt.id === Number(v))?.text,
+              questionOptions.find((opt) => opt.id === parseFloat(v))?.text,
             );
             if (!Number.isNaN(questionResponseValue)) {
               sum += questionResponseValue;
@@ -410,33 +410,13 @@ const ResponseForm = ({
             <p className="text-green-400">Respostas salvas!</p>
           : <p className="text-red-500">Erro ao salvar!</p>)}
         {assessment.form.questions !== null && assessmentEnded === false ?
-          <div className="py-5">
+          <div className="w-full max-w-[70rem] py-5">
             {categoriesObj.map((category) => {
               return (
                 <React.Fragment key={category.id}>
                   <h3 className="text-xl font-bold">{category.name}</h3>
                   <ul className="list-disc p-3">
                     {category.questions.map((question) => {
-                      {
-                        question.geometryTypes.length > 0 && (
-                          <MapPopup
-                            questionId={question.id}
-                            initialGeometries={
-                              geometries.find(
-                                (g) => g.questionId === question.id,
-                              )?.geometries
-                            }
-                            geometryType={
-                              question.geometryTypes.length > 1 ?
-                                "POINT_AND_POLYGON"
-                              : question.geometryTypes[0]!
-                            }
-                            handleQuestionGeometryChange={
-                              handleQuestionGeometryChange
-                            }
-                          />
-                        );
-                      }
                       const questionOptions =
                         options.filter(
                           (opt) => opt.questionId === question.id,
@@ -446,6 +426,27 @@ const ResponseForm = ({
                           <label htmlFor={`response${question.id}`}>
                             {question.name}
                           </label>
+                          {question.geometryTypes.length > 0 && (
+                            <span className="px-2">
+                              <MapPopup
+                                questionId={question.id}
+                                questionName={question.name}
+                                initialGeometries={
+                                  geometries.find(
+                                    (g) => g.questionId === question.id,
+                                  )?.geometries
+                                }
+                                geometryType={
+                                  question.geometryTypes.length > 1 ?
+                                    "POINT_AND_POLYGON"
+                                  : question.geometryTypes[0]!
+                                }
+                                handleQuestionGeometryChange={
+                                  handleQuestionGeometryChange
+                                }
+                              />
+                            </span>
+                          )}
                           {question.type === QuestionTypes.OPTIONS ?
                             <div>
                               {question.optionType === "RADIO" &&
@@ -511,6 +512,7 @@ const ResponseForm = ({
                                   "text"
                                 : "number"
                               }
+                              className="w-full"
                               name={`response${question.id}`}
                               id={`response${question.id}`}
                               value={responses[question.id]?.value || ""}
@@ -572,6 +574,7 @@ const ResponseForm = ({
                                   <span className="px-2">
                                     <MapPopup
                                       questionId={question.id}
+                                      questionName={question.name}
                                       initialGeometries={
                                         geometries.find(
                                           (g) => g.questionId === question.id,
@@ -657,6 +660,7 @@ const ResponseForm = ({
                                         "text"
                                       : "number"
                                     }
+                                    className="w-full"
                                     name={`response${question.id}`}
                                     id={`response${question.id}`}
                                     value={responses[question.id]?.value || ""}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -46,8 +46,11 @@ const CategoryCreationModal = ({
   }, [isOpen]);
   return (
     <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
-      <Button className="items-center p-2 text-sm sm:text-xl">
-        Criar categoria
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"constructive"}
+      >
+        <IconCirclePlus />
       </Button>
       {
         <ModalOverlay
@@ -60,7 +63,7 @@ const CategoryCreationModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `w-[90%] max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg transform overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -73,7 +76,7 @@ const CategoryCreationModal = ({
                       Criar categoria
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

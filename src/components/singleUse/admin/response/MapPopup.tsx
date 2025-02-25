@@ -20,11 +20,13 @@ const MapPopup = ({
   questionId,
   initialGeometries,
   geometryType,
+  questionName,
   handleQuestionGeometryChange,
 }: {
   questionId: number;
   initialGeometries: ModalGeometry[] | undefined;
   geometryType: ResponseGeometry;
+  questionName: string;
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ModalGeometry[],
@@ -83,7 +85,7 @@ const MapPopup = ({
                   <div className="flex">
                     <h4 className="text-2xl">{`Mapa`}</h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -93,6 +95,7 @@ const MapPopup = ({
                       <IconX />
                     </Button>
                   </div>
+                  <h5 className="text-xl">{questionName}</h5>
                   {geometryType === "POINT" && <div>Ponto</div>}
                   {geometryType === "POLYGON" && <div>Polígono</div>}
                   {geometryType === "POINT_AND_POLYGON" && (

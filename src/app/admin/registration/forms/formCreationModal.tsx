@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -34,8 +34,11 @@ const FormCreationModal = () => {
   }, [isOpen]);
   return (
     <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
-      <Button className="items-center p-2 text-sm sm:text-xl">
-        Criar formulário
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"constructive"}
+      >
+        <IconCirclePlus />
       </Button>
       {
         <ModalOverlay

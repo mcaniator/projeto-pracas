@@ -158,6 +158,7 @@ const SelectedParks = ({
                   <IconCheck color="green" />
                 : <IconX color="red" />}
                 <Button
+                  className="text-black"
                   onPress={() => {
                     handlePageStateChange(locationObj.id, "EDIT");
                   }}
@@ -166,6 +167,7 @@ const SelectedParks = ({
                   <IconEdit size={24} />
                 </Button>
                 <Button
+                  className="text-red-500"
                   onPress={() => {
                     handleSelectedLocationsRemoval(locationObj.id);
                   }}

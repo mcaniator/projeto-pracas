@@ -22,6 +22,8 @@ interface ParkData {
   popularName: string | null;
   firstStreet: string | null;
   secondStreet: string | null;
+  thirdStreet: string | null;
+  fourthStreet: string | null;
   city: string | null;
   state: string | null;
   notes: string | null;
@@ -48,6 +50,7 @@ const initialState = {
 };
 
 const LocationRegisterFormClient = ({
+  hasDrawing,
   cities,
   location,
   formType,
@@ -57,6 +60,7 @@ const LocationRegisterFormClient = ({
   locationTypes,
   onSuccess,
 }: {
+  hasDrawing: boolean;
   cities: FetchCitiesType;
   location?: ParkData;
   formType: LocationFormType;
@@ -80,6 +84,8 @@ const LocationRegisterFormClient = ({
         popularName: null,
         firstStreet: null,
         secondStreet: null,
+        thirdStreet: null,
+        fourthStreet: null,
         city: null,
         state: "%NONE",
         notes: null,
@@ -194,6 +200,7 @@ const LocationRegisterFormClient = ({
             )}
             {page === 3 && (
               <LocationRegisterOptionalData
+                hasDrawing={hasDrawing}
                 parkData={parkData}
                 setParkData={setParkData}
                 goToPreviousPage={goToPreviousPage}

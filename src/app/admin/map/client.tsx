@@ -138,20 +138,21 @@ const Client = ({
                 />
               </div>
             )}
-
-            <DrawingProvider>
-              <CreationPanel
-                originalFeatures={originalFeatures}
-                setOriginalFeatures={setOriginalFeatures}
-                currentId={currentId}
-                setCurrentId={setCurrentId}
-                drawingWindowVisible={drawingWindowVisible}
-                setDrawingWindowVisible={setDrawingWindowVisible}
-                cities={cities}
-                locationCategories={locationCategories}
-                locationTypes={locationTypes}
-              />
-            </DrawingProvider>
+            {(currentId === -1 || currentId === -3) && (
+              <DrawingProvider>
+                <CreationPanel
+                  originalFeatures={originalFeatures}
+                  setOriginalFeatures={setOriginalFeatures}
+                  currentId={currentId}
+                  setCurrentId={setCurrentId}
+                  drawingWindowVisible={drawingWindowVisible}
+                  setDrawingWindowVisible={setDrawingWindowVisible}
+                  cities={cities}
+                  locationCategories={locationCategories}
+                  locationTypes={locationTypes}
+                />
+              </DrawingProvider>
+            )}
           </div>
         </Rnd>
       )}

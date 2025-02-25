@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -44,7 +44,7 @@ const SubcategoryDeletionModal = ({
         className="items-center p-2 text-sm sm:text-xl"
         variant={"destructive"}
       >
-        Apagar subcategoria
+        <IconTrash />
       </Button>
       {
         <ModalOverlay
@@ -70,7 +70,7 @@ const SubcategoryDeletionModal = ({
                       Apagar subcategoria
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

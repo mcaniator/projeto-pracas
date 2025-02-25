@@ -25,6 +25,8 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
     popularName: location.popularName ?? null,
     firstStreet: location.firstStreet ?? null,
     secondStreet: location.secondStreet ?? null,
+    thirdStreet: location.thirdStreet ?? null,
+    fourthStreet: location.fourthStreet ?? null,
     city: city?.name ?? null,
     state: city?.state ?? null,
     notes: location.notes ?? null,
@@ -57,6 +59,7 @@ const Edit = async ({ params }: { params: { locationId: string } }) => {
         <div>Localização não encontrada</div>
       : <LocationRegisterForm
           formType="EDIT"
+          hasDrawing={false}
           cities={cities}
           location={formattedLocation}
           locationId={location.id}

@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconCirclePlus,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -111,8 +116,11 @@ const QuestionCreationModal = ({
   }, [isOpen]);
   return (
     <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
-      <Button className="items-center p-2 text-sm sm:text-xl">
-        Criar questão
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"constructive"}
+      >
+        <IconCirclePlus />
       </Button>
       {
         <ModalOverlay
@@ -125,7 +133,7 @@ const QuestionCreationModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-y-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg overflow-auto rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -138,7 +146,7 @@ const QuestionCreationModal = ({
                       Criar questão
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -163,7 +171,7 @@ const QuestionCreationModal = ({
                   {!isPending && pageState === "FORM" && (
                     <form
                       action={formAction}
-                      className="flex h-96 w-full flex-col rounded-l"
+                      className="flex w-full flex-col rounded-l"
                     >
                       <h5 className="text-base font-semibold sm:text-xl">
                         {`Categoria: ${categoryName}`}
@@ -216,7 +224,6 @@ const QuestionCreationModal = ({
                           >
                             <RadioButton
                               type={"radio"}
-                              variant={"admin"}
                               id={"text"}
                               value={"WRITTEN"}
                               name="questionType"
@@ -231,7 +238,6 @@ const QuestionCreationModal = ({
                             </RadioButton>
                             <RadioButton
                               type="radio"
-                              variant={"admin"}
                               id="numeric"
                               value={"OPTIONS"}
                               name="questionType"
@@ -256,7 +262,6 @@ const QuestionCreationModal = ({
                           >
                             <RadioButton
                               type={"radio"}
-                              variant={"admin"}
                               id={"hasGeometry"}
                               value={"true"}
                               name="hasAssociatedGeometry"
@@ -271,7 +276,6 @@ const QuestionCreationModal = ({
                             </RadioButton>
                             <RadioButton
                               type="radio"
-                              variant={"admin"}
                               id="noGeometry"
                               value={"false"}
                               name="hasAssociatedGeometry"
@@ -297,7 +301,6 @@ const QuestionCreationModal = ({
                               }
                             >
                               <Checkbox
-                                variant={"admin"}
                                 value={"POINT"}
                                 name="geometryTypes"
                                 checked={geometryTypes.includes("POINT")}
@@ -306,7 +309,6 @@ const QuestionCreationModal = ({
                                 Ponto
                               </Checkbox>
                               <Checkbox
-                                variant={"admin"}
                                 value={"POLYGON"}
                                 name="geometryTypes"
                                 checked={geometryTypes.includes("POLYGON")}
@@ -502,7 +504,7 @@ const QuestionCreationModal = ({
 
                                         setCurrentOption("");
                                       }}
-                                      className={"transition-all"}
+                                      className={"text-white transition-all"}
                                     >
                                       Adicionar
                                     </Button>

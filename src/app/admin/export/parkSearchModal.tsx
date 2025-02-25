@@ -49,7 +49,7 @@ const ParkSearchModal = ({
                       Busca de praças
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

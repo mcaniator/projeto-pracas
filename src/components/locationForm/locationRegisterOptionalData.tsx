@@ -13,6 +13,7 @@ import { Input } from "../ui/input";
 import { ParkData } from "./locationRegisterFormClient";
 
 const LocationRegisterOptionalData = ({
+  hasDrawing,
   parkData,
   shapefile,
   goToPreviousPage,
@@ -20,6 +21,7 @@ const LocationRegisterOptionalData = ({
   handleSubmit,
   setShapefile,
 }: {
+  hasDrawing: boolean;
   parkData: ParkData;
   shapefile: { file: Blob; name: string } | undefined;
   goToPreviousPage: () => void;
@@ -228,9 +230,15 @@ const LocationRegisterOptionalData = ({
           </Button>
         </div>
         {parkData.hasGeometry && (
-          <p className="text-xl font-bold text-red-500">
+          <p className="text-xl font-bold text-red-500/80">
             Aviso: Esta localização possui uma geometria registrada. Enviar um
             arquivo Shapefile irá sobreescrever a geometria atual!
+          </p>
+        )}
+        {shapefile && hasDrawing && (
+          <p className="text-xl font-bold text-red-500/80">
+            Aviso: Enviar um arquivo shapefile substituirá o desenho feito no
+            mapa!
           </p>
         )}
         {shapefile ?

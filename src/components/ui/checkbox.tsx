@@ -8,7 +8,7 @@ const checkboxVariant = cva(
   {
     variants: {
       variant: {
-        default: "checked:bg-true-blue",
+        default: "checked:bg-sky-500/70",
         admin: "checked:bg-purpureus",
         constructive: "checked:bg-cambridge-blue",
         destructive: "checked:bg-redwood",

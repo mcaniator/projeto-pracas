@@ -26,6 +26,7 @@ const LocationComponent = ({
     >
       {name}
       <Button
+        className="text-black"
         onPress={() => {
           handleSelectedLocationsAddition({
             id,

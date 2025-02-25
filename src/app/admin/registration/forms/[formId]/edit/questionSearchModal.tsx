@@ -168,7 +168,7 @@ const QuestionSearchModal = ({
                       Busca de questões
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -483,7 +483,7 @@ const QuestionComponent = ({
           })
         }
       >
-        <span className={"-mb-1"}>
+        <span>
           <IconPlus />
         </span>
       </Button>

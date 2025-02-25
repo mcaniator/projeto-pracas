@@ -362,6 +362,8 @@ model Location {
   popularName         String? @db.VarChar(255)
   firstStreet         String  @db.VarChar(255)
   secondStreet        String? @db.VarChar(255)
+  thirdStreet         String? @db.VarChar(255)
+  fourthStreet        String? @db.VarChar(255)
   notes               String? @db.Text
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")

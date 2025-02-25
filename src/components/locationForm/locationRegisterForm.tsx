@@ -8,6 +8,7 @@ import LocationRegisterFormClient, {
 type LocationFormType = "CREATE" | "EDIT";
 
 const LocationRegisterForm = ({
+  hasDrawing,
   cities,
   location,
   formType,
@@ -17,6 +18,7 @@ const LocationRegisterForm = ({
   locationTypes,
   onSuccess,
 }: {
+  hasDrawing: boolean;
   cities: FetchCitiesType;
   location?: ParkData;
   formType: LocationFormType;
@@ -42,6 +44,7 @@ const LocationRegisterForm = ({
 }) => {
   return (
     <LocationRegisterFormClient
+      hasDrawing={hasDrawing}
       cities={cities}
       location={location}
       formType={formType}

@@ -67,7 +67,7 @@ const TallyInProgressReviewModal = ({
                       Acompanhamento
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -80,14 +80,14 @@ const TallyInProgressReviewModal = ({
                   <div className="inline-flex w-fit flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                     <Button
                       variant={"ghost"}
-                      className={`rounded-xl px-4 py-1 ${modalState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      className={`rounded-xl px-4 py-1 text-black ${modalState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       onPress={() => setModalState("TEXTUAL_DATA")}
                     >
                       <IconLogs />
                     </Button>
                     <Button
                       variant={"ghost"}
-                      className={`rounded-xl px-4 py-1 ${modalState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                      className={`rounded-xl px-4 py-1 text-black ${modalState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       onPress={() => setModalState("CHARTS")}
                     >
                       <IconChartBar />

@@ -117,7 +117,7 @@ const CalculationCreationModal = ({
                   <div className="flex">
                     <h4 className="text-2xl">{`Criação de cálculo`}</h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

@@ -1,5 +1,6 @@
 import { Button } from "@/components/button";
 import { searchFormById } from "@/serverActions/formUtil";
+import { IconEdit } from "@tabler/icons-react";
 import Link from "next/link";
 
 import { FormVersionDeletionModal } from "./formVersionDeletionModal";
@@ -106,7 +107,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
                   className="sm:ml-auto"
                 >
                   <Button className="w-fit items-center p-2 text-sm sm:text-xl">
-                    Editar
+                    <IconEdit />
                   </Button>
                 </Link>
                 <FormVersionDeletionModal

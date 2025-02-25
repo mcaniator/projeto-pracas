@@ -18,6 +18,7 @@ const RegisterLocation = async () => {
       <h2 className="text-2xl font-semibold">Registrar praça</h2>
       <LocationRegisterForm
         formType="CREATE"
+        hasDrawing={false}
         cities={cities}
         locationCategories={locationCategories}
         locationTypes={locationTypes}

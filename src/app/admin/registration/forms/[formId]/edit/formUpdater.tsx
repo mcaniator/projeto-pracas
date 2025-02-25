@@ -334,8 +334,8 @@ const FormUpdater = ({
                   <div>Versão: {form.version}</div>
                 </div>
                 <div className="mb-2 flex items-center justify-between rounded p-2">
-                  <Button variant={"admin"} type="submit" className={"w-min"}>
-                    <span className={"-mb-1"}>Enviar</span>
+                  <Button type="submit" className={"px-2 text-sm sm:text-xl"}>
+                    <span>Atualizar nome</span>
                   </Button>
                 </div>
               </>
@@ -992,7 +992,7 @@ const FormUpdater = ({
                 calculationsToAdd.length !== 0 ||
                 initialCalculationsModified) && (
                 <Button
-                  variant={"admin"}
+                  variant={"constructive"}
                   onPress={() =>
                     void handleCreateVersion(
                       form.id,

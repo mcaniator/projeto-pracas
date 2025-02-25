@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
@@ -50,8 +50,11 @@ const SubcategoryCreationModal = ({
   }, [isOpen]);
   return (
     <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
-      <Button className="items-center p-2 text-sm sm:text-xl">
-        Criar subcategoria
+      <Button
+        className="items-center p-2 text-sm sm:text-xl"
+        variant={"constructive"}
+      >
+        <IconCirclePlus />
       </Button>
       {
         <ModalOverlay
@@ -78,7 +81,7 @@ const SubcategoryCreationModal = ({
                     </h4>
 
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
