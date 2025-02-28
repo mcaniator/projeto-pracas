@@ -267,7 +267,6 @@ const updateLocation = async (
       .nonnegative()
       .parse(formData.get("locationId"));
   } catch (e) {
-    console.log(e);
     return {
       statusCode: 400,
       message: "Invalid id",
@@ -304,7 +303,6 @@ const updateLocation = async (
       inactiveNotFound: formData.get("inactiveNotFound") === "true",
     });
   } catch (e) {
-    console.log(e);
     return {
       statusCode: 400,
       message: "Invalid data",
@@ -346,7 +344,6 @@ const updateLocation = async (
             },
           });
         narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
-        console.log(narrowAdministrativeUnitId);
       }
       if (intermediateAdministrativeUnitName) {
         const intermediateAdministrativeUnit =
@@ -448,16 +445,13 @@ const updateLocation = async (
     }
     try {
       const WKT = await getPolygonsFromShp(formData.get("file") as File);
-      console.log(WKT);
       WKT && (await addPolygonFromWKT(WKT, parseId));
       revalidateTag("location");
       return { statusCode: 200, message: "Location updated" };
     } catch (e) {
-      console.log(e);
       return { statusCode: 400, message: "Error during polygon save" };
     }
   } catch (e) {
-    console.log(e);
     return { statusCode: 400, message: "Database error" };
   }
 };

@@ -39,7 +39,7 @@ const fetchCities = async () => {
     });
     return cities;
   } catch (error) {
-    console.log(error);
+    return;
   }
 };
 
