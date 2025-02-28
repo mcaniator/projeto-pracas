@@ -14,7 +14,7 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { IconX } from "@tabler/icons-react";
+import { IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
 
 import LoadingIcon from "../../../../../../components/LoadingIcon";
@@ -412,7 +412,7 @@ const QuestionComponent = ({
       {showCategory &&
         `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
       <Button
-        variant={"admin"}
+        variant={"constructive"}
         type="submit"
         className={"w-min"}
         onPress={() =>
@@ -432,7 +432,9 @@ const QuestionComponent = ({
           })
         }
       >
-        <span className={"-mb-1"}>Adicionar</span>
+        <span>
+          <IconCirclePlus />
+        </span>
       </Button>
     </div>
   );

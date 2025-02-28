@@ -106,8 +106,13 @@ const CreationDrawingModal = ({
             {({ close }) => (
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between">
-                  <h2 className="text-4xl font-semibold">Criar Praça</h2>
-                  <Button variant={"ghost"} size={"icon"} onPress={close}>
+                  <h2 className="text-4xl font-semibold">Cadastrar Praça</h2>
+                  <Button
+                    className="text-black"
+                    variant={"ghost"}
+                    size={"icon"}
+                    onPress={close}
+                  >
                     <IconX />
                   </Button>
                 </div>
