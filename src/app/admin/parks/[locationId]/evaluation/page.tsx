@@ -1,25 +1,24 @@
-import { fetchForms } from "@/serverActions/formUtil";
-
-import { FormComponent } from "./formComponent";
+import { fetchLatestNonVersionZeroForms } from "@/serverActions/formUtil";
+import Link from "next/link";
 
 const Evaluation = async ({ params }: { params: { locationId: string } }) => {
-  const forms = await fetchForms();
+  const forms = await fetchLatestNonVersionZeroForms();
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
-      <div className="flex max-h-64 flex-col gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
+      <div className="flex max-h-full flex-col gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
         <h3 className="text-2xl font-semibold">
           Escolha o formulário para avaliar
         </h3>
         {forms.length > 0 ?
-          <div className="w-full">
-            {forms.map((form) => (
-              <FormComponent
+          <div className="flex w-full flex-col">
+            {forms.map((form, index) => (
+              <Link
                 key={form.id}
-                formId={form.id}
-                name={form.name}
-                locationId={Number(params.locationId)}
-                version={form.version}
-              />
+                className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} flex items-center justify-between p-2 hover:bg-transparent/10 hover:underline`}
+                href={`/admin/parks/${Number(params.locationId)}/evaluation/${form.id}`}
+              >
+                {`${form.name}, versão ${form.version}`}
+              </Link>
             ))}
           </div>
         : <div className="text-redwood">Ainda não há formulários válidos!</div>}

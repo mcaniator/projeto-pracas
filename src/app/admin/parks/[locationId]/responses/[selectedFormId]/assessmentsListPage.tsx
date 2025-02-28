@@ -1,7 +1,7 @@
 "use client";
 
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { AssessmentsFilter } from "./assessmentsFilter";
 import { AssessmentsList } from "./assessmentsList";
@@ -30,10 +30,26 @@ const AssessmentsListPage = ({
   formId: number;
   assessments: FinalizedAssessmentsList;
 }) => {
+  const [isMobileView, setIsMobileView] = useState(false);
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
   const finalDateFilter = useRef(0);
   const [activeAssessments, setActiveAssessments] = useState(assessments);
+
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      if (window.innerWidth < 1100) {
+        setIsMobileView(true);
+      } else {
+        setIsMobileView(false);
+      }
+    });
+    if (window.innerWidth < 1100) {
+      setIsMobileView(true);
+    } else {
+      setIsMobileView(false);
+    }
+  }, []);
 
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -105,38 +121,33 @@ const AssessmentsListPage = ({
     setActiveAssessments(filteredAssessments);
   };
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
-      <div className="flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
+    <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
+      <div
+        className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md ${isMobileView && "flex-col items-center"}`}
+      >
+        {isMobileView && (
           <h3 className={"text-2xl font-semibold"}>
             {`Avaliações finalizadas de ${locationName}`}
           </h3>
-          {!assessments || assessments.length === 0 ?
-            <h3>Nenhuma avaliação finalizada para este local!</h3>
-          : <React.Fragment>
-              <div className="flex">
-                <span>
-                  <h3 className="text-xl font-semibold">Data</h3>
-                </span>
-                <span className="ml-auto">
-                  <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
-                </span>
-              </div>
-              <div className="overflow-auto rounded">
+        )}
+
+        {!isMobileView && (
+          <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
+            {!assessments || assessments.length === 0 ?
+              <h3>Nenhuma avaliação finalizada para este local!</h3>
+            : <>
                 <AssessmentsList
                   locationId={locationId}
                   formId={formId}
                   assessments={activeAssessments}
                 />
-              </div>
-            </React.Fragment>
-          }
-        </div>
+              </>
+            }
+          </div>
+        )}
 
         <div
-          className={
-            "flex h-fit w-fit flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner"
-          }
+          className={`flex h-fit ${!isMobileView && "min-w-[530px]"} flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner`}
         >
           <AssessmentsFilter
             locationId={locationId}
@@ -148,6 +159,20 @@ const AssessmentsListPage = ({
             handleFinalDateChange={handleFinalDateChange}
           />
         </div>
+        {isMobileView && (
+          <div className={"flex w-full flex-col gap-1"}>
+            {!assessments || assessments.length === 0 ?
+              <h3>Nenhuma avaliação finalizada para este local!</h3>
+            : <>
+                <AssessmentsList
+                  locationId={locationId}
+                  formId={formId}
+                  assessments={activeAssessments}
+                />
+              </>
+            }
+          </div>
+        )}
       </div>
     </div>
   );

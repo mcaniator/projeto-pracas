@@ -34,51 +34,35 @@ enum WeekDays {
 }
 
 enum BrazilianStates {
-  ACRE                @map("Acre")
-  ALAGOAS             @map("Alagoas")
-  AMAPA               @map("Amapa")
-  AMAZONAS            @map("Amazonas")
-  BAHIA               @map("Bahia")
-  CEARA               @map("Ceara")
-  DISTRITO_FEDERAL    @map("Distrito Federal")
-  ESPIRITO_SANTO      @map("Espirito Santo")
-  GOIAS               @map("Goias")
-  MARANHAO            @map("Maranhao")
-  MATO_GROSSO         @map("Matro Grosso")
-  MATO_GROSSO_DO_SUL  @map("Mato Grosso do Sul")
-  MINAS_GERAIS        @map("Minas Gerais")
-  PARA                @map("Para")
-  PARAIBA             @map("Paraiba")
-  PARANA              @map("Parana")
-  PERNAMBUCO          @map("Pernambuco")
-  PIAUI               @map("Piaui")
-  RIO_DE_JANEIRO      @map("Rio de Janeiro")
-  RIO_GRANDE_DO_NORTE @map("Rio Grande do Norte")
-  RIO_GRANDE_DO_SUL   @map("Rio Grande do Sul")
-  RONDONIA            @map("Rondonia")
-  RORAIMA             @map("Roraima")
-  SANTA_CATARINA      @map("Santa Catarina")
-  SAO_PAULO           @map("Sao Paulo")
-  SERGIPE             @map("Sergipe")
-  TOCANTINS           @map("Tocantins")
+  AC
+  AL
+  AP
+  AM
+  BA
+  CE
+  DF
+  ES
+  GO
+  MA
+  MT
+  MS
+  MG
+  PA
+  PB
+  PR
+  PE
+  PI
+  RJ
+  RN
+  RS
+  RO
+  RR
+  SC
+  SP
+  SE
+  TO
 
   @@map("brazilian_states")
-}
-
-enum LocationTypes {
-  CENTRAL_AND_LARGE_FLOWERBEDS                    @map("Central and Large Flowerbeds")
-  COURT_EDGE                                      @map("Court Edges")
-  GARDEN                                          @map("Garden")
-  SQUARE                                          @map("Square")
-  OVERLOOK                                        @map("Overlook")
-  PARK                                            @map("Park")
-  FENCED_PARK                                     @map("Fenced Park")
-  UNOCCUPIED_PLOT                                 @map("Unoccupied Plot")
-  REMNANTS_OF_ROAD_CONSTRUCTION_AND_LAND_DIVISION @map("Remnants of Road Construction/Land Division")
-  ROUNDABOUTS                                     @map("Roundabouts") // não achei nenhuma informação sobre o que são rotatórios então considerei que eram rotatórias
-  INTERCHANGE                                     @map("Interchange")
-
-  @@map("location_types")
 }
 
 enum UserTypes {
@@ -94,13 +78,6 @@ enum CalculationTypes {
   PERCENTAGE @map("Percentage")
 
   @@map("calculation_types")
-}
-
-enum CategoryTypes {
-  FOR_SOCIAL_PRACTICES              @map("for Social Practices")
-  OPEN_SPACE_FOR_NON_COLLECTIVE_USE @map("Open Space for non-Collective Use")
-
-  @@map("category_types")
 }
 
 enum QuestionTypes {
@@ -127,32 +104,6 @@ enum OptionTypes {
   @@map("option_types")
 }
 
-enum Condition {
-  TERRIBLE @map("terrible")
-  POOR     @map("poor")
-  GOOD     @map("good")
-  GREAT    @map("great")
-
-  @@map("maintenance")
-}
-
-enum Interference {
-  SMALL  @map("small")
-  MEDIUM @map("medium")
-  GREAT  @map("great")
-
-  @@map("interference")
-}
-
-enum Visibility {
-  UP_TO_25  @map("up to 25%")
-  UP_TO_50  @map("up to 50%")
-  UP_TO_75  @map("up to 75%")
-  UP_TO_100 @map("up to 100%")
-
-  @@map("visibility")
-}
-
 enum AgeGroup {
   CHILD   @map("child")
   TEEN    @map("teen")
@@ -170,20 +121,11 @@ enum Activity {
   @@map("atividade")
 }
 
-// Don't really like naming this gender since you can't really tell someones gender based on the way they look
-// but since they're going to be needing this data we might as well be as inclusive as possible
 enum Gender {
   MALE   @map("male")
   FEMALE @map("female")
 
   @@map("gender")
-}
-
-enum NoiseLocation {
-  CENTER       @map("center")
-  SURROUNDINGS @map("surroundings")
-
-  @@map("noise_categories")
 }
 
 enum WeatherConditions {
@@ -241,7 +183,7 @@ model Session {
 model Category {
   id Int @id @default(autoincrement())
 
-  name        String        @db.VarChar(255)
+  name        String        @unique @db.VarChar(255)
   optional    Boolean       @default(false)
   active      Boolean       @default(true)
   question    Question[]
@@ -265,8 +207,9 @@ model Subcategory {
   calculation Calculation[]
 
   categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  @@unique([categoryId, name])
   @@map("subcategory")
 }
 
@@ -274,13 +217,11 @@ model Question {
   id Int @id @default(autoincrement())
 
   name              String                         @db.VarChar(255)
-  optional          Boolean                        @default(false)
-  active            Boolean                        @default(true)
+  notes             String?                        @db.VarChar(255)
   type              QuestionTypes
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
   response          Response[]
-  responseCharLimit Int?                           @map("char_limit")
   minValue          Int?
   maxValue          Int?
   optionType        OptionTypes?                   @map("option_type")
@@ -291,9 +232,9 @@ model Question {
   assessment Assessment[]
 
   categoryId    Int           @map("category_id")
-  category      Category      @relation(fields: [categoryId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subcategoryId Int?          @map("subcategory_id")
-  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id])
+  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   options       Option[]
   calculation   Calculation[]
 
@@ -361,7 +302,7 @@ model Option {
   text String @db.VarChar(255)
 
   questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
@@ -403,6 +344,7 @@ model Form {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([name, version])
   @@map("form")
 }
 
@@ -416,25 +358,30 @@ model Form {
 model Location {
   id Int @id @default(autoincrement())
 
-  name                String    @db.VarChar(255)
-  popularName         String?   @db.VarChar(255)
-  firstStreet         String    @db.VarChar(255)
-  secondStreet        String    @db.VarChar(255)
-  isPark              Boolean?  @map("is_park")
-  notes               String?   @db.Text
-  creationYear        DateTime? @map("creation_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
-  lastMaintenanceYear DateTime? @map("last_maintenance_year") @db.Date // ? possivelmente deveriamos armazenar como um VarChar(4)
-  overseeingMayor     String?   @map("overseeing_mayor") @db.VarChar(255)
-  legislation         String?   @db.VarChar(255)
-  usableArea          Float?    @map("usable_area")
-  legalArea           Float?    @map("legal_area")
+  name                String  @db.VarChar(255)
+  popularName         String? @db.VarChar(255)
+  firstStreet         String  @db.VarChar(255)
+  secondStreet        String? @db.VarChar(255)
+  thirdStreet         String? @db.VarChar(255)
+  fourthStreet        String? @db.VarChar(255)
+  notes               String? @db.Text
+  creationYear        Int?    @map("creation_year")
+  lastMaintenanceYear Int?    @map("last_maintenance_year")
+  overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
+  legislation         String? @db.VarChar(255)
+  usableArea          Float?  @map("usable_area")
+  legalArea           Float?  @map("legal_area")
   incline             Float?
-  inactiveNotFound    Boolean?  @map("inactive_not_found") // ? isso não seria por avaliação ao invés de por praça?
-  polygonArea         Float?    @map("polygon_area")
+  isPark              Boolean @map("is_park")
+  inactiveNotFound    Boolean @map("inactive_not_found")
+  polygonArea         Float?  @map("polygon_area")
 
-  type     LocationTypes?
-  category CategoryTypes?                               @map("category")
-  polygon  Unsupported("Geometry(MultiPolygon, 4326)")?
+  typeId     Int?              @map("type_id")
+  type       LocationType?     @relation(fields: [typeId], references: [id])
+  categoryId Int?              @map("category_id")
+  category   LocationCategory? @relation(fields: [categoryId], references: [id])
+
+  polygon Unsupported("Geometry(MultiPolygon, 4326)")?
 
   narrowAdministrativeUnitId       Int?
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
@@ -452,10 +399,23 @@ model Location {
   @@map("location")
 }
 
+model LocationType {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique() @db.VarChar(255)
+  locations Location[]
+}
+
+model LocationCategory {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique() @db.VarChar(255)
+  locations Location[]
+}
+
 model City {
   id Int @id @default(autoincrement())
 
-  name String @unique @db.VarChar(255)
+  name  String          @db.VarChar(255)
+  state BrazilianStates
 
   narrowAdministrativeUnit       NarrowAdministrativeUnit[]
   intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
@@ -464,6 +424,7 @@ model City {
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
+  @@unique([name, state])
   @@map("city")
 }
 
@@ -550,20 +511,6 @@ model Assessment {
 //  Campos das Avaliações
 //  ------------------------------------------------------------------------------------------------------------
 
-model Noise {
-  id Int @id @default(autoincrement())
-
-  location   NoiseLocation
-  soundLevel Float                                 @map("sound_level")
-  point      Unsupported("Geometry(Point, 4326)")?
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([point], name: "location_idx", type: Gist)
-  @@map("noise")
-}
-
 // #endregion
 
 // #region Campos das Avaliações Não Relacionados à Avaliação Física
@@ -574,7 +521,6 @@ model Noise {
 model Tally {
   id Int @id @default(autoincrement())
 
-  //tallyGroup Int       @map("tally_group")
   startDate DateTime  @map("start_date") @db.Timestamptz(0)
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
 
@@ -620,9 +566,9 @@ model Person {
   gender                      Gender
   activity                    Activity @map("activity")
   isTraversing                Boolean  @map("is_traversing")
-  isPersonWithImpairment      Boolean  @map("is_person_with_impairment") // * Inclusive language
+  isPersonWithImpairment      Boolean  @map("is_person_with_impairment")
   isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
-  isPersonWithoutHousing      Boolean  @map("is_person_without_housing") // * Inclusive language
+  isPersonWithoutHousing      Boolean  @map("is_person_without_housing")
 
   TallyPerson TallyPerson[]
 

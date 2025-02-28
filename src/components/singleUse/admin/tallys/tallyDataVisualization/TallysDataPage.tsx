@@ -12,8 +12,11 @@ import { z } from "zod";
 
 import { ComplementaryDataVisualization } from "./complementaryDataVisualization";
 import { IndividualDataTable } from "./individualDataTable";
+import IndividualDataTableModal from "./individualDataTableModal";
 import { PersonsDataVisualization } from "./personsDataVisualization";
+import TallyDeletionModal from "./tallyDeletionModal";
 import { TallysDataPageActions } from "./tallysDataPageActions";
+import TallysDataPageFilterModal from "./tallysDataPageFilterModal";
 
 interface TallyDataFetched {
   tallyPerson: TallyPerson[];
@@ -275,35 +278,63 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
-    <div className="flex max-h-full min-h-0 max-w-full gap-5 p-5">
-      <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex max-h-full min-h-0 max-w-full gap-5">
+      <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
         <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
-        <div className="flex flex-row gap-5 overflow-auto">
+        <div className="flex w-full flex-row gap-5 overflow-auto">
           <div
             className={
               dataVisualizationMode === "CHART" ?
-                "flex basis-3/5 flex-col overflow-auto"
-              : "flex w-fit flex-col overflow-auto"
+                "flex w-full flex-col overflow-auto xl:basis-3/5"
+              : "flex w-full flex-col gap-1 overflow-auto"
             }
           >
-            <div>
-              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                 <Button
                   variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                   onPress={() => setDataVisualizationMode("TABLE")}
                 >
                   Tabelas
                 </Button>
                 <Button
                   variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                   onPress={() => setDataVisualizationMode("CHART")}
                 >
                   Gráficos
                 </Button>
               </div>
+              <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
+                <Button
+                  variant={"ghost"}
+                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataTypeToShow === "PERSONS_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  onPress={() => setDataTypeToShow("PERSONS_DATA")}
+                >
+                  Pessoas
+                </Button>
+                <Button
+                  variant={"ghost"}
+                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataTypeToShow === "COMPLEMENTARY_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                  onPress={() => setDataTypeToShow("COMPLEMENTARY_DATA")}
+                >
+                  Dados extras
+                </Button>
+              </div>
+              <div className="ml-auto flex gap-1 xl:hidden">
+                <TallysDataPageFilterModal
+                  setBooleanConditionsFilter={setBooleanConditionsFilter}
+                  booleanConditionsFilter={booleanConditionsFilter}
+                />
+                <IndividualDataTableModal tallys={tallys} />
+                <TallyDeletionModal
+                  tallyIds={tallysIds}
+                  locationId={locationId}
+                />
+              </div>
             </div>
+
             {dataTypeToShow === "PERSONS_DATA" ?
               <PersonsDataVisualization
                 dataVisualizationMode={dataVisualizationMode}
@@ -318,17 +349,16 @@ const TallysDataPage = ({
               />
             }
           </div>
-          <div className="flex h-fit max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 text-white shadow-inner">
+          <div className="hidden h-full max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 shadow-inner xl:flex xl:basis-2/5">
             <TallysDataPageActions
               setBooleanConditionsFilter={setBooleanConditionsFilter}
-              setDataTypeToShow={setDataTypeToShow}
-              dataTypeToShow={dataTypeToShow}
               tallyIds={tallysIds}
               locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
-
-            <IndividualDataTable tallys={tallys} />
+            <div className="flex h-full min-h-56 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+              <IndividualDataTable tallys={tallys} />
+            </div>
           </div>
         </div>
       </div>

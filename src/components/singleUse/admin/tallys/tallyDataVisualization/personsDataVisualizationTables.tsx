@@ -41,20 +41,20 @@ const PersonsDatavisualizationTables = ({
     "isPersonWithoutHousing",
   ];
   return (
-    <div className="flex flex-col gap-1 overflow-auto rounded">
-      <table>
+    <div className="flex w-full max-w-[85rem] flex-col gap-1 overflow-auto rounded">
+      <table className="text-sm sm:text-base">
         {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
           return (
             <React.Fragment key={ageGroupKey}>
               <thead>
                 <tr>
-                  <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+                  <th className="border border-white xl:p-1">
                     {ageGroupsNamesInTableMap.get(ageGroup)}
                   </th>
                   {gendersInOrder.map((gender, genderKey) => {
                     return (
                       <th
-                        style={{ border: "1px solid white", padding: "0.5rem" }}
+                        className="border border-white xl:p-1"
                         key={genderKey}
                       >
                         {gendersNamesInTableMap.get(gender)}
@@ -68,23 +68,14 @@ const PersonsDatavisualizationTables = ({
                   return (
                     <React.Fragment key={activityKey}>
                       <tr>
-                        <td
-                          style={{
-                            border: "1px solid white",
-                            padding: "0.5rem",
-                          }}
-                        >
+                        <td className="border border-white xl:p-1">
                           {activitiesNamesInTableMap.get(activity)}
                         </td>
                         {gendersInOrder.map((gender, genderKey) => {
                           return (
                             <td
                               key={genderKey}
-                              style={{
-                                border: "1px solid white",
-                                padding: "0.5rem",
-                                textAlign: "center",
-                              }}
+                              className="border border-white text-center xl:p-1"
                             >
                               {tallyMap.get(
                                 `${gender}-${ageGroup}-${activity}`,
@@ -96,26 +87,13 @@ const PersonsDatavisualizationTables = ({
                     </React.Fragment>
                   );
                 })}
-              </tbody>
-              <tbody>
                 <tr>
-                  <td
-                    style={{
-                      border: "1px solid white",
-                      padding: "0.5rem",
-                    }}
-                  >
-                    Total
-                  </td>
+                  <td className="border border-white xl:p-1">Total</td>
                   {gendersInOrder.map((gender, genderKey) => {
                     return (
                       <td
                         key={genderKey}
-                        style={{
-                          border: "1px solid white",
-                          padding: "0.5rem",
-                          textAlign: "center",
-                        }}
+                        className="border border-white text-center xl:p-1"
                       >
                         {tallyMap.get(`Tot-${gender}-${ageGroup}`)}
                       </td>
@@ -128,20 +106,13 @@ const PersonsDatavisualizationTables = ({
         })}
       </table>
 
-      <table>
-        <thead
-          style={{ borderCollapse: "collapse", border: "1px solid white" }}
-        >
+      <table className="text-sm sm:text-base">
+        <thead>
           <tr>
-            <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-              SEXO
-            </th>
+            <th className="border border-white xl:p-1">SEXO</th>
             {gendersInOrder.map((gender, genderKey) => {
               return (
-                <th
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                  key={genderKey}
-                >
+                <th className="border border-white xl:p-1" key={genderKey}>
                   {gendersNamesInTableMap.get(gender)}
                 </th>
               );
@@ -150,17 +121,11 @@ const PersonsDatavisualizationTables = ({
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
-              Total
-            </td>
+            <td className="border border-white xl:p-1">Total</td>
             {gendersInOrder.map((gender, genderKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={genderKey}
                 >
                   {tallyMap.get(`Tot-${gender}`)}
@@ -169,15 +134,11 @@ const PersonsDatavisualizationTables = ({
             })}
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>%</td>
+            <td className="border border-white xl:p-1">%</td>
             {gendersInOrder.map((gender, genderKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={genderKey}
                 >
                   {tallyMap.get(`%${gender}`)?.toString().replace(".", ",")}
@@ -187,20 +148,28 @@ const PersonsDatavisualizationTables = ({
           </tr>
         </tbody>
       </table>
-      <table>
-        <thead
-          style={{ borderCollapse: "collapse", border: "1px solid white" }}
-        >
+
+      <div className="rounded border border-white p-4 md:hidden">
+        {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
+          return (
+            <div key={ageGroupKey} className="flex w-full gap-1">
+              <strong>{`${ageGroupsNamesInTableMap.get(ageGroup)}:`}</strong>
+              <span>{`${tallyMap.get(`Tot-${ageGroup}`)}`}</span>
+              <span className="ml-auto">
+                {tallyMap.get(`%${ageGroup}`)?.toString().replace(".", ",")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <table className="hidden text-sm sm:text-base md:table">
+        <thead>
           <tr>
-            <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-              IDADE
-            </th>
+            <th className="border border-white xl:p-1">IDADE</th>
             {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
               return (
-                <th
-                  key={ageGroupKey}
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                >
+                <th key={ageGroupKey} className="border border-white xl:p-1">
                   {ageGroupsNamesInTableMap.get(ageGroup)}
                 </th>
               );
@@ -209,17 +178,11 @@ const PersonsDatavisualizationTables = ({
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
-              Total
-            </td>
+            <td className="border border-white xl:p-1">Total</td>
             {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={ageGroupKey}
                 >
                   {tallyMap.get(`Tot-${ageGroup}`)}
@@ -228,15 +191,11 @@ const PersonsDatavisualizationTables = ({
             })}
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>%</td>
+            <td className="border border-white xl:p-1">%</td>
             {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={ageGroupKey}
                 >
                   {tallyMap.get(`%${ageGroup}`)?.toString().replace(".", ",")}
@@ -246,18 +205,30 @@ const PersonsDatavisualizationTables = ({
           </tr>
         </tbody>
       </table>
-      <table>
+
+      <div className="rounded border border-white p-4 md:hidden">
+        {activitiesInOrder.map((activity, activityKey) => {
+          return (
+            <div key={activityKey} className="flex w-full gap-1">
+              <strong>
+                {activitiesNamesInTableMap.get(activity)?.toUpperCase()}
+              </strong>
+              <span>{tallyMap.get(`Tot-${activity}`)}</span>
+              <span className="ml-auto">
+                {tallyMap.get(`%${activity}`)?.toString().replace(".", ",")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <table className="hidden text-sm sm:text-base md:table">
         <thead>
           <tr>
-            <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-              ATIVIDADE
-            </th>
+            <th className="border border-white xl:p-1">ATIVIDADE</th>
             {activitiesInOrder.map((activity, activityKey) => {
               return (
-                <th
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                  key={activityKey}
-                >
+                <th className="border border-white xl:p-1" key={activityKey}>
                   {activitiesNamesInTableMap.get(activity)?.toUpperCase()}
                 </th>
               );
@@ -266,17 +237,11 @@ const PersonsDatavisualizationTables = ({
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
-              Total
-            </td>
+            <td className="border border-white xl:p-1">Total</td>
             {activitiesInOrder.map((activity, activityKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={activityKey}
                 >
                   {tallyMap.get(`Tot-${activity}`)}
@@ -285,15 +250,11 @@ const PersonsDatavisualizationTables = ({
             })}
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>%</td>
+            <td className="border border-white xl:p-1">%</td>
             {activitiesInOrder.map((activity, activityKey) => {
               return (
                 <td
-                  style={{
-                    border: "1px solid white",
-                    padding: "0.5rem",
-                    textAlign: "center",
-                  }}
+                  className="border border-white text-center xl:p-1"
                   key={activityKey}
                 >
                   {tallyMap.get(`%${activity}`)}
@@ -303,19 +264,51 @@ const PersonsDatavisualizationTables = ({
           </tr>
         </tbody>
       </table>
-      <table>
+
+      <div className="rounded border border-white p-4 md:hidden lg:hidden">
+        {booleanCharacteristicsInOrder.map((characteristic, key) => {
+          return (
+            <div key={key} className="flex w-full gap-1">
+              <strong>
+                {booleanCharacteristicsNamesInTableMap
+                  .get(characteristic)
+                  ?.toUpperCase()}
+              </strong>
+              <span>
+                {Array.from(Object.keys(Gender))
+                  .map(
+                    (gender) =>
+                      tallyMap.get(`${gender}-${characteristic}`) || 0,
+                  )
+                  .reduce(
+                    (acc, value) =>
+                      typeof acc === "number" && typeof value === "number" ?
+                        acc + value
+                      : 0,
+                    0,
+                  )}
+              </span>
+              <span className="ml-auto">
+                {tallyMap
+                  .get(`%${characteristic}`)
+                  ?.toString()
+                  .replace(".", ",")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <table className="hidden text-sm sm:text-base md:table">
         <thead>
           <tr>
-            <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+            <th className="border border-white xl:p-1">
               CARACTERÍSTICAS BINÁRIAS
             </th>
 
             {booleanCharacteristicsInOrder.map((characteristic, key) => {
               return (
-                <th
-                  key={key}
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                >
+                <th key={key} className="border border-white xl:p-1">
                   {booleanCharacteristicsNamesInTableMap
                     .get(characteristic)
                     ?.toUpperCase()}
@@ -326,15 +319,10 @@ const PersonsDatavisualizationTables = ({
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
-              Total
-            </td>
+            <td className="border border-white xl:p-1">Total</td>
             {booleanCharacteristicsInOrder.map((characteristic, key) => {
               return (
-                <td
-                  key={key}
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                >
+                <td key={key} className="border border-white xl:p-1">
                   {Array.from(Object.keys(Gender))
                     .map(
                       (gender) =>
@@ -352,13 +340,10 @@ const PersonsDatavisualizationTables = ({
             })}
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>%</td>
+            <td className="border border-white xl:p-1">%</td>
             {booleanCharacteristicsInOrder.map((characteristic, key) => {
               return (
-                <td
-                  key={key}
-                  style={{ border: "1px solid white", padding: "0.5rem" }}
-                >
+                <td key={key} className="border border-white xl:p-1">
                   {tallyMap.get(`%${characteristic}`)}
                 </td>
               );
@@ -367,23 +352,15 @@ const PersonsDatavisualizationTables = ({
         </tbody>
       </table>
 
-      <table>
+      <table className="w-full">
         <thead>
           <tr>
-            <th style={{ border: "1px solid white", padding: "0.5rem" }}>
-              Total de pessoas
-            </th>
+            <th className="border border-white xl:p-1">Total de pessoas</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td
-              style={{
-                border: "1px solid white",
-                padding: "0.5rem",
-                textAlign: "center",
-              }}
-            >
+            <td className="border border-white text-center xl:p-1">
               {tallyMap.get(`Tot-H&M`)}
             </td>
           </tr>

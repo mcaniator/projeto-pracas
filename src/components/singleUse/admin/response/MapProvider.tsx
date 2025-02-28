@@ -222,7 +222,7 @@ const MapProvider = forwardRef(
         ref={mapRef}
       >
         <MapContext.Provider value={map}>
-          <div className="fixed z-50 inline-flex w-fit gap-1 rounded-xl bg-gray-400 py-1 text-white shadow-inner">
+          <div className="fixed z-50 inline-flex w-fit gap-1 rounded-xl bg-gray-400 py-1 shadow-inner">
             <Button
               variant={"ghost"}
               onPress={() => switchMode("DRAW")}

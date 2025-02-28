@@ -1,6 +1,11 @@
-import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
-import { QuestionTypes } from "@prisma/client";
+"use client";
 
+import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
+import { OptionTypes, QuestionTypes } from "@prisma/client";
+import { IconHelp } from "@tabler/icons-react";
+import { useState } from "react";
+
+import { Button } from "../../../../../../../components/button";
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 
 interface FrequencyObjByCategory {
@@ -13,6 +18,7 @@ interface FrequencyObjByCategory {
       id: number;
       questionName: string;
       type: QuestionTypes;
+      optionType: OptionTypes | null;
       responses: {
         text: string;
         frequency: number;
@@ -24,6 +30,7 @@ interface FrequencyObjByCategory {
     id: number;
     questionName: string;
     type: QuestionTypes;
+    optionType: OptionTypes | null;
     responses: {
       text: string;
       frequency: number;
@@ -37,6 +44,7 @@ const FrequencyTable = ({
 }: {
   assessments: AssessmentsWithResposes;
 }) => {
+  const [showHelp, setShowHelp] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
   assessments.forEach((assessment) => {
     assessment.form.questions.forEach((question) => {
@@ -83,6 +91,7 @@ const FrequencyTable = ({
                 id: question.id,
                 questionName: question.name,
                 type: question.type,
+                optionType: question.optionType,
                 responses: [],
               });
             }
@@ -158,6 +167,7 @@ const FrequencyTable = ({
               id: question.id,
               questionName: question.name,
               type: question.type,
+              optionType: question.optionType,
               responses: [],
             });
           }
@@ -222,22 +232,34 @@ const FrequencyTable = ({
     });
   });
   return (
-    <div
-      className={
-        "flex basis-3/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
-      }
-    >
-      <h3 className="text-2xl font-semibold">Dados somados</h3>
-      <ul className="list-disc p-3">
+    <div className="h-full overflow-auto">
+      <div className="flex items-center">
+        <h3 className="text-2xl font-semibold">Dados somados</h3>
+        <Button
+          variant={"ghost"}
+          className="group relative"
+          onPress={() => setShowHelp((prev) => !prev)}
+        >
+          <IconHelp />
+          <div
+            className={`absolute -left-7 top-10 w-[40vw] rounded-lg bg-black px-3 py-1 text-sm shadow-md transition-opacity duration-200 group-hover:opacity-100 sm:left-5 sm:w-[25vw] ${showHelp ? "opacity-100" : "opacity-0"}`}
+          >
+            O número ao lado de cada resposta corresponde à quantidade de vezes
+            que aquela resposta foi dada no conjunto de avaliações.
+          </div>
+        </Button>
+      </div>
+
+      <ul className="list-disc p-3 text-sm sm:text-base">
         {frequencies.map((category) => {
           return (
             <div key={category.id}>
-              <span className="text-2xl font-bold">
+              <span className="text-xl font-bold sm:text-2xl">
                 {category.categoryName}
               </span>
               {category.questions.map((question) => {
                 return (
-                  <div key={question.id} className="flex flex-col">
+                  <div key={question.id} className="my-4 flex flex-col">
                     <span className="font-bold">{question.questionName}</span>
 
                     {question.responses.length === 0 ?
@@ -246,7 +268,7 @@ const FrequencyTable = ({
                         return (
                           <span key={response.text}>
                             {response.text}
-                            <span className="font-bold text-blue-500">{`  - Frequência: ${response.frequency}`}</span>
+                            <span className="font-bold">{` (x${response.frequency})`}</span>
                           </span>
                         );
                       })
@@ -257,13 +279,13 @@ const FrequencyTable = ({
               {category.subcategories.map((subcategory) => {
                 return (
                   <div key={subcategory.id}>
-                    <span className="text-xl font-bold">
+                    <span className="text-lg font-bold sm:text-xl">
                       {subcategory.subcategoryName}
                     </span>
 
                     {subcategory.questions.map((question) => {
                       return (
-                        <div key={question.id} className="flex flex-col">
+                        <div key={question.id} className="my-4 flex flex-col">
                           <span className="font-bold">
                             {question.questionName}
                           </span>
@@ -274,7 +296,7 @@ const FrequencyTable = ({
                               return (
                                 <span key={`${question.id}-${response.text}`}>
                                   {response.text}
-                                  <span className="font-bold text-blue-500">{` - Frequência: ${response.frequency}`}</span>
+                                  <span className="font-bold">{` (x${response.frequency})`}</span>
                                 </span>
                               );
                             })

@@ -4,11 +4,11 @@ import { VariantProps, cva } from "class-variance-authority";
 import { InputHTMLAttributes, forwardRef } from "react";
 
 const checkboxVariant = cva(
-  "peer m-0 h-5 w-5 appearance-none self-center rounded-lg border-[3px] border-white bg-clip-content p-[1.5px] transition-all",
+  "peer m-0 h-5 w-5 appearance-none self-center rounded-lg border-[3px] border-white bg-clip-content p-[0.2px] transition-all",
   {
     variants: {
       variant: {
-        default: "checked:bg-true-blue",
+        default: "checked:bg-sky-500/70",
         admin: "checked:bg-purpureus",
         constructive: "checked:bg-cambridge-blue",
         destructive: "checked:bg-redwood",
@@ -28,7 +28,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, variant, ...props }, ref) => {
     const { children, ...attributes } = props;
     return (
-      <label className={"relative flex w-fit select-none gap-1"}>
+      <label className={"relative flex w-fit select-none items-center gap-1"}>
         <input
           type="checkbox"
           className={cn(checkboxVariant({ variant, className }))}
@@ -37,7 +37,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <IconCheck
           className={
-            "absolute translate-x-[5px] translate-y-[7px] text-white opacity-0 transition-all peer-checked:opacity-100"
+            "absolute translate-x-[5px] opacity-0 transition-all peer-checked:opacity-100"
           }
           size={10}
           stroke={5}

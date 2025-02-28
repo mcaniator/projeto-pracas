@@ -3,18 +3,13 @@
 import { Button } from "@/components/button";
 import { useState } from "react";
 
-import {
-  BooleanPersonProperties,
-  DataTypesInTallyVisualization,
-} from "./TallysDataPage";
+import { BooleanPersonProperties } from "./TallysDataPage";
 import { DataFilter } from "./dataFilter";
 import { DeleteTallySection } from "./deleteTallySection";
 
 type TallysVisualizationActionsCategories = "FILTERS" | "DELETION";
 const TallysDataPageActions = ({
   setBooleanConditionsFilter,
-  setDataTypeToShow,
-  dataTypeToShow,
   tallyIds,
   locationId,
   booleanConditionsFilter,
@@ -22,10 +17,7 @@ const TallysDataPageActions = ({
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
-  setDataTypeToShow: React.Dispatch<
-    React.SetStateAction<DataTypesInTallyVisualization>
-  >;
-  dataTypeToShow: DataTypesInTallyVisualization;
+
   tallyIds: number[];
   locationId: number;
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
@@ -33,10 +25,10 @@ const TallysDataPageActions = ({
   const [actionsCategory, setActionsCategory] =
     useState<TallysVisualizationActionsCategories>("FILTERS");
   return (
-    <div className="flex min-h-72 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
+    <div className="flex min-h-72 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
       <h4 className="text-2xl font-semibold">Ações</h4>
       <div>
-        <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+        <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
           <Button
             variant={"ghost"}
             className={`rounded-xl px-4 py-1 ${actionsCategory === "FILTERS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
@@ -56,8 +48,6 @@ const TallysDataPageActions = ({
       {actionsCategory === "FILTERS" && (
         <DataFilter
           setBooleanConditionsFilter={setBooleanConditionsFilter}
-          setDataTypeToShow={setDataTypeToShow}
-          dataTypeToShow={dataTypeToShow}
           booleanConditionsFilter={booleanConditionsFilter}
         />
       )}
@@ -69,3 +59,4 @@ const TallysDataPageActions = ({
 };
 
 export { TallysDataPageActions };
+export { type TallysVisualizationActionsCategories };

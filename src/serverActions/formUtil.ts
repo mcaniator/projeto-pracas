@@ -1,16 +1,16 @@
 "use server";
 
-import {
-  DisplayCalculation,
-  DisplayQuestion,
-} from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import {
+  DisplayCalculation,
+  DisplayQuestion,
+} from "../app/admin/registration/forms/[formId]/edit/client";
 import { QuestionWithCategories } from "./questionSubmit";
 
 interface FormToEditPage {
@@ -21,16 +21,63 @@ interface FormToEditPage {
   calculations: DisplayCalculation[];
 }
 
-const handleDelete = async (formID: number) => {
+const deleteFormVersion = async (
+  prevState: {
+    statusCode: number;
+    content: {
+      assessmentsWithForm: {
+        id: number;
+        startDate: Date;
+      }[];
+      form: { name: string; version: number } | null;
+    };
+  } | null,
+  formData: FormData,
+): Promise<{
+  statusCode: number;
+  content: {
+    assessmentsWithForm: {
+      id: number;
+      startDate: Date;
+    }[];
+    form: { name: string; version: number } | null;
+  };
+} | null> => {
+  const formId = parseInt(formData.get("formId") as string);
   try {
-    await prisma.form.delete({
+    const assessments = await prisma.assessment.findMany({
       where: {
-        id: formID,
+        formId,
+      },
+      select: {
+        id: true,
+        startDate: true,
       },
     });
-    revalidatePath("/admin/forms");
+    if (assessments.length > 0) {
+      return {
+        statusCode: 409,
+        content: { form: null, assessmentsWithForm: assessments },
+      };
+    }
+    const form = await prisma.form.delete({
+      where: {
+        id: formId,
+      },
+      select: {
+        name: true,
+        version: true,
+      },
+    });
+    return {
+      statusCode: 200,
+      content: { form, assessmentsWithForm: [] },
+    };
   } catch (error) {
-    throw new Error(`Erro ao excluir o formulário:${formID}`);
+    return {
+      statusCode: 500,
+      content: { form: null, assessmentsWithForm: [] },
+    };
   }
 };
 
@@ -69,6 +116,40 @@ const fetchFormsLatest = async () => {
         createdAt: true,
         updatedAt: true,
       },
+
+      distinct: ["name"],
+      orderBy: [
+        {
+          name: "asc",
+        },
+        {
+          version: "desc",
+        },
+      ],
+    });
+  } catch (e) {
+    forms = [];
+  }
+  return forms;
+};
+
+const fetchLatestNonVersionZeroForms = async () => {
+  let forms: Form[];
+  try {
+    forms = await prisma.form.findMany({
+      where: {
+        NOT: {
+          version: 0,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        version: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+
       distinct: ["name"],
       orderBy: [
         {
@@ -100,6 +181,7 @@ const searchFormById = async (id: number) => {
             version: true,
             questions: {
               include: {
+                options: true,
                 category: {
                   select: {
                     id: true,
@@ -194,16 +276,23 @@ const updateForm = async (
       where: { id: parseId },
       data: formToUpdate,
     });
-  } catch (e) {
+    revalidateTag("form");
     return {
-      statusCode: 2,
+      statusCode: 200,
+    };
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      return {
+        statusCode: 409,
+      };
+    }
+    return {
+      statusCode: 500,
     };
   }
-
-  revalidateTag("form");
-  return {
-    statusCode: 0,
-  };
 };
 
 const createVersion = async (
@@ -261,17 +350,18 @@ const createVersion = async (
   }
 
   revalidateTag("questionOnForm");
-  redirect("/admin/forms");
+  redirect("/admin/registration/forms");
   return { statusCode: 0, newFormId };
 };
 
 export {
   fetchForms,
-  handleDelete,
+  deleteFormVersion,
   searchFormById,
   searchformNameById,
   updateForm,
   createVersion,
   fetchFormsLatest,
+  fetchLatestNonVersionZeroForms,
 };
 export { type FormToEditPage };

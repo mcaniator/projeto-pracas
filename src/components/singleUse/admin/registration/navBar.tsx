@@ -7,32 +7,30 @@ const NavBar = () => {
   const isComponents = usePathname() == "/admin/registration/questions";
 
   return (
-    <div className={"flex gap-3 p-5 pb-0"}>
+    <div className={"flex gap-3 p-2"}>
       {isComponents ?
         <>
-          <h2 className={"-mb-1 text-3xl font-bold text-white"}>
-            Criação de Perguntas
-          </h2>
+          <h2 className={"-mb-1 text-2xl font-bold sm:text-3xl"}>Questões</h2>
           <Link
             href={"/admin/registration/forms"}
             className={
-              "-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"
+              "-mb-1 text-2xl font-bold text-white text-white/50 transition-all hover:text-white/80 sm:text-3xl"
             }
           >
-            Criação de Formulários
+            Formulários
           </Link>
         </>
       : <>
           <Link
             href={"/admin/registration/questions"}
             className={
-              "-mb-1 text-3xl font-bold text-white text-white/50 transition-all hover:text-white/80"
+              "-mb-1 text-2xl font-bold text-white text-white/50 transition-all hover:text-white/80 sm:text-3xl"
             }
           >
-            Criação de Perguntas
+            Questões
           </Link>
-          <h2 className={"-mb-1 text-3xl font-bold text-white"}>
-            Criação de Formulários
+          <h2 className={"-mb-1 text-2xl font-bold text-white sm:text-3xl"}>
+            Formulários
           </h2>
         </>
       }

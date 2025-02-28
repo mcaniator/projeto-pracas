@@ -1,6 +1,7 @@
 "use client";
 
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
+import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -15,32 +16,6 @@ const dateWithHoursFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-const AssessmentComponent = ({
-  id,
-  startDate,
-  username,
-  locationId,
-  formId,
-}: {
-  id: number;
-  startDate: string;
-  username: string;
-  locationId: number;
-  formId: number;
-}) => {
-  const startD = new Date(startDate);
-  const weekday = weekdayFormatter.format(startD);
-  return (
-    <Link
-      key={id}
-      className="mb-2 flex items-center justify-between rounded bg-white p-2"
-      href={`/admin/parks/${locationId}/responses/${formId}/${id}`}
-    >
-      <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(startD)}`}</span>
-      <span className="ml-auto">{username}</span>
-    </Link>
-  );
-};
 
 const AssessmentsList = ({
   locationId,
@@ -52,19 +27,36 @@ const AssessmentsList = ({
   assessments: FinalizedAssessmentsList;
 }) => {
   return assessments === undefined || assessments.length === 0 ?
-      <h3>Nenhuma contagem encontrada para este local!</h3>
-    : <div className="w-full text-black">
-        {assessments.map((assessment) => (
-          <AssessmentComponent
-            key={assessment.id}
-            id={assessment.id}
-            startDate={assessment.startDate.toString()}
-            username={assessment.user.username}
-            locationId={locationId}
-            formId={formId}
-          />
-        ))}
-      </div>;
+      <h3>Nenhuma avaliação encontrada para este local!</h3>
+    : <>
+        <div className="flex">
+          <span>
+            <h3 className="text-xl font-semibold">
+              <IconCalendarClock />
+            </h3>
+          </span>
+          <span className="ml-auto">
+            <h3 className="text-xl font-semibold">
+              <IconUser />
+            </h3>
+          </span>
+        </div>
+        <div className="flex w-full flex-col overflow-auto rounded">
+          {assessments.map((assessment, index) => {
+            const weekday = weekdayFormatter.format(assessment.startDate);
+            return (
+              <Link
+                key={assessment.id}
+                className={`flex items-center justify-between ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
+                href={`/admin/parks/${locationId}/responses/${formId}/${assessment.id}`}
+              >
+                <span>{`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(assessment.startDate)}`}</span>
+                <span className="ml-auto">{assessment.user.username}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </>;
 };
 
 export { AssessmentsList };

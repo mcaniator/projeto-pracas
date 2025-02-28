@@ -1,31 +1,11 @@
 "use client";
 
-import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-const LocationComponent = ({ id, name }: { id: number; name: string }) => {
-  return (
-    <div className="flex gap-2 text-white">
-      <div className="flex-1 overflow-hidden">
-        <Link key={id} href={`/admin/parks/${id}`}>
-          <Button
-            variant={"ghost"}
-            use={"link"}
-            className="w-full justify-start px-2"
-          >
-            <span className="-mb-1 overflow-hidden overflow-ellipsis whitespace-nowrap text-[22px]/[30px] font-semibold">
-              {name}
-            </span>
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
-};
+import { Input } from "../../../../ui/input";
 
 const LocationList = ({
   locations,
@@ -33,15 +13,17 @@ const LocationList = ({
   locations: FuseResult<{ id: number; name: string }>[];
 }) => {
   return (
-    <div className="grid w-full grid-cols-1 gap-2 text-black">
+    <>
       {locations.map((location, index) => (
-        <LocationComponent
+        <Link
+          className={`b w-full ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
           key={index}
-          id={location.item.id}
-          name={location.item.name}
-        />
+          href={`/admin/parks/${location.item.id}`}
+        >
+          <p className="text-xl font-semibold">{location.item.name}</p>
+        </Link>
       ))}
-    </div>
+    </>
   );
 };
 
@@ -64,19 +46,19 @@ const ParkForm = ({
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-4 py-1">
+      <h4 className="text-xl">Busca de locais</h4>
       <div className={"flex flex-col gap-2"}>
-        <h3 className={"text-2xl font-semibold"}>Busca</h3>
         <Input
           name="name"
           id={"name"}
-          onChange={(value) => {
-            setHay(search(value, sortedLocations, fuseHaystack));
+          onChange={(e) => {
+            setHay(search(e.target.value, sortedLocations, fuseHaystack));
           }}
         />
       </div>
 
-      <div className="overflow-y-scroll">
+      <div className="flex w-full flex-col rounded-md">
         <LocationList locations={hay} />
       </div>
     </div>

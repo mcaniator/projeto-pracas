@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { search } from "@/lib/search";
+import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { removePolygon } from "@/serverActions/managePolygons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
@@ -19,9 +19,12 @@ import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { Rnd } from "react-rnd";
 
+import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
 import { MapContext } from "./mapProvider";
@@ -31,51 +34,128 @@ interface fullLocation extends Location {
   st_asgeojson: string | null;
 }
 
-const Client = ({ locations }: { locations: fullLocation[] }) => {
-  const [currentId, setCurrentId] = useState(-2); // -2 == not drawing, -1 == new park, everything else == currently edited park id
+const Client = ({
+  locations,
+  cities,
+  locationCategories,
+  locationTypes,
+}: {
+  locations: fullLocation[];
+  cities: FetchCitiesType;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
+}) => {
+  const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
     [],
   );
-
+  const [panelVisible, setPanelVisible] = useState(false);
+  const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
 
   return (
-    <div>
-      <div className="fixed z-50 p-2">
-        <div className="h-96 rounded-2xl border-4 border-off-white bg-ugly-white p-3 shadow-lg">
-          {currentId === -2 ?
-            <div className="flex h-full w-full flex-col gap-2" ref={panelRef}>
-              <Button
-                variant={"admin"}
-                onPress={() => {
-                  setCurrentId(-1);
-                }}
-              >
-                <span className="-mb-1 text-white">Iniciar Desenho</span>
-              </Button>
+    <div className="relative">
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onPress={() => {
+            setPanelVisible(!panelVisible);
+            setDrawingWindowVisible(!drawingWindowVisible);
+          }}
+          variant="admin"
+          className="bg-blue-600"
+        >
+          {panelVisible ? "Esconder" : "Menu"}
+        </Button>
+      </div>
+      {panelVisible && (
+        <Rnd
+          default={{
+            x: 100,
+            y: 100,
+            width: 320,
+            height: 480,
+          }}
+          bounds="window"
+          dragHandleClassName="drag-handle"
+          className={`${
+            !drawingWindowVisible ? "hidden" : (
+              "z-10 rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+            )
+          }`}
+          minWidth={150}
+          minHeight={250}
+          maxHeight={window.innerHeight - 50}
+          //   máxima
+        >
+          <div
+            className={`${
+              !drawingWindowVisible ? "hidden" : (
+                "drag-handle cursor-move rounded-t-lg bg-gray-200 p-2"
+              )
+            }`}
+          >
+            <span className="text-gray-700">Janela de Desenho</span>
+          </div>
 
-              <hr className="w-80 rounded-full border-2 border-off-white" />
+          <div
+            className={`${
+              !drawingWindowVisible ? "hidden" : (
+                "flex h-full max-h-[430px] flex-col gap-2 overflow-auto p-4"
+              )
+            }`}
+          >
+            {currentId === -2 && (
+              <div className="flex flex-col gap-2" ref={panelRef}>
+                <Button
+                  variant="admin"
+                  onPress={() => {
+                    setCurrentId(-1);
+                  }}
+                >
+                  <span className="-mb-1">Iniciar Criação</span>
+                </Button>
 
-              <ParkList
-                locations={locations}
-                setOriginalFeatures={setOriginalFeatures}
-                setCurrentId={setCurrentId}
-              />
-            </div>
-          : <div>
+                <hr className="w-full rounded-full border-2 border-off-white" />
+
+                <ParkList
+                  locations={locations}
+                  setOriginalFeatures={setOriginalFeatures}
+                  setCurrentId={setCurrentId}
+                />
+              </div>
+            )}
+            {(currentId === -1 || currentId === -3) && (
               <DrawingProvider>
                 <CreationPanel
                   originalFeatures={originalFeatures}
                   setOriginalFeatures={setOriginalFeatures}
                   currentId={currentId}
                   setCurrentId={setCurrentId}
+                  drawingWindowVisible={drawingWindowVisible}
+                  setDrawingWindowVisible={setDrawingWindowVisible}
+                  cities={cities}
+                  locationCategories={locationCategories}
+                  locationTypes={locationTypes}
                 />
               </DrawingProvider>
-            </div>
-          }
-        </div>
-      </div>
-
+            )}
+          </div>
+        </Rnd>
+      )}
       <BottomControls />
     </div>
   );
@@ -92,9 +172,7 @@ const ParkList = ({
 }) => {
   const map = useContext(MapContext);
   const view = map.getView();
-
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
-
   const sortedLocations = useMemo(
     () =>
       locations.toSorted((a, b) => {
@@ -110,18 +188,17 @@ const ParkList = ({
   );
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
-  // couldn't figure out a better way to refresh the buttons when the
-  // locations cache is revalidated
   useEffect(() => {
     setHay(search("", sortedLocations, fuseHaystack));
   }, [sortedLocations, fuseHaystack]);
 
   return (
-    <div className="flex flex-col gap-2 overflow-clip pt-1 text-white">
+    <div className="flex flex-col gap-2 overflow-clip pt-1">
       <Input
-        onChange={(value) => {
-          setHay(search(value, sortedLocations, fuseHaystack));
+        onChange={(e) => {
+          setHay(search(e.target.value, sortedLocations, fuseHaystack));
         }}
+        // label={"Busca"}
       />
 
       <div className="overflow-scroll">
@@ -236,10 +313,9 @@ const BottomControls = () => {
   const view = map.getView();
 
   return (
-    <div className="fixed bottom-2 z-50 flex flex-col gap-1 p-2 pb-0">
+    <div className="fixed bottom-2 z-40 flex flex-col gap-1 p-2 pb-0">
       <Button
         type="button"
-        className="text-white"
         size={"icon"}
         variant={"admin"}
         onPress={() => {
@@ -266,7 +342,6 @@ const BottomControls = () => {
       <div className="flex gap-1">
         <Button
           type="button"
-          className="text-white"
           size={"icon"}
           variant={"admin"}
           onPress={() => {
@@ -282,7 +357,6 @@ const BottomControls = () => {
         </Button>
         <Button
           type="button"
-          className="text-white"
           size={"icon"}
           variant={"admin"}
           onPress={() => {

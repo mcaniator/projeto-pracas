@@ -50,6 +50,57 @@ const fetchTallysByLocationId = async (locationId: number) => {
   return foundTallys;
 };
 
+const fetchRecentlyCompletedTallys = async () => {
+  const returnObj: {
+    statusCode: number;
+    tallys: {
+      id: number;
+      startDate: Date;
+      endDate: Date | null;
+      location: {
+        name: string;
+        id: number;
+      };
+      user: {
+        username: string;
+      };
+    }[];
+  } = { statusCode: 500, tallys: [] };
+  try {
+    const tallys = await prisma.tally.findMany({
+      where: {
+        NOT: {
+          endDate: null,
+        },
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+    returnObj.statusCode = 200;
+    returnObj.tallys = tallys;
+  } catch (e) {
+    return returnObj;
+  }
+  return returnObj;
+};
+
 const fetchOngoingTallyById = async (tallyId: number) => {
   try {
     const tally = await prisma.tally.findUnique({
@@ -331,6 +382,7 @@ const redirectToTallysList = (locationId: number) => {
 
 export {
   fetchTallysByLocationId,
+  fetchRecentlyCompletedTallys,
   createTally,
   fetchOngoingTallyById,
   fetchFinalizedTallysToDataVisualization,

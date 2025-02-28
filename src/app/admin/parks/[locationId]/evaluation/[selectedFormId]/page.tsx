@@ -4,8 +4,7 @@ import { searchformNameById } from "@/serverActions/formUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { redirect } from "next/navigation";
 
-import AssessmentCreation from "./assessmentCreation";
-import { AssessmentList } from "./assessmentList";
+import AssessmentsInProgressPage from "./assessmentsInProgressPage";
 
 interface AssessmentDataFetchedToAssessmentList {
   id: number;
@@ -30,37 +29,14 @@ const AssessmentPage = async ({
   const formName =
     (await searchformNameById(Number(params.selectedFormId))) || "ERRO";
   return (
-    <div className={"flex max-h-full min-h-0 flex-col gap-5 p-5"}>
-      <div className="flex max-h-64 gap-5 rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div>
-          <h3 className={"text-2xl font-semibold"}>
-            {`Avaliações em andamento do formulário ${formName} em ${locationName}`}
-          </h3>
-          <div className="flex">
-            <span>
-              <h3 className="text-xl font-semibold">Data</h3>
-            </span>
-            <span className="ml-auto">
-              <h3 className="text-xl font-semibold">{"Avaliador(a)"}</h3>
-            </span>
-          </div>
-          <div className="overflow-auto rounded">
-            <AssessmentList
-              locationId={locationId}
-              formId={formId}
-              formName={formName}
-              assessments={assessments}
-            />
-          </div>
-        </div>
-
-        <AssessmentCreation
-          locationId={locationId}
-          formId={formId}
-          userId={user.id}
-        />
-      </div>
-    </div>
+    <AssessmentsInProgressPage
+      formId={formId}
+      locationId={locationId}
+      userId={user.id}
+      locationName={locationName}
+      formName={formName}
+      assessments={assessments}
+    />
   );
 };
 

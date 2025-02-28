@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconTrashX } from "@tabler/icons-react";
+import { FetchCitiesType } from "@/serverActions/cityUtil";
+import { IconCancel, IconTrashX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";
 import { VectorSourceEvent } from "ol/source/Vector";
@@ -13,7 +14,8 @@ import {
   useState,
 } from "react";
 
-import { CreationModal } from "./creationModal";
+import { CreationDrawingModal } from "./creationDrawingModal";
+import { CreationSelecion } from "./creationSelection";
 import { DrawingProviderVectorSourceContext } from "./drawingProvider";
 import { EditPolygonSubmitButton } from "./editPolygonSubmitButton";
 import { PolygonProviderVectorSourceContext } from "./polygonProvider";
@@ -23,11 +25,35 @@ const CreationPanel = ({
   setOriginalFeatures,
   currentId,
   setCurrentId,
+  drawingWindowVisible,
+  setDrawingWindowVisible,
+  cities,
+  locationCategories,
+  locationTypes,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   currentId: number;
   setCurrentId: Dispatch<SetStateAction<number>>;
+  drawingWindowVisible: boolean;
+  setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
+  cities: FetchCitiesType;
+  locationCategories: {
+    statusCode: number;
+    message: string;
+    categories: {
+      id: number;
+      name: string;
+    }[];
+  };
+  locationTypes: {
+    statusCode: number;
+    message: string;
+    types: {
+      id: number;
+      name: string;
+    }[];
+  };
 }) => {
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
@@ -113,11 +139,10 @@ const CreationPanel = ({
       features[i]?.set("description", i + 1 + "");
     }
   }, [features]);
-
   return (
     <div className="flex h-full flex-col gap-2">
-      <div className="flex gap-2">
-        {currentId === -1 ?
+      <div className="flex flex-wrap gap-2">
+        {/*currentId === -3 ?
           <CreationModal features={features} setCurrentId={setCurrentId} />
         : <EditPolygonSubmitButton
             id={currentId}
@@ -125,8 +150,36 @@ const CreationPanel = ({
             isDisabled={features.length === 0} // TODO: try to find a way to efficiently compare current features with the original ones
             setOriginalFeature={setOriginalFeatures}
             setCurrentId={setCurrentId}
+          />*/}
+
+        {currentId === -1 && (
+          <CreationSelecion
+            setCurrentId={setCurrentId}
+            setDrawingWindowVisible={setDrawingWindowVisible}
+            cities={cities}
+            locationCategories={locationCategories}
+            locationTypes={locationTypes}
           />
-        }
+        )}
+        {currentId === -3 && (
+          <CreationDrawingModal
+            features={features}
+            setCurrentId={setCurrentId}
+            drawingWindowVisible={drawingWindowVisible}
+            setDrawingWindowVisible={setDrawingWindowVisible}
+            cities={cities}
+            locationCategories={locationCategories}
+            locationTypes={locationTypes}
+          />
+        )}
+        {currentId >= 0 && (
+          <EditPolygonSubmitButton
+            id={currentId}
+            features={features}
+            setOriginalFeature={setOriginalFeatures}
+            setCurrentId={setCurrentId}
+          />
+        )}
 
         <Button
           onPress={() => {
@@ -155,7 +208,9 @@ const CreationPanel = ({
           }}
           variant={"destructive"}
         >
-          <span className="-mb-1 text-white">Cancelar</span>
+          <span>
+            <IconCancel />
+          </span>
         </Button>
       </div>
       <hr className="rounded-full border-2 border-off-white" />
@@ -169,10 +224,15 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
 
   return (
     <div className="flex h-full flex-col gap-2 overflow-scroll">
+      {features.length === 0 && (
+        <div className="flex w-full items-center justify-center text-2xl">
+          Selecione o perímetro
+        </div>
+      )}
       {features.map((feature, index) => {
         return (
           <div key={index} className="flex w-full items-center">
-            <p className="-mb-1 text-xl text-white">Polígono {index + 1}</p>
+            <p className="-mb-1 text-xl">Polígono {index + 1}</p>
             <Button
               type="button"
               className="ml-auto"
@@ -182,7 +242,7 @@ const FeatureList = ({ features }: { features: Feature<Geometry>[] }) => {
                 source.removeFeature(feature);
               }}
             >
-              <IconTrashX className="text-white" />
+              <IconTrashX />
             </Button>
           </div>
         );

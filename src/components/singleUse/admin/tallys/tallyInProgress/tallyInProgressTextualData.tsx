@@ -2,6 +2,16 @@
 
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import {
+  IconBinocularsFilled,
+  IconCalendar,
+  IconClock,
+  IconDog,
+  IconMoodDollar,
+  IconTemperature,
+} from "@tabler/icons-react";
+import { FaPeopleGroup } from "react-icons/fa6";
+import { TiWeatherPartlySunny } from "react-icons/ti";
 
 interface TallyPerson {
   person: {
@@ -49,15 +59,38 @@ const TallyInProgressTextualData = ({
 }) => {
   return (
     <div className="flex flex-col overflow-auto py-1">
-      <p>{`Data de início: ${tally.startDate.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })}`}</p>
-      <p>{`Horário de início: ${tally.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}</p>
-      <p>{`Observador: ${tally.user.username}`}</p>
-      <p>{`Temperatura: ${temperature ? temperature + "°C" : "Não definido!"}`}</p>
-      <p>{`Tempo: ${weather}`}</p>
-      <p>{`Pets: ${complementaryData.animalsAmount}`}</p>
-      <p>{`Grupos: ${complementaryData.groupsAmount}`}</p>
+      <p>
+        <IconCalendar className="mr-2 inline" />
+        {`${tally.startDate.toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })}`}
+      </p>
+      <p>
+        <IconClock className="mr-2 inline" />
+        {`${tally.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`}
+      </p>
+      <p>
+        <IconBinocularsFilled className="mr-2 inline" />
+        {`${tally.user.username}`}
+      </p>
+      <p>
+        <IconTemperature className="mr-2 inline" />
+        {`${temperature ? temperature + "°C" : "Não definido!"}`}
+      </p>
+      <p>
+        <TiWeatherPartlySunny className="mb-2 mr-2 inline h-6 w-6" />
+        {`${weather}`}
+      </p>
+      <p>
+        <IconDog className="mr-2 inline" />
+        {`${complementaryData.animalsAmount}`}
+      </p>
+      <p>
+        <FaPeopleGroup className="mb-2 mr-2 inline h-6 w-6" />
+        {`${complementaryData.groupsAmount}`}
+      </p>
       <div className="w-fit overflow-auto rounded-3xl bg-gray-400/20 p-3 shadow-inner">
-        <h5 className="font-semibold">Atividades comerciais itinerantes</h5>
+        <h5 className="font-semibold">
+          <IconMoodDollar />
+        </h5>
         {(
           Object.entries(commercialActivities).filter(
             ([, value]) => value !== 0,

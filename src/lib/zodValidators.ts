@@ -1,9 +1,7 @@
 import {
   Activity,
   AgeGroup,
-  CategoryTypes,
   Gender,
-  LocationTypes,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -50,11 +48,11 @@ const categorySchema = z.object({
 
 const questionSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  notes: z.string().trim().min(1).max(255).optional().nullable(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-  responseCharLimit: z.coerce.number().int().finite().nonnegative().optional(),
   minValue: z.coerce.number().finite().optional(),
   maxValue: z.coerce.number().finite().optional(),
   optionType: z.nativeEnum(OptionTypes).optional(),
@@ -138,28 +136,28 @@ export type { categoryType, formType, questionType };
 const locationSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
+    popularName: z.string().trim().nullish(),
     firstStreet: z.string().trim().min(1).max(255),
-    secondStreet: z.string().trim().min(1).max(255),
-    isPark: z.boolean().optional(),
-    notes: z.string().trim().min(1).optional(),
-    creationYear: z.coerce.date().optional(),
-    lastMaintenanceYear: z.coerce.date().optional(),
-    overseeingMayor: z.string().trim().min(1).max(255).optional(),
-    legislation: z.string().trim().min(1).max(255).optional(),
-    usableArea: z.coerce.number().finite().nonnegative().optional(),
-    legalArea: z.coerce.number().finite().nonnegative().optional(),
-    incline: z.coerce.number().finite().nonnegative().optional(),
-    inactiveNotFound: z.boolean().optional(),
-    polygonArea: z.coerce.number().finite().nonnegative().optional(),
-
-    type: z.nativeEnum(LocationTypes).optional(),
-    category: z.nativeEnum(CategoryTypes).optional(),
+    secondStreet: z.string().trim().min(1).max(255).nullish(),
+    isPark: z.boolean(),
+    notes: z.string().trim().min(1).nullish(),
+    creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
+    lastMaintenanceYear: z.coerce
+      .number()
+      .int()
+      .finite()
+      .nonnegative()
+      .nullish(),
+    overseeingMayor: z.string().trim().min(1).max(255).nullish(),
+    legislation: z.string().trim().min(1).max(255).nullish(),
+    usableArea: z.coerce.number().finite().nonnegative().nullish(),
+    legalArea: z.coerce.number().finite().nonnegative().nullish(),
+    incline: z.coerce.number().finite().nonnegative().nullish(),
+    inactiveNotFound: z.boolean(),
+    polygonArea: z.coerce.number().finite().nonnegative().nullish(),
   })
   .refine((value) => {
-    if (
-      value.creationYear !== undefined &&
-      value.lastMaintenanceYear !== undefined
-    )
+    if (value.creationYear && value.lastMaintenanceYear)
       return value.lastMaintenanceYear >= value.creationYear;
     return true;
   });
@@ -167,6 +165,36 @@ const locationSchema = z
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
 });
+
+const BrazilianStatesEnum = z.enum([
+  "Acre",
+  "Alagoas",
+  "Amapá",
+  "Amazonas",
+  "Bahia",
+  "Ceará",
+  "Distrito Federal",
+  "Espirito Santo",
+  "Goiás",
+  "Maranhão",
+  "Mato Grosso",
+  "Mato Grosso do Sul",
+  "Minas Gerais",
+  "Pará",
+  "Paraíba",
+  "Parná",
+  "Pernambuco",
+  "Piauí",
+  "Rio de Janeiro",
+  "Rio Grande do Norte",
+  "Rio Grande do Sul",
+  "Rondônia",
+  "Roraima",
+  "Santa Catarina",
+  "São Paulo",
+  "Sergipe",
+  "Tocantins",
+]);
 
 const administrativeUnitsSchema = z.object({
   narrowAdministrativeUnit: z.string().trim().min(1).max(255).optional(),
@@ -177,8 +205,14 @@ const administrativeUnitsSchema = z.object({
 type locationType = z.infer<typeof locationSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
+type BrazilianStatesEnum = z.infer<typeof BrazilianStatesEnum>;
 
-export { administrativeUnitsSchema, citySchema, locationSchema };
+export {
+  administrativeUnitsSchema,
+  citySchema,
+  locationSchema,
+  BrazilianStatesEnum,
+};
 export type { administrativeUnitsType, cityType, locationType };
 // #endregion
 

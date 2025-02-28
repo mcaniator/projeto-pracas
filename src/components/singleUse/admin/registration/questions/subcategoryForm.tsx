@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { Select } from "@/components/ui/select";
 import { subcategorySubmit } from "@/serverActions/categorySubmit";
 import { useActionState } from "react";
+
+import { Input } from "../../../../ui/input";
 
 const SubcategoryForm = ({
   availableCategories,

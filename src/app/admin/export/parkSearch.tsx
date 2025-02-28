@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { Input } from "@/components/input";
 import { search } from "@/lib/search";
 import { IconCirclePlus } from "@tabler/icons-react";
 import Fuse, { FuseResult } from "fuse.js";
 import { useState } from "react";
 import React from "react";
 
+import { Input } from "../../../components/ui/input";
 import { SelectedLocationObj } from "./client";
 
 const LocationComponent = ({
@@ -26,6 +26,7 @@ const LocationComponent = ({
     >
       {name}
       <Button
+        className="text-black"
         onPress={() => {
           handleSelectedLocationsAddition({
             id,
@@ -91,8 +92,8 @@ const ParkSearch = ({
           name="name"
           id={"name"}
           autoComplete={"none"}
-          onChange={(value) => {
-            setHay(search(value, location, fuseHaystack));
+          onChange={(e) => {
+            setHay(search(e.target.value, location, fuseHaystack));
           }}
         />
       </div>

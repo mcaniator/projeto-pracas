@@ -172,7 +172,7 @@ const addResponses = async (
     }
   } catch (e) {
     return {
-      statusCode: 2,
+      statusCode: 500,
     };
   }
   //GEOMETRIES
@@ -198,24 +198,30 @@ const addResponses = async (
         }
       })
       .join(", ");
-
-    if (wktGeometries.length !== 0) {
-      const geoText = `GEOMETRYCOLLECTION(${wktGeometries})`;
-      await prisma.$executeRaw`
-  INSERT INTO question_geometry (assessment_id, question_id, geometry)
-  VALUES (${assessmentId}, ${questionId}, ST_GeomFromText(${geoText}, 4326))
-  ON CONFLICT (assessment_id, question_id)
-  DO UPDATE SET geometry = ST_GeomFromText(${geoText}, 4326)
-`;
-    } else {
-      await prisma.$executeRaw`
-  INSERT INTO question_geometry (assessment_id, question_id, geometry)
-  VALUES (${assessmentId}, ${questionId}, NULL)
-  ON CONFLICT (assessment_id, question_id)
-  DO UPDATE SET geometry = NULL
-`;
+    try {
+      if (wktGeometries.length !== 0) {
+        const geoText = `GEOMETRYCOLLECTION(${wktGeometries})`;
+        await prisma.$executeRaw`
+      INSERT INTO question_geometry (assessment_id, question_id, geometry)
+      VALUES (${assessmentId}, ${questionId}, ST_GeomFromText(${geoText}, 4326))
+      ON CONFLICT (assessment_id, question_id)
+      DO UPDATE SET geometry = ST_GeomFromText(${geoText}, 4326)
+    `;
+      } else {
+        await prisma.$executeRaw`
+      INSERT INTO question_geometry (assessment_id, question_id, geometry)
+      VALUES (${assessmentId}, ${questionId}, NULL)
+      ON CONFLICT (assessment_id, question_id)
+      DO UPDATE SET geometry = NULL
+    `;
+      }
+    } catch (e) {
+      return { statusCode: 500 };
     }
   }
+  return {
+    statusCode: 200,
+  };
 };
 
 const searchResponsesByQuestionId = async (questionId: number) => {

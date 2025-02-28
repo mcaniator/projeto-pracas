@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { fetchCities } from "@/serverActions/cityUtil";
 import { fetchPolygons } from "@/serverActions/managePolygons";
 import { Location } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import dynamic from "next/dynamic";
 
+import { fetchLocationCategories } from "../../../serverActions/locationCategoryUtil";
+import { fetchLocationTypes } from "../../../serverActions/locationTypeUtil";
 import PolygonProvider from "./polygonProvider";
 
 const MapProvider = dynamic(() => import("./mapProvider"), { ssr: false });
@@ -15,7 +18,9 @@ interface fullLocation extends Location {
 
 const Page = async () => {
   const polygons = await fetchPolygons();
-
+  const cities = await fetchCities();
+  const locationCategories = await fetchLocationCategories();
+  const locationTypes = await fetchLocationTypes();
   const locationsCache = unstable_cache(
     async () => await prisma.location.findMany(),
     ["location"],
@@ -41,7 +46,12 @@ const Page = async () => {
   return (
     <MapProvider>
       <PolygonProvider polygons={polygons} locations={locations}>
-        <Client locations={fullLocations} />
+        <Client
+          locations={fullLocations}
+          cities={cities}
+          locationCategories={locationCategories}
+          locationTypes={locationTypes}
+        />
       </PolygonProvider>
     </MapProvider>
   );

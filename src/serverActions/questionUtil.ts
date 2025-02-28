@@ -1,9 +1,10 @@
 "use server";
 
-import { DisplayQuestion } from "@/app/admin/forms/[formId]/edit/client";
 import { prisma } from "@/lib/prisma";
 import { Option } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
+
+import { DisplayQuestion } from "../app/admin/registration/forms/[formId]/edit/client";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -20,16 +21,64 @@ interface QuestionSearchedByStatement {
   } | null;
 }
 
-const handleDelete = async (questionId: number) => {
+const deleteQuestion = async (
+  prevState: {
+    statusCode: number;
+    content: {
+      formsWithQuestion: {
+        id: number;
+        name: string;
+        version: number;
+      }[];
+      questionName: string | null;
+    } | null;
+  } | null,
+  formData: FormData,
+): Promise<{
+  statusCode: number;
+  content: {
+    formsWithQuestion: { name: string; id: number; version: number }[];
+    questionName: string | null;
+  } | null;
+}> => {
+  const questionId = parseInt(formData.get("questionId") as string);
   try {
-    await prisma.question.delete({
+    const formsWithQuestion = await prisma.form.findMany({
+      where: {
+        questions: {
+          some: {
+            id: questionId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        version: true,
+      },
+    });
+    if (formsWithQuestion.length > 0) {
+      return {
+        statusCode: 409,
+        content: { formsWithQuestion: formsWithQuestion, questionName: null },
+      };
+    }
+  } catch (e) {
+    return { statusCode: 500, content: null };
+  }
+  try {
+    const deletedQuestion = await prisma.question.delete({
       where: {
         id: questionId,
       },
     });
     revalidateTag("question");
+    return {
+      statusCode: 200,
+      content: { formsWithQuestion: [], questionName: deletedQuestion.name },
+    };
   } catch (err) {
-    // console.error(`Erro ao excluir o local: ${parkID}`, err);
+    return { statusCode: 500, content: null };
   }
 };
 
@@ -82,6 +131,10 @@ const searchQuestionsByStatement = async (statement: string) => {
             id: true,
             name: true,
             characterType: true,
+            notes: true,
+            type: true,
+            options: true,
+            optionType: true,
             category: {
               select: {
                 id: true,
@@ -113,11 +166,13 @@ const searchQuestionsByStatement = async (statement: string) => {
 const searchQuestionsByCategoryAndSubcategory = async (
   categoryId: number | undefined,
   subcategoryId: number | undefined,
+  verifySubcategoryNullness: boolean,
 ) => {
   const cachedQuestions = unstable_cache(
     async (
       categoryId: number | undefined,
       subcategoryId: number | undefined,
+      verifySubcategoryNullness: boolean,
     ): Promise<DisplayQuestion[]> => {
       let foundQuestions: DisplayQuestion[] = [];
       if (!categoryId) return [];
@@ -125,12 +180,21 @@ const searchQuestionsByCategoryAndSubcategory = async (
         foundQuestions = await prisma.question.findMany({
           where: {
             categoryId,
-            subcategoryId: subcategoryId ? subcategoryId : null,
+            ...(verifySubcategoryNullness && !subcategoryId ?
+              {
+                subcategoryId: null,
+              }
+            : !subcategoryId ? {}
+            : { subcategoryId }),
           },
           select: {
             id: true,
             name: true,
+            type: true,
+            notes: true,
             characterType: true,
+            optionType: true,
+            options: true,
             category: {
               select: {
                 id: true,
@@ -145,6 +209,9 @@ const searchQuestionsByCategoryAndSubcategory = async (
               },
             },
           },
+          orderBy: {
+            name: "desc",
+          },
         });
       } catch (err) {
         // console.error(err);
@@ -155,7 +222,11 @@ const searchQuestionsByCategoryAndSubcategory = async (
     ["searchQuestionsByStatementCache"],
     { tags: ["question"] },
   );
-  const questions = await cachedQuestions(categoryId, subcategoryId);
+  const questions = await cachedQuestions(
+    categoryId,
+    subcategoryId,
+    verifySubcategoryNullness,
+  );
   questions.sort((a, b) => {
     if (a.name < b.name) return -1;
     if (a.name > b.name) return 1;
@@ -181,7 +252,7 @@ const searchOptionsByQuestionId = async (
 };
 
 export {
-  handleDelete,
+  deleteQuestion,
   searchQuestionsByStatement,
   searchOptionsByQuestionId,
   searchQuestionsByCategoryAndSubcategory,

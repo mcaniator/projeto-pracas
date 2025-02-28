@@ -1,62 +1,30 @@
-import { fetchForms, fetchFormsLatest } from "@/serverActions/formUtil";
+import { fetchForms } from "@/serverActions/formUtil";
 import "@/serverActions/locationUtil";
 import { Form, Location } from "@prisma/client";
+import Link from "next/link";
 
-import { FormSelectorClient } from "./formSelectorClient";
-
-const FormSelector = async ({
-  location,
-  action,
-}: {
-  location: Location;
-  action?: string;
-}) => {
-  const latestforms: Form[] = await fetchFormsLatest();
+const FormSelector = async ({ location }: { location: Location }) => {
   const allForms: Form[] = await fetchForms();
 
-  if (action === "evaluation") {
-    return (
-      <div>
-        <div>Escolha o formulário para avaliar</div>
-        {latestforms.length > 0 ?
-          <div className="w-full">
-            {latestforms.map((form) => (
-              <FormSelectorClient
-                key={form.id}
-                selectedFormId={form.id}
-                name={form.name}
-                locationId={location.id}
-                action={action}
-              />
-            ))}
-            {/* <div>O valor de action em FormSelectorClient é: {action}</div> */}
-          </div>
-        : <div className="text-redwood">
-            Ainda não há perguntas no formulário
-          </div>
-        }
-      </div>
-    );
-  }
   return (
-    <div>
-      <div>Escolha o formulário para ver as respostas</div>
+    <div className="flex h-full flex-col overflow-auto rounded-lg bg-gray-300/30">
+      <h2 className="mb-1 p-2 text-2xl font-bold">
+        Escolha o formulário para ver as respostas
+      </h2>
+
       {allForms.length > 0 ?
-        <div className="w-full">
-          {allForms.map((form) => (
-            <FormSelectorClient
+        <div className="flex h-full w-full flex-col overflow-auto rounded-lg">
+          {allForms.map((form, index) => (
+            <Link
               key={form.id}
-              selectedFormId={form.id}
-              name={form.name}
-              locationId={location.id}
-              action={action}
-              version={form.version}
-            />
+              className={`p-2 ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} text-xl hover:bg-transparent/10 hover:underline`}
+              href={`/admin/parks/${location.id}/responses/${form.id}`}
+            >
+              {form.name} Versão {form.version}
+            </Link>
           ))}
-          {/* <div>O valor de action em FormSelectorClient é: {action}</div> */}
         </div>
-      : <div className="text-redwood">Ainda não há perguntas no formulário</div>
-      }
+      : <div className="text-redwood">Ainda não há formulários!</div>}
     </div>
   );
 };

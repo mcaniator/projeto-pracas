@@ -76,7 +76,7 @@ const TallyList = ({
   tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   return tallys === undefined ?
       <h3>Nenhuma contagem para este local!</h3>
-    : <div className="w-full overflow-auto p-2 text-black">
+    : <div className="w-full p-2 text-black">
         {tallys.map((tally) => {
           const checked = selectedTallys?.includes(tally.id);
           return (

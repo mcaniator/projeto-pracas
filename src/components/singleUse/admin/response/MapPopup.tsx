@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconX } from "@tabler/icons-react";
+import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
@@ -20,11 +20,13 @@ const MapPopup = ({
   questionId,
   initialGeometries,
   geometryType,
+  questionName,
   handleQuestionGeometryChange,
 }: {
   questionId: number;
   initialGeometries: ModalGeometry[] | undefined;
   geometryType: ResponseGeometry;
+  questionName: string;
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ModalGeometry[],
@@ -83,7 +85,7 @@ const MapPopup = ({
                   <div className="flex">
                     <h4 className="text-2xl">{`Mapa`}</h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -93,10 +95,11 @@ const MapPopup = ({
                       <IconX />
                     </Button>
                   </div>
+                  <h5 className="text-xl">{questionName}</h5>
                   {geometryType === "POINT" && <div>Ponto</div>}
                   {geometryType === "POLYGON" && <div>Polígono</div>}
                   {geometryType === "POINT_AND_POLYGON" && (
-                    <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                    <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() => setCurrentGeometryType("POINT")}
@@ -135,7 +138,7 @@ const MapPopup = ({
                         className="w-fit"
                         onPress={() => handleDeleteGeometry()}
                       >
-                        Excluir geometria selecionada
+                        <IconTrash />
                       </Button>
                     )}
                     {!isInSelectMode && <div></div>}
@@ -148,7 +151,7 @@ const MapPopup = ({
                         close();
                       }}
                     >
-                      Concluir
+                      <IconCheck />
                     </Button>
                   </span>
                 </div>

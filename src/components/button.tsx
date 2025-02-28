@@ -6,15 +6,15 @@ import { AriaButtonProps } from "react-aria";
 import { Button as ButtonPrimitive } from "react-aria-components";
 
 const buttonVariants = cva(
-  "group inline-flex items-center justify-center rounded-lg text-lg font-medium shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
+  "group inline-flex items-center justify-center rounded-lg text-lg font-medium text-white shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
   {
     variants: {
       variant: {
         default:
-          "bg-true-blue bg-blend-darken data-[hovered]:bg-indigo-dye disabled:bg-indigo-dye",
+          "bg-sky-500/70 bg-blend-darken data-[hovered]:bg-sky-900 disabled:bg-sky-900",
         admin: "bg-purpureus data-[hovered]:bg-eminence disabled:bg-eminence",
         constructive:
-          "bg-emerald data-[hovered]:bg-sea-green disabled:bg-sea-green",
+          "bg-green-500/90 data-[hovered]:bg-green-700/90 disabled:bg-green-700/90",
         destructive:
           "bg-redwood data-[hovered]:bg-cordovan disabled:bg-cordovan",
         outline:

@@ -6,14 +6,12 @@ import {
   fetchAssessmentGeometries,
 } from "@/serverActions/assessmentUtil";
 import { QuestionTypes } from "@prisma/client";
-import {
-  IconCaretDownFilled,
-  IconCaretUpFilled,
-  IconCircleFilled,
-} from "@tabler/icons-react";
+import { IconCaretDownFilled, IconCaretUpFilled } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { Checkbox } from "../../../../../../../components/ui/checkbox";
+import { RadioButton } from "../../../../../../../components/ui/radioButton";
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { MapPopup } from "./MapPopup";
 import { FrequencyObjByCategory } from "./frequencyTable";
@@ -169,15 +167,12 @@ const AssessmentComponent = ({
         }
       }
     });
-    let percentagesStr = "";
-    responsesByQuestion.forEach(
-      (value, key) =>
-        (percentagesStr +=
-          `${key}: ` +
-          `${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%` +
-          ", "),
-    );
-    return percentagesStr;
+    return Array.from(responsesByQuestion).map(([key, value]) => (
+      <p key={key}>
+        {`${key}: 
+          ${!Number.isNaN(value / sum) ? ((value / sum) * 100).toFixed(2) : "0"}%`}
+      </p>
+    ));
   };
   const [expanded, setExpanded] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
@@ -223,6 +218,7 @@ const AssessmentComponent = ({
               id: question.id,
               questionName: question.name,
               type: question.type,
+              optionType: question.optionType,
               responses: [],
             });
           }
@@ -293,6 +289,7 @@ const AssessmentComponent = ({
             id: question.id,
             questionName: question.name,
             type: question.type,
+            optionType: question.optionType,
             responses: [],
           });
         }
@@ -370,7 +367,7 @@ const AssessmentComponent = ({
   });
 
   return (
-    <div className="mb-2 flex flex-col rounded bg-gray-400/30 p-2 shadow-inner">
+    <div className="mb-2 flex flex-col rounded bg-gray-600/30 p-2 shadow-inner">
       <div className="flex items-center justify-between">
         <span>
           {assessment.startDate.toLocaleString("pt-BR", {
@@ -399,7 +396,7 @@ const AssessmentComponent = ({
                 </span>
                 {category.questions.map((question) => {
                   return (
-                    <div key={question.id} className="flex flex-col">
+                    <div key={question.id} className="my-4 flex flex-col">
                       <span className="font-bold">{question.questionName}</span>
 
                       {question.responses.length === 0 ?
@@ -407,16 +404,21 @@ const AssessmentComponent = ({
                       : question.responses.map((response) => {
                           return (
                             <div
-                              className="flex"
+                              className="flex gap-1"
                               key={`${question.id}-${response.text}`}
                             >
+                              {question.type === "OPTIONS" &&
+                                (question.optionType === "RADIO" ?
+                                  <RadioButton
+                                    disabled
+                                    checked={response.frequency !== 0}
+                                  />
+                                : <Checkbox
+                                    disabled
+                                    checked={response.frequency !== 0}
+                                  />)}
+
                               <span>{response.text}</span>
-                              <span className="font-bold text-blue-500">
-                                {question.type === "OPTIONS" &&
-                                  response.frequency !== 0 && (
-                                    <IconCircleFilled />
-                                  )}
-                              </span>
                             </div>
                           );
                         })
@@ -459,7 +461,7 @@ const AssessmentComponent = ({
 
                       {subcategory.questions.map((question) => {
                         return (
-                          <div key={question.id} className="flex flex-col">
+                          <div key={question.id} className="my-4 flex flex-col">
                             <span className="font-bold">
                               {question.questionName}
                             </span>
@@ -469,16 +471,21 @@ const AssessmentComponent = ({
                             : question.responses.map((response) => {
                                 return (
                                   <div
-                                    className="flex"
+                                    className="flex gap-1"
                                     key={`${question.id}-${response.text}`}
                                   >
+                                    {question.type === "OPTIONS" &&
+                                      (question.optionType === "RADIO" ?
+                                        <RadioButton
+                                          disabled
+                                          checked={response.frequency !== 0}
+                                        />
+                                      : <Checkbox
+                                          disabled
+                                          checked={response.frequency !== 0}
+                                        />)}
+
                                     <span>{response.text}</span>
-                                    <span className="font-bold text-blue-500">
-                                      {question.type === "OPTIONS" &&
-                                        response.frequency !== 0 && (
-                                          <IconCircleFilled />
-                                        )}
-                                    </span>
                                   </div>
                                 );
                               })
@@ -525,7 +532,7 @@ const AssessmentsWithResponsesList = ({
   assessmentsGeometries: FetchedAssessmentGeometries[];
 }) => {
   return (
-    <div className="flex h-fit basis-2/5 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+    <div className="h-full">
       <h3 className="text-2xl font-semibold">Avaliações</h3>
       {assessments.map((assessment) => (
         <AssessmentComponent

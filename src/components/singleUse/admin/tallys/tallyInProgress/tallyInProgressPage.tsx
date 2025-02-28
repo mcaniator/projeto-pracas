@@ -9,13 +9,17 @@ import { Activity } from "@prisma/client";
 import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { IconCirclePlus, IconTemperature } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import React from "react";
+import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
+import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
+import { TiWeatherPartlySunny } from "react-icons/ti";
 
-import { TallyInProgressCharts } from "./tallyInProgressCharts";
-import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
-import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
+import TallyInProgressReview from "./tallyInProgressReview";
+import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
+import TallyInProgressSaveModal from "./tallyInProgressSaveModal";
 
 interface CommercialActivitiesObject {
   [key: string]: number;
@@ -71,11 +75,13 @@ interface PersonCharacteristics {
     isPersonWithoutHousing: boolean;
   };
 }
-const weatherNameMap = new Map([
-  ["SUNNY", "Com sol"],
-  ["CLOUDY", "Nublado"],
-]);
-type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
+
+interface SubmittingObj {
+  submitting: boolean;
+  finishing: boolean;
+  deleting: boolean;
+}
+
 const TallyInProgressPage = ({
   userId,
   tallyId,
@@ -88,7 +94,7 @@ const TallyInProgressPage = ({
   tally: ongoingTallyDataFetched;
 }) => {
   if (userId !== tally.user.id) redirect("/error");
-  const [submittingObj, setSubmittingObj] = useState({
+  const [submittingObj, setSubmittingObj] = useState<SubmittingObj>({
     submitting: false,
     finishing: false,
     deleting: false,
@@ -183,8 +189,6 @@ const TallyInProgressPage = ({
         isPersonWithoutHousing: false,
       },
     });
-  const [assistBarState, setAssistBarState] =
-    useState<AssistBarStates>("TEXTUAL_DATA");
 
   const handlePersonAdd = (gender: Gender, ageGroup: AgeGroup) => {
     const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
@@ -226,19 +230,41 @@ const TallyInProgressPage = ({
     return count;
   };
   return (
-    <div className="flex max-h-full min-h-0 w-fit gap-5 p-5">
-      <div className="flex flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 text-white shadow-md">
-        <div className="flex flex-col">
-          <h3 className="text-2xl font-semibold">
-            Contagem em {tally?.location.name}
-          </h3>
+    <div className="flex h-full max-h-full min-h-0 w-full">
+      <div className="flex w-full flex-row gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+        <div className="flex w-full flex-col xl:basis-2/3">
+          <div className="flex flex-wrap">
+            <h3 className="inline text-2xl font-semibold">
+              Contagem em {tally?.location.name}
+            </h3>
+            <div className="ml-auto flex flex-wrap gap-1 xl:hidden">
+              <TallyInProgressReviewModal
+                tally={tally}
+                weatherStats={weatherStats}
+                complementaryData={complementaryData}
+                commercialActivities={commercialActivities}
+                tallyMap={tallyMap}
+              />
+              <TallyInProgressSaveModal
+                submittingObj={submittingObj}
+                tallyId={tallyId}
+                locationId={locationId}
+                weatherStats={weatherStats}
+                complementaryData={complementaryData}
+                commercialActivities={commercialActivities}
+                tallyMap={tallyMap}
+                setSubmittingObj={setSubmittingObj}
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-5 overflow-auto">
             <div className="flex flex-col gap-1">
               <h4 className="text-2xl font-semibold">Dados climáticos</h4>
-              <div className="flex flex-row gap-5">
+              <div className="flex flex-col gap-5 md:flex-row">
                 <div className="flex flex-row items-center">
                   <label htmlFor="temperature-input" className="mr-1">
-                    {"Temperatura (°C):"}
+                    <IconTemperature className="h-8 w-8" />
                   </label>
                   <Input
                     value={
@@ -260,10 +286,11 @@ const TallyInProgressPage = ({
                     className="w-14"
                     type="number"
                   ></Input>
+                  <span className="ml-1">°C</span>
                 </div>
                 <div className="flex flex-grow flex-row items-center">
                   <label htmlFor="weatherSelect" className="mr-1">
-                    Tempo:
+                    <TiWeatherPartlySunny className="h-8 w-8" />
                   </label>
                   <Select
                     value={weatherStats.weather}
@@ -284,10 +311,11 @@ const TallyInProgressPage = ({
             <div className="flex flex-col">
               <h4 className="text-2xl font-semibold">Pessoas</h4>
               <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 rounded-md bg-blue-800/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Homens</h5>
-                  <div>
-                    <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+
+                  <div className="flex w-full items-center justify-center">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -296,9 +324,9 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl px-4 py-6 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Sedentário
+                        <BsPersonStanding size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -308,9 +336,9 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Caminhando
+                        <FaPersonWalking size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -320,14 +348,14 @@ const TallyInProgressPage = ({
                             MALE: { ...prev.MALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Vigoroso
+                        <FaPersonRunning size={32} />
                       </Button>
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-2 py-1">
+                  <div className="flex flex-wrap justify-center gap-2 py-1">
                     <Checkbox
                       onChange={(e) =>
                         setPersonCharacteristics((prev) => ({
@@ -385,7 +413,7 @@ const TallyInProgressPage = ({
                       Situação de rua
                     </Checkbox>
                   </div>
-                  <div className="flex flex-row gap-5">
+                  <div className="flex flex-wrap justify-center gap-5">
                     <div className="flex flex-col items-center">
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
@@ -525,10 +553,10 @@ const TallyInProgressPage = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 rounded-md bg-red-900/50 px-1 py-2">
                   <h5 className="text-xl font-semibold">Mulheres</h5>
-                  <div>
-                    <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
+                  <div className="flex w-full items-center justify-center">
+                    <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
                       <Button
                         variant={"ghost"}
                         onPress={() =>
@@ -537,9 +565,9 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "SEDENTARY" },
                           }))
                         }
-                        className={`rounded-xl px-4 py-1 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl px-4 py-6 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Sedentária
+                        <BsPersonStandingDress size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -549,9 +577,9 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "WALKING" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Caminhando
+                        <FaPersonWalking size={32} />
                       </Button>
                       <Button
                         variant={"ghost"}
@@ -561,14 +589,14 @@ const TallyInProgressPage = ({
                             FEMALE: { ...prev.FEMALE, activity: "STRENUOUS" },
                           }))
                         }
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Vigorosa
+                        <FaPersonRunning size={32} />
                       </Button>
                     </div>
                   </div>
 
-                  <div className="flex flex-row gap-2 py-1">
+                  <div className="flex flex-wrap justify-center gap-2 py-1">
                     <Checkbox
                       onChange={(e) =>
                         setPersonCharacteristics((prev) => ({
@@ -626,7 +654,7 @@ const TallyInProgressPage = ({
                       Situação de rua
                     </Checkbox>
                   </div>
-                  <div className="flex flex-row gap-5">
+                  <div className="flex flex-wrap justify-center gap-5">
                     <div className="flex flex-col items-center">
                       <h6 className="text-xl font-semibold">Criança</h6>
                       <div className="flex flex-row items-center gap-1">
@@ -773,7 +801,7 @@ const TallyInProgressPage = ({
             <div className="flex flex-col">
               <h4 className="text-2xl font-semibold">Dados complementares</h4>
               <div className="flex flex-col gap-5">
-                <div className="flex flex-row gap-5">
+                <div className="flex flex-wrap justify-center gap-5">
                   <div className="flex flex-col items-center">
                     <h6 className="text-xl font-semibold">Pets</h6>
                     <div className="flex flex-row items-center gap-1">
@@ -845,7 +873,7 @@ const TallyInProgressPage = ({
                   <h4 className="text-xl font-semibold">
                     Atividades comerciais itinerantes
                   </h4>
-                  <div className="flex flex-row items-center gap-3">
+                  <div className="flex flex-row items-center justify-center gap-3">
                     <div>
                       <Select
                         onChange={(e) =>
@@ -864,73 +892,79 @@ const TallyInProgressPage = ({
                         </option>
                       </Select>
                     </div>
-                    <div
-                      className="flex flex-row items-center"
-                      style={{
-                        opacity:
-                          (
-                            selectedCommercialActivity !==
+                    {selectedCommercialActivity !==
+                      "createNewCommercialActivity" && (
+                      <div
+                        className="flex flex-row items-center"
+                        style={{
+                          opacity:
+                            (
+                              selectedCommercialActivity !==
+                              "createNewCommercialActivity"
+                            ) ?
+                              1
+                            : 0,
+                        }}
+                      >
+                        <Button
+                          variant={"admin"}
+                          className="h-8 w-8 text-3xl"
+                          isDisabled={
+                            selectedCommercialActivity ===
                             "createNewCommercialActivity"
-                          ) ?
-                            1
-                          : 0,
-                      }}
-                    >
-                      <Button
-                        variant={"admin"}
-                        className="h-8 w-8 text-3xl"
-                        isDisabled={
-                          selectedCommercialActivity ===
-                          "createNewCommercialActivity"
-                        }
-                        onPress={() => {
-                          const key = selectedCommercialActivity;
-                          if (key === "createNewCommercialActivity") return;
-                          setCommercialActivities((prev) => {
-                            const newObject = { ...prev };
-                            if (newObject[selectedCommercialActivity]) {
-                              newObject[selectedCommercialActivity] -= 1;
-                            }
-                            return newObject;
-                          });
-                        }}
-                      >
-                        -
-                      </Button>
-                      <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {commercialActivities[selectedCommercialActivity] ?
-                          commercialActivities[selectedCommercialActivity]
-                        : 0}
-                      </p>
-                      <Button
-                        variant={"admin"}
-                        className="h-8 w-8 text-3xl"
-                        isDisabled={
-                          selectedCommercialActivity ===
-                          "createNewCommercialActivity"
-                        }
-                        onPress={() => {
-                          const key = selectedCommercialActivity;
-                          if (key === "createNewCommercialActivity") return;
-                          setCommercialActivities((prev) => {
-                            const newObject = { ...prev };
-                            if (newObject[selectedCommercialActivity]) {
-                              newObject[selectedCommercialActivity] += 1;
-                            } else {
-                              newObject[selectedCommercialActivity] = 1;
-                            }
-                            return newObject;
-                          });
-                        }}
-                      >
-                        +
-                      </Button>
-                    </div>
+                          }
+                          onPress={() => {
+                            const key = selectedCommercialActivity;
+                            if (key === "createNewCommercialActivity") return;
+                            setCommercialActivities((prev) => {
+                              const newObject = { ...prev };
+                              if (newObject[selectedCommercialActivity]) {
+                                newObject[selectedCommercialActivity] -= 1;
+                              }
+                              return newObject;
+                            });
+                          }}
+                        >
+                          -
+                        </Button>
+                        <p
+                          style={{ minWidth: "1.8rem" }}
+                          className="text-center"
+                        >
+                          {commercialActivities[selectedCommercialActivity] ?
+                            commercialActivities[selectedCommercialActivity]
+                          : 0}
+                        </p>
+                        <Button
+                          variant={"admin"}
+                          className="h-8 w-8 text-3xl"
+                          isDisabled={
+                            selectedCommercialActivity ===
+                            "createNewCommercialActivity"
+                          }
+                          onPress={() => {
+                            const key = selectedCommercialActivity;
+                            if (key === "createNewCommercialActivity") return;
+                            setCommercialActivities((prev) => {
+                              const newObject = { ...prev };
+                              if (newObject[selectedCommercialActivity]) {
+                                newObject[selectedCommercialActivity] += 1;
+                              } else {
+                                newObject[selectedCommercialActivity] = 1;
+                              }
+                              return newObject;
+                            });
+                          }}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {(
                     selectedCommercialActivity === "createNewCommercialActivity"
                   ) ?
-                    <React.Fragment>
+                    <>
                       <p>Nova atividade comercial itinerante: </p>
                       <form
                         action={(formdata: FormData) => {
@@ -952,92 +986,53 @@ const TallyInProgressPage = ({
                               { value: activity, label: activity },
                             ]);
                         }}
-                        className="flex flex-row items-center gap-1"
+                        className="flex flex-row items-center justify-center gap-1"
                       >
-                        <Input
-                          name="activity"
-                          placeholder="Descrição da atividade itinerante"
-                          onChange={(e) =>
-                            setNewCommercialActivityInput(
-                              e.target.value.trim().charAt(0).toUpperCase() +
-                                e.target.value.trim().slice(1),
+                        <div className="flex max-w-full items-center gap-1">
+                          <Input
+                            name="activity"
+                            placeholder="Descrição da atividade itinerante"
+                            className="max-w-[60vw]"
+                            onChange={(e) =>
+                              setNewCommercialActivityInput(
+                                e.target.value.trim().charAt(0).toUpperCase() +
+                                  e.target.value.trim().slice(1),
+                              )
+                            }
+                          />
+                          {(
+                            commercialActivitiesOptions.some(
+                              (option) =>
+                                option.value ===
+                                deferredNewCommercialActivityInput.trim(),
                             )
+                          ) ?
+                            <p>Adicionado!</p>
+                          : <Button className="px-2" type="submit">
+                              <IconCirclePlus />
+                            </Button>
                           }
-                        />
-                        {(
-                          commercialActivitiesOptions.some(
-                            (option) =>
-                              option.value ===
-                              deferredNewCommercialActivityInput.trim(),
-                          )
-                        ) ?
-                          <p>Adicionado!</p>
-                        : <Button type="submit">Adicionar</Button>}
+                        </div>
                       </form>
-                    </React.Fragment>
+                    </>
                   : ""}
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-400/20 p-3 text-white shadow-inner">
-          <h4 className="text-xl font-semibold">Acompanhamento</h4>
-          <div>
-            <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 text-white shadow-inner">
-              <Button
-                isDisabled={submittingObj.submitting}
-                variant={"ghost"}
-                onPress={() => setAssistBarState("TEXTUAL_DATA")}
-                className={`rounded-xl px-4 py-1 ${assistBarState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-              >
-                Dados textuais
-              </Button>
-              <Button
-                isDisabled={submittingObj.submitting}
-                variant={"ghost"}
-                onPress={() => setAssistBarState("CHARTS")}
-                className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-              >
-                Gráficos
-              </Button>
-              <Button
-                isDisabled={submittingObj.submitting}
-                variant={"ghost"}
-                onPress={() => setAssistBarState("SAVE_DELETE")}
-                className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "SAVE_DELETE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-              >
-                Salvar/Excluir
-              </Button>
-            </div>
-          </div>
-          {assistBarState === "TEXTUAL_DATA" && (
-            <TallyInProgressTextualData
-              tally={tally}
-              temperature={weatherStats.temperature}
-              weather={
-                weatherNameMap.get(weatherStats.weather) as WeatherConditions
-              }
-              complementaryData={complementaryData}
-              commercialActivities={commercialActivities}
-            />
-          )}
-          {assistBarState === "CHARTS" && (
-            <TallyInProgressCharts tallyMap={tallyMap} />
-          )}
-          {assistBarState === "SAVE_DELETE" && (
-            <TallyInProgressDatabaseOptions
-              tallyId={tallyId}
-              locationId={locationId}
-              tallyMap={tallyMap}
-              weatherStats={weatherStats}
-              commercialActivities={commercialActivities}
-              complementaryData={complementaryData}
-              submittingObj={submittingObj}
-              setSubmittingObj={setSubmittingObj}
-            />
-          )}
+        <div className="hidden min-w-[525px] basis-1/3 rounded-3xl bg-gray-400/20 shadow-inner xl:block">
+          <TallyInProgressReview
+            submittingObj={submittingObj}
+            tallyId={tallyId}
+            locationId={locationId}
+            tally={tally}
+            weatherStats={weatherStats}
+            complementaryData={complementaryData}
+            commercialActivities={commercialActivities}
+            tallyMap={tallyMap}
+            setSubmittingObj={setSubmittingObj}
+          />
         </div>
       </div>
     </div>
@@ -1045,3 +1040,9 @@ const TallyInProgressPage = ({
 };
 
 export { TallyInProgressPage };
+export {
+  type WeatherStats,
+  type CommercialActivitiesObject,
+  type ongoingTallyDataFetched,
+  type SubmittingObj,
+};

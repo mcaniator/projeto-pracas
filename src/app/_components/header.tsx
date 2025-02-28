@@ -15,27 +15,31 @@ import {
   IconPencil,
   IconSettings,
   IconTree,
+  IconUser,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import { User } from "lucia";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
+import { useActionState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
-import { useFormState } from "react-dom";
 
-const headerVariants = cva("flex w-full px-7 py-5 text-white transition-all", {
-  variants: {
-    variant: {
-      default:
-        "fixed z-20 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
-      fixed: "fixed top-0",
-      static: "static",
+const headerVariants = cva(
+  "flex w-full pl-14 pr-7 text-white transition-all md:py-1",
+  {
+    variants: {
+      variant: {
+        default:
+          "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+        fixed: "fixed top-0",
+        static: "static",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
     },
   },
-  defaultVariants: {
-    variant: "default",
-  },
-});
+);
 
 interface headerProps
   extends HTMLAttributes<HTMLElement>,
@@ -58,10 +62,10 @@ const Header = forwardRef<HTMLElement, headerProps>(
             type={"button"}
             variant={"ghost"}
             use={"link"}
-            className="px-3 py-6 pl-1"
+            className="px-3 py-6"
           >
             <IconTree size={34} />
-            <span className="text-2xl sm:text-3xl">Projeto Praças</span>
+            <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
 
@@ -72,8 +76,10 @@ const Header = forwardRef<HTMLElement, headerProps>(
           >
             {user !== null && user !== undefined ?
               <div className="flex items-center gap-2">
-                <span className="text-2xl sm:text-3xl">{user.username}</span>
-                <span className="h-8 w-8 rounded-lg bg-off-white" />
+                <span className="hidden text-xl md:inline">
+                  {user.username}
+                </span>
+                <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
               </div>
             : <div className={"flex"}>
                 <IconLogin size={34} />
@@ -104,7 +110,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
 Header.displayName = "Header";
 
 const UserInfo = ({ user }: { user: User }) => {
-  const [, formAction] = useFormState(signout, { statusCode: -1 });
+  const [, formAction] = useActionState(signout, { statusCode: -1 });
   const [highContrast, setHighContrat] = useState(false);
 
   return (
@@ -126,8 +132,13 @@ const UserInfo = ({ user }: { user: User }) => {
       </div>
       <div className="my-3 flex gap-4">
         <Link href={"/admin"} className="basis-1/2">
-          <Button type={"button"} className="w-full text-white" use={"link"}>
-            <span className="-mb-1">Painel Admin</span>
+          <Button
+            type={"button"}
+            className="w-full text-white"
+            use={"link"}
+            onPress={() => (window.location.href = "/admin")}
+          >
+            <span className="-mb-1">Painel</span>
           </Button>
         </Link>
         <Button
@@ -137,7 +148,7 @@ const UserInfo = ({ user }: { user: User }) => {
             void revalidateAllCache();
           }}
         >
-          <span className="-mb-1">Resetar cache</span>
+          <span className="-mb-1">Log out</span>
         </Button>
       </div>
       <div className="flex w-full items-center">

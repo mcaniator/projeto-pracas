@@ -1,75 +1,60 @@
-"use client";
+"use server";
 
-import { Button } from "@/components/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { RadioButton } from "@/components/ui/radioButton";
+import {
+  IconFountain,
+  IconListCheck,
+  IconLogs,
+  IconMap,
+  IconTableExport,
+} from "@tabler/icons-react";
+import Link from "next/link";
 
 const AdminRoot = () => {
   return (
-    <div className={"m-5 flex w-[500px] flex-col gap-5 text-white"}>
-      <div className={"flex gap-4 text-white"}>
-        <Checkbox variant={"default"} defaultChecked>
-          teste 1
-        </Checkbox>
-        <Checkbox variant={"admin"} defaultChecked>
-          teste 2
-        </Checkbox>
-        <Checkbox variant={"constructive"} defaultChecked>
-          teste 3
-        </Checkbox>
-        <Checkbox variant={"destructive"} defaultChecked>
-          teste 4
-        </Checkbox>
-      </div>
-      <div className={"flex gap-4 text-white"}>
-        <RadioButton variant={"default"} name={"teste"}>
-          teste 1
-        </RadioButton>
-        <RadioButton variant={"admin"} name={"teste"} defaultChecked>
-          teste 2
-        </RadioButton>
-        <RadioButton variant={"constructive"} name={"teste"}>
-          teste 3
-        </RadioButton>
-        <RadioButton variant={"destructive"} name={"teste"}>
-          teste 4
-        </RadioButton>
-      </div>
-      <div className={"flex flex-col gap-2"}>
-        <div className={"flex gap-2"}>
-          <Button type="button" variant={"default"}>
-            <span className={"-mb-1"}>teste 1</span>
-          </Button>
-          <Button type="button" variant={"admin"}>
-            <span className={"-mb-1"}>teste 2</span>
-          </Button>
-          <Button type="button" variant={"constructive"}>
-            <span className={"-mb-1"}>teste 3</span>
-          </Button>
-          <Button type="button" variant={"destructive"}>
-            <span className={"-mb-1"}>teste 4</span>
-          </Button>
-        </div>
-        <div className={"flex gap-2"}>
-          <Button type="button" variant={"default"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 1</span>
-          </Button>
-          <Button type="button" variant={"admin"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 2</span>
-          </Button>
-          <Button type="button" variant={"constructive"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 3</span>
-          </Button>
-          <Button type="button" variant={"destructive"} isDisabled={true}>
-            <span className={"-mb-1"}>teste 4</span>
-          </Button>
-        </div>
-      </div>
-      <div className={"flex flex-col gap-2"}>
-        <Input state={"neutral"} />
-        <Input state={"constructive"} />
-        <Input state={"destructive"} />
+    <div
+      className={
+        "flex h-full flex-col items-center justify-center overflow-auto text-center sm:pb-[102px]"
+      }
+    >
+      <h2 className="p-2 text-4xl font-semibold">
+        Bem vindo(a) ao Projeto praças
+      </h2>
+      <div className="flex flex-wrap justify-center gap-2 sm:mt-24">
+        <Link
+          href="parks"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconFountain className="mb-1" size={34} />
+          Praças
+        </Link>
+        <Link
+          href="map"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconMap className="mb-1" size={34} />
+          Mapa
+        </Link>
+        <Link
+          href="registration"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconListCheck className="mb-1" size={34} />
+          Formulários
+        </Link>
+        <Link
+          href="registration"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconTableExport className="mb-1" size={34} />
+          Exportar
+        </Link>
+        <Link
+          href="activity"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconLogs className="mb-1" size={34} />
+          Atividade
+        </Link>
       </div>
     </div>
   );

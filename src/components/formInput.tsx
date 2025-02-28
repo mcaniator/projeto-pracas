@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-import { Input } from "./input";
+import { Input } from "./ui/input";
 
 type errorValues<Type> = {
   [Propery in keyof Type]?: string[] | undefined;
