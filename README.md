@@ -24,7 +24,7 @@ ou
 pnpm run dev
 ```
 
-### Compilando e publicando
+### Compilando e hospedando
 
 Antes de iniciar a hospedagem, é necessário fazer uma build otimizada do projeto com o script `build`:
 
