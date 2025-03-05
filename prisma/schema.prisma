@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  url        = "postgresql://postgres:02Ago1962@localhost:5432/square_project"
+  url        = env("DATABASE_URL")
   extensions = [postgis]
 }
 
