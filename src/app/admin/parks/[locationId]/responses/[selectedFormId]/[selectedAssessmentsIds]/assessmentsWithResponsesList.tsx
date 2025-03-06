@@ -425,7 +425,16 @@ const AssessmentComponent = ({
                       }
                       {assessmentGeometries?.some(
                         (geo) => geo.questionId === question.id,
-                      ) && <div>TEM GEOMETRIA</div>}
+                      ) && (
+                        <div>
+                          <MapPopup
+                            questionName={question.questionName}
+                            initialGeometries={assessmentGeometries.filter(
+                              (geo) => geo.questionId === question.id,
+                            )}
+                          ></MapPopup>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

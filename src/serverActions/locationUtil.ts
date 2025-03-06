@@ -445,7 +445,7 @@ const updateLocation = async (
     }
     try {
       const WKT = await getPolygonsFromShp(formData.get("file") as File);
-      WKT && (await addPolygonFromWKT(WKT, parseId));
+      WKT && (await addPolygonFromWKT(WKT, parseId, prisma));
       revalidateTag("location");
       return { statusCode: 200, message: "Location updated" };
     } catch (e) {

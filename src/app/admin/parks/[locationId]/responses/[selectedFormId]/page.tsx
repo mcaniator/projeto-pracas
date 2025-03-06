@@ -1,4 +1,4 @@
-import { fetchAssessmentsForAssessmentList } from "@/serverActions/assessmentUtil";
+import { fetchAssessmentByLocationAndForm } from "@/serverActions/assessmentUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 
 import { AssessmentsListPage } from "./assessmentsListPage";
@@ -9,7 +9,7 @@ const AssessmentsPage = async ({
   params: { locationId: string; selectedFormId: string };
 }) => {
   const locatioName = await searchLocationNameById(Number(params.locationId));
-  const assessments = await fetchAssessmentsForAssessmentList(
+  const assessments = await fetchAssessmentByLocationAndForm(
     Number(params.locationId),
     Number(params.selectedFormId),
   );

@@ -9,7 +9,7 @@ type AssessmentsWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>
 >;
 type FinalizedAssessmentsList = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentsForAssessmentList>>
+  Awaited<ReturnType<typeof fetchAssessmentByLocationAndForm>>
 >;
 type LocationAssessment = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentsByLocation>>
@@ -105,7 +105,7 @@ const fetchAssessmentsByLocation = async (locationId: number) => {
   return assessments;
 };
 
-const fetchAssessmentsForAssessmentList = async (
+const fetchAssessmentByLocationAndForm = async (
   locationId: number,
   formId: number,
 ) => {
@@ -317,7 +317,7 @@ export {
   deleteAssessment,
   fetchAssessmentGeometries,
   fetchAssessmentsInProgresss,
-  fetchAssessmentsForAssessmentList,
+  fetchAssessmentByLocationAndForm,
   fetchMultipleAssessmentsWithResponses,
   fetchAssessmentWithResponses,
   redirectToFormsList,
