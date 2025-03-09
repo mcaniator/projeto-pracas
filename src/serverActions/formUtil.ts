@@ -28,6 +28,13 @@ const deleteFormVersion = async (
       assessmentsWithForm: {
         id: number;
         startDate: Date;
+        location: {
+          name: string;
+          id: number;
+        };
+        user: {
+          username: string;
+        };
       }[];
       form: { name: string; version: number } | null;
     };
@@ -39,6 +46,13 @@ const deleteFormVersion = async (
     assessmentsWithForm: {
       id: number;
       startDate: Date;
+      location: {
+        name: string;
+        id: number;
+      };
+      user: {
+        username: string;
+      };
     }[];
     form: { name: string; version: number } | null;
   };
@@ -52,6 +66,17 @@ const deleteFormVersion = async (
       select: {
         id: true,
         startDate: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
     if (assessments.length > 0) {

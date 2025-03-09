@@ -270,7 +270,8 @@ model Calculation {
   category      Category         @relation(fields: [categoryId], references: [id])
   subcategoryId Int?             @map("subcategory_id")
   subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
-  form          Form[]
+  formId        Int              @map("form_id")
+  form          Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@map("calculation")
 }

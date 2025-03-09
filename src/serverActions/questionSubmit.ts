@@ -128,37 +128,40 @@ const questionSubmit = async (
       if (
         optionsQuestionParsed.optionType === "CHECKBOX" &&
         optionsQuestionParsed.maximumSelections === undefined
-        //  &&
-        // optionsQuestionParsed.maximumSelections > options.length
       ) {
         return { statusCode: 1, questionName: null };
       }
       try {
-        const newQuestion = await prisma.question.create({
-          data: {
-            name: optionsQuestionParsed.name,
-            notes: optionsQuestionParsed.notes,
-            type: questionType,
-            characterType: optionsQuestionParsed.characterType,
-            categoryId: optionsQuestionParsed.categoryId,
-            subcategoryId: optionsQuestionParsed.subcategoryId,
-            optionType: optionsQuestionParsed.optionType,
-            maximumSelections: optionsQuestionParsed.maximumSelections,
-            geometryTypes: optionsQuestionParsed.geometryTypes,
-          },
-        });
-        const options = formData.getAll("options").map((value) => ({
-          text: value,
-          questionId: newQuestion.id,
-        }));
+        let questionName: string | null = null;
+        await prisma.$transaction(async (prisma) => {
+          const newQuestion = await prisma.question.create({
+            data: {
+              name: optionsQuestionParsed.name,
+              notes: optionsQuestionParsed.notes,
+              type: questionType,
+              characterType: optionsQuestionParsed.characterType,
+              categoryId: optionsQuestionParsed.categoryId,
+              subcategoryId: optionsQuestionParsed.subcategoryId,
+              optionType: optionsQuestionParsed.optionType,
+              maximumSelections: optionsQuestionParsed.maximumSelections,
+              geometryTypes: optionsQuestionParsed.geometryTypes,
+            },
+          });
 
-        const optionsParsed = optionSchema.parse(options);
+          const options = formData.getAll("options").map((value) => ({
+            text: value,
+            questionId: newQuestion.id,
+          }));
 
-        await prisma.option.createMany({
-          data: optionsParsed,
+          const optionsParsed = optionSchema.parse(options);
+          await prisma.option.createMany({
+            data: optionsParsed,
+          });
+          questionName = newQuestion.name;
         });
+
         revalidateTag("question");
-        return { statusCode: 201, questionName: newQuestion.name };
+        return { statusCode: 201, questionName: questionName };
       } catch (err) {
         return { statusCode: 400, questionName: null };
       }

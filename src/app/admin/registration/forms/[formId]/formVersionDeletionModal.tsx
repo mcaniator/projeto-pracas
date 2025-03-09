@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import {
+  IconCalendarClock,
+  IconCheck,
+  IconMapPin,
+  IconUser,
+  IconX,
+} from "@tabler/icons-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -46,7 +53,12 @@ const FormVersionDeletionModal = ({
     }
   }, [isOpen, state]);
   return (
-    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
+    <DialogTrigger
+      onOpenChange={(open) => {
+        setPageState("FORM");
+        setIsOpen(open);
+      }}
+    >
       <Button
         className="ml-auto items-center p-2 text-sm sm:ml-0 sm:text-xl"
         variant={"destructive"}
@@ -64,7 +76,7 @@ const FormVersionDeletionModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-y-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg transform overflow-auto rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -77,7 +89,7 @@ const FormVersionDeletionModal = ({
                       Apagar versão de formulário
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -155,22 +167,43 @@ const FormVersionDeletionModal = ({
                         state?.content.assessmentsWithForm.length >= 1 && (
                           <>
                             <h6 className="text-xl font-semibold">
-                              Data de início das Avaliações:
+                              Avaliações:
                             </h6>
                             <ul className="list-inside list-decimal break-words pl-3 font-semibold">
-                              {state?.content.assessmentsWithForm.map((a) => {
-                                return (
-                                  <li key={a.id}>
-                                    {a.startDate.toLocaleString("pt-BR", {
-                                      day: "2-digit",
-                                      month: "2-digit",
-                                      year: "2-digit",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </li>
-                                );
-                              })}
+                              {state?.content.assessmentsWithForm.map(
+                                (a, index) => {
+                                  return (
+                                    <li
+                                      key={a.id}
+                                      className={`${index % 2 === 0 ? "bg-transparent/10" : "bg-transparent/5"} hover:bg-transparent/10 hover:underline`}
+                                    >
+                                      <Link
+                                        href={`/admin/parks/${a.location.id}/responses/${formId}/${a.id}`}
+                                        className={`flex flex-col`}
+                                      >
+                                        <span>
+                                          <IconMapPin className="mb-2 inline" />
+                                          {a.location.name}
+                                        </span>
+                                        <span>
+                                          <IconCalendarClock className="mb-2 inline" />
+                                          {a.startDate.toLocaleString("pt-BR", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "2-digit",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          })}
+                                        </span>
+                                        <span>
+                                          <IconUser className="mb-2 inline" />
+                                          {a.user.username}
+                                        </span>
+                                      </Link>
+                                    </li>
+                                  );
+                                },
+                              )}
                             </ul>
                           </>
                         )}

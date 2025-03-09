@@ -171,7 +171,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
         </div>
       </div>
     );
-  else return <div>Local não encontrado</div>;
+  else return <div className="bg-red-500">Formulário não encontrado</div>;
 };
 
 export default Page;

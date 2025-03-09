@@ -35,6 +35,11 @@ const SubcategoryCreationModal = ({
     "FORM",
   );
   const [isOpen, setIsOpen] = useState(false);
+
+  const resetModal = () => {
+    setPageState("FORM");
+  };
+
   useEffect(() => {
     if (state.statusCode === 201) {
       setPageState("SUCCESS");
@@ -49,7 +54,12 @@ const SubcategoryCreationModal = ({
     }
   }, [isOpen]);
   return (
-    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
+    <DialogTrigger
+      onOpenChange={(open) => {
+        setPageState("FORM");
+        setIsOpen(open);
+      }}
+    >
       <Button
         className="items-center p-2 text-sm sm:text-xl"
         variant={"constructive"}
@@ -116,6 +126,7 @@ const SubcategoryCreationModal = ({
                         Nome da subcategoria
                       </label>
                       <Input
+                        required
                         id="subcategory-name"
                         name="subcategory-name"
                         className={`${state.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
@@ -133,23 +144,27 @@ const SubcategoryCreationModal = ({
                     </form>
                   )}
                   {pageState === "SUCCESS" && (
-                    <div>
+                    <div className="flex flex-col items-center">
                       <h5 className="text-center text-xl font-semibold">
                         {`Categoria "${state.subcategoryName}" criada!`}
                       </h5>
                       <div className="flex justify-center">
                         <IconCheck className="h-32 w-32 text-2xl text-green-500" />
                       </div>
+                      <Button onPress={resetModal}>
+                        Cria nova subcategoria
+                      </Button>
                     </div>
                   )}
                   {pageState === "ERROR" && (
-                    <div>
+                    <div className="flex flex-col items-center">
                       <h5 className="text-center text-xl font-semibold">
                         Algo deu errado!
                       </h5>
                       <div className="flex justify-center">
                         <IconX className="h-32 w-32 text-2xl text-red-500" />
                       </div>
+                      <Button onPress={resetModal}>Tentar novamente</Button>
                     </div>
                   )}
                 </div>

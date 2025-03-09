@@ -29,7 +29,7 @@ const AdminRoot = async () => {
                     href={`/admin/registration/forms/${form.id}`}
                   >
                     <IconListCheck className="mb-1 inline" size={24} />
-                    <span className="inline">{form.name}</span>
+                    <span className="inline">{`${form.name}, versão ${form.version}`}</span>
                   </Link>
                 ))}
               </div>

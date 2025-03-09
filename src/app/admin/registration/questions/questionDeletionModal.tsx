@@ -34,7 +34,11 @@ const QuestionDeletionModal = ({
       setPageState("ERROR");
   }, [state, fetchCategoriesAfterDeletion]);
   return (
-    <DialogTrigger>
+    <DialogTrigger
+      onOpenChange={() => {
+        setPageState("FORM");
+      }}
+    >
       <Button
         className="items-center p-2 text-sm text-white sm:text-xl"
         variant={"destructive"}
@@ -52,7 +56,7 @@ const QuestionDeletionModal = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-[90%] max-w-lg overflow-y-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `mb-auto mt-auto w-[90%] max-w-lg transform overflow-auto rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }

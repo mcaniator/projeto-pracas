@@ -158,7 +158,6 @@ const QuestionSearchModal = ({
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
-            style={{}}
           >
             <Dialog className="outline-none data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring">
               {({ close }) => (

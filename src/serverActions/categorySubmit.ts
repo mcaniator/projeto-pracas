@@ -1,7 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { categorySchema } from "@/lib/zodValidators";
+import {
+  categoryInfoToCreateSchema,
+  subcategoryInfoToCreateSchema,
+} from "@/lib/zodValidators";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath, revalidateTag } from "next/cache";
 
@@ -15,7 +18,7 @@ const categorySubmit = async (
 ) => {
   let parse;
   try {
-    parse = categorySchema.parse({
+    parse = categoryInfoToCreateSchema.parse({
       name: formData.get("name"),
     });
   } catch (e) {
@@ -262,12 +265,16 @@ const subcategorySubmit = async (
   const categoryId = formData.get("category-id") as string;
   const subcategoryName = formData.get("subcategory-name") as string;
   try {
+    const parsedSubcategoryInfo = subcategoryInfoToCreateSchema.parse({
+      name: subcategoryName,
+      categoryId: categoryId,
+    });
     const subcategory = await prisma.subcategory.create({
       data: {
-        name: subcategoryName,
+        name: parsedSubcategoryInfo.name,
         category: {
           connect: {
-            id: Number(categoryId),
+            id: parsedSubcategoryInfo.categoryId,
           },
         },
       },
