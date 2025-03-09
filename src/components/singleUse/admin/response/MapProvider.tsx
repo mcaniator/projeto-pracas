@@ -161,6 +161,7 @@ const MapProvider = forwardRef(
     const switchMode = (newMode: MapMode) => {
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
+
         interactions.forEach((interaction) => {
           if (interaction instanceof Draw || interaction instanceof Modify) {
             map.removeInteraction(interaction);
@@ -185,7 +186,7 @@ const MapProvider = forwardRef(
       } else if (newMode === "DRAW") {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
-          if (interaction instanceof Modify || Select) {
+          if (interaction instanceof Modify || interaction instanceof Select) {
             map.removeInteraction(interaction);
           }
         });

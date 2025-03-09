@@ -48,7 +48,7 @@ const AssessmentsInProgressPage = ({
         )}
 
         {!isMobileView && (
-          <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
+          <div className={"flex w-full flex-col gap-1 overflow-auto"}>
             {!assessments || assessments.length === 0 ?
               <h3>Nenhuma avaliação em progresso para este local!</h3>
             : <>
@@ -62,9 +62,7 @@ const AssessmentsInProgressPage = ({
             }
           </div>
         )}
-        <div
-          className={`flex h-fit ${!isMobileView && "min-w-[530px]"} flex-col gap-1 rounded-3xl bg-gray-400/20 p-3 shadow-inner`}
-        >
+        <div className={`flex h-fit ${!isMobileView} rounded-3xl shadow-inner`}>
           <AssessmentCreation
             locationId={locationId}
             formId={formId}
