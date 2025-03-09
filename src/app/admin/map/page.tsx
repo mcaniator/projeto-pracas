@@ -9,6 +9,8 @@ import { fetchLocationCategories } from "../../../serverActions/locationCategory
 import { fetchLocationTypes } from "../../../serverActions/locationTypeUtil";
 import PolygonProvider from "./polygonProvider";
 
+//This cannot be imported dynamically, because it creates errors in compiled builds.
+
 const MapProvider = dynamic(() => import("./mapProvider"), { ssr: false });
 const Client = dynamic(() => import("./client"), { ssr: false });
 
