@@ -11,7 +11,7 @@ const inputVariants = cva(
         white: "bg-white/35",
       },
       state: {
-        neutral: "border-off-white/80",
+        neutral: "border-off-white/80 placeholder:text-gray-200",
         constructive: "border-sea-green/80",
         destructive: "border-cordovan/80",
       },
