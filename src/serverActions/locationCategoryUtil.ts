@@ -4,33 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 type LocationCategories = Awaited<ReturnType<typeof fetchLocationCategories>>;
 
-const upsertLocationCategory = async (
-  locationId: number,
-  categoryName: string,
-) => {
-  try {
-    await prisma.locationCategory.upsert({
-      where: {
-        name: categoryName,
-      },
-      update: {
-        locations: {
-          connect: { id: locationId },
-        },
-      },
-      create: {
-        name: categoryName,
-        locations: {
-          connect: { id: locationId },
-        },
-      },
-    });
-    return { statusCode: 201, message: "Location category created!" };
-  } catch (e) {
-    return { statusCode: 500, message: "Error during category creation" };
-  }
-};
-
 const fetchLocationCategories = async () => {
   const defaultReturnArray: {
     id: number;
@@ -52,5 +25,5 @@ const fetchLocationCategories = async () => {
   }
 };
 
-export { upsertLocationCategory, fetchLocationCategories };
+export { fetchLocationCategories };
 export { type LocationCategories };

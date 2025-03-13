@@ -1,7 +1,7 @@
 "use client";
 
 import { QuestionForm } from "@/app/admin/registration/forms/[formId]/edit/questionForm";
-import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
+import { CategoriesWithQuestions } from "@/serverActions/categoryUtil";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
 import {
   CalculationTypes,

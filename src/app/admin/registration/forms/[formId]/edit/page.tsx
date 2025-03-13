@@ -1,4 +1,4 @@
-import { getCategories } from "@/serverActions/categorySubmit";
+import { getCategories } from "@/serverActions/categoryUtil";
 import { searchFormById } from "@/serverActions/formUtil";
 
 import Client from "./client";

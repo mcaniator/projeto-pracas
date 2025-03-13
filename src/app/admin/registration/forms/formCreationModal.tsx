@@ -12,7 +12,7 @@ import {
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Input } from "../../../../components/ui/input";
-import { formSubmit } from "../../../../serverActions/formSubmit";
+import { formSubmit } from "../../../../serverActions/formUtil";
 
 const FormCreationModal = () => {
   const [state, formAction, isPending] = useActionState(formSubmit, null);

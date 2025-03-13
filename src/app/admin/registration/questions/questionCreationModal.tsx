@@ -20,7 +20,7 @@ import { Checkbox } from "../../../../components/ui/checkbox";
 import { Input } from "../../../../components/ui/input";
 import { RadioButton } from "../../../../components/ui/radioButton";
 import { Select } from "../../../../components/ui/select";
-import { questionSubmit } from "../../../../serverActions/questionSubmit";
+import { questionSubmit } from "../../../../serverActions/questionUtil";
 
 type CharacterType = "text" | "number";
 

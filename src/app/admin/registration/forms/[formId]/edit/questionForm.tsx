@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { CategoriesWithQuestions } from "@/serverActions/categorySubmit";
+import { CategoriesWithQuestions } from "@/serverActions/categoryUtil";
 import {
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByStatement,

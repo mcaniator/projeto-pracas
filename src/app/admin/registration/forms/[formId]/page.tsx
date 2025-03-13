@@ -8,8 +8,6 @@ import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 const Page = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormById(parseInt(params.formId));
   const formIdNumber = parseInt(params.formId);
-  //const questions = await searchQuestionsByFormId(parseInt(params.formId));
-  //const questions = await searchQuestionsByFormId(Number(params.formId));
   const categories: {
     id: number;
     name: string;

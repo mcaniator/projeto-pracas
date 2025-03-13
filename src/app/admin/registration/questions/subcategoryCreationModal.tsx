@@ -12,7 +12,7 @@ import {
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Input } from "../../../../components/ui/input";
-import { subcategorySubmit } from "../../../../serverActions/categorySubmit";
+import { subcategorySubmit } from "../../../../serverActions/categoryUtil";
 
 const SubcategoryCreationModal = ({
   categoryId,

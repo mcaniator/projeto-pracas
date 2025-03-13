@@ -224,14 +224,6 @@ const addResponses = async (
   };
 };
 
-const searchResponsesByQuestionId = async (questionId: number) => {
-  return await prisma.response.findMany({
-    where: {
-      questionId: questionId,
-    },
-  });
-};
-
-export { addResponses, searchResponsesByQuestionId };
+export { addResponses };
 
 export { type ResponseToUpdate };

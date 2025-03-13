@@ -11,7 +11,7 @@ import {
 } from "react-aria-components";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
-import { deleteSubcategory } from "../../../../serverActions/categorySubmit";
+import { deleteSubcategory } from "../../../../serverActions/categoryUtil";
 
 const SubcategoryDeletionModal = ({
   subcategoryId,
