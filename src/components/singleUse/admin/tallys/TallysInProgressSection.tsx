@@ -33,7 +33,7 @@ const TallysInProgressSection = ({
 }) => {
   return (
     <div
-      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md ${isMobileView && "flex-col items-center"}`}
+      className={`flex gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md ${isMobileView ? "flex-col items-center" : "max-h-[30vh]"}`}
     >
       {!isMobileView && (
         <>
@@ -59,7 +59,7 @@ const TallysInProgressSection = ({
                   </span>
                 </div>
                 <div
-                  className={`w-full ${!isMobileView && "overflow-auto"} rounded`}
+                  className={`max-h-full w-full ${!isMobileView && "overflow-auto"} rounded`}
                 >
                   <TallysInProgressList
                     params={{ locationId: locationId }}

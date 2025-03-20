@@ -142,16 +142,6 @@ const CreationPanel = ({
   return (
     <div className="flex h-full flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        {/*currentId === -3 ?
-          <CreationModal features={features} setCurrentId={setCurrentId} />
-        : <EditPolygonSubmitButton
-            id={currentId}
-            features={features}
-            isDisabled={features.length === 0} // TODO: try to find a way to efficiently compare current features with the original ones
-            setOriginalFeature={setOriginalFeatures}
-            setCurrentId={setCurrentId}
-          />*/}
-
         {currentId === -1 && (
           <CreationSelecion
             setCurrentId={setCurrentId}
@@ -213,8 +203,12 @@ const CreationPanel = ({
           </span>
         </Button>
       </div>
-      <hr className="rounded-full border-2 border-off-white" />
-      <FeatureList features={features} />
+      {(currentId === -3 || currentId > 0) && (
+        <>
+          <hr className="rounded-full border-2 border-off-white" />
+          <FeatureList features={features} />
+        </>
+      )}
     </div>
   );
 };

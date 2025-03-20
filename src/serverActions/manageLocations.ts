@@ -6,7 +6,7 @@ import { BrazilianStates } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { getPolygonsFromShp } from "./getPolygonsFromShp";
+import { getPolygonsFromShp } from "./managePolygons";
 import { addPolygon, addPolygonFromWKT } from "./managePolygons";
 
 const createLocation = async (

@@ -1,4 +1,4 @@
-import { ParkForm } from "@/components/singleUse/admin/registration/forms/parkForm";
+import { ParkForm } from "@/app/admin/parks/parkForm";
 import { prisma } from "@/lib/prisma";
 import { IconCirclePlus } from "@tabler/icons-react";
 import Link from "next/link";

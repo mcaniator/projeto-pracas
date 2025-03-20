@@ -43,16 +43,16 @@ const AssessmentCreation = ({
       <h4 className={"text-2xl font-semibold"}>Criação de avaliações</h4>
       <div>
         <form action={newAssessmentFormAction} className="grid gap-3">
-          <div className="flex flex-row items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             <input type="hidden" name="userId" id="userId" value={userId} />
             <input type="hidden" name="formId" id="formId" value={formId} />
-            <Input
+            <input
               type="hidden"
               name="locationId"
               value={locationId.toString()}
-            ></Input>
+            />
           </div>
-          <div className="flex flex-row gap-1">
+          <div className="flex flex-wrap gap-1">
             <label htmlFor="dateTime" className="mr-1">
               Data/horário:
             </label>

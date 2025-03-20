@@ -75,26 +75,6 @@ const weatherConditionMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
 ]);
-const locationCategoriesMap = new Map([
-  ["OPEN_SPACE_FOR_COLLECTIVE_USE", "ELP"],
-  [
-    "OPEN_SPACE_FOR_COLLECTIVE_USE_IN_RESTRICTED_AREA",
-    "ELP em área de acesso restriro (condomínimos)",
-  ],
-]);
-const LocationTypesMap = new Map([
-  ["MICRO_SQUARE", "Micro Praça (menor 500m²)"],
-  ["SQUARE", "Praça"],
-  ["SPORTS_SQUARE ", "Praça de Esportes"],
-  ["OVERLOOK", "Mirante"],
-  ["COURTYARD", "Pátio"],
-  ["GARDEN", "Jardim"],
-  ["CHURCHYARD", "Ardo/Largo de Igreja"],
-  ["PARK", "Parque"],
-  ["BOTANICAL_GARDEN", "Jardim Botânico"],
-  ["FOREST_GARDEN", "Horto Florestal"],
-  ["AMATEUR_SOCCER_FIELDS", "Campos de futebol de várzea"],
-]);
 
 const genders = ["MALE", "FEMALE"];
 const ageGroups = ["ADULT", "ELDERLY", "CHILD", "TEEN"];
@@ -117,6 +97,10 @@ const exportRegistrationData = async (locationsIds: number[]) => {
         in: locationsIds,
       },
     },
+    include: {
+      category: true,
+      type: true,
+    },
   });
   locations.sort((a, b) => {
     if (a.name < b.name) return -1;
@@ -131,22 +115,16 @@ const exportRegistrationData = async (locationsIds: number[]) => {
     "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Prefeito,Legislação\n";
   CSVstring += locations
     .map((location) => {
-      let locationCategory = "";
-      if (location.category) {
-        locationCategory = locationCategoriesMap.get(location.category) || "";
-      }
       const locationString = [
         location.id,
         location.name,
         location.popularName ? location.popularName : "",
-        locationCategory,
-        location.type ? LocationTypesMap.get(location.type) : "",
-        location.notes ? location.notes : "",
+        location.category?.name ?? "",
+        location?.type?.name ?? "",
+        location.notes ?? "",
         `${location.firstStreet} / ${location.secondStreet}`,
-        location.creationYear?.toLocaleDateString("pt-BR", { year: "numeric" }),
-        location.lastMaintenanceYear?.toLocaleDateString("pt-BR", {
-          year: "numeric",
-        }),
+        location.creationYear,
+        location.lastMaintenanceYear,
         location.overseeingMayor,
         location.legislation,
       ].join(",");
@@ -1382,54 +1360,7 @@ const exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
   return CSVstring;
 };
 
-//These 2 functions below are used to export tally content without combining data. They use old spreadsheet formation.
-const exportAllIndividualTallysToCsv = async (locationsIds: number[]) => {
-  const locations = await prisma.location.findMany({
-    where: {
-      id: {
-        in: locationsIds,
-      },
-    },
-    select: {
-      tally: {
-        include: {
-          location: {
-            select: {
-              name: true,
-            },
-          },
-          tallyPerson: {
-            select: {
-              person: {
-                select: {
-                  ageGroup: true,
-                  gender: true,
-                  activity: true,
-                  isTraversing: true,
-                  isPersonWithImpairment: true,
-                  isInApparentIllicitActivity: true,
-                  isPersonWithoutHousing: true,
-                },
-              },
-              quantity: true,
-            },
-          },
-          user: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  const allTallys = locations
-    .map((location) => {
-      return location.tally;
-    })
-    .flat();
-  return createTallyStringWithoutAddedData(allTallys);
-};
+//This function below is used to export tally content without combining data. It uses old spreadsheet formation.
 
 const exportIndividualTallysToCSV = async (tallysIds: number[]) => {
   const tallys = await prisma.tally.findMany({
@@ -1768,7 +1699,6 @@ const createTallyStringWithoutAddedData = (
 
 export {
   exportIndividualTallysToCSV,
-  exportAllIndividualTallysToCsv,
   exportDailyTallys,
   exportDailyTallysFromSingleLocation,
   exportRegistrationData,

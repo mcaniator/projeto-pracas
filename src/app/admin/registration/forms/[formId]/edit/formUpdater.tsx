@@ -8,7 +8,7 @@ import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
+import { CategoriesWithQuestions } from "../../../../../../serverActions/categoryUtil";
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { CalculationEditModal } from "./calculationEditModal";
 import {

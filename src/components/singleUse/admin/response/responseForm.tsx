@@ -773,15 +773,15 @@ const ResponseForm = ({
             <IconCheck className="h-32 w-32 text-green-500" />
             Respostas enviadas com sucesso!
             <div className="flex justify-center">
-              <Link href={"/admin/parks/"}>
-                <Button variant={"default"}>Voltar às praças</Button>
+              <Link
+                href={"/admin/parks/"}
+                className="group inline-flex h-9 cursor-pointer items-center justify-center rounded-lg bg-sky-500/70 px-4 py-2 text-lg font-medium text-white bg-blend-darken shadow outline-none transition-all data-[hovered]:bg-sky-900 data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none disabled:bg-sky-900"
+              >
+                Voltar às praças
               </Link>
             </div>
           </div>
-        : <div className="text-redwood">
-            Ainda não há perguntas no formulário
-          </div>
-        }
+        : <div className="text-redwood">Formulário inválido!</div>}
       </div>;
 };
 

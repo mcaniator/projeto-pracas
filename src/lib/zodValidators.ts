@@ -40,10 +40,13 @@ export type { userType };
 //  Formulários
 //  ------------------------------------------------------------------------------------------------------------
 
-const categorySchema = z.object({
+const categoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
-  optional: z.boolean().optional(),
-  active: z.boolean().optional(),
+});
+
+const subcategoryInfoToCreateSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  categoryId: z.coerce.number().int().finite().nonnegative(),
 });
 
 const questionSchema = z.object({
@@ -113,12 +116,12 @@ const formSchema = z.object({
   name: z.string().trim().min(1).max(255),
 });
 
-type categoryType = z.infer<typeof categorySchema>;
 type questionType = z.infer<typeof questionSchema>;
 type formType = z.infer<typeof formSchema>;
 
 export {
-  categorySchema,
+  categoryInfoToCreateSchema,
+  subcategoryInfoToCreateSchema,
   formSchema,
   numericQuestionSchema,
   optionSchema,
@@ -126,7 +129,7 @@ export {
   questionSchema,
   // textQuestionSchema,
 };
-export type { categoryType, formType, questionType };
+export type { formType, questionType };
 // #endregion
 
 // #region Informações da Praça

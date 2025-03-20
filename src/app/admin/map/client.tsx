@@ -66,7 +66,7 @@ const Client = ({
   const [panelVisible, setPanelVisible] = useState(false);
   const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
-
+  console.log(currentId);
   return (
     <div className="relative">
       <div className="fixed bottom-4 right-4 z-50">
@@ -93,7 +93,7 @@ const Client = ({
           dragHandleClassName="drag-handle"
           className={`${
             !drawingWindowVisible ? "hidden" : (
-              "z-10 rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
+              "z-10 overflow-hidden rounded-lg border border-gray-300 bg-ugly-white shadow-lg"
             )
           }`}
           minWidth={150}
@@ -104,7 +104,7 @@ const Client = ({
           <div
             className={`${
               !drawingWindowVisible ? "hidden" : (
-                "drag-handle cursor-move rounded-t-lg bg-gray-200 p-2"
+                "drag-handle flex-shrink-0 cursor-move rounded-t-lg bg-gray-200 p-2"
               )
             }`}
           >
@@ -114,7 +114,7 @@ const Client = ({
           <div
             className={`${
               !drawingWindowVisible ? "hidden" : (
-                "flex h-full max-h-[430px] flex-col gap-2 overflow-auto p-4"
+                "flex h-full flex-1 flex-col gap-2 overflow-auto p-4"
               )
             }`}
           >
@@ -198,7 +198,7 @@ const ParkList = ({
         onChange={(e) => {
           setHay(search(e.target.value, sortedLocations, fuseHaystack));
         }}
-        // label={"Busca"}
+        placeholder="Buscar locais..."
       />
 
       <div className="overflow-scroll">

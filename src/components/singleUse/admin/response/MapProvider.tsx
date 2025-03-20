@@ -100,20 +100,24 @@ const MapProvider = forwardRef(
       );
       const interactions = map.getInteractions();
       interactions.forEach((interaction) => {
-        if (interaction instanceof Draw) {
+        if (
+          interaction instanceof Draw ||
+          interaction instanceof Modify ||
+          interaction instanceof Select
+        )
           map.removeInteraction(interaction);
-        }
       });
       const draw = new Draw({
         source: vectorSource.current,
         type: drawType,
       });
       map.addInteraction(draw);
-
+      handleChangeIsInSelectMode(false);
+      setMapMode("DRAW");
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, view, drawType]);
+    }, [map, view, drawType, handleChangeIsInSelectMode]);
 
     useEffect(() => {
       if (initialGeometries) {
@@ -161,6 +165,7 @@ const MapProvider = forwardRef(
     const switchMode = (newMode: MapMode) => {
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
+
         interactions.forEach((interaction) => {
           if (interaction instanceof Draw || interaction instanceof Modify) {
             map.removeInteraction(interaction);
@@ -185,7 +190,7 @@ const MapProvider = forwardRef(
       } else if (newMode === "DRAW") {
         const interactions = map.getInteractions();
         interactions.forEach((interaction) => {
-          if (interaction instanceof Modify || Select) {
+          if (interaction instanceof Modify || interaction instanceof Select) {
             map.removeInteraction(interaction);
           }
         });

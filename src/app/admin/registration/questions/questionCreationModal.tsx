@@ -20,7 +20,7 @@ import { Checkbox } from "../../../../components/ui/checkbox";
 import { Input } from "../../../../components/ui/input";
 import { RadioButton } from "../../../../components/ui/radioButton";
 import { Select } from "../../../../components/ui/select";
-import { questionSubmit } from "../../../../serverActions/questionSubmit";
+import { questionSubmit } from "../../../../serverActions/questionUtil";
 
 type CharacterType = "text" | "number";
 
@@ -47,9 +47,10 @@ const QuestionCreationModal = ({
   const [optionType, setOptionType] = useState("RADIO");
   const [hasAssociatedGeometry, setHasAssociatedGeometry] =
     useState<boolean>(false);
-  const [geometryTypes, setGeometryTypes] = useState<string[]>(["POINT"]);
+  const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
+  const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const handleScale = (isChecked: boolean) => {
     if (isChecked) {
       if (!addedOptions?.some((option) => option.text === "Péssimo")) {
@@ -90,6 +91,15 @@ const QuestionCreationModal = ({
       );
     }
   };
+  const resetModal = () => {
+    setType("");
+    setCharacterType(null);
+    setCurrentOption("");
+    setHasAssociatedGeometry(false);
+    setAddedOptions(undefined);
+    setGeometryTypes([]);
+    setPageState("FORM");
+  };
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
@@ -109,13 +119,23 @@ const QuestionCreationModal = ({
   const handleRemoveOption = (option: string) => {
     setAddedOptions((prev) => prev?.filter((p) => p.text !== option));
   };
+
+  useEffect(() => {
+    setAddedOptions(undefined);
+  }, [characterType, type]);
   useEffect(() => {
     if (!isOpen) {
       setPageState("FORM");
     }
   }, [isOpen]);
+
   return (
-    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
+    <DialogTrigger
+      onOpenChange={(open) => {
+        setPageState("FORM");
+        setIsOpen(open);
+      }}
+    >
       <Button
         className="items-center p-2 text-sm sm:text-xl"
         variant={"constructive"}
@@ -154,8 +174,8 @@ const QuestionCreationModal = ({
                         setType("");
                         setCharacterType(null);
                         setCurrentOption("");
-                        setAddedOptions([]);
-                        setGeometryTypes(["Point"]);
+                        setAddedOptions(undefined);
+                        setGeometryTypes([]);
                         setIsOpen(false);
                         close();
                       }}
@@ -170,7 +190,17 @@ const QuestionCreationModal = ({
                   )}
                   {!isPending && pageState === "FORM" && (
                     <form
-                      action={formAction}
+                      action={(e) => {
+                        if (
+                          type === "OPTIONS" &&
+                          (!addedOptions || addedOptions.length === 0)
+                        ) {
+                          setMinimumOptionsError(true);
+                          return;
+                        } else {
+                          formAction(e);
+                        }
+                      }}
                       className="flex w-full flex-col rounded-l"
                     >
                       <h5 className="text-base font-semibold sm:text-xl">
@@ -226,10 +256,10 @@ const QuestionCreationModal = ({
                               type={"radio"}
                               id={"text"}
                               value={"WRITTEN"}
+                              checked={type === "WRITTEN"}
                               name="questionType"
-                              onClick={() => {
-                                setType("written");
-                                setAddedOptions(undefined);
+                              onChange={(e) => {
+                                setType(e.target.value);
                               }}
                               className={"border-white"}
                               required
@@ -240,9 +270,10 @@ const QuestionCreationModal = ({
                               type="radio"
                               id="numeric"
                               value={"OPTIONS"}
+                              checked={type === "OPTIONS"}
                               name="questionType"
-                              onClick={() => {
-                                setType("option");
+                              onChange={(e) => {
+                                setType(e.target.value);
                               }}
                               className={"border-white"}
                               required
@@ -321,7 +352,7 @@ const QuestionCreationModal = ({
                         )}
 
                         <div className={"flex flex-col gap-2"}>
-                          {type == "written" && (
+                          {type == "WRITTEN" && (
                             <div>
                               <div>
                                 <label
@@ -390,7 +421,7 @@ const QuestionCreationModal = ({
                             </div>
                           )}
 
-                          {type == "option" && (
+                          {type == "OPTIONS" && (
                             <>
                               <div>
                                 <label
@@ -445,26 +476,31 @@ const QuestionCreationModal = ({
                                   </RadioButton>
                                 </div>
                               </div>
-                              {characterType !== null && (
+                              {characterType && (
                                 <div className={"flex flex-col"}>
-                                  <Checkbox
-                                    id={"escala"}
-                                    variant={"default"}
-                                    onChange={(e) => {
-                                      handleScale(e.target.checked);
-                                    }}
-                                  >
-                                    Escala de qualidade
-                                  </Checkbox>
-                                  <Checkbox
-                                    id={"simNao"}
-                                    variant={"default"}
-                                    onChange={(e) => {
-                                      handleYesNoOptions(e.target.checked);
-                                    }}
-                                  >
-                                    Sim ou não
-                                  </Checkbox>
+                                  {characterType === "text" && (
+                                    <>
+                                      <Checkbox
+                                        id={"escala"}
+                                        variant={"default"}
+                                        onChange={(e) => {
+                                          handleScale(e.target.checked);
+                                        }}
+                                      >
+                                        Escala de qualidade
+                                      </Checkbox>
+                                      <Checkbox
+                                        id={"simNao"}
+                                        variant={"default"}
+                                        onChange={(e) => {
+                                          handleYesNoOptions(e.target.checked);
+                                        }}
+                                      >
+                                        Sim ou não
+                                      </Checkbox>
+                                    </>
+                                  )}
+
                                   <label
                                     htmlFor={"opcao"}
                                     className="font-semibold"
@@ -480,6 +516,11 @@ const QuestionCreationModal = ({
                                       setCurrentOption(e.target.value);
                                     }}
                                   />
+                                  {minumumOptionsError && (
+                                    <p className="text-red-500">
+                                      Adicione pelo menos uma opção!
+                                    </p>
+                                  )}
                                   <div className="mt-1">
                                     <Button
                                       type="button"
@@ -574,17 +615,18 @@ const QuestionCreationModal = ({
                     </form>
                   )}
                   {pageState === "SUCCESS" && (
-                    <div>
+                    <div className="flex flex-col items-center">
                       <h5 className="text-center text-xl font-semibold">
                         {`Questão "${state?.questionName}" criada!`}
                       </h5>
                       <div className="flex justify-center">
                         <IconCheck className="h-32 w-32 text-2xl text-green-500" />
                       </div>
+                      <Button onPress={resetModal}>Criar nova questão</Button>
                     </div>
                   )}
                   {pageState === "ERROR" && (
-                    <div>
+                    <div className="flex flex-col items-center">
                       {state?.statusCode === 500 && (
                         <h5 className="text-center text-xl font-semibold">
                           Algo deu errado!
@@ -594,6 +636,7 @@ const QuestionCreationModal = ({
                       <div className="flex justify-center">
                         <IconX className="h-32 w-32 text-2xl text-red-500" />
                       </div>
+                      <Button onPress={resetModal}>Tentar novamente</Button>
                     </div>
                   )}
                 </div>

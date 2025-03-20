@@ -105,7 +105,7 @@ const MapPopup = ({
                   <div className="flex">
                     <h4 className="text-2xl">{`${questionName}`}</h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

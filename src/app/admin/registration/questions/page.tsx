@@ -54,6 +54,14 @@ const QuestionsPage = () => {
       );
       setCategories(cat);
       setSubcategories(currentCategory?.subcategory || []);
+      if (!selectedCategoryAndSubcategoryId.categoryId) {
+        setSelectedCategoryAndSubcategoryId({
+          categoryId: cat[0]?.id,
+          subcategoryId: undefined,
+          verifySubcategoryNullness:
+            cat[0]?.subcategory.length === 0 ? true : false,
+        });
+      }
     };
     void fetchCategoriesAfterCreation();
   };

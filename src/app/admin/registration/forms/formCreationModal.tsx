@@ -12,7 +12,7 @@ import {
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Input } from "../../../../components/ui/input";
-import { formSubmit } from "../../../../serverActions/formSubmit";
+import { formSubmit } from "../../../../serverActions/formUtil";
 
 const FormCreationModal = () => {
   const [state, formAction, isPending] = useActionState(formSubmit, null);
@@ -33,7 +33,12 @@ const FormCreationModal = () => {
     }
   }, [isOpen]);
   return (
-    <DialogTrigger onOpenChange={(open) => setIsOpen(open)}>
+    <DialogTrigger
+      onOpenChange={(open) => {
+        setPageState("FORM");
+        setIsOpen(open);
+      }}
+    >
       <Button
         className="items-center p-2 text-sm sm:text-xl"
         variant={"constructive"}
@@ -64,7 +69,7 @@ const FormCreationModal = () => {
                       Criar formulário
                     </h4>
                     <Button
-                      className="ml-auto"
+                      className="ml-auto text-black"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {

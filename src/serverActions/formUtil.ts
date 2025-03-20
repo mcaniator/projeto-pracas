@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { Form, Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -11,7 +12,7 @@ import {
   DisplayCalculation,
   DisplayQuestion,
 } from "../app/admin/registration/forms/[formId]/edit/client";
-import { QuestionWithCategories } from "./questionSubmit";
+import { QuestionWithCategories } from "./questionUtil";
 
 interface FormToEditPage {
   id: number;
@@ -21,6 +22,36 @@ interface FormToEditPage {
   calculations: DisplayCalculation[];
 }
 
+const formSubmit = async (
+  prevState: { statusCode: number; formName: string | null } | null,
+  formData: FormData,
+): Promise<{ statusCode: number; formName: string | null } | null> => {
+  let parse;
+  try {
+    parse = formSchema.parse({
+      name: formData.get("name"),
+    });
+  } catch (e) {
+    return {
+      statusCode: 400,
+      formName: null,
+    };
+  }
+
+  try {
+    const createdForm = await prisma.form.create({ data: parse });
+    revalidateTag("form");
+    return { statusCode: 201, formName: createdForm.name };
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError)
+      if (e.code === "P2002") return { statusCode: 409, formName: null };
+    return {
+      statusCode: 500,
+      formName: null,
+    };
+  }
+};
+
 const deleteFormVersion = async (
   prevState: {
     statusCode: number;
@@ -28,6 +59,13 @@ const deleteFormVersion = async (
       assessmentsWithForm: {
         id: number;
         startDate: Date;
+        location: {
+          name: string;
+          id: number;
+        };
+        user: {
+          username: string;
+        };
       }[];
       form: { name: string; version: number } | null;
     };
@@ -39,6 +77,13 @@ const deleteFormVersion = async (
     assessmentsWithForm: {
       id: number;
       startDate: Date;
+      location: {
+        name: string;
+        id: number;
+      };
+      user: {
+        username: string;
+      };
     }[];
     form: { name: string; version: number } | null;
   };
@@ -52,6 +97,17 @@ const deleteFormVersion = async (
       select: {
         id: true,
         startDate: true,
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
     if (assessments.length > 0) {
@@ -356,6 +412,7 @@ const createVersion = async (
 
 export {
   fetchForms,
+  formSubmit,
   deleteFormVersion,
   searchFormById,
   searchformNameById,

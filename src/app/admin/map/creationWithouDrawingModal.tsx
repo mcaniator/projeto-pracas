@@ -80,7 +80,7 @@ const CreationWithoutDrawingModal = ({
                   <div className="flex justify-between">
                     <h2 className="text-4xl font-semibold">Criar Praça</h2>
                     <Button variant={"ghost"} size={"icon"} onPress={close}>
-                      <IconX />
+                      <IconX className="text-black" />
                     </Button>
                   </div>
                   <LocationRegisterForm

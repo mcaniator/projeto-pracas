@@ -8,8 +8,6 @@ import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 const Page = async ({ params }: { params: { formId: string } }) => {
   const form = await searchFormById(parseInt(params.formId));
   const formIdNumber = parseInt(params.formId);
-  //const questions = await searchQuestionsByFormId(parseInt(params.formId));
-  //const questions = await searchQuestionsByFormId(Number(params.formId));
   const categories: {
     id: number;
     name: string;
@@ -171,7 +169,7 @@ const Page = async ({ params }: { params: { formId: string } }) => {
         </div>
       </div>
     );
-  else return <div>Local não encontrado</div>;
+  else return <div className="bg-red-500">Formulário não encontrado</div>;
 };
 
 export default Page;

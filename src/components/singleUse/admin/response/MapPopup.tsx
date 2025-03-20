@@ -103,14 +103,14 @@ const MapPopup = ({
                       <Button
                         variant={"ghost"}
                         onPress={() => setCurrentGeometryType("POINT")}
-                        className={`rounded-xl px-4 py-1 ${currentGeometryType === "POINT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl px-4 py-1 text-black ${currentGeometryType === "POINT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Ponto
                       </Button>
                       <Button
                         variant={"ghost"}
                         onPress={() => setCurrentGeometryType("POLYGON")}
-                        className={`rounded-xl bg-blue-500 px-4 py-1 ${currentGeometryType === "POLYGON" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                        className={`rounded-xl bg-blue-500 px-4 py-1 text-black ${currentGeometryType === "POLYGON" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
                         Poligono
                       </Button>

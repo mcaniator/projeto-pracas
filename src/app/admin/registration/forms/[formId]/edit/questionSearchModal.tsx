@@ -19,7 +19,7 @@ import {
 import LoadingIcon from "../../../../../../components/LoadingIcon";
 import { Input } from "../../../../../../components/ui/input";
 import { Select } from "../../../../../../components/ui/select";
-import { CategoriesWithQuestions } from "../../../../../../serverActions/categorySubmit";
+import { CategoriesWithQuestions } from "../../../../../../serverActions/categoryUtil";
 import {
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByStatement,
@@ -158,7 +158,6 @@ const QuestionSearchModal = ({
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
-            style={{}}
           >
             <Dialog className="outline-none data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring">
               {({ close }) => (
