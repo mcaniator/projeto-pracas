@@ -10,7 +10,28 @@ O projeto é feito em TypeScript, utilizando o framework Next.js. Para executar,
 
 É necessário acesso a um banco de dados PostgreSQL. Recomenda-se utilizar um versão igual ou superior a 16.0. Deve-se criar um arquivo `.env` na raiz do projeto, seguindo como exemplo o arquivo `.env.example`, preenchedo as variáveis de ambiente de acordo com a preferência do usuário.
 
+### Dependências
+
+Intale as dependencias utilizando:
+
+```
+npm install
+```
+ou
+```
+pnpm install
+```
+
 ### Servidor de Desenvolvimento
+
+Faça a migração do banco de dados com o comando:
+```
+npx prisma migrate dev
+```
+Gere o Prisma Client com o comando:
+```
+npx prisma generate
+```
 
 Para iniciar o servidor de desenvolvimento, rode o script `dev`:
 
