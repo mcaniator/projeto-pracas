@@ -66,7 +66,6 @@ const Client = ({
   const [panelVisible, setPanelVisible] = useState(false);
   const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
-  console.log(currentId);
   return (
     <div className="relative">
       <div className="fixed bottom-4 right-4 z-50">
