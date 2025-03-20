@@ -125,7 +125,7 @@ const UserInfo = ({ user }: { user: User }) => {
           type={"button"}
           variant={"ghost"}
           size={"icon"}
-          className="ml-auto"
+          className="ml-auto text-black"
         >
           <IconPencil />
         </Button>
@@ -148,12 +148,12 @@ const UserInfo = ({ user }: { user: User }) => {
             void revalidateAllCache();
           }}
         >
-          <span className="-mb-1">Log out</span>
+          <span className="-mb-1">Resetar cache</span>
         </Button>
       </div>
       <div className="flex w-full items-center">
         <Button variant={"ghost"} size={"icon"}>
-          <IconSettings />
+          <IconSettings className="text-black" />
         </Button>
         <Button
           variant={"ghost"}
@@ -163,8 +163,8 @@ const UserInfo = ({ user }: { user: User }) => {
           }}
         >
           {highContrast ?
-            <IconContrastOff />
-          : <IconContrast />}
+            <IconContrastOff className="text-black" />
+          : <IconContrast className="text-black" />}
         </Button>
         <form action={formAction} className="ml-auto">
           <Button
