@@ -1,5 +1,4 @@
 import TallyPage from "@/components/singleUse/admin/tallys/tallyListPage";
-import { validateRequest } from "@/lib/lucia";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import { redirect } from "next/navigation";
@@ -9,7 +8,7 @@ const Tallys = async ({ params }: { params: { locationId: string } }) => {
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
-  const { user } = await validateRequest();
+  const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   let endedTallys;
   let ongoingTallys;

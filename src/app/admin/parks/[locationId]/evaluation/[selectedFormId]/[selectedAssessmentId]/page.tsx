@@ -1,4 +1,3 @@
-import { validateRequest } from "@/lib/lucia";
 import {
   fetchAssessmentGeometries,
   fetchAssessmentWithResponses,
@@ -18,7 +17,7 @@ const Responses = async ({
     selectedAssessmentId: string;
   };
 }) => {
-  const { user } = await validateRequest();
+  const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),

@@ -116,7 +116,21 @@ const Signup = (props: {
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <label htmlFor="username" className="-mb-1">
-            Nome de Usuário:
+            E-mail:
+          </label>
+          <Input name="email" defaultValue={props.username} />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="username" className="-mb-1">
+            Nome
+          </label>
+          <Input name="name" defaultValue={props.username} />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="username" className="-mb-1">
+            Nome de Usuário (único):
           </label>
           <Input
             name="username"

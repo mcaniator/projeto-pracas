@@ -1,4 +1,3 @@
-import { validateRequest } from "@/lib/lucia";
 import {
   fetchAssessmentsGeometries,
   fetchMultipleAssessmentsWithResponses,
@@ -18,7 +17,7 @@ const ResponsesFetcher = async ({
     selectedAssessmentsIds: string;
   };
 }) => {
-  const { user } = await validateRequest();
+  const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const assessmentsIds: number[] = params.selectedAssessmentsIds
     .split("-")

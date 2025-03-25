@@ -18,7 +18,6 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
-import { User } from "lucia";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
 import { useActionState } from "react";
@@ -44,7 +43,7 @@ const headerVariants = cva(
 interface headerProps
   extends HTMLAttributes<HTMLElement>,
     VariantProps<typeof headerVariants> {
-  user: User | null;
+  user: { username: string; email: string } | null;
 }
 
 const Header = forwardRef<HTMLElement, headerProps>(
@@ -109,7 +108,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
 );
 Header.displayName = "Header";
 
-const UserInfo = ({ user }: { user: User }) => {
+const UserInfo = ({ user }: { user: { username: string; email: string } }) => {
   const [, formAction] = useActionState(signout, { statusCode: -1 });
   const [highContrast, setHighContrat] = useState(false);
 

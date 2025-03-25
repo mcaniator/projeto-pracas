@@ -2,11 +2,10 @@ import { Footer } from "@/app/_components/footer";
 import { HomeHeader } from "@/app/_components/homeHeader";
 import { InfoSegment } from "@/app/_components/infoSegment";
 import { Button } from "@/components/button";
-import { validateRequest } from "@/lib/lucia";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 
-const Home = async () => {
-  const { user } = await validateRequest();
+const Home = () => {
+  const user = { username: "placeholder" };
 
   return (
     <main className="bg-off-white">

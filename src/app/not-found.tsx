@@ -1,10 +1,9 @@
 import { Footer } from "@/app/_components/footer";
 import { Header } from "@/app/_components/header";
 import { Button } from "@/components/button";
-import { validateRequest } from "@/lib/lucia";
 
-const NotFound = async () => {
-  const { user } = await validateRequest();
+const NotFound = () => {
+  const user = { username: "placeholder" };
 
   return (
     <main className="flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue to-imperial-red">

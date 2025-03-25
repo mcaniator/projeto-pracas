@@ -1,4 +1,3 @@
-import { validateRequest } from "@/lib/lucia";
 import { fetchAssessmentsInProgresss } from "@/serverActions/assessmentUtil";
 import { searchformNameById } from "@/serverActions/formUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
@@ -19,7 +18,7 @@ const AssessmentPage = async ({
 }: {
   params: { locationId: string; selectedFormId: string };
 }) => {
-  const { user } = await validateRequest();
+  const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
 
   const locationId = Number(params.locationId);
