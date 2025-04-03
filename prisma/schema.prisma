@@ -141,17 +141,24 @@ enum WeatherConditions {
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
+model Permission {
+  id      Int    @id @default(autoincrement())
+  feature String @unique @db.VarChar(255)
+  user    User[]
+}
 
 model User {
-  id String @id @unique
+  id            String       @id @default(cuid())
+  name          String?
+  email         String       @unique
+  emailVerified DateTime?
+  image         String?
+  username      String?      @unique @db.VarChar(255)
+  permission    Permission[]
+  password      String?
 
-  email           String?   @unique @db.VarChar(255)
-  username        String    @unique @db.VarChar(255)
-  name            String    @db.VarChar(255)
-  type            UserTypes
-  hashed_password String
-
-  session Session[]
+  accounts Account[]
+  sessions Session[]
 
   assessment Assessment[]
 
@@ -167,14 +174,44 @@ model User {
 }
 
 model Session {
-  id String @id @unique
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  expiresAt DateTime @map("expires_at")
-
-  userId String @map("user_id")
-  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
 }
 
 // #endregion

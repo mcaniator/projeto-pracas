@@ -16,6 +16,7 @@ import {
   IconSettings,
   IconTree,
   IconUser,
+  IconUserPlus,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
 import Link from "next/link";
@@ -67,41 +68,62 @@ const Header = forwardRef<HTMLElement, headerProps>(
             <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
-
-        <DialogTrigger>
-          <Button
-            variant={"ghost"}
-            className="ml-auto flex items-center px-3 py-6 pl-2"
-          >
-            {user !== null && user !== undefined ?
-              <div className="flex items-center gap-2">
-                <span className="hidden text-xl md:inline">
-                  {user.username}
-                </span>
-                <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
-              </div>
-            : <div className={"flex"}>
-                <IconLogin size={34} />
-                <span className="pointer-events-none text-2xl sm:text-3xl">
-                  Login
-                </span>
-              </div>
-            }
-          </Button>
-          <Popover
-            className={
-              "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
-            }
-          >
-            <Dialog className={"outline-none"}>
-              <div ref={popupContentRef}>
-                {user !== null && user !== undefined ?
-                  <UserInfo user={user} />
-                : <AuthForm />}
-              </div>
-            </Dialog>
-          </Popover>
-        </DialogTrigger>
+        {user ?
+          <DialogTrigger>
+            <Button
+              variant={"ghost"}
+              className="ml-auto flex items-center px-3 py-6 pl-2"
+            >
+              {user !== null && user !== undefined ?
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-xl md:inline">
+                    {user.username}
+                  </span>
+                  <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
+                </div>
+              : <div className={"flex"}>
+                  <IconLogin size={34} />
+                  <span className="pointer-events-none text-2xl sm:text-3xl">
+                    Login
+                  </span>
+                </div>
+              }
+            </Button>
+            <Popover
+              className={
+                "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
+              }
+            >
+              <Dialog className={"outline-none"}>
+                <div ref={popupContentRef}>
+                  {user !== null && user !== undefined ?
+                    <UserInfo user={user} />
+                  : <AuthForm />}
+                </div>
+              </Dialog>
+            </Popover>
+          </DialogTrigger>
+        : <div className="ml-auto flex flex-wrap gap-1">
+            <Link href={"/login"}>
+              <Button
+                variant={"ghost"}
+                className="ml-auto flex items-center px-3 py-6 pl-2"
+              >
+                <IconLogin2 />
+                Entrar
+              </Button>
+            </Link>
+            <Link href={"/register"}>
+              <Button
+                variant={"ghost"}
+                className="ml-auto flex items-center px-3 py-6 pl-2"
+              >
+                <IconUserPlus />
+                Cadastrar-se
+              </Button>
+            </Link>
+          </div>
+        }
       </header>
     );
   },

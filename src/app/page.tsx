@@ -1,3 +1,5 @@
+"use server";
+
 import { Footer } from "@/app/_components/footer";
 import { HomeHeader } from "@/app/_components/homeHeader";
 import { InfoSegment } from "@/app/_components/infoSegment";
@@ -9,7 +11,7 @@ const Home = () => {
 
   return (
     <main className="bg-off-white">
-      <HomeHeader user={user} />
+      <HomeHeader user={null} />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">
