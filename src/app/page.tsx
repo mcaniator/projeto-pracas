@@ -6,9 +6,12 @@ import { InfoSegment } from "@/app/_components/infoSegment";
 import { Button } from "@/components/button";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 
-const Home = () => {
-  const user = { username: "placeholder" };
+import { auth } from "../lib/auth/auth";
 
+const Home = async () => {
+  const user = { username: "placeholder" };
+  const session = await auth();
+  console.log("sessao", session);
   return (
     <main className="bg-off-white">
       <HomeHeader user={null} />

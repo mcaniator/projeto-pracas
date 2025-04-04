@@ -1,10 +1,12 @@
 "use client";
 
 import { IconTree } from "@tabler/icons-react";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import LoadingIcon from "../../components/LoadingIcon";
 import { Button } from "../../components/button";
+import GoogleLoginButton from "../../components/singleUse/auth/googleLoginButton";
 import { Input } from "../../components/ui/input";
 import login from "../../serverActions/login";
 
@@ -18,22 +20,31 @@ const LoginForm = () => {
       {state?.statusCode === 401 && (
         <div className="text-red-500">Credenciais incorretas!</div>
       )}
-      <form action={formAction}>
-        <div className="flex flex-col gap-4 rounded-lg bg-gray-200 p-6 text-center">
-          <h2 className="text-2xl">Login</h2>
-          <div>
-            <label htmlFor="email">E-mail</label>
-            <Input name="email" id="email" />
+      <div className="flex flex-col gap-4 rounded-lg bg-gray-200 p-6 text-center">
+        <form action={formAction}>
+          <div className="flex flex-col gap-4 text-center">
+            <h2 className="text-2xl">Login</h2>
+            <div>
+              <label htmlFor="email">E-mail</label>
+              <Input name="email" id="email" />
+            </div>
+            <div>
+              <label htmlFor="password">Senha</label>
+              <Input type="password" name="password" id="password" />
+            </div>
+            <Button type="submit" variant={"constructive"}>
+              Entrar
+            </Button>
           </div>
-          <div>
-            <label htmlFor="password">Senha</label>
-            <Input type="password" name="password" id="password" />
-          </div>
-          <Button type="submit" variant={"constructive"}>
-            Entrar
-          </Button>
-        </div>
-      </form>
+        </form>
+        <GoogleLoginButton />
+      </div>
+      Não possui uma conta? Entre com Google ou{" "}
+      <Link href={"/register"}>
+        <Button variant={"ghost"} className="font-semibold text-blue-500">
+          cadastre-se
+        </Button>
+      </Link>
     </div>
   );
 };

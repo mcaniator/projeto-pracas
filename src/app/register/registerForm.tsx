@@ -60,6 +60,10 @@ const RegisterForm = () => {
     () => errors.errors?.find((e) => e.element === "confirmPassword"),
     [errors],
   );
+  const divError = useMemo(
+    () => errors.errors?.find((e) => e.element === "div"),
+    [errors],
+  );
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -210,6 +214,7 @@ const RegisterForm = () => {
           <Button type="submit" variant={"constructive"}>
             Cadastrar
           </Button>
+          {divError && <p className="text-red-500">{divError.message}</p>}
         </div>
       </form>
     </div>

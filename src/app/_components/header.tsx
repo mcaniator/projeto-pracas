@@ -113,15 +113,6 @@ const Header = forwardRef<HTMLElement, headerProps>(
                 Entrar
               </Button>
             </Link>
-            <Link href={"/register"}>
-              <Button
-                variant={"ghost"}
-                className="ml-auto flex items-center px-3 py-6 pl-2"
-              >
-                <IconUserPlus />
-                Cadastrar-se
-              </Button>
-            </Link>
           </div>
         }
       </header>
