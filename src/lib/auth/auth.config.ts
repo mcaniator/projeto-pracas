@@ -6,7 +6,23 @@ import Google from "next-auth/providers/google";
 import { prisma } from "../prisma";
 import { userLoginSchema } from "../zodValidators";
 
+//We need to define session callback in auth.config.ts, and jwt callback in auth.ts. Check: https://github.com/nextauthjs/next-auth/issues/9836#issuecomment-2451288724
 export default {
+  session: { strategy: "jwt" },
+  callbacks: {
+    session({ token, session }) {
+      const ret = {
+        ...session,
+        user: {
+          id: token.sub,
+          username: token.username as string | null,
+          isOauth: token.isOauth as string | null,
+          permissions: token.permissions as string[],
+        },
+      };
+      return ret;
+    },
+  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,

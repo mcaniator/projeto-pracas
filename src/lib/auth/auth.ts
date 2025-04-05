@@ -12,9 +12,9 @@ export const {
   signOut,
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
   ...authConfig,
   callbacks: {
+    ...authConfig.callbacks, // include session callback from auth.config.ts. Please check the file for more details.
     signIn({ user, account }) {
       if (account?.provider !== "credentials") {
         return true;
@@ -35,18 +35,6 @@ export const {
       token.isOauth = !!existingAccount;
       token.permissions = user.permissions;
       return token;
-    },
-    session({ token, session }) {
-      const ret = {
-        ...session,
-        user: {
-          id: token.sub,
-          username: token.username as string | null,
-          isOauth: token.isOauth as string | null,
-          permissions: token.permissions as string[],
-        },
-      };
-      return ret;
     },
   },
 });
