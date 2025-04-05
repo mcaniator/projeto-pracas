@@ -11,7 +11,7 @@ import { auth } from "../lib/auth/auth";
 const Home = async () => {
   const user = { username: "placeholder" };
   const session = await auth();
-  console.log("sessao", session);
+  
   return (
     <main className="bg-off-white">
       <HomeHeader user={null} />

@@ -15,15 +15,11 @@ export const {
   session: { strategy: "jwt" },
   ...authConfig,
   callbacks: {
-    async signIn({ user, account }) {
+    signIn({ user, account }) {
       if (account?.provider !== "credentials") {
         return true;
       }
       if (!user.id) {
-        return false;
-      }
-      const existingUser = await getUserById(user.id);
-      if (!existingUser?.emailVerified) {
         return false;
       }
       return true;
@@ -37,19 +33,20 @@ export const {
       const existingAccount = await getAccountByUserId(user.id);
       token.username = user.username;
       token.isOauth = !!existingAccount;
-      token.permissions = user.permission;
+      token.permissions = user.permissions;
       return token;
     },
     session({ token, session }) {
-      return {
+      const ret = {
         ...session,
         user: {
           id: token.sub,
-          username: token.username,
-          isOauth: token.isOauth,
-          permissions: token.permissions,
+          username: token.username as string | null,
+          isOauth: token.isOauth as string | null,
+          permissions: token.permissions as string[],
         },
       };
+      return ret;
     },
   },
 });

@@ -154,7 +154,7 @@ model User {
   emailVerified DateTime?
   image         String?
   username      String?      @unique @db.VarChar(255)
-  permission    Permission[]
+  permissions   Permission[]
   password      String?
 
   accounts Account[]

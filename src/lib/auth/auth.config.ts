@@ -21,13 +21,27 @@ export default {
           where: {
             email,
           },
+          include: {
+            permissions: {
+              select: {
+                feature: true,
+              },
+            },
+          },
         });
+
         if (!user || !user.password || !user.email) {
           return null;
         }
         const passwordsMatch = await bcrypt.compare(password, user.password);
         if (passwordsMatch) {
-          return user;
+          const formattedUser = {
+            ...user,
+            permissions: user.permissions.map(
+              (permission: { feature: string }) => permission.feature,
+            ),
+          };
+          return formattedUser;
         }
 
         return null;

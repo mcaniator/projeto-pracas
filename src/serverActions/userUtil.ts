@@ -20,7 +20,7 @@ const getUserById = async (userId: string) => {
         id: userId,
       },
       include: {
-        permission: true,
+        permissions: true,
       },
     });
     return user;
