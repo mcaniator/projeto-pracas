@@ -9,12 +9,11 @@ import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 import { auth } from "../lib/auth/auth";
 
 const Home = async () => {
-  const user = { username: "placeholder" };
   const session = await auth();
-  
+
   return (
     <main className="bg-off-white">
-      <HomeHeader user={null} />
+      <HomeHeader user={session?.user ?? null} />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">

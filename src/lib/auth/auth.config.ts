@@ -16,6 +16,8 @@ export default {
         user: {
           id: token.sub,
           username: token.username as string | null,
+          email: token.email as string,
+          image: token.image as string | null,
           isOauth: token.isOauth as string | null,
           permissions: token.permissions as string[],
         },

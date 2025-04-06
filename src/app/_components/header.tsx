@@ -1,27 +1,23 @@
 "use client";
 
-import { AuthForm } from "@/app/_components/authForm";
 import { Button } from "@/components/button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
-import { signout } from "@/serverActions/auth";
-import { revalidateAllCache } from "@/serverActions/revalidateAllCache";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   IconContrast,
   IconContrastOff,
   IconLogin,
   IconLogin2,
-  IconPencil,
   IconSettings,
   IconTree,
   IconUser,
-  IconUserPlus,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
-import { useActionState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
 const headerVariants = cva(
@@ -44,7 +40,7 @@ const headerVariants = cva(
 interface headerProps
   extends HTMLAttributes<HTMLElement>,
     VariantProps<typeof headerVariants> {
-  user: { username: string; email: string } | null;
+  user: { username: string | null; email: string; image: string | null } | null;
 }
 
 const Header = forwardRef<HTMLElement, headerProps>(
@@ -77,9 +73,18 @@ const Header = forwardRef<HTMLElement, headerProps>(
               {user !== null && user !== undefined ?
                 <div className="flex items-center gap-2">
                   <span className="hidden text-xl md:inline">
-                    {user.username}
+                    {user.username ?? user.email}
                   </span>
-                  <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
+                  {user.image ?
+                    <Image
+                      src={user.image}
+                      alt="img"
+                      width={32}
+                      height={32}
+                      className="rounded-lg transition hover:cursor-pointer hover:brightness-125"
+                    />
+                  : <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
+                  }
                 </div>
               : <div className={"flex"}>
                   <IconLogin size={34} />
@@ -96,9 +101,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             >
               <Dialog className={"outline-none"}>
                 <div ref={popupContentRef}>
-                  {user !== null && user !== undefined ?
-                    <UserInfo user={user} />
-                  : <AuthForm />}
+                  <UserInfo user={user} />
                 </div>
               </Dialog>
             </Popover>
@@ -121,29 +124,28 @@ const Header = forwardRef<HTMLElement, headerProps>(
 );
 Header.displayName = "Header";
 
-const UserInfo = ({ user }: { user: { username: string; email: string } }) => {
-  const [, formAction] = useActionState(signout, { statusCode: -1 });
+const UserInfo = ({
+  user,
+}: {
+  user: { username: string | null; email: string };
+}) => {
+  //const [, formAction] = useActionState(signOut, undefined);
   const [highContrast, setHighContrat] = useState(false);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="h-8 w-8 rounded-lg bg-cambridge-blue" />
-        <div className="flex items-center gap-1">
-          <span className="-mb-1 text-2xl font-semibold">{user.username}</span>
-          <span className="-mb-1 text-gray-500">{user.email}</span>
+        <div className="flex flex-col gap-1">
+          <span className="-mb-1 text-base font-semibold sm:text-xl">
+            {user.username ?? "(usuário)"}
+          </span>
+          <span className="-mb-1 text-xs text-gray-500 sm:text-sm">
+            {user.email}
+          </span>
         </div>
-        <Button
-          type={"button"}
-          variant={"ghost"}
-          size={"icon"}
-          className="ml-auto text-black"
-        >
-          <IconPencil />
-        </Button>
       </div>
       <div className="my-3 flex gap-4">
-        <Link href={"/admin"} className="basis-1/2">
+        <Link href={"/admin"}>
           <Button
             type={"button"}
             className="w-full text-white"
@@ -153,15 +155,6 @@ const UserInfo = ({ user }: { user: { username: string; email: string } }) => {
             <span className="-mb-1">Painel</span>
           </Button>
         </Link>
-        <Button
-          variant={"destructive"}
-          className="w-full basis-1/2 text-nowrap text-white"
-          onPress={() => {
-            void revalidateAllCache();
-          }}
-        >
-          <span className="-mb-1">Resetar cache</span>
-        </Button>
       </div>
       <div className="flex w-full items-center">
         <Button variant={"ghost"} size={"icon"}>
@@ -178,17 +171,20 @@ const UserInfo = ({ user }: { user: { username: string; email: string } }) => {
             <IconContrastOff className="text-black" />
           : <IconContrast className="text-black" />}
         </Button>
-        <form action={formAction} className="ml-auto">
+        <div className="ml-auto">
           <Button
             className={"hover:bg-redwood/20"}
             variant={"ghost"}
             type="submit"
+            onPress={() => {
+              void signOut({ callbackUrl: "/", redirect: true });
+            }}
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">
               <IconLogin2 strokeWidth={3} /> Sair
             </span>
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

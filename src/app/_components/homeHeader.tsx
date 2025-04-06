@@ -6,10 +6,9 @@ import { useEffect, useRef } from "react";
 const HomeHeader = ({
   user,
 }: {
-  user: { username: string; email: string } | null;
+  user: { username: string | null; email: string; image: string | null } | null;
 }) => {
   const header = useRef<HTMLElement>(null);
-
   useEffect(() => {
     const getPosition = () => {
       if (header.current == null) return;

@@ -32,6 +32,8 @@ export const {
       if (!user) return token;
       const existingAccount = await getAccountByUserId(user.id);
       token.username = user.username;
+      token.email = user.email;
+      token.image = user.image;
       token.isOauth = !!existingAccount;
       token.permissions = user.permissions;
       return token;
