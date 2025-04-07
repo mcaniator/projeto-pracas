@@ -129,7 +129,6 @@ const UserInfo = ({
 }: {
   user: { username: string | null; email: string };
 }) => {
-  //const [, formAction] = useActionState(signOut, undefined);
   const [highContrast, setHighContrat] = useState(false);
 
   return (
@@ -145,7 +144,7 @@ const UserInfo = ({
         </div>
       </div>
       <div className="my-3 flex gap-4">
-        <Link href={"/admin"}>
+        <Link href={"/admin/home"}>
           <Button
             type={"button"}
             className="w-full text-white"

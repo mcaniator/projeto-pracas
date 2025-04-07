@@ -59,7 +59,6 @@ const register = async (
     });
     return { statusCode: 201, errors: null };
   } catch (e) {
-    console.log(e);
     if (
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
@@ -67,8 +66,6 @@ const register = async (
       const violatedField = (e.meta?.target as string[])?.[0] || "unknown";
       const violatedFieldPt =
         violatedField === "username" ? "nome de usuário" : "e-mail";
-      console.log(violatedField);
-      //console.log(`Erro de unicidade no campo: ${violatedField}`);
       return {
         statusCode: 409,
         errors: [

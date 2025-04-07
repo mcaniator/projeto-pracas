@@ -8,6 +8,7 @@ import {
   QuestionTypes,
   WeatherConditions,
 } from "@prisma/client";
+import { use } from "react";
 import { ZodType, z } from "zod";
 
 type zodErrorType<Type extends ZodType> = {
@@ -64,16 +65,33 @@ const userRegisterSchema = z
     }
   });
 
+const userUpdateUsernameSchema = z.object({
+  userId: z.string(),
+  username: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "O nome de usuário deve conter pelo menos 1 caractere.",
+    })
+    .max(255, {
+      message: "O nome de usuário deve conter no máximo 255 caracteres",
+    })
+    .regex(/^[a-z0-9.]+$/, {
+      message: "O nome de usuário pode conter apenas letras minúsculas e '.'",
+    }),
+});
+
 const userLoginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(8),
 });
 
 type userRegisterType = z.infer<typeof userRegisterSchema>;
+type userUpdateUsernameType = z.infer<typeof userUpdateUsernameSchema>;
 type userLoginType = z.infer<typeof userLoginSchema>;
 
-export { userRegisterSchema, userLoginSchema };
-export type { userRegisterType, userLoginType };
+export { userRegisterSchema, userLoginSchema, userUpdateUsernameSchema };
+export type { userRegisterType, userUpdateUsernameType, userLoginType };
 
 // #endregion
 
