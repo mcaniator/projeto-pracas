@@ -1,7 +1,7 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 
-import { getAccountByUserId, getUserById } from "../../serverActions/userUtil";
+import { getUserById } from "../../serverActions/userUtil";
 import { prisma } from "../prisma";
 import authConfig from "./auth.config";
 
@@ -30,7 +30,6 @@ export const {
       }
       const user = await getUserById(token.sub);
       if (!user) return token;
-      const existingAccount = await getAccountByUserId(user.id);
       token.username = user.username;
       token.email = user.email;
       token.image = user.image;
