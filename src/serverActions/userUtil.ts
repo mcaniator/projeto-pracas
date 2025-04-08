@@ -35,6 +35,22 @@ const getUserById = async (userId: string) => {
   }
 };
 
+const getUsernameById = async (userId: string) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        username: true,
+      },
+    });
+    return user?.username ?? null;
+  } catch (e) {
+    return null;
+  }
+};
+
 const updateUserUsername = async (
   prevState: {
     statusCode: number;
@@ -108,4 +124,4 @@ const updateUserUsername = async (
   }
 };
 
-export { getAccountByUserId, getUserById, updateUserUsername };
+export { getAccountByUserId, getUserById, updateUserUsername, getUsernameById };

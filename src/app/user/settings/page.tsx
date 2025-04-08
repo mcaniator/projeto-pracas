@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { auth } from "../../../../lib/auth/auth";
+import { auth } from "../../../lib/auth/auth";
 
 const UserSettings = async () => {
   const session = await auth();

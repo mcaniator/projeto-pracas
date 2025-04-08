@@ -34,8 +34,6 @@ export const {
       token.username = user.username;
       token.email = user.email;
       token.image = user.image;
-      token.isOauth = !!existingAccount;
-      token.permissions = user.permissions;
       return token;
     },
   },

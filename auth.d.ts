@@ -7,8 +7,6 @@ declare module "next-auth" {
       username: string | null;
       email: string;
       image: string | null;
-      isOauth: boolean;
-      permissions: string[];
     };
   }
 
@@ -26,7 +24,5 @@ declare module "next-auth/jwt" {
     username: string;
     email: string;
     image: string | null;
-    isOauth: boolean;
-    permissions: string[];
   }
 }
