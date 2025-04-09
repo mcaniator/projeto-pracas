@@ -9,6 +9,7 @@ import { getUsernameById } from "../../serverActions/userUtil";
 const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
   const username = await getUsernameById(session?.user.id ?? "");
+  console.log("session", session);
   if (!username) {
     redirect("/user/usernameWarning");
   }

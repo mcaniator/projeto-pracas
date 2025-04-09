@@ -8,16 +8,29 @@ import { userLoginSchema } from "../zodValidators";
 
 //We need to define session callback in auth.config.ts, and jwt callback in auth.ts. Check: https://github.com/nextauthjs/next-auth/issues/9836#issuecomment-2451288724
 export default {
-  session: { strategy: "jwt" },
+  session: { strategy: "database" },
   callbacks: {
-    session({ token, session }) {
+    async session({ session }) {
+      const dbUser = await prisma.user.findUnique({
+        where: {
+          id: session.user.id,
+        },
+        select: {
+          permissions: true,
+          username: true,
+          email: true,
+          image: true,
+        },
+      });
       const ret = {
         ...session,
         user: {
-          id: token.sub,
-          username: token.username as string | null,
-          email: token.email as string,
-          image: token.image as string | null,
+          id: session.user.id,
+          username: dbUser?.username ?? null,
+          email: dbUser?.email ?? "",
+          image: dbUser?.image ?? null,
+          permissions:
+            dbUser?.permissions.map((permission) => permission.feature) ?? [],
         },
       };
       return ret;
