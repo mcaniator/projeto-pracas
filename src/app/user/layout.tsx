@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
 import { auth } from "../../lib/auth/auth";
@@ -6,10 +5,6 @@ import { Header } from "../_components/header";
 
 const UserRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
-  /*if (!session?.user) {
-    redirect("/login");
-  }*/
-  console.log("session", session);
   return (
     <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
       <Header variant={"static"} user={session?.user ?? null} />
