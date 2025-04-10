@@ -42,7 +42,7 @@ const Sidebar = () => {
     {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
-      path: "/admin/registration",
+      path: "/admin/registration/questions",
     },
     {
       icon: <IconTableExport size={34} />,

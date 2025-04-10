@@ -26,6 +26,7 @@
     "react-rnd": "^10.4.14",
     "shpjs": "^5.0.2",
     "tailwind-merge": "^2.6.0",
+    "ts-node": "^10.9.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -83,5 +84,8 @@
     "lint": "next lint",
     "start": "next start"
   },
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  }
 }

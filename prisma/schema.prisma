@@ -141,6 +141,26 @@ enum WeatherConditions {
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
+enum Features {
+  ASSESSMENT_CREATE     @map("assessment_create")
+  ASSESSMENT_EDIT_ANY   @map("assessment_edit_any")
+  ASSESSMENT_DELETE_ANY @map("assessment_delete_any")
+  ASSESSMENT_EDIT_OWN   @map("assessment_edit_own")
+  ASSESSMENT_DELETE_OWN @map("assessment_delete_own")
+  TALLY_CREATE          @map("tally_create")
+  TALLY_EDIT_ANY        @map("tally_edit_any")
+  TALLY_DELETE_ANY      @map("tally_delete_any")
+  TALLY_EDIT_OWN        @map("tally_edit_own")
+  TALLY_DELETE_OWN      @map("tally_delete_own")
+  FORM_CREATE           @map("form_create")
+  FORM_DELETE           @map("form_delete")
+  PARK_CREATE           @map("park_create")
+  PARK_EDIT             @map("park_edit")
+  PARK_DELETE           @map("park_delete")
+  PERMISSION_MANAGE     @map("permission_manage")
+  USER_DELETE           @map("user_delete")
+}
+
 model Permission {
   id      Int    @id @default(autoincrement())
   feature String @unique @db.VarChar(255)
