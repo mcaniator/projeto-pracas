@@ -3,16 +3,13 @@ import { fetchCities } from "@/serverActions/cityUtil";
 import { fetchPolygons } from "@/serverActions/managePolygons";
 import { Location } from "@prisma/client";
 import { unstable_cache } from "next/cache";
-import dynamic from "next/dynamic";
 
 import { fetchLocationCategories } from "../../../serverActions/locationCategoryUtil";
 import { fetchLocationTypes } from "../../../serverActions/locationTypeUtil";
-import PolygonProvider from "./polygonProvider";
-
+import Client from "./client";
 //Polygon provider cannot be imported dynamically, because it creates errors in compiled builds.
-
-const MapProvider = dynamic(() => import("./mapProvider"), { ssr: false });
-const Client = dynamic(() => import("./client"), { ssr: false });
+import MapProvider from "./mapProvider";
+import PolygonProvider from "./polygonProvider";
 
 interface fullLocation extends Location {
   st_asgeojson: string | null;
