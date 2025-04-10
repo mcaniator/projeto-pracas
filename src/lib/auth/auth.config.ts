@@ -37,12 +37,12 @@ export default {
           where: {
             email,
           },
-          include: {
-            permissions: {
-              select: {
-                feature: true,
-              },
-            },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            password: true,
+            image: true,
           },
         });
 
@@ -51,13 +51,7 @@ export default {
         }
         const passwordsMatch = await bcrypt.compare(password, user.password);
         if (passwordsMatch) {
-          const formattedUser = {
-            ...user,
-            permissions: user.permissions.map(
-              (permission: { feature: string }) => permission.feature,
-            ),
-          };
-          return formattedUser;
+          return user;
         }
 
         return null;

@@ -10,7 +10,6 @@ import { auth } from "../lib/auth/auth";
 
 const Home = async () => {
   const session = await auth();
-
   return (
     <main className="bg-off-white">
       <HomeHeader user={session?.user ?? null} />
