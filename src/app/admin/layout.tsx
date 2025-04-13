@@ -3,25 +3,32 @@ import Sidebar from "@/components/singleUse/admin/sidebar";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
+import { UserContextProvider } from "../../components/context/UserContext";
 import { auth } from "../../lib/auth/auth";
-import { getUsernameById } from "../../serverActions/userUtil";
+import { getUserAuthInfo } from "../../serverActions/userUtil";
 
 const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
-  const username = await getUsernameById(session?.user.id ?? "");
-  if (!username) {
+  const user = await getUserAuthInfo(session?.user?.id);
+  if (user?.permissions.length === 0) {
+    redirect("/user/accessDenied");
+  }
+  if (!user?.username) {
     redirect("/user/usernameWarning");
   }
+  console.log("LAYOUT RENDER");
   return (
-    <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
-      <Header variant={"static"} user={session?.user ?? null} />
-      <div className="flex min-h-0 flex-grow justify-center">
-        <Sidebar />
-        <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
-          {children}
+    <UserContextProvider user={user}>
+      <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
+        <Header variant={"static"} user={user ?? null} />
+        <div className="flex min-h-0 flex-grow justify-center">
+          <Sidebar />
+          <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </UserContextProvider>
   );
 };
 
