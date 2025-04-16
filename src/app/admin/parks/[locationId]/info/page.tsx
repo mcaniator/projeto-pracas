@@ -5,7 +5,8 @@ import Link from "next/link";
 
 import { searchLocationsById } from "../../../../../serverActions/locationUtil";
 
-const ParkInfo = async ({ params }: { params: { locationId: string } }) => {
+const ParkInfo = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const location = (await searchLocationsById(parseInt(params.locationId)))
     .location;
   const city =

@@ -3,11 +3,12 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 
 import { AssessmentsListPage } from "./assessmentsListPage";
 
-const AssessmentsPage = async ({
-  params,
-}: {
-  params: { locationId: string; selectedFormId: string };
-}) => {
+const AssessmentsPage = async (
+  props: {
+    params: Promise<{ locationId: string; selectedFormId: string }>;
+  }
+) => {
+  const params = await props.params;
   const locatioName = await searchLocationNameById(Number(params.locationId));
   const assessments = await fetchAssessmentByLocationAndForm(
     Number(params.locationId),

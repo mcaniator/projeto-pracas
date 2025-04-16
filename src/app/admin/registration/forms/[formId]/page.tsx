@@ -5,7 +5,8 @@ import Link from "next/link";
 
 import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
-const Page = async ({ params }: { params: { formId: string } }) => {
+const Page = async (props: { params: Promise<{ formId: string }> }) => {
+  const params = await props.params;
   const form = await searchFormById(parseInt(params.formId));
   const formIdNumber = parseInt(params.formId);
   const categories: {

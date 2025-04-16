@@ -1,7 +1,8 @@
 import { fetchLatestNonVersionZeroForms } from "@/serverActions/formUtil";
 import Link from "next/link";
 
-const Evaluation = async ({ params }: { params: { locationId: string } }) => {
+const Evaluation = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const forms = await fetchLatestNonVersionZeroForms();
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5"}>

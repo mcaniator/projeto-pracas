@@ -6,7 +6,8 @@ import { fetchCities } from "../../../../../serverActions/cityUtil";
 import { fetchLocationCategories } from "../../../../../serverActions/locationCategoryUtil";
 import { fetchLocationTypes } from "../../../../../serverActions/locationTypeUtil";
 
-const Edit = async ({ params }: { params: { locationId: string } }) => {
+const Edit = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const location = (await searchLocationsById(parseInt(params.locationId)))
     .location;
   const cities = await fetchCities();

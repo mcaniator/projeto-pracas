@@ -2,7 +2,8 @@ import { searchLocationsById } from "@/serverActions/locationUtil";
 import { IconMapPin } from "@tabler/icons-react";
 import Link from "next/link";
 
-const Page = async ({ params }: { params: { locationId: string } }) => {
+const Page = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const location = (await searchLocationsById(parseInt(params.locationId)))
     .location;
   const locationIdNumber = parseInt(params.locationId);

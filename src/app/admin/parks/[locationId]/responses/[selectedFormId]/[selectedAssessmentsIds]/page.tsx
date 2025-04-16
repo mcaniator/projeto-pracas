@@ -8,15 +8,16 @@ import { redirect } from "next/navigation";
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
 import MainContainer from "./mainContainer";
 
-const ResponsesFetcher = async ({
-  params,
-}: {
-  params: {
-    locationId: string;
-    selectedFormId: string;
-    selectedAssessmentsIds: string;
-  };
-}) => {
+const ResponsesFetcher = async (
+  props: {
+    params: Promise<{
+      locationId: string;
+      selectedFormId: string;
+      selectedAssessmentsIds: string;
+    }>;
+  }
+) => {
+  const params = await props.params;
   const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const assessmentsIds: number[] = params.selectedAssessmentsIds

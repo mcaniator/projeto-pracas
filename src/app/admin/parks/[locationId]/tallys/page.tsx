@@ -3,7 +3,8 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import { redirect } from "next/navigation";
 
-const Tallys = async ({ params }: { params: { locationId: string } }) => {
+const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const tallys = await fetchTallysByLocationId(Number(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),

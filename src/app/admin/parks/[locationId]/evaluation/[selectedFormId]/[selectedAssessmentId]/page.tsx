@@ -8,15 +8,16 @@ import { redirect } from "next/navigation";
 
 import { ResponseComponent } from "./responseComponent";
 
-const Responses = async ({
-  params,
-}: {
-  params: {
-    locationId: string;
-    selectedFormId: string;
-    selectedAssessmentId: string;
-  };
-}) => {
+const Responses = async (
+  props: {
+    params: Promise<{
+      locationId: string;
+      selectedFormId: string;
+      selectedAssessmentId: string;
+    }>;
+  }
+) => {
+  const params = await props.params;
   const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const locationName = await searchLocationNameById(

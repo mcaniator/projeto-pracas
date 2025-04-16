@@ -13,11 +13,12 @@ interface AssessmentDataFetchedToAssessmentList {
   };
 }
 
-const AssessmentPage = async ({
-  params,
-}: {
-  params: { locationId: string; selectedFormId: string };
-}) => {
+const AssessmentPage = async (
+  props: {
+    params: Promise<{ locationId: string; selectedFormId: string }>;
+  }
+) => {
+  const params = await props.params;
   const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
 

@@ -3,11 +3,12 @@ import { fetchOngoingTallyById } from "@/serverActions/tallyUtil";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
 
-const Page = async ({
-  params,
-}: {
-  params: { locationId: string; currentTallyInProgress: string };
-}) => {
+const Page = async (
+  props: {
+    params: Promise<{ locationId: string; currentTallyInProgress: string }>;
+  }
+) => {
+  const params = await props.params;
   const user = null;
   if (user === null || user.type !== "ADMIN") redirect("/error");
   const tally = await fetchOngoingTallyById(

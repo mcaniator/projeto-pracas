@@ -3,11 +3,12 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchFinalizedTallysToDataVisualization } from "@/serverActions/tallyUtil";
 import { notFound } from "next/navigation";
 
-const Page = async ({
-  params,
-}: {
-  params: { locationId: string; selectedTallysIds: string };
-}) => {
+const Page = async (
+  props: {
+    params: Promise<{ locationId: string; selectedTallysIds: string }>;
+  }
+) => {
+  const params = await props.params;
   const decodedActiveTallysString = params.selectedTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
 
