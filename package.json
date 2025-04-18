@@ -40,7 +40,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-938cd9a-20240601",
     "eslint": "^8.57.1",
-    "eslint-config-next": "15.0.0-rc.0",
+    "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react-compiler": "0.0.0-experimental-51a85ea-20240601",
     "next": "15.2.4",
