@@ -21,6 +21,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 
+import ButtonLink from "../../ui/buttonLink";
+
 const Sidebar = () => {
   const currentLocation = usePathname();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -86,27 +88,20 @@ const Sidebar = () => {
         </div>
 
         <div className="flex flex-col gap-1">
-          {
-            //TODO: This button inside the Link triggers a layout re render. Fix this
-            topSidebar.map((element, index) => (
-              <Link href={element.path} key={index}>
-                <Button
-                  type="button"
-                  variant={"ghost"}
-                  use={"link"}
-                  onPress={() => (window.location.href = `${element.path}`)}
-                  className={cn(
-                    currentLocation.startsWith(element.path) &&
-                      "bg-transparent/50",
-                    "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
-                  )}
-                >
-                  {element.icon}
-                  <span className="-mb-1">{element.name}</span>
-                </Button>
-              </Link>
-            ))
-          }
+          {topSidebar.map((element, index) => (
+            <ButtonLink
+              href={element.path}
+              key={index}
+              variant={"ghost"}
+              className={cn(
+                currentLocation.startsWith(element.path) && "bg-transparent/50",
+                "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
+              )}
+            >
+              {element.icon}
+              <span className="-mb-1">{element.name}</span>
+            </ButtonLink>
+          ))}
         </div>
 
         <div className="mt-auto flex flex-col gap-1">
