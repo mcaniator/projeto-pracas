@@ -6,12 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import LoadingIcon from "../../../components/LoadingIcon";
 import { Button } from "../../../components/button";
 import { Input } from "../../../components/ui/input";
-import { Select } from "../../../components/ui/select";
-import {
-  UserPropertyToSearch,
-  getUsers,
-} from "../../../serverActions/userUtil";
-import UsersTable from "./usersTable";
+import { getUsers } from "../../../serverActions/userUtil";
+import UsersTable, { OrdersObj } from "./usersTable";
 
 type TableUser = {
   image: string;
@@ -34,6 +30,12 @@ const UsersClient = () => {
     pageSize: 10,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [orders, setOrders] = useState<OrdersObj>({
+    email: "none",
+    name: "none",
+    username: "none",
+    createdAt: "desc",
+  });
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -42,8 +44,7 @@ const UsersClient = () => {
         pagination.page,
         pagination.pageSize,
         searchRef.current,
-        null,
-        null,
+        orders,
       );
       if (users.statusCode === 200) {
         setUsers(users.users as TableUser[]);
@@ -56,7 +57,7 @@ const UsersClient = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination]);
+  }, [pagination, orders]);
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
@@ -67,6 +68,10 @@ const UsersClient = () => {
     pageSize: number;
   }) => {
     setPagination({ ...newPagination });
+  };
+
+  const handleOrdersObjChange = (newOrders: OrdersObj) => {
+    setOrders(newOrders);
   };
 
   useEffect(() => {
@@ -109,8 +114,10 @@ const UsersClient = () => {
           users={users}
           pagination={pagination}
           totalUsers={totalUsers}
+          orders={orders}
           handlePageChange={handlePageChange}
           handlePaginationChange={handlePaginationChange}
+          handleOrdersObjChange={handleOrdersObjChange}
         />
       </div>
     </div>

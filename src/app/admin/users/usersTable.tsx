@@ -1,5 +1,4 @@
 import {
-  IconArrowsSort,
   IconCornerUpLeft,
   IconCornerUpRight,
   IconFilter,
@@ -14,23 +13,36 @@ import React, { useEffect, useState } from "react";
 
 import { Button } from "../../../components/button";
 import { Input } from "../../../components/ui/input";
+import SortMenu from "./orderMenu";
 import { TableUser } from "./usersClient";
 
+type Order = "asc" | "desc" | "none";
+type OrderProperty = "email" | "name" | "username" | "createdAt";
+type OrdersObj = {
+  email: Order;
+  name: Order;
+  username: Order;
+  createdAt: Order;
+};
 const UsersTable = ({
   users,
   totalUsers,
   pagination,
+  orders,
   handlePageChange,
   handlePaginationChange,
+  handleOrdersObjChange,
 }: {
   users: TableUser[];
   totalUsers: number | null;
   pagination: { page: number; pageSize: number };
+  orders: OrdersObj;
   handlePageChange: (newValue: number) => void;
   handlePaginationChange: (newPagination: {
     page: number;
     pageSize: number;
   }) => void;
+  handleOrdersObjChange: (newOrders: OrdersObj) => void;
 }) => {
   const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -78,6 +90,11 @@ const UsersTable = ({
 
     handlePaginationChange(newPagination);
   };
+
+  const changeOrder = (order: Order, orderProperty: OrderProperty) => {
+    handleOrdersObjChange({ ...orders, [orderProperty]: order });
+  };
+
   useEffect(() => {
     const newTotalPages =
       totalUsers ? Math.ceil(totalUsers / pagination.pageSize) : 0;
@@ -95,33 +112,41 @@ const UsersTable = ({
             <th className="px-6">
               <div className="flex items-center gap-1">
                 E-mail
-                <Button variant={"secondary"}>
-                  <IconArrowsSort />
-                </Button>
+                <SortMenu
+                  order={orders.email}
+                  orderProperty={"email"}
+                  changeOrder={changeOrder}
+                />
               </div>
             </th>
             <th className="px-6">
               <div className="flex items-center gap-1">
                 Nome
-                <Button variant={"secondary"}>
-                  <IconArrowsSort />
-                </Button>
+                <SortMenu
+                  order={orders.name}
+                  orderProperty={"name"}
+                  changeOrder={changeOrder}
+                />
               </div>
             </th>
             <th className="px-6">
               <div className="flex items-center gap-1">
                 Nome de usuário
-                <Button variant={"secondary"}>
-                  <IconArrowsSort />
-                </Button>
+                <SortMenu
+                  order={orders.username}
+                  orderProperty={"username"}
+                  changeOrder={changeOrder}
+                />
               </div>
             </th>
             <th className="px-6">
               <div className="flex items-center gap-1">
                 Registro em
-                <Button variant={"secondary"}>
-                  <IconArrowsSort />
-                </Button>
+                <SortMenu
+                  order={orders.createdAt}
+                  orderProperty={"createdAt"}
+                  changeOrder={changeOrder}
+                />
               </div>
             </th>
             <th>Ações</th>
@@ -258,3 +283,4 @@ const UsersTable = ({
 };
 
 export default UsersTable;
+export type { Order, OrdersObj, OrderProperty };

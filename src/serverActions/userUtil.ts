@@ -1,14 +1,14 @@
 "use server";
 
-import { Prisma, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
+import { OrdersObj } from "../app/admin/users/usersTable";
 import PermissionError from "../erros/permissionError";
 import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userUpdateUsernameSchema } from "../lib/zodValidators";
 import { checkIfHasAnyPermission } from "../serverOnly/checkPermission";
-import { OrderDirection } from "../types/database";
 
 type UserPropertyToSearch = "username" | "email" | "name";
 
@@ -161,8 +161,7 @@ const getUsers = async (
   page: number,
   take: number,
   search: string | null,
-  orderBy?: keyof User | null,
-  orderDirection?: OrderDirection | null,
+  orders: OrdersObj,
 ) => {
   const session = await auth();
   const user = session?.user;
@@ -177,9 +176,9 @@ const getUsers = async (
       prisma.user.findMany({
         skip,
         take,
-        orderBy: {
-          [orderBy ?? "createdAt"]: orderDirection ?? "desc",
-        },
+        orderBy: Object.keys(orders)
+          .filter((key) => orders[key as keyof OrdersObj] !== "none")
+          .map((key) => ({ [key]: orders[key as keyof OrdersObj] })),
         where:
           search ?
             {
@@ -237,7 +236,6 @@ const getUsers = async (
           : {},
       }),
     ]);
-    console.log(user);
     return {
       statusCode: 200,
       users,
