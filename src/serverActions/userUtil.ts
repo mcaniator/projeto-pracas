@@ -209,10 +209,40 @@ const getUsers = async (
           permissions: true,
         },
       }),
-      prisma.user.count(),
+      prisma.user.count({
+        where:
+          search ?
+            {
+              OR: [
+                {
+                  email: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  username: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  name: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {},
+      }),
     ]);
     console.log(user);
-    return { statusCode: 200, users, totalUsers };
+    return {
+      statusCode: 200,
+      users,
+      totalUsers,
+    };
   } catch (e) {
     console.log(e);
     if (e instanceof PermissionError) {

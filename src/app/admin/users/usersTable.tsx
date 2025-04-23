@@ -57,16 +57,17 @@ const UsersTable = ({
 
   const validatePagination = () => {
     const newPagination = { ...localPagination };
-    if (localPagination.pageSize < 1) {
+    if (
+      Number.isNaN(localPagination.pageSize) ||
+      localPagination.pageSize < 1
+    ) {
       newPagination.pageSize = 1;
-    } else if (totalUsers && localPagination.page > totalUsers) {
+    } else if (totalUsers && localPagination.pageSize > totalUsers) {
       newPagination.pageSize = totalUsers;
     }
     const newTotalPages =
       totalUsers ? Math.ceil(totalUsers / newPagination.pageSize) : 0;
-    if (Number.isNaN(localPagination.page)) {
-      newPagination.page = 1;
-    } else if (localPagination.page < 1) {
+    if (Number.isNaN(localPagination.page) || localPagination.page < 1) {
       newPagination.page = 1;
     } else if (localPagination.page > newTotalPages) {
       newPagination.page = newTotalPages;
@@ -240,8 +241,8 @@ const UsersTable = ({
                   }));
                 }}
                 className={`${
-                  localPagination.pageSize < 10 ? "w-8"
-                  : localPagination.pageSize < 100 ? "w-11"
+                  localPagination.pageSize < 10 ? "w-10"
+                  : localPagination.pageSize < 100 ? "w-12"
                   : "w-14"
                 }`}
               />
