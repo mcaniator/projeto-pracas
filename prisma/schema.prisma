@@ -162,8 +162,8 @@ enum Features {
 }
 
 model Permission {
-  id      Int    @id @default(autoincrement())
-  feature String @unique @db.VarChar(255)
+  id      Int      @id @default(autoincrement())
+  feature Features @unique
   user    User[]
 }
 

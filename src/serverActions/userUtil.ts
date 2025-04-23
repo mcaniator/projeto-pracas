@@ -1,10 +1,16 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { ZodError } from "zod";
 
+import PermissionError from "../erros/permissionError";
+import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userUpdateUsernameSchema } from "../lib/zodValidators";
+import { checkIfHasAnyPermission } from "../serverOnly/checkPermission";
+import { OrderDirection } from "../types/database";
+
+type UserPropertyToSearch = "username" | "email" | "name";
 
 const getAccountByUserId = async (userId: string) => {
   try {
@@ -66,7 +72,13 @@ const getUserAuthInfo = async (userId: string | undefined | null) => {
         permissions: true,
       },
     });
-    return user;
+    if (!user) return null;
+    const formattedUser = {
+      ...user,
+      permissions:
+        user?.permissions.map((permission) => permission.feature) ?? [],
+    };
+    return formattedUser;
   } catch (e) {
     return null;
   }
@@ -145,10 +157,78 @@ const updateUserUsername = async (
   }
 };
 
+const getUsers = async (
+  page: number,
+  take: number,
+  search: string | null,
+  orderBy?: keyof User | null,
+  orderDirection?: OrderDirection | null,
+) => {
+  const session = await auth();
+  const user = session?.user;
+  if (!user) return { statusCode: 401, users: null, totalUsers: null };
+  try {
+    await checkIfHasAnyPermission(user.id, [
+      "PERMISSION_MANAGE",
+      "USER_DELETE",
+    ]);
+    const skip = (page - 1) * take;
+    const [users, totalUsers] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take,
+        orderBy: {
+          [orderBy ?? "createdAt"]: orderDirection ?? "desc",
+        },
+        where:
+          search ?
+            {
+              OR: [
+                {
+                  email: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  username: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  name: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {},
+        include: {
+          permissions: true,
+        },
+      }),
+      prisma.user.count(),
+    ]);
+    console.log(user);
+    return { statusCode: 200, users, totalUsers };
+  } catch (e) {
+    console.log(e);
+    if (e instanceof PermissionError) {
+      return { statusCode: 403, users: null, totalUsers: null };
+    }
+    return { statusCode: 500, users: null, totalUsers: null };
+  }
+};
+
 export {
   getAccountByUserId,
   getUserById,
   updateUserUsername,
   getUsernameById,
   getUserAuthInfo,
+  getUsers,
 };
+
+export type { UserPropertyToSearch };

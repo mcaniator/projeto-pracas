@@ -14,6 +14,7 @@ import {
   IconMapSearch,
   IconMenu2,
   IconTableExport,
+  IconTree,
   IconUserCog,
   IconX,
 } from "@tabler/icons-react";
@@ -21,9 +22,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 
+import { useUserContext } from "../../context/UserContext";
 import ButtonLink from "../../ui/buttonLink";
 
 const Sidebar = () => {
+  const user = useUserContext();
   const currentLocation = usePathname();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
@@ -36,25 +39,57 @@ const Sidebar = () => {
     }
   };
 
-  const topSidebar: { icon: ReactNode; name: string; path: string }[] = [
-    { icon: <IconHome size={34} />, name: "Início", path: "/admin/home" },
-    { icon: <IconFountain size={34} />, name: "Praças", path: "/admin/parks" },
-    { icon: <IconUserCog size={34} />, name: "Usuários", path: "/admin/users" },
-    { icon: <IconMapSearch size={34} />, name: "Mapa", path: "/admin/map" },
+  const topSidebar: {
+    icon: ReactNode;
+    name: string;
+    path: string;
+    show?: boolean;
+  }[] = [
+    {
+      icon: <IconHome size={34} />,
+      name: "Início",
+      path: "/admin/home",
+      show: true,
+    },
+    {
+      icon: <IconFountain size={34} />,
+      name: "Praças",
+      path: "/admin/parks",
+      show: true,
+    },
+    {
+      icon: <IconMapSearch size={34} />,
+      name: "Mapa",
+      path: "/admin/map",
+      show: true,
+    },
     {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
       path: "/admin/registration/questions",
+      show: true,
     },
     {
       icon: <IconTableExport size={34} />,
       name: "Exportar",
       path: "/admin/export",
+      show: true,
     },
     {
       icon: <IconLogs size={34} />,
       name: "Atividade",
       path: "/admin/activity",
+      show: true,
+    },
+    {
+      icon: <IconUserCog size={34} />,
+      name: "Usuários",
+      path: "/admin/users",
+      show:
+        user ?
+          user.permissions.includes("PERMISSION_MANAGE") ||
+          user.permissions.includes("USER_DELETE")
+        : false,
     },
   ];
 
@@ -81,27 +116,42 @@ const Sidebar = () => {
           titillium_web.className,
         )}
       >
-        <div className="mb-4 flex justify-end">
-          <button onClick={closeSidebar}>
+        <div className="mb-4 flex justify-between">
+          <ButtonLink
+            href="/"
+            variant={"ghost"}
+            className="flex gap-1 px-1 transition-colors hover:bg-white hover:text-gray-800"
+          >
+            <IconTree size={34} />
+            Projeto praças
+          </ButtonLink>
+          <Button
+            variant={"ghost"}
+            onPress={closeSidebar}
+            className="cursor-pointer gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+          >
             <IconX size={34} />
-          </button>
+          </Button>
         </div>
 
         <div className="flex flex-col gap-1">
-          {topSidebar.map((element, index) => (
-            <ButtonLink
-              href={element.path}
-              key={index}
-              variant={"ghost"}
-              className={cn(
-                currentLocation.startsWith(element.path) && "bg-transparent/50",
-                "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
-              )}
-            >
-              {element.icon}
-              <span className="-mb-1">{element.name}</span>
-            </ButtonLink>
-          ))}
+          {topSidebar
+            .filter((element) => element.show)
+            .map((element, index) => (
+              <ButtonLink
+                href={element.path}
+                key={index}
+                variant={"ghost"}
+                className={cn(
+                  currentLocation.startsWith(element.path) &&
+                    "bg-transparent/50",
+                  "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
+                )}
+              >
+                {element.icon}
+                <span className="-mb-1">{element.name}</span>
+              </ButtonLink>
+            ))}
         </div>
 
         <div className="mt-auto flex flex-col gap-1">

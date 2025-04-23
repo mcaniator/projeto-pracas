@@ -10,13 +10,15 @@ import { getUserAuthInfo } from "../../serverActions/userUtil";
 const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
   const user = await getUserAuthInfo(session?.user?.id);
-  if (user?.permissions.length === 0) {
-    redirect("/user/accessDenied");
+  if (!user) {
+    redirect("/login");
   }
   if (!user?.username) {
     redirect("/user/usernameWarning");
   }
-  console.log("LAYOUT RENDER");
+  if (user?.permissions.length === 0) {
+    redirect("/user/accessDenied");
+  }
   return (
     <UserContextProvider user={user}>
       <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">

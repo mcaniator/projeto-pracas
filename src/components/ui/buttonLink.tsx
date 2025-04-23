@@ -10,17 +10,16 @@ const buttonLinkVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-sky-500/70 bg-blend-darken data-[hovered]:bg-sky-900 disabled:bg-sky-900",
-        admin: "bg-purpureus data-[hovered]:bg-eminence disabled:bg-eminence",
+          "bg-sky-500/70 bg-blend-darken hover:bg-sky-900 disabled:bg-sky-900",
+        admin: "bg-purpureus hover:bg-eminence disabled:bg-eminence",
         constructive:
-          "bg-green-500/90 data-[hovered]:bg-green-700/90 disabled:bg-green-700/90",
-        destructive:
-          "bg-redwood data-[hovered]:bg-cordovan disabled:bg-cordovan",
+          "bg-green-500/90 hover:bg-green-700/90 disabled:bg-green-700/90",
+        destructive: "bg-redwood hover:bg-cordovan disabled:bg-cordovan",
         outline:
-          "border border-input bg-transparent data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
+          "hover:bg-accenthover:text-accent-foreground border border-input bg-transparent",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm data-[hovered]:bg-secondary/80",
-        ghost: "bg-transparent shadow-none data-[hovered]:bg-transparent/10",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "bg-transparent shadow-none hover:bg-transparent/10",
       },
       size: {
         default: "h-9 px-4 py-2",
