@@ -5,9 +5,12 @@ import PermissionError from "../erros/permissionError";
 import { prisma } from "../lib/prisma";
 
 const checkIfHasAnyPermission = async (
-  userId: string,
+  userId: string | null | undefined,
   permissions: Features[],
 ) => {
+  if (!userId) {
+    throw new PermissionError("User does not have any required permission");
+  }
   try {
     const user = await prisma.user.findUnique({
       where: {

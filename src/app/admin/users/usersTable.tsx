@@ -14,6 +14,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "../../../components/button";
 import { Input } from "../../../components/ui/input";
 import SortMenu from "./orderMenu";
+import PermissionsModal from "./permissionsModal";
 import { TableUser } from "./usersClient";
 
 type Order = "asc" | "desc" | "none";
@@ -32,6 +33,7 @@ const UsersTable = ({
   handlePageChange,
   handlePaginationChange,
   handleOrdersObjChange,
+  updateTable,
 }: {
   users: TableUser[];
   totalUsers: number | null;
@@ -43,6 +45,7 @@ const UsersTable = ({
     pageSize: number;
   }) => void;
   handleOrdersObjChange: (newOrders: OrdersObj) => void;
+  updateTable: () => void;
 }) => {
   const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -52,8 +55,10 @@ const UsersTable = ({
     minute: "2-digit",
     second: "2-digit",
   });
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [localPagination, setLocalPagination] = useState({ ...pagination });
+  const [selectedUser, setSelectedUser] = useState<TableUser | null>(null);
   const validatePage = (newPage: number) => {
     if (Number.isNaN(localPagination.page)) {
       newPage = 1;
@@ -100,7 +105,6 @@ const UsersTable = ({
       totalUsers ? Math.ceil(totalUsers / pagination.pageSize) : 0;
     setTotalPages(newTotalPages);
   }, [pagination, totalUsers]);
-
   return (
     <div className="w-full">
       <table className="w-full">
@@ -174,7 +178,13 @@ const UsersTable = ({
               <td className="px-6">{user.username}</td>
               <td className="px-6">{dateFormatter.format(user.createdAt)}</td>
               <td className="flex justify-center gap-1 px-6">
-                <Button className="px-2">
+                <Button
+                  className="px-2"
+                  onPress={() => {
+                    setSelectedUser(user);
+                    setIsPermissionsModalOpen(true);
+                  }}
+                >
                   <IconKey />
                 </Button>
                 <Button className="px-2">
@@ -278,6 +288,14 @@ const UsersTable = ({
           </tr>
         </tfoot>
       </table>
+      <PermissionsModal
+        isOpen={isPermissionsModalOpen}
+        user={selectedUser}
+        onOpenChange={() => {
+          setIsPermissionsModalOpen(false);
+        }}
+        updateTable={updateTable}
+      />
     </div>
   );
 };

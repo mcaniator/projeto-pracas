@@ -1,5 +1,6 @@
 "use client";
 
+import { Features } from "@prisma/client";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -10,12 +11,13 @@ import { getUsers } from "../../../serverActions/userUtil";
 import UsersTable, { OrdersObj } from "./usersTable";
 
 type TableUser = {
-  image: string;
-  username?: string;
+  id: string;
+  image: string | null;
+  username?: string | null;
   email: string;
-  name: string;
+  name: string | null;
   createdAt: Date;
-  permissions: { id: number; feature: string }[];
+  permissions: { id: number; feature: Features }[];
 };
 const UsersClient = () => {
   const [search, setSearch] = useState<string>("");
@@ -47,7 +49,7 @@ const UsersClient = () => {
         orders,
       );
       if (users.statusCode === 200) {
-        setUsers(users.users as TableUser[]);
+        setUsers(users.users ?? []);
         setTotalUsers(users.totalUsers);
       } else {
         setUsers([]);
@@ -72,6 +74,10 @@ const UsersClient = () => {
 
   const handleOrdersObjChange = (newOrders: OrdersObj) => {
     setOrders(newOrders);
+  };
+
+  const updateTable = () => {
+    void fetchUsers();
   };
 
   useEffect(() => {
@@ -118,6 +124,7 @@ const UsersClient = () => {
           handlePageChange={handlePageChange}
           handlePaginationChange={handlePaginationChange}
           handleOrdersObjChange={handleOrdersObjChange}
+          updateTable={updateTable}
         />
       </div>
     </div>

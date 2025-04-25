@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma } from "@prisma/client";
+import { Features, Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 import { OrdersObj } from "../app/admin/users/usersTable";
@@ -242,11 +242,37 @@ const getUsers = async (
       totalUsers,
     };
   } catch (e) {
-    console.log(e);
     if (e instanceof PermissionError) {
       return { statusCode: 403, users: null, totalUsers: null };
     }
     return { statusCode: 500, users: null, totalUsers: null };
+  }
+};
+
+const updateUsersPermissions = async (
+  userId: string,
+  changedFeatures: { feature: Features; removed: boolean }[],
+) => {
+  const session = await auth();
+  try {
+    await checkIfHasAnyPermission(session?.user.id, ["PERMISSION_MANAGE"]);
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        permissions: {
+          disconnect: changedFeatures
+            .filter((f) => f.removed)
+            .map((f) => ({ feature: f.feature })),
+          connect: changedFeatures
+            .filter((f) => !f.removed)
+            .map((f) => ({ feature: f.feature })),
+        },
+      },
+    });
+  } catch (e) {
+    console.log(e);
   }
 };
 
@@ -257,6 +283,7 @@ export {
   getUsernameById,
   getUserAuthInfo,
   getUsers,
+  updateUsersPermissions,
 };
 
 export type { UserPropertyToSearch };
