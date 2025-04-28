@@ -18,7 +18,6 @@ import {
   IconUserCog,
   IconX,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
 

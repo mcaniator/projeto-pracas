@@ -3,6 +3,7 @@ import Sidebar from "@/components/singleUse/admin/sidebar";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
+import { PermissionDeniedProvider } from "../../components/context/PermissionDeniedContext";
 import { UserContextProvider } from "../../components/context/UserContext";
 import { auth } from "../../lib/auth/auth";
 import { getUserAuthInfo } from "../../serverActions/userUtil";
@@ -21,15 +22,17 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   }
   return (
     <UserContextProvider user={user}>
-      <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
-        <Header variant={"static"} user={user ?? null} />
-        <div className="flex min-h-0 flex-grow justify-center">
-          <Sidebar />
-          <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
-            {children}
+      <PermissionDeniedProvider>
+        <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
+          <Header variant={"static"} user={user ?? null} />
+          <div className="flex min-h-0 flex-grow justify-center">
+            <Sidebar />
+            <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
+              {children}
+            </div>
           </div>
         </div>
-      </div>
+      </PermissionDeniedProvider>
     </UserContextProvider>
   );
 };

@@ -1,4 +1,4 @@
-"use server";
+"use client";
 
 import {
   IconFountain,
@@ -8,8 +8,20 @@ import {
   IconTableExport,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+
+import { usePermissionDenied } from "../../../components/context/PermissionDeniedContext";
 
 const AdminRoot = () => {
+  const permissionDeniedContext = usePermissionDenied();
+  const params = useSearchParams();
+  useEffect(() => {
+    if (params.get("permissionDenied") === "true") {
+      permissionDeniedContext.setPermissionDenied(true);
+    }
+  });
+
   return (
     <div
       className={

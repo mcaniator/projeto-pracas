@@ -8,8 +8,12 @@ export default auth((req) => {
     return Response.redirect(new URL("/login", req.url));
   }
   const pathname = req.nextUrl.pathname;
+  const search = req.nextUrl.search;
+
   if (pathname === "/admin") {
-    return Response.redirect(new URL("/admin/home", req.url));
+    const url = new URL("/admin/home", req.url);
+    url.search = search;
+    return Response.redirect(url);
   }
 });
 

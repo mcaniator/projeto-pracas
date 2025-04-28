@@ -4,7 +4,7 @@ import { Features, Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 import { OrdersObj } from "../app/admin/users/usersTable";
-import PermissionError from "../erros/permissionError";
+import PermissionError from "../errors/permissionError";
 import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userUpdateUsernameSchema } from "../lib/zodValidators";
@@ -272,7 +272,7 @@ const updateUsersPermissions = async (
       },
     });
   } catch (e) {
-    console.log(e);
+    return;
   }
 };
 
