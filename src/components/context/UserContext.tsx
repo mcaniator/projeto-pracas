@@ -1,6 +1,6 @@
 "use client";
 
-import { Features } from "@prisma/client";
+import { Role } from "@prisma/client";
 import React, { ReactNode, createContext } from "react";
 
 type UserContextType = {
@@ -8,7 +8,7 @@ type UserContextType = {
   username: string | null;
   email: string | null;
   image: string | null;
-  permissions: Features[];
+  roles: Role[];
 };
 
 const UserContext = createContext<UserContextType | null>(null);

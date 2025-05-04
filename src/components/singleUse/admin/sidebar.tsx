@@ -84,11 +84,7 @@ const Sidebar = () => {
       icon: <IconUserCog size={34} />,
       name: "Usuários",
       path: "/admin/users",
-      show:
-        user ?
-          user.permissions.includes("PERMISSION_MANAGE") ||
-          user.permissions.includes("USER_DELETE")
-        : false,
+      show: user ? user.roles.includes("USER_MANAGER") : false,
     },
   ];
 

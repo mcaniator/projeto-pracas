@@ -17,7 +17,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   if (!user?.username) {
     redirect("/user/usernameWarning");
   }
-  if (user?.permissions.length === 0) {
+  if (user?.roles.length === 0) {
     redirect("/user/accessDenied");
   }
   return (

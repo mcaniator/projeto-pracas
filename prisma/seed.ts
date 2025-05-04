@@ -1,23 +1,11 @@
-import { Features } from "@prisma/client";
+import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import { SystemSection } from "../src/app/admin/users/permissionsModal";
 import { prisma } from "../src/lib/prisma";
 
 const seed = async () => {
-  const features = Object.values(Features);
-  try {
-    await Promise.all(
-      features.map((feature) =>
-        prisma.permission.upsert({
-          where: { feature },
-          update: {},
-          create: { feature },
-        }),
-      ),
-    );
-  } catch (e) {
-    console.log("Error during features creation: ", e);
-  }
+  const roles = Object.values(Role);
 
   //Admin creation
   try {
@@ -40,9 +28,13 @@ const seed = async () => {
         name: "Admin",
         username: "admin",
         password: hashedPassword,
-        permissions: {
-          connect: features.map((feature) => ({ feature })),
-        },
+        roles: [
+          "ASSESSMENT_MANAGER",
+          "FORM_MANAGER",
+          "PARK_MANAGER",
+          "TALLY_MANAGER",
+          "USER_MANAGER",
+        ],
       },
     });
   } catch (e) {
@@ -61,19 +53,6 @@ const seed = async () => {
       const numberOfUsers = 100;
       await prisma.$transaction(async (prisma) => {
         for (let i = 0; i < numberOfUsers; i++) {
-          const userFeatures: Features[] = [];
-          const numberOfFeatures = Math.floor(Math.random() * features.length);
-          for (let i = 0; i < numberOfFeatures; i++) {
-            let userHasFeature = true;
-            do {
-              let randomIndex = Math.floor(Math.random() * features.length);
-              let feature = features[randomIndex]!;
-              if (!userFeatures.includes(feature)) {
-                userHasFeature = true;
-                userFeatures.push(feature);
-              }
-            } while (!userHasFeature);
-          }
           await prisma.user.upsert({
             where: {
               email: `usuario${i + 1}@teste.com`,
@@ -84,9 +63,6 @@ const seed = async () => {
               username: `usuario.teste${i + 1}`,
               email: `usuario${i + 1}@teste.com`,
               password: hashedPassword,
-              permissions: {
-                connect: userFeatures.map((feature) => ({ feature: feature })),
-              },
             },
           });
         }

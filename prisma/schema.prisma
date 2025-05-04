@@ -141,44 +141,31 @@ enum WeatherConditions {
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
-enum Features {
-  ASSESSMENT_VIEW       @map("assessment_view")
-  ASSESSMENT_CREATE     @map("assessment_create")
-  ASSESSMENT_EDIT_ANY   @map("assessment_edit_any")
-  ASSESSMENT_DELETE_ANY @map("assessment_delete_any")
-  ASSESSMENT_EDIT_OWN   @map("assessment_edit_own")
-  ASSESSMENT_DELETE_OWN @map("assessment_delete_own")
-  TALLY_VIEW            @map("tally_view")
-  TALLY_CREATE          @map("tally_create")
-  TALLY_EDIT_ANY        @map("tally_edit_any")
-  TALLY_DELETE_ANY      @map("tally_delete_any")
-  TALLY_EDIT_OWN        @map("tally_edit_own")
-  TALLY_DELETE_OWN      @map("tally_delete_own")
-  FORM_VIEW             @map("form_view")
-  FORM_CREATE           @map("form_create")
-  FORM_DELETE           @map("form_delete")
-  PARK_CREATE           @map("park_create")
-  PARK_EDIT             @map("park_edit")
-  PARK_DELETE           @map("park_delete")
-  USER_VIEW             @map("user_view")
-  PERMISSION_MANAGE     @map("permission_manage")
-  USER_DELETE           @map("user_delete")
-}
-
-model Permission {
-  id      Int      @id @default(autoincrement())
-  feature Features @unique
-  user    User[]
+enum Role {
+  PARK_VIEWER        @map("park_viewer")
+  PARK_EDITOR        @map("park_editor")
+  PARK_MANAGER       @map("park_manager")
+  FORM_VIEWER        @map("form_viewer")
+  FORM_EDITOR        @map("form_editor")
+  FORM_MANAGER       @map("form_manager")
+  ASSESSMENT_VIEWER  @map("assessment_viewer")
+  ASSESSMENT_EDITOR  @map("assessment_editor")
+  ASSESSMENT_MANAGER @map("assessment_manager")
+  TALLY_VIEWER       @map("tally_viewer")
+  TALLY_EDITOR       @map("tally_editor")
+  TALLY_MANAGER      @map("tally_manager")
+  USER_VIEWER        @map("user_viewer")
+  USER_MANAGER       @map("user_manager")
 }
 
 model User {
-  id            String       @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String       @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
-  username      String?      @unique @db.VarChar(255)
-  permissions   Permission[]
+  username      String?   @unique @db.VarChar(255)
+  roles         Role[]
   password      String?
 
   accounts Account[]

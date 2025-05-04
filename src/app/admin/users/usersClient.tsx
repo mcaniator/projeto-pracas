@@ -1,6 +1,6 @@
 "use client";
 
-import { Features } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -17,7 +17,7 @@ type TableUser = {
   email: string;
   name: string | null;
   createdAt: Date;
-  permissions: { id: number; feature: Features }[];
+  roles: Role[];
 };
 const UsersClient = () => {
   const [search, setSearch] = useState<string>("");

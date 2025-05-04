@@ -1,6 +1,6 @@
 "use server";
 
-import { Features, Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { ZodError } from "zod";
 
 import { OrdersObj } from "../app/admin/users/usersTable";
@@ -31,9 +31,6 @@ const getUserById = async (userId: string) => {
       where: {
         id: userId,
       },
-      include: {
-        permissions: true,
-      },
     });
     return user;
   } catch (e) {
@@ -57,7 +54,15 @@ const getUsernameById = async (userId: string) => {
   }
 };
 
-const getUserAuthInfo = async (userId: string | undefined | null) => {
+const getUserAuthInfo = async (
+  userId: string | undefined | null,
+): Promise<{
+  image: string | null;
+  id: string;
+  email: string;
+  username: string | null;
+  roles: Role[];
+} | null> => {
   if (!userId) return null;
   try {
     const user = await prisma.user.findUnique({
@@ -69,16 +74,11 @@ const getUserAuthInfo = async (userId: string | undefined | null) => {
         email: true,
         username: true,
         image: true,
-        permissions: true,
+        roles: true,
       },
     });
     if (!user) return null;
-    const formattedUser = {
-      ...user,
-      permissions:
-        user?.permissions.map((permission) => permission.feature) ?? [],
-    };
-    return formattedUser;
+    return user;
   } catch (e) {
     return null;
   }
@@ -167,10 +167,7 @@ const getUsers = async (
   const user = session?.user;
   if (!user) return { statusCode: 401, users: null, totalUsers: null };
   try {
-    await checkIfHasAnyPermission(user.id, [
-      "PERMISSION_MANAGE",
-      "USER_DELETE",
-    ]);
+    await checkIfHasAnyPermission(user.id, ["USER_MANAGER"]);
     const skip = (page - 1) * take;
     const [users, totalUsers] = await Promise.all([
       prisma.user.findMany({
@@ -204,9 +201,6 @@ const getUsers = async (
               ],
             }
           : {},
-        include: {
-          permissions: true,
-        },
       }),
       prisma.user.count({
         where:
@@ -249,26 +243,17 @@ const getUsers = async (
   }
 };
 
-const updateUsersPermissions = async (
-  userId: string,
-  changedFeatures: { feature: Features; removed: boolean }[],
-) => {
+const updateUserRoles = async (userId: string, roles: Role[]) => {
   const session = await auth();
   try {
-    await checkIfHasAnyPermission(session?.user.id, ["PERMISSION_MANAGE"]);
+    await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+
     await prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        permissions: {
-          disconnect: changedFeatures
-            .filter((f) => f.removed)
-            .map((f) => ({ feature: f.feature })),
-          connect: changedFeatures
-            .filter((f) => !f.removed)
-            .map((f) => ({ feature: f.feature })),
-        },
+        roles: roles,
       },
     });
   } catch (e) {
@@ -283,7 +268,7 @@ export {
   getUsernameById,
   getUserAuthInfo,
   getUsers,
-  updateUsersPermissions,
+  updateUserRoles,
 };
 
 export type { UserPropertyToSearch };

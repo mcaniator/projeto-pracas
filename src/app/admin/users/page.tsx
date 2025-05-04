@@ -7,10 +7,7 @@ import UsersClient from "./usersClient";
 const Users = async () => {
   const session = await auth();
   try {
-    await checkIfHasAnyPermission(session?.user.id, [
-      "USER_DELETE",
-      "PERMISSION_MANAGE",
-    ]);
+    await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
   } catch (e) {
     redirect("/admin?permissionDenied=true");
   }

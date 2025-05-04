@@ -1,36 +1,163 @@
-import { Features } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
 import LoadingIcon from "../../../components/LoadingIcon";
 import { Button } from "../../../components/button";
-import { Checkbox } from "../../../components/ui/checkbox";
-import { updateUsersPermissions } from "../../../serverActions/userUtil";
+import { updateUserRoles } from "../../../serverActions/userUtil";
+import PermissionSelectRow from "./permissionSelectRow";
 import { TableUser } from "./usersClient";
 
-const permissionsNamesMap = new Map<Features, string>([
-  ["ASSESSMENT_VIEW", "Ver avaliações físicas"],
-  ["ASSESSMENT_CREATE", "Criar avaliações físicas"],
-  ["ASSESSMENT_EDIT_ANY", "Editar qualquer avaliação física"],
-  ["ASSESSMENT_DELETE_ANY", "Excluir qualquer avaliação física"],
-  ["ASSESSMENT_EDIT_OWN", "Editar as próprias avaliações físicas"],
-  ["ASSESSMENT_DELETE_OWN", "Excluir as próprias avaliações físicas"],
-  ["TALLY_VIEW", "Ver contagens"],
-  ["TALLY_CREATE", "Criar contagens"],
-  ["TALLY_EDIT_ANY", "Editar qualquer contagem"],
-  ["TALLY_DELETE_ANY", "Excluir qualquer contagem"],
-  ["TALLY_EDIT_OWN", "Editar as próprias contagens"],
-  ["TALLY_DELETE_OWN", "Excluir as próprias contagens"],
-  ["FORM_VIEW", "Ver questões e formulários."],
-  ["FORM_CREATE", "Criar questões e formulários"],
-  ["FORM_DELETE", "Excluir questões e formulários"],
-  ["PARK_CREATE", "Cadastrar praças"],
-  ["PARK_EDIT", "Editar praças"],
-  ["PARK_DELETE", "Excluir praças"],
-  ["PERMISSION_MANAGE", "Gerenciar permissões de usuários"],
-  ["USER_DELETE", "Excluir usuários"],
-]);
+type SystemSection = "PARK" | "FORM" | "ASSESSMENT" | "TALLY" | "USER";
+
+const warningColors = {
+  none: "bg-gray-400 hover:bg-gray-500",
+  level0: "bg-white hover:bg-gray-100",
+  level1: "bg-yellow-500 hover:bg-yellow-600",
+  level2: "bg-orange-600 hover:bg-orange-700",
+  level3: "bg-red-500 hover:bg-red-600",
+};
+
+const roles = [
+  {
+    section: "PARK",
+    name: "Nenhuma",
+    value: null,
+    color: warningColors.none,
+  },
+  {
+    section: "PARK",
+    name: "Visualizador",
+    value: "PARK_VIEWER",
+    color: warningColors.level1,
+  },
+  {
+    section: "PARK",
+    name: "Editor",
+    value: "PARK_EDITOR",
+    color: warningColors.level2,
+  },
+  {
+    section: "PARK",
+    name: "Administrador",
+    value: "PARK_MANAGER",
+    color: warningColors.level3,
+  },
+  {
+    section: "FORM",
+    name: "Nenhuma",
+    value: null,
+    color: warningColors.none,
+  },
+  {
+    section: "FORM",
+    name: "Visualizador",
+    value: "FORM_VIEWER",
+    color: warningColors.level1,
+  },
+  {
+    section: "FORM",
+    name: "Editor",
+    value: "FORM_EDITOR",
+    color: warningColors.level2,
+  },
+  {
+    section: "FORM",
+    name: "Administrador",
+    value: "FORM_MANAGER",
+    color: warningColors.level3,
+  },
+  {
+    section: "ASSESSMENT",
+    name: "Nenhuma",
+    value: null,
+    color: warningColors.none,
+  },
+  {
+    section: "ASSESSMENT",
+    name: "Visualizador",
+    value: "ASSESSMENT_VIEWER",
+    color: warningColors.level1,
+  },
+  {
+    section: "ASSESSMENT",
+    name: "Editor",
+    value: "ASSESSMENT_EDITOR",
+    color: warningColors.level2,
+  },
+  {
+    section: "ASSESSMENT",
+    name: "Administrador",
+    value: "ASSESSMENT_MANAGER",
+    color: warningColors.level3,
+  },
+  {
+    section: "TALLY",
+    name: "Nenhuma",
+    value: null,
+    color: warningColors.none,
+  },
+  {
+    section: "TALLY",
+    name: "Visualizador",
+    value: "TALLY_VIEWER",
+    color: warningColors.level1,
+  },
+  {
+    section: "TALLY",
+    name: "Editor",
+    value: "TALLY_EDITOR",
+    color: warningColors.level2,
+  },
+  {
+    section: "TALLY",
+    name: "Administrador",
+    value: "TALLY_MANAGER",
+    color: warningColors.level3,
+  },
+  {
+    section: "USER",
+    name: "Nenhuma",
+    value: null,
+    color: warningColors.none,
+  },
+  {
+    section: "USER",
+    name: "Visualizador",
+    value: "USER_VIEWER",
+    color: warningColors.level2,
+  },
+  {
+    section: "USER",
+    name: "Administrador",
+    value: "USER_MANAGER",
+    color: warningColors.level3,
+  },
+];
+
+const rows: { title: string; section: SystemSection }[] = [
+  {
+    title: "Praças",
+    section: "PARK",
+  },
+  {
+    title: "Formulários",
+    section: "FORM",
+  },
+  {
+    title: "Avaliações físicas",
+    section: "ASSESSMENT",
+  },
+  {
+    title: "Contagens",
+    section: "TALLY",
+  },
+  {
+    title: "Usuários",
+    section: "USER",
+  },
+];
 
 const PermissionsModal = ({
   isOpen,
@@ -44,83 +171,157 @@ const PermissionsModal = ({
   updateTable: () => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [permissions, setPermissions] = useState(
-    Array.from(permissionsNamesMap).map(([key, value]) => ({
-      feature: key,
-      name: value,
-      checked: false,
-    })),
-  );
-  const initialPermissions = useRef<Features[]>([]);
-  const changedPermissions = useRef<
+  const [parkRoleWarning, setParkRoleWarning] = useState(false);
+  const [userRoles, setUserRoles] = useState<
+    { section: SystemSection; role: string | null }[]
+  >([
     {
-      feature: Features;
-      removed: boolean;
-    }[]
-  >([]);
-  const handlePermissionChange = (feature: Features) => {
-    const isInitial = initialPermissions.current.includes(feature);
-    if (isInitial) {
-      const removed = permissions.some(
-        (p) => p.feature === feature && p.checked,
-      );
-      const isInChangedPermissions = changedPermissions.current.some(
-        (p) => p.feature === feature,
-      );
-      if (isInChangedPermissions) {
-        changedPermissions.current = changedPermissions.current.filter(
-          (p) => p.feature !== feature,
-        );
-      } else {
-        if (removed) {
-          changedPermissions.current.push({ feature, removed: true });
-        } else {
-          changedPermissions.current.push({ feature, removed: false });
-        }
-      }
-    }
-    setPermissions((prev) => {
-      return prev.map((p) => {
-        if (p.feature !== feature) {
+      section: "ASSESSMENT",
+      role:
+        user?.roles.find(
+          (r) =>
+            r === "ASSESSMENT_MANAGER" ||
+            r === "ASSESSMENT_EDITOR" ||
+            r === "ASSESSMENT_VIEWER",
+        ) ?? null,
+    },
+    {
+      section: "FORM",
+      role:
+        user?.roles.find(
+          (r) =>
+            r === "FORM_MANAGER" || r === "FORM_EDITOR" || r === "FORM_VIEWER",
+        ) ?? null,
+    },
+    {
+      section: "PARK",
+      role:
+        user?.roles.find(
+          (r) =>
+            r === "PARK_MANAGER" || r === "PARK_EDITOR" || r === "PARK_VIEWER",
+        ) ?? null,
+    },
+    {
+      section: "TALLY",
+      role:
+        user?.roles.find(
+          (r) =>
+            r === "TALLY_MANAGER" ||
+            r === "TALLY_EDITOR" ||
+            r === "TALLY_VIEWER",
+        ) ?? null,
+    },
+    {
+      section: "USER",
+      role:
+        user?.roles.find((r) => r === "USER_MANAGER" || r === "USER_VIEWER") ??
+        null,
+    },
+  ]);
+
+  const handleSetUserRoles = (section: SystemSection, role: string | null) => {
+    setUserRoles((prev) =>
+      prev.map((p) => {
+        if (p.section !== section) {
           return p;
         } else {
-          return { ...p, checked: !p.checked };
+          return {
+            section: section,
+            role: role,
+          };
         }
-      });
-    });
+      }),
+    );
   };
-  const handleUpdatePermissions = async () => {
+
+  const handleUpdateUserRoles = async () => {
     if (!user) return;
-    setIsLoading(true);
-    await updateUsersPermissions(user.id, changedPermissions.current);
-    updateTable();
-    setIsLoading(false);
-    onOpenChange(false);
-  };
-  useEffect(() => {
-    if (!user) {
+    if (
+      userRoles.filter((ur) => ur.role).length > 0 &&
+      !userRoles.some(
+        (ur) =>
+          ur.role === "PARK_VIEWER" ||
+          ur.role === "PARK_EDITOR" ||
+          ur.role === "PARK_MANAGER",
+      )
+    ) {
+      setParkRoleWarning(true);
       return;
     }
-    initialPermissions.current = Array.from(permissionsNamesMap).map(
-      ([key]) => key,
-    );
-    changedPermissions.current = [];
-    setPermissions(
-      Array.from(permissionsNamesMap).map(([key, value]) => ({
-        feature: key,
-        name: value,
-        checked: user.permissions.some(
-          (permission) => permission.feature === key,
-        ),
-      })),
-    );
+    setIsLoading(true);
+    try {
+      await updateUserRoles(
+        user?.id,
+        userRoles.filter((ur) => ur.role !== null).map((ur) => ur.role as Role),
+      );
+    } catch (e) {
+      return;
+    } finally {
+      setParkRoleWarning(false);
+      updateTable();
+      setIsLoading(false);
+      onOpenChange(false);
+    }
+  };
+
+  useEffect(() => {
+    setUserRoles([
+      {
+        section: "ASSESSMENT",
+        role:
+          user?.roles.find(
+            (r) =>
+              r === "ASSESSMENT_MANAGER" ||
+              r === "ASSESSMENT_EDITOR" ||
+              r === "ASSESSMENT_VIEWER",
+          ) ?? null,
+      },
+      {
+        section: "FORM",
+        role:
+          user?.roles.find(
+            (r) =>
+              r === "FORM_MANAGER" ||
+              r === "FORM_EDITOR" ||
+              r === "FORM_VIEWER",
+          ) ?? null,
+      },
+      {
+        section: "PARK",
+        role:
+          user?.roles.find(
+            (r) =>
+              r === "PARK_MANAGER" ||
+              r === "PARK_EDITOR" ||
+              r === "PARK_VIEWER",
+          ) ?? null,
+      },
+      {
+        section: "TALLY",
+        role:
+          user?.roles.find(
+            (r) =>
+              r === "TALLY_MANAGER" ||
+              r === "TALLY_EDITOR" ||
+              r === "TALLY_VIEWER",
+          ) ?? null,
+      },
+      {
+        section: "USER",
+        role:
+          user?.roles.find(
+            (r) => r === "USER_MANAGER" || r === "USER_VIEWER",
+          ) ?? null,
+      },
+    ]);
   }, [user]);
+
   return (
     <ModalOverlay
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       className={({ isEntering, isExiting }) =>
-        `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+        `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-0 text-center backdrop-blur ${
           isEntering ? "duration-300 ease-out animate-in fade-in" : ""
         } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
       }
@@ -145,6 +346,7 @@ const PermissionsModal = ({
                   variant={"ghost"}
                   size={"icon"}
                   onPress={() => {
+                    setParkRoleWarning(false);
                     close();
                   }}
                 >
@@ -161,27 +363,32 @@ const PermissionsModal = ({
                   <h5 className="text-base font-semibold sm:text-xl">
                     {user.email}
                   </h5>
-                  {permissions.map((permission, index) => {
-                    return (
-                      <div key={index} className="flex flex-row">
-                        <Checkbox
-                          value={permission.feature}
-                          checked={permission.checked}
-                          onChange={(e) => {
-                            handlePermissionChange(e.target.value as Features);
-                          }}
-                        />
-                        <span>{permission.name}</span>
-                      </div>
-                    );
-                  })}
+                  <div>
+                    {rows.map((row, index) => (
+                      <PermissionSelectRow
+                        key={index}
+                        title={row.title}
+                        section={row.section}
+                        userRoles={userRoles}
+                        darkBackground={index % 2 !== 0}
+                        parkRoleWarning={parkRoleWarning}
+                        handleSetUserRoles={handleSetUserRoles}
+                      />
+                    ))}
+                  </div>
+                  {parkRoleWarning && (
+                    <p className="py-1 text-red-500">
+                      É necessário ter ao menos permissão de visualizador de
+                      praças para ter acesso a outras permissões
+                    </p>
+                  )}
                 </div>
               : <></>}
               <div className="mt-auto flex justify-end pt-5">
                 <Button
                   variant={"constructive"}
                   onPress={() => {
-                    void handleUpdatePermissions();
+                    void handleUpdateUserRoles();
                   }}
                   className={"w-24 transition-all"}
                 >
@@ -197,3 +404,5 @@ const PermissionsModal = ({
 };
 
 export default PermissionsModal;
+export { roles };
+export type { SystemSection };
