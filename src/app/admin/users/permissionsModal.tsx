@@ -5,6 +5,7 @@ import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
 import LoadingIcon from "../../../components/LoadingIcon";
 import { Button } from "../../../components/button";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import { updateUserRoles } from "../../../serverActions/userUtil";
 import PermissionSelectRow from "./permissionSelectRow";
 import { TableUser } from "./usersClient";
@@ -170,6 +171,7 @@ const PermissionsModal = ({
   user: TableUser | null;
   updateTable: () => void;
 }) => {
+  const helperCardContext = useHelperCard();
   const [isLoading, setIsLoading] = useState(false);
   const [parkRoleWarning, setParkRoleWarning] = useState(false);
   const [userRoles, setUserRoles] = useState<
@@ -254,7 +256,17 @@ const PermissionsModal = ({
         user?.id,
         userRoles.filter((ur) => ur.role !== null).map((ur) => ur.role as Role),
       );
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Permissões atualizadas!</>,
+      });
     } catch (e) {
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao atualizar permissões!</>,
+      });
       return;
     } finally {
       setParkRoleWarning(false);
@@ -321,11 +333,10 @@ const PermissionsModal = ({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       className={({ isEntering, isExiting }) =>
-        `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-0 text-center backdrop-blur ${
+        `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-0 text-center backdrop-blur ${
           isEntering ? "duration-300 ease-out animate-in fade-in" : ""
         } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
       }
-      isDismissable
     >
       <Modal
         className={({ isEntering, isExiting }) =>

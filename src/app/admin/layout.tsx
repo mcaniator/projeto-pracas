@@ -3,8 +3,8 @@ import Sidebar from "@/components/singleUse/admin/sidebar";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-import { PermissionDeniedProvider } from "../../components/context/PermissionDeniedContext";
 import { UserContextProvider } from "../../components/context/UserContext";
+import { HelperCardProvider } from "../../components/context/helperCardContext";
 import { auth } from "../../lib/auth/auth";
 import { getUserAuthInfo } from "../../serverActions/userUtil";
 
@@ -22,7 +22,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   }
   return (
     <UserContextProvider user={user}>
-      <PermissionDeniedProvider>
+      <HelperCardProvider>
         <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
           <Header variant={"static"} user={user ?? null} />
           <div className="flex min-h-0 flex-grow justify-center">
@@ -32,7 +32,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
             </div>
           </div>
         </div>
-      </PermissionDeniedProvider>
+      </HelperCardProvider>
     </UserContextProvider>
   );
 };

@@ -244,6 +244,17 @@ const getUsers = async (
 };
 
 const updateUserRoles = async (userId: string, roles: Role[]) => {
+  if (
+    roles.filter((role) => role).length > 0 &&
+    !roles.some(
+      (role) =>
+        role === "PARK_VIEWER" ||
+        role === "PARK_EDITOR" ||
+        role === "PARK_MANAGER",
+    )
+  ) {
+    return;
+  }
   const session = await auth();
   try {
     await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);

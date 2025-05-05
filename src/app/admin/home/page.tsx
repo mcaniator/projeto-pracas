@@ -11,14 +11,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { usePermissionDenied } from "../../../components/context/PermissionDeniedContext";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
-  const permissionDeniedContext = usePermissionDenied();
+  const helperCardContext = useHelperCard();
   const params = useSearchParams();
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
-      permissionDeniedContext.setPermissionDenied(true);
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Permissão negada</>,
+      });
     }
   });
 
