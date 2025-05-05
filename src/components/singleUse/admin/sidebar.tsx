@@ -19,7 +19,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { useUserContext } from "../../context/UserContext";
 import ButtonLink from "../../ui/buttonLink";
@@ -37,6 +37,10 @@ const Sidebar = () => {
       closeSidebar();
     }
   };
+
+  useEffect(() => {
+    closeSidebar();
+  }, [currentLocation]);
 
   const topSidebar: {
     icon: ReactNode;
