@@ -101,7 +101,7 @@ const UsersClient = () => {
           />
           <Button
             onPress={() => {
-              void fetchUsers();
+              setPagination((prev) => ({ page: 1, pageSize: prev.pageSize }));
             }}
             className="h-full"
             variant="secondary"

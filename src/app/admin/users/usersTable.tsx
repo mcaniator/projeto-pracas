@@ -101,6 +101,7 @@ const UsersTable = ({
   };
 
   useEffect(() => {
+    setLocalPagination(pagination);
     const newTotalPages =
       totalUsers ? Math.ceil(totalUsers / pagination.pageSize) : 0;
     setTotalPages(newTotalPages);
