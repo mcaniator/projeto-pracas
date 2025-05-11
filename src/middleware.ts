@@ -5,7 +5,7 @@ import authConfig from "./lib/auth/auth.config";
 const { auth } = NextAuth(authConfig);
 export default auth((req) => {
   if (!req.auth) {
-    return Response.redirect(new URL("/login", req.url));
+    return Response.redirect(new URL("/auth/login", req.url));
   }
   const pathname = req.nextUrl.pathname;
   const search = req.nextUrl.search;

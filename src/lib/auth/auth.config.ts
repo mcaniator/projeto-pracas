@@ -2,13 +2,24 @@ import bcrypt from "bcryptjs";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
+import {
+  getInviteToken,
+  getInviteTokenByEmail,
+} from "../../serverActions/inviteUtil";
+import { updateUserRoles } from "../../serverActions/userUtil";
 import { prisma } from "../prisma";
 import { userLoginSchema } from "../zodValidators";
 
 //We need to define session callback in auth.config.ts, and jwt callback in auth.ts. Check: https://github.com/nextauthjs/next-auth/issues/9836#issuecomment-2451288724
 export default {
   session: { strategy: "jwt" },
+  pages: {
+    error: "/auth/error",
+    signIn: "/auth/login",
+    signOut: "/auth/logout",
+  },
   callbacks: {
     session({ token, session }) {
       const ret = {

@@ -8,7 +8,7 @@ const UserSettings = async () => {
   const session = await auth();
   const user = session?.user;
   if (!user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
   return (
     <div className="flex h-full flex-col">

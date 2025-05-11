@@ -12,7 +12,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
   const user = await getUserAuthInfo(session?.user?.id);
   if (!user) {
-    redirect("/login");
+    redirect("/auth/login");
   }
   if (!user?.username) {
     redirect("/user/usernameWarning");

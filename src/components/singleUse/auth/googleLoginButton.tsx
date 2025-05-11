@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { BsGoogle } from "react-icons/bs";
 
-import googleAuthenticate from "../../../serverActions/googleLogin";
+import { googleAuthenticate } from "../../../serverActions/googleLogin";
 import { Button } from "../../button";
 
 const GoogleLoginButton = () => {

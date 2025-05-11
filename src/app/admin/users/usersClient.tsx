@@ -3,9 +3,11 @@
 import { Role } from "@prisma/client";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AiOutlineUsergroupAdd } from "react-icons/ai";
 
 import LoadingIcon from "../../../components/LoadingIcon";
 import { Button } from "../../../components/button";
+import ButtonLink from "../../../components/ui/buttonLink";
 import { Input } from "../../../components/ui/input";
 import { getUsers } from "../../../serverActions/userUtil";
 import UsersTable, { OrdersObj } from "./usersTable";
@@ -89,7 +91,7 @@ const UsersClient = () => {
   return (
     <div className="flex h-full w-full flex-col gap-2">
       <h3 className="text-2xl font-semibold">Administrar usuarios</h3>
-      <div className="flex w-full gap-1">
+      <div className="flex w-full justify-between gap-1">
         <div className="flex w-fit max-w-[90vw] gap-0.5">
           <Input
             className="w-full"
@@ -109,6 +111,9 @@ const UsersClient = () => {
             <IconSearch />
           </Button>
         </div>
+        <ButtonLink href="/admin/users/invites" className="h-full">
+          <AiOutlineUsergroupAdd className="h-6 w-6" />
+        </ButtonLink>
       </div>
       {isLoading && (
         <div className="flex justify-center">

@@ -20,31 +20,30 @@ import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
-const headerVariants = cva(
-  "flex w-full pl-14 pr-7 text-white transition-all md:py-1",
-  {
-    variants: {
-      variant: {
-        default:
-          "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
-        fixed: "fixed top-0",
-        static: "static",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
+const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
+  variants: {
+    variant: {
+      default:
+        "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+      fixed: "fixed top-0",
+      static: "static",
     },
   },
-);
+
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 interface headerProps
   extends HTMLAttributes<HTMLElement>,
     VariantProps<typeof headerVariants> {
   user: { username: string | null; email: string; image: string | null } | null;
+  isAuthHeader?: boolean;
 }
 
 const Header = forwardRef<HTMLElement, headerProps>(
-  ({ user, variant, ...props }, ref) => {
+  ({ user, isAuthHeader, variant, ...props }, ref) => {
     const [popupContentRef] = useAutoAnimate();
 
     return (
@@ -57,6 +56,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
           <Button
             type={"button"}
             variant={"ghost"}
+            textcolor={"default"}
             use={"link"}
             className="px-3 py-6"
           >
@@ -106,17 +106,20 @@ const Header = forwardRef<HTMLElement, headerProps>(
               </Dialog>
             </Popover>
           </DialogTrigger>
-        : <div className="ml-auto flex flex-wrap gap-1">
-            <Link href={"/login"}>
-              <Button
-                variant={"ghost"}
-                className="ml-auto flex items-center px-3 py-6 pl-2"
-              >
-                <IconLogin2 />
-                Entrar
-              </Button>
-            </Link>
-          </div>
+        : !isAuthHeader && (
+            <div className="ml-auto flex flex-wrap gap-1">
+              <Link href={"/auth/login"}>
+                <Button
+                  variant={"ghost"}
+                  use={"link"}
+                  className="ml-auto flex items-center px-3 py-6 pl-2"
+                >
+                  <IconLogin2 />
+                  Entrar
+                </Button>
+              </Link>
+            </div>
+          )
         }
       </header>
     );

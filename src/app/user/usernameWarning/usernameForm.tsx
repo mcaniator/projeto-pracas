@@ -47,7 +47,7 @@ const UsernameForm = () => {
   }
 
   if (session.status === "unauthenticated") {
-    redirect("/login");
+    redirect("/auth/login");
   }
 
   return (

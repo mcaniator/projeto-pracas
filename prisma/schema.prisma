@@ -159,14 +159,15 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String         @unique
   emailVerified DateTime?
   image         String?
-  username      String?   @unique @db.VarChar(255)
+  username      String?        @unique @db.VarChar(255)
   roles         Role[]
   password      String?
+  passwordReset PasswordReset?
 
   accounts Account[]
   sessions Session[]
@@ -223,6 +224,29 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model Invite {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(64)
+  email     String   @unique
+  roles     Role[]
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("invite")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("password_reset")
 }
 
 // #endregion
