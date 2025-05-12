@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { HelperCardProvider } from "../../../components/context/helperCardContext";
 import { checkIfInviteExists } from "../../../serverActions/inviteUtil";
 import RegisterForm from "./registerForm";
 
@@ -14,7 +15,11 @@ const RegisterPage = async (props: {
   if (!inviteExists) {
     redirect("/error");
   }
-  return <RegisterForm inviteToken={inviteToken} />;
+  return (
+    <HelperCardProvider>
+      <RegisterForm inviteToken={inviteToken} />
+    </HelperCardProvider>
+  );
 };
 
 export default RegisterPage;

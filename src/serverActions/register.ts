@@ -2,10 +2,13 @@
 
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { ZodError } from "zod";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { ZodError, z } from "zod";
 
+import { signIn } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userRegisterSchema } from "../lib/zodValidators";
+import { getInviteToken } from "./inviteUtil";
 
 const register = async (
   prevState: {
@@ -31,17 +34,22 @@ const register = async (
     const newUser = userRegisterSchema.parse({
       email: formData.get("email"),
       name: formData.get("name"),
-      username: formData.get("username"),
       password: formData.get("password"),
       confirmPassword: formData.get("passwordConfirmation"),
     });
+    const inviteToken = z
+      .string({
+        required_error: "O e-mail fornecido não possui acesso ao sistema",
+        invalid_type_error: "O e-mail fornecido não possui acesso ao sistema",
+      })
+      .parse(formData.get("inviteToken"));
     if (newUser.password !== newUser.confirmPassword) {
       return {
         statusCode: 403,
         errors: [
           {
-            message: "Usuário cadastrado via provedor de terceiros",
-            element: "div",
+            message: "As senhas não coincidem.",
+            element: "confirmPassword",
           },
         ],
       };
@@ -49,29 +57,58 @@ const register = async (
 
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
 
-    await prisma.user.create({
-      data: {
-        email: newUser.email,
-        name: newUser.name,
-        username: newUser.username,
-        password: hashedPassword,
-      },
+    const invite = await getInviteToken(inviteToken, newUser.email);
+
+    if (!invite) {
+      return {
+        statusCode: 403,
+        errors: [
+          {
+            message: "O e-mail fornecido não possui acesso ao sistema",
+            element: null,
+          },
+        ],
+      };
+    }
+
+    await prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: newUser.email,
+          name: newUser.name,
+          password: hashedPassword,
+          roles: invite.roles,
+        },
+      });
+
+      await prisma.invite.delete({
+        where: {
+          id: invite.id,
+        },
+      });
     });
+
+    await signIn("credentials", {
+      email: newUser.email,
+      password: newUser.password,
+      redirectTo: "/admin/home",
+    });
+
     return { statusCode: 201, errors: null };
   } catch (e) {
+    if (isRedirectError(e)) {
+      throw e;
+    }
     if (
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
     ) {
-      const violatedField = (e.meta?.target as string[])?.[0] || "unknown";
-      const violatedFieldPt =
-        violatedField === "username" ? "nome de usuário" : "e-mail";
       return {
         statusCode: 409,
         errors: [
           {
-            message: `O ${violatedFieldPt} enviado já está em uso no sistema.`,
-            element: violatedField,
+            message: `O e-mail enviado já está em uso no sistema.`,
+            element: "email",
           },
         ],
       };
@@ -87,7 +124,7 @@ const register = async (
     }
     return {
       statusCode: 500,
-      errors: [{ message: "Um erro desconhecido ocorreu.", element: "div" }],
+      errors: [{ message: "Um erro desconhecido ocorreu.", element: null }],
     };
   }
 };
