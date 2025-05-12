@@ -9,12 +9,10 @@ const RegisterPage = async (props: {
   searchParams: Promise<{ inviteToken: string }>;
 }) => {
   const searchParams = await props.searchParams;
-  let inviteToken = searchParams.inviteToken;
+  const inviteToken = searchParams.inviteToken;
   const inviteExists = await checkIfInviteExists(inviteToken);
-  console.log(inviteToken);
   if (!inviteExists) {
-    //redirect("error");
-    inviteToken = "TESTE_TOKEN";
+    redirect("/error");
   }
   return <RegisterForm inviteToken={inviteToken} />;
 };

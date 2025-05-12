@@ -74,7 +74,7 @@ const RegisterForm = ({ inviteToken }: { inviteToken: string }) => {
     startTransition(() => formAction(formData));
   }
   return (
-    <div className="flex flex-col items-center justify-center px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4">
       <IconTree size={48} className="inline" />
       <h1 className="inline text-4xl">Projeto praças</h1>
       {isPending && <LoadingIcon className="h-32 w-32" />}
