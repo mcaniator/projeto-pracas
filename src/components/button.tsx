@@ -21,7 +21,7 @@ const buttonVariants = cva(
         outline:
           "border border-input bg-transparent text-white data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground text-white shadow-sm data-[hovered]:bg-secondary/80",
+          "bg-secondary text-secondary-foreground shadow-sm data-[hovered]:bg-secondary/80",
         ghost: "bg-transparent shadow-none data-[hovered]:bg-transparent/10",
       },
       size: {
@@ -33,10 +33,6 @@ const buttonVariants = cva(
       use: {
         default: "cursor-default",
         link: "cursor-pointer",
-      },
-      textcolor: {
-        default: "text-white",
-        black: "text-black",
       },
     },
     defaultVariants: {

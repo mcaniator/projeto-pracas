@@ -56,7 +56,6 @@ const Header = forwardRef<HTMLElement, headerProps>(
           <Button
             type={"button"}
             variant={"ghost"}
-            textcolor={"default"}
             use={"link"}
             className="px-3 py-6"
           >
