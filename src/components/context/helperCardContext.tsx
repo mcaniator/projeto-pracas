@@ -22,11 +22,35 @@ const HelperCardContext = createContext<HelperCardContextType | undefined>(
   undefined,
 );
 
+const sleep = async (time: number) => {
+  return new Promise((resolve) => setTimeout(resolve, time));
+};
+
 export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
   const [visible, setVisible] = useState(false);
   const [helperCardType, setHelperCardType] = useState<HelperCardType>("INFO");
   const [helperContent, setHelperContent] = useState<ReactNode>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const delayedCardUpdate = async (
+    content: ReactNode,
+    helperCardType: HelperCardType,
+    show: boolean,
+    customTimeout?: number,
+  ) => {
+    await sleep(200);
+    setHelperContent(content);
+    setHelperCardType(helperCardType);
+    setVisible(show);
+    if (show) {
+      timeoutRef.current = setTimeout(
+        () => {
+          setVisible(false);
+          setHelperContent(null);
+        },
+        customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
+      );
+    }
+  };
   const setHelperCard = ({
     show,
     helperCardType,
@@ -40,6 +64,11 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
   }) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      if (visible) {
+        setVisible(false);
+        void delayedCardUpdate(content, helperCardType, show, customTimeout);
+        return;
+      }
     }
     setHelperContent(content);
     setHelperCardType(helperCardType);
@@ -48,6 +77,7 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
       timeoutRef.current = setTimeout(
         () => {
           setVisible(false);
+          setHelperContent(null);
         },
         customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
       );
@@ -56,6 +86,7 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
 
   const close = () => {
     setVisible(false);
+    setHelperContent(null);
   };
 
   return (
