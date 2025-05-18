@@ -1,9 +1,8 @@
-"use server";
-
 import { redirect } from "next/navigation";
 
-import { HelperCardProvider } from "../../../components/context/helperCardContext";
+import { auth } from "../../../lib/auth/auth";
 import { checkIfInviteExists } from "../../../serverActions/inviteUtil";
+import AlreadyLoggedInError from "../alreadyLoggedInError";
 import RegisterForm from "./registerForm";
 
 const RegisterPage = async (props: {
@@ -15,11 +14,11 @@ const RegisterPage = async (props: {
   if (!inviteExists) {
     redirect("/error");
   }
-  return (
-    <HelperCardProvider>
-      <RegisterForm inviteToken={inviteToken} />
-    </HelperCardProvider>
-  );
+  const session = await auth();
+  if (session) {
+    return <AlreadyLoggedInError />;
+  }
+  return <RegisterForm inviteToken={inviteToken} />;
 };
 
 export default RegisterPage;

@@ -3,7 +3,7 @@
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-import { signIn } from "../lib/auth/auth";
+import { auth, signIn, signOut } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userLoginSchema } from "../lib/zodValidators";
 
@@ -12,6 +12,10 @@ const login = async (
   formData: FormData,
 ): Promise<{ statusCode: number } | null> => {
   try {
+    const session = await auth();
+    if (session) {
+      await signOut({ redirect: false });
+    }
     const loginUser = userLoginSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
