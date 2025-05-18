@@ -96,7 +96,7 @@ const UsersTable = ({
     handlePaginationChange(newPagination);
   };
 
-  const changeOrder = (order: Order, orderProperty: OrderProperty) => {
+  const changeOrder = (order: Order, orderProperty: string) => {
     handleOrdersObjChange({ ...orders, [orderProperty]: order });
   };
 

@@ -1,5 +1,5 @@
 import { Role } from "@prisma/client";
-import { IconX } from "@tabler/icons-react";
+import { IconClipboard, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
@@ -7,7 +7,11 @@ import LoadingIcon from "../../../../components/LoadingIcon";
 import { Button } from "../../../../components/button";
 import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Input } from "../../../../components/ui/input";
-import { createInvite } from "../../../../serverActions/inviteUtil";
+import {
+  createInvite,
+  deleteInvite,
+  updateInvite,
+} from "../../../../serverActions/inviteUtil";
 import PermissionSelectRow from "../permissionSelectRow";
 import { Invite } from "./invitesClient";
 
@@ -161,23 +165,22 @@ const rows: { title: string; section: SystemSection }[] = [
   },
 ];
 
-const InviteModal = ({
+const InviteCRUDModal = ({
   isOpen,
   onOpenChange,
-  invite,
+  inviteProp,
   updateTable,
 }: {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  invite: Invite | null;
+  inviteProp: Invite | null;
   updateTable: () => void;
 }) => {
   const helperCardContext = useHelperCard();
   const [isLoading, setIsLoading] = useState(false);
   const [newInviteEmail, setNewInviteEmail] = useState("");
-  const [newInviteCreated, setNewInviteCreated] = useState(false);
   const [parkRoleWarning, setParkRoleWarning] = useState(false);
-  const [newInvite, setNewInvite] = useState<Invite | null>(null);
+  const [invite, setInvite] = useState<Invite | null>(null);
   const [userRoles, setUserRoles] = useState<
     { section: SystemSection; role: string | null }[]
   >([
@@ -243,8 +246,8 @@ const InviteModal = ({
 
   const resetModal = () => {
     setNewInviteEmail("");
-    setNewInviteCreated(false);
     setParkRoleWarning(false);
+    if (invite) return;
     setUserRoles([
       {
         section: "ASSESSMENT",
@@ -304,14 +307,25 @@ const InviteModal = ({
         if (!inviteReturn) {
           throw new Error("Erro ao criar convite");
         }
-        setNewInvite(inviteReturn);
+        setInvite(inviteReturn);
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Convite criado!</>,
+        });
+      } else {
+        await updateInvite(
+          invite.token,
+          userRoles
+            .filter((ur) => ur.role !== null)
+            .map((ur) => ur.role as Role),
+        );
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Convite atualizado!</>,
+        });
       }
-
-      helperCardContext.setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Convite criado!</>,
-      });
     } catch (e) {
       helperCardContext.setHelperCard({
         show: true,
@@ -323,13 +337,35 @@ const InviteModal = ({
       setParkRoleWarning(false);
       updateTable();
       setIsLoading(false);
-      if (!invite) {
-        setNewInviteCreated(true);
-      }
-      //onOpenChange(false);
     }
   };
 
+  const handleDelete = async () => {
+    setIsLoading(true);
+    try {
+      if (!invite) return;
+      await deleteInvite(invite.token);
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Convite excluído!</>,
+      });
+    } catch (e) {
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir convite!</>,
+      });
+    } finally {
+      setIsLoading(false);
+      updateTable();
+      onOpenChange(false);
+    }
+  };
+
+  useEffect(() => {
+    setInvite(inviteProp);
+  }, [inviteProp]);
   useEffect(() => {
     setUserRoles([
       {
@@ -423,24 +459,27 @@ const InviteModal = ({
                   <LoadingIcon className="h-32 w-32" />
                 </div>
               )}
-              {!isLoading && !newInviteCreated ?
+              {!isLoading && (
                 <div className="flex w-full flex-col">
                   <h5 className="text-base font-semibold sm:text-xl">
                     {invite ? invite.email : "Convites são válidos por 15 dias"}
                   </h5>
                   <div className="mt-2 flex flex-col gap-2">
-                    <div>
-                      <label htmlFor="email">E-mail</label>
-                      <Input
-                        className="w-full"
-                        id="email"
-                        type="email"
-                        value={newInviteEmail}
-                        onChange={(e) => {
-                          setNewInviteEmail(e.target.value);
-                        }}
-                      />
-                    </div>
+                    {!invite && (
+                      <div>
+                        <label htmlFor="email">E-mail</label>
+                        <Input
+                          className="w-full"
+                          id="email"
+                          type="email"
+                          value={newInviteEmail}
+                          onChange={(e) => {
+                            setNewInviteEmail(e.target.value);
+                          }}
+                        />
+                      </div>
+                    )}
+
                     <div>
                       {rows.map((row, index) => (
                         <PermissionSelectRow
@@ -463,44 +502,50 @@ const InviteModal = ({
                     </p>
                   )}
                 </div>
-              : <></>}
-              {!isLoading && newInviteCreated && (
-                <div className="flex w-full flex-col">
-                  <h5 className="text-base font-semibold sm:text-xl">
-                    {"Convite criado!"}
-                  </h5>
-                  <div className="flex flex-col gap-2">
-                    <span>E-mail: {newInvite?.email}</span>
-                    <span>
-                      Link de registro: /register?inviteToken={newInvite?.token}
-                    </span>
-                    <span>
-                      Válido até:{" "}
-                      {newInvite?.expiresAt.toLocaleString("pt-BR", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                </div>
               )}
-              {!newInviteCreated && (
-                <div className="mt-auto flex justify-end pt-5">
+              <div className={`mt-auto flex flex-col gap-2 pt-5`}>
+                {invite && (
                   <Button
-                    variant={"constructive"}
+                    onPress={() => {
+                      void navigator.clipboard.writeText(
+                        `${window.location.origin}/auth/register/?inviteToken=${invite?.token}`,
+                      );
+                      helperCardContext.setHelperCard({
+                        show: true,
+                        helperCardType: "CONFIRM",
+                        content: <>Link copiado!</>,
+                      });
+                    }}
+                  >
+                    <IconClipboard className="mb-1" />
+                    Clique para copiar o link de registro
+                  </Button>
+                )}
+
+                <div
+                  className={`flex ${invite ? "justify-between" : "justify-end"}`}
+                >
+                  {invite && (
+                    <Button
+                      variant={"destructive"}
+                      onPress={() => {
+                        void handleDelete();
+                      }}
+                    >
+                      Excluir
+                    </Button>
+                  )}
+                  <Button
+                    variant={invite ? "default" : "constructive"}
                     onPress={() => {
                       void handleUpdateUserRoles();
                     }}
                     className={"w-24 transition-all"}
                   >
-                    Salvar
+                    {invite ? "Atualizar" : "Salvar"}
                   </Button>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </Dialog>
@@ -509,6 +554,6 @@ const InviteModal = ({
   );
 };
 
-export default InviteModal;
+export default InviteCRUDModal;
 export { roles };
 export type { SystemSection };

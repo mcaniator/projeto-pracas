@@ -6,7 +6,7 @@ import {
 import { Menu, MenuItem, MenuTrigger, Popover } from "react-aria-components";
 
 import { Button } from "../../../components/button";
-import { Order, OrderProperty } from "./usersTable";
+import { Order } from "./usersTable";
 
 const SortMenu = ({
   order,
@@ -14,8 +14,8 @@ const SortMenu = ({
   changeOrder,
 }: {
   order: Order;
-  orderProperty: OrderProperty;
-  changeOrder: (order: Order, orderProperty: OrderProperty) => void;
+  orderProperty: string;
+  changeOrder: (order: Order, orderProperty: string) => void;
 }) => {
   const baseClassname = "rounded-sm px-1 cursor-pointer hover:bg-blue-300";
   return (

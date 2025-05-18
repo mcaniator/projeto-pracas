@@ -272,7 +272,6 @@ const PermissionsModal = ({
       setParkRoleWarning(false);
       updateTable();
       setIsLoading(false);
-      onOpenChange(false);
     }
   };
 
