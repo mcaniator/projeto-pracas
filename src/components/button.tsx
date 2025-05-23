@@ -5,6 +5,14 @@ import { VariantProps, cva } from "class-variance-authority";
 import { AriaButtonProps } from "react-aria";
 import { Button as ButtonPrimitive } from "react-aria-components";
 
+type ButtonVariant =
+  | "default"
+  | "admin"
+  | "constructive"
+  | "destructive"
+  | "outline"
+  | "secondary";
+
 const buttonVariants = cva(
   "group inline-flex items-center justify-center rounded-lg text-lg font-medium shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
   {
@@ -68,3 +76,4 @@ const Button = ({
 };
 
 export { Button };
+export type { ButtonVariant };

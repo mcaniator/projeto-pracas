@@ -165,11 +165,13 @@ const PermissionsModal = ({
   onOpenChange,
   user,
   updateTable,
+  deleteUser,
 }: {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   user: TableUser | null;
   updateTable: () => void;
+  deleteUser?: () => void;
 }) => {
   const helperCardContext = useHelperCard();
   const [isLoading, setIsLoading] = useState(false);
@@ -394,7 +396,10 @@ const PermissionsModal = ({
                   )}
                 </div>
               : <></>}
-              <div className="mt-auto flex justify-end pt-5">
+              <div className="mt-auto flex justify-between pt-5">
+                <Button variant={"destructive"} onPress={deleteUser}>
+                  Excluir
+                </Button>
                 <Button
                   variant={"constructive"}
                   onPress={() => {

@@ -81,6 +81,9 @@ export const {
             }
           }
         }
+        if (!existingUser.active) {
+          return false;
+        }
         return true;
       }
       if (!user.id) {

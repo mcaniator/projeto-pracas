@@ -167,6 +167,7 @@ model User {
   username      String?        @unique @db.VarChar(255)
   roles         Role[]
   password      String?
+  active        Boolean        @default(true)
   passwordReset PasswordReset?
 
   accounts Account[]

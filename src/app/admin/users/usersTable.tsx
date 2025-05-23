@@ -1,18 +1,23 @@
+import { Checkbox } from "@components/ui/checkbox";
 import {
+  IconCheck,
   IconCornerUpLeft,
   IconCornerUpRight,
   IconFilter,
   IconKey,
   IconListCheck,
   IconReload,
+  IconSquareFilled,
   IconUser,
   IconUserScan,
+  IconX,
 } from "@tabler/icons-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 import { Button } from "../../../components/button";
 import { Input } from "../../../components/ui/input";
+import DeleteUserModal from "./deleteUserModal";
 import SortMenu from "./orderMenu";
 import PermissionsModal from "./permissionsModal";
 import { TableUser } from "./usersClient";
@@ -30,21 +35,25 @@ const UsersTable = ({
   totalUsers,
   pagination,
   orders,
+  activeUsersFilter,
   handlePageChange,
   handlePaginationChange,
   handleOrdersObjChange,
+  handleActiveUsersFilterChange,
   updateTable,
 }: {
   users: TableUser[];
   totalUsers: number | null;
   pagination: { page: number; pageSize: number };
   orders: OrdersObj;
+  activeUsersFilter: boolean;
   handlePageChange: (newValue: number) => void;
   handlePaginationChange: (newPagination: {
     page: number;
     pageSize: number;
   }) => void;
   handleOrdersObjChange: (newOrders: OrdersObj) => void;
+  handleActiveUsersFilterChange: () => void;
   updateTable: () => void;
 }) => {
   const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -56,6 +65,7 @@ const UsersTable = ({
     second: "2-digit",
   });
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [localPagination, setLocalPagination] = useState({ ...pagination });
   const [selectedUser, setSelectedUser] = useState<TableUser | null>(null);
@@ -146,6 +156,16 @@ const UsersTable = ({
             </th>
             <th className="px-6">
               <div className="flex items-center gap-1">
+                <label htmlFor="active-filter-checkbox">Ativo?</label>
+                <Checkbox
+                  id="active-filter-checkbox"
+                  checked={activeUsersFilter}
+                  onChange={handleActiveUsersFilterChange}
+                ></Checkbox>
+              </div>
+            </th>
+            <th className="px-6">
+              <div className="flex items-center gap-1">
                 Registro em
                 <SortMenu
                   order={orders.createdAt}
@@ -177,6 +197,18 @@ const UsersTable = ({
               <td className="px-6">{user.email}</td>
               <td className="px-6">{user.name}</td>
               <td className="px-6">{user.username}</td>
+              <td className={`flex justify-center`}>
+                {user.active ?
+                  <div className="relative h-6 w-6">
+                    <IconSquareFilled className="absolute inset-0 text-green-500" />
+                    <IconCheck className="absolute inset-0 p-1 text-white" />
+                  </div>
+                : <div className="relative h-6 w-6">
+                    <IconSquareFilled className="absolute inset-0 text-red-500" />
+                    <IconX className="absolute inset-0 p-1 text-white" />
+                  </div>
+                }
+              </td>
               <td className="px-6">{dateFormatter.format(user.createdAt)}</td>
               <td className="flex justify-center gap-1 px-6">
                 <Button
@@ -202,7 +234,7 @@ const UsersTable = ({
             </td>
             <td className="px-6 font-bold">Página</td>
             <td className="px-6 font-bold">Itens por página</td>
-            <td colSpan={3} className="px-6 font-bold">
+            <td colSpan={4} className="px-6 font-bold">
               Total
             </td>
           </tr>
@@ -283,7 +315,7 @@ const UsersTable = ({
                 }`}
               />
             </td>
-            <td colSpan={3} className="px-6">
+            <td colSpan={4} className="px-6">
               {totalUsers ?? 0}
             </td>
           </tr>
@@ -295,8 +327,22 @@ const UsersTable = ({
         onOpenChange={() => {
           setIsPermissionsModalOpen(false);
         }}
+        deleteUser={() => {
+          setIsPermissionsModalOpen(false);
+          setIsDeleteModalOpen(true);
+        }}
         updateTable={updateTable}
       />
+      {selectedUser && (
+        <DeleteUserModal
+          isOpen={isDeleteModalOpen}
+          user={selectedUser}
+          onOpenChange={() => {
+            setIsDeleteModalOpen(false);
+          }}
+          updateTable={updateTable}
+        />
+      )}
     </div>
   );
 };

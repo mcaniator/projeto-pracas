@@ -1,6 +1,7 @@
 "use server";
 
 import { Prisma, Role } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { ZodError } from "zod";
 
 import { OrdersObj } from "../app/admin/users/usersTable";
@@ -74,10 +75,13 @@ const getUserAuthInfo = async (
         email: true,
         username: true,
         image: true,
+        active: true,
         roles: true,
       },
     });
-    if (!user) return null;
+    if (!user || !user.active) {
+      return null;
+    }
     return user;
   } catch (e) {
     return null;
@@ -162,6 +166,7 @@ const getUsers = async (
   take: number,
   search: string | null,
   orders: OrdersObj,
+  activeUsersFilters: boolean,
 ) => {
   const session = await auth();
   const user = session?.user;
@@ -176,8 +181,9 @@ const getUsers = async (
         orderBy: Object.keys(orders)
           .filter((key) => orders[key as keyof OrdersObj] !== "none")
           .map((key) => ({ [key]: orders[key as keyof OrdersObj] })),
-        where:
-          search ?
+        where: {
+          active: activeUsersFilters,
+          ...(search ?
             {
               OR: [
                 {
@@ -200,11 +206,13 @@ const getUsers = async (
                 },
               ],
             }
-          : {},
+          : {}),
+        },
       }),
       prisma.user.count({
-        where:
-          search ?
+        where: {
+          active: activeUsersFilters,
+          ...(search ?
             {
               OR: [
                 {
@@ -227,7 +235,8 @@ const getUsers = async (
                 },
               ],
             }
-          : {},
+          : {}),
+        },
       }),
     ]);
     return {
@@ -272,6 +281,47 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
   }
 };
 
+const deleteUser = async (userId: string) => {
+  const session = await auth();
+  await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+  try {
+    await prisma.user.delete({
+      where: {
+        id: userId,
+      },
+    });
+  } catch (e) {
+    if (e instanceof PrismaClientKnownRequestError) {
+      await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          active: false,
+        },
+      });
+    }
+  }
+};
+
+const getUserContentAmount = async (userId: string) => {
+  const session = await auth();
+  await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+  const [assessments, tallys] = await Promise.all([
+    prisma.assessment.count({
+      where: {
+        userId,
+      },
+    }),
+    prisma.tally.count({
+      where: {
+        userId,
+      },
+    }),
+  ]);
+  return { assessments, tallys };
+};
+
 export {
   getAccountByUserId,
   getUserById,
@@ -280,6 +330,8 @@ export {
   getUserAuthInfo,
   getUsers,
   updateUserRoles,
+  deleteUser,
+  getUserContentAmount,
 };
 
 export type { UserPropertyToSearch };

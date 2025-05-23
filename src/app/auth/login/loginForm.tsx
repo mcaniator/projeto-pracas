@@ -26,7 +26,7 @@ const LoginForm = () => {
         </>
       ),
     });
-  }, [state, helperCardContext]);
+  }, [state]);
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <IconTree size={48} className="inline" />

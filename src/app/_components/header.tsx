@@ -178,7 +178,7 @@ const UserInfo = ({
             variant={"ghost"}
             type="submit"
             onPress={() => {
-              void signOut({ callbackUrl: "/", redirect: true });
+              void signOut({ redirectTo: "/", redirect: true });
             }}
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">

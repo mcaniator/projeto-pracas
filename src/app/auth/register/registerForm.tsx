@@ -88,11 +88,9 @@ const RegisterForm = ({ inviteToken }: { inviteToken: string }) => {
             <Button className="w-fit">Entrar</Button>
           </Link>
         </div>
-      : <div className="rounded-lg bg-gray-200 p-6">
+      : <div className={`rounded-lg bg-gray-200 p-6 ${isPending && "hidden"}`}>
           <form onSubmit={handleSubmit}>
-            <div
-              className={`flex flex-col gap-4 text-center ${isPending && "hidden"}`}
-            >
+            <div className={`flex flex-col gap-4 text-center`}>
               <h2 className="text-2xl">Cadastro</h2>
               <input
                 type="hidden"
@@ -210,7 +208,7 @@ const RegisterForm = ({ inviteToken }: { inviteToken: string }) => {
               </Button>
             </div>
           </form>
-          <div className="my-2 w-full text-center">ou</div>
+          <div className={`my-2 w-full text-center`}>ou</div>
           <GoogleRegisterButton inviteToken={inviteToken} />
         </div>
       }

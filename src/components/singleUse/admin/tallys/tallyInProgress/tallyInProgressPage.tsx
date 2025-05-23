@@ -46,7 +46,7 @@ interface ongoingTallyDataFetched {
   endDate: Date | null;
   user: {
     id: string;
-    username: string;
+    username: string | null;
   };
   animalsAmount: number | null;
   groups: number | null;

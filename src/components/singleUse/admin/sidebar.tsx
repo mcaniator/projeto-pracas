@@ -93,10 +93,10 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-30">
       <button
         onClick={toggleSidebar}
-        className="fixed left-4 top-2 z-50 items-center md:top-3"
+        className="fixed left-4 top-2 z-30 items-center md:top-3"
       >
         {!isSidebarVisible && <IconMenu2 size={34} />}
       </button>

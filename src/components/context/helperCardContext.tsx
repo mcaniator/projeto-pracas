@@ -45,7 +45,6 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
       timeoutRef.current = setTimeout(
         () => {
           setVisible(false);
-          setHelperContent(null);
         },
         customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
       );
@@ -77,7 +76,6 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
       timeoutRef.current = setTimeout(
         () => {
           setVisible(false);
-          setHelperContent(null);
         },
         customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
       );
@@ -86,7 +84,6 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
 
   const close = () => {
     setVisible(false);
-    setHelperContent(null);
   };
 
   return (

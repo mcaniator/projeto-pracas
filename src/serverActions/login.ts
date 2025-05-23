@@ -24,6 +24,7 @@ const login = async (
     const userExists = await prisma.user.findUnique({
       where: {
         email: loginUser.email,
+        active: true,
       },
     });
 

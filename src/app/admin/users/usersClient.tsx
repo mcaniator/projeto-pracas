@@ -18,6 +18,7 @@ type TableUser = {
   username?: string | null;
   email: string;
   name: string | null;
+  active: boolean;
   createdAt: Date;
   roles: Role[];
 };
@@ -40,6 +41,7 @@ const UsersClient = () => {
     username: "none",
     createdAt: "desc",
   });
+  const [activeUsersFilter, setActiveUsersFilter] = useState(true);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -49,6 +51,7 @@ const UsersClient = () => {
         pagination.pageSize,
         searchRef.current,
         orders,
+        activeUsersFilter,
       );
       if (users.statusCode === 200) {
         setUsers(users.users ?? []);
@@ -61,7 +64,7 @@ const UsersClient = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination, orders]);
+  }, [pagination, orders, activeUsersFilter]);
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
@@ -76,6 +79,10 @@ const UsersClient = () => {
 
   const handleOrdersObjChange = (newOrders: OrdersObj) => {
     setOrders(newOrders);
+  };
+
+  const handleActiveUsersFilterChange = () => {
+    setActiveUsersFilter((prev) => !prev);
   };
 
   const updateTable = () => {
@@ -126,9 +133,11 @@ const UsersClient = () => {
           pagination={pagination}
           totalUsers={totalUsers}
           orders={orders}
+          activeUsersFilter={activeUsersFilter}
           handlePageChange={handlePageChange}
           handlePaginationChange={handlePaginationChange}
           handleOrdersObjChange={handleOrdersObjChange}
+          handleActiveUsersFilterChange={handleActiveUsersFilterChange}
           updateTable={updateTable}
         />
       </div>

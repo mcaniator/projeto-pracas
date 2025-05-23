@@ -3,14 +3,17 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import { redirect } from "next/navigation";
 
+import { auth } from "../../../../../lib/auth/auth";
+
 const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
+  const session = await auth();
+  if (!session?.user) redirect("/error");
   const params = await props.params;
   const tallys = await fetchTallysByLocationId(Number(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
-  const user = null;
-  if (user === null || user.type !== "ADMIN") redirect("/error");
+
   let endedTallys;
   let ongoingTallys;
   if (tallys) {
@@ -24,7 +27,7 @@ const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
       locationName={locationName}
       tallys={endedTallys}
       ongoingTallys={ongoingTallys}
-      userId={user.id}
+      userId={session?.user.id}
     />
   );
 };
