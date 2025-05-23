@@ -2,7 +2,12 @@
 
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { useActionState, useEffect, useState } from "react";
+import React, {
+  startTransition,
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 
 import { FetchCitiesType } from "../../serverActions/cityUtil";
 import { LocationCategories } from "../../serverActions/locationCategoryUtil";
@@ -149,8 +154,9 @@ const LocationRegisterFormClient = ({
     if (shapefile) {
       formData.append("file", shapefile.file);
     }
-
-    formAction(formData);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
