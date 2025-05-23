@@ -3,6 +3,7 @@ import Sidebar from "@/components/singleUse/admin/sidebar";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
+import AutoSignOut from "../../components/auth/autoSignOut";
 import { UserContextProvider } from "../../components/context/UserContext";
 import { HelperCardProvider } from "../../components/context/helperCardContext";
 import { auth } from "../../lib/auth/auth";
@@ -21,19 +22,21 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
     redirect("/user/accessDenied");
   }
   return (
-    <UserContextProvider user={user}>
-      <HelperCardProvider>
-        <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
-          <Header variant={"static"} user={user ?? null} />
-          <div className="flex min-h-0 flex-grow justify-center">
-            <Sidebar />
-            <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
-              {children}
+    <AutoSignOut userActive={user.active}>
+      <UserContextProvider user={user}>
+        <HelperCardProvider>
+          <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
+            <Header variant={"static"} user={user ?? null} />
+            <div className="flex min-h-0 flex-grow justify-center">
+              <Sidebar />
+              <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
+                {children}
+              </div>
             </div>
           </div>
-        </div>
-      </HelperCardProvider>
-    </UserContextProvider>
+        </HelperCardProvider>
+      </UserContextProvider>
+    </AutoSignOut>
   );
 };
 

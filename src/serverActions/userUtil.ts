@@ -62,6 +62,7 @@ const getUserAuthInfo = async (
   id: string;
   email: string;
   username: string | null;
+  active: boolean;
   roles: Role[];
 } | null> => {
   if (!userId) return null;
@@ -79,9 +80,9 @@ const getUserAuthInfo = async (
         roles: true,
       },
     });
-    if (!user || !user.active) {
+    /*if (!user || !user.active) {
       return null;
-    }
+    }*/
     return user;
   } catch (e) {
     return null;
