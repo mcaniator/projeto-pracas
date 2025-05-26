@@ -4,9 +4,9 @@ import { Role } from "@prisma/client";
 import React, { ReactNode, createContext } from "react";
 
 type UserContextType = {
-  id: string | null;
+  id: string;
   username: string | null;
-  email: string | null;
+  email: string;
   image: string | null;
   roles: Role[];
 };

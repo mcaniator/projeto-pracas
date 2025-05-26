@@ -1,5 +1,6 @@
 "use client";
 
+import PermissionGuard from "@components/auth/permissionGuard";
 import {
   IconFountain,
   IconListCheck,
@@ -11,11 +12,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
+import { useUserContext } from "../../../components/context/UserContext";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
   const helperCardContext = useHelperCard();
   const params = useSearchParams();
+  const user = useUserContext();
+
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
       helperCardContext.setHelperCard({
@@ -50,13 +54,20 @@ const AdminRoot = () => {
           <IconMap className="mb-1" size={34} />
           Mapa
         </Link>
-        <Link
-          href="registration/questions"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+
+        <PermissionGuard
+          userRoles={user.roles}
+          requiresAnyRoleGroups={["FORM"]}
         >
-          <IconListCheck className="mb-1" size={34} />
-          Formulários
-        </Link>
+          <Link
+            href="registration/questions"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconListCheck className="mb-1" size={34} />
+            Formulários
+          </Link>
+        </PermissionGuard>
+
         <Link
           href="export"
           className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
@@ -64,13 +75,18 @@ const AdminRoot = () => {
           <IconTableExport className="mb-1" size={34} />
           Exportar
         </Link>
-        <Link
-          href="activity"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        <PermissionGuard
+          userRoles={user.roles}
+          requiresAnyRoleGroups={["ASSESSMENT", "TALLY"]}
         >
-          <IconLogs className="mb-1" size={34} />
-          Atividade
-        </Link>
+          <Link
+            href="activity"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconLogs className="mb-1" size={34} />
+            Atividade
+          </Link>
+        </PermissionGuard>
       </div>
     </div>
   );

@@ -155,8 +155,10 @@ const UsersTable = ({
               </div>
             </th>
             <th className="px-6">
-              <div className="flex items-center gap-1">
-                <label htmlFor="active-filter-checkbox">Ativo?</label>
+              <div className="flex items-center gap-1 text-center">
+                <label htmlFor="active-filter-checkbox" className="text-center">
+                  Ativo?
+                </label>
                 <Checkbox
                   id="active-filter-checkbox"
                   checked={activeUsersFilter}

@@ -397,9 +397,12 @@ const PermissionsModal = ({
                 </div>
               : <></>}
               <div className="mt-auto flex justify-between pt-5">
-                <Button variant={"destructive"} onPress={deleteUser}>
-                  Excluir
-                </Button>
+                {user?.active ?
+                  <Button variant={"destructive"} onPress={deleteUser}>
+                    Excluir
+                  </Button>
+                : <Button variant={"destructive"}>Reativar</Button>}
+
                 <Button
                   variant={"constructive"}
                   onPress={() => {
