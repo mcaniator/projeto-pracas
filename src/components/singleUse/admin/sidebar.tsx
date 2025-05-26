@@ -25,7 +25,7 @@ import { useUserContext } from "../../context/UserContext";
 import ButtonLink from "../../ui/buttonLink";
 
 const Sidebar = () => {
-  const user = useUserContext();
+  const { user } = useUserContext();
   const currentLocation = usePathname();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 

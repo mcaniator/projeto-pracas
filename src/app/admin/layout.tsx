@@ -12,6 +12,7 @@ import { getUserAuthInfo } from "../../serverActions/userUtil";
 const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
   const user = await getUserAuthInfo(session?.user?.id);
+
   if (!user) {
     redirect("/auth/login");
   }
@@ -23,7 +24,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
   }
   return (
     <AutoSignOut userActive={user.active}>
-      <UserContextProvider user={user}>
+      <UserContextProvider initialUserInfo={user}>
         <HelperCardProvider>
           <div className="flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
             <Header variant={"static"} user={user ?? null} />

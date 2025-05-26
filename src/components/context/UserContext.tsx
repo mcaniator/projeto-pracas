@@ -1,9 +1,9 @@
 "use client";
 
 import { Role } from "@prisma/client";
-import React, { ReactNode, createContext } from "react";
+import React, { ReactNode, createContext, useState } from "react";
 
-type UserContextType = {
+type UserData = {
   id: string;
   username: string | null;
   email: string;
@@ -11,16 +11,33 @@ type UserContextType = {
   roles: Role[];
 };
 
+type UserContextType = {
+  user: UserData;
+  setUser: React.Dispatch<React.SetStateAction<UserData>>;
+  updateUser: (newUserInfo: Partial<UserData>) => void;
+};
+
 const UserContext = createContext<UserContextType | null>(null);
 
 const UserContextProvider = ({
-  user,
+  initialUserInfo,
   children,
 }: {
-  user: UserContextType;
+  initialUserInfo: UserData;
   children: ReactNode;
 }) => {
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  const [user, setUser] = useState<UserData>(initialUserInfo);
+  const updateUser = (newUserInfo: Partial<UserData>) => {
+    setUser((prevUser) => ({
+      ...prevUser,
+      ...newUserInfo,
+    }));
+  };
+  return (
+    <UserContext.Provider value={{ user, setUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 const useUserContext = () => {

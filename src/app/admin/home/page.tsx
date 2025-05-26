@@ -18,7 +18,7 @@ import { useHelperCard } from "../../../components/context/helperCardContext";
 const AdminRoot = () => {
   const helperCardContext = useHelperCard();
   const params = useSearchParams();
-  const user = useUserContext();
+  const { user } = useUserContext();
 
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
