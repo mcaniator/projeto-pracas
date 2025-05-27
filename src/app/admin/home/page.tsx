@@ -7,18 +7,17 @@ import {
   IconLogs,
   IconMap,
   IconTableExport,
+  IconUserCog,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import { useUserContext } from "../../../components/context/UserContext";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
   const helperCardContext = useHelperCard();
   const params = useSearchParams();
-  const { user } = useUserContext();
 
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
@@ -55,10 +54,7 @@ const AdminRoot = () => {
           Mapa
         </Link>
 
-        <PermissionGuard
-          userRoles={user.roles}
-          requiresAnyRoleGroups={["FORM"]}
-        >
+        <PermissionGuard requiresAnyRoleGroups={["FORM"]}>
           <Link
             href="registration/questions"
             className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
@@ -75,16 +71,22 @@ const AdminRoot = () => {
           <IconTableExport className="mb-1" size={34} />
           Exportar
         </Link>
-        <PermissionGuard
-          userRoles={user.roles}
-          requiresAnyRoleGroups={["ASSESSMENT", "TALLY"]}
-        >
+        <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT", "TALLY"]}>
           <Link
             href="activity"
             className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
           >
             <IconLogs className="mb-1" size={34} />
             Atividade
+          </Link>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["USER"]}>
+          <Link
+            href="users"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconUserCog className="mb-1" size={34} />
+            Usuários
           </Link>
         </PermissionGuard>
       </div>

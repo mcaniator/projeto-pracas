@@ -1,19 +1,21 @@
+"use client";
+
 import { Role } from "@prisma/client";
 
 import { RoleGroup, userHasAnyRoles } from "../../lib/auth/rolesUtil";
+import { useUserContext } from "../context/UserContext";
 
 const PermissionGuard = ({
-  userRoles,
   requiresAnyRoleGroups,
   requiresAnyRoles,
   children,
 }: {
-  userRoles: Role[];
   requiresAnyRoleGroups?: RoleGroup[];
   requiresAnyRoles?: Role[];
   children: React.ReactNode;
 }) => {
-  const userHasAccess = userHasAnyRoles(userRoles, {
+  const { user } = useUserContext();
+  const userHasAccess = userHasAnyRoles(user.roles, {
     roleGroups: requiresAnyRoleGroups,
     roles: requiresAnyRoles,
   });
