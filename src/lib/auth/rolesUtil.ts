@@ -23,23 +23,51 @@ export const roleGroupMap: Record<RoleGroup, Role[]> = {
   USER: [Role.USER_VIEWER, Role.USER_MANAGER],
 };
 
-const userHasAnyRoles = (
-  useRoles: Role[],
+const checkIfRolesArrayContainsAny = (
+  userRoles: Role[],
   { roles, roleGroups }: { roles?: Role[]; roleGroups?: RoleGroup[] },
 ) => {
   let result = false;
   if (roles) {
-    result = useRoles.some((role) => roles.includes(role));
-    if (result) return true;
+    result = userRoles.some((role) => roles.includes(role));
+    return result;
   }
   if (roleGroups) {
     for (const group of roleGroups) {
       const groupRoles = roleGroupMap[group];
-      const hasGroupRole = useRoles.some((role) => groupRoles.includes(role));
+      const hasGroupRole = userRoles.some((role) => groupRoles.includes(role));
       if (hasGroupRole) return true;
     }
     return false;
   }
+  return true;
 };
 
-export { userHasAnyRoles };
+const checkIfRolesArrayContainsAll = (
+  userRoles: Role[],
+  { roles, roleGroups }: { roles?: Role[]; roleGroups?: RoleGroup[] },
+) => {
+  let rolesResult = true;
+  let roleGroupsResult = true;
+  if (roles) {
+    rolesResult = userRoles.every((role) => roles.includes(role));
+  } else {
+    rolesResult = true;
+  }
+  if (roleGroups) {
+    for (const group of roleGroups) {
+      const groupRoles = roleGroupMap[group];
+      const hasGroupRole = userRoles.every((role) => groupRoles.includes(role));
+      if (!hasGroupRole) {
+        roleGroupsResult = false;
+        break;
+      }
+    }
+  } else {
+    roleGroupsResult = true;
+  }
+
+  return rolesResult && roleGroupsResult;
+};
+
+export { checkIfRolesArrayContainsAny, checkIfRolesArrayContainsAll };

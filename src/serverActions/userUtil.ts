@@ -9,7 +9,7 @@ import PermissionError from "../errors/permissionError";
 import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userUpdateUsernameSchema } from "../lib/zodValidators";
-import { checkIfHasAnyPermission } from "../serverOnly/checkPermission";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type UserPropertyToSearch = "username" | "email" | "name";
 
@@ -173,7 +173,7 @@ const getUsers = async (
   const user = session?.user;
   if (!user) return { statusCode: 401, users: null, totalUsers: null };
   try {
-    await checkIfHasAnyPermission(user.id, ["USER_MANAGER"]);
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
     const skip = (page - 1) * take;
     const [users, totalUsers] = await Promise.all([
       prisma.user.findMany({
@@ -265,9 +265,9 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
   ) {
     return;
   }
-  const session = await auth();
+
   try {
-    await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
 
     await prisma.user.update({
       where: {
@@ -283,8 +283,7 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
 };
 
 const deleteUser = async (userId: string) => {
-  const session = await auth();
-  await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+  await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   try {
     await prisma.user.delete({
       where: {
@@ -306,8 +305,7 @@ const deleteUser = async (userId: string) => {
 };
 
 const getUserContentAmount = async (userId: string) => {
-  const session = await auth();
-  await checkIfHasAnyPermission(session?.user.id, ["USER_MANAGER"]);
+  await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
   const [assessments, tallys] = await Promise.all([
     prisma.assessment.count({
       where: {

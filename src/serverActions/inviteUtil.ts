@@ -7,7 +7,7 @@ import { InviteOrdersObj } from "../app/admin/users/invites/invitesTable";
 import PermissionError from "../errors/permissionError";
 import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
-import { checkIfHasAnyPermission } from "../serverOnly/checkPermission";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 const createInvite = async (email: string, roles: Role[]) => {
   const token = crypto.randomBytes(32).toString("hex");
@@ -123,7 +123,7 @@ const getInvites = async (
   const user = session?.user;
   if (!user) return { statusCode: 401, invites: null, totalInvites: null };
   try {
-    await checkIfHasAnyPermission(user.id, ["USER_MANAGER"]);
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
     const skip = (page - 1) * take;
     const [invites, totalInvites] = await Promise.all([
       prisma.invite.findMany({
