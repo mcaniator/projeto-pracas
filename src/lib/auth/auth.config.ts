@@ -8,7 +8,7 @@ import { userLoginSchema } from "../zodValidators";
 
 //We need to define session callback in auth.config.ts, and jwt callback in auth.ts. Check: https://github.com/nextauthjs/next-auth/issues/9836#issuecomment-2451288724
 export default {
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 2592000 * 12, updateAge: 2592000 },
   pages: {
     error: "/auth/error",
     signIn: "/auth/login",
@@ -16,7 +16,7 @@ export default {
   },
   callbacks: {
     session({ token, session }) {
-      const ret = {
+      return {
         ...session,
         user: {
           id: token.sub,
@@ -25,7 +25,6 @@ export default {
           image: token.image as string | null,
         },
       };
-      return ret;
     },
   },
   providers: [
