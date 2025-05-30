@@ -9,6 +9,7 @@ import {
   checkIfRolesArrayContainsAll,
   checkIfRolesArrayContainsAny,
 } from "../../lib/auth/rolesUtil";
+import LoadingIcon from "../LoadingIcon";
 import { useUserContext } from "../context/UserContext";
 
 const PermissionGuard = ({
@@ -55,7 +56,14 @@ const PermissionGuard = ({
   if (userHasAccess) {
     return <>{children}</>;
   } else {
-    return null;
+    if (redirect) {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <LoadingIcon size={128} />
+        </div>
+      );
+    }
+    return;
   }
 };
 

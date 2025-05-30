@@ -41,6 +41,7 @@ const fetchTallysByLocationId = async (locationId: number) => {
         user: {
           select: {
             username: true,
+            id: true,
           },
         },
       },

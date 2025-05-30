@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 
+import PermissionGuard from "../../../auth/permissionGuard";
 import TallysInProgressSection from "./TallysInProgressSection";
 import FinalizedTallysSection from "./finalizedTallysSection";
 
@@ -12,6 +13,7 @@ interface TallyDataFetchedToTallyList {
   endDate: Date | null;
   user: {
     username: string | null;
+    id: string;
   };
 }
 type WeekdaysFilterItems =
@@ -130,22 +132,25 @@ const TallyPage = ({
   }, []);
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5 overflow-auto"}>
-      {(!isMobileView ||
-        (isMobileView && selectedScreen === "IN_PROGRESS")) && (
-        <div
-          className={`${!isMobileView && "max-h-[30vh] min-h-[150px]"} overflow-auto`}
-        >
-          <TallysInProgressSection
-            locationId={locationId}
-            locationName={locationName}
-            userId={userId}
-            ongoingTallys={ongoingTallys}
-            isMobileView={isMobileView}
-            selectedScreen={selectedScreen}
-            setSelectedScreen={setSelectedScreen}
-          />
-        </div>
-      )}
+      <PermissionGuard requiresAnyRoles={["TALLY_MANAGER", "TALLY_EDITOR"]}>
+        {(!isMobileView ||
+          (isMobileView && selectedScreen === "IN_PROGRESS")) && (
+          <div
+            className={`${!isMobileView && "max-h-[30vh] min-h-[150px]"} overflow-auto`}
+          >
+            <TallysInProgressSection
+              locationId={locationId}
+              locationName={locationName}
+              userId={userId}
+              ongoingTallys={ongoingTallys}
+              isMobileView={isMobileView}
+              selectedScreen={selectedScreen}
+              setSelectedScreen={setSelectedScreen}
+            />
+          </div>
+        )}
+      </PermissionGuard>
+
       {(!isMobileView || (isMobileView && selectedScreen === "FINALIZED")) && (
         <div className={`min-h-[150px] overflow-auto`}>
           <FinalizedTallysSection
