@@ -5,6 +5,8 @@ import { personType } from "@/lib/zodValidators";
 import { CalculationTypes, WeatherConditions } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
   id: number;
@@ -29,7 +31,7 @@ interface TallyDataToProcessType {
   startDate: Date;
   endDate: Date | null;
   user: {
-    username: string;
+    username: string | null;
   };
   animalsAmount: number | null;
   groups: number | null;
@@ -46,7 +48,7 @@ interface TallyDataToProcessTypeWithoutLocation {
   startDate: Date;
   endDate: Date | null;
   user: {
-    username: string;
+    username: string | null;
   };
   animalsAmount: number | null;
   groups: number | null;
@@ -296,7 +298,10 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
       currentTable?.assessments.push({
         id: assessment.id,
         startDate: assessment.startDate,
-        user: { id: assessment.user.id, username: assessment.user.username },
+        user: {
+          id: assessment.user.id,
+          username: assessment.user.username ?? "Indefinido",
+        },
         location: {
           id: assessment.location.id,
           name: assessment.location.name,
@@ -989,6 +994,7 @@ const exportDailyTallys = async (
   locationIds: number[],
   tallysIds: number[],
 ) => {
+  await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   const locationObjs = await prisma.location.findMany({
     where: {
       id: {
@@ -1253,6 +1259,12 @@ const exportDailyTallys = async (
 };
 
 const exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, CSVstring: null };
+  }
+
   let tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -1357,12 +1369,18 @@ const exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
     })
     .join("\n");
 
-  return CSVstring;
+  return { statusCode: 200, CSVstring };
 };
 
 //This function below is used to export tally content without combining data. It uses old spreadsheet formation.
 
 const exportIndividualTallysToCSV = async (tallysIds: number[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, CSVstring: null };
+  }
+
   const tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -1399,7 +1417,9 @@ const exportIndividualTallysToCSV = async (tallysIds: number[]) => {
     },
   });
 
-  return createTallyStringWithoutAddedData(tallys);
+  const CSVstring = createTallyStringWithoutAddedData(tallys);
+
+  return { statusCode: 200, CSVstring };
 };
 
 //Functions below are used to process  and format tally content and are called by other functions

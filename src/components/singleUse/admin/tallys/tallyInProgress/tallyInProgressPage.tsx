@@ -17,6 +17,8 @@ import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 
+import { checkIfRolesArrayContainsAll } from "../../../../../lib/auth/rolesUtil";
+import { useUserContext } from "../../../../context/UserContext";
 import TallyInProgressReview from "./tallyInProgressReview";
 import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
 import TallyInProgressSaveModal from "./tallyInProgressSaveModal";
@@ -83,17 +85,22 @@ interface SubmittingObj {
 }
 
 const TallyInProgressPage = ({
-  userId,
   tallyId,
   locationId,
   tally,
 }: {
-  userId: string;
   tallyId: number;
   locationId: number;
   tally: ongoingTallyDataFetched;
 }) => {
-  if (userId !== tally.user.id) redirect("/error");
+  const { user } = useUserContext();
+  if (user.id !== tally.user.id) {
+    if (
+      !checkIfRolesArrayContainsAll(user.roles, { roles: ["TALLY_MANAGER"] })
+    ) {
+      redirect("/error");
+    }
+  }
   const [submittingObj, setSubmittingObj] = useState<SubmittingObj>({
     submitting: false,
     finishing: false,

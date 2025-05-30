@@ -50,14 +50,14 @@ const checkIfRolesArrayContainsAll = (
   let rolesResult = true;
   let roleGroupsResult = true;
   if (roles) {
-    rolesResult = userRoles.every((role) => roles.includes(role));
+    rolesResult = roles.every((role) => userRoles.includes(role));
   } else {
     rolesResult = true;
   }
   if (roleGroups) {
     for (const group of roleGroups) {
       const groupRoles = roleGroupMap[group];
-      const hasGroupRole = userRoles.every((role) => groupRoles.includes(role));
+      const hasGroupRole = groupRoles.every((role) => userRoles.includes(role));
       if (!hasGroupRole) {
         roleGroupsResult = false;
         break;

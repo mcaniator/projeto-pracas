@@ -1,6 +1,13 @@
 "use client";
 
-import { ReactNode, createContext, useContext, useRef, useState } from "react";
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 
 import HelperCard, { HelperCardType } from "../popups/HelperCard";
 
@@ -37,6 +44,7 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
     show: boolean,
     customTimeout?: number,
   ) => {
+    setVisible(false);
     await sleep(200);
     setHelperContent(content);
     setHelperCardType(helperCardType);
@@ -50,37 +58,37 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
       );
     }
   };
-  const setHelperCard = ({
-    show,
-    helperCardType,
-    customTimeout,
-    content,
-  }: {
-    show: boolean;
-    helperCardType: HelperCardType;
-    customTimeout?: number;
-    content: ReactNode;
-  }) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      if (visible) {
-        setVisible(false);
+  const setHelperCard = useCallback(
+    ({
+      show,
+      helperCardType,
+      customTimeout,
+      content,
+    }: {
+      show: boolean;
+      helperCardType: HelperCardType;
+      customTimeout?: number;
+      content: ReactNode;
+    }) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
         void delayedCardUpdate(content, helperCardType, show, customTimeout);
         return;
       }
-    }
-    setHelperContent(content);
-    setHelperCardType(helperCardType);
-    setVisible(show);
-    if (show) {
-      timeoutRef.current = setTimeout(
-        () => {
-          setVisible(false);
-        },
-        customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
-      );
-    }
-  };
+      setHelperContent(content);
+      setHelperCardType(helperCardType);
+      setVisible(show);
+      if (show) {
+        timeoutRef.current = setTimeout(
+          () => {
+            setVisible(false);
+          },
+          customTimeout ?? (helperCardType === "INFO" ? 10000 : 5000),
+        );
+      }
+    },
+    [],
+  );
 
   const close = () => {
     setVisible(false);

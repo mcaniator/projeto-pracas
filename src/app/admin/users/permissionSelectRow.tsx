@@ -59,7 +59,7 @@ const sectionInfoMap = new Map<SystemSection, SectionInfoValue>([
       viewer: "Pode visualizar contagens finalizadas.",
       editor: "Pode realizar contagens, editá-las e excluí-las.",
       manager:
-        "Pode realizar contagens, editá-las e excluí-las, além de editar e excluir qualquer avaliação.",
+        "Pode realizar contagens, editá-las e excluí-las, além de editar e excluir qualquer contagem.",
     },
   ],
   [

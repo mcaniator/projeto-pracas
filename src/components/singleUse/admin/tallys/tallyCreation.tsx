@@ -2,8 +2,9 @@
 
 import { Input } from "@/components/ui/input";
 import { createTally } from "@/serverActions/tallyUtil";
-import React, { useActionState } from "react";
+import React, { useActionState, useEffect } from "react";
 
+import { useHelperCard } from "../../../context/helperCardContext";
 import { CreateTallySubmitButton } from "./createTallySubmitButton";
 
 type TallyCreationFormType = {
@@ -13,6 +14,7 @@ type TallyCreationFormType = {
   errors: {
     userId: boolean;
     date: boolean;
+    permission: boolean;
   };
 };
 
@@ -23,6 +25,7 @@ const TallyCreation = ({
   locationId: string;
   userId: string;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const currentDatetime = new Date();
   const [newTallyFormState, newTallyFormAction] = useActionState(createTally, {
     locationId: locationId,
@@ -33,6 +36,15 @@ const TallyCreation = ({
       date: false,
     },
   } as TallyCreationFormType);
+  useEffect(() => {
+    if (newTallyFormState.errors.permission) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Permissão negada!</>,
+      });
+    }
+  }, [newTallyFormState, setHelperCard]);
   return (
     <>
       <h4 className={"text-2xl font-semibold"}>Criação de contagens</h4>

@@ -4,7 +4,6 @@ import LoginForm from "./loginForm";
 
 const LoginPage = async () => {
   const session = await auth();
-
   if (session) {
     return <AlreadyLoggedInError />;
   }

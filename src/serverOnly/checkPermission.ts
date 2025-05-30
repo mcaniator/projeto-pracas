@@ -44,7 +44,7 @@ const checkIfLoggedInUserHasAnyPermission = async ({
     if (error instanceof PermissionError) {
       throw error;
     }
-    throw new Error("Error checking permissions");
+    throw new PermissionError("Error checking permissions");
   }
 };
 

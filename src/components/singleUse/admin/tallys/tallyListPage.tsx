@@ -11,7 +11,7 @@ interface TallyDataFetchedToTallyList {
   startDate: Date;
   endDate: Date | null;
   user: {
-    username: string;
+    username: string | null;
   };
 }
 type WeekdaysFilterItems =
