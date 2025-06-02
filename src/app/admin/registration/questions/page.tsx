@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Select } from "../../../../components/ui/select";
-import PermissionError from "../../../../errors/permissionError";
 import {
   questionOptionTypesFormatter,
   questionResponseCharacterTypesFormatter,
@@ -50,21 +49,15 @@ const QuestionsPage = () => {
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
   const handleCategoriesFetch = useCallback(async () => {
-    try {
-      const catObj = await fetchCategories();
-      if (catObj.statusCode === 401) throw new PermissionError();
-      if (catObj.statusCode !== 200) throw new Error();
-      const cat = catObj.categories!;
-      return cat;
-    } catch (e) {
-      if (e instanceof PermissionError) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Sem permissão para ver categorias!</>,
-        });
-        return null;
-      }
+    const catObj = await fetchCategories();
+    if (catObj.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para ver categorias!</>,
+      });
+      return null;
+    } else if (catObj.statusCode !== 200) {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
@@ -72,6 +65,8 @@ const QuestionsPage = () => {
       });
       return null;
     }
+    const cat = catObj.categories!;
+    return cat;
   }, [setHelperCard]);
   const fetchCategoriesAfterCreation = () => {
     const fetchCategoriesAfterCreation = async () => {
