@@ -82,7 +82,7 @@ const deleteFormVersion = async (
         id: number;
       };
       user: {
-        username: string;
+        username: string | null;
       };
     }[];
     form: { name: string; version: number } | null;

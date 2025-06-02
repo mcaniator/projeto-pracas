@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Select } from "../../../../components/ui/select";
+import PermissionError from "../../../../errors/permissionError";
 import {
   questionOptionTypesFormatter,
   questionResponseCharacterTypesFormatter,
@@ -23,6 +25,7 @@ import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 import SubcategorySelect from "./subcategorySelect";
 
 const QuestionsPage = () => {
+  const { setHelperCard } = useHelperCard();
   const [categories, setCategories] = useState<FetchedCategories>([]);
   const [subcategories, setSubcategories] = useState<
     {
@@ -46,13 +49,38 @@ const QuestionsPage = () => {
     verifySubcategoryNullness: true,
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
+  const handleCategoriesFetch = useCallback(async () => {
+    try {
+      const catObj = await fetchCategories();
+      if (catObj.statusCode === 401) throw new PermissionError();
+      if (catObj.statusCode !== 200) throw new Error();
+      const cat = catObj.categories!;
+      return cat;
+    } catch (e) {
+      if (e instanceof PermissionError) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para ver categorias!</>,
+        });
+        return null;
+      }
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao obter categorias!</>,
+      });
+      return null;
+    }
+  }, [setHelperCard]);
   const fetchCategoriesAfterCreation = () => {
     const fetchCategoriesAfterCreation = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
+      setCategories(cat);
+      if (!cat) return;
       const currentCategory = cat.find(
         (c) => c.id === selectedCategoryAndSubcategoryId.categoryId,
       );
-      setCategories(cat);
       setSubcategories(currentCategory?.subcategory || []);
       if (!selectedCategoryAndSubcategoryId.categoryId) {
         setSelectedCategoryAndSubcategoryId({
@@ -68,8 +96,9 @@ const QuestionsPage = () => {
 
   const fetchCategoriesAfterDeletion = () => {
     const fetchCategoriesAfterDeletion = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
       setCategories(cat);
+      if (!cat) return;
       setSubcategories(cat[0]?.subcategory || []);
       setSelectedCategoryAndSubcategoryId({
         categoryId: cat[0]?.id,
@@ -83,8 +112,9 @@ const QuestionsPage = () => {
 
   useEffect(() => {
     const fetchCat = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
       setCategories(cat);
+      if (!cat) return;
       setSubcategories(cat[0]?.subcategory || []);
       setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
@@ -93,7 +123,7 @@ const QuestionsPage = () => {
       }));
     };
     void fetchCat();
-  }, []);
+  }, [handleCategoriesFetch]);
   useEffect(() => {
     const fetchQuestions = async () => {
       if (selectedCategoryAndSubcategoryId) {
@@ -109,7 +139,7 @@ const QuestionsPage = () => {
   }, [selectedCategoryAndSubcategoryId, categories]);
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSubcategories(
-      categories.find((cat) => cat.id === parseInt(e.target.value))
+      categories?.find((cat) => cat.id === parseInt(e.target.value))
         ?.subcategory || [],
     );
     setSelectedCategoryAndSubcategoryId({
@@ -117,7 +147,7 @@ const QuestionsPage = () => {
       subcategoryId: undefined,
       verifySubcategoryNullness:
         (
-          categories.find((cat) => cat.id === parseInt(e.target.value))
+          categories?.find((cat) => cat.id === parseInt(e.target.value))
             ?.subcategory.length === 0
         ) ?
           true
@@ -153,7 +183,7 @@ const QuestionsPage = () => {
             <CategoryDeletionModal
               categoryId={selectedCategoryAndSubcategoryId.categoryId}
               categoryName={
-                categories.find(
+                categories?.find(
                   (cat) =>
                     cat.id === selectedCategoryAndSubcategoryId.categoryId,
                 )?.name
@@ -167,7 +197,7 @@ const QuestionsPage = () => {
             onChange={handleCategoryChange}
             value={selectedCategoryAndSubcategoryId.categoryId}
           >
-            {categories.map((cat) => {
+            {categories?.map((cat) => {
               return (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -183,7 +213,7 @@ const QuestionsPage = () => {
                 <SubcategoryCreationModal
                   categoryId={selectedCategoryAndSubcategoryId.categoryId}
                   categoryName={
-                    categories.find(
+                    categories?.find(
                       (cat) =>
                         cat.id === selectedCategoryAndSubcategoryId.categoryId,
                     )?.name
@@ -197,7 +227,7 @@ const QuestionsPage = () => {
                     }
                     subcategoryName={
                       categories
-                        .flatMap((category) => category.subcategory)
+                        ?.flatMap((category) => category.subcategory)
                         .find(
                           (subcategory) =>
                             subcategory.id ===
@@ -205,7 +235,7 @@ const QuestionsPage = () => {
                         )?.name
                     }
                     categoryName={
-                      categories.find(
+                      categories?.find(
                         (cat) =>
                           cat.id ===
                           selectedCategoryAndSubcategoryId.categoryId,
@@ -236,7 +266,7 @@ const QuestionsPage = () => {
                   <QuestionCreationModal
                     categoryId={selectedCategoryAndSubcategoryId.categoryId}
                     categoryName={
-                      categories.find(
+                      categories?.find(
                         (category) =>
                           category.id ===
                           selectedCategoryAndSubcategoryId.categoryId,
@@ -247,7 +277,7 @@ const QuestionsPage = () => {
                     }
                     subcategoryName={
                       categories
-                        .flatMap((category) => category.subcategory)
+                        ?.flatMap((category) => category.subcategory)
                         .find(
                           (subcategory) =>
                             subcategory.id ===

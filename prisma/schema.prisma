@@ -146,7 +146,6 @@ enum Role {
   PARK_EDITOR        @map("park_editor")
   PARK_MANAGER       @map("park_manager")
   FORM_VIEWER        @map("form_viewer")
-  FORM_EDITOR        @map("form_editor")
   FORM_MANAGER       @map("form_manager")
   ASSESSMENT_VIEWER  @map("assessment_viewer")
   ASSESSMENT_EDITOR  @map("assessment_editor")

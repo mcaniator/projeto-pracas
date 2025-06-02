@@ -64,12 +64,6 @@ const roles = [
   },
   {
     section: "FORM",
-    name: "Editor",
-    value: "FORM_EDITOR",
-    color: warningColors.level2,
-  },
-  {
-    section: "FORM",
     name: "Administrador",
     value: "FORM_MANAGER",
     color: warningColors.level3,
@@ -198,8 +192,7 @@ const InviteCRUDModal = ({
       section: "FORM",
       role:
         invite?.roles.find(
-          (r) =>
-            r === "FORM_MANAGER" || r === "FORM_EDITOR" || r === "FORM_VIEWER",
+          (r) => r === "FORM_MANAGER" || r === "FORM_VIEWER",
         ) ?? null,
     },
     {
@@ -382,10 +375,7 @@ const InviteCRUDModal = ({
         section: "FORM",
         role:
           invite?.roles.find(
-            (r) =>
-              r === "FORM_MANAGER" ||
-              r === "FORM_EDITOR" ||
-              r === "FORM_VIEWER",
+            (r) => r === "FORM_MANAGER" || r === "FORM_VIEWER",
           ) ?? null,
       },
       {

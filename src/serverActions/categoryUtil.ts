@@ -7,27 +7,36 @@ import {
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath, revalidateTag } from "next/cache";
 
+import PermissionError from "../errors/permissionError";
 import { prisma } from "../lib/prisma";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type FetchedCategories = NonNullable<
   Awaited<ReturnType<typeof fetchCategories>>
->;
+>["categories"];
 
 type CategoriesWithQuestions = NonNullable<
   Awaited<ReturnType<typeof getCategories>>
 >;
 
 const fetchCategories = async () => {
-  const categories = await prisma.category.findMany({
-    include: {
-      subcategory: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
-
-  return categories;
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+    const categories = await prisma.category.findMany({
+      include: {
+        subcategory: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return { statusCode: 200, categories };
+  } catch (e) {
+    if (e instanceof PermissionError) {
+      return { statusCode: 401, categories: null };
+    }
+    return { statusCode: 500, categories: null };
+  }
 };
 
 const categorySubmit = async (

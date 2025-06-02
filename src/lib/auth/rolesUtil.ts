@@ -5,7 +5,7 @@ export type AssessmentRole =
   | "ASSESSMENT_EDITOR"
   | "ASSESSMENT_MANAGER";
 export type ParkRole = "PARK_VIEWER" | "PARK_EDITOR" | "PARK_MANAGER";
-export type FormRole = "FORM_VIEWER" | "FORM_EDITOR" | "FORM_MANAGER";
+export type FormRole = "FORM_VIEWER" | "FORM_MANAGER";
 export type TallyRole = "TALLY_VIEWER" | "TALLY_EDITOR" | "TALLY_MANAGER";
 export type UserRole = "USER_VIEWER" | "USER_MANAGER";
 
@@ -18,7 +18,7 @@ export const roleGroupMap: Record<RoleGroup, Role[]> = {
     Role.ASSESSMENT_MANAGER,
   ],
   PARK: [Role.PARK_VIEWER, Role.PARK_EDITOR, Role.PARK_MANAGER],
-  FORM: [Role.FORM_VIEWER, Role.FORM_EDITOR, Role.FORM_MANAGER],
+  FORM: [Role.FORM_VIEWER, Role.FORM_MANAGER],
   TALLY: [Role.TALLY_VIEWER, Role.TALLY_EDITOR, Role.TALLY_MANAGER],
   USER: [Role.USER_VIEWER, Role.USER_MANAGER],
 };

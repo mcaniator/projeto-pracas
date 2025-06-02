@@ -59,12 +59,6 @@ const roles = [
   },
   {
     section: "FORM",
-    name: "Editor",
-    value: "FORM_EDITOR",
-    color: warningColors.level2,
-  },
-  {
-    section: "FORM",
     name: "Administrador",
     value: "FORM_MANAGER",
     color: warningColors.level3,
@@ -192,10 +186,8 @@ const PermissionsModal = ({
     {
       section: "FORM",
       role:
-        user?.roles.find(
-          (r) =>
-            r === "FORM_MANAGER" || r === "FORM_EDITOR" || r === "FORM_VIEWER",
-        ) ?? null,
+        user?.roles.find((r) => r === "FORM_MANAGER" || r === "FORM_VIEWER") ??
+        null,
     },
     {
       section: "PARK",
@@ -293,10 +285,7 @@ const PermissionsModal = ({
         section: "FORM",
         role:
           user?.roles.find(
-            (r) =>
-              r === "FORM_MANAGER" ||
-              r === "FORM_EDITOR" ||
-              r === "FORM_VIEWER",
+            (r) => r === "FORM_MANAGER" || r === "FORM_VIEWER",
           ) ?? null,
       },
       {
