@@ -12,6 +12,7 @@ import {
   DisplayCalculation,
   DisplayQuestion,
 } from "../app/admin/registration/forms/[formId]/edit/client";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import { QuestionWithCategories } from "./questionUtil";
 
 interface FormToEditPage {
@@ -64,7 +65,7 @@ const deleteFormVersion = async (
           id: number;
         };
         user: {
-          username: string;
+          username: string | null;
         };
       }[];
       form: { name: string; version: number } | null;
@@ -88,6 +89,14 @@ const deleteFormVersion = async (
     form: { name: string; version: number } | null;
   };
 } | null> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      content: { assessmentsWithForm: [], form: null },
+    };
+  }
   const formId = parseInt(formData.get("formId") as string);
   try {
     const assessments = await prisma.assessment.findMany({
@@ -302,6 +311,11 @@ const updateForm = async (
   prevState: { statusCode: number },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   let parseId;
   try {
     parseId = z.coerce
@@ -312,7 +326,7 @@ const updateForm = async (
       .parse(formData.get("formId"));
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
     };
   }
 
@@ -323,7 +337,7 @@ const updateForm = async (
     });
   } catch (e) {
     return {
-      statusCode: 1,
+      statusCode: 400,
     };
   }
 
@@ -356,11 +370,15 @@ const createVersion = async (
   questions: DisplayQuestion[],
   calculationsToCreate: DisplayCalculation[],
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   const formType = Prisma.validator<Prisma.FormDefaultArgs>()({
     select: { id: true, name: true, version: true },
   });
   let form: Prisma.FormGetPayload<typeof formType> | null = null;
-  let newFormId: number | null = null;
 
   try {
     form = await prisma.form.findUnique({
@@ -369,13 +387,13 @@ const createVersion = async (
       },
     });
   } catch (error) {
-    throw new Error(`Erro ao recuperar formulários`);
+    return { statusCode: 500 };
   }
 
-  if (form === null) return { message: "erro do servidor" };
+  if (form === null) return { statusCode: 404 };
 
   try {
-    const newForm = await prisma.form.create({
+    await prisma.form.create({
       data: {
         name: form.name,
         version: form.version + 1,
@@ -397,17 +415,15 @@ const createVersion = async (
         },
       },
     });
-
-    newFormId = newForm.id;
   } catch (e) {
     return {
-      message: "erro do servidor",
+      statusCode: 500,
     };
   }
 
   revalidateTag("questionOnForm");
-  redirect("/admin/registration/forms");
-  return { statusCode: 0, newFormId };
+  redirect("/admin/registration/forms?formCreated=true");
+  return { statusCode: 201 };
 };
 
 export {

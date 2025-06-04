@@ -6,6 +6,7 @@ import { Option, Question } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
 import { DisplayQuestion } from "../app/admin/registration/forms/[formId]/edit/client";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -335,6 +336,11 @@ const searchQuestionsByCategoryAndSubcategory = async (
   subcategoryId: number | undefined,
   verifySubcategoryNullness: boolean,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, questions: [] };
+  }
   const cachedQuestions = unstable_cache(
     async (
       categoryId: number | undefined,
@@ -381,7 +387,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
           },
         });
       } catch (err) {
-        // console.error(err);
+        throw new Error("Error fetching questions");
       }
 
       return foundQuestions;
@@ -389,17 +395,21 @@ const searchQuestionsByCategoryAndSubcategory = async (
     ["searchQuestionsByStatementCache"],
     { tags: ["question"] },
   );
-  const questions = await cachedQuestions(
-    categoryId,
-    subcategoryId,
-    verifySubcategoryNullness,
-  );
-  questions.sort((a, b) => {
-    if (a.name < b.name) return -1;
-    if (a.name > b.name) return 1;
-    return 0;
-  });
-  return questions;
+  try {
+    const questions = await cachedQuestions(
+      categoryId,
+      subcategoryId,
+      verifySubcategoryNullness,
+    );
+    questions.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
+    return { statusCode: 200, questions: questions };
+  } catch (e) {
+    return { statusCode: 500, questions: [] };
+  }
 };
 
 const searchOptionsByQuestionId = async (

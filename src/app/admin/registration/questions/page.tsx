@@ -127,7 +127,7 @@ const QuestionsPage = () => {
           selectedCategoryAndSubcategoryId?.subcategoryId,
           selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
         );
-        setQuestions(questions);
+        setQuestions(questions.questions);
       }
     };
     void fetchQuestions();

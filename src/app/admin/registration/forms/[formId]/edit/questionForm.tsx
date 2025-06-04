@@ -18,6 +18,7 @@ import { IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
 
 import LoadingIcon from "../../../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { DisplayQuestion } from "./client";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
@@ -37,6 +38,7 @@ const QuestionForm = ({
   questionsToRemove: DisplayQuestion[];
   categories: CategoriesWithQuestions;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [questionsListState, setQuestionsListState] = useState<
     "LOADING" | "LOADED" | "ERROR"
   >("LOADING");
@@ -89,13 +91,31 @@ const QuestionForm = ({
     setQuestionsListState("LOADING");
     searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
       .then((questions) => {
-        setQuestionsListState("LOADED");
-        setFoundQuestionsByCategory(questions);
+        if (questions.statusCode === 200) {
+          setQuestionsListState("LOADED");
+          setFoundQuestionsByCategory(questions.questions);
+        } else {
+          if (questions.statusCode === 401) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não possui permissão para obter questões!</>,
+            });
+          } else {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao obter questões!</>,
+            });
+          }
+          setQuestionsListState("LOADED");
+          setFoundQuestionsByCategory([]);
+        }
       })
       .catch(() => {
         setQuestionsListState("ERROR");
       });
-  }, [categories]);
+  }, [categories, setHelperCard]);
 
   useEffect(() => {
     setQuestionsListState("LOADING");
@@ -105,13 +125,31 @@ const QuestionForm = ({
       selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
     )
       .then((questions) => {
-        setQuestionsListState("LOADED");
-        setFoundQuestionsByCategory(questions);
+        if (questions.statusCode === 200) {
+          setQuestionsListState("LOADED");
+          setFoundQuestionsByCategory(questions.questions);
+        } else {
+          if (questions.statusCode === 401) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não possui permissão para obter questões!</>,
+            });
+          } else {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao obter questões!</>,
+            });
+          }
+          setQuestionsListState("LOADED");
+          setFoundQuestionsByCategory([]);
+        }
       })
       .catch(() => {
         setQuestionsListState("ERROR");
       });
-  }, [selectedCategoryAndSubcategoryId]);
+  }, [selectedCategoryAndSubcategoryId, setHelperCard]);
 
   const deferredFoundQuestions = useDeferredValue(foundQuestions);
 

@@ -19,6 +19,7 @@ import {
 } from "react-aria-components";
 
 import LoadingIcon from "../../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../../components/context/helperCardContext";
 import { deleteFormVersion } from "../../../../../serverActions/formUtil";
 
 const FormVersionDeletionModal = ({
@@ -30,6 +31,7 @@ const FormVersionDeletionModal = ({
   formName: string;
   formVersion: number;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(
     deleteFormVersion,
     null,
@@ -40,10 +42,27 @@ const FormVersionDeletionModal = ({
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (state?.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Versão de formulário excluída!</>,
+      });
       setPageState("SUCCESS");
-    } else if (state?.statusCode === 409 || state?.statusCode === 500)
+    } else if (state?.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para excluir formulário!</>,
+      });
       setPageState("ERROR");
-  }, [state]);
+    } else if (state?.statusCode === 409 || state?.statusCode === 500)
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir formulário!</>,
+      });
+    setPageState("ERROR");
+  }, [state, setHelperCard]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -68,7 +87,7 @@ const FormVersionDeletionModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }

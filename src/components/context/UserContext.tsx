@@ -3,6 +3,12 @@
 import { Role } from "@prisma/client";
 import React, { ReactNode, createContext, useState } from "react";
 
+import {
+  RoleGroup,
+  checkIfRolesArrayContainsAll,
+  checkIfRolesArrayContainsAny,
+} from "../../lib/auth/rolesUtil";
+
 type UserData = {
   id: string;
   username: string | null;
@@ -15,6 +21,17 @@ type UserContextType = {
   user: UserData;
   setUser: React.Dispatch<React.SetStateAction<UserData>>;
   updateUser: (newUserInfo: Partial<UserData>) => void;
+  checkIfHasAccess: ({
+    requiresAnyRoleGroups,
+    requiresAnyRoles,
+    requiresAllRolesGroups,
+    requiredAllRoles,
+  }: {
+    requiresAnyRoleGroups?: RoleGroup[];
+    requiresAnyRoles?: Role[];
+    requiresAllRolesGroups?: RoleGroup[];
+    requiredAllRoles?: Role[];
+  }) => boolean;
 };
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -33,8 +50,31 @@ const UserContextProvider = ({
       ...newUserInfo,
     }));
   };
+  const checkIfHasAccess = ({
+    requiresAnyRoleGroups,
+    requiresAnyRoles,
+    requiresAllRolesGroups,
+    requiredAllRoles,
+  }: {
+    requiresAnyRoleGroups?: RoleGroup[];
+    requiresAnyRoles?: Role[];
+    requiresAllRolesGroups?: RoleGroup[];
+    requiredAllRoles?: Role[];
+  }) => {
+    const userHasAccessAny = checkIfRolesArrayContainsAny(user.roles, {
+      roleGroups: requiresAnyRoleGroups,
+      roles: requiresAnyRoles,
+    });
+    const userHasAccessAll = checkIfRolesArrayContainsAll(user.roles, {
+      roleGroups: requiresAllRolesGroups,
+      roles: requiredAllRoles,
+    });
+    return userHasAccessAll && userHasAccessAny;
+  };
   return (
-    <UserContext.Provider value={{ user, setUser, updateUser }}>
+    <UserContext.Provider
+      value={{ user, setUser, updateUser, checkIfHasAccess }}
+    >
       {children}
     </UserContext.Provider>
   );

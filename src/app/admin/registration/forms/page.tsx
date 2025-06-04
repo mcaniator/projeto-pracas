@@ -3,6 +3,7 @@ import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
 
 import { fetchFormsLatest } from "../../../../serverActions/formUtil";
+import FormsClient from "./client";
 import { FormCreationModal } from "./formCreationModal";
 
 const AdminRoot = async () => {
@@ -37,6 +38,7 @@ const AdminRoot = async () => {
           </div>
         </div>
       </div>
+      <FormsClient />
     </div>
   );
 };

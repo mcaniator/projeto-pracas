@@ -8,6 +8,7 @@ import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import LoadingIcon from "../../../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { CategoriesWithQuestions } from "../../../../../../serverActions/categoryUtil";
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { CalculationEditModal } from "./calculationEditModal";
@@ -142,6 +143,7 @@ const FormUpdater = ({
   handleQuestionsToAdd: (question: DisplayQuestion) => void;
   categoriesToModal: CategoriesWithQuestions;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [formState, formAction, isPending] = useActionState(
     updateForm,
     initialState,
@@ -291,6 +293,31 @@ const FormUpdater = ({
       });
     }
   });
+
+  useEffect(() => {
+    if (formState.statusCode === 0) return;
+    if (formState.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Nome atualizado!</>,
+      });
+    } else {
+      if (formState.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para atualizar nome!</>,
+        });
+      } else {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao atualizar nome!</>,
+        });
+      }
+    }
+  }, [formState, setHelperCard]);
 
   // TODO: add error handling
   return (
