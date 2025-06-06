@@ -297,33 +297,58 @@ const InviteCRUDModal = ({
             .filter((ur) => ur.role !== null)
             .map((ur) => ur.role as Role),
         );
-        if (!inviteReturn) {
-          throw new Error("Erro ao criar convite");
+        if (inviteReturn.statusCode === 201) {
+          setInvite(inviteReturn.invite);
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "CONFIRM",
+            content: <>Convite criado!</>,
+          });
+        } else if (inviteReturn.statusCode === 401) {
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Sem permissão para criar convites!</>,
+          });
+        } else {
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao criar convite!</>,
+          });
         }
-        setInvite(inviteReturn);
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Convite criado!</>,
-        });
       } else {
-        await updateInvite(
+        const result = await updateInvite(
           invite.token,
           userRoles
             .filter((ur) => ur.role !== null)
             .map((ur) => ur.role as Role),
         );
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Convite atualizado!</>,
-        });
+        if (result.statusCode === 200) {
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "CONFIRM",
+            content: <>Convite atualizado!</>,
+          });
+        } else if (result.statusCode === 401) {
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Sem permissão para atualizar convites!</>,
+          });
+        } else {
+          helperCardContext.setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao atualizar convite!</>,
+          });
+        }
       }
     } catch (e) {
       helperCardContext.setHelperCard({
         show: true,
         helperCardType: "ERROR",
-        content: <>Erro ao criar convite!</>,
+        content: <>Erro ao atualizar convite!</>,
       });
       return;
     } finally {
@@ -337,12 +362,28 @@ const InviteCRUDModal = ({
     setIsLoading(true);
     try {
       if (!invite) return;
-      await deleteInvite(invite.token);
-      helperCardContext.setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Convite excluído!</>,
-      });
+      const status = await deleteInvite(invite.token);
+      if (status.statusCode === 200) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Convite excluído!</>,
+        });
+      } else if (status.statusCode === 401) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para excluir convites!</>,
+        });
+        return;
+      } else {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao excluir convite!</>,
+        });
+        return;
+      }
     } catch (e) {
       helperCardContext.setHelperCard({
         show: true,

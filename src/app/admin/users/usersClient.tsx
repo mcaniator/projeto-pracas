@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 
 import LoadingIcon from "../../../components/LoadingIcon";
+import PermissionGuard from "../../../components/auth/permissionGuard";
 import { Button } from "../../../components/button";
 import ButtonLink from "../../../components/ui/buttonLink";
 import { Input } from "../../../components/ui/input";
@@ -118,9 +119,13 @@ const UsersClient = () => {
             <IconSearch />
           </Button>
         </div>
-        <ButtonLink href="/admin/users/invites" className="h-full">
-          <AiOutlineUsergroupAdd className="h-6 w-6" />
-        </ButtonLink>
+        <div>
+          <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
+            <ButtonLink href="/admin/users/invites" className="h-full">
+              <AiOutlineUsergroupAdd className="h-6 w-6" />
+            </ButtonLink>
+          </PermissionGuard>
+        </div>
       </div>
       {isLoading && (
         <div className="flex justify-center">

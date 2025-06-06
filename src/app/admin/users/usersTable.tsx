@@ -5,7 +5,6 @@ import {
   IconCornerUpRight,
   IconFilter,
   IconKey,
-  IconListCheck,
   IconReload,
   IconSquareFilled,
   IconUser,
@@ -16,6 +15,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 import { Button } from "../../../components/button";
+import { useUserContext } from "../../../components/context/UserContext";
 import { Input } from "../../../components/ui/input";
 import DeleteUserModal from "./deleteUserModal";
 import SortMenu from "./orderMenu";
@@ -64,6 +64,8 @@ const UsersTable = ({
     minute: "2-digit",
     second: "2-digit",
   });
+  const { user } = useUserContext();
+  const [userIsUserManager] = useState(user?.roles.includes("USER_MANAGER"));
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
@@ -155,7 +157,7 @@ const UsersTable = ({
               </div>
             </th>
             <th className="px-6">
-              <div className="flex items-center gap-1 text-center">
+              <div className="flex items-center justify-center gap-1 text-center">
                 <label htmlFor="active-filter-checkbox" className="text-center">
                   Ativo?
                 </label>
@@ -176,7 +178,7 @@ const UsersTable = ({
                 />
               </div>
             </th>
-            <th>Ações</th>
+            {userIsUserManager && <th>Ações</th>}
           </tr>
         </thead>
         <tbody>
@@ -212,20 +214,19 @@ const UsersTable = ({
                 }
               </td>
               <td className="px-6">{dateFormatter.format(user.createdAt)}</td>
-              <td className="flex justify-center gap-1 px-6">
-                <Button
-                  className="px-2"
-                  onPress={() => {
-                    setSelectedUser(user);
-                    setIsPermissionsModalOpen(true);
-                  }}
-                >
-                  <IconKey />
-                </Button>
-                <Button className="px-2">
-                  <IconListCheck />
-                </Button>
-              </td>
+              {userIsUserManager && (
+                <td className="flex justify-center gap-1 px-6">
+                  <Button
+                    className="px-2"
+                    onPress={() => {
+                      setSelectedUser(user);
+                      setIsPermissionsModalOpen(true);
+                    }}
+                  >
+                    <IconKey />
+                  </Button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

@@ -13,48 +13,6 @@ import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermissi
 
 type UserPropertyToSearch = "username" | "email" | "name";
 
-const getAccountByUserId = async (userId: string) => {
-  try {
-    const account = await prisma.account.findFirst({
-      where: {
-        userId,
-      },
-    });
-    return account;
-  } catch (e) {
-    return null;
-  }
-};
-
-const getUserById = async (userId: string) => {
-  try {
-    const user = await prisma.user.findFirst({
-      where: {
-        id: userId,
-      },
-    });
-    return user;
-  } catch (e) {
-    return null;
-  }
-};
-
-const getUsernameById = async (userId: string) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        username: true,
-      },
-    });
-    return user?.username ?? null;
-  } catch (e) {
-    return null;
-  }
-};
-
 const getUserAuthInfo = async (
   userId: string | undefined | null,
 ): Promise<{
@@ -66,6 +24,8 @@ const getUserAuthInfo = async (
   roles: Role[];
 } | null> => {
   if (!userId) return null;
+  const session = await auth();
+  if (!session || session.user.id !== userId) return null;
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -80,9 +40,6 @@ const getUserAuthInfo = async (
         roles: true,
       },
     });
-    /*if (!user || !user.active) {
-      return null;
-    }*/
     return user;
   } catch (e) {
     return null;
@@ -112,10 +69,14 @@ const updateUserUsername = async (
     | null;
 } | null> => {
   try {
+    const session = await auth();
     const userInfo = userUpdateUsernameSchema.parse({
       userId: formData.get("userId"),
       username: formData.get("username"),
     });
+    if (!session || session.user.id !== userInfo.userId) {
+      return { statusCode: 401, username: null, errors: null };
+    }
     const user = await prisma.user.update({
       where: {
         id: userInfo.userId,
@@ -254,6 +215,11 @@ const getUsers = async (
 };
 
 const updateUserRoles = async (userId: string, roles: Role[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   if (
     roles.filter((role) => role).length > 0 &&
     !roles.some(
@@ -263,12 +229,10 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
         role === "PARK_MANAGER",
     )
   ) {
-    return;
+    return { statusCode: 400 };
   }
 
   try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
-
     await prisma.user.update({
       where: {
         id: userId,
@@ -277,30 +241,42 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
         roles: roles,
       },
     });
+    return { statusCode: 200 };
   } catch (e) {
-    return;
+    return { statusCode: 500 };
   }
 };
 
 const deleteUser = async (userId: string) => {
-  await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, type: null };
+  }
   try {
     await prisma.user.delete({
       where: {
         id: userId,
       },
     });
+    return { statusCode: 200, type: "DELETE" };
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError) {
-      await prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          active: false,
-        },
-      });
+      try {
+        await prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            active: false,
+          },
+        });
+        return { statusCode: 200, type: "DEACTIVATE" };
+      } catch (e) {
+        return { statusCode: 500, type: null };
+      }
     }
+    return { statusCode: 500, type: null };
   }
 };
 
@@ -322,10 +298,7 @@ const getUserContentAmount = async (userId: string) => {
 };
 
 export {
-  getAccountByUserId,
-  getUserById,
   updateUserUsername,
-  getUsernameById,
   getUserAuthInfo,
   getUsers,
   updateUserRoles,

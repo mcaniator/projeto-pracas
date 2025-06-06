@@ -33,12 +33,30 @@ const DeleteUserModal = ({
     if (!user) return;
     setIsLoading(true);
     try {
-      await deleteUser(user.id);
-      helperCardContext.setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Usuário excluído!</>,
-      });
+      const deleteUserResult = await deleteUser(user.id);
+      if (deleteUserResult.statusCode === 200) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content:
+            deleteUserResult.type === "DELETE" ?
+              <>Usuário excluído!</>
+            : <>Usuário desativado!</>,
+        });
+      } else if (deleteUserResult.statusCode === 401) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para atualizar usuário!</>,
+        });
+      } else {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao atualizar usuário!</>,
+        });
+      }
+
       updateTable();
       onOpenChange(false);
     } catch (e) {

@@ -10,6 +10,11 @@ import { prisma } from "../lib/prisma";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 const createInvite = async (email: string, roles: Role[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, invite: null };
+  }
   const token = crypto.randomBytes(32).toString("hex");
   try {
     const existingUser = await prisma.user.findUnique({
@@ -18,7 +23,7 @@ const createInvite = async (email: string, roles: Role[]) => {
       },
     });
     if (existingUser) {
-      return;
+      return { statusCode: 400, invite: null };
     }
     const invite = await prisma.invite.create({
       data: {
@@ -28,13 +33,18 @@ const createInvite = async (email: string, roles: Role[]) => {
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
       },
     });
-    return invite;
+    return { statusCode: 201, invite: invite };
   } catch (e) {
-    return;
+    return { statusCode: 500, invite: null };
   }
 };
 
 const updateInvite = async (inviteToken: string, roles: Role[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   try {
     if (
       roles.filter((role) => role).length > 0 &&
@@ -45,7 +55,7 @@ const updateInvite = async (inviteToken: string, roles: Role[]) => {
           role === "PARK_MANAGER",
       )
     ) {
-      return;
+      return { statusCode: 400 };
     }
     await prisma.invite.update({
       where: {
@@ -55,61 +65,27 @@ const updateInvite = async (inviteToken: string, roles: Role[]) => {
         roles,
       },
     });
+    return { statusCode: 200 };
   } catch (e) {
-    return;
+    return { statusCode: 500 };
   }
 };
 
 const deleteInvite = async (token: string) => {
   try {
-    const invite = await prisma.invite.delete({
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  try {
+    await prisma.invite.delete({
       where: {
         token,
       },
     });
-    return invite;
+    return { statusCode: 200 };
   } catch (e) {
-    return null;
-  }
-};
-
-const checkIfInviteExists = async (token: string) => {
-  try {
-    const invite = await prisma.invite.findUnique({
-      where: {
-        token,
-      },
-    });
-    return !!invite;
-  } catch (e) {
-    return false;
-  }
-};
-
-const getInviteToken = async (token: string, email: string) => {
-  try {
-    const invite = await prisma.invite.findUnique({
-      where: {
-        token,
-        email,
-      },
-    });
-    return invite;
-  } catch (e) {
-    return null;
-  }
-};
-
-const getInviteTokenByEmail = async (email: string) => {
-  try {
-    const invite = await prisma.invite.findUnique({
-      where: {
-        email,
-      },
-    });
-    return invite;
-  } catch (e) {
-    return null;
+    return { statusCode: 500 };
   }
 };
 
@@ -163,11 +139,37 @@ const getInvites = async (
   }
 };
 
+const checkIfInviteExists = async (token: string) => {
+  try {
+    const invite = await prisma.invite.findUnique({
+      where: {
+        token,
+      },
+    });
+    return !!invite;
+  } catch (e) {
+    return false;
+  }
+};
+
+const getInviteToken = async (token: string, email: string) => {
+  try {
+    const invite = await prisma.invite.findUnique({
+      where: {
+        token,
+        email,
+      },
+    });
+    return invite;
+  } catch (e) {
+    return null;
+  }
+};
+
 export {
   createInvite,
   checkIfInviteExists,
   getInviteToken,
-  getInviteTokenByEmail,
   getInvites,
   deleteInvite,
   updateInvite,

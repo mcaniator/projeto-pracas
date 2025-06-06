@@ -246,15 +246,29 @@ const PermissionsModal = ({
     }
     setIsLoading(true);
     try {
-      await updateUserRoles(
+      const updateResult = await updateUserRoles(
         user?.id,
         userRoles.filter((ur) => ur.role !== null).map((ur) => ur.role as Role),
       );
-      helperCardContext.setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Permissões atualizadas!</>,
-      });
+      if (updateResult.statusCode === 200) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Permissões atualizadas!</>,
+        });
+      } else if (updateResult.statusCode === 401) {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para atualizar usuário!</>,
+        });
+      } else {
+        helperCardContext.setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao atualizar usuário!</>,
+        });
+      }
     } catch (e) {
       helperCardContext.setHelperCard({
         show: true,
