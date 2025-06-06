@@ -2,6 +2,7 @@ import { Form } from "@prisma/client";
 import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
 
+import PermissionGuard from "../../../../components/auth/permissionGuard";
 import { fetchFormsLatest } from "../../../../serverActions/formUtil";
 import FormsClient from "./client";
 import { FormCreationModal } from "./formCreationModal";
@@ -16,10 +17,11 @@ const AdminRoot = async () => {
             "flex flex-col gap-1 rounded-3xl bg-gray-300/30 p-3 shadow-md"
           }
         >
-          <div>
-            <FormCreationModal />
-          </div>
-
+          <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+            <div>
+              <FormCreationModal />
+            </div>
+          </PermissionGuard>
           <div>
             {forms.length > 0 ?
               <div className="flex w-full flex-col">

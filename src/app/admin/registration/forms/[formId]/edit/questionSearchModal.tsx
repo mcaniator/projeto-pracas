@@ -84,13 +84,35 @@ const QuestionSearchModal = ({
     setQuestionsListState("LOADING");
     searchQuestionsByStatement(debouncedTargetQuestion)
       .then((questions) => {
-        setQuestionsListState("LOADED");
-        setFoundQuestions(questions);
+        if (questions.statusCode === 200) {
+          setQuestionsListState("LOADED");
+          setFoundQuestions(questions.questions);
+        } else {
+          if (questions.statusCode === 401) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não possui permissão para obter questões!</>,
+            });
+          } else {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao obter questões!</>,
+            });
+          }
+          setFoundQuestions([]);
+        }
       })
       .catch(() => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao obter questões!</>,
+        });
         setQuestionsListState("ERROR");
       });
-  }, [debouncedTargetQuestion]);
+  }, [debouncedTargetQuestion, setHelperCard]);
 
   useEffect(() => {
     setQuestionsListState("LOADING");

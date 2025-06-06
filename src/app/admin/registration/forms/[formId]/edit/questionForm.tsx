@@ -80,7 +80,7 @@ const QuestionForm = ({
     searchQuestionsByStatement(debouncedTargetQuestion)
       .then((questions) => {
         setQuestionsListState("LOADED");
-        setFoundQuestions(questions);
+        setFoundQuestions(questions.questions);
       })
       .catch(() => {
         setQuestionsListState("ERROR");
@@ -113,6 +113,11 @@ const QuestionForm = ({
         }
       })
       .catch(() => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao obter questões!</>,
+        });
         setQuestionsListState("ERROR");
       });
   }, [categories, setHelperCard]);

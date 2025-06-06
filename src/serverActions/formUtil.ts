@@ -29,6 +29,14 @@ const formSubmit = async (
 ): Promise<{ statusCode: number; formName: string | null } | null> => {
   let parse;
   try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      formName: null,
+    };
+  }
+  try {
     parse = formSchema.parse({
       name: formData.get("name"),
     });

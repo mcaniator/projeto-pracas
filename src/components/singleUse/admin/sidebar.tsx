@@ -21,6 +21,7 @@ import {
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
+import { checkIfRolesArrayContainsAny } from "../../../lib/auth/rolesUtil";
 import { useUserContext } from "../../context/UserContext";
 import ButtonLink from "../../ui/buttonLink";
 
@@ -70,7 +71,7 @@ const Sidebar = () => {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
       path: "/admin/registration/questions",
-      show: true,
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
     },
     {
       icon: <IconTableExport size={34} />,
@@ -82,13 +83,15 @@ const Sidebar = () => {
       icon: <IconLogs size={34} />,
       name: "Atividade",
       path: "/admin/activity",
-      show: true,
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["ASSESSMENT", "TALLY"],
+      }),
     },
     {
       icon: <IconUserCog size={34} />,
       name: "Usuários",
       path: "/admin/users",
-      show: user ? user.roles.includes("USER_MANAGER") : false,
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["USER"] }),
     },
   ];
 

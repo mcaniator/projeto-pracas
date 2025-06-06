@@ -16,6 +16,7 @@ import {
 } from "react-aria-components";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Checkbox } from "../../../../components/ui/checkbox";
 import { Input } from "../../../../components/ui/input";
 import { RadioButton } from "../../../../components/ui/radioButton";
@@ -37,6 +38,7 @@ const QuestionCreationModal = ({
   subcategoryName: string | undefined;
   fetchCategoriesAfterCreation: () => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(questionSubmit, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
@@ -103,10 +105,28 @@ const QuestionCreationModal = ({
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Questão registrada!</>,
+      });
       fetchCategoriesAfterCreation();
-    } else if (state?.statusCode === 400 || state?.statusCode === 500)
+    } else if (state?.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para registrar questões!</>,
+      });
       setPageState("ERROR");
-  }, [state, fetchCategoriesAfterCreation]);
+    } else if (state?.statusCode === 400 || state?.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao registar questão!</>,
+      });
+      setPageState("ERROR");
+    }
+  }, [state, fetchCategoriesAfterCreation, setHelperCard]);
   const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       if (!geometryTypes.includes(e.target.value)) {
@@ -145,7 +165,7 @@ const QuestionCreationModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }
