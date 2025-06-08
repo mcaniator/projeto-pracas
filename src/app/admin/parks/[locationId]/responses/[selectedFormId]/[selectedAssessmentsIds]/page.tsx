@@ -8,25 +8,24 @@ import { redirect } from "next/navigation";
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
 import MainContainer from "./mainContainer";
 
-const ResponsesFetcher = async (
-  props: {
-    params: Promise<{
-      locationId: string;
-      selectedFormId: string;
-      selectedAssessmentsIds: string;
-    }>;
-  }
-) => {
+const ResponsesFetcher = async (props: {
+  params: Promise<{
+    locationId: string;
+    selectedFormId: string;
+    selectedAssessmentsIds: string;
+  }>;
+}) => {
   const params = await props.params;
-  const user = null;
-  if (user === null || user.type !== "ADMIN") redirect("/error");
+
   const assessmentsIds: number[] = params.selectedAssessmentsIds
     .split("-")
     .map((id) => Number(id));
   const locationName = await searchLocationNameById(Number(params.locationId));
   const assessments =
     await fetchMultipleAssessmentsWithResponses(assessmentsIds);
-  assessments.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+  assessments.assessments.sort(
+    (a, b) => b.startDate.getTime() - a.startDate.getTime(),
+  );
   const assessmentsGeometries =
     await fetchAssessmentsGeometries(assessmentsIds);
 
@@ -35,8 +34,8 @@ const ResponsesFetcher = async (
     <div className="flex h-full flex-col rounded-3xl bg-gray-500">
       <div className="flex h-full flex-col">
         <h3 className="hidden p-2 text-xl font-semibold md:text-2xl xl:flex">
-          Respostas ao formulario {assessments[0]?.form.name} referentes à
-          localidade {locationName}
+          Respostas ao formulario {assessments.assessments[0]?.form.name}{" "}
+          referentes à localidade {locationName}
         </h3>
 
         <div className="flex h-full w-full gap-1 overflow-auto">

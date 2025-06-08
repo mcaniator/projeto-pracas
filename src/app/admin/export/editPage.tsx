@@ -90,7 +90,7 @@ const EditPage = ({
         try {
           const assessments =
             await fetchAssessmentsByLocation(currentLocationId);
-          setFetchedAssessments(assessments);
+          setFetchedAssessments(assessments ?? []);
           setFetchedAssessmentsStatus("LOADED");
         } catch (error) {
           setFetchedAssessmentsStatus("ERROR");

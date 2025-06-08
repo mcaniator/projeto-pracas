@@ -37,13 +37,13 @@ type FetchedAssessmentGeometries = NonNullable<
 
 const ResponseComponent = ({
   locationId,
-  userId,
   assessment,
+  formName,
   initialGeometries,
 }: {
   locationId: number;
-  userId: string;
   assessment: AssessmentWithResposes;
+  formName: string;
   initialGeometries: FetchedAssessmentGeometries;
 }) => {
   const questions = assessment?.form.questions;
@@ -106,13 +106,17 @@ const ResponseComponent = ({
   const categories = Array.from(categoriesMap.values());
 
   return (
-    <ResponseForm
-      userId={userId}
-      locationId={locationId}
-      categoriesObj={categories}
-      assessment={assessment}
-      fetchedGeometries={initialGeometries}
-    />
+    <div className="flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+      <h3 className="flex flex-col gap-5 text-2xl font-semibold">
+        Avaliando: {assessment?.location.name} com o formulário: {formName}
+      </h3>
+      <ResponseForm
+        locationId={locationId}
+        categoriesObj={categories}
+        assessment={assessment}
+        fetchedGeometries={initialGeometries}
+      />
+    </div>
   );
 };
 

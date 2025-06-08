@@ -24,7 +24,7 @@ const AssessmentsList = ({
 }: {
   locationId: number;
   formId: number;
-  assessments: FinalizedAssessmentsList;
+  assessments: FinalizedAssessmentsList["assessments"];
 }) => {
   return assessments === undefined || assessments.length === 0 ?
       <h3>Nenhuma avaliação encontrada para este local!</h3>

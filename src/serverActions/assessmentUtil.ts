@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { auth } from "../lib/auth/auth";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+
 type AssessmentsWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>
 >;
@@ -19,8 +22,37 @@ const createAssessment = async (
   prevState: AssessmentCreationFormType | undefined,
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      locationId: "",
+      userId: "",
+      formId: "",
+      startDate: "",
+      errors: {
+        startDate: false,
+      },
+    };
+  }
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      statusCode: 401,
+      locationId: "",
+      userId: "",
+      formId: "",
+      startDate: "",
+      errors: {
+        startDate: false,
+      },
+    };
+  }
   const locationId = formData.get("locationId") as string;
-  const userId = formData.get("userId") as string;
+  const userId = session.user.id;
   const formId = formData.get("formId") as string;
   const startDate = formData.get("startDate") as string;
   try {
@@ -34,6 +66,7 @@ const createAssessment = async (
     });
     revalidatePath("/");
     return {
+      statusCode: 201,
       locationId,
       userId,
       formId,
@@ -44,6 +77,7 @@ const createAssessment = async (
     };
   } catch (error) {
     return {
+      statusCode: 500,
       locationId,
       userId,
       formId,
@@ -59,122 +93,159 @@ const fetchAssessmentsInProgresss = async (
   locationId: number,
   formId: number,
 ) => {
-  const assessments = await prisma.assessment.findMany({
-    where: {
-      formId,
-      locationId,
-      endDate: null,
-    },
-    select: {
-      id: true,
-      startDate: true,
-      user: {
-        select: {
-          username: true,
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401, assessments: [] };
+  }
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        formId,
+        locationId,
+        endDate: null,
+      },
+      select: {
+        id: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
         },
       },
-    },
-  });
-  return assessments;
+    });
+    return { statusCode: 200, assessments: assessments };
+  } catch (e) {
+    return { statusCode: 500, assessments: [] };
+  }
 };
 
 const fetchAssessmentsByLocation = async (locationId: number) => {
-  const assessments = await prisma.assessment.findMany({
-    where: {
-      locationId,
-      endDate: {
-        not: null,
-      },
-    },
-    select: {
-      id: true,
-      startDate: true,
-      user: {
-        select: {
-          username: true,
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        locationId,
+        endDate: {
+          not: null,
         },
       },
-      form: {
-        select: {
-          name: true,
-          version: true,
+      select: {
+        id: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
+        form: {
+          select: {
+            name: true,
+            version: true,
+          },
         },
       },
-    },
-  });
-  return assessments;
+    });
+    return assessments;
+  } catch (e) {
+    return null;
+  }
 };
 
 const fetchAssessmentByLocationAndForm = async (
   locationId: number,
   formId: number,
 ) => {
-  const assessments = await prisma.assessment.findMany({
-    where: {
-      locationId,
-      formId,
-      endDate: {
-        not: null,
-      },
-    },
-    select: {
-      id: true,
-      startDate: true,
-      user: {
-        select: {
-          username: true,
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, assessments: [] };
+  }
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        locationId,
+        formId,
+        endDate: {
+          not: null,
         },
       },
-    },
-  });
-  return assessments;
+      select: {
+        id: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+    return { statusCode: 200, assessments: assessments };
+  } catch (e) {
+    return { statusCode: 500, assessments: [] };
+  }
 };
 
 const fetchMultipleAssessmentsWithResponses = async (
   assessmentsIds: number[],
 ) => {
-  const assessments = await prisma.assessment.findMany({
-    where: {
-      id: {
-        in: assessmentsIds,
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roleGroups: ["ASSESSMENT"],
+    });
+  } catch (e) {
+    return { statusCode: 401, assessments: [] };
+  }
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        id: {
+          in: assessmentsIds,
+        },
       },
-    },
-    include: {
-      form: {
-        include: {
-          questions: {
-            include: {
-              options: true,
-              category: true,
-              subcategory: {
-                include: {
-                  category: true,
+      include: {
+        form: {
+          include: {
+            questions: {
+              include: {
+                options: true,
+                category: true,
+                subcategory: {
+                  include: {
+                    category: true,
+                  },
                 },
               },
             },
-          },
-          calculations: {
-            include: {
-              questions: true,
+            calculations: {
+              include: {
+                questions: true,
+              },
             },
           },
         },
-      },
-      response: true,
-      responseOption: {
-        include: {
-          option: true,
+        response: true,
+        responseOption: {
+          include: {
+            option: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
         },
       },
-      user: {
-        select: {
-          id: true,
-          username: true,
-        },
-      },
-    },
-  });
-  return assessments;
+    });
+    return { statusCode: 200, assessments: assessments };
+  } catch (e) {
+    return { statusCode: 500, assessments: [] };
+  }
 };
 
 const fetchAssessmentGeometries = async (assessmentId: number) => {
@@ -202,6 +273,11 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
       id: assessmentId,
     },
     include: {
+      location: {
+        select: {
+          name: true,
+        },
+      },
       response: true,
       responseOption: {
         include: {
@@ -249,7 +325,7 @@ const fetchRecentlyCompletedAssessments = async () => {
         name: string;
       };
       user: {
-        username: string;
+        username: string | null;
       };
     }[];
   } = { statusCode: 500, assessments: [] };

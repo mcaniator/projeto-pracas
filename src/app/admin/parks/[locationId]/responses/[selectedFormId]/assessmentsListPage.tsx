@@ -3,6 +3,7 @@
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
 import React, { useEffect, useRef, useState } from "react";
 
+import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { AssessmentsFilter } from "./assessmentsFilter";
 import { AssessmentsList } from "./assessmentsList";
 
@@ -30,11 +31,14 @@ const AssessmentsListPage = ({
   formId: number;
   assessments: FinalizedAssessmentsList;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [isMobileView, setIsMobileView] = useState(false);
   const weekdaysFilter = useRef<WeekdaysFilterItems[]>([]);
   const initialDateFilter = useRef(0);
   const finalDateFilter = useRef(0);
-  const [activeAssessments, setActiveAssessments] = useState(assessments);
+  const [activeAssessments, setActiveAssessments] = useState(
+    assessments.assessments,
+  );
 
   useEffect(() => {
     window.addEventListener("resize", () => {
@@ -50,6 +54,22 @@ const AssessmentsListPage = ({
       setIsMobileView(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (assessments.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para acessar avaliações!</>,
+      });
+    } else if (assessments.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao carregar avaliações!</>,
+      });
+    }
+  }, [assessments, setHelperCard]);
 
   const handleInitialDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -88,7 +108,7 @@ const AssessmentsListPage = ({
     if (!assessments) {
       return;
     }
-    const filteredAssessments = assessments.filter((assessment) => {
+    const filteredAssessments = assessments.assessments.filter((assessment) => {
       if (weekdaysFilter.current.length > 0) {
         if (
           !weekdaysFilter.current.includes(
@@ -133,7 +153,7 @@ const AssessmentsListPage = ({
 
         {!isMobileView && (
           <div className={"flex basis-3/5 flex-col gap-1 overflow-auto"}>
-            {!assessments || assessments.length === 0 ?
+            {!assessments.assessments || assessments.assessments.length === 0 ?
               <h3>Nenhuma avaliação finalizada para este local!</h3>
             : <>
                 <AssessmentsList
@@ -161,7 +181,7 @@ const AssessmentsListPage = ({
         </div>
         {isMobileView && (
           <div className={"flex w-full flex-col gap-1"}>
-            {!assessments || assessments.length === 0 ?
+            {!assessments || assessments.assessments.length === 0 ?
               <h3>Nenhuma avaliação finalizada para este local!</h3>
             : <>
                 <AssessmentsList

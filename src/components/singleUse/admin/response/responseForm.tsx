@@ -19,12 +19,16 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Coordinate } from "ol/coordinate";
 import { Type } from "ol/geom/Geometry";
 import React from "react";
 import { useEffect, useState } from "react";
 
+import { checkIfRolesArrayContainsAny } from "../../../../lib/auth/rolesUtil";
 import LoadingIcon from "../../../LoadingIcon";
+import { useUserContext } from "../../../context/UserContext";
+import { useHelperCard } from "../../../context/helperCardContext";
 import { MapPopup } from "./MapPopup";
 import { DeleteAssessmentModal } from "./deleteAssessmentModal";
 
@@ -36,18 +40,18 @@ interface ModalGeometry {
 type ResponseGeometry = "POINT" | "POLYGON" | "POINT_AND_POLYGON";
 
 const ResponseForm = ({
-  userId,
   locationId,
   categoriesObj,
   assessment,
   fetchedGeometries,
 }: {
-  userId: string;
   locationId: number;
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
   assessment: AssessmentWithResposes;
   fetchedGeometries: FetchedAssessmentGeometries;
 }) => {
+  const { setHelperCard } = useHelperCard();
+  const { user } = useUserContext();
   const [showHelp, setShowHelp] = useState(false);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
@@ -162,6 +166,16 @@ const ResponseForm = ({
       }
     });
   };
+
+  if (user.id !== assessment.userId) {
+    if (
+      !checkIfRolesArrayContainsAny(user.roles, {
+        roles: ["ASSESSMENT_MANAGER"],
+      })
+    ) {
+      redirect("/error");
+    }
+  }
 
   const [assessmentEnded, setAssessmentEnded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -280,9 +294,27 @@ const ResponseForm = ({
       assessment.id,
       responsesArray,
       geometries,
-      userId,
       endAssessment,
     );
+    if (response.statusCode === 201) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Respostas salvas!</>,
+      });
+    } else if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para salvar respostas!</>,
+      });
+    } else if (response.statusCode === 404 || response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao salvar respostas!</>,
+      });
+    }
     setIsLoading(false);
     setSaveStatus(response.statusCode !== 500 ? "SUCCESS" : "ERROR");
     setAssessmentEnded(endAssessment);

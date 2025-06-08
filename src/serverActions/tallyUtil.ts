@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import PermissionError from "../errors/permissionError";
-import { getSessionUserIdServer } from "../lib/auth/userUtil";
+import { getSessionUserId } from "../lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface WeatherStats {
@@ -373,7 +373,7 @@ const deleteTallys = async (tallysIds: number[]) => {
   await checkIfLoggedInUserHasAnyPermission({
     roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
   });
-  const userId = await getSessionUserIdServer();
+  const userId = await getSessionUserId();
   const userTallysAmount = await prisma.tally.count({
     where: {
       id: {

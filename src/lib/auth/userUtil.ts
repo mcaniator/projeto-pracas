@@ -1,8 +1,13 @@
 import { auth } from "./auth";
 
-const getSessionUserIdServer = async () => {
+const getSessionUserId = async () => {
   const session = await auth();
   return session?.user.id;
 };
 
-export { getSessionUserIdServer };
+const getSessionUser = async () => {
+  const session = await auth();
+  return session?.user;
+};
+
+export { getSessionUserId, getSessionUser };

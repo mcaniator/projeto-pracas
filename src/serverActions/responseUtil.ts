@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { QuestionTypes } from "@prisma/client";
 import { Coordinate } from "ol/coordinate";
 
+import { getSessionUser } from "../lib/auth/userUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+
 interface ResponseToAdd {
   questionId: number;
   type: QuestionTypes;
@@ -23,9 +26,41 @@ const addResponses = async (
   assessmentId: number,
   responses: ResponseToAdd[],
   geometriesByQuestion: { questionId: number; geometries: ModalGeometry[] }[],
-  userId: string,
   endAssessment: boolean,
 ) => {
+  console.log(responses);
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return {
+      statusCode: 401,
+    };
+  }
+  const user = await getSessionUser();
+  const assessment = await prisma.assessment.findUnique({
+    where: {
+      id: assessmentId,
+    },
+    select: {
+      userId: true,
+    },
+  });
+  if (!assessment || !user) {
+    return {
+      statusCode: 404,
+    };
+  }
+  if (user.id !== assessment?.userId) {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["ASSESSMENT_MANAGER"],
+      });
+    } catch (e) {
+      return { statusCode: 401 };
+    }
+  }
   const responsesTextNumeric = responses.filter(
     (response) => response.type === "WRITTEN",
   );
@@ -55,7 +90,7 @@ const addResponses = async (
               response: response.response ? response.response[0] : undefined,
               user: {
                 connect: {
-                  id: userId,
+                  id: user.id,
                 },
               },
               question: {
@@ -71,7 +106,6 @@ const addResponses = async (
     const existingResponseOptions = await prisma.responseOption.findMany({
       where: {
         assessmentId,
-        userId,
       },
     });
     for (const currentResponseOption of responsesOption) {
@@ -86,7 +120,7 @@ const addResponses = async (
           await prisma.responseOption.create({
             data: {
               user: {
-                connect: { id: userId },
+                connect: { id: user.id },
               },
               question: {
                 connect: { id: currentResponseOption.questionId },
@@ -101,7 +135,7 @@ const addResponses = async (
             where: {
               assessmentId,
               questionId: currentResponseOption.questionId,
-              userId,
+              userId: user.id,
             },
             data: {
               optionId: null,
@@ -134,7 +168,7 @@ const addResponses = async (
             await prisma.responseOption.create({
               data: {
                 user: {
-                  connect: { id: userId },
+                  connect: { id: user.id },
                 },
                 question: {
                   connect: { id: currentResponseOption.questionId },
@@ -220,7 +254,7 @@ const addResponses = async (
     }
   }
   return {
-    statusCode: 200,
+    statusCode: 201,
   };
 };
 

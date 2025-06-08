@@ -42,7 +42,7 @@ interface FrequencyObjByCategory {
 const FrequencyTable = ({
   assessments,
 }: {
-  assessments: AssessmentsWithResposes;
+  assessments: AssessmentsWithResposes["assessments"];
 }) => {
   const [showHelp, setShowHelp] = useState(false);
   const frequencies: FrequencyObjByCategory[] = [];
