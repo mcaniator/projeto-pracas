@@ -3,7 +3,6 @@
 import { AssessmentCreationFormType } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/assessmentCreation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { auth } from "../lib/auth/auth";
 import { getSessionUser } from "../lib/auth/userUtil";
@@ -430,10 +429,6 @@ const deleteAssessment = async (assessmentId: number) => {
   }
 };
 
-const redirectToFormsList = (locationId: number) => {
-  redirect(`/admin/parks/${locationId}/evaluation`);
-};
-
 export {
   createAssessment,
   deleteAssessment,
@@ -441,7 +436,6 @@ export {
   fetchAssessmentByLocationAndForm,
   fetchMultipleAssessmentsWithResponses,
   fetchAssessmentWithResponses,
-  redirectToFormsList,
   fetchAssessmentsByLocation,
   fetchRecentlyCompletedAssessments,
 };

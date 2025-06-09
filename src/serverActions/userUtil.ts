@@ -5,8 +5,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { ZodError } from "zod";
 
 import { OrdersObj } from "../app/admin/users/usersTable";
-import PermissionError from "../errors/permissionError";
-import { auth } from "../lib/auth/auth";
+import { getSessionUser } from "../lib/auth/userUtil";
 import { prisma } from "../lib/prisma";
 import { userUpdateUsernameSchema } from "../lib/zodValidators";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
@@ -24,8 +23,8 @@ const getUserAuthInfo = async (
   roles: Role[];
 } | null> => {
   if (!userId) return null;
-  const session = await auth();
-  if (!session || session.user.id !== userId) return null;
+  const sessionUser = await getSessionUser();
+  if (!sessionUser || sessionUser.id !== userId) return null;
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -69,12 +68,12 @@ const updateUserUsername = async (
     | null;
 } | null> => {
   try {
-    const session = await auth();
+    const sessionUser = await getSessionUser();
     const userInfo = userUpdateUsernameSchema.parse({
       userId: formData.get("userId"),
       username: formData.get("username"),
     });
-    if (!session || session.user.id !== userInfo.userId) {
+    if (!sessionUser || sessionUser?.id !== userInfo.userId) {
       return { statusCode: 401, username: null, errors: null };
     }
     const user = await prisma.user.update({
@@ -130,11 +129,12 @@ const getUsers = async (
   orders: OrdersObj,
   activeUsersFilters: boolean,
 ) => {
-  const session = await auth();
-  const user = session?.user;
-  if (!user) return { statusCode: 401, users: null, totalUsers: null };
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
+  } catch (e) {
+    return { statusCode: 401, users: null, totalUsers: null };
+  }
+  try {
     const skip = (page - 1) * take;
     const [users, totalUsers] = await Promise.all([
       prisma.user.findMany({
@@ -207,9 +207,6 @@ const getUsers = async (
       totalUsers,
     };
   } catch (e) {
-    if (e instanceof PermissionError) {
-      return { statusCode: 403, users: null, totalUsers: null };
-    }
     return { statusCode: 500, users: null, totalUsers: null };
   }
 };
@@ -281,20 +278,28 @@ const deleteUser = async (userId: string) => {
 };
 
 const getUserContentAmount = async (userId: string) => {
-  await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
-  const [assessments, tallys] = await Promise.all([
-    prisma.assessment.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.tally.count({
-      where: {
-        userId,
-      },
-    }),
-  ]);
-  return { assessments, tallys };
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
+  } catch (e) {
+    return { statusCode: 401, assessments: null, tallys: null };
+  }
+  try {
+    const [assessments, tallys] = await Promise.all([
+      prisma.assessment.count({
+        where: {
+          userId,
+        },
+      }),
+      prisma.tally.count({
+        where: {
+          userId,
+        },
+      }),
+    ]);
+    return { statusCode: 200, assessments, tallys };
+  } catch (e) {
+    return { statusCode: 500, assessments: null, tallys: null };
+  }
 };
 
 export {

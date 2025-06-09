@@ -8,6 +8,7 @@ import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import LoadingIcon from "../../../components/LoadingIcon";
 import PermissionGuard from "../../../components/auth/permissionGuard";
 import { Button } from "../../../components/button";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import ButtonLink from "../../../components/ui/buttonLink";
 import { Input } from "../../../components/ui/input";
 import { getUsers } from "../../../serverActions/userUtil";
@@ -24,6 +25,7 @@ type TableUser = {
   roles: Role[];
 };
 const UsersClient = () => {
+  const { setHelperCard } = useHelperCard();
   const [search, setSearch] = useState<string>("");
   const searchRef = useRef("");
   const [users, setUsers] = useState<TableUser[]>([]);
@@ -59,13 +61,26 @@ const UsersClient = () => {
         setTotalUsers(users.totalUsers);
       } else {
         setUsers([]);
+        if (users.statusCode === 401) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Sem permissão para acessar usuários!</>,
+          });
+        } else if (users.statusCode === 500) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao buscar usuários!</>,
+          });
+        }
       }
     } catch (e) {
       setUsers([]);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination, orders, activeUsersFilter]);
+  }, [pagination, orders, activeUsersFilter, setHelperCard]);
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));

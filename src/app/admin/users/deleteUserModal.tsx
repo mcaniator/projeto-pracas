@@ -25,8 +25,8 @@ const DeleteUserModal = ({
 }) => {
   const helperCardContext = useHelperCard();
   const [userCreatedItems, setUserCreatedItems] = useState<{
-    assessments: number;
-    tallys: number;
+    assessments: number | null;
+    tallys: number | null;
   }>({ assessments: 0, tallys: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const handleDeleteUser = async () => {
@@ -103,7 +103,9 @@ const DeleteUserModal = ({
         void handleDeleteUser();
       }}
     >
-      {(userCreatedItems.assessments > 0 || userCreatedItems.tallys > 0) &&
+      {userCreatedItems.assessments &&
+        userCreatedItems.tallys &&
+        (userCreatedItems.assessments > 0 || userCreatedItems.tallys > 0) &&
         !isLoading && (
           <div className="flex flex-col items-center text-lg text-red-500">
             <IconAlertCircle size={48} />
