@@ -21,7 +21,7 @@ const LocationRegisterCityForm = ({
   setParkData,
   setRegisterAdministrativeUnit,
 }: {
-  cities: FetchCitiesType;
+  cities: FetchCitiesType["cities"];
   parkData: ParkData;
   registerAdministrativeUnit: {
     narrow: boolean;
