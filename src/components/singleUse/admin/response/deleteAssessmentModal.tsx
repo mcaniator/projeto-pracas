@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { IconTrash, IconX } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   Dialog,
@@ -10,11 +11,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import {
-  deleteAssessment,
-  redirectToFormsList,
-} from "../../../../serverActions/assessmentUtil";
+import { deleteAssessment } from "../../../../serverActions/assessmentUtil";
 import LoadingIcon from "../../../LoadingIcon";
+import { useHelperCard } from "../../../context/helperCardContext";
 
 const DeleteAssessmentModal = ({
   assessmentId,
@@ -23,12 +22,34 @@ const DeleteAssessmentModal = ({
   assessmentId: number;
   locationId: number;
 }) => {
+  const router = useRouter();
+  const { setHelperCard } = useHelperCard();
   const [isLoading, setIsLoading] = useState(false);
   const handleDeleteAssessment = async () => {
     setIsLoading(true);
-    await deleteAssessment(assessmentId);
-    setIsLoading(false);
-    redirectToFormsList(locationId);
+    const response = await deleteAssessment(assessmentId);
+    if (response.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Avaliação excluída!</>,
+      });
+      router.push(`/admin/parks/${locationId}`);
+    } else if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para excluir avaliação!</>,
+      });
+      setIsLoading(false);
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir avaliação!</>,
+      });
+      setIsLoading(false);
+    }
   };
   return (
     <DialogTrigger>
@@ -41,7 +62,7 @@ const DeleteAssessmentModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }

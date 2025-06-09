@@ -342,24 +342,11 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
 };
 
 const fetchRecentlyCompletedAssessments = async () => {
-  const returnObj: {
-    statusCode: number;
-    assessments: {
-      id: number;
-      endDate: Date | null;
-      location: {
-        id: number;
-        name: string;
-      };
-      form: {
-        id: number;
-        name: string;
-      };
-      user: {
-        username: string | null;
-      };
-    }[];
-  } = { statusCode: 500, assessments: [] };
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, assessments: [] };
+  }
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -393,24 +380,52 @@ const fetchRecentlyCompletedAssessments = async () => {
       },
       take: 10,
     });
-    returnObj.statusCode = 200;
-    returnObj.assessments = assessments;
-    return returnObj;
+    return { statusCode: 200, assessments };
   } catch (e) {
-    return returnObj;
+    return { statusCode: 500, assessments: [] };
   }
 };
 
 const deleteAssessment = async (assessmentId: number) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  try {
+    const assessment = await prisma.assessment.findUnique({
+      where: {
+        id: assessmentId,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    const user = await getSessionUser();
+    if (!assessment || assessment?.userId !== user?.id) {
+      try {
+        await checkIfLoggedInUserHasAnyPermission({
+          roles: ["ASSESSMENT_MANAGER"],
+        });
+      } catch (e) {
+        return { statusCode: 401 };
+      }
+    }
+  } catch (e) {
+    return { statusCode: 500 };
+  }
   try {
     await prisma.assessment.delete({
       where: {
         id: assessmentId,
       },
     });
+    return { statusCode: 200 };
   } catch (e) {
     return {
-      statusCode: 2,
+      statusCode: 500,
     };
   }
 };
@@ -422,14 +437,12 @@ const redirectToFormsList = (locationId: number) => {
 export {
   createAssessment,
   deleteAssessment,
-  //fetchAssessmentGeometries,
   fetchAssessmentsInProgresss,
   fetchAssessmentByLocationAndForm,
   fetchMultipleAssessmentsWithResponses,
   fetchAssessmentWithResponses,
   redirectToFormsList,
   fetchAssessmentsByLocation,
-  //fetchAssessmentsGeometries,
   fetchRecentlyCompletedAssessments,
 };
 
