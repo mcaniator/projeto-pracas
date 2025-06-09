@@ -27,7 +27,7 @@ interface CategoryWithSubcategoryAndQuestion {
 }
 
 type AssessmentWithResposes = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentWithResponses>>
+  Awaited<ReturnType<typeof fetchAssessmentWithResponses>>["assessment"]
 >;
 
 const ResponseComponent = ({

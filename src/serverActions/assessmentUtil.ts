@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { auth } from "../lib/auth/auth";
+import { getSessionUser } from "../lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import {
   fetchAssessmentGeometries,
@@ -262,71 +263,82 @@ const fetchMultipleAssessmentsWithResponses = async (
   }
 };
 
-/*const fetchAssessmentGeometries = async (assessmentId: number) => {
-  const geometries = await prisma.$queryRaw<
-    { assessmentId: number; questionId: number; geometry: string | null }[]
-  >`
-    SELECT assessment_id as "assessmentId", question_id as "questionId", ST_AsText(geometry) as geometry
-    FROM question_geometry
-    WHERE assessment_id = ${assessmentId}
-  `;
-
-  return geometries;
-};*/
-
-/*const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
-  const geometries = await Promise.all(
-    assessmentsIds.flatMap((a) => fetchAssessmentGeometries(a)),
-  );
-  return geometries;
-};*/
-
 const fetchAssessmentWithResponses = async (assessmentId: number) => {
-  const assessment = await prisma.assessment.findUnique({
-    where: {
-      id: assessmentId,
-    },
-    include: {
-      location: {
-        select: {
-          name: true,
-        },
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401, assessment: null, geometries: [] };
+  }
+  try {
+    const assessment = await prisma.assessment.findUnique({
+      where: {
+        id: assessmentId,
       },
-      response: true,
-      responseOption: {
-        include: {
-          option: true,
+      include: {
+        user: {
+          select: {
+            id: true,
+          },
         },
-      },
-      form: {
-        include: {
-          questions: {
-            include: {
-              options: true,
+        location: {
+          select: {
+            name: true,
+          },
+        },
+        response: true,
+        responseOption: {
+          include: {
+            option: true,
+          },
+        },
+        form: {
+          include: {
+            questions: {
+              include: {
+                options: true,
 
-              category: true,
-              subcategory: {
-                include: {
-                  category: true,
+                category: true,
+                subcategory: {
+                  include: {
+                    category: true,
+                  },
                 },
               },
             },
-          },
-          calculations: {
-            include: {
-              questions: true,
+            calculations: {
+              include: {
+                questions: true,
+              },
             },
           },
         },
       },
-    },
-  });
-  const geometries = await fetchAssessmentGeometries(assessmentId);
-  if (geometries && geometries.length > 0) {
-    const returnObj = { ...assessment, geometries };
-    return returnObj;
+    });
+    const user = await getSessionUser();
+    if (assessment?.userId !== user?.id) {
+      try {
+        await checkIfLoggedInUserHasAnyPermission({
+          roles: ["ASSESSMENT_MANAGER"],
+        });
+      } catch (e) {
+        return { statusCode: 401, assessment: null, geometries: [] };
+      }
+    }
+    const geometries = await fetchAssessmentGeometries(assessmentId);
+    if (geometries && geometries.length > 0) {
+      const returnObj = {
+        statusCode: 200,
+        assessment: { ...assessment },
+        geometries,
+      };
+      return returnObj;
+    }
+    return { statusCode: 200, assessment: { ...assessment }, geometries: [] };
+  } catch (e) {
+    return { statusCode: 500, assessment: null, geometries: [] };
   }
-  return { ...assessment, geometries: [] };
 };
 
 const fetchRecentlyCompletedAssessments = async () => {

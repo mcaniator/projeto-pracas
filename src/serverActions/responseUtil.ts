@@ -28,7 +28,6 @@ const addResponses = async (
   geometriesByQuestion: { questionId: number; geometries: ModalGeometry[] }[],
   endAssessment: boolean,
 ) => {
-  console.log(responses);
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],

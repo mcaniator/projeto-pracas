@@ -12,20 +12,20 @@ const Responses = async (props: {
 }) => {
   const params = await props.params;
 
-  const assessment = await fetchAssessmentWithResponses(
+  const response = await fetchAssessmentWithResponses(
     Number(params.selectedAssessmentId),
   );
 
-  if (!assessment) {
+  if (!response || !response.assessment) {
     redirect("/error");
   }
 
   return (
     <ResponseComponent
-      assessment={assessment}
+      assessment={response.assessment}
       locationId={Number(params.locationId)}
-      initialGeometries={assessment.geometries}
-      formName={assessment?.form?.name ?? "(formulário desconhecido)"}
+      initialGeometries={response.geometries}
+      formName={response.assessment?.form?.name ?? "(formulário desconhecido)"}
     />
   );
 };
