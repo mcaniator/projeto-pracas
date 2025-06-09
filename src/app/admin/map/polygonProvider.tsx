@@ -80,7 +80,7 @@ const PolygonProvider = ({
           }),
           overflow: true,
           text:
-            ((map.getView().getZoom() ?? 0) > 15 ?
+            ((map?.getView().getZoom() ?? 0) > 15 ?
               feature.getGeometry()?.get("name") + ""
             : null) ?? "",
         }),
@@ -95,10 +95,10 @@ const PolygonProvider = ({
     });
 
     polygonsVectorSource.addFeatures(featureArray);
-    map.addLayer(polygonsLayer);
+    map?.addLayer(polygonsLayer);
     return () => {
       polygonsVectorSource.removeFeatures(featureArray);
-      map.removeLayer(polygonsLayer);
+      map?.removeLayer(polygonsLayer);
     };
   }, [map, polygons, locations, polygonsVectorSource]);
 

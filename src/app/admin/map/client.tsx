@@ -66,7 +66,6 @@ const Client = ({
   const [panelVisible, setPanelVisible] = useState(false);
   const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
-  console.log(currentId);
   return (
     <div className="relative">
       <div className="fixed bottom-4 right-4 z-50">
@@ -171,7 +170,7 @@ const ParkList = ({
   locations: fullLocation[];
 }) => {
   const map = useContext(MapContext);
-  const view = map.getView();
+  const view = map?.getView();
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
   const sortedLocations = useMemo(
     () =>
@@ -233,7 +232,7 @@ const ParkList = ({
                             geometry !== undefined &&
                             geometry instanceof SimpleGeometry
                           )
-                            view.fit(geometry, {
+                            view?.fit(geometry, {
                               duration: 1000,
                               padding: [10, 10, 10, 10],
                             });
@@ -310,7 +309,7 @@ const ParkList = ({
 
 const BottomControls = () => {
   const map = useContext(MapContext);
-  const view = map.getView();
+  const view = map?.getView();
 
   return (
     <div className="fixed bottom-2 z-40 flex flex-col gap-1 p-2 pb-0">
@@ -321,7 +320,7 @@ const BottomControls = () => {
         onPress={() => {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
-              view.animate({
+              view?.animate({
                 center: [pos.coords.longitude, pos.coords.latitude],
                 zoom: 17,
                 duration: 1000,
@@ -345,9 +344,9 @@ const BottomControls = () => {
           size={"icon"}
           variant={"admin"}
           onPress={() => {
-            const zoom = view.getZoom();
+            const zoom = view?.getZoom();
 
-            view.animate({
+            view?.animate({
               zoom: zoom !== undefined ? zoom + 1 : 0,
               duration: 500,
             });
@@ -360,9 +359,9 @@ const BottomControls = () => {
           size={"icon"}
           variant={"admin"}
           onPress={() => {
-            const zoom = view.getZoom();
+            const zoom = view?.getZoom();
 
-            view.animate({
+            view?.animate({
               zoom: zoom !== undefined ? zoom - 1 : 0,
               duration: 500,
             });
