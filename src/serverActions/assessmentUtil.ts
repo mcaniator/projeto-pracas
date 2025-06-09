@@ -7,6 +7,10 @@ import { redirect } from "next/navigation";
 
 import { auth } from "../lib/auth/auth";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import {
+  fetchAssessmentGeometries,
+  fetchAssessmentsGeometries,
+} from "../serverOnly/geometries";
 
 type AssessmentsWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>
@@ -242,13 +246,23 @@ const fetchMultipleAssessmentsWithResponses = async (
         },
       },
     });
-    return { statusCode: 200, assessments: assessments };
+    const geometriesGroups = await fetchAssessmentsGeometries(assessmentsIds);
+    const returnObj = assessments.map((assessment) => {
+      return {
+        ...assessment,
+        geometries: geometriesGroups.find(
+          (geometriesGroup) =>
+            geometriesGroup[0]?.assessmentId === assessment.id,
+        ),
+      };
+    });
+    return { statusCode: 200, assessments: returnObj };
   } catch (e) {
     return { statusCode: 500, assessments: [] };
   }
 };
 
-const fetchAssessmentGeometries = async (assessmentId: number) => {
+/*const fetchAssessmentGeometries = async (assessmentId: number) => {
   const geometries = await prisma.$queryRaw<
     { assessmentId: number; questionId: number; geometry: string | null }[]
   >`
@@ -258,14 +272,14 @@ const fetchAssessmentGeometries = async (assessmentId: number) => {
   `;
 
   return geometries;
-};
+};*/
 
-const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
+/*const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
   const geometries = await Promise.all(
     assessmentsIds.flatMap((a) => fetchAssessmentGeometries(a)),
   );
   return geometries;
-};
+};*/
 
 const fetchAssessmentWithResponses = async (assessmentId: number) => {
   const assessment = await prisma.assessment.findUnique({
@@ -307,7 +321,12 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
       },
     },
   });
-  return assessment;
+  const geometries = await fetchAssessmentGeometries(assessmentId);
+  if (geometries && geometries.length > 0) {
+    const returnObj = { ...assessment, geometries };
+    return returnObj;
+  }
+  return { ...assessment, geometries: [] };
 };
 
 const fetchRecentlyCompletedAssessments = async () => {
@@ -391,14 +410,14 @@ const redirectToFormsList = (locationId: number) => {
 export {
   createAssessment,
   deleteAssessment,
-  fetchAssessmentGeometries,
+  //fetchAssessmentGeometries,
   fetchAssessmentsInProgresss,
   fetchAssessmentByLocationAndForm,
   fetchMultipleAssessmentsWithResponses,
   fetchAssessmentWithResponses,
   redirectToFormsList,
   fetchAssessmentsByLocation,
-  fetchAssessmentsGeometries,
+  //fetchAssessmentsGeometries,
   fetchRecentlyCompletedAssessments,
 };
 

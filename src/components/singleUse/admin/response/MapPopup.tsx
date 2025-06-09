@@ -66,7 +66,7 @@ const MapPopup = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }
@@ -74,7 +74,7 @@ const MapPopup = ({
         >
           <Modal
             className={({ isEntering, isExiting }) =>
-              `max-h-full w-full max-w-lg overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+              `h-full max-h-full w-full overflow-scroll rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
                 isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
               } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
             }
@@ -117,7 +117,7 @@ const MapPopup = ({
                     </div>
                   )}
 
-                  <div className="h-96 w-full rounded-lg bg-gray-200">
+                  <div className="h-[60vh] w-full rounded-lg bg-gray-200 ring-2 ring-gray-300">
                     <MapProvider
                       questionId={questionId}
                       initialGeometries={initialGeometries}

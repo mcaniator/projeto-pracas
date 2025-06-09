@@ -1,9 +1,5 @@
-import {
-  fetchAssessmentsGeometries,
-  fetchMultipleAssessmentsWithResponses,
-} from "@/serverActions/assessmentUtil";
+import { fetchMultipleAssessmentsWithResponses } from "@/serverActions/assessmentUtil";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
-import { redirect } from "next/navigation";
 
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
 import MainContainer from "./mainContainer";
@@ -26,8 +22,6 @@ const ResponsesFetcher = async (props: {
   assessments.assessments.sort(
     (a, b) => b.startDate.getTime() - a.startDate.getTime(),
   );
-  const assessmentsGeometries =
-    await fetchAssessmentsGeometries(assessmentsIds);
 
   // TODO: add error handling
   return (
@@ -41,16 +35,12 @@ const ResponsesFetcher = async (props: {
         <div className="flex h-full w-full gap-1 overflow-auto">
           <div className="flex w-full flex-row gap-5">
             <div className="hidden h-full w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md xl:flex xl:basis-1/2">
-              <AssessmentsWithResponsesList
-                assessments={assessments}
-                assessmentsGeometries={assessmentsGeometries}
-              />
+              <AssessmentsWithResponsesList assessments={assessments} />
             </div>
 
             <div className="h-full w-full flex-col gap-1 xl:basis-1/2">
               <MainContainer
                 assessments={assessments}
-                assessmentsGeometries={assessmentsGeometries}
                 locationName={locationName}
               />
             </div>

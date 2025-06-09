@@ -1,7 +1,4 @@
-import {
-  fetchAssessmentGeometries,
-  fetchAssessmentWithResponses,
-} from "@/serverActions/assessmentUtil";
+import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
 import { redirect } from "next/navigation";
 
 import { ResponseComponent } from "./responseComponent";
@@ -18,9 +15,6 @@ const Responses = async (props: {
   const assessment = await fetchAssessmentWithResponses(
     Number(params.selectedAssessmentId),
   );
-  const initialGeometries = await fetchAssessmentGeometries(
-    Number(params.selectedAssessmentId),
-  );
 
   if (!assessment) {
     redirect("/error");
@@ -30,8 +24,8 @@ const Responses = async (props: {
     <ResponseComponent
       assessment={assessment}
       locationId={Number(params.locationId)}
-      initialGeometries={initialGeometries}
-      formName={assessment.form.name}
+      initialGeometries={assessment.geometries}
+      formName={assessment?.form?.name ?? "(formulário desconhecido)"}
     />
   );
 };

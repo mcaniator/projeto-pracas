@@ -10,15 +10,9 @@ import { FrequencyTable } from "./frequencyTable";
 
 const MainContainer = ({
   assessments,
-  assessmentsGeometries,
   locationName,
 }: {
   assessments: AssessmentsWithResposes;
-  assessmentsGeometries: {
-    assessmentId: number;
-    questionId: number;
-    geometry: string | null;
-  }[][];
   locationName: string;
 }) => {
   const [mainContent, setMainContent] = useState<"FREQUENCIES" | "ASSESSMENTS">(
@@ -54,10 +48,7 @@ const MainContainer = ({
         </Button>
       </div>
       {mainContent === "ASSESSMENTS" ?
-        <AssessmentsWithResponsesList
-          assessments={assessments}
-          assessmentsGeometries={assessmentsGeometries}
-        />
+        <AssessmentsWithResponsesList assessments={assessments} />
       : <FrequencyTable assessments={assessments.assessments} />}
     </div>
   );

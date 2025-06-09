@@ -1,9 +1,8 @@
 import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
-import {
-  fetchAssessmentGeometries,
-  fetchAssessmentWithResponses,
-} from "@/serverActions/assessmentUtil";
+import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
 import { CalculationTypes, Question } from "@prisma/client";
+
+import { FetchedAssessmentGeometries } from "../../../../../../../serverOnly/geometries";
 
 interface ResponseCalculation {
   id: number;
@@ -31,10 +30,6 @@ type AssessmentWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentWithResponses>>
 >;
 
-type FetchedAssessmentGeometries = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentGeometries>>
->;
-
 const ResponseComponent = ({
   locationId,
   assessment,
@@ -46,11 +41,11 @@ const ResponseComponent = ({
   formName: string;
   initialGeometries: FetchedAssessmentGeometries;
 }) => {
-  const questions = assessment?.form.questions;
+  const questions = assessment?.form?.questions;
 
   const categoriesMap = new Map<number, CategoryWithSubcategoryAndQuestion>();
 
-  questions.forEach((question) => {
+  questions?.forEach((question) => {
     const { id: categoryId, name: categoryName } = question.category;
     const subcategory = question.subcategory;
 
@@ -87,9 +82,9 @@ const ResponseComponent = ({
     }
   });
 
-  const calculations = assessment.form.calculations;
+  const calculations = assessment.form?.calculations;
 
-  calculations.forEach((calculation) => {
+  calculations?.forEach((calculation) => {
     const calculationCategory = categoriesMap.get(calculation.categoryId);
     if (calculationCategory) {
       if (!calculation.subcategoryId) {
@@ -108,7 +103,7 @@ const ResponseComponent = ({
   return (
     <div className="flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
       <h3 className="flex flex-col gap-5 text-2xl font-semibold">
-        Avaliando: {assessment?.location.name} com o formulário: {formName}
+        Avaliando: {assessment?.location?.name} com o formulário: {formName}
       </h3>
       <ResponseForm
         locationId={locationId}
