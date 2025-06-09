@@ -18,6 +18,7 @@ import {
   useMemo,
 } from "react";
 
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import { MapContext } from "./mapProvider";
 
 const PolygonProviderVectorSourceContext = createContext<
@@ -29,10 +30,14 @@ const PolygonProvider = ({
   locations,
   children,
 }: {
-  polygons: { st_asgeojson: string; id: number }[];
+  polygons: {
+    statusCode: number;
+    polygons: { st_asgeojson: string; id: number }[];
+  };
   locations: Location[];
   children: ReactNode;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
 
   const polygonsVectorSource = useMemo(
@@ -41,8 +46,21 @@ const PolygonProvider = ({
   );
 
   useEffect(() => {
+    if (polygons.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para visualizar polígonos!</>,
+      });
+    } else if (polygons.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao carregar polígonos!</>,
+      });
+    }
     const reader = new GeoJSON();
-    const featureArray = polygons.map((polygon) => {
+    const featureArray = polygons.polygons.map((polygon) => {
       const geometry = reader.readGeometry(polygon.st_asgeojson);
 
       const polygonNamePos = locations.findIndex(
@@ -100,7 +118,7 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, polygons, locations, polygonsVectorSource]);
+  }, [map, polygons, locations, polygonsVectorSource, setHelperCard]);
 
   return (
     <PolygonProviderVectorSourceContext.Provider value={polygonsVectorSource}>

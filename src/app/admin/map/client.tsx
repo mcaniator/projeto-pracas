@@ -24,6 +24,7 @@ import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
 
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
@@ -68,7 +69,7 @@ const Client = ({
   const [panelRef] = useAutoAnimate();
   return (
     <div className="relative">
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-4 right-4 z-[60]">
         <Button
           onPress={() => {
             setPanelVisible(!panelVisible);
@@ -169,6 +170,7 @@ const ParkList = ({
   setCurrentId: Dispatch<SetStateAction<number>>;
   locations: fullLocation[];
 }) => {
+  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
   const view = map?.getView();
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
@@ -186,6 +188,29 @@ const ParkList = ({
     [sortedLocations],
   );
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
+
+  const handlePolygonRemoval = async (id: number) => {
+    const response = await removePolygon(id);
+    if (response.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Polígono removido com sucesso!</>,
+      });
+    } else if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para remover polígonos!</>,
+      });
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao remover polígono!</>,
+      });
+    }
+  };
 
   useEffect(() => {
     setHay(search("", sortedLocations, fuseHaystack));
@@ -278,7 +303,9 @@ const ParkList = ({
                         <IconPolygon />
                       </Button>
                       <Button
-                        onPress={() => void removePolygon(location.item.id)}
+                        onPress={() =>
+                          void handlePolygonRemoval(location.item.id)
+                        }
                         variant={"destructive"}
                         size={"icon"}
                       >

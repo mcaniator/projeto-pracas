@@ -143,7 +143,6 @@ enum WeatherConditions {
 //  ------------------------------------------------------------------------------------------------------------
 enum Role {
   PARK_VIEWER        @map("park_viewer")
-  PARK_EDITOR        @map("park_editor")
   PARK_MANAGER       @map("park_manager")
   FORM_VIEWER        @map("form_viewer")
   FORM_MANAGER       @map("form_manager")

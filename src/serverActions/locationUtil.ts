@@ -6,8 +6,11 @@ import { BrazilianStates, Location } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { getPolygonsFromShp } from "./managePolygons";
-import { addPolygonFromWKT, hasPolygon } from "./managePolygons";
+import {
+  addPolygonFromWKT,
+  getPolygonsFromShp,
+  hasPolygon,
+} from "../serverOnly/geometries";
 
 interface LocationWithCity extends Location {
   hasGeometry: boolean;

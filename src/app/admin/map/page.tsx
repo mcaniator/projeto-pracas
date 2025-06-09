@@ -28,7 +28,7 @@ const Page = async () => {
   const locations = await locationsCache();
 
   const fullLocations: fullLocation[] = locations.map((location) => {
-    const matchingPolygon = polygons.find(
+    const matchingPolygon = polygons.polygons.find(
       (polygon) => polygon.id === location.id,
     );
 
