@@ -40,12 +40,6 @@ const roles = [
   },
   {
     section: "PARK",
-    name: "Editor",
-    value: "PARK_EDITOR",
-    color: warningColors.level2,
-  },
-  {
-    section: "PARK",
     name: "Administrador",
     value: "PARK_MANAGER",
     color: warningColors.level3,
@@ -199,8 +193,7 @@ const InviteCRUDModal = ({
       section: "PARK",
       role:
         invite?.roles.find(
-          (r) =>
-            r === "PARK_MANAGER" || r === "PARK_EDITOR" || r === "PARK_VIEWER",
+          (r) => r === "PARK_MANAGER" || r === "PARK_VIEWER",
         ) ?? null,
     },
     {
@@ -279,10 +272,7 @@ const InviteCRUDModal = ({
     if (
       userRolesFiltered.length > 0 &&
       !userRoles.some(
-        (ur) =>
-          ur.role === "PARK_VIEWER" ||
-          ur.role === "PARK_EDITOR" ||
-          ur.role === "PARK_MANAGER",
+        (ur) => ur.role === "PARK_VIEWER" || ur.role === "PARK_MANAGER",
       )
     ) {
       setParkRoleWarning(true);
@@ -423,10 +413,7 @@ const InviteCRUDModal = ({
         section: "PARK",
         role:
           invite?.roles.find(
-            (r) =>
-              r === "PARK_MANAGER" ||
-              r === "PARK_EDITOR" ||
-              r === "PARK_VIEWER",
+            (r) => r === "PARK_MANAGER" || r === "PARK_VIEWER",
           ) ?? null,
       },
       {

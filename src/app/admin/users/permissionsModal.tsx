@@ -35,12 +35,6 @@ const roles = [
   },
   {
     section: "PARK",
-    name: "Editor",
-    value: "PARK_EDITOR",
-    color: warningColors.level2,
-  },
-  {
-    section: "PARK",
     name: "Administrador",
     value: "PARK_MANAGER",
     color: warningColors.level3,
@@ -192,10 +186,8 @@ const PermissionsModal = ({
     {
       section: "PARK",
       role:
-        user?.roles.find(
-          (r) =>
-            r === "PARK_MANAGER" || r === "PARK_EDITOR" || r === "PARK_VIEWER",
-        ) ?? null,
+        user?.roles.find((r) => r === "PARK_MANAGER" || r === "PARK_VIEWER") ??
+        null,
     },
     {
       section: "TALLY",
@@ -235,10 +227,7 @@ const PermissionsModal = ({
     if (
       userRoles.filter((ur) => ur.role).length > 0 &&
       !userRoles.some(
-        (ur) =>
-          ur.role === "PARK_VIEWER" ||
-          ur.role === "PARK_EDITOR" ||
-          ur.role === "PARK_MANAGER",
+        (ur) => ur.role === "PARK_VIEWER" || ur.role === "PARK_MANAGER",
       )
     ) {
       setParkRoleWarning(true);
@@ -306,10 +295,7 @@ const PermissionsModal = ({
         section: "PARK",
         role:
           user?.roles.find(
-            (r) =>
-              r === "PARK_MANAGER" ||
-              r === "PARK_EDITOR" ||
-              r === "PARK_VIEWER",
+            (r) => r === "PARK_MANAGER" || r === "PARK_VIEWER",
           ) ?? null,
       },
       {

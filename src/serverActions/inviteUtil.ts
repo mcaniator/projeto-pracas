@@ -48,12 +48,7 @@ const updateInvite = async (inviteToken: string, roles: Role[]) => {
   try {
     if (
       roles.filter((role) => role).length > 0 &&
-      !roles.some(
-        (role) =>
-          role === "PARK_VIEWER" ||
-          role === "PARK_EDITOR" ||
-          role === "PARK_MANAGER",
-      )
+      !roles.some((role) => role === "PARK_VIEWER" || role === "PARK_MANAGER")
     ) {
       return { statusCode: 400 };
     }

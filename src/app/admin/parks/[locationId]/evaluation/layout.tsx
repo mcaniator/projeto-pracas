@@ -1,7 +1,7 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { ReactNode } from "react";
 
-const AssessmentInProgressLayout = ({ children }: { children: ReactNode }) => {
+const AssessmentsLayout = ({ children }: { children: ReactNode }) => {
   return (
     <PermissionGuard
       requiresAnyRoles={["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"]}
@@ -12,4 +12,4 @@ const AssessmentInProgressLayout = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export default AssessmentInProgressLayout;
+export default AssessmentsLayout;
