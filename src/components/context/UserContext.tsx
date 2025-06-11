@@ -21,15 +21,15 @@ type UserContextType = {
   user: UserData;
   setUser: React.Dispatch<React.SetStateAction<UserData>>;
   updateUser: (newUserInfo: Partial<UserData>) => void;
-  checkIfHasAccess: ({
-    requiresAnyRoleGroups,
-    requiresAnyRoles,
-    requiresAllRolesGroups,
+  checkIfLoggedInUserHasAccess: ({
+    requiredAnyRoleGroups,
+    requiredAnyRoles,
+    requiredAllRolesGroups,
     requiredAllRoles,
   }: {
-    requiresAnyRoleGroups?: RoleGroup[];
-    requiresAnyRoles?: Role[];
-    requiresAllRolesGroups?: RoleGroup[];
+    requiredAnyRoleGroups?: RoleGroup[];
+    requiredAnyRoles?: Role[];
+    requiredAllRolesGroups?: RoleGroup[];
     requiredAllRoles?: Role[];
   }) => boolean;
 };
@@ -50,30 +50,30 @@ const UserContextProvider = ({
       ...newUserInfo,
     }));
   };
-  const checkIfHasAccess = ({
-    requiresAnyRoleGroups,
-    requiresAnyRoles,
-    requiresAllRolesGroups,
+  const checkIfLoggedInUserHasAccess = ({
+    requiredAnyRoleGroups,
+    requiredAnyRoles,
+    requiredAllRolesGroups,
     requiredAllRoles,
   }: {
-    requiresAnyRoleGroups?: RoleGroup[];
-    requiresAnyRoles?: Role[];
-    requiresAllRolesGroups?: RoleGroup[];
+    requiredAnyRoleGroups?: RoleGroup[];
+    requiredAnyRoles?: Role[];
+    requiredAllRolesGroups?: RoleGroup[];
     requiredAllRoles?: Role[];
   }) => {
     const userHasAccessAny = checkIfRolesArrayContainsAny(user.roles, {
-      roleGroups: requiresAnyRoleGroups,
-      roles: requiresAnyRoles,
+      roleGroups: requiredAnyRoleGroups,
+      roles: requiredAnyRoles,
     });
     const userHasAccessAll = checkIfRolesArrayContainsAll(user.roles, {
-      roleGroups: requiresAllRolesGroups,
+      roleGroups: requiredAllRolesGroups,
       roles: requiredAllRoles,
     });
     return userHasAccessAll && userHasAccessAny;
   };
   return (
     <UserContext.Provider
-      value={{ user, setUser, updateUser, checkIfHasAccess }}
+      value={{ user, setUser, updateUser, checkIfLoggedInUserHasAccess }}
     >
       {children}
     </UserContext.Provider>

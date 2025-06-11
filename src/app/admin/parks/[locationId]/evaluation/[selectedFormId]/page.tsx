@@ -22,14 +22,14 @@ const AssessmentPage = async (props: {
   const formId = Number(params.selectedFormId);
   const assessments = await fetchAssessmentsInProgresss(locationId, formId);
   const locationName = await searchLocationNameById(Number(params.locationId));
-  const formName =
+  const { formName } =
     (await searchformNameById(Number(params.selectedFormId))) || "ERRO";
   return (
     <AssessmentsInProgressPage
       formId={formId}
       locationId={locationId}
       locationName={locationName}
-      formName={formName}
+      formName={formName ?? "[Erro ao obter nome]"}
       assessments={assessments}
     />
   );

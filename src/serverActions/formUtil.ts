@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
-import { Form, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
@@ -155,10 +155,13 @@ const deleteFormVersion = async (
 };
 
 const fetchForms = async () => {
-  let forms: Form[];
-
   try {
-    forms = await prisma.form.findMany({
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, forms: [] };
+  }
+  try {
+    const forms = await prisma.form.findMany({
       where: {
         version: {
           not: 0,
@@ -172,16 +175,20 @@ const fetchForms = async () => {
         updatedAt: true,
       },
     });
+    return { statusCode: 200, forms };
   } catch (e) {
-    forms = [];
+    return { statusCode: 500, forms: [] };
   }
-  return forms;
 };
 
 const fetchFormsLatest = async () => {
-  let forms: Form[];
   try {
-    forms = await prisma.form.findMany({
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, forms: [] };
+  }
+  try {
+    const forms = await prisma.form.findMany({
       select: {
         id: true,
         name: true,
@@ -200,16 +207,20 @@ const fetchFormsLatest = async () => {
         },
       ],
     });
+    return { statusCode: 200, forms };
   } catch (e) {
-    forms = [];
+    return { statusCode: 500, forms: [] };
   }
-  return forms;
 };
 
 const fetchLatestNonVersionZeroForms = async () => {
-  let forms: Form[];
   try {
-    forms = await prisma.form.findMany({
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, forms: [] };
+  }
+  try {
+    const forms = await prisma.form.findMany({
       where: {
         NOT: {
           version: 0,
@@ -233,86 +244,99 @@ const fetchLatestNonVersionZeroForms = async () => {
         },
       ],
     });
+    return { statusCode: 200, forms };
   } catch (e) {
-    forms = [];
+    return { statusCode: 500, forms: [] };
   }
-  return forms;
 };
 
 const searchFormById = async (id: number) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, form: null };
+  }
   const cachedForm = unstable_cache(
     async (id: number): Promise<FormToEditPage | undefined | null> => {
-      let foundForm;
-      try {
-        foundForm = await prisma.form.findUnique({
-          where: {
-            id: id,
-          },
-          select: {
-            id: true,
-            name: true,
-            version: true,
-            questions: {
-              include: {
-                options: true,
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+      const foundForm = await prisma.form.findUnique({
+        where: {
+          id: id,
+        },
+        select: {
+          id: true,
+          name: true,
+          version: true,
+          questions: {
+            include: {
+              options: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
                 },
-                subcategory: {
-                  select: {
-                    id: true,
-                    name: true,
-                    categoryId: true,
-                  },
+              },
+              subcategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  categoryId: true,
                 },
               },
             },
-            calculations: {
-              include: {
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+          },
+          calculations: {
+            include: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
                 },
-                subcategory: {
-                  select: {
-                    id: true,
-                    name: true,
-                    categoryId: true,
-                  },
-                },
-                questions: true,
               },
+              subcategory: {
+                select: {
+                  id: true,
+                  name: true,
+                  categoryId: true,
+                },
+              },
+              questions: true,
             },
           },
-        });
-      } catch (err) {
-        return null;
-      }
+        },
+      });
 
       return foundForm;
     },
     ["searchLocationsByIdCache"],
     { tags: ["location", "form", "question"] },
   );
-
-  return await cachedForm(id);
+  try {
+    const form = await cachedForm(id);
+    return { statusCode: 200, form };
+  } catch (e) {
+    return { statusCode: 500, form: null };
+  }
 };
 
 const searchformNameById = async (formId: number) => {
-  const formName = await prisma.form.findUnique({
-    where: {
-      id: formId,
-    },
-    select: {
-      name: true,
-    },
-  });
-  return formName?.name;
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, formName: null };
+  }
+  try {
+    const form = await prisma.form.findUnique({
+      where: {
+        id: formId,
+      },
+      select: {
+        name: true,
+      },
+    });
+    return { statusCode: 200, formName: form?.name ?? null };
+  } catch (e) {
+    return { statusCode: 500, formName: null };
+  }
 };
 
 const updateForm = async (

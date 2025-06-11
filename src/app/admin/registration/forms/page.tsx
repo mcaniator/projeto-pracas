@@ -1,4 +1,3 @@
-import { Form } from "@prisma/client";
 import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
 
@@ -8,7 +7,8 @@ import FormsClient from "./client";
 import { FormCreationModal } from "./formCreationModal";
 
 const AdminRoot = async () => {
-  const forms: Form[] = await fetchFormsLatest();
+  const response = await fetchFormsLatest();
+  const forms = response.forms;
   return (
     <div className={"flex min-h-0 flex-grow gap-5 overflow-auto"}>
       <div className="flex w-full flex-col gap-5">

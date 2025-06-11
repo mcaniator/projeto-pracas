@@ -8,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
+import PermissionGuard from "../../../components/auth/permissionGuard";
 import { Button } from "../../../components/button";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import {
@@ -273,42 +274,46 @@ const SelectedParks = ({
             "Exportando..."
           : "Exportar dados de cadastro"}
         </Button>
-        <Button
-          className="h-fit"
-          isDisabled={loadingExport.evaluations}
-          onPress={() => {
-            if (
-              selectedLocationsSaved.filter((location) => !location.saved)
-                .length === 0
-            ) {
-              setMissingInfoSaveWarning(false);
-              handleEvaluationExport().catch(() => ({ statusCode: 1 }));
-            } else {
-              setMissingInfoSaveWarning(true);
-            }
-          }}
-        >
-          {loadingExport.evaluations ?
-            "Exportando..."
-          : "Exportar avaliações físicas"}
-        </Button>
-        <Button
-          className="h-fit"
-          isDisabled={loadingExport.tallys}
-          onPress={() => {
-            if (
-              selectedLocationsSaved.filter((location) => !location.saved)
-                .length === 0
-            ) {
-              setMissingInfoSaveWarning(false);
-              handleTallysExport().catch(() => ({ statusCode: 1 }));
-            } else {
-              setMissingInfoSaveWarning(true);
-            }
-          }}
-        >
-          {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
-        </Button>
+        <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.evaluations}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleEvaluationExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport.evaluations ?
+              "Exportando..."
+            : "Exportar avaliações físicas"}
+          </Button>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.tallys}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleTallysExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
+          </Button>
+        </PermissionGuard>
       </div>
     </div>
   );

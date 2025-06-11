@@ -19,6 +19,10 @@ import {
 import { useEffect, useState } from "react";
 import React from "react";
 
+import LoadingIcon from "../../../components/LoadingIcon";
+import PermissionGuard from "../../../components/auth/permissionGuard";
+import { useUserContext } from "../../../components/context/UserContext";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import {
   ExportPageModes,
   SelectedLocationObj,
@@ -57,6 +61,8 @@ const EditPage = ({
     exportRegistrationInfo: boolean,
   ) => void;
 }) => {
+  const user = useUserContext();
+  const { setHelperCard } = useHelperCard();
   const [currentLocationId, setCurrentLocationId] = useState<number>();
   const [fetchedTallysStatus, setFetchedTallysStatus] =
     useState<FetchedDataStatus>("LOADING");
@@ -74,32 +80,62 @@ const EditPage = ({
   useEffect(() => {
     if (currentLocationId) {
       const fetchTallys = async () => {
-        try {
-          const tallys = await fetchTallysByLocationId(currentLocationId);
-          setFetchedTallys(tallys);
-          setFetchedTallysStatus("LOADED");
-        } catch (error) {
-          setFetchedTallysStatus("ERROR");
+        const response = await fetchTallysByLocationId(currentLocationId);
+        if (response.statusCode === 401) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Sem permissão para obter contagens!</>,
+          });
+        } else if (response.statusCode === 500) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao obter contagens!</>,
+          });
         }
+        setFetchedTallys(response.tallys);
+        setFetchedTallysStatus("LOADED");
       };
       const fetchAssessments = async () => {
-        if (!currentLocationId) {
-          setFetchedAssessmentsStatus("ERROR");
-          return;
+        const response = await fetchAssessmentsByLocation(currentLocationId);
+        if (response.statusCode === 401) {
+          if (response.statusCode === 401) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Sem permissão para obter avaliações!</>,
+            });
+          } else if (response.statusCode === 500) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao obter avaliações!</>,
+            });
+          }
         }
-        try {
-          const assessments =
-            await fetchAssessmentsByLocation(currentLocationId);
-          setFetchedAssessments(assessments ?? []);
-          setFetchedAssessmentsStatus("LOADED");
-        } catch (error) {
-          setFetchedAssessmentsStatus("ERROR");
-        }
+        const assessments = response.assessments;
+        setFetchedAssessments(assessments ?? []);
+        setFetchedAssessmentsStatus("LOADED");
       };
-      fetchTallys().catch(() => ({ statusCode: 1 }));
-      fetchAssessments().catch(() => ({ statusCode: 1 }));
+      if (
+        user.checkIfLoggedInUserHasAccess({ requiredAnyRoleGroups: ["TALLY"] })
+      ) {
+        fetchTallys().catch(() => {
+          setFetchedTallysStatus("ERROR");
+        });
+      }
+      if (
+        user.checkIfLoggedInUserHasAccess({
+          requiredAnyRoleGroups: ["ASSESSMENT"],
+        })
+      ) {
+        fetchAssessments().catch(() => {
+          setFetchedAssessmentsStatus("ERROR");
+        });
+      }
     }
-  }, [currentLocationId]);
+  }, [currentLocationId, user, setHelperCard]);
   const [selectedAssessments, setSelectedAssessments] = useState<
     LocationAssessment[]
   >([]);
@@ -173,24 +209,6 @@ const EditPage = ({
       handleSelectedLocationsSaveChange(currentLocationId, false);
     }
   };
-  //console.log(selectedLocationsObjs);
-  /*useEffect(() => {
-    const submissionsToAddDates = fetchedSubmissionsGroups
-      .filter((group) =>
-        selectedSubmissionsGroups.some(
-          (selectedSubmissionGroup) => selectedSubmissionGroup.id === group.id,
-        ),
-      )
-      .map((group) => group.date);
-    setSelectedSubmissions(
-      allResponsesWithTypeRef.current.filter((response) =>
-        submissionsToAddDates.some(
-          (element) =>
-            element.toISOString() === response.createdAt.toISOString(),
-        ),
-      ),
-    );
-  }, [selectedSubmissionsGroups, fetchedSubmissionsGroups]);*/
 
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
@@ -253,33 +271,37 @@ const EditPage = ({
         />
         <label htmlFor="registration-info">Informações de cadastro</label>
       </div>
-      <h5>Avaliações físicas</h5>
-      {fetchedAssessmentsStatus === "LOADING" && <span>Carregando...</span>}
-      {fetchedAssessmentsStatus === "ERROR" && <span>Erro!</span>}
-      {fetchedAssessmentsStatus === "LOADED" &&
-        fetchedAssessments?.length === 0 && (
-          <span>Nenhuma avaliação física encontrada!</span>
+      <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
+        <h5>Avaliações físicas</h5>
+        {fetchedAssessmentsStatus === "LOADING" && <LoadingIcon size={48} />}
+        {fetchedAssessmentsStatus === "ERROR" && <span>Erro!</span>}
+        {fetchedAssessmentsStatus === "LOADED" &&
+          fetchedAssessments?.length === 0 && (
+            <span>Nenhuma avaliação física encontrada!</span>
+          )}
+        {fetchedAssessments && (
+          <SubmissionList
+            assessments={fetchedAssessments}
+            selectedAssessments={selectedAssessments}
+            handleAssessmentChange={handleAssessmentChange}
+          ></SubmissionList>
         )}
-      {fetchedAssessments && (
-        <SubmissionList
-          assessments={fetchedAssessments}
-          selectedAssessments={selectedAssessments}
-          handleAssessmentChange={handleAssessmentChange}
-        ></SubmissionList>
-      )}
-      <h5>Contagens</h5>
-      {fetchedTallysStatus === "LOADING" && <span>Carregando...</span>}
-      {fetchedTallysStatus === "ERROR" && <span>Erro!</span>}
-      {fetchedTallysStatus === "LOADED" && fetchedTallys?.length === 0 && (
-        <span>Nenhuma contagem encontrada!</span>
-      )}
-      {fetchedTallys && (
-        <TallyList
-          tallys={fetchedTallys}
-          handleTallyChange={handleTallyChange}
-          selectedTallys={selectedTallys}
-        />
-      )}
+      </PermissionGuard>
+      <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+        <h5>Contagens</h5>
+        {fetchedTallysStatus === "LOADING" && <LoadingIcon size={48} />}
+        {fetchedTallysStatus === "ERROR" && <span>Erro!</span>}
+        {fetchedTallysStatus === "LOADED" && fetchedTallys?.length === 0 && (
+          <span>Nenhuma contagem encontrada!</span>
+        )}
+        {fetchedTallys && (
+          <TallyList
+            tallys={fetchedTallys}
+            handleTallyChange={handleTallyChange}
+            selectedTallys={selectedTallys}
+          />
+        )}
+      </PermissionGuard>
       <span className="flex flex-row">
         {(
           selectedLocationsSaved.find(

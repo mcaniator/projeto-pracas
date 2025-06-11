@@ -8,7 +8,8 @@ import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
 const Page = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
-  const form = await searchFormById(parseInt(params.formId));
+  const response = await searchFormById(parseInt(params.formId));
+  const form = response.form;
   const formIdNumber = parseInt(params.formId);
   const categories: {
     id: number;

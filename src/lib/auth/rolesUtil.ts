@@ -27,20 +27,23 @@ const checkIfRolesArrayContainsAny = (
   userRoles: Role[],
   { roles, roleGroups }: { roles?: Role[]; roleGroups?: RoleGroup[] },
 ) => {
-  let result = false;
+  let rolesResult = true;
+  let roleGroupsResult = true;
   if (roles) {
-    result = userRoles.some((role) => roles.includes(role));
-    return result;
+    rolesResult = userRoles.some((role) => roles.includes(role));
   }
   if (roleGroups) {
     for (const group of roleGroups) {
       const groupRoles = roleGroupMap[group];
       const hasGroupRole = userRoles.some((role) => groupRoles.includes(role));
-      if (hasGroupRole) return true;
+      if (hasGroupRole) {
+        roleGroupsResult = true;
+        break;
+      }
+      roleGroupsResult = false;
     }
-    return false;
   }
-  return true;
+  return rolesResult && roleGroupsResult;
 };
 
 const checkIfRolesArrayContainsAll = (

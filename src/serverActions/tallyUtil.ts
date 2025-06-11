@@ -30,7 +30,11 @@ interface PersonWithQuantity {
 const fetchTallysByLocationId = async (locationId: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-    const foundTallys = await prisma.tally.findMany({
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
+  try {
+    const tallys = await prisma.tally.findMany({
       where: {
         locationId: locationId,
       },
@@ -46,10 +50,10 @@ const fetchTallysByLocationId = async (locationId: number) => {
         },
       },
     });
-    foundTallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return foundTallys;
+    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+    return { statusCode: 200, tallys };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tallys: [] };
   }
 };
 

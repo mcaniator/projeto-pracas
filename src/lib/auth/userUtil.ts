@@ -10,4 +10,9 @@ const getSessionUser = async () => {
   return session?.user;
 };
 
-export { getSessionUserId, getSessionUser };
+const getSessionCustom = async () => {
+  const session = await auth();
+  return session;
+};
+
+export { getSessionUserId, getSessionUser, getSessionCustom };

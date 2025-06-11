@@ -20,7 +20,7 @@ type FinalizedAssessmentsList = NonNullable<
 >;
 type LocationAssessment = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentsByLocation>>
->[number];
+>["assessments"][number];
 
 const createAssessment = async (
   prevState: AssessmentCreationFormType | undefined,
@@ -131,6 +131,10 @@ const fetchAssessmentsInProgresss = async (
 const fetchAssessmentsByLocation = async (locationId: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, assessments: [] };
+  }
+  try {
     const assessments = await prisma.assessment.findMany({
       where: {
         locationId,
@@ -154,9 +158,9 @@ const fetchAssessmentsByLocation = async (locationId: number) => {
         },
       },
     });
-    return assessments;
+    return { statusCode: 200, assessments };
   } catch (e) {
-    return null;
+    return { statusCode: 500, assessments: [] };
   }
 };
 

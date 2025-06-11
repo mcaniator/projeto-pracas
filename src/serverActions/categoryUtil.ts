@@ -7,7 +7,6 @@ import {
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import PermissionError from "../errors/permissionError";
 import { prisma } from "../lib/prisma";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
@@ -26,6 +25,10 @@ type CategoriesWithQuestions = NonNullable<
 const fetchCategories = async () => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, categories: [] };
+  }
+  try {
     const categories = await prisma.category.findMany({
       include: {
         subcategory: true,
@@ -36,9 +39,6 @@ const fetchCategories = async () => {
     });
     return { statusCode: 200, categories };
   } catch (e) {
-    if (e instanceof PermissionError) {
-      return { statusCode: 401, categories: null };
-    }
     return { statusCode: 500, categories: null };
   }
 };
