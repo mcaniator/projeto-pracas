@@ -195,7 +195,7 @@ const ParkList = ({
       setHelperCard({
         show: true,
         helperCardType: "CONFIRM",
-        content: <>Polígono removido com sucesso!</>,
+        content: <>Geometria removida!</>,
       });
     } else if (response.statusCode === 401) {
       setHelperCard({

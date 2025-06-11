@@ -112,7 +112,7 @@ const MapPopup = ({
                         onPress={() => setCurrentGeometryType("POLYGON")}
                         className={`rounded-xl bg-blue-500 px-4 py-1 text-black ${currentGeometryType === "POLYGON" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
                       >
-                        Poligono
+                        Polígono
                       </Button>
                     </div>
                   )}

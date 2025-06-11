@@ -7,6 +7,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import { Geometry, MultiPolygon, SimpleGeometry } from "ol/geom";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import { removePolygon } from "../../../serverActions/managePolygons";
 
 const EditPolygonSubmitButton = ({
@@ -20,6 +21,7 @@ const EditPolygonSubmitButton = ({
   setOriginalFeature: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   setCurrentId: Dispatch<SetStateAction<number>>;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [state, setState] = useState<
     "normal" | "loading" | "success" | "error"
   >("normal");
@@ -50,8 +52,22 @@ const EditPolygonSubmitButton = ({
         onPress={() => {
           if (features.length === 0) {
             removePolygon(id)
-              .then(() => setState("success"))
-              .catch(() => setState("error"));
+              .then(() => {
+                setHelperCard({
+                  show: true,
+                  helperCardType: "CONFIRM",
+                  content: <>Geometria removida!</>,
+                });
+                setState("success");
+              })
+              .catch(() => {
+                setHelperCard({
+                  show: true,
+                  helperCardType: "ERROR",
+                  content: <>Erro ao remover geometria!</>,
+                });
+                setState("error");
+              });
           } else {
             const coordinates: number[][][][] = [];
 
@@ -79,8 +95,22 @@ const EditPolygonSubmitButton = ({
             );
             setState("loading");
             editLocationPolygon(id, featuresGeoJsonStringified)
-              .then(() => setState("success"))
-              .catch(() => setState("error"));
+              .then(() => {
+                setHelperCard({
+                  show: true,
+                  helperCardType: "CONFIRM",
+                  content: <>Geometria atualizada!</>,
+                });
+                setState("success");
+              })
+              .catch(() => {
+                setHelperCard({
+                  show: true,
+                  helperCardType: "ERROR",
+                  content: <>Erro ao atualizar geometria!</>,
+                });
+                setState("error");
+              });
           }
         }}
         variant={state === "error" ? "destructive" : "admin"}
