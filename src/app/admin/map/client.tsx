@@ -138,7 +138,7 @@ const Client = ({
                 />
               </div>
             )}
-            {(currentId === -1 || currentId === -3) && (
+            {currentId !== -2 && (
               <DrawingProvider>
                 <CreationPanel
                   originalFeatures={originalFeatures}
@@ -293,7 +293,6 @@ const ParkList = ({
 
                             return feature;
                           });
-
                           setOriginalFeatures(features);
                           setCurrentId(location.item.id);
 

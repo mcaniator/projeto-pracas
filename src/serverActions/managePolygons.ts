@@ -11,29 +11,16 @@ const fetchPolygons = async () => {
   } catch (e) {
     return { statusCode: 401, polygons: [] };
   }
-  const cached = unstable_cache(
-    async () => {
-      try {
-        const result = await prisma.$queryRaw<
-          Array<{ st_asgeojson: string; id: number }>
-        >`
+  try {
+    const polygons = await prisma.$queryRaw<
+      Array<{ st_asgeojson: string; id: number }>
+    >`
           SELECT 
             id,
             ST_AsGeoJSON(polygon)::text as st_asgeojson
           FROM location 
           WHERE polygon IS NOT NULL;
         `;
-
-        return Array.isArray(result) ? result : [];
-      } catch (error) {
-        return [];
-      }
-    },
-    ["fetchPolygons"],
-    { tags: ["location", "database"] },
-  );
-  try {
-    const polygons = await cached();
     return { statusCode: 200, polygons };
   } catch (e) {
     return { statusCode: 500, polygons: [] };

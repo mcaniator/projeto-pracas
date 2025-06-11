@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { fetchCities } from "@/serverActions/cityUtil";
 import { fetchPolygons } from "@/serverActions/managePolygons";
 import { Location } from "@prisma/client";
-import { unstable_cache } from "next/cache";
 
 import { fetchLocationCategories } from "../../../serverActions/locationCategoryUtil";
 import { fetchLocationTypes } from "../../../serverActions/locationTypeUtil";
@@ -20,12 +19,7 @@ const Page = async () => {
   const cities = await fetchCities();
   const locationCategories = await fetchLocationCategories();
   const locationTypes = await fetchLocationTypes();
-  const locationsCache = unstable_cache(
-    async () => await prisma.location.findMany(),
-    ["location"],
-    { tags: ["database", "location"] },
-  );
-  const locations = await locationsCache();
+  const locations = await prisma.location.findMany();
 
   const fullLocations: fullLocation[] = locations.map((location) => {
     const matchingPolygon = polygons.polygons.find(
