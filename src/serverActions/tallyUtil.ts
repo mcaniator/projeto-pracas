@@ -75,6 +75,10 @@ const fetchRecentlyCompletedTallys = async () => {
   } = { statusCode: 500, tallys: [] };
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
+  try {
     const tallys = await prisma.tally.findMany({
       where: {
         NOT: {
@@ -114,6 +118,10 @@ const fetchOngoingTallyById = async (tallyId: number) => {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
     });
+  } catch (e) {
+    return { statusCode: 401, tally: null };
+  }
+  try {
     const tally = await prisma.tally.findUnique({
       where: {
         id: tallyId,
@@ -155,15 +163,19 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         commercialActivities: true,
       },
     });
-    return tally?.endDate ? null : tally;
+    return { statusCode: 200, tally: tally?.endDate ? null : tally };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tally: null };
   }
 };
 
 const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
+  try {
     let tallys = await prisma.tally.findMany({
       where: {
         id: {
@@ -198,9 +210,9 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
       if (tally.endDate) return true;
     });
     tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return tallys;
+    return { statusCode: 200, tallys };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tallys: null };
   }
 };
 
@@ -276,6 +288,13 @@ const saveOngoingTallyData = async (
   complementaryData: { animalsAmount: number; groupsAmount: number },
   endDate: Date | null,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   const persons: PersonWithQuantity[] = [];
 
   tallyMap.forEach((quantity, key) => {
@@ -309,9 +328,6 @@ const saveOngoingTallyData = async (
   });
 
   try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
     await prisma.$transaction(async (prisma) => {
       await prisma.tally.update({
         where: {
@@ -368,15 +384,20 @@ const saveOngoingTallyData = async (
         });
       }
     });
+    return { statusCode: 200 };
   } catch (error) {
-    return null;
+    return { statusCode: 500 };
   }
 };
 
 const deleteTallys = async (tallysIds: number[]) => {
-  await checkIfLoggedInUserHasAnyPermission({
-    roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
-  });
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
+    });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   const userId = await getSessionUserId();
   const userTallysAmount = await prisma.tally.count({
     where: {
@@ -387,7 +408,11 @@ const deleteTallys = async (tallysIds: number[]) => {
     },
   });
   if (userTallysAmount < tallysIds.length) {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+    } catch (e) {
+      return { statusCode: 403 };
+    }
   }
   try {
     await prisma.$transaction(async (prisma) => {
@@ -407,8 +432,9 @@ const deleteTallys = async (tallysIds: number[]) => {
         },
       });
     });
+    return { statusCode: 200 };
   } catch (error) {
-    return { statusCode: 1 };
+    return { statusCode: 500 };
   }
 };
 

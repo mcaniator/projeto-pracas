@@ -3,20 +3,19 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchFinalizedTallysToDataVisualization } from "@/serverActions/tallyUtil";
 import { notFound } from "next/navigation";
 
-const Page = async (
-  props: {
-    params: Promise<{ locationId: string; selectedTallysIds: string }>;
-  }
-) => {
+const Page = async (props: {
+  params: Promise<{ locationId: string; selectedTallysIds: string }>;
+}) => {
   const params = await props.params;
   const decodedActiveTallysString = params.selectedTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
 
   const locationName = await searchLocationNameById(Number(params.locationId));
-  let tallys;
-  if (tallysIds)
-    tallys = await fetchFinalizedTallysToDataVisualization(tallysIds);
-  if (!tallysIds || tallysIds.length === 0 || !tallys || tallys.length === 0) {
+  if (!tallysIds) {
+    notFound();
+  }
+  const { tallys } = await fetchFinalizedTallysToDataVisualization(tallysIds);
+  if (tallysIds.length === 0 || !tallys || tallys.length === 0) {
     notFound();
   } else {
     return (

@@ -12,6 +12,7 @@ import { useRef, useState } from "react";
 import React from "react";
 
 import LoadingIcon from "../../../../LoadingIcon";
+import { useHelperCard } from "../../../../context/helperCardContext";
 import { SubmittingObj } from "./tallyInProgressPage";
 
 interface WeatherStats {
@@ -46,6 +47,7 @@ const TallyInProgressDatabaseOptions = ({
   submittingObj: SubmittingObj;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const endDate = useRef<Date | null>(null);
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
@@ -56,29 +58,106 @@ const TallyInProgressDatabaseOptions = ({
     } else {
       setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
-
-    await saveOngoingTallyData(
-      tallyId,
-      weatherStats,
-      tallyMap,
-      commercialActivities,
-      complementaryData,
-      endTally ? endDate.current : null,
-    );
-    if (endTally) {
-      redirectToTallysList(locationId);
-    } else {
-      setSubmittingObj({
-        submitting: false,
-        finishing: false,
-        deleting: false,
+    try {
+      const response = await saveOngoingTallyData(
+        tallyId,
+        weatherStats,
+        tallyMap,
+        commercialActivities,
+        complementaryData,
+        endTally ? endDate.current : null,
+      );
+      if (response.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para salvar contagem!</>,
+        });
+        return;
+      }
+      if (response.statusCode === 500) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao salvar contagem!</>,
+        });
+        return;
+      }
+      if (endTally) {
+        redirectToTallysList(locationId);
+      } else {
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+      }
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao salvar contagem!</>,
       });
     }
   };
 
   const handleTallyDeletion = async () => {
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
-    await deleteTallys([tallyId]);
+
+    try {
+      const response = await deleteTallys([tallyId]);
+      if (response.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para excluir contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        return;
+      } else if (response.statusCode === 403) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: (
+            <>Você só possui permissão para excluir as próprias contagens!</>
+          ),
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        return;
+      } else if (response.statusCode === 500) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao excluir contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        return;
+      }
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir contagem!</>,
+      });
+      setSubmittingObj({
+        submitting: false,
+        finishing: false,
+        deleting: false,
+      });
+      return;
+    }
     redirectToTallysList(locationId);
   };
 

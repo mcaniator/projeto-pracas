@@ -6,7 +6,7 @@ const Page = async (props: {
   params: Promise<{ locationId: string; currentTallyInProgress: string }>;
 }) => {
   const params = await props.params;
-  const tally = await fetchOngoingTallyById(
+  const { tally } = await fetchOngoingTallyById(
     Number(params.currentTallyInProgress),
   );
   if (tally) {

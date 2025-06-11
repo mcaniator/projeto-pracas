@@ -9,7 +9,7 @@ const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
   const session = await auth();
   if (!session?.user) redirect("/error");
   const params = await props.params;
-  const tallys = await fetchTallysByLocationId(Number(params.locationId));
+  const { tallys } = await fetchTallysByLocationId(Number(params.locationId));
   const locationName = await searchLocationNameById(
     parseInt(params.locationId),
   );
