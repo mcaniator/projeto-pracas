@@ -2,7 +2,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 import { cookies } from "next/headers";
 
-import { getInviteToken } from "../../serverActions/inviteUtil";
+import { getInviteToken } from "../../serverOnly/invite";
 import { prisma } from "../prisma";
 import authConfig from "./auth.config";
 

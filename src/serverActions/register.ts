@@ -8,7 +8,7 @@ import { ZodError, z } from "zod";
 import { signIn } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { userRegisterSchema } from "../lib/zodValidators";
-import { getInviteToken } from "./inviteUtil";
+import { getInviteToken } from "../serverOnly/invite";
 
 const register = async (
   prevState: {

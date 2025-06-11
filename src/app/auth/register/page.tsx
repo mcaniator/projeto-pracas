@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "../../../lib/auth/auth";
-import { checkIfInviteExists } from "../../../serverActions/inviteUtil";
+import { checkIfInviteExists } from "../../../serverOnly/invite";
 import AlreadyLoggedInError from "../alreadyLoggedInError";
 import RegisterForm from "./registerForm";
 
