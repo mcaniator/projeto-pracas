@@ -365,7 +365,7 @@ const QuestionCreationModal = ({
                                 checked={geometryTypes.includes("POLYGON")}
                                 onChange={(e) => handleGeometryTypeChange(e)}
                               >
-                                Poligono
+                                Polígono
                               </Checkbox>
                             </div>
                           </div>

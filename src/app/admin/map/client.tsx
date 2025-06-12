@@ -4,6 +4,8 @@ import { Button } from "@/components/button";
 import { search } from "@/lib/search";
 import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { removePolygon } from "@/serverActions/managePolygons";
+import { useLoadingOverlay } from "@components/context/loadingContext";
+import CustomModal from "@components/modal/customModal";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
 import {
@@ -19,7 +21,7 @@ import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
@@ -136,6 +138,7 @@ const Client = ({
                   setOriginalFeatures={setOriginalFeatures}
                   setCurrentId={setCurrentId}
                 />
+                <div className="mt-10"></div>
               </div>
             )}
             {currentId !== -2 && (
@@ -170,7 +173,12 @@ const ParkList = ({
   setCurrentId: Dispatch<SetStateAction<number>>;
   locations: fullLocation[];
 }) => {
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
+  const [deletionModalIsOpen, setDeletionModalIsOpen] = useState(false);
+  const locationToDeleteGeometry = useRef<{ id: number; name: string } | null>(
+    null,
+  );
   const map = useContext(MapContext);
   const view = map?.getView();
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
@@ -189,7 +197,11 @@ const ParkList = ({
   );
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
-  const handlePolygonRemoval = async (id: number) => {
+  const handlePolygonRemoval = async () => {
+    setLoadingOverlayVisible(true);
+    const id = locationToDeleteGeometry.current?.id;
+    locationToDeleteGeometry.current = null;
+    if (!id) return;
     const response = await removePolygon(id);
     if (response.statusCode === 200) {
       setHelperCard({
@@ -210,6 +222,8 @@ const ParkList = ({
         content: <>Erro ao remover polígono!</>,
       });
     }
+    setDeletionModalIsOpen(false);
+    setLoadingOverlayVisible(false);
   };
 
   useEffect(() => {
@@ -302,9 +316,10 @@ const ParkList = ({
                         <IconPolygon />
                       </Button>
                       <Button
-                        onPress={() =>
-                          void handlePolygonRemoval(location.item.id)
-                        }
+                        onPress={() => {
+                          locationToDeleteGeometry.current = location.item;
+                          setDeletionModalIsOpen(true);
+                        }}
                         variant={"destructive"}
                         size={"icon"}
                       >
@@ -329,6 +344,17 @@ const ParkList = ({
           })}
         </div>
       </div>
+      <CustomModal
+        isOpen={deletionModalIsOpen}
+        title="Excluir geometria?"
+        subtitle={locationToDeleteGeometry.current?.name}
+        confirmLabel="Excluir"
+        confirmVariant="destructive"
+        onConfirm={() => void handlePolygonRemoval()}
+        onOpenChange={(open) => {
+          setDeletionModalIsOpen(open);
+        }}
+      />
     </div>
   );
 };

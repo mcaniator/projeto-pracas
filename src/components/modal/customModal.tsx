@@ -54,7 +54,7 @@ const CustomModal = ({
               <DefaultModalHeader
                 close={() => {
                   close();
-                  onOpenChange;
+                  if (onOpenChange) onOpenChange(false);
                 }}
                 title={title}
                 subtitle={subtitle}

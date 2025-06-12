@@ -8,7 +8,7 @@ const DefaultModalHeader = ({
 }: {
   title?: string;
   subtitle?: string;
-  close?: () => void;
+  close: () => void;
 }) => {
   return (
     <div className="flex flex-col">
@@ -20,7 +20,9 @@ const DefaultModalHeader = ({
           className="ml-auto text-black"
           variant={"ghost"}
           size={"icon"}
-          onPress={close}
+          onPress={() => {
+            close();
+          }}
         >
           <IconX />
         </Button>

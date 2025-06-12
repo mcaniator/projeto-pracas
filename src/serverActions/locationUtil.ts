@@ -6,6 +6,7 @@ import { BrazilianStates, Location } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import {
   addPolygonFromWKT,
   getPolygonsFromShp,
@@ -50,15 +51,60 @@ interface LocationWithCity extends Location {
 
 const deleteLocation = async (id: number) => {
   try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, formNamesAndVersions: null, itemsCount: null };
+  }
+  try {
+    const location = await prisma.location.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        assessment: {
+          select: {
+            form: {
+              select: {
+                name: true,
+                version: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { tally: true, assessment: true },
+        },
+      },
+    });
+    if (!location) {
+      return { statusCode: 404, formNamesAndVersions: null, itemsCount: null };
+    }
+
+    if (location.assessment.length > 0) {
+      const formNamesAndVersions = new Map<string, Set<number>>();
+      location.assessment.forEach((assessment) => {
+        if (!formNamesAndVersions.has(assessment.form.name)) {
+          formNamesAndVersions.set(assessment.form.name, new Set());
+        }
+        const versionSet = formNamesAndVersions.get(assessment.form.name);
+        versionSet?.add(assessment.form.version);
+      });
+      console.log(formNamesAndVersions.keys());
+      return {
+        statusCode: 409,
+        formNamesAndVersions,
+        itemsCount: location._count,
+      };
+    }
     await prisma.location.delete({
       where: {
         id,
       },
     });
     revalidateTag("location");
-    return { statusCode: 200 };
+    return { statusCode: 200, formNamesAndVersions: null, itemsCount: null };
   } catch (err) {
-    return { statusCode: 500 };
+    return { statusCode: 500, formNamesAndVersions: null, itemsCount: null };
   }
 };
 
