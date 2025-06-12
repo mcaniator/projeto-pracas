@@ -26,6 +26,8 @@ import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
 
+import PermissionGuard from "../../../components/auth/permissionGuard";
+import { useUserContext } from "../../../components/context/UserContext";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
@@ -62,6 +64,7 @@ const Client = ({
     }[];
   };
 }) => {
+  const { user } = useUserContext();
   const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
     [],
@@ -122,16 +125,18 @@ const Client = ({
           >
             {currentId === -2 && (
               <div className="flex flex-col gap-2" ref={panelRef}>
-                <Button
-                  variant="admin"
-                  onPress={() => {
-                    setCurrentId(-1);
-                  }}
-                >
-                  <span className="-mb-1">Iniciar Criação</span>
-                </Button>
+                <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
+                  <Button
+                    variant="admin"
+                    onPress={() => {
+                      setCurrentId(-1);
+                    }}
+                  >
+                    <span className="-mb-1">Iniciar Criação</span>
+                  </Button>
 
-                <hr className="w-full rounded-full border-2 border-off-white" />
+                  <hr className="w-full rounded-full border-2 border-off-white" />
+                </PermissionGuard>
 
                 <ParkList
                   locations={locations}
@@ -142,19 +147,21 @@ const Client = ({
               </div>
             )}
             {currentId !== -2 && (
-              <DrawingProvider>
-                <CreationPanel
-                  originalFeatures={originalFeatures}
-                  setOriginalFeatures={setOriginalFeatures}
-                  currentId={currentId}
-                  setCurrentId={setCurrentId}
-                  drawingWindowVisible={drawingWindowVisible}
-                  setDrawingWindowVisible={setDrawingWindowVisible}
-                  cities={cities}
-                  locationCategories={locationCategories}
-                  locationTypes={locationTypes}
-                />
-              </DrawingProvider>
+              <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                <DrawingProvider>
+                  <CreationPanel
+                    originalFeatures={originalFeatures}
+                    setOriginalFeatures={setOriginalFeatures}
+                    currentId={currentId}
+                    setCurrentId={setCurrentId}
+                    drawingWindowVisible={drawingWindowVisible}
+                    setDrawingWindowVisible={setDrawingWindowVisible}
+                    cities={cities}
+                    locationCategories={locationCategories}
+                    locationTypes={locationTypes}
+                  />
+                </DrawingProvider>
+              </PermissionGuard>
             )}
           </div>
         </Rnd>
@@ -281,61 +288,67 @@ const ParkList = ({
                       >
                         <IconMapPin />
                       </Button>
-                      <Button
-                        variant={"admin"}
-                        size={"icon"}
-                        onPress={() => {
-                          const feature = vectorSource.getFeatureById(
-                            location.item.id,
-                          );
-                          if (feature === null)
-                            throw new Error(
-                              "Feature is currently null when it shouldn't be",
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          variant={"admin"}
+                          size={"icon"}
+                          onPress={() => {
+                            const feature = vectorSource.getFeatureById(
+                              location.item.id,
                             );
+                            if (feature === null)
+                              throw new Error(
+                                "Feature is currently null when it shouldn't be",
+                              );
 
-                          const geometry = feature.getGeometry();
+                            const geometry = feature.getGeometry();
 
-                          if (!(geometry instanceof MultiPolygon))
-                            throw new Error(
-                              "Received geometry is not of MultiPolygon type",
-                            );
+                            if (!(geometry instanceof MultiPolygon))
+                              throw new Error(
+                                "Received geometry is not of MultiPolygon type",
+                              );
 
-                          const polygons = geometry.getPolygons();
-                          const features = polygons.map((polygon) => {
-                            const feature = new Feature(polygon);
-                            feature.set("name", geometry.get("name"));
+                            const polygons = geometry.getPolygons();
+                            const features = polygons.map((polygon) => {
+                              const feature = new Feature(polygon);
+                              feature.set("name", geometry.get("name"));
 
-                            return feature;
-                          });
-                          setOriginalFeatures(features);
-                          setCurrentId(location.item.id);
+                              return feature;
+                            });
+                            setOriginalFeatures(features);
+                            setCurrentId(location.item.id);
 
-                          vectorSource.removeFeature(feature);
-                        }}
-                      >
-                        <IconPolygon />
-                      </Button>
-                      <Button
-                        onPress={() => {
-                          locationToDeleteGeometry.current = location.item;
-                          setDeletionModalIsOpen(true);
-                        }}
-                        variant={"destructive"}
-                        size={"icon"}
-                      >
-                        <IconPolygonOff />
-                      </Button>
+                            vectorSource.removeFeature(feature);
+                          }}
+                        >
+                          <IconPolygon />
+                        </Button>
+                      </PermissionGuard>
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          onPress={() => {
+                            locationToDeleteGeometry.current = location.item;
+                            setDeletionModalIsOpen(true);
+                          }}
+                          variant={"destructive"}
+                          size={"icon"}
+                        >
+                          <IconPolygonOff />
+                        </Button>
+                      </PermissionGuard>
                     </>
                   : <>
-                      <Button
-                        variant={"constructive"}
-                        size={"icon"}
-                        onPress={() => {
-                          setCurrentId(location.item.id);
-                        }}
-                      >
-                        <IconPlus />
-                      </Button>
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          variant={"constructive"}
+                          size={"icon"}
+                          onPress={() => {
+                            setCurrentId(location.item.id);
+                          }}
+                        >
+                          <IconPlus />
+                        </Button>
+                      </PermissionGuard>
                     </>
                   }
                 </div>
