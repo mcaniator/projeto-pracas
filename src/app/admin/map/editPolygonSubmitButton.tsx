@@ -95,13 +95,29 @@ const EditPolygonSubmitButton = ({
             );
             setState("loading");
             editLocationPolygon(id, featuresGeoJsonStringified)
-              .then(() => {
-                setHelperCard({
-                  show: true,
-                  helperCardType: "CONFIRM",
-                  content: <>Geometria atualizada!</>,
-                });
-                setState("success");
+              .then((response) => {
+                if (response.statusCode === 201) {
+                  setHelperCard({
+                    show: true,
+                    helperCardType: "CONFIRM",
+                    content: <>Geometria atualizada!</>,
+                  });
+                  setState("success");
+                } else if (response.statusCode === 401) {
+                  setHelperCard({
+                    show: true,
+                    helperCardType: "ERROR",
+                    content: <>Sem permissão para atualizar geometria!</>,
+                  });
+                  setState("error");
+                } else if (response.statusCode === 500) {
+                  setHelperCard({
+                    show: true,
+                    helperCardType: "ERROR",
+                    content: <>Erro ao atualizar geometria!</>,
+                  });
+                  setState("error");
+                }
               })
               .catch(() => {
                 setHelperCard({
