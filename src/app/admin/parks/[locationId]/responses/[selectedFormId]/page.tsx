@@ -7,7 +7,9 @@ const AssessmentsPage = async (props: {
   params: Promise<{ locationId: string; selectedFormId: string }>;
 }) => {
   const params = await props.params;
-  const locatioName = await searchLocationNameById(Number(params.locationId));
+  const { locationName } = await searchLocationNameById(
+    Number(params.locationId),
+  );
   const assessments = await fetchAssessmentByLocationAndForm(
     Number(params.locationId),
     Number(params.selectedFormId),
@@ -18,7 +20,7 @@ const AssessmentsPage = async (props: {
   return (
     <AssessmentsListPage
       locationId={Number(params.locationId)}
-      locationName={locatioName}
+      locationName={locationName ?? "[ERRO]"}
       formId={Number(params.selectedFormId)}
       assessments={assessments}
     />

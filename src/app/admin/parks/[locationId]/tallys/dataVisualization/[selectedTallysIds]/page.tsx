@@ -10,7 +10,9 @@ const Page = async (props: {
   const decodedActiveTallysString = params.selectedTallysIds;
   const tallysIds = decodedActiveTallysString.match(/\d+/g)?.map(Number);
 
-  const locationName = await searchLocationNameById(Number(params.locationId));
+  const { locationName } = await searchLocationNameById(
+    Number(params.locationId),
+  );
   if (!tallysIds) {
     notFound();
   }
@@ -20,7 +22,7 @@ const Page = async (props: {
   } else {
     return (
       <TallysDataPage
-        locationName={locationName}
+        locationName={locationName ?? "[ERRO]"}
         locationId={Number(params.locationId)}
         tallys={tallys}
         tallysIds={tallysIds}

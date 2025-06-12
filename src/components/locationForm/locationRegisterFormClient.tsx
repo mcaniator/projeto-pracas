@@ -138,6 +138,18 @@ const LocationRegisterFormClient = ({
         ),
       });
       onSuccess?.();
+    } else if (formState.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para criar/atualizar praças!</>,
+      });
+    } else if (formState.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao criar/atualizar praça!</>,
+      });
     }
   }, [formState.statusCode, onSuccess, setHelperCard, formType]);
 

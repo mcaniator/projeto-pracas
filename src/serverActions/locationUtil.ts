@@ -109,6 +109,11 @@ const deleteLocation = async (id: number) => {
 };
 
 const searchLocationsById = async (id: number) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return { statusCode: 401, location: null };
+  }
   let foundLocation;
   try {
     foundLocation = await prisma.location.findUnique({
@@ -166,29 +171,41 @@ const searchLocationsById = async (id: number) => {
       hasGeometry: locationHasPolygon ?? false,
     };
     return { statusCode: 200, location: foundLocation };
-    //TODO
   } catch (err) {
     return { statusCode: 500, location: null };
   }
 };
 
 const searchLocationNameById = async (id: number) => {
-  const location = await prisma.location.findUnique({
-    where: {
-      id: id,
-    },
-    select: {
-      name: true,
-    },
-  });
-  if (location) return location.name;
-  else return "Erro ao encontrar nome";
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return { statusCode: 401, locationName: null };
+  }
+  try {
+    const location = await prisma.location.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        name: true,
+      },
+    });
+    return { statusCode: 200, locationName: location?.name };
+  } catch (e) {
+    return { statusCode: 500, locationName: null };
+  }
 };
 
 const updateLocation = async (
   prevState: { statusCode: number; message: string },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, message: "Invalid permission" };
+  }
   let parseId;
   try {
     parseId = z.coerce

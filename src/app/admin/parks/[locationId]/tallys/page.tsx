@@ -10,7 +10,7 @@ const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
   if (!session?.user) redirect("/error");
   const params = await props.params;
   const { tallys } = await fetchTallysByLocationId(Number(params.locationId));
-  const locationName = await searchLocationNameById(
+  const { locationName } = await searchLocationNameById(
     parseInt(params.locationId),
   );
 
@@ -24,7 +24,7 @@ const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
   return (
     <TallyPage
       locationId={params.locationId}
-      locationName={locationName}
+      locationName={locationName ?? "[ERRO]"}
       tallys={endedTallys}
       ongoingTallys={ongoingTallys}
       userId={session?.user.id}

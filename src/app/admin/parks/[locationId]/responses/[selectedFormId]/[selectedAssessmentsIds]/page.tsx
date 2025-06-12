@@ -16,7 +16,9 @@ const ResponsesFetcher = async (props: {
   const assessmentsIds: number[] = params.selectedAssessmentsIds
     .split("-")
     .map((id) => Number(id));
-  const locationName = await searchLocationNameById(Number(params.locationId));
+  const { locationName } = await searchLocationNameById(
+    Number(params.locationId),
+  );
   const assessments =
     await fetchMultipleAssessmentsWithResponses(assessmentsIds);
   assessments.assessments.sort(
@@ -41,7 +43,7 @@ const ResponsesFetcher = async (props: {
             <div className="h-full w-full flex-col gap-1 xl:basis-1/2">
               <MainContainer
                 assessments={assessments}
-                locationName={locationName}
+                locationName={locationName ?? "[ERRO]"}
               />
             </div>
           </div>
