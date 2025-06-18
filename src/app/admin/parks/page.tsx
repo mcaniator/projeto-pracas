@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { IconCirclePlus } from "@tabler/icons-react";
 import Link from "next/link";
 
+import PermissionGuard from "../../../components/auth/permissionGuard";
+
 const AdminRoot = async () => {
   const parkNames = await prisma.location.findMany({
     select: { id: true, name: true },
@@ -17,12 +19,15 @@ const AdminRoot = async () => {
           }
         >
           <h3 className={"text-2xl font-semibold"}>Locais</h3>
-          <Link
-            href={"/admin/parks/locationRegister"}
-            className="flex w-fit items-center justify-center rounded-lg bg-emerald p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sea-green"
-          >
-            <IconCirclePlus />
-          </Link>
+          <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+            <Link
+              href={"/admin/parks/locationRegister"}
+              className="flex w-fit items-center justify-center rounded-lg bg-emerald p-2 text-xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sea-green"
+            >
+              <IconCirclePlus />
+            </Link>
+          </PermissionGuard>
+
           <ParkForm location={parkNames} />
         </div>
       </div>

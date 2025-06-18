@@ -35,12 +35,14 @@ const Page = async (props: { params: Promise<{ locationId: string }> }) => {
           >
             Informações
           </Link>
-          <Link
-            className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-            href={`/admin/parks/${locationIdNumber}/edit`}
-          >
-            Editar
-          </Link>
+          <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/edit`}
+            >
+              Editar
+            </Link>
+          </PermissionGuard>
           <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
             <Link
               className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"

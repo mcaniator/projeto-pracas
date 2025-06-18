@@ -3,10 +3,7 @@ import { ReactNode } from "react";
 
 const TallysLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <PermissionGuard
-      redirect
-      requiresAnyRoles={["TALLY_EDITOR", "TALLY_MANAGER"]}
-    >
+    <PermissionGuard redirect requiresAnyRoleGroups={["TALLY"]}>
       {children}
     </PermissionGuard>
   );
