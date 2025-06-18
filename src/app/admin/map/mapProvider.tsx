@@ -6,7 +6,7 @@ import TileLayer from "ol/layer/Tile";
 import "ol/ol.css";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
-import { ReactNode, createContext, useEffect, useRef, useState } from "react";
+import { ReactNode, createContext, useEffect, useMemo, useRef } from "react";
 
 const MapContext = createContext<null | Map>(null);
 
@@ -15,9 +15,7 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
 
   const ref = useRef<HTMLDivElement>(null);
 
-  const [map, setMap] = useState<Map | null>(null);
-
-  /*const map = useMemo(
+  const map = useMemo(
     () =>
       new Map({
         target: "map",
@@ -26,19 +24,8 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
         controls: [],
       }),
     [],
-  );*/
+  );
   const view = map?.getView();
-
-  useEffect(() => {
-    setMap(
-      new Map({
-        target: "map",
-        layers: [new TileLayer({ source: new OSM() })],
-        view: new View({ center: [0, 0], zoom: 2 }),
-        controls: [],
-      }),
-    );
-  }, []);
 
   useEffect(() => {
     if (ref.current !== null) map?.setTarget(ref.current);

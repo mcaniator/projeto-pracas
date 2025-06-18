@@ -27,7 +27,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
 
 import PermissionGuard from "../../../components/auth/permissionGuard";
-import { useUserContext } from "../../../components/context/UserContext";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
@@ -64,7 +63,6 @@ const Client = ({
     }[];
   };
 }) => {
-  const { user } = useUserContext();
   const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
     [],
@@ -113,7 +111,7 @@ const Client = ({
               )
             }`}
           >
-            <span className="text-gray-700">Janela de Desenho</span>
+            <span className="text-gray-700">Menu</span>
           </div>
 
           <div
