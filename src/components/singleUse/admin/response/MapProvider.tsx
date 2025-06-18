@@ -14,6 +14,10 @@ import "ol/ol.css";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
+import CircleStyle from "ol/style/Circle";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
+import Style from "ol/style/Style";
 import {
   createContext,
   forwardRef,
@@ -61,9 +65,30 @@ const MapProvider = forwardRef(
 
     const mapRef = useRef<HTMLDivElement>(null);
 
+    const styleFunction = () => {
+      const style = new Style({
+        fill: new Fill({
+          color: "#9B59B24D",
+        }),
+        stroke: new Stroke({
+          color: "#7C4091",
+          lineCap: "butt",
+          width: 3,
+        }),
+        image: new CircleStyle({
+          radius: 6,
+          fill: new Fill({ color: "#9B59B24D" }),
+          stroke: new Stroke({ color: "#7C4091", width: 2 }),
+        }),
+      });
+
+      return style;
+    };
+
     const map = useMemo(() => {
       const vectorLayer = new VectorLayer({
         source: vectorSource.current,
+        style: styleFunction,
       });
 
       return new Map({
@@ -110,6 +135,19 @@ const MapProvider = forwardRef(
       const draw = new Draw({
         source: vectorSource.current,
         type: drawType,
+        style:
+          drawType === "Polygon" ?
+            {
+              "fill-color": "#9B59B24D",
+              "stroke-color": "#7C4091",
+              "stroke-line-cap": "butt",
+              "stroke-line-dash": [10],
+              "stroke-width": 3,
+            }
+          : {
+              "circle-radius": 5,
+              "circle-fill-color": "#9B59B2",
+            },
       });
       map.addInteraction(draw);
       handleChangeIsInSelectMode(false);
