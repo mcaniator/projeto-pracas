@@ -16,6 +16,7 @@ import {
   IconDeviceFloppy,
   IconFileCheck,
   IconHelp,
+  IconPencilExclamation,
   IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -442,7 +443,7 @@ const ResponseForm = ({
             <p className="text-green-400">Respostas salvas!</p>
           : <p className="text-red-500">Erro ao salvar!</p>)}
         {assessment.form.questions !== null && assessmentEnded === false ?
-          <div className="w-full max-w-[70rem] py-5">
+          <div className="w-full py-5">
             {categoriesObj.map((category) => {
               return (
                 <React.Fragment key={category.id}>
@@ -458,6 +459,12 @@ const ResponseForm = ({
                           <label htmlFor={`response${question.id}`}>
                             {question.name}
                           </label>
+                          {question.notes && (
+                            <div className="flex flex-row items-center gap-1">
+                              <IconPencilExclamation /> {question.notes}
+                            </div>
+                          )}
+
                           {question.geometryTypes.length > 0 && (
                             <span className="px-2">
                               <MapPopup
@@ -602,6 +609,11 @@ const ResponseForm = ({
                                 <label htmlFor={`response${question.id}`}>
                                   {question.name}
                                 </label>
+                                {question.notes && (
+                                  <div className="flex flex-row items-center gap-1">
+                                    <IconPencilExclamation /> {question.notes}
+                                  </div>
+                                )}
                                 {question.geometryTypes.length > 0 && (
                                   <span className="px-2">
                                     <MapPopup
