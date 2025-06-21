@@ -29,9 +29,9 @@ const createInvite = async (email: string, roles: Role[]) => {
     }
 
     if (process.env.ENABLE_SYSTEM_EMAILS === "true") {
-      const html = (await getInviteEmail({
+      const html = await getInviteEmail({
         registerLink: `${process.env.BASE_URL}/auth/register/?inviteToken=${token}`,
-      })) as string;
+      });
       await emailTransporter.sendMail({
         to: email,
         subject: "Convite para o Projeto Praças",
