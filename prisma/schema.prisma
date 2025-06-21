@@ -297,8 +297,6 @@ model Question {
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
   response          Response[]
-  minValue          Int?
-  maxValue          Int?
   optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?                           @map("maximum_selections")
