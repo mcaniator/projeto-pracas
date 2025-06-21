@@ -9,6 +9,7 @@ import { auth } from "../lib/auth/auth";
 import { prisma } from "../lib/prisma";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import { emailTransporter } from "../serverOnly/email";
+import { getInviteEmail } from "../serverOnly/renderEmail";
 
 const createInvite = async (email: string, roles: Role[]) => {
   try {
@@ -26,11 +27,15 @@ const createInvite = async (email: string, roles: Role[]) => {
     if (existingUser) {
       return { statusCode: 400, invite: null };
     }
+
     if (process.env.ENABLE_SYSTEM_EMAILS === "true") {
+      const html = (await getInviteEmail({
+        registerLink: `${process.env.BASE_URL}/auth/register/?inviteToken=${token}`,
+      })) as string;
       await emailTransporter.sendMail({
         to: email,
         subject: "Convite para o Projeto Praças",
-        html: `<div><h1>Teste</h1><h2>${token}</h2></div>`,
+        html: html,
       });
     }
 
