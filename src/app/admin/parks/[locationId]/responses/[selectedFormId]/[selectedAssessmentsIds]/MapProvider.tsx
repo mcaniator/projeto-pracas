@@ -11,6 +11,10 @@ import "ol/ol.css";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
+import CircleStyle from "ol/style/Circle";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
+import Style from "ol/style/Style";
 import { createContext, useEffect, useMemo, useRef } from "react";
 
 const MapContext = createContext(new Map());
@@ -25,9 +29,30 @@ const MapProvider = ({
 
   const mapRef = useRef<HTMLDivElement>(null);
 
+  const styleFunction = () => {
+    const style = new Style({
+      fill: new Fill({
+        color: "#9B59B24D",
+      }),
+      stroke: new Stroke({
+        color: "#7C4091",
+        lineCap: "butt",
+        width: 3,
+      }),
+      image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({ color: "#9B59B24D" }),
+        stroke: new Stroke({ color: "#7C4091", width: 3 }),
+      }),
+    });
+
+    return style;
+  };
+
   const map = useMemo(() => {
     const vectorLayer = new VectorLayer({
       source: vectorSource.current,
+      style: styleFunction,
     });
 
     return new Map({

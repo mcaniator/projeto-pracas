@@ -76,9 +76,9 @@ const MapProvider = forwardRef(
           width: 3,
         }),
         image: new CircleStyle({
-          radius: 6,
+          radius: 8,
           fill: new Fill({ color: "#9B59B24D" }),
-          stroke: new Stroke({ color: "#7C4091", width: 2 }),
+          stroke: new Stroke({ color: "#7C4091", width: 3 }),
         }),
       });
 

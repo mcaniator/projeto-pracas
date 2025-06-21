@@ -36,6 +36,8 @@ module.exports = {
         "off-white": "#D9D9D9",
         "imperial-red": "#FA4646",
         "vista-blue": "#799CE1",
+        "purple-geometry-stroke": "#7C4091",
+        "purple-geometry-fill": "#9B59B24D",
         mauve: "#E7A1FF",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
