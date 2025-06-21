@@ -85,8 +85,6 @@ const questionSubmit = async (
               Number(formData.get("subcategoryId")) > 0 ?
                 formData.get("subcategoryId")
               : undefined,
-            minValue: formData.get("minValue"),
-            maxValue: formData.get("maxValue"),
             geometryTypes:
               (
                 formData.getAll("geometryTypes").length > 0 &&

@@ -7,7 +7,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -210,16 +210,28 @@ const QuestionCreationModal = ({
                   )}
                   {!isPending && pageState === "FORM" && (
                     <form
-                      action={(e) => {
+                      onSubmit={(e) => {
+                        e.preventDefault();
                         if (
                           type === "OPTIONS" &&
                           (!addedOptions || addedOptions.length === 0)
                         ) {
                           setMinimumOptionsError(true);
                           return;
-                        } else {
-                          formAction(e);
                         }
+                        if (
+                          hasAssociatedGeometry &&
+                          geometryTypes.length === 0
+                        ) {
+                          setHelperCard({
+                            show: true,
+                            helperCardType: "ERROR",
+                            content: <>Nenhum tipo de geometria selecionado!</>,
+                          });
+                          return;
+                        }
+                        const formData = new FormData(e.currentTarget);
+                        startTransition(() => formAction(formData));
                       }}
                       className="flex w-full flex-col rounded-l"
                     >
@@ -406,38 +418,6 @@ const QuestionCreationModal = ({
                                   </RadioButton>
                                 </div>
                               </div>
-                              {characterType === "number" && (
-                                <div>
-                                  <div>
-                                    <label
-                                      htmlFor={"minValue"}
-                                      className="font-semibold"
-                                    >
-                                      Valor mínimo:
-                                    </label>
-                                    <Input
-                                      className="w-full"
-                                      type="number"
-                                      name={"minValue"}
-                                      id={"minValue"}
-                                    />
-                                  </div>
-                                  <div>
-                                    <label
-                                      htmlFor={"maxValue"}
-                                      className="font-semibold"
-                                    >
-                                      Valor máximo:
-                                    </label>
-                                    <Input
-                                      className="w-full"
-                                      type="number"
-                                      name={"maxValue"}
-                                      id={"maxValue"}
-                                    />
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           )}
 
