@@ -333,12 +333,12 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
     if (geometries && geometries.length > 0) {
       const returnObj = {
         statusCode: 200,
-        assessment: { ...assessment },
+        assessment: assessment,
         geometries,
       };
       return returnObj;
     }
-    return { statusCode: 200, assessment: { ...assessment }, geometries: [] };
+    return { statusCode: 200, assessment: assessment, geometries: [] };
   } catch (e) {
     return { statusCode: 500, assessment: null, geometries: [] };
   }
