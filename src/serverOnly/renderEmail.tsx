@@ -5,7 +5,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { pretty, render } from "@react-email/render";
 
-import { InviteEmail } from "../packages/transactional/emails/InviteEmail";
+import InviteEmail from "../packages/transactional/emails/InviteEmail";
+import PasswordResetEmail from "../packages/transactional/emails/PasswordResetEmail";
 
 const getInviteEmail = async ({ registerLink }: { registerLink: string }) => {
   const html = await pretty(
@@ -14,4 +15,15 @@ const getInviteEmail = async ({ registerLink }: { registerLink: string }) => {
   return html;
 };
 
-export { getInviteEmail };
+const getPasswordResetEmail = async ({
+  passwordResetLink,
+}: {
+  passwordResetLink: string;
+}) => {
+  const html = await pretty(
+    await render(<PasswordResetEmail passwordResetLink={passwordResetLink} />),
+  );
+  return html;
+};
+
+export { getInviteEmail, getPasswordResetEmail };

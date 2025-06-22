@@ -85,7 +85,7 @@ const UsernameForm = () => {
             <span className="w-fit rounded-lg bg-slate-400 px-4 text-2xl font-semibold">
               {state.username}
             </span>
-            <p>É possível alterá-lo na pagina de configurações de usuário</p>
+            <p>É possível alterá-lo na página de configurações de usuário</p>
             <Link href={"/admin/home"}>
               <Button>
                 <IconHome className="mb-1" /> Página inicial

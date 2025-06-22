@@ -1,21 +1,22 @@
 import { Button, Container, Html, Link, Text } from "@react-email/components";
 import * as React from "react";
 
-const InviteEmail = ({ registerLink }: { registerLink: string }) => {
+const PasswordResetEmail = ({
+  passwordResetLink,
+}: {
+  passwordResetLink: string;
+}) => {
   return (
     <Html>
       <Container style={{ textAlign: "center", fontFamily: "fantasy" }}>
-        <Text style={{ fontSize: 20, fontWeight: 600 }}>
-          Você foi convidado(a) para acessar o Projeto Praças
-        </Text>
-        <Text style={{ margin: "0px" }}>
-          Utilize o endereço de e-mail em que você recebeu este e-mail.
+        <Text style={{ fontSize: 16, fontWeight: 600 }}>
+          Você solicitou uma redefinição de senha para o Projeto Praças
         </Text>
         <Text style={{ marginTop: "0px" }}>
-          Clique no botão abaixo para se cadastrar.
+          Clique no botão abaixo para redefinir a senha.
         </Text>
         <Button
-          href={registerLink}
+          href={passwordResetLink}
           style={{
             background: "#000",
             color: "#fff",
@@ -23,15 +24,15 @@ const InviteEmail = ({ registerLink }: { registerLink: string }) => {
             borderRadius: "8px",
           }}
         >
-          Cadastrar-se
+          Redefinir senha
         </Button>
         <Text>
           Ou clique
-          <Link href={registerLink}> aqui</Link>.
+          <Link href={passwordResetLink}> aqui</Link>.
         </Text>
       </Container>
     </Html>
   );
 };
 
-export default InviteEmail;
+export default PasswordResetEmail;

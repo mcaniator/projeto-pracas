@@ -28,6 +28,15 @@ const createInvite = async (email: string, roles: Role[]) => {
       return { statusCode: 400, invite: null };
     }
 
+    const invite = await prisma.invite.create({
+      data: {
+        email,
+        token,
+        roles,
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+      },
+    });
+
     if (process.env.ENABLE_SYSTEM_EMAILS === "true") {
       const html = await getInviteEmail({
         registerLink: `${process.env.BASE_URL}/auth/register/?inviteToken=${token}`,
@@ -39,14 +48,6 @@ const createInvite = async (email: string, roles: Role[]) => {
       });
     }
 
-    const invite = await prisma.invite.create({
-      data: {
-        email,
-        token,
-        roles,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-      },
-    });
     return { statusCode: 201, invite: invite };
   } catch (e) {
     return { statusCode: 500, invite: null };

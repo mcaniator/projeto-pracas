@@ -8,14 +8,15 @@ import { IconTree } from "@tabler/icons-react";
 import { useActionState, useEffect } from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
+import ButtonLink from "../../../components/ui/buttonLink";
 import login from "../../../serverActions/login";
 
 const LoginForm = () => {
-  const helperCardContext = useHelperCard();
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(login, null);
   useEffect(() => {
     if (!state) return;
-    helperCardContext.setHelperCard({
+    setHelperCard({
       show: true,
       helperCardType: state?.statusCode === 200 ? "CONFIRM" : "ERROR",
       content: (
@@ -26,7 +27,7 @@ const LoginForm = () => {
         </>
       ),
     });
-  }, [state]);
+  }, [state, setHelperCard]);
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <IconTree size={48} className="inline" />
@@ -53,6 +54,13 @@ const LoginForm = () => {
           <GoogleLoginButton />
         </div>
       )}
+      <ButtonLink
+        href="/auth/requestPasswordRecovery"
+        variant={"ghost"}
+        className="mt-2 text-blue-500"
+      >
+        Esqueci minha senha
+      </ButtonLink>
     </div>
   );
 };

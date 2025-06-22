@@ -243,7 +243,7 @@ model PasswordReset {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token     String   @unique @db.VarChar(64)
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  expiresAt DateTime @map("expires_at")
 
   @@map("password_reset")
 }

@@ -52,6 +52,28 @@ const userRegisterSchema = z
     }
   });
 
+const passwordResetSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "A senha deve conter pelo menos 8 caracteres" })
+      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula.")
+      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula.")
+      .regex(/[0-9]/, "A senha deve conter pelo menos um número.")
+      .regex(/[\W_]/, "A senha deve conter pelo menos um caractere especial."),
+    confirmPassword: z.string(),
+    token: z.string({ message: "Token não enviado!" }),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "As senhas não coincidem.",
+      });
+    }
+  });
+
 const userUpdateUsernameSchema = z.object({
   userId: z.string(),
   username: z
@@ -77,7 +99,12 @@ type userRegisterType = z.infer<typeof userRegisterSchema>;
 type userUpdateUsernameType = z.infer<typeof userUpdateUsernameSchema>;
 type userLoginType = z.infer<typeof userLoginSchema>;
 
-export { userRegisterSchema, userLoginSchema, userUpdateUsernameSchema };
+export {
+  userRegisterSchema,
+  userLoginSchema,
+  userUpdateUsernameSchema,
+  passwordResetSchema,
+};
 export type { userRegisterType, userUpdateUsernameType, userLoginType };
 
 // #endregion
