@@ -7,7 +7,8 @@ const LoginPage = async () => {
   if (session) {
     return <AlreadyLoggedInError />;
   }
-  return <LoginForm />;
+  const enableGoogleLogin = process.env.ENABLE_GOOGLE_LOGIN === "true";
+  return <LoginForm enableGoogleLogin={enableGoogleLogin} />;
 };
 
 export default LoginPage;

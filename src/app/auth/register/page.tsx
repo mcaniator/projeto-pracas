@@ -18,7 +18,13 @@ const RegisterPage = async (props: {
   if (session) {
     return <AlreadyLoggedInError />;
   }
-  return <RegisterForm inviteToken={inviteToken} />;
+  const enableGoogleLogin = process.env.ENABLE_GOOGLE_LOGIN === "true";
+  return (
+    <RegisterForm
+      inviteToken={inviteToken}
+      enableGoogleLogin={enableGoogleLogin}
+    />
+  );
 };
 
 export default RegisterPage;

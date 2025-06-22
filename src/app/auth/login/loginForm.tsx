@@ -11,7 +11,7 @@ import { useHelperCard } from "../../../components/context/helperCardContext";
 import ButtonLink from "../../../components/ui/buttonLink";
 import login from "../../../serverActions/login";
 
-const LoginForm = () => {
+const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(login, null);
   useEffect(() => {
@@ -51,7 +51,7 @@ const LoginForm = () => {
               </Button>
             </div>
           </form>
-          <GoogleLoginButton />
+          {enableGoogleLogin && <GoogleLoginButton />}
         </div>
       )}
       <ButtonLink

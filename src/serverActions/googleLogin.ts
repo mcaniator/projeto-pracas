@@ -7,6 +7,9 @@ import { cookies } from "next/headers";
 import { auth, signIn, signOut } from "../lib/auth/auth";
 
 const googleAuthenticate = async () => {
+  if (process.env.ENABLE_GOOGLE_LOGIN !== "true") {
+    return { statusCode: 503, message: "Serviço indisponível!" };
+  }
   try {
     const session = await auth();
     if (session) {
@@ -24,6 +27,9 @@ const googleAuthenticate = async () => {
 };
 
 const googleRegister = async (inviteToken: string) => {
+  if (process.env.ENABLE_GOOGLE_LOGIN !== "true") {
+    return { statusCode: 503, message: "Serviço indisponível!" };
+  }
   try {
     if (!inviteToken) {
       throw new Error("Invite token is required");

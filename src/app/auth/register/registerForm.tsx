@@ -22,7 +22,13 @@ import GoogleRegisterButton from "../../../components/singleUse/auth/googleRegis
 import { Input } from "../../../components/ui/input";
 import register from "../../../serverActions/register";
 
-const RegisterForm = ({ inviteToken }: { inviteToken: string }) => {
+const RegisterForm = ({
+  inviteToken,
+  enableGoogleLogin,
+}: {
+  inviteToken: string;
+  enableGoogleLogin: boolean;
+}) => {
   const helperCardContext = useHelperCard();
   const [state, formAction, isPending] = useActionState(register, null);
   const [showPasswords, setShowPasswords] = useState({
@@ -208,8 +214,12 @@ const RegisterForm = ({ inviteToken }: { inviteToken: string }) => {
               </Button>
             </div>
           </form>
-          <div className={`my-2 w-full text-center`}>ou</div>
-          <GoogleRegisterButton inviteToken={inviteToken} />
+          {enableGoogleLogin && (
+            <>
+              <div className={`my-2 w-full text-center`}>ou</div>
+              <GoogleRegisterButton inviteToken={inviteToken} />
+            </>
+          )}
         </div>
       }
     </div>
