@@ -258,7 +258,6 @@ const EditPage = ({
   const locationName =
     locations.find((location) => location.id === currentLocationId)?.name ||
     "Erro!";
-  //console.log(selectedAssessments);
 
   return (
     <div className="flex h-full flex-col gap-1">

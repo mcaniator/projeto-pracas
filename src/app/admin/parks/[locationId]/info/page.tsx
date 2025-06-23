@@ -13,7 +13,6 @@ const ParkInfo = async (props: { params: Promise<{ locationId: string }> }) => {
     location?.broadAdministrativeUnit?.city ??
     location?.intermediateAdministrativeUnit?.city ??
     location?.narrowAdministrativeUnit?.city;
-  //console.log(city);
   if (!location) {
     return (
       <div

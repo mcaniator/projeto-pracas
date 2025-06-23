@@ -89,7 +89,6 @@ const deleteLocation = async (id: number) => {
         const versionSet = formNamesAndVersions.get(assessment.form.name);
         versionSet?.add(assessment.form.version);
       });
-      console.log(formNamesAndVersions.keys());
       return {
         statusCode: 409,
         formNamesAndVersions,
