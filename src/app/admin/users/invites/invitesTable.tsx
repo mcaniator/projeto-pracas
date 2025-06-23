@@ -13,7 +13,6 @@ import { Button } from "../../../../components/button";
 import { Input } from "../../../../components/ui/input";
 import SortMenu from "../orderMenu";
 import { Order } from "../usersTable";
-import InviteCRUDModal from "./inviteCRUDModal";
 import { Invite } from "./invitesClient";
 
 type InviteOrdersObj = {
@@ -29,7 +28,7 @@ const InvitesTable = ({
   handlePageChange,
   handlePaginationChange,
   handleOrdersObjChange,
-  updateTable,
+  openInviteModal,
 }: {
   invites: Invite[];
   totalInvites: number | null;
@@ -41,7 +40,7 @@ const InvitesTable = ({
     pageSize: number;
   }) => void;
   handleOrdersObjChange: (newOrders: InviteOrdersObj) => void;
-  updateTable: () => void;
+  openInviteModal: (invite: Invite) => void;
 }) => {
   const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -52,8 +51,6 @@ const InvitesTable = ({
     second: "2-digit",
   });
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedInvite, setSelectedInvite] = useState<Invite | null>(null);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const changeOrder = (order: Order, orderProperty: string) => {
     handleOrdersObjChange({ ...orders, [orderProperty]: order });
@@ -146,8 +143,7 @@ const InvitesTable = ({
                 <Button
                   className="px-2"
                   onPress={() => {
-                    setSelectedInvite(invite);
-                    setIsInviteModalOpen(true);
+                    openInviteModal(invite);
                   }}
                 >
                   <IconEdit />
@@ -239,14 +235,6 @@ const InvitesTable = ({
           </tr>
         </tfoot>
       </table>
-      <InviteCRUDModal
-        isOpen={isInviteModalOpen}
-        inviteProp={selectedInvite}
-        onOpenChange={() => {
-          setIsInviteModalOpen(false);
-        }}
-        updateTable={updateTable}
-      />
     </div>
   );
 };

@@ -359,6 +359,9 @@ const InviteCRUDModal = ({
           helperCardType: "CONFIRM",
           content: <>Convite excluído!</>,
         });
+        resetModal();
+        updateTable();
+        onOpenChange(false);
       } else if (status.statusCode === 401) {
         helperCardContext.setHelperCard({
           show: true,
@@ -382,14 +385,12 @@ const InviteCRUDModal = ({
       });
     } finally {
       setIsLoading(false);
-      updateTable();
-      onOpenChange(false);
     }
   };
 
   useEffect(() => {
     setInvite(inviteProp);
-  }, [inviteProp]);
+  }, [inviteProp, isOpen]);
   useEffect(() => {
     setUserRoles([
       {

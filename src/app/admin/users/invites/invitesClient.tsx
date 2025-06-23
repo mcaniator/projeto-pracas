@@ -76,6 +76,11 @@ const InvitesClient = () => {
     setOrders(newOrders);
   };
 
+  const openInviteModal = (invite: Invite) => {
+    setSelectedInvite(invite);
+    setIsInviteModalOpen(true);
+  };
+
   const updateTable = () => {
     void fetchInvites();
   };
@@ -134,7 +139,7 @@ const InvitesClient = () => {
           handlePageChange={handlePageChange}
           handleOrdersObjChange={handleOrdersObjChange}
           handlePaginationChange={handlePaginationChange}
-          updateTable={updateTable}
+          openInviteModal={openInviteModal}
         />
       </div>
 
