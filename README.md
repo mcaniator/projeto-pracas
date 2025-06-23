@@ -45,7 +45,7 @@ Há 2 maneiras de autenticar a conta no sistema:
 
 ##### Oauth
 
-Uma vez criado e configurado um projeto no Google Cloud, acesse `https://developers.google.com/oauthplayground/`.
+Uma vez criado e configurado um projeto no Google Cloud, acesse https://developers.google.com/oauthplayground/.
 
 - Abra o menu de configurações (ícone de engrenagem) e marque a opção `Use your own OAuth credentials`.
 - Preencha os campos `OAuth Client ID` e `OAuth Client secret` com os respectivos dados do projeto.
