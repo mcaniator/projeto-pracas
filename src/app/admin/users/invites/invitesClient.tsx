@@ -6,8 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
 import { Button } from "../../../../components/button";
+import { useHelperCard } from "../../../../components/context/helperCardContext";
+import { useLoadingOverlay } from "../../../../components/context/loadingContext";
+import CustomModal from "../../../../components/modal/customModal";
 import { Input } from "../../../../components/ui/input";
-import { getInvites } from "../../../../serverActions/inviteUtil";
+import { deleteInvite, getInvites } from "../../../../serverActions/inviteUtil";
 import InviteCRUDModal from "./inviteCRUDModal";
 import InvitesTable, { InviteOrdersObj } from "./invitesTable";
 
@@ -20,6 +23,8 @@ type Invite = {
 };
 
 const InvitesClient = () => {
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
+  const { setHelperCard } = useHelperCard();
   const [search, setSearch] = useState<string>("");
   const searchRef = useRef("");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -38,6 +43,8 @@ const InvitesClient = () => {
     email: "none",
     createdAt: "desc",
   });
+  const [isDeletionInviteModalOpen, setIsDeletionInviteModalOpen] =
+    useState(false);
 
   const fetchInvites = useCallback(async () => {
     setIsLoading(true);
@@ -74,6 +81,45 @@ const InvitesClient = () => {
 
   const handleOrdersObjChange = (newOrders: InviteOrdersObj) => {
     setOrders(newOrders);
+  };
+
+  const handleDeleteInvite = async () => {
+    try {
+      setLoadingOverlayVisible(true);
+      if (!selectedInvite) {
+        return;
+      }
+      const response = await deleteInvite(selectedInvite.token);
+      if (response.statusCode === 200) {
+        setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Convite excluído!</>,
+        });
+        updateTable();
+        setIsDeletionInviteModalOpen(false);
+      } else if (response.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para excluir convites!</>,
+        });
+      } else {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao excluir convite!</>,
+        });
+      }
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir convite!</>,
+      });
+    } finally {
+      setLoadingOverlayVisible(false);
+    }
   };
 
   const openInviteModal = (invite: Invite) => {
@@ -149,7 +195,24 @@ const InvitesClient = () => {
         onOpenChange={() => {
           setIsInviteModalOpen(false);
         }}
+        openInviteDeletionModal={() => {
+          setIsInviteModalOpen(false);
+          setIsDeletionInviteModalOpen(true);
+        }}
         updateTable={updateTable}
+      />
+      <CustomModal
+        isOpen={isDeletionInviteModalOpen}
+        title={"Excluir convite"}
+        subtitle={selectedInvite?.email}
+        confirmVariant="destructive"
+        confirmLabel="Excluir"
+        onConfirm={() => {
+          void handleDeleteInvite();
+        }}
+        onOpenChange={(e) => {
+          setIsDeletionInviteModalOpen(e);
+        }}
       />
     </div>
   );

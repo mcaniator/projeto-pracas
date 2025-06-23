@@ -9,7 +9,6 @@ import { useHelperCard } from "../../../../components/context/helperCardContext"
 import { Input } from "../../../../components/ui/input";
 import {
   createInvite,
-  deleteInvite,
   updateInvite,
 } from "../../../../serverActions/inviteUtil";
 import PermissionSelectRow from "../permissionSelectRow";
@@ -158,11 +157,13 @@ const InviteCRUDModal = ({
   onOpenChange,
   inviteProp,
   updateTable,
+  openInviteDeletionModal,
 }: {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   inviteProp: Invite | null;
   updateTable: () => void;
+  openInviteDeletionModal: () => void;
 }) => {
   const helperCardContext = useHelperCard();
   const [isLoading, setIsLoading] = useState(false);
@@ -348,46 +349,6 @@ const InviteCRUDModal = ({
     }
   };
 
-  const handleDelete = async () => {
-    setIsLoading(true);
-    try {
-      if (!invite) return;
-      const status = await deleteInvite(invite.token);
-      if (status.statusCode === 200) {
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Convite excluído!</>,
-        });
-        resetModal();
-        updateTable();
-        onOpenChange(false);
-      } else if (status.statusCode === 401) {
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Sem permissão para excluir convites!</>,
-        });
-        return;
-      } else {
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao excluir convite!</>,
-        });
-        return;
-      }
-    } catch (e) {
-      helperCardContext.setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao excluir convite!</>,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     setInvite(inviteProp);
   }, [inviteProp, isOpen]);
@@ -548,7 +509,7 @@ const InviteCRUDModal = ({
                     <Button
                       variant={"destructive"}
                       onPress={() => {
-                        void handleDelete();
+                        void openInviteDeletionModal();
                       }}
                     >
                       Excluir

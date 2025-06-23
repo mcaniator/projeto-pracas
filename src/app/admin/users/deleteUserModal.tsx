@@ -103,8 +103,8 @@ const DeleteUserModal = ({
         void handleDeleteUser();
       }}
     >
-      {userCreatedItems.assessments &&
-        userCreatedItems.tallys &&
+      {userCreatedItems.assessments != null &&
+        userCreatedItems.tallys != null &&
         (userCreatedItems.assessments > 0 || userCreatedItems.tallys > 0) &&
         !isLoading && (
           <div className="flex flex-col items-center text-lg text-red-500">
