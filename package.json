@@ -1,19 +1,23 @@
 {
   "dependencies": {
+    "@auth/prisma-adapter": "^2.8.0",
     "@formkit/auto-animate": "^0.8.2",
-    "@lucia-auth/adapter-prisma": "^4.0.1",
     "@prisma/adapter-pg": "6.0.1",
     "@prisma/client": "6.0.1",
     "@radix-ui/react-dialog": "^1.1.4",
     "@tabler/icons-react": "^3.28.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/nodemailer": "^6.4.17",
     "autoprefixer": "^10.4.20",
+    "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.7",
     "chartjs-plugin-datalabels": "^2.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "fuse.js": "^7.0.0",
-    "lucia": "^3.2.2",
+    "next-auth": "5.0.0-beta.25",
+    "nodemailer": "^7.0.3",
     "ol": "^9.2.4",
     "oslo": "^1.2.1",
     "pg": "^8.13.1",
@@ -22,11 +26,14 @@
     "react-chartjs-2": "^5.3.0",
     "react-icons": "^5.4.0",
     "react-rnd": "^10.4.14",
+    "server-only": "^0.0.1",
     "shpjs": "^5.0.2",
     "tailwind-merge": "^2.6.0",
+    "ts-node": "^10.9.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@react-email/render": "^1.1.2",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/geojson": "^7946.0.15",
     "@types/node": "20.14.9",
@@ -37,10 +44,10 @@
     "@typescript-eslint/parser": "^7.18.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-938cd9a-20240601",
     "eslint": "^8.57.1",
-    "eslint-config-next": "15.0.0-rc.0",
+    "eslint-config-next": "15.2.4",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react-compiler": "0.0.0-experimental-51a85ea-20240601",
-    "next": "15.0.0-rc.0",
+    "next": "15.2.4",
     "postcss": "8.4.38",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.10",
@@ -61,6 +68,7 @@
       "sharp"
     ],
     "overrides": {
+      "@auth/core": "0.37.2",
       "@types/react": "npm:types-react@rc",
       "@types/react-dom": "npm:types-react-dom@rc"
     },
@@ -80,5 +88,11 @@
     "lint": "next lint",
     "start": "next start"
   },
-  "version": "0.2.0"
+  "version": "0.2.0",
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "workspaces": [
+    "src/packages/*"
+  ]
 }

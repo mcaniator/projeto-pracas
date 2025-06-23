@@ -1,38 +1,22 @@
-import { verifyRequestOrigin } from "lucia";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
 
-const middleware = (request: NextRequest) => {
-  if (request.method === "GET") {
-    const url = request.nextUrl.clone();
+import authConfig from "./lib/auth/auth.config";
 
-    if (request.nextUrl.pathname === "/admin") {
-      url.pathname = "/admin/home";
-      return NextResponse.redirect(url);
-    }
-
-    if (request.nextUrl.pathname === "/admin/registration") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin/registration/questions";
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next();
+const { auth } = NextAuth(authConfig);
+export default auth((req) => {
+  if (!req.auth) {
+    return Response.redirect(new URL("/auth/login", req.url));
   }
+  const pathname = req.nextUrl.pathname;
+  const search = req.nextUrl.search;
 
-  const originHeader = request.headers.get("Origin");
-  const hostHeader = request.headers.get("Host");
-  if (
-    !originHeader ||
-    !hostHeader ||
-    !verifyRequestOrigin(originHeader, [hostHeader])
-  ) {
-    return new NextResponse(null, {
-      status: 403,
-    });
+  if (pathname === "/admin") {
+    const url = new URL("/admin/home", req.url);
+    url.search = search;
+    return Response.redirect(url);
   }
+});
 
-  return NextResponse.next();
+export const config = {
+  matcher: ["/admin/:path*"],
 };
-
-export { middleware };

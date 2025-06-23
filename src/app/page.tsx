@@ -1,16 +1,19 @@
+"use server";
+
 import { Footer } from "@/app/_components/footer";
 import { HomeHeader } from "@/app/_components/homeHeader";
 import { InfoSegment } from "@/app/_components/infoSegment";
 import { Button } from "@/components/button";
-import { validateRequest } from "@/lib/lucia";
 import { IconLeaf, IconPlant2, IconSeeding } from "@tabler/icons-react";
 
+import { auth } from "../lib/auth/auth";
+
 const Home = async () => {
-  const { user } = await validateRequest();
+  const session = await auth();
 
   return (
     <main className="bg-off-white">
-      <HomeHeader user={user} />
+      <HomeHeader user={session?.user ?? null} />
 
       <div className="flex h-[97vh] flex-col bg-gradient-to-br from-cambridge-blue to-asparagus">
         <div className="pointer-events-none absolute h-[97vh] w-full overflow-clip">

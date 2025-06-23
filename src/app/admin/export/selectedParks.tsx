@@ -8,7 +8,9 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
+import PermissionGuard from "../../../components/auth/permissionGuard";
 import { Button } from "../../../components/button";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import {
   exportDailyTallys,
   exportEvaluation,
@@ -33,6 +35,7 @@ const SelectedParks = ({
   handleSelectedLocationsRemoval: (id: number) => void;
   handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [missingInfoSaveWarning, setMissingInfoSaveWarning] = useState(false);
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
@@ -48,7 +51,23 @@ const SelectedParks = ({
       (location) => location.exportRegistrationInfo,
     );
     const locationsIds = locationsToExport.map((location) => location.id);
-    const csvString = await exportRegistrationData(locationsIds);
+    const response = await exportRegistrationData(locationsIds);
+    if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para exportar dados de praças!</>,
+      });
+      return;
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro exportar dados de praças!</>,
+      });
+      return;
+    }
+    const csvString = response.CSVstring;
     if (csvString) {
       const blob = new Blob([csvString]);
       const url = URL.createObjectURL(blob);
@@ -59,6 +78,11 @@ const SelectedParks = ({
       link.click();
       document.body.removeChild(link);
     }
+    setHelperCard({
+      show: true,
+      helperCardType: "CONFIRM",
+      content: <>Dados de praças exportados!</>,
+    });
     setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
@@ -69,13 +93,29 @@ const SelectedParks = ({
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessments.length > 0,
     );
-    const csvObjs = await exportEvaluation(
+    const response = await exportEvaluation(
       locationsToExportEvaluations
         .map((location) =>
           location.assessments.map((assessment) => assessment.id),
         )
         .flat(),
     );
+    if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para exportar avaliações!</>,
+      });
+      return;
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro exportar avaliações!</>,
+      });
+      return;
+    }
+    const csvObjs = response.csvObjs;
     for (const csvObj of csvObjs) {
       const blob = new Blob([csvObj.csvString]);
       const url = URL.createObjectURL(blob);
@@ -89,6 +129,11 @@ const SelectedParks = ({
       link.click();
       document.body.removeChild(link);
     }
+    setHelperCard({
+      show: true,
+      helperCardType: "CONFIRM",
+      content: <>Avaliações exportadas!</>,
+    });
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
@@ -104,10 +149,29 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, tallys: true }));
-    const csvObj = await exportDailyTallys(
+    const response = await exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
     );
+    if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para exportar avaliações!</>,
+      });
+      return;
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro exportar avaliações!</>,
+      });
+      return;
+    }
+    const csvObj = {
+      CSVstringWeekdays: response.CSVstringWeekdays,
+      CSVstringWeekendDays: response.CSVstringWeekendDays,
+    };
     if (csvObj?.CSVstringWeekdays) {
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
         const csvString = csvObj.CSVstringWeekdays[i];
@@ -138,6 +202,11 @@ const SelectedParks = ({
         }
       }
     }
+    setHelperCard({
+      show: true,
+      helperCardType: "CONFIRM",
+      content: <>Contagens exportadas!</>,
+    });
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
   return (
@@ -205,42 +274,46 @@ const SelectedParks = ({
             "Exportando..."
           : "Exportar dados de cadastro"}
         </Button>
-        <Button
-          className="h-fit"
-          isDisabled={loadingExport.evaluations}
-          onPress={() => {
-            if (
-              selectedLocationsSaved.filter((location) => !location.saved)
-                .length === 0
-            ) {
-              setMissingInfoSaveWarning(false);
-              handleEvaluationExport().catch(() => ({ statusCode: 1 }));
-            } else {
-              setMissingInfoSaveWarning(true);
-            }
-          }}
-        >
-          {loadingExport.evaluations ?
-            "Exportando..."
-          : "Exportar avaliações físicas"}
-        </Button>
-        <Button
-          className="h-fit"
-          isDisabled={loadingExport.tallys}
-          onPress={() => {
-            if (
-              selectedLocationsSaved.filter((location) => !location.saved)
-                .length === 0
-            ) {
-              setMissingInfoSaveWarning(false);
-              handleTallysExport().catch(() => ({ statusCode: 1 }));
-            } else {
-              setMissingInfoSaveWarning(true);
-            }
-          }}
-        >
-          {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
-        </Button>
+        <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.evaluations}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleEvaluationExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport.evaluations ?
+              "Exportando..."
+            : "Exportar avaliações físicas"}
+          </Button>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.tallys}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleTallysExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
+          </Button>
+        </PermissionGuard>
       </div>
     </div>
   );

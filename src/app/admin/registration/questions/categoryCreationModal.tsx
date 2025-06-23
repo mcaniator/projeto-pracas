@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -19,6 +20,7 @@ const CategoryCreationModal = ({
 }: {
   fetchCategoriesAfterCreation: () => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const initialState = {
     statusCode: 0,
     categoryName: null,
@@ -39,10 +41,28 @@ const CategoryCreationModal = ({
   useEffect(() => {
     if (state.statusCode === 201) {
       setPageState("SUCCESS");
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Categoria criada!</>,
+      });
       fetchCategoriesAfterCreation();
-    } else if (state.statusCode === 400 || state.statusCode === 500)
+    } else if (state.statusCode === 401) {
       setPageState("ERROR");
-  }, [state, fetchCategoriesAfterCreation]);
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Não possui permissão para criar categoria!</>,
+      });
+    } else if (state.statusCode === 400 || state.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao criar categoria!</>,
+      });
+      setPageState("ERROR");
+    }
+  }, [state, fetchCategoriesAfterCreation, setHelperCard]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -65,7 +85,7 @@ const CategoryCreationModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }

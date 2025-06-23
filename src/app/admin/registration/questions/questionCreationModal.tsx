@@ -7,7 +7,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -16,6 +16,7 @@ import {
 } from "react-aria-components";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Checkbox } from "../../../../components/ui/checkbox";
 import { Input } from "../../../../components/ui/input";
 import { RadioButton } from "../../../../components/ui/radioButton";
@@ -37,6 +38,7 @@ const QuestionCreationModal = ({
   subcategoryName: string | undefined;
   fetchCategoriesAfterCreation: () => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(questionSubmit, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
@@ -103,10 +105,28 @@ const QuestionCreationModal = ({
   useEffect(() => {
     if (state?.statusCode === 201) {
       setPageState("SUCCESS");
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Questão registrada!</>,
+      });
       fetchCategoriesAfterCreation();
-    } else if (state?.statusCode === 400 || state?.statusCode === 500)
+    } else if (state?.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para registrar questões!</>,
+      });
       setPageState("ERROR");
-  }, [state, fetchCategoriesAfterCreation]);
+    } else if (state?.statusCode === 400 || state?.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao registar questão!</>,
+      });
+      setPageState("ERROR");
+    }
+  }, [state, fetchCategoriesAfterCreation, setHelperCard]);
   const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       if (!geometryTypes.includes(e.target.value)) {
@@ -145,7 +165,7 @@ const QuestionCreationModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }
@@ -190,16 +210,28 @@ const QuestionCreationModal = ({
                   )}
                   {!isPending && pageState === "FORM" && (
                     <form
-                      action={(e) => {
+                      onSubmit={(e) => {
+                        e.preventDefault();
                         if (
                           type === "OPTIONS" &&
                           (!addedOptions || addedOptions.length === 0)
                         ) {
                           setMinimumOptionsError(true);
                           return;
-                        } else {
-                          formAction(e);
                         }
+                        if (
+                          hasAssociatedGeometry &&
+                          geometryTypes.length === 0
+                        ) {
+                          setHelperCard({
+                            show: true,
+                            helperCardType: "ERROR",
+                            content: <>Nenhum tipo de geometria selecionado!</>,
+                          });
+                          return;
+                        }
+                        const formData = new FormData(e.currentTarget);
+                        startTransition(() => formAction(formData));
                       }}
                       className="flex w-full flex-col rounded-l"
                     >
@@ -345,7 +377,7 @@ const QuestionCreationModal = ({
                                 checked={geometryTypes.includes("POLYGON")}
                                 onChange={(e) => handleGeometryTypeChange(e)}
                               >
-                                Poligono
+                                Polígono
                               </Checkbox>
                             </div>
                           </div>
@@ -386,38 +418,6 @@ const QuestionCreationModal = ({
                                   </RadioButton>
                                 </div>
                               </div>
-                              {characterType === "number" && (
-                                <div>
-                                  <div>
-                                    <label
-                                      htmlFor={"minValue"}
-                                      className="font-semibold"
-                                    >
-                                      Valor mínimo:
-                                    </label>
-                                    <Input
-                                      className="w-full"
-                                      type="number"
-                                      name={"minValue"}
-                                      id={"minValue"}
-                                    />
-                                  </div>
-                                  <div>
-                                    <label
-                                      htmlFor={"maxValue"}
-                                      className="font-semibold"
-                                    >
-                                      Valor máximo:
-                                    </label>
-                                    <Input
-                                      className="w-full"
-                                      type="number"
-                                      name={"maxValue"}
-                                      id={"maxValue"}
-                                    />
-                                  </div>
-                                </div>
-                              )}
                             </div>
                           )}
 

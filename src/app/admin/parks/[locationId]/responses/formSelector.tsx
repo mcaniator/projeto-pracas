@@ -1,10 +1,11 @@
 import { fetchForms } from "@/serverActions/formUtil";
 import "@/serverActions/locationUtil";
-import { Form, Location } from "@prisma/client";
+import { Location } from "@prisma/client";
 import Link from "next/link";
 
 const FormSelector = async ({ location }: { location: Location }) => {
-  const allForms: Form[] = await fetchForms();
+  const response = await fetchForms();
+  const forms = response.forms;
 
   return (
     <div className="flex h-full flex-col overflow-auto rounded-lg bg-gray-300/30">
@@ -12,9 +13,9 @@ const FormSelector = async ({ location }: { location: Location }) => {
         Escolha o formulário para ver as respostas
       </h2>
 
-      {allForms.length > 0 ?
+      {forms.length > 0 ?
         <div className="flex h-full w-full flex-col overflow-auto rounded-lg">
-          {allForms.map((form, index) => (
+          {forms.map((form, index) => (
             <Link
               key={form.id}
               className={`p-2 ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} text-xl hover:bg-transparent/10 hover:underline`}

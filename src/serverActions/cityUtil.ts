@@ -1,10 +1,16 @@
 "use server";
 
 import { prisma } from "../lib/prisma";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type FetchCitiesType = Awaited<ReturnType<typeof fetchCities>>;
 
 const fetchCities = async () => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return { statusCode: 401, cities: [] };
+  }
   try {
     const cities = await prisma.city.findMany({
       include: {
@@ -37,9 +43,9 @@ const fetchCities = async () => {
       }
       return 0;
     });
-    return cities;
+    return { statusCode: 200, cities };
   } catch (error) {
-    return;
+    return { statusCode: 500, cities: [] };
   }
 };
 

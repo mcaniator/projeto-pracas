@@ -6,13 +6,22 @@ import { BrazilianStates } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { getPolygonsFromShp } from "./managePolygons";
-import { addPolygon, addPolygonFromWKT } from "./managePolygons";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import {
+  addPolygon,
+  addPolygonFromWKT,
+  getPolygonsFromShp,
+} from "../serverOnly/geometries";
 
 const createLocation = async (
   _curStatus: { statusCode: number; message: string },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, message: "Invalid permission" };
+  }
   let location;
   try {
     location = locationSchema.parse({
@@ -202,10 +211,18 @@ const createLocation = async (
 };
 
 const editLocationPolygon = async (id: number, featuresGeoJson: string) => {
-  await addPolygon(featuresGeoJson, id);
-  revalidateTag("location");
-
-  return { errorCode: 0, errorMessage: "" };
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  try {
+    await addPolygon(featuresGeoJson, id);
+    revalidateTag("location");
+    return { statusCode: 201 };
+  } catch (e) {
+    return { statusCode: 500 };
+  }
 };
 
 export { createLocation, editLocationPolygon };

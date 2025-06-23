@@ -10,15 +10,9 @@ import { FrequencyTable } from "./frequencyTable";
 
 const MainContainer = ({
   assessments,
-  assessmentsGeometries,
   locationName,
 }: {
   assessments: AssessmentsWithResposes;
-  assessmentsGeometries: {
-    assessmentId: number;
-    questionId: number;
-    geometry: string | null;
-  }[][];
   locationName: string;
 }) => {
   const [mainContent, setMainContent] = useState<"FREQUENCIES" | "ASSESSMENTS">(
@@ -34,8 +28,8 @@ const MainContainer = ({
   return (
     <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-2">
       <h3 className="flex overflow-auto p-2 text-xl font-semibold md:text-2xl xl:hidden">
-        Respostas ao formulario {assessments[0]?.form.name} referentes à
-        localidade {locationName}
+        Respostas ao formulario {assessments.assessments[0]?.form.name}{" "}
+        referentes à localidade {locationName}
       </h3>
       <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-500/30 py-1 shadow-inner xl:hidden">
         <Button
@@ -54,11 +48,8 @@ const MainContainer = ({
         </Button>
       </div>
       {mainContent === "ASSESSMENTS" ?
-        <AssessmentsWithResponsesList
-          assessments={assessments}
-          assessmentsGeometries={assessmentsGeometries}
-        />
-      : <FrequencyTable assessments={assessments} />}
+        <AssessmentsWithResponsesList assessments={assessments} />
+      : <FrequencyTable assessments={assessments.assessments} />}
     </div>
   );
 };

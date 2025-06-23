@@ -11,6 +11,7 @@ import {
 } from "react-aria-components";
 
 import LoadingIcon from "../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { deleteQuestion } from "../../../../serverActions/questionUtil";
 
 const QuestionDeletionModal = ({
@@ -22,17 +23,36 @@ const QuestionDeletionModal = ({
   questionName: string | undefined;
   fetchCategoriesAfterDeletion: () => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(deleteQuestion, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );
   useEffect(() => {
     if (state?.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Questão excluída!</>,
+      });
       setPageState("SUCCESS");
       fetchCategoriesAfterDeletion();
-    } else if (state?.statusCode === 409 || state?.statusCode === 500)
+    } else if (state?.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para excluir questões!</>,
+      });
       setPageState("ERROR");
-  }, [state, fetchCategoriesAfterDeletion]);
+    } else if (state?.statusCode === 409 || state?.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir questão!</>,
+      });
+      setPageState("ERROR");
+    }
+  }, [state, fetchCategoriesAfterDeletion, setHelperCard]);
   return (
     <DialogTrigger
       onOpenChange={() => {
@@ -48,7 +68,7 @@ const QuestionDeletionModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-40 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }

@@ -2,13 +2,20 @@
 
 import { prisma } from "@/lib/prisma";
 
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+
 type LocationCategories = Awaited<ReturnType<typeof fetchLocationCategories>>;
 
 const fetchLocationCategories = async () => {
-  const defaultReturnArray: {
-    id: number;
-    name: string;
-  }[] = [];
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      message: "No permission to fetch location categories",
+      categories: [],
+    };
+  }
   try {
     const locationCategories = await prisma.locationCategory.findMany();
     return {
@@ -20,7 +27,7 @@ const fetchLocationCategories = async () => {
     return {
       statusCode: 500,
       message: "Error during category fetch",
-      categories: defaultReturnArray,
+      categories: [],
     };
   }
 };

@@ -2,7 +2,12 @@
 
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
-import React, { useActionState, useEffect, useState } from "react";
+import React, {
+  startTransition,
+  useActionState,
+  useEffect,
+  useState,
+} from "react";
 
 import { FetchCitiesType } from "../../serverActions/cityUtil";
 import { LocationCategories } from "../../serverActions/locationCategoryUtil";
@@ -10,6 +15,7 @@ import { LocationTypes } from "../../serverActions/locationTypeUtil";
 import { updateLocation } from "../../serverActions/locationUtil";
 import { createLocation } from "../../serverActions/manageLocations";
 import LoadingIcon from "../LoadingIcon";
+import { useHelperCard } from "../context/helperCardContext";
 import { Input } from "../ui/input";
 import LocationRegisterCityForm from "./locationRegisterCityForm";
 import { LocationFormType } from "./locationRegisterForm";
@@ -70,6 +76,7 @@ const LocationRegisterFormClient = ({
   locationTypes: LocationTypes;
   onSuccess?: () => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const action = formType === "CREATE" ? createLocation : updateLocation;
   const [formState, formAction, isPending] = useActionState(
     action,
@@ -120,9 +127,47 @@ const LocationRegisterFormClient = ({
 
   useEffect(() => {
     if (formState.statusCode === 201 || formState.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: (
+          <>
+            Localização {formType === "CREATE" ? "criada" : "atualizada"} com
+            sucesso!
+          </>
+        ),
+      });
       onSuccess?.();
+    } else if (formState.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para criar/atualizar praças!</>,
+      });
+    } else if (formState.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao criar/atualizar praça!</>,
+      });
     }
-  }, [formState.statusCode, onSuccess]);
+  }, [formState.statusCode, onSuccess, setHelperCard, formType]);
+
+  useEffect(() => {
+    if (cities.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para obter regiões das cidades!</>,
+      });
+    } else if (cities.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao obter regiões das cidades!</>,
+      });
+    }
+  }, [cities, setHelperCard]);
 
   const goToPreviousPage = () => {
     setPage((prev) => prev - 1);
@@ -149,8 +194,9 @@ const LocationRegisterFormClient = ({
     if (shapefile) {
       formData.append("file", shapefile.file);
     }
-
-    formAction(formData);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -180,7 +226,7 @@ const LocationRegisterFormClient = ({
             {page === 1 && (
               <LocationRegisterCityForm
                 parkData={parkData}
-                cities={cities}
+                cities={cities.cities}
                 goToPreviousPage={goToPreviousPage}
                 goToNextPage={goToNextPage}
                 setParkData={setParkData}

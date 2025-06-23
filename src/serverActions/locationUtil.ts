@@ -6,8 +6,12 @@ import { BrazilianStates, Location } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { getPolygonsFromShp } from "./managePolygons";
-import { addPolygonFromWKT, hasPolygon } from "./managePolygons";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import {
+  addPolygonFromWKT,
+  getPolygonsFromShp,
+  hasPolygon,
+} from "../serverOnly/geometries";
 
 interface LocationWithCity extends Location {
   hasGeometry: boolean;
@@ -47,19 +51,69 @@ interface LocationWithCity extends Location {
 
 const deleteLocation = async (id: number) => {
   try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, formNamesAndVersions: null, itemsCount: null };
+  }
+  try {
+    const location = await prisma.location.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        assessment: {
+          select: {
+            form: {
+              select: {
+                name: true,
+                version: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { tally: true, assessment: true },
+        },
+      },
+    });
+    if (!location) {
+      return { statusCode: 404, formNamesAndVersions: null, itemsCount: null };
+    }
+
+    if (location.assessment.length > 0) {
+      const formNamesAndVersions = new Map<string, Set<number>>();
+      location.assessment.forEach((assessment) => {
+        if (!formNamesAndVersions.has(assessment.form.name)) {
+          formNamesAndVersions.set(assessment.form.name, new Set());
+        }
+        const versionSet = formNamesAndVersions.get(assessment.form.name);
+        versionSet?.add(assessment.form.version);
+      });
+      console.log(formNamesAndVersions.keys());
+      return {
+        statusCode: 409,
+        formNamesAndVersions,
+        itemsCount: location._count,
+      };
+    }
     await prisma.location.delete({
       where: {
         id,
       },
     });
     revalidateTag("location");
-    return { statusCode: 200 };
+    return { statusCode: 200, formNamesAndVersions: null, itemsCount: null };
   } catch (err) {
-    return { statusCode: 500 };
+    return { statusCode: 500, formNamesAndVersions: null, itemsCount: null };
   }
 };
 
 const searchLocationsById = async (id: number) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return { statusCode: 401, location: null };
+  }
   let foundLocation;
   try {
     foundLocation = await prisma.location.findUnique({
@@ -117,29 +171,41 @@ const searchLocationsById = async (id: number) => {
       hasGeometry: locationHasPolygon ?? false,
     };
     return { statusCode: 200, location: foundLocation };
-    //TODO
   } catch (err) {
     return { statusCode: 500, location: null };
   }
 };
 
 const searchLocationNameById = async (id: number) => {
-  const location = await prisma.location.findUnique({
-    where: {
-      id: id,
-    },
-    select: {
-      name: true,
-    },
-  });
-  if (location) return location.name;
-  else return "Erro ao encontrar nome";
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+  } catch (e) {
+    return { statusCode: 401, locationName: null };
+  }
+  try {
+    const location = await prisma.location.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        name: true,
+      },
+    });
+    return { statusCode: 200, locationName: location?.name };
+  } catch (e) {
+    return { statusCode: 500, locationName: null };
+  }
 };
 
 const updateLocation = async (
   prevState: { statusCode: number; message: string },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, message: "Invalid permission" };
+  }
   let parseId;
   try {
     parseId = z.coerce

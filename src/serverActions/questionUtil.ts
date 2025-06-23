@@ -2,10 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
-import { Option, Question } from "@prisma/client";
+import { Question } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
 import { DisplayQuestion } from "../app/admin/registration/forms/[formId]/edit/client";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -41,6 +42,11 @@ const questionSubmit = async (
   prevState: { statusCode: number; questionName: string | null } | null,
   formData: FormData,
 ): Promise<{ statusCode: number; questionName: string | null } | null> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, questionName: null };
+  }
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
@@ -79,8 +85,6 @@ const questionSubmit = async (
               Number(formData.get("subcategoryId")) > 0 ?
                 formData.get("subcategoryId")
               : undefined,
-            minValue: formData.get("minValue"),
-            maxValue: formData.get("maxValue"),
             geometryTypes:
               (
                 formData.getAll("geometryTypes").length > 0 &&
@@ -208,6 +212,14 @@ const deleteQuestion = async (
     questionName: string | null;
   } | null;
 }> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      content: { formsWithQuestion: [], questionName: null },
+    };
+  }
   const questionId = parseInt(formData.get("questionId") as string);
   try {
     const formsWithQuestion = await prisma.form.findMany({
@@ -249,37 +261,12 @@ const deleteQuestion = async (
   }
 };
 
-const searchQuestionsByFormId = async (formId: number) => {
-  const questions = await prisma.question.findMany({
-    where: {
-      forms: {
-        some: {
-          id: formId,
-        },
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      subcategory: {
-        select: {
-          id: true,
-          name: true,
-          categoryId: true,
-        },
-      },
-    },
-  });
-  return questions;
-};
-
 const searchQuestionsByStatement = async (statement: string) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, questions: [] };
+  }
   const cachedQuestions = unstable_cache(
     async (statement: string): Promise<DisplayQuestion[]> => {
       if (statement.length < 2) return [];
@@ -318,7 +305,7 @@ const searchQuestionsByStatement = async (statement: string) => {
           },
         });
       } catch (err) {
-        // console.error(err);
+        throw new Error("Error fetching questions");
       }
 
       return foundQuestions;
@@ -326,8 +313,12 @@ const searchQuestionsByStatement = async (statement: string) => {
     ["searchQuestionsByStatementCache"],
     { tags: ["question"] },
   );
-
-  return await cachedQuestions(statement);
+  try {
+    const questions = await cachedQuestions(statement);
+    return { statusCode: 200, questions: questions };
+  } catch (e) {
+    return { statusCode: 500, questions: [] };
+  }
 };
 
 const searchQuestionsByCategoryAndSubcategory = async (
@@ -335,6 +326,11 @@ const searchQuestionsByCategoryAndSubcategory = async (
   subcategoryId: number | undefined,
   verifySubcategoryNullness: boolean,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, questions: [] };
+  }
   const cachedQuestions = unstable_cache(
     async (
       categoryId: number | undefined,
@@ -381,7 +377,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
           },
         });
       } catch (err) {
-        // console.error(err);
+        throw new Error("Error fetching questions");
       }
 
       return foundQuestions;
@@ -389,32 +385,20 @@ const searchQuestionsByCategoryAndSubcategory = async (
     ["searchQuestionsByStatementCache"],
     { tags: ["question"] },
   );
-  const questions = await cachedQuestions(
-    categoryId,
-    subcategoryId,
-    verifySubcategoryNullness,
-  );
-  questions.sort((a, b) => {
-    if (a.name < b.name) return -1;
-    if (a.name > b.name) return 1;
-    return 0;
-  });
-  return questions;
-};
-
-const searchOptionsByQuestionId = async (
-  questionId: number,
-): Promise<Option[]> => {
   try {
-    const options = await prisma.option.findMany({
-      where: {
-        questionId: questionId,
-      },
+    const questions = await cachedQuestions(
+      categoryId,
+      subcategoryId,
+      verifySubcategoryNullness,
+    );
+    questions.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
     });
-    return options;
-  } catch (err) {
-    // console.error(`Erro ao buscar opções para a pergunta: ${questionId}`, err);
-    return [];
+    return { statusCode: 200, questions: questions };
+  } catch (e) {
+    return { statusCode: 500, questions: [] };
   }
 };
 
@@ -422,9 +406,7 @@ export {
   questionSubmit,
   deleteQuestion,
   searchQuestionsByStatement,
-  searchOptionsByQuestionId,
   searchQuestionsByCategoryAndSubcategory,
-  searchQuestionsByFormId,
 };
 
 export type { QuestionSearchedByStatement, QuestionWithCategories };

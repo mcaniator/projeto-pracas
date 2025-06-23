@@ -1,11 +1,14 @@
 "use server";
 
 import { TallyCreationFormType } from "@/components/singleUse/admin/tallys/tallyCreation";
-import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
 import { prisma } from "@/lib/prisma";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+import PermissionError from "../errors/permissionError";
+import { getSessionUserId } from "../lib/auth/userUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface WeatherStats {
   temperature: number | null;
@@ -25,10 +28,13 @@ interface PersonWithQuantity {
   quantity: number;
 }
 const fetchTallysByLocationId = async (locationId: number) => {
-  let foundTallys: TallyDataFetchedToTallyList[] = [];
-
   try {
-    foundTallys = await prisma.tally.findMany({
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
+  try {
+    const tallys = await prisma.tally.findMany({
       where: {
         locationId: locationId,
       },
@@ -39,15 +45,16 @@ const fetchTallysByLocationId = async (locationId: number) => {
         user: {
           select: {
             username: true,
+            id: true,
           },
         },
       },
     });
+    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+    return { statusCode: 200, tallys };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tallys: [] };
   }
-  foundTallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-  return foundTallys;
 };
 
 const fetchRecentlyCompletedTallys = async () => {
@@ -62,10 +69,15 @@ const fetchRecentlyCompletedTallys = async () => {
         id: number;
       };
       user: {
-        username: string;
+        username: string | null;
       };
     }[];
   } = { statusCode: 500, tallys: [] };
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
   try {
     const tallys = await prisma.tally.findMany({
       where: {
@@ -102,6 +114,13 @@ const fetchRecentlyCompletedTallys = async () => {
 };
 
 const fetchOngoingTallyById = async (tallyId: number) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401, tally: null };
+  }
   try {
     const tally = await prisma.tally.findUnique({
       where: {
@@ -144,13 +163,18 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         commercialActivities: true,
       },
     });
-    return tally?.endDate ? null : tally;
+    return { statusCode: 200, tally: tally?.endDate ? null : tally };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tally: null };
   }
 };
 
 const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch (e) {
+    return { statusCode: 401, tallys: [] };
+  }
   try {
     let tallys = await prisma.tally.findMany({
       where: {
@@ -186,9 +210,9 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
       if (tally.endDate) return true;
     });
     tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return tallys;
+    return { statusCode: 200, tallys };
   } catch (error) {
-    return null;
+    return { statusCode: 500, tallys: null };
   }
 };
 
@@ -200,18 +224,22 @@ const createTally = async (
   const userId = formData.get("userId") as string;
   const date = formData.get("date") as string;
 
-  if (!userId || !date) {
-    return {
-      locationId: locationId,
-      userId: userId,
-      date: date,
-      errors: {
-        userId: !userId,
-        date: !date,
-      },
-    };
-  }
   try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+    });
+    if (!userId || !date) {
+      return {
+        locationId: locationId,
+        userId: userId,
+        date: date,
+        errors: {
+          userId: !userId,
+          date: !date,
+          permission: false,
+        },
+      };
+    }
     await prisma.tally.create({
       data: {
         location: {
@@ -235,6 +263,7 @@ const createTally = async (
       errors: {
         userId: false,
         date: false,
+        permission: false,
       },
     };
   } catch (error) {
@@ -245,6 +274,7 @@ const createTally = async (
       errors: {
         userId: !userId,
         date: !date,
+        permission: error instanceof PermissionError,
       },
     };
   }
@@ -258,6 +288,13 @@ const saveOngoingTallyData = async (
   complementaryData: { animalsAmount: number; groupsAmount: number },
   endDate: Date | null,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+    });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
   const persons: PersonWithQuantity[] = [];
 
   tallyMap.forEach((quantity, key) => {
@@ -347,12 +384,36 @@ const saveOngoingTallyData = async (
         });
       }
     });
+    return { statusCode: 200 };
   } catch (error) {
-    return null;
+    return { statusCode: 500 };
   }
 };
 
 const deleteTallys = async (tallysIds: number[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
+    });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  const userId = await getSessionUserId();
+  const userTallysAmount = await prisma.tally.count({
+    where: {
+      id: {
+        in: tallysIds,
+      },
+      userId,
+    },
+  });
+  if (userTallysAmount < tallysIds.length) {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+    } catch (e) {
+      return { statusCode: 403 };
+    }
+  }
   try {
     await prisma.$transaction(async (prisma) => {
       await prisma.tallyPerson.deleteMany({
@@ -371,8 +432,9 @@ const deleteTallys = async (tallysIds: number[]) => {
         },
       });
     });
+    return { statusCode: 200 };
   } catch (error) {
-    return { statusCode: 1 };
+    return { statusCode: 500 };
   }
 };
 

@@ -2,7 +2,10 @@ import { searchLocationsById } from "@/serverActions/locationUtil";
 import { IconMapPin } from "@tabler/icons-react";
 import Link from "next/link";
 
-const Page = async ({ params }: { params: { locationId: string } }) => {
+import PermissionGuard from "../../../../components/auth/permissionGuard";
+
+const Page = async (props: { params: Promise<{ locationId: string }> }) => {
+  const params = await props.params;
   const location = (await searchLocationsById(parseInt(params.locationId)))
     .location;
   const locationIdNumber = parseInt(params.locationId);
@@ -32,33 +35,41 @@ const Page = async ({ params }: { params: { locationId: string } }) => {
           >
             Informações
           </Link>
-          <Link
-            className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-            href={`/admin/parks/${locationIdNumber}/edit`}
-          >
-            Editar
-          </Link>
+          <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/edit`}
+            >
+              Editar
+            </Link>
+          </PermissionGuard>
+          <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/responses`}
+            >
+              Ver Avaliações
+            </Link>
+          </PermissionGuard>
 
-          <Link
-            className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-            href={`/admin/parks/${locationIdNumber}/responses`}
+          <PermissionGuard
+            requiresAnyRoles={["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"]}
           >
-            Ver Avaliações
-          </Link>
-
-          <Link
-            className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-            href={`/admin/parks/${locationIdNumber}/evaluation`}
-          >
-            Avaliar
-          </Link>
-
-          <Link
-            className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
-            href={`/admin/parks/${locationIdNumber}/tallys`}
-          >
-            Contagens
-          </Link>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/evaluation`}
+            >
+              Avaliar
+            </Link>
+          </PermissionGuard>
+          <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/tallys`}
+            >
+              Contagens
+            </Link>
+          </PermissionGuard>
         </div>
       </div>
     );

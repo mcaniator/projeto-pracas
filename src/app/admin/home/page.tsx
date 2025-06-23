@@ -1,15 +1,34 @@
-"use server";
+"use client";
 
+import PermissionGuard from "@components/auth/permissionGuard";
 import {
   IconFountain,
   IconListCheck,
   IconLogs,
   IconMap,
   IconTableExport,
+  IconUserCog,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+
+import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
+  const helperCardContext = useHelperCard();
+  const params = useSearchParams();
+
+  useEffect(() => {
+    if (params.get("permissionDenied") === "true") {
+      helperCardContext.setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Permissão negada</>,
+      });
+    }
+  });
+
   return (
     <div
       className={
@@ -34,27 +53,42 @@ const AdminRoot = () => {
           <IconMap className="mb-1" size={34} />
           Mapa
         </Link>
+
+        <PermissionGuard requiresAnyRoleGroups={["FORM"]}>
+          <Link
+            href="registration/questions"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconListCheck className="mb-1" size={34} />
+            Formulários
+          </Link>
+        </PermissionGuard>
+
         <Link
-          href="registration"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
-        >
-          <IconListCheck className="mb-1" size={34} />
-          Formulários
-        </Link>
-        <Link
-          href="registration"
+          href="export"
           className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
         >
           <IconTableExport className="mb-1" size={34} />
           Exportar
         </Link>
-        <Link
-          href="activity"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
-        >
-          <IconLogs className="mb-1" size={34} />
-          Atividade
-        </Link>
+        <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT", "TALLY"]}>
+          <Link
+            href="activity"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconLogs className="mb-1" size={34} />
+            Atividade
+          </Link>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["USER"]}>
+          <Link
+            href="users"
+            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          >
+            <IconUserCog className="mb-1" size={34} />
+            Usuários
+          </Link>
+        </PermissionGuard>
       </div>
     </div>
   );

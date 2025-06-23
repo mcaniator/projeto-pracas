@@ -10,6 +10,8 @@ import {
 import Link from "next/link";
 import React, { useState } from "react";
 
+import PermissionError from "../../../../errors/permissionError";
+import { useHelperCard } from "../../../context/helperCardContext";
 import { TallyDataFetchedToTallyList } from "./tallyListPage";
 
 const TallyFilter = ({
@@ -27,6 +29,7 @@ const TallyFilter = ({
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [loadingExport, setLoadingExport] = useState({
     individual: false,
     added: false,
@@ -35,16 +38,40 @@ const TallyFilter = ({
   const handleTallysExport = async (addedContent: boolean) => {
     const tallysIds = activeTallys?.map((tally) => tally.id);
     if (!tallysIds || tallysIds.length === 0) return;
-
-    let csvString = "";
-    if (addedContent) {
-      setLoadingExport({ individual: false, added: true });
-      csvString = await exportDailyTallysFromSingleLocation(tallysIds);
-    } else {
-      setLoadingExport({ individual: true, added: false });
-      csvString = await exportIndividualTallysToCSV(tallysIds);
+    let csvString: string | null = "";
+    try {
+      if (addedContent) {
+        setLoadingExport({ individual: false, added: true });
+        const returnObj = await exportDailyTallysFromSingleLocation(tallysIds);
+        if (returnObj.statusCode === 401) {
+          throw new PermissionError("Error");
+        }
+        csvString = returnObj.CSVstring;
+      } else {
+        setLoadingExport({ individual: true, added: false });
+        const returnObj = await exportIndividualTallysToCSV(tallysIds);
+        csvString = returnObj.CSVstring;
+        if (returnObj.statusCode === 401) {
+          throw new PermissionError("Error");
+        }
+      }
+    } catch (e) {
+      if (e instanceof PermissionError) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Permissão negada!</>,
+        });
+        return;
+      }
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao exportar!</>,
+      });
+      return;
     }
-
+    if (!csvString) return;
     const blob = new Blob([csvString]);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

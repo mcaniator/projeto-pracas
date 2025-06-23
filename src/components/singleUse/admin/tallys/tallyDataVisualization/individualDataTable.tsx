@@ -43,7 +43,7 @@ interface TallyDataFetched {
   startDate: Date;
   endDate: Date | null;
   user: {
-    username: string;
+    username: string | null;
   };
   animalsAmount: number | null;
   groups: number | null;
@@ -89,7 +89,7 @@ const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
             </p>
             <p>
               <strong>{"Observador(a): "}</strong>
-              {formatName(tally.user.username)}
+              {formatName(tally.user.username ?? "")}
             </p>
             <p>
               <strong>{"Temperatura: "}</strong>

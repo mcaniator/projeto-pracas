@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import AssessmentCreation from "./assessmentCreation";
 import { AssessmentList } from "./assessmentList";
 import { AssessmentDataFetchedToAssessmentList } from "./page";
@@ -9,18 +10,20 @@ import { AssessmentDataFetchedToAssessmentList } from "./page";
 const AssessmentsInProgressPage = ({
   locationId,
   formId,
-  userId,
   locationName,
   formName,
   assessments,
 }: {
   locationId: number;
   formId: number;
-  userId: string;
   locationName: string;
   formName: string;
-  assessments: AssessmentDataFetchedToAssessmentList[];
+  assessments: {
+    statusCode: number;
+    assessments: AssessmentDataFetchedToAssessmentList[];
+  };
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [isMobileView, setIsMobileView] = useState(false);
   useEffect(() => {
     window.addEventListener("resize", () => {
@@ -36,6 +39,22 @@ const AssessmentsInProgressPage = ({
       setIsMobileView(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (assessments.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para acessar avaliações!</>,
+      });
+    } else if (assessments.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao acessar avaliações!</>,
+      });
+    }
+  }, [assessments, setHelperCard]);
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
       <div
@@ -49,36 +68,32 @@ const AssessmentsInProgressPage = ({
 
         {!isMobileView && (
           <div className={"flex w-full flex-col gap-1 overflow-auto"}>
-            {!assessments || assessments.length === 0 ?
+            {!assessments || assessments.assessments.length === 0 ?
               <h3>Nenhuma avaliação em progresso para este local!</h3>
             : <>
                 <AssessmentList
                   locationId={locationId}
                   formId={formId}
                   formName={formName}
-                  assessments={assessments}
+                  assessments={assessments.assessments}
                 />
               </>
             }
           </div>
         )}
         <div className={`flex h-fit ${!isMobileView} rounded-3xl shadow-inner`}>
-          <AssessmentCreation
-            locationId={locationId}
-            formId={formId}
-            userId={userId}
-          />
+          <AssessmentCreation locationId={locationId} formId={formId} />
         </div>
         {isMobileView && (
           <div className={"flex w-full flex-col gap-1"}>
-            {!assessments || assessments.length === 0 ?
+            {!assessments || assessments.assessments.length === 0 ?
               <h3>Nenhuma avaliação em progresso para este local!</h3>
             : <>
                 <AssessmentList
                   locationId={locationId}
                   formId={formId}
                   formName={formName}
-                  assessments={assessments}
+                  assessments={assessments.assessments}
                 />
               </>
             }

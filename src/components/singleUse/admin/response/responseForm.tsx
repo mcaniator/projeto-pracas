@@ -16,15 +16,20 @@ import {
   IconDeviceFloppy,
   IconFileCheck,
   IconHelp,
+  IconPencilExclamation,
   IconTrash,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Coordinate } from "ol/coordinate";
 import { Type } from "ol/geom/Geometry";
 import React from "react";
 import { useEffect, useState } from "react";
 
+import { checkIfRolesArrayContainsAny } from "../../../../lib/auth/rolesUtil";
 import LoadingIcon from "../../../LoadingIcon";
+import { useUserContext } from "../../../context/UserContext";
+import { useHelperCard } from "../../../context/helperCardContext";
 import { MapPopup } from "./MapPopup";
 import { DeleteAssessmentModal } from "./deleteAssessmentModal";
 
@@ -36,18 +41,18 @@ interface ModalGeometry {
 type ResponseGeometry = "POINT" | "POLYGON" | "POINT_AND_POLYGON";
 
 const ResponseForm = ({
-  userId,
   locationId,
   categoriesObj,
   assessment,
   fetchedGeometries,
 }: {
-  userId: string;
   locationId: number;
   categoriesObj: CategoryWithSubcategoryAndQuestion[];
   assessment: AssessmentWithResposes;
   fetchedGeometries: FetchedAssessmentGeometries;
 }) => {
+  const { setHelperCard } = useHelperCard();
+  const { user } = useUserContext();
   const [showHelp, setShowHelp] = useState(false);
   const [responses, setResponses] = useState<{
     [key: number]: { value: string[]; type: QuestionTypes };
@@ -162,6 +167,16 @@ const ResponseForm = ({
       }
     });
   };
+
+  if (user.id !== assessment.userId) {
+    if (
+      !checkIfRolesArrayContainsAny(user.roles, {
+        roles: ["ASSESSMENT_MANAGER"],
+      })
+    ) {
+      redirect("/error");
+    }
+  }
 
   const [assessmentEnded, setAssessmentEnded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -280,9 +295,27 @@ const ResponseForm = ({
       assessment.id,
       responsesArray,
       geometries,
-      userId,
       endAssessment,
     );
+    if (response.statusCode === 201) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Respostas salvas!</>,
+      });
+    } else if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para salvar respostas!</>,
+      });
+    } else if (response.statusCode === 404 || response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao salvar respostas!</>,
+      });
+    }
     setIsLoading(false);
     setSaveStatus(response.statusCode !== 500 ? "SUCCESS" : "ERROR");
     setAssessmentEnded(endAssessment);
@@ -410,7 +443,7 @@ const ResponseForm = ({
             <p className="text-green-400">Respostas salvas!</p>
           : <p className="text-red-500">Erro ao salvar!</p>)}
         {assessment.form.questions !== null && assessmentEnded === false ?
-          <div className="w-full max-w-[70rem] py-5">
+          <div className="w-full py-5">
             {categoriesObj.map((category) => {
               return (
                 <React.Fragment key={category.id}>
@@ -426,6 +459,12 @@ const ResponseForm = ({
                           <label htmlFor={`response${question.id}`}>
                             {question.name}
                           </label>
+                          {question.notes && (
+                            <div className="flex flex-row items-center gap-1">
+                              <IconPencilExclamation /> {question.notes}
+                            </div>
+                          )}
+
                           {question.geometryTypes.length > 0 && (
                             <span className="px-2">
                               <MapPopup
@@ -570,6 +609,11 @@ const ResponseForm = ({
                                 <label htmlFor={`response${question.id}`}>
                                   {question.name}
                                 </label>
+                                {question.notes && (
+                                  <div className="flex flex-row items-center gap-1">
+                                    <IconPencilExclamation /> {question.notes}
+                                  </div>
+                                )}
                                 {question.geometryTypes.length > 0 && (
                                   <span className="px-2">
                                     <MapPopup

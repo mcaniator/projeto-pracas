@@ -5,6 +5,8 @@ import { deleteTallys, redirectToTallysList } from "@/serverActions/tallyUtil";
 import { useState } from "react";
 import React from "react";
 
+import { useHelperCard } from "../../../../context/helperCardContext";
+
 const DeleteTallySection = ({
   tallyIds,
   locationId,
@@ -12,12 +14,50 @@ const DeleteTallySection = ({
   tallyIds: number[];
   locationId: number;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [showDeletionConfirmation, setShowDeletionConfirmation] =
     useState(false);
   const [deleting, setDeleting] = useState(false);
   const handleTallyDeletion = async () => {
     setDeleting(true);
-    await deleteTallys(tallyIds);
+    try {
+      const response = await deleteTallys(tallyIds);
+      if (response.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para excluir contagens!</>,
+        });
+        setDeleting(false);
+        return;
+      } else if (response.statusCode === 403) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: (
+            <>Você só possui permissão para excluir as próprias contagens!</>
+          ),
+        });
+        setDeleting(false);
+        return;
+      } else if (response.statusCode === 500) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao excluir contagens!</>,
+        });
+        setDeleting(false);
+        return;
+      }
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao excluir contagens!</>,
+      });
+      setDeleting(false);
+      return;
+    }
     redirectToTallysList(locationId);
   };
   return (

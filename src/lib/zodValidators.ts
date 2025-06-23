@@ -6,7 +6,6 @@ import {
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
-  UserTypes,
   WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
@@ -22,16 +21,91 @@ export type { zodErrorType };
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
 
-const userSchema = z.object({
-  email: z.string().trim().email().optional(),
-  username: z.string().trim().toLowerCase().min(1).max(255),
-  type: z.nativeEnum(UserTypes),
+const userRegisterSchema = z
+  .object({
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email({ message: "Não é um e-mail válido" }),
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "O nome de deve conter pelo menos 1 caractere." })
+      .max(255, { message: "O nome deve conter no máximo 255 caracteres" }),
+    password: z
+      .string()
+      .min(8, { message: "A senha deve conter pelo menos 8 caracteres" })
+      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula.")
+      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula.")
+      .regex(/[0-9]/, "A senha deve conter pelo menos um número.")
+      .regex(/[\W_]/, "A senha deve conter pelo menos um caractere especial."),
+    confirmPassword: z.string(),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "As senhas não coincidem.",
+      });
+    }
+  });
+
+const passwordResetSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "A senha deve conter pelo menos 8 caracteres" })
+      .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula.")
+      .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula.")
+      .regex(/[0-9]/, "A senha deve conter pelo menos um número.")
+      .regex(/[\W_]/, "A senha deve conter pelo menos um caractere especial."),
+    confirmPassword: z.string(),
+    token: z.string({ message: "Token não enviado!" }),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "As senhas não coincidem.",
+      });
+    }
+  });
+
+const userUpdateUsernameSchema = z.object({
+  userId: z.string(),
+  username: z
+    .string()
+    .trim()
+    .min(1, {
+      message: "O nome de usuário deve conter pelo menos 1 caractere.",
+    })
+    .max(255, {
+      message: "O nome de usuário deve conter no máximo 255 caracteres",
+    })
+    .regex(/^[a-z0-9.]+$/, {
+      message: "O nome de usuário pode conter apenas letras minúsculas e '.'",
+    }),
 });
 
-type userType = z.infer<typeof userSchema>;
+const userLoginSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(8),
+});
 
-export { userSchema };
-export type { userType };
+type userRegisterType = z.infer<typeof userRegisterSchema>;
+type userUpdateUsernameType = z.infer<typeof userUpdateUsernameSchema>;
+type userLoginType = z.infer<typeof userLoginSchema>;
+
+export {
+  userRegisterSchema,
+  userLoginSchema,
+  userUpdateUsernameSchema,
+  passwordResetSchema,
+};
+export type { userRegisterType, userUpdateUsernameType, userLoginType };
 
 // #endregion
 
@@ -56,8 +130,6 @@ const questionSchema = z.object({
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-  minValue: z.coerce.number().finite().optional(),
-  maxValue: z.coerce.number().finite().optional(),
   optionType: z.nativeEnum(OptionTypes).optional(),
   maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
   geometryTypes: z.array(z.nativeEnum(QuestionGeometryTypes)).optional(),

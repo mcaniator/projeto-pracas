@@ -3,10 +3,13 @@ import { searchFormById } from "@/serverActions/formUtil";
 import { IconEdit } from "@tabler/icons-react";
 import Link from "next/link";
 
+import PermissionGuard from "../../../../../components/auth/permissionGuard";
 import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
-const Page = async ({ params }: { params: { formId: string } }) => {
-  const form = await searchFormById(parseInt(params.formId));
+const Page = async (props: { params: Promise<{ formId: string }> }) => {
+  const params = await props.params;
+  const response = await searchFormById(parseInt(params.formId));
+  const form = response.form;
   const formIdNumber = parseInt(params.formId);
   const categories: {
     id: number;
@@ -99,21 +102,23 @@ const Page = async ({ params }: { params: { formId: string } }) => {
               <h3 className={"w-full text-2xl font-semibold sm:text-3xl"}>
                 {form?.name}
               </h3>
-              <div className="flex gap-2 sm:w-full">
-                <Link
-                  href={`/admin/registration/forms/${formIdNumber}/edit`}
-                  className="sm:ml-auto"
-                >
-                  <Button className="w-fit items-center p-2 text-sm sm:text-xl">
-                    <IconEdit />
-                  </Button>
-                </Link>
-                <FormVersionDeletionModal
-                  formId={form.id}
-                  formName={form.name}
-                  formVersion={form.version}
-                />
-              </div>
+              <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                <div className="flex gap-2 sm:w-full">
+                  <Link
+                    href={`/admin/registration/forms/${formIdNumber}/edit`}
+                    className="sm:ml-auto"
+                  >
+                    <Button className="w-fit items-center p-2 text-sm sm:text-xl">
+                      <IconEdit />
+                    </Button>
+                  </Link>
+                  <FormVersionDeletionModal
+                    formId={form.id}
+                    formName={form.name}
+                    formVersion={form.version}
+                  />
+                </div>
+              </PermissionGuard>
             </div>
             <span>Versão: {form?.version}</span>
             <div>Perguntas do formulário:</div>

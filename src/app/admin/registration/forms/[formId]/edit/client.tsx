@@ -1,8 +1,9 @@
 "use client";
 
 import { QuestionForm } from "@/app/admin/registration/forms/[formId]/edit/questionForm";
-import { CategoriesWithQuestions } from "@/serverActions/categoryUtil";
+import { CategoriesWithQuestionsAndStatusCode } from "@/serverActions/categoryUtil";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
+import { useHelperCard } from "@components/context/helperCardContext";
 import {
   CalculationTypes,
   OptionTypes,
@@ -75,8 +76,9 @@ const Client = ({
   categories,
 }: {
   form: FormToEditPage;
-  categories: CategoriesWithQuestions;
+  categories: CategoriesWithQuestionsAndStatusCode;
 }) => {
+  const { setHelperCard } = useHelperCard();
   const [updatedQuestions, setUpdatedQuestions] = useState<DisplayQuestion[]>(
     [],
   );
@@ -102,6 +104,7 @@ const Client = ({
     useState(false);
 
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
+  const [loadingView, setLoadingView] = useState(true);
   const [isPending, setIsPending] = useState(false);
   const handleQuestionsToAdd = (question: DisplayQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
@@ -158,6 +161,28 @@ const Client = ({
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    setLoadingView(false);
+  }, [isMobileView]);
+
+  useEffect(() => {
+    if (categories.statusCode !== 200) {
+      if (categories.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para obter categorias!</>,
+        });
+      } else {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao obter categorias!</>,
+        });
+      }
+    }
+  }, [categories, setHelperCard]);
 
   const addCalculationToAdd = (calculation: AddCalculationToAddObj) => {
     setCalculationsToAdd((prev) => [
@@ -250,17 +275,33 @@ const Client = ({
       );
     }
 
-    await createVersion(
+    const createObj = await createVersion(
       formId,
       filteredQuestions,
       calculationsToAdd.concat(initialCalculations),
     );
+
+    if (createObj.statusCode !== 201) {
+      if (createObj.statusCode === 401) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Sem permissão para criar formulários!</>,
+        });
+      } else {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao criar nova versão do formulário!</>,
+        });
+      }
+    }
   };
 
   return form == null ?
       <div>Formulário não encontrado</div>
     : <>
-        {isPending ?
+        {isPending || loadingView ?
           <div className="p-5">
             <div className="flex w-full flex-col rounded-3xl bg-gray-300/30 p-3 shadow-md">
               <div className="flex justify-center">
@@ -270,7 +311,9 @@ const Client = ({
           </div>
         : <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
             <div
-              className={`${isMobileView ? "col-span-5" : "col-span-3"} overflow-auto`}
+              className={`${
+                isMobileView ? "col-span-5" : "col-span-3"
+              } overflow-auto`}
             >
               <FormUpdater
                 form={form}
@@ -292,10 +335,9 @@ const Client = ({
                 formId={form.id}
                 initialQuestions={form.questions}
                 handleQuestionsToAdd={handleQuestionsToAdd}
-                categoriesToModal={categories}
+                categoriesToModal={categories.categories}
               />
             </div>
-
             <div
               className={`col-span-2 h-full overflow-auto ${isMobileView ? "hidden" : ""}`}
             >
@@ -305,7 +347,7 @@ const Client = ({
                 handleQuestionsToAdd={handleQuestionsToAdd}
                 questionsToAdd={questionsToAdd}
                 questionsToRemove={questionsToRemove}
-                categories={categories}
+                categories={categories.categories}
               />
             </div>
           </div>

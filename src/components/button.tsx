@@ -5,20 +5,29 @@ import { VariantProps, cva } from "class-variance-authority";
 import { AriaButtonProps } from "react-aria";
 import { Button as ButtonPrimitive } from "react-aria-components";
 
+type ButtonVariant =
+  | "default"
+  | "admin"
+  | "constructive"
+  | "destructive"
+  | "outline"
+  | "secondary";
+
 const buttonVariants = cva(
-  "group inline-flex items-center justify-center rounded-lg text-lg font-medium text-white shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
+  "group inline-flex items-center justify-center rounded-lg text-lg font-medium shadow outline-none transition-all data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring disabled:pointer-events-none disabled:select-none",
   {
     variants: {
       variant: {
         default:
-          "bg-sky-500/70 bg-blend-darken data-[hovered]:bg-sky-900 disabled:bg-sky-900",
-        admin: "bg-purpureus data-[hovered]:bg-eminence disabled:bg-eminence",
+          "bg-sky-500/70 text-white bg-blend-darken data-[hovered]:bg-sky-900 disabled:bg-sky-900",
+        admin:
+          "bg-purpureus text-white data-[hovered]:bg-eminence disabled:bg-eminence",
         constructive:
-          "bg-green-500/90 data-[hovered]:bg-green-700/90 disabled:bg-green-700/90",
+          "bg-green-500/90 text-white data-[hovered]:bg-green-700/90 disabled:bg-green-700/90",
         destructive:
-          "bg-redwood data-[hovered]:bg-cordovan disabled:bg-cordovan",
+          "bg-redwood text-white data-[hovered]:bg-cordovan disabled:bg-cordovan",
         outline:
-          "border border-input bg-transparent data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
+          "border border-input bg-transparent text-white data-[hovered]:bg-accent data-[hovered]:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm data-[hovered]:bg-secondary/80",
         ghost: "bg-transparent shadow-none data-[hovered]:bg-transparent/10",
@@ -67,3 +76,4 @@ const Button = ({
 };
 
 export { Button };
+export type { ButtonVariant };

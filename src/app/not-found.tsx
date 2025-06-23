@@ -1,14 +1,15 @@
 import { Footer } from "@/app/_components/footer";
 import { Header } from "@/app/_components/header";
 import { Button } from "@/components/button";
-import { validateRequest } from "@/lib/lucia";
+
+import { auth } from "../lib/auth/auth";
 
 const NotFound = async () => {
-  const { user } = await validateRequest();
+  const session = await auth();
 
   return (
     <main className="flex h-[100vh] items-center justify-center bg-gradient-to-br from-cambridge-blue to-imperial-red">
-      <Header variant="fixed" user={user} />
+      <Header variant="fixed" user={session?.user ?? null} />
 
       <section className="m-10 flex h-full w-full flex-col items-center justify-center gap-2 sm:m-0 sm:gap-4">
         <div className="text-center font-bold text-white">

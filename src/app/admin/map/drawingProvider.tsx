@@ -47,7 +47,7 @@ const DrawingProvider = ({ children }: { children: ReactNode }) => {
             color: "#000000",
           }),
           text:
-            ((map.getView().getZoom() ?? 0) > 15 ?
+            ((map?.getView().getZoom() ?? 0) > 15 ?
               (feature.get("description") as string)
             : null) ?? "",
         }),
@@ -86,16 +86,16 @@ const DrawingProvider = ({ children }: { children: ReactNode }) => {
   const snap = useMemo(() => new Snap({ source: source }), [source]);
 
   useEffect(() => {
-    map.addLayer(vector);
-    map.addInteraction(modify);
-    map.addInteraction(draw);
-    map.addInteraction(snap);
+    map?.addLayer(vector);
+    map?.addInteraction(modify);
+    map?.addInteraction(draw);
+    map?.addInteraction(snap);
 
     return () => {
-      map.removeLayer(vector);
-      map.removeInteraction(modify);
-      map.removeInteraction(draw);
-      map.removeInteraction(snap);
+      map?.removeLayer(vector);
+      map?.removeInteraction(modify);
+      map?.removeInteraction(draw);
+      map?.removeInteraction(snap);
     };
   }, [map, vector, modify, draw, snap]);
 

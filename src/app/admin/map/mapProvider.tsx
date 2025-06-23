@@ -8,7 +8,7 @@ import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import { ReactNode, createContext, useEffect, useMemo, useRef } from "react";
 
-const MapContext = createContext(new Map());
+const MapContext = createContext<null | Map>(null);
 
 const MapProvider = ({ children }: { children: ReactNode }) => {
   useGeographic();
@@ -25,13 +25,13 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
       }),
     [],
   );
-  const view = map.getView();
+  const view = map?.getView();
 
   useEffect(() => {
-    if (ref.current !== null) map.setTarget(ref.current);
+    if (ref.current !== null) map?.setTarget(ref.current);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        view.animate({
+        view?.animate({
           center: [pos.coords.longitude, pos.coords.latitude],
           zoom: 16,
           duration: 0,

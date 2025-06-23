@@ -1,12 +1,14 @@
 "use client";
 
 import { Header } from "@/app/_components/header";
-import { User } from "lucia";
 import { useEffect, useRef } from "react";
 
-const HomeHeader = ({ user }: { user: User | null }) => {
+const HomeHeader = ({
+  user,
+}: {
+  user: { username: string | null; email: string; image: string | null } | null;
+}) => {
   const header = useRef<HTMLElement>(null);
-
   useEffect(() => {
     const getPosition = () => {
       if (header.current == null) return;

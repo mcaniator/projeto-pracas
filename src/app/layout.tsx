@@ -2,6 +2,7 @@ import { josefin_sans } from "@/lib/fonts";
 import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 
+import { LoadingOverlayProvider } from "../components/context/loadingContext";
 import "./globals.css";
 
 const metadata: Metadata = {
@@ -16,7 +17,9 @@ const viewport: Viewport = {
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
-      <body className={josefin_sans.className}>{children}</body>
+      <body className={josefin_sans.className}>
+        <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+      </body>
     </html>
   );
 };

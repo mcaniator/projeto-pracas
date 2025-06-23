@@ -14,14 +14,19 @@ import {
   IconMapSearch,
   IconMenu2,
   IconTableExport,
+  IconTree,
   IconUserCog,
   IconX,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+
+import { checkIfRolesArrayContainsAny } from "../../../lib/auth/rolesUtil";
+import { useUserContext } from "../../context/UserContext";
+import ButtonLink from "../../ui/buttonLink";
 
 const Sidebar = () => {
+  const { user } = useUserContext();
   const currentLocation = usePathname();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
@@ -34,65 +39,111 @@ const Sidebar = () => {
     }
   };
 
-  const topSidebar: { icon: ReactNode; name: string; path: string }[] = [
-    { icon: <IconHome size={34} />, name: "Início", path: "/admin/home" },
-    { icon: <IconFountain size={34} />, name: "Praças", path: "/admin/parks" },
-    { icon: <IconUserCog size={34} />, name: "Usuários", path: "/admin/users" },
-    { icon: <IconMapSearch size={34} />, name: "Mapa", path: "/admin/map" },
+  useEffect(() => {
+    closeSidebar();
+  }, [currentLocation]);
+
+  const topSidebar: {
+    icon: ReactNode;
+    name: string;
+    path: string;
+    show?: boolean;
+  }[] = [
+    {
+      icon: <IconHome size={34} />,
+      name: "Início",
+      path: "/admin/home",
+      show: true,
+    },
+    {
+      icon: <IconFountain size={34} />,
+      name: "Praças",
+      path: "/admin/parks",
+      show: true,
+    },
+    {
+      icon: <IconMapSearch size={34} />,
+      name: "Mapa",
+      path: "/admin/map",
+      show: true,
+    },
     {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
-      path: "/admin/registration",
+      path: "/admin/registration/questions",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
     },
     {
       icon: <IconTableExport size={34} />,
       name: "Exportar",
       path: "/admin/export",
+      show: true,
     },
     {
       icon: <IconLogs size={34} />,
       name: "Atividade",
       path: "/admin/activity",
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["ASSESSMENT", "TALLY"],
+      }),
+    },
+    {
+      icon: <IconUserCog size={34} />,
+      name: "Usuários",
+      path: "/admin/users",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["USER"] }),
     },
   ];
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-[39]">
       <button
         onClick={toggleSidebar}
-        className="fixed left-4 top-2 z-50 items-center md:top-3"
+        className="fixed left-4 top-2 z-[39] items-center md:top-3"
       >
         {!isSidebarVisible && <IconMenu2 size={34} />}
       </button>
 
       {isSidebarVisible && (
         <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50"
+          className="fixed inset-0 z-[89] bg-black bg-opacity-50"
           onClick={handleOverlayClick}
         ></div>
       )}
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-[90] flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}
       >
-        <div className="mb-4 flex justify-end">
-          <button onClick={closeSidebar}>
+        <div className="mb-4 flex justify-between">
+          <ButtonLink
+            href="/"
+            variant={"ghost"}
+            className="flex gap-1 px-1 transition-colors hover:bg-white hover:text-gray-800"
+          >
+            <IconTree size={34} />
+            Projeto praças
+          </ButtonLink>
+          <Button
+            variant={"ghost"}
+            onPress={closeSidebar}
+            className="cursor-pointer gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+          >
             <IconX size={34} />
-          </button>
+          </Button>
         </div>
 
         <div className="flex flex-col gap-1">
-          {topSidebar.map((element, index) => (
-            <Link href={element.path} key={index}>
-              <Button
-                type="button"
+          {topSidebar
+            .filter((element) => element.show)
+            .map((element, index) => (
+              <ButtonLink
+                href={element.path}
+                key={index}
                 variant={"ghost"}
-                use={"link"}
-                onPress={() => (window.location.href = `${element.path}`)}
                 className={cn(
                   currentLocation.startsWith(element.path) &&
                     "bg-transparent/50",
@@ -101,9 +152,8 @@ const Sidebar = () => {
               >
                 {element.icon}
                 <span className="-mb-1">{element.name}</span>
-              </Button>
-            </Link>
-          ))}
+              </ButtonLink>
+            ))}
         </div>
 
         <div className="mt-auto flex flex-col gap-1">

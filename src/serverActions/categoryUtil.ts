@@ -8,32 +8,53 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { prisma } from "../lib/prisma";
+import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type FetchedCategories = NonNullable<
   Awaited<ReturnType<typeof fetchCategories>>
->;
+>["categories"];
 
-type CategoriesWithQuestions = NonNullable<
+type CategoriesWithQuestionsAndStatusCode = NonNullable<
   Awaited<ReturnType<typeof getCategories>>
 >;
 
-const fetchCategories = async () => {
-  const categories = await prisma.category.findMany({
-    include: {
-      subcategory: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+type CategoriesWithQuestions = NonNullable<
+  Awaited<ReturnType<typeof getCategories>>["categories"]
+>;
 
-  return categories;
+const fetchCategories = async () => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+  } catch (e) {
+    return { statusCode: 401, categories: [] };
+  }
+  try {
+    const categories = await prisma.category.findMany({
+      include: {
+        subcategory: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return { statusCode: 200, categories };
+  } catch (e) {
+    return { statusCode: 500, categories: null };
+  }
 };
 
 const categorySubmit = async (
   prevState: { statusCode: number; categoryName: string | null },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      categoryName: null,
+    };
+  }
   let parse;
   try {
     parse = categoryInfoToCreateSchema.parse({
@@ -85,6 +106,14 @@ const deleteCategory = async (
     categoryName: string | null;
   };
 } | null> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      content: { formsWithQuestions: [], categoryName: null },
+    };
+  }
   const categoryId = parseInt(formData.get("categoryId") as string);
   try {
     const questionsInForms = await prisma.question.findMany({
@@ -190,6 +219,14 @@ const deleteSubcategory = async (
     subcategoryName: string | null;
   };
 } | null> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      content: { formsWithQuestions: [], subcategoryName: null },
+    };
+  }
   const subcategoryId = parseInt(formData.get("subcategoryId") as string);
   try {
     const questionsInForms = await prisma.question.findMany({
@@ -280,6 +317,14 @@ const subcategorySubmit = async (
   prevState: { statusCode: number; subcategoryName: string | null },
   formData: FormData,
 ) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      statusCode: 401,
+      subcategoryName: null,
+    };
+  }
   const categoryId = formData.get("category-id") as string;
   const subcategoryName = formData.get("subcategory-name") as string;
   try {
@@ -311,25 +356,34 @@ const subcategorySubmit = async (
 };
 
 const getCategories = async () => {
-  const categories = await prisma.category.findMany({
-    select: {
-      id: true,
-      name: true,
-      subcategory: {
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          name: "asc",
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401, categories: [] };
+  }
+  try {
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        subcategory: {
+          select: {
+            id: true,
+            name: true,
+          },
+          orderBy: {
+            name: "asc",
+          },
         },
       },
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
-  return categories;
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return { statusCode: 200, categories: categories };
+  } catch (e) {
+    return { statusCode: 500, categories: [] };
+  }
 };
 
 export {
@@ -340,4 +394,8 @@ export {
   deleteCategory,
   deleteSubcategory,
 };
-export type { FetchedCategories, CategoriesWithQuestions };
+export type {
+  FetchedCategories,
+  CategoriesWithQuestions,
+  CategoriesWithQuestionsAndStatusCode,
+};

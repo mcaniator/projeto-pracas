@@ -1,54 +1,49 @@
 "use client";
 
-import { AuthForm } from "@/app/_components/authForm";
 import { Button } from "@/components/button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
-import { signout } from "@/serverActions/auth";
-import { revalidateAllCache } from "@/serverActions/revalidateAllCache";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   IconContrast,
   IconContrastOff,
   IconLogin,
   IconLogin2,
-  IconPencil,
   IconSettings,
   IconTree,
   IconUser,
 } from "@tabler/icons-react";
 import { VariantProps, cva } from "class-variance-authority";
-import { User } from "lucia";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { HTMLAttributes, forwardRef, useState } from "react";
-import { useActionState } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
-const headerVariants = cva(
-  "flex w-full pl-14 pr-7 text-white transition-all md:py-1",
-  {
-    variants: {
-      variant: {
-        default:
-          "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
-        fixed: "fixed top-0",
-        static: "static",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
+const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
+  variants: {
+    variant: {
+      default:
+        "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+      fixed: "fixed top-0",
+      static: "static",
     },
   },
-);
+
+  defaultVariants: {
+    variant: "default",
+  },
+});
 
 interface headerProps
   extends HTMLAttributes<HTMLElement>,
     VariantProps<typeof headerVariants> {
-  user: User | null;
+  user: { username: string | null; email: string; image: string | null } | null;
+  isAuthHeader?: boolean;
 }
 
 const Header = forwardRef<HTMLElement, headerProps>(
-  ({ user, variant, ...props }, ref) => {
+  ({ user, isAuthHeader, variant, ...props }, ref) => {
     const [popupContentRef] = useAutoAnimate();
 
     return (
@@ -68,70 +63,90 @@ const Header = forwardRef<HTMLElement, headerProps>(
             <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
-
-        <DialogTrigger>
-          <Button
-            variant={"ghost"}
-            className="ml-auto flex items-center px-3 py-6 pl-2"
-          >
-            {user !== null && user !== undefined ?
-              <div className="flex items-center gap-2">
-                <span className="hidden text-xl md:inline">
-                  {user.username}
-                </span>
-                <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
-              </div>
-            : <div className={"flex"}>
-                <IconLogin size={34} />
-                <span className="pointer-events-none text-2xl sm:text-3xl">
-                  Login
-                </span>
-              </div>
-            }
-          </Button>
-          <Popover
-            className={
-              "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
-            }
-          >
-            <Dialog className={"outline-none"}>
-              <div ref={popupContentRef}>
-                {user !== null && user !== undefined ?
+        {user ?
+          <DialogTrigger>
+            <Button
+              variant={"ghost"}
+              className="ml-auto flex items-center px-3 py-6 pl-2"
+            >
+              {user !== null && user !== undefined ?
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-xl md:inline">
+                    {user.username ?? user.email}
+                  </span>
+                  {user.image ?
+                    <Image
+                      src={user.image}
+                      alt="img"
+                      width={32}
+                      height={32}
+                      className="rounded-lg transition hover:cursor-pointer hover:brightness-125"
+                    />
+                  : <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
+                  }
+                </div>
+              : <div className={"flex"}>
+                  <IconLogin size={34} />
+                  <span className="pointer-events-none text-2xl sm:text-3xl">
+                    Login
+                  </span>
+                </div>
+              }
+            </Button>
+            <Popover
+              className={
+                "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
+              }
+            >
+              <Dialog className={"outline-none"}>
+                <div ref={popupContentRef}>
                   <UserInfo user={user} />
-                : <AuthForm />}
-              </div>
-            </Dialog>
-          </Popover>
-        </DialogTrigger>
+                </div>
+              </Dialog>
+            </Popover>
+          </DialogTrigger>
+        : !isAuthHeader && (
+            <div className="ml-auto flex flex-wrap gap-1">
+              <Link href={"/auth/login"}>
+                <Button
+                  variant={"ghost"}
+                  use={"link"}
+                  className="ml-auto flex items-center px-3 py-6 pl-2"
+                >
+                  <IconLogin2 />
+                  Entrar
+                </Button>
+              </Link>
+            </div>
+          )
+        }
       </header>
     );
   },
 );
 Header.displayName = "Header";
 
-const UserInfo = ({ user }: { user: User }) => {
-  const [, formAction] = useActionState(signout, { statusCode: -1 });
+const UserInfo = ({
+  user,
+}: {
+  user: { username: string | null; email: string };
+}) => {
   const [highContrast, setHighContrat] = useState(false);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="h-8 w-8 rounded-lg bg-cambridge-blue" />
-        <div className="flex items-center gap-1">
-          <span className="-mb-1 text-2xl font-semibold">{user.username}</span>
-          <span className="-mb-1 text-gray-500">{user.email}</span>
+        <div className="flex flex-col gap-1">
+          <span className="-mb-1 text-base font-semibold sm:text-xl">
+            {user.username ?? "(usuário)"}
+          </span>
+          <span className="-mb-1 text-xs text-gray-500 sm:text-sm">
+            {user.email}
+          </span>
         </div>
-        <Button
-          type={"button"}
-          variant={"ghost"}
-          size={"icon"}
-          className="ml-auto text-black"
-        >
-          <IconPencil />
-        </Button>
       </div>
       <div className="my-3 flex gap-4">
-        <Link href={"/admin"} className="basis-1/2">
+        <Link href={"/admin/home"}>
           <Button
             type={"button"}
             className="w-full text-white"
@@ -141,15 +156,6 @@ const UserInfo = ({ user }: { user: User }) => {
             <span className="-mb-1">Painel</span>
           </Button>
         </Link>
-        <Button
-          variant={"destructive"}
-          className="w-full basis-1/2 text-nowrap text-white"
-          onPress={() => {
-            void revalidateAllCache();
-          }}
-        >
-          <span className="-mb-1">Resetar cache</span>
-        </Button>
       </div>
       <div className="flex w-full items-center">
         <Button variant={"ghost"} size={"icon"}>
@@ -166,17 +172,20 @@ const UserInfo = ({ user }: { user: User }) => {
             <IconContrastOff className="text-black" />
           : <IconContrast className="text-black" />}
         </Button>
-        <form action={formAction} className="ml-auto">
+        <div className="ml-auto">
           <Button
             className={"hover:bg-redwood/20"}
             variant={"ghost"}
             type="submit"
+            onPress={() => {
+              void signOut({ redirectTo: "/", redirect: true });
+            }}
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">
               <IconLogin2 strokeWidth={3} /> Sair
             </span>
           </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

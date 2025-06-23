@@ -19,7 +19,7 @@ const AssessmentsFilter = ({
   locationId: number;
   locationName: string;
   formId: number;
-  filteredAssessments: FinalizedAssessmentsList | undefined;
+  filteredAssessments: FinalizedAssessmentsList["assessments"] | undefined;
   handleInitialDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleFinalDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleWeekdayChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

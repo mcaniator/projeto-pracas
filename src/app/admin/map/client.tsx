@@ -4,6 +4,8 @@ import { Button } from "@/components/button";
 import { search } from "@/lib/search";
 import { FetchCitiesType } from "@/serverActions/cityUtil";
 import { removePolygon } from "@/serverActions/managePolygons";
+import { useLoadingOverlay } from "@components/context/loadingContext";
+import CustomModal from "@components/modal/customModal";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
 import {
@@ -19,11 +21,13 @@ import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Rnd } from "react-rnd";
 
+import PermissionGuard from "../../../components/auth/permissionGuard";
+import { useHelperCard } from "../../../components/context/helperCardContext";
 import { Input } from "../../../components/ui/input";
 import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
@@ -68,7 +72,7 @@ const Client = ({
   const [panelRef] = useAutoAnimate();
   return (
     <div className="relative">
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-4 right-4 z-[60]">
         <Button
           onPress={() => {
             setPanelVisible(!panelVisible);
@@ -107,7 +111,7 @@ const Client = ({
               )
             }`}
           >
-            <span className="text-gray-700">Janela de Desenho</span>
+            <span className="text-gray-700">Menu</span>
           </div>
 
           <div
@@ -119,38 +123,43 @@ const Client = ({
           >
             {currentId === -2 && (
               <div className="flex flex-col gap-2" ref={panelRef}>
-                <Button
-                  variant="admin"
-                  onPress={() => {
-                    setCurrentId(-1);
-                  }}
-                >
-                  <span className="-mb-1">Iniciar Criação</span>
-                </Button>
+                <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
+                  <Button
+                    variant="admin"
+                    onPress={() => {
+                      setCurrentId(-1);
+                    }}
+                  >
+                    <span className="-mb-1">Iniciar Criação</span>
+                  </Button>
 
-                <hr className="w-full rounded-full border-2 border-off-white" />
+                  <hr className="w-full rounded-full border-2 border-off-white" />
+                </PermissionGuard>
 
                 <ParkList
                   locations={locations}
                   setOriginalFeatures={setOriginalFeatures}
                   setCurrentId={setCurrentId}
                 />
+                <div className="mt-10"></div>
               </div>
             )}
-            {(currentId === -1 || currentId === -3) && (
-              <DrawingProvider>
-                <CreationPanel
-                  originalFeatures={originalFeatures}
-                  setOriginalFeatures={setOriginalFeatures}
-                  currentId={currentId}
-                  setCurrentId={setCurrentId}
-                  drawingWindowVisible={drawingWindowVisible}
-                  setDrawingWindowVisible={setDrawingWindowVisible}
-                  cities={cities}
-                  locationCategories={locationCategories}
-                  locationTypes={locationTypes}
-                />
-              </DrawingProvider>
+            {currentId !== -2 && (
+              <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                <DrawingProvider>
+                  <CreationPanel
+                    originalFeatures={originalFeatures}
+                    setOriginalFeatures={setOriginalFeatures}
+                    currentId={currentId}
+                    setCurrentId={setCurrentId}
+                    drawingWindowVisible={drawingWindowVisible}
+                    setDrawingWindowVisible={setDrawingWindowVisible}
+                    cities={cities}
+                    locationCategories={locationCategories}
+                    locationTypes={locationTypes}
+                  />
+                </DrawingProvider>
+              </PermissionGuard>
             )}
           </div>
         </Rnd>
@@ -169,8 +178,14 @@ const ParkList = ({
   setCurrentId: Dispatch<SetStateAction<number>>;
   locations: fullLocation[];
 }) => {
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
+  const { setHelperCard } = useHelperCard();
+  const [deletionModalIsOpen, setDeletionModalIsOpen] = useState(false);
+  const locationToDeleteGeometry = useRef<{ id: number; name: string } | null>(
+    null,
+  );
   const map = useContext(MapContext);
-  const view = map.getView();
+  const view = map?.getView();
   const vectorSource = useContext(PolygonProviderVectorSourceContext);
   const sortedLocations = useMemo(
     () =>
@@ -186,6 +201,35 @@ const ParkList = ({
     [sortedLocations],
   );
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
+
+  const handlePolygonRemoval = async () => {
+    setLoadingOverlayVisible(true);
+    const id = locationToDeleteGeometry.current?.id;
+    locationToDeleteGeometry.current = null;
+    if (!id) return;
+    const response = await removePolygon(id);
+    if (response.statusCode === 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Geometria removida!</>,
+      });
+    } else if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para remover polígonos!</>,
+      });
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao remover polígono!</>,
+      });
+    }
+    setDeletionModalIsOpen(false);
+    setLoadingOverlayVisible(false);
+  };
 
   useEffect(() => {
     setHay(search("", sortedLocations, fuseHaystack));
@@ -232,7 +276,7 @@ const ParkList = ({
                             geometry !== undefined &&
                             geometry instanceof SimpleGeometry
                           )
-                            view.fit(geometry, {
+                            view?.fit(geometry, {
                               duration: 1000,
                               padding: [10, 10, 10, 10],
                             });
@@ -242,59 +286,67 @@ const ParkList = ({
                       >
                         <IconMapPin />
                       </Button>
-                      <Button
-                        variant={"admin"}
-                        size={"icon"}
-                        onPress={() => {
-                          const feature = vectorSource.getFeatureById(
-                            location.item.id,
-                          );
-                          if (feature === null)
-                            throw new Error(
-                              "Feature is currently null when it shouldn't be",
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          variant={"admin"}
+                          size={"icon"}
+                          onPress={() => {
+                            const feature = vectorSource.getFeatureById(
+                              location.item.id,
                             );
+                            if (feature === null)
+                              throw new Error(
+                                "Feature is currently null when it shouldn't be",
+                              );
 
-                          const geometry = feature.getGeometry();
+                            const geometry = feature.getGeometry();
 
-                          if (!(geometry instanceof MultiPolygon))
-                            throw new Error(
-                              "Received geometry is not of MultiPolygon type",
-                            );
+                            if (!(geometry instanceof MultiPolygon))
+                              throw new Error(
+                                "Received geometry is not of MultiPolygon type",
+                              );
 
-                          const polygons = geometry.getPolygons();
-                          const features = polygons.map((polygon) => {
-                            const feature = new Feature(polygon);
-                            feature.set("name", geometry.get("name"));
+                            const polygons = geometry.getPolygons();
+                            const features = polygons.map((polygon) => {
+                              const feature = new Feature(polygon);
+                              feature.set("name", geometry.get("name"));
 
-                            return feature;
-                          });
+                              return feature;
+                            });
+                            setOriginalFeatures(features);
+                            setCurrentId(location.item.id);
 
-                          setOriginalFeatures(features);
-                          setCurrentId(location.item.id);
-
-                          vectorSource.removeFeature(feature);
-                        }}
-                      >
-                        <IconPolygon />
-                      </Button>
-                      <Button
-                        onPress={() => void removePolygon(location.item.id)}
-                        variant={"destructive"}
-                        size={"icon"}
-                      >
-                        <IconPolygonOff />
-                      </Button>
+                            vectorSource.removeFeature(feature);
+                          }}
+                        >
+                          <IconPolygon />
+                        </Button>
+                      </PermissionGuard>
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          onPress={() => {
+                            locationToDeleteGeometry.current = location.item;
+                            setDeletionModalIsOpen(true);
+                          }}
+                          variant={"destructive"}
+                          size={"icon"}
+                        >
+                          <IconPolygonOff />
+                        </Button>
+                      </PermissionGuard>
                     </>
                   : <>
-                      <Button
-                        variant={"constructive"}
-                        size={"icon"}
-                        onPress={() => {
-                          setCurrentId(location.item.id);
-                        }}
-                      >
-                        <IconPlus />
-                      </Button>
+                      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                        <Button
+                          variant={"constructive"}
+                          size={"icon"}
+                          onPress={() => {
+                            setCurrentId(location.item.id);
+                          }}
+                        >
+                          <IconPlus />
+                        </Button>
+                      </PermissionGuard>
                     </>
                   }
                 </div>
@@ -303,13 +355,24 @@ const ParkList = ({
           })}
         </div>
       </div>
+      <CustomModal
+        isOpen={deletionModalIsOpen}
+        title="Excluir geometria?"
+        subtitle={locationToDeleteGeometry.current?.name}
+        confirmLabel="Excluir"
+        confirmVariant="destructive"
+        onConfirm={() => void handlePolygonRemoval()}
+        onOpenChange={(open) => {
+          setDeletionModalIsOpen(open);
+        }}
+      />
     </div>
   );
 };
 
 const BottomControls = () => {
   const map = useContext(MapContext);
-  const view = map.getView();
+  const view = map?.getView();
 
   return (
     <div className="fixed bottom-2 z-40 flex flex-col gap-1 p-2 pb-0">
@@ -320,7 +383,7 @@ const BottomControls = () => {
         onPress={() => {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
-              view.animate({
+              view?.animate({
                 center: [pos.coords.longitude, pos.coords.latitude],
                 zoom: 17,
                 duration: 1000,
@@ -344,9 +407,9 @@ const BottomControls = () => {
           size={"icon"}
           variant={"admin"}
           onPress={() => {
-            const zoom = view.getZoom();
+            const zoom = view?.getZoom();
 
-            view.animate({
+            view?.animate({
               zoom: zoom !== undefined ? zoom + 1 : 0,
               duration: 500,
             });
@@ -359,9 +422,9 @@ const BottomControls = () => {
           size={"icon"}
           variant={"admin"}
           onPress={() => {
-            const zoom = view.getZoom();
+            const zoom = view?.getZoom();
 
-            view.animate({
+            view?.animate({
               zoom: zoom !== undefined ? zoom - 1 : 0,
               duration: 500,
             });

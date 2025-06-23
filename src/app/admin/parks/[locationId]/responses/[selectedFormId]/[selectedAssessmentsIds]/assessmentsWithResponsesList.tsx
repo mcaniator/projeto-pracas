@@ -1,17 +1,16 @@
 "use client";
 
 import { Button } from "@/components/button";
-import {
-  AssessmentsWithResposes,
-  fetchAssessmentGeometries,
-} from "@/serverActions/assessmentUtil";
+import { AssessmentsWithResposes } from "@/serverActions/assessmentUtil";
 import { QuestionTypes } from "@prisma/client";
 import { IconCaretDownFilled, IconCaretUpFilled } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
 import { Checkbox } from "../../../../../../../components/ui/checkbox";
 import { RadioButton } from "../../../../../../../components/ui/radioButton";
+import { fetchAssessmentGeometries } from "../../../../../../../serverOnly/geometries";
 import { ResponseCalculation } from "../../../evaluation/[selectedFormId]/[selectedAssessmentId]/responseComponent";
 import { MapPopup } from "./MapPopup";
 import { FrequencyObjByCategory } from "./frequencyTable";
@@ -20,7 +19,7 @@ type FetchedAssessmentGeometries = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentGeometries>>
 >;
 
-type SingleAssessment = AssessmentsWithResposes[number];
+type SingleAssessment = AssessmentsWithResposes["assessments"][number];
 
 const AssessmentComponent = ({
   assessment,
@@ -535,21 +534,33 @@ const AssessmentComponent = ({
 
 const AssessmentsWithResponsesList = ({
   assessments,
-  assessmentsGeometries,
 }: {
   assessments: AssessmentsWithResposes;
-  assessmentsGeometries: FetchedAssessmentGeometries[];
 }) => {
+  const { setHelperCard } = useHelperCard();
+  useEffect(() => {
+    if (assessments.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para acessar avaliações!</>,
+      });
+    } else if (assessments.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao carregar avaliações!</>,
+      });
+    }
+  }, [assessments, setHelperCard]);
   return (
     <div className="h-full">
       <h3 className="text-2xl font-semibold">Avaliações</h3>
-      {assessments.map((assessment) => (
+      {assessments.assessments.map((assessment) => (
         <AssessmentComponent
           key={assessment.id}
           assessment={assessment}
-          assessmentGeometries={assessmentsGeometries.find(
-            (geometryGroup) => geometryGroup[0]?.assessmentId === assessment.id,
-          )}
+          assessmentGeometries={assessment.geometries}
         />
       ))}
     </div>

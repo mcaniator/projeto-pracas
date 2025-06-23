@@ -141,16 +141,35 @@ enum WeatherConditions {
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
+enum Role {
+  PARK_VIEWER        @map("park_viewer")
+  PARK_MANAGER       @map("park_manager")
+  FORM_VIEWER        @map("form_viewer")
+  FORM_MANAGER       @map("form_manager")
+  ASSESSMENT_VIEWER  @map("assessment_viewer")
+  ASSESSMENT_EDITOR  @map("assessment_editor")
+  ASSESSMENT_MANAGER @map("assessment_manager")
+  TALLY_VIEWER       @map("tally_viewer")
+  TALLY_EDITOR       @map("tally_editor")
+  TALLY_MANAGER      @map("tally_manager")
+  USER_VIEWER        @map("user_viewer")
+  USER_MANAGER       @map("user_manager")
+}
 
 model User {
-  id String @id @unique
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified DateTime?
+  image         String?
+  username      String?        @unique @db.VarChar(255)
+  roles         Role[]
+  password      String?
+  active        Boolean        @default(true)
+  passwordReset PasswordReset?
 
-  email           String?   @db.VarChar(255)
-  username        String    @unique @db.VarChar(255)
-  type            UserTypes
-  hashed_password String
-
-  auth_session Session[]
+  accounts Account[]
+  sessions Session[]
 
   assessment Assessment[]
 
@@ -158,19 +177,75 @@ model User {
   responseOption ResponseOption[]
   tally          Tally[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@index([username])
   @@map("user")
 }
 
 model Session {
-  id String @id @unique
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  expiresAt DateTime @map("expires_at")
-
-  userId String @map("user_id")
-  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Invite {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(64)
+  email     String   @unique
+  roles     Role[]
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("invite")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@map("password_reset")
 }
 
 // #endregion
@@ -222,8 +297,6 @@ model Question {
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
   response          Response[]
-  minValue          Int?
-  maxValue          Int?
   optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?                           @map("maximum_selections")

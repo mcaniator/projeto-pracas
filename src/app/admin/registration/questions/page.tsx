@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import PermissionGuard from "../../../../components/auth/permissionGuard";
+import { useHelperCard } from "../../../../components/context/helperCardContext";
 import { Select } from "../../../../components/ui/select";
 import {
   questionOptionTypesFormatter,
@@ -23,6 +25,7 @@ import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 import SubcategorySelect from "./subcategorySelect";
 
 const QuestionsPage = () => {
+  const { setHelperCard } = useHelperCard();
   const [categories, setCategories] = useState<FetchedCategories>([]);
   const [subcategories, setSubcategories] = useState<
     {
@@ -46,13 +49,34 @@ const QuestionsPage = () => {
     verifySubcategoryNullness: true,
   });
   const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
+  const handleCategoriesFetch = useCallback(async () => {
+    const catObj = await fetchCategories();
+    if (catObj.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para ver categorias!</>,
+      });
+      return null;
+    } else if (catObj.statusCode !== 200) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao obter categorias!</>,
+      });
+      return null;
+    }
+    const cat = catObj.categories!;
+    return cat;
+  }, [setHelperCard]);
   const fetchCategoriesAfterCreation = () => {
     const fetchCategoriesAfterCreation = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
+      setCategories(cat);
+      if (!cat) return;
       const currentCategory = cat.find(
         (c) => c.id === selectedCategoryAndSubcategoryId.categoryId,
       );
-      setCategories(cat);
       setSubcategories(currentCategory?.subcategory || []);
       if (!selectedCategoryAndSubcategoryId.categoryId) {
         setSelectedCategoryAndSubcategoryId({
@@ -68,8 +92,9 @@ const QuestionsPage = () => {
 
   const fetchCategoriesAfterDeletion = () => {
     const fetchCategoriesAfterDeletion = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
       setCategories(cat);
+      if (!cat) return;
       setSubcategories(cat[0]?.subcategory || []);
       setSelectedCategoryAndSubcategoryId({
         categoryId: cat[0]?.id,
@@ -83,8 +108,9 @@ const QuestionsPage = () => {
 
   useEffect(() => {
     const fetchCat = async () => {
-      const cat = await fetchCategories();
+      const cat = await handleCategoriesFetch();
       setCategories(cat);
+      if (!cat) return;
       setSubcategories(cat[0]?.subcategory || []);
       setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
@@ -93,7 +119,7 @@ const QuestionsPage = () => {
       }));
     };
     void fetchCat();
-  }, []);
+  }, [handleCategoriesFetch]);
   useEffect(() => {
     const fetchQuestions = async () => {
       if (selectedCategoryAndSubcategoryId) {
@@ -102,14 +128,14 @@ const QuestionsPage = () => {
           selectedCategoryAndSubcategoryId?.subcategoryId,
           selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
         );
-        setQuestions(questions);
+        setQuestions(questions.questions);
       }
     };
     void fetchQuestions();
   }, [selectedCategoryAndSubcategoryId, categories]);
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSubcategories(
-      categories.find((cat) => cat.id === parseInt(e.target.value))
+      categories?.find((cat) => cat.id === parseInt(e.target.value))
         ?.subcategory || [],
     );
     setSelectedCategoryAndSubcategoryId({
@@ -117,7 +143,7 @@ const QuestionsPage = () => {
       subcategoryId: undefined,
       verifySubcategoryNullness:
         (
-          categories.find((cat) => cat.id === parseInt(e.target.value))
+          categories?.find((cat) => cat.id === parseInt(e.target.value))
             ?.subcategory.length === 0
         ) ?
           true
@@ -146,28 +172,30 @@ const QuestionsPage = () => {
       >
         <div className="overflow-x-none flex w-full flex-col gap-2">
           <h4 className={"text-2xl font-semibold sm:text-3xl"}>Categoria</h4>
-          <div className="flex gap-2">
-            <CategoryCreationModal
-              fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
-            />
-            <CategoryDeletionModal
-              categoryId={selectedCategoryAndSubcategoryId.categoryId}
-              categoryName={
-                categories.find(
-                  (cat) =>
-                    cat.id === selectedCategoryAndSubcategoryId.categoryId,
-                )?.name
-              }
-              fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
-            />
-          </div>
+          <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+            <div className="flex gap-2">
+              <CategoryCreationModal
+                fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
+              />
+              <CategoryDeletionModal
+                categoryId={selectedCategoryAndSubcategoryId.categoryId}
+                categoryName={
+                  categories?.find(
+                    (cat) =>
+                      cat.id === selectedCategoryAndSubcategoryId.categoryId,
+                  )?.name
+                }
+                fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+              />
+            </div>
+          </PermissionGuard>
 
           <Select
             className="max-w-full text-wrap rounded-md p-2 text-black"
             onChange={handleCategoryChange}
             value={selectedCategoryAndSubcategoryId.categoryId}
           >
-            {categories.map((cat) => {
+            {categories?.map((cat) => {
               return (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -179,42 +207,47 @@ const QuestionsPage = () => {
           <div className="flex flex-col gap-2 rounded-xl bg-gray-500/35 px-1 py-4 shadow-inner">
             <h4 className="text-xl font-semibold sm:text-2xl">Subcategoria</h4>
             {selectedCategoryAndSubcategoryId.categoryId && (
-              <div className="flex gap-2">
-                <SubcategoryCreationModal
-                  categoryId={selectedCategoryAndSubcategoryId.categoryId}
-                  categoryName={
-                    categories.find(
-                      (cat) =>
-                        cat.id === selectedCategoryAndSubcategoryId.categoryId,
-                    )?.name
-                  }
-                  fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
-                />
-                {selectedCategoryAndSubcategoryId.subcategoryId && (
-                  <SubcategoryDeletionModal
-                    subcategoryId={
-                      selectedCategoryAndSubcategoryId.subcategoryId
-                    }
-                    subcategoryName={
-                      categories
-                        .flatMap((category) => category.subcategory)
-                        .find(
-                          (subcategory) =>
-                            subcategory.id ===
-                            selectedCategoryAndSubcategoryId.subcategoryId,
-                        )?.name
-                    }
+              <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                <div className="flex gap-2">
+                  <SubcategoryCreationModal
+                    categoryId={selectedCategoryAndSubcategoryId.categoryId}
                     categoryName={
-                      categories.find(
+                      categories?.find(
                         (cat) =>
                           cat.id ===
                           selectedCategoryAndSubcategoryId.categoryId,
                       )?.name
                     }
-                    fetchCategoriesAfterDeletion={fetchCategoriesAfterDeletion}
+                    fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
                   />
-                )}
-              </div>
+                  {selectedCategoryAndSubcategoryId.subcategoryId && (
+                    <SubcategoryDeletionModal
+                      subcategoryId={
+                        selectedCategoryAndSubcategoryId.subcategoryId
+                      }
+                      subcategoryName={
+                        categories
+                          ?.flatMap((category) => category.subcategory)
+                          .find(
+                            (subcategory) =>
+                              subcategory.id ===
+                              selectedCategoryAndSubcategoryId.subcategoryId,
+                          )?.name
+                      }
+                      categoryName={
+                        categories?.find(
+                          (cat) =>
+                            cat.id ===
+                            selectedCategoryAndSubcategoryId.categoryId,
+                        )?.name
+                      }
+                      fetchCategoriesAfterDeletion={
+                        fetchCategoriesAfterDeletion
+                      }
+                    />
+                  )}
+                </div>
+              </PermissionGuard>
             )}
 
             <div>
@@ -232,31 +265,36 @@ const QuestionsPage = () => {
 
               <div className="flex flex-col gap-2 bg-gray-900/50 px-1 py-4">
                 <h6 className={"text-xl font-semibold"}>Questões</h6>
-                <div>
-                  <QuestionCreationModal
-                    categoryId={selectedCategoryAndSubcategoryId.categoryId}
-                    categoryName={
-                      categories.find(
-                        (category) =>
-                          category.id ===
-                          selectedCategoryAndSubcategoryId.categoryId,
-                      )?.name
-                    }
-                    subcategoryId={
-                      selectedCategoryAndSubcategoryId.subcategoryId
-                    }
-                    subcategoryName={
-                      categories
-                        .flatMap((category) => category.subcategory)
-                        .find(
-                          (subcategory) =>
-                            subcategory.id ===
-                            selectedCategoryAndSubcategoryId.subcategoryId,
+                <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                  <div>
+                    <QuestionCreationModal
+                      categoryId={selectedCategoryAndSubcategoryId.categoryId}
+                      categoryName={
+                        categories?.find(
+                          (category) =>
+                            category.id ===
+                            selectedCategoryAndSubcategoryId.categoryId,
                         )?.name
-                    }
-                    fetchCategoriesAfterCreation={fetchCategoriesAfterCreation}
-                  />
-                </div>
+                      }
+                      subcategoryId={
+                        selectedCategoryAndSubcategoryId.subcategoryId
+                      }
+                      subcategoryName={
+                        categories
+                          ?.flatMap((category) => category.subcategory)
+                          .find(
+                            (subcategory) =>
+                              subcategory.id ===
+                              selectedCategoryAndSubcategoryId.subcategoryId,
+                          )?.name
+                      }
+                      fetchCategoriesAfterCreation={
+                        fetchCategoriesAfterCreation
+                      }
+                    />
+                  </div>
+                </PermissionGuard>
+
                 {questions.length === 0 && (
                   <h6 className={"text-md font-semibold"}>
                     Nenhuma questão encontrada!
@@ -302,15 +340,17 @@ const QuestionsPage = () => {
                           </div>
                         </>
                       )}
-                      <div>
-                        <QuestionDeletionModal
-                          questionId={question.id}
-                          questionName={question.name}
-                          fetchCategoriesAfterDeletion={
-                            fetchCategoriesAfterDeletion
-                          }
-                        />
-                      </div>
+                      <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                        <div>
+                          <QuestionDeletionModal
+                            questionId={question.id}
+                            questionName={question.name}
+                            fetchCategoriesAfterDeletion={
+                              fetchCategoriesAfterDeletion
+                            }
+                          />
+                        </div>
+                      </PermissionGuard>
                     </div>
                   );
                 })}
