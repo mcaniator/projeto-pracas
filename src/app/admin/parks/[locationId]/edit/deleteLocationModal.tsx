@@ -70,7 +70,7 @@ const DeleteLocationModal = ({
     if (locationResponse?.statusCode === 200) {
       router.replace("/admin");
     }
-  }, [locationResponse]);
+  }, [locationResponse, router]);
   return (
     <DialogTrigger>
       <Button variant={"destructive"}>
@@ -102,7 +102,7 @@ const DeleteLocationModal = ({
                 return (
                   <ul className="list-disc pl-3" key={mapIndex}>
                     {Array.from(
-                      locationResponse.formNamesAndVersions?.get(mapKey)!,
+                      locationResponse.formNamesAndVersions?.get(mapKey) ?? [],
                     ).map((setValue) => {
                       return (
                         <li key={mapKey}>

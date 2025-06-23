@@ -1,9 +1,7 @@
 import { searchLocationsById } from "@/serverActions/locationUtil";
-import { IconTrash } from "@tabler/icons-react";
 
 import LocationRegisterForm from "../../../../../components/locationForm/locationRegisterForm";
 import { ParkData } from "../../../../../components/locationForm/locationRegisterFormClient";
-import CustomDialogTrigger from "../../../../../components/modal/customDialogTrigger";
 import { fetchCities } from "../../../../../serverActions/cityUtil";
 import { fetchLocationCategories } from "../../../../../serverActions/locationCategoryUtil";
 import { fetchLocationTypes } from "../../../../../serverActions/locationTypeUtil";
