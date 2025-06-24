@@ -61,11 +61,11 @@ const register = async (
 
     if (!invite) {
       return {
-        statusCode: 403,
+        statusCode: 404,
         errors: [
           {
-            message: "O e-mail fornecido não possui acesso ao sistema",
-            element: null,
+            message: "O e-mail fornecido não corresponde ao convite!",
+            element: "helperCard",
           },
         ],
       };

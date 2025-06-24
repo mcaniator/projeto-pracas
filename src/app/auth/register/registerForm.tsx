@@ -18,6 +18,7 @@ import {
 
 import LoadingIcon from "../../../components/LoadingIcon";
 import { Button } from "../../../components/button";
+import { useLoadingOverlay } from "../../../components/context/loadingContext";
 import GoogleRegisterButton from "../../../components/singleUse/auth/googleRegisterButton";
 import { Input } from "../../../components/ui/input";
 import register from "../../../serverActions/register";
@@ -29,7 +30,8 @@ const RegisterForm = ({
   inviteToken: string;
   enableGoogleLogin: boolean;
 }) => {
-  const helperCardContext = useHelperCard();
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
+  const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(register, null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
@@ -42,24 +44,30 @@ const RegisterForm = ({
   useEffect(() => {
     if (state) {
       if (state.statusCode !== 201) {
-        helperCardContext.setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: (
-            <div className="flex flex-col gap-2">
-              {state.errors?.map((error, index) => {
-                return <p key={index}>{error.message}</p>;
-              })}
-            </div>
-          ),
-        });
+        if (state.statusCode === 404) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: (
+              <div className="flex flex-col gap-2">
+                {state.errors
+                  ?.filter((error) => error.element === "helperCard")
+                  .map((error, index) => {
+                    return <p key={index}>{error.message}</p>;
+                  })}
+              </div>
+            ),
+          });
+        }
         setErrors({
           statusCode: state.statusCode,
           errors: state.errors,
         });
+      } else if (state.statusCode === 201) {
+        setLoadingOverlayVisible(true);
       }
     }
-  }, [state, helperCardContext]);
+  }, [state, setHelperCard, setLoadingOverlayVisible]);
   const emailError = useMemo(
     () => errors.errors?.find((e) => e.element === "email"),
     [errors],
@@ -134,7 +142,7 @@ const RegisterForm = ({
                     variant={"ghost"}
                     className="group absolute left-2/3"
                     onPress={() =>
-                      helperCardContext.setHelperCard({
+                      setHelperCard({
                         show: true,
                         helperCardType: "INFO",
                         content: (

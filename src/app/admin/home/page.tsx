@@ -16,12 +16,12 @@ import { useEffect } from "react";
 import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
-  const helperCardContext = useHelperCard();
+  const { setHelperCard } = useHelperCard();
   const params = useSearchParams();
 
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
-      helperCardContext.setHelperCard({
+      setHelperCard({
         show: true,
         helperCardType: "ERROR",
         content: <>Permissão negada</>,
