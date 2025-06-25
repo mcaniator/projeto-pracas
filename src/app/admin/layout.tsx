@@ -30,7 +30,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
             <Header variant={"static"} user={user ?? null} />
             <div className="flex min-h-0 flex-grow justify-center">
               <Sidebar />
-              <div className="bg-background-1 max-w-full basis-full shadow-inner">
+              <div className="max-w-full basis-full shadow-inner">
                 {children}
               </div>
             </div>

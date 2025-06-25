@@ -24,9 +24,9 @@ const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
   variants: {
     variant: {
       default:
-        "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+        "fixed z-30 bg-black/30 text-white backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
       fixed: "fixed top-0",
-      static: "border-border-1 static border-b",
+      static: "border-border-1 static border-b shadow-sm",
     },
   },
 
@@ -52,17 +52,18 @@ const Header = forwardRef<HTMLElement, headerProps>(
         ref={ref}
         {...props}
       >
-        <Link className="flex items-center" href={"/"}>
+        <Link
+          className={`flex items-center ${variant !== "default" ? "text-brand" : ""}`}
+          href={"/"}
+        >
           <Button
             type={"button"}
             variant={"ghost"}
             use={"link"}
             className="px-3 py-6"
           >
-            <IconTree size={34} className="text-brand" />
-            <span className="text-brand hidden sm:inline sm:text-xl">
-              Projeto Praças
-            </span>
+            <IconTree size={34} className="" />
+            <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
           </Button>
         </Link>
         {user ?
