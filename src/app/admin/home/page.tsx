@@ -38,17 +38,17 @@ const AdminRoot = () => {
       <h2 className="p-2 text-4xl font-semibold">
         Bem vindo(a) ao Projeto praças
       </h2>
-      <div className="flex flex-wrap justify-center gap-2 sm:mt-24">
+      <div className="flex flex-wrap justify-center gap-2 text-white sm:mt-24">
         <Link
           href="parks"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          className="bg-brand hover:bg-brand-dark flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
         >
           <IconFountain className="mb-1" size={34} />
           Praças
         </Link>
         <Link
           href="map"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          className="bg-brand hover:bg-brand-dark flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
         >
           <IconMap className="mb-1" size={34} />
           Mapa
@@ -57,7 +57,7 @@ const AdminRoot = () => {
         <PermissionGuard requiresAnyRoleGroups={["FORM"]}>
           <Link
             href="registration/questions"
-            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+            className="bg-brand hover:bg-brand-dark flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
           >
             <IconListCheck className="mb-1" size={34} />
             Formulários
@@ -66,7 +66,7 @@ const AdminRoot = () => {
 
         <Link
           href="export"
-          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+          className="bg-brand hover:bg-brand-dark flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
         >
           <IconTableExport className="mb-1" size={34} />
           Exportar
@@ -74,7 +74,7 @@ const AdminRoot = () => {
         <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT", "TALLY"]}>
           <Link
             href="activity"
-            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+            className="bg-brand hover:bg-brand-dark flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
           >
             <IconLogs className="mb-1" size={34} />
             Atividade
@@ -83,7 +83,7 @@ const AdminRoot = () => {
         <PermissionGuard requiresAnyRoleGroups={["USER"]}>
           <Link
             href="users"
-            className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+            className="bg-brand hover:bg-brand-light flex w-64 items-center justify-center rounded-lg p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200"
           >
             <IconUserCog className="mb-1" size={34} />
             Usuários
