@@ -4,13 +4,10 @@ import { Button } from "@/components/button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {
-  IconBug,
   IconFountain,
   IconHome,
-  IconInfoSquareRounded,
   IconListCheck,
   IconLogs,
-  IconMail,
   IconMapSearch,
   IconMenu2,
   IconTableExport,
@@ -113,7 +110,7 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-[90] flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-[90] flex h-full w-64 flex-col bg-brand-light p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}
@@ -132,7 +129,7 @@ const Sidebar = () => {
             onPress={closeSidebar}
             className="cursor-pointer gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
           >
-            <IconX size={34} />
+            <IconX size={34} className="text-white" />
           </Button>
         </div>
 
@@ -146,41 +143,14 @@ const Sidebar = () => {
                 variant={"ghost"}
                 className={cn(
                   currentLocation.startsWith(element.path) &&
-                    "bg-transparent/50",
-                  "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800",
+                    "bg-white text-black",
+                  "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-brand-light",
                 )}
               >
                 {element.icon}
                 <span className="-mb-1">{element.name}</span>
               </ButtonLink>
             ))}
-        </div>
-
-        <div className="mt-auto flex flex-col gap-1">
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconBug size={34} />
-            <p className="-mb-1">Erros?</p>
-          </Button>
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconMail size={34} />
-            <p className="-mb-1">Contato</p>
-          </Button>
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconInfoSquareRounded size={34} />
-            <p className="-mb-1">Quem Somos!</p>
-          </Button>
         </div>
       </nav>
     </div>
