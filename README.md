@@ -64,6 +64,18 @@ Uma vez criado e configurado um projeto no Google Cloud, acesse https://develope
 
 Crie um arquivo .env e preencha-o de acordo com o arquivo `.env.example`
 
+#### Dependências
+
+Intale as dependencias utilizando:
+
+```
+npm install
+```
+ou
+```
+pnpm install
+```
+
 #### Configurando o banco de dados
 
 Execute os comandos:
@@ -82,18 +94,6 @@ Para criar o usuário administrador, e os usuários de teste (caso esteja config
 
 ```
 npx prisma db seed
-```
-
-### Dependências
-
-Intale as dependencias utilizando:
-
-```
-npm install
-```
-ou
-```
-pnpm install
 ```
 
 ### Servidor de Desenvolvimento
