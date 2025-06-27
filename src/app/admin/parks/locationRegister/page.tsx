@@ -10,11 +10,7 @@ const RegisterLocation = async () => {
   const locationCategories = await fetchLocationCategories();
   const locationTypes = await fetchLocationTypes();
   return (
-    <div
-      className={
-        "flex h-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md"
-      }
-    >
+    <div className={"flex h-full flex-col gap-1 overflow-auto px-1 py-5"}>
       <h2 className="text-2xl font-semibold">Registrar praça</h2>
       <LocationRegisterForm
         formType="CREATE"

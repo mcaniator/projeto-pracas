@@ -25,7 +25,7 @@ const RequiredParkInfoForm = ({
     }
   };
   return (
-    <div className="flex w-full max-w-[70rem] flex-col">
+    <div className="flex w-full flex-col">
       <h3 className="text-lg">Informações Básicas</h3>
       <label htmlFor={"name"}>Nome*:</label>
       <Input

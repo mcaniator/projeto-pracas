@@ -33,7 +33,7 @@ const LocationRegisterOptionalData = ({
 }) => {
   const [showHelp, setShowHelp] = useState(false);
   return (
-    <div className="flex w-full max-w-[70rem] flex-col">
+    <div className="flex w-full flex-col">
       <h3>Informações extras (opcional)</h3>
       <label htmlFor="popularName">Nome popular:</label>
       <Input

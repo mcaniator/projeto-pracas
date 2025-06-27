@@ -61,7 +61,7 @@ const LocationRegisterFormCategory = ({
     }
   };
   return (
-    <div className="flex w-full max-w-[70rem] flex-col">
+    <div className="flex w-full flex-col">
       <h3 className="text-lg">Categoria e tipo</h3>
       {locationCategories.statusCode !== 200 && (
         <div>

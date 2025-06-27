@@ -152,7 +152,7 @@ const LocationRegisterCityForm = ({
     if (selectedState !== "%NONE") void fetchStateCities(selectedState);
   }, [selectedState, fetchStateCities]);
   return (
-    <div className="flex w-full max-w-[70rem] flex-col">
+    <div className="flex w-full flex-col">
       <h3 className="text-lg">Cidade</h3>
       <label htmlFor="stateName">Estado*:</label>
       <Select
