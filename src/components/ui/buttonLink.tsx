@@ -10,7 +10,7 @@ const buttonLinkVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-sky-500/70 bg-blend-darken hover:bg-sky-900 disabled:bg-sky-900",
+          "bg-brand bg-blend-darken hover:bg-brand-dark disabled:bg-gray-500",
         admin: "bg-purpureus hover:bg-eminence disabled:bg-eminence",
         constructive:
           "bg-green-500/90 hover:bg-green-700/90 disabled:bg-green-700/90",

@@ -18,9 +18,10 @@ import {
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
-import { checkIfRolesArrayContainsAny } from "../../../lib/auth/rolesUtil";
-import { useUserContext } from "../../context/UserContext";
-import ButtonLink from "../../ui/buttonLink";
+import { checkIfRolesArrayContainsAny } from "../../../../lib/auth/rolesUtil";
+import { useUserContext } from "../../../context/UserContext";
+import ButtonLink from "../../../ui/buttonLink";
+import styles from "./Sidebar.module.css";
 
 const Sidebar = () => {
   const { user } = useUserContext();
@@ -98,7 +99,9 @@ const Sidebar = () => {
         onClick={toggleSidebar}
         className="fixed left-4 top-2 z-[39] items-center md:top-3"
       >
-        {!isSidebarVisible && <IconMenu2 size={34} />}
+        {!isSidebarVisible && (
+          <IconMenu2 size={34} className="hover:text-brand" />
+        )}
       </button>
 
       {isSidebarVisible && (
@@ -110,16 +113,17 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-[90] flex h-full w-64 flex-col bg-brand-light p-5 text-xl shadow-lg transition-transform duration-300",
-          isSidebarVisible ? "translate-x-0" : "-translate-x-full",
+          "fixed left-0 top-0 z-[90] flex h-full w-64 flex-col bg-brand-dark p-5 text-xl shadow-lg transition-all duration-300",
+          isSidebarVisible ? "translate-x-0" : "-translate-x-full opacity-0",
           titillium_web.className,
+          styles.sidebar,
         )}
       >
         <div className="mb-4 flex justify-between">
           <ButtonLink
             href="/"
             variant={"ghost"}
-            className="flex gap-1 px-1 transition-colors hover:bg-white hover:text-gray-800"
+            className="flex gap-1 px-1 transition-colors hover:bg-white hover:text-brand-dark"
           >
             <IconTree size={34} />
             Projeto praças
@@ -127,9 +131,9 @@ const Sidebar = () => {
           <Button
             variant={"ghost"}
             onPress={closeSidebar}
-            className="cursor-pointer gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+            className="cursor-pointer gap-1 px-1 py-5 text-white transition-colors hover:bg-white hover:text-brand-dark"
           >
-            <IconX size={34} className="text-white" />
+            <IconX size={34} className=" " />
           </Button>
         </div>
 
@@ -144,7 +148,7 @@ const Sidebar = () => {
                 className={cn(
                   currentLocation.startsWith(element.path) &&
                     "bg-white text-black",
-                  "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-brand-light",
+                  "w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-brand-dark",
                 )}
               >
                 {element.icon}

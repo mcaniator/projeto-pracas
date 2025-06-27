@@ -43,6 +43,7 @@ module.exports = {
         "brand-dark": "#506A39",
         "background-1": "#F5F8F2",
         "border-1": "#D1DBDB",
+        "border-1-dark": "#BAC9C9",
         mauve: "#E7A1FF",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

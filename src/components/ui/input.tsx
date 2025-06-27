@@ -2,8 +2,10 @@ import { cn } from "@/lib/cn";
 import { VariantProps, cva } from "class-variance-authority";
 import { InputHTMLAttributes, forwardRef } from "react";
 
+import styles from "./Input.module.css";
+
 const inputVariants = cva(
-  "text-md flex h-10 rounded-xl border-2 bg-white/35 px-3 py-1 shadow-md [appearance:textfield] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+  "text-md flex h-10 rounded-xl border-2 bg-white/35 px-3 py-1 [appearance:textfield] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
   {
     variants: {
       variant: {
@@ -11,13 +13,14 @@ const inputVariants = cva(
         white: "bg-white/35",
       },
       state: {
-        neutral: "border-off-white/80 placeholder:text-gray-200",
+        neutral:
+          "border-gray-800 placeholder:text-gray-600 focus-visible:border-brand focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand",
         constructive: "border-sea-green/80",
         destructive: "border-cordovan/80",
       },
     },
     defaultVariants: {
-      variant: "gray",
+      variant: "white",
       state: "neutral",
     },
   },
@@ -25,17 +28,25 @@ const inputVariants = cva(
 
 interface InputProps
   extends InputHTMLAttributes<HTMLInputElement>,
-    VariantProps<typeof inputVariants> {}
+    VariantProps<typeof inputVariants> {
+  label?: React.ReactNode;
+}
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ variant, state, className, type, ...props }, ref) => {
+  ({ variant, state, className, type, label, ...props }, ref) => {
     return (
-      <input
-        type={type}
-        className={cn(inputVariants({ variant, state, className }))}
-        ref={ref}
-        {...props}
-      />
+      <div className="flex w-full flex-col">
+        <span className="ml-2">{label}</span>
+        <input
+          type={type}
+          className={cn(
+            inputVariants({ variant, state, className }),
+            styles.input,
+          )}
+          ref={ref}
+          {...props}
+        />
+      </div>
     );
   },
 );

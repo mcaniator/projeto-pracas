@@ -47,11 +47,11 @@ const ParkForm = ({
 
   return (
     <div className="flex h-full flex-col gap-4 py-1">
-      <h4 className="text-xl">Busca de locais</h4>
       <div className={"flex flex-col gap-2"}>
         <Input
           name="name"
           id={"name"}
+          placeholder="Buscar..."
           onChange={(e) => {
             setHay(search(e.target.value, sortedLocations, fuseHaystack));
           }}

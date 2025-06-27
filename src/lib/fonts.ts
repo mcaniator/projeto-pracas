@@ -1,4 +1,4 @@
-import { Josefin_Sans, Titillium_Web } from "next/font/google";
+import { Josefin_Sans, Karla, Shanti, Titillium_Web } from "next/font/google";
 
 const titillium_web = Titillium_Web({
   weight: "700",
@@ -11,4 +11,8 @@ const josefin_sans = Josefin_Sans({
   display: "swap",
 });
 
-export { titillium_web, josefin_sans };
+const karla = Karla({ subsets: ["latin"] });
+
+const shanti = Shanti({ subsets: ["latin"], weight: ["400"] });
+
+export { titillium_web, josefin_sans, karla, shanti };
