@@ -28,9 +28,9 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
         <HelperCardProvider>
           <div className="flex h-[100dvh] flex-col bg-gradient-to-br">
             <Header variant={"static"} user={user ?? null} />
-            <div className="flex min-h-0 flex-grow justify-center px-1">
+            <div className="flex min-h-0 flex-grow justify-center">
               <Sidebar />
-              <div className="max-w-full basis-full py-5 shadow-inner">
+              <div className="max-w-full basis-full shadow-inner">
                 {children}
               </div>
             </div>

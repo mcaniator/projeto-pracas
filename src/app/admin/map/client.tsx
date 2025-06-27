@@ -78,8 +78,6 @@ const Client = ({
             setPanelVisible(!panelVisible);
             setDrawingWindowVisible(!drawingWindowVisible);
           }}
-          variant="admin"
-          className="bg-blue-600"
         >
           {panelVisible ? "Esconder" : "Menu"}
         </Button>

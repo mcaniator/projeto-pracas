@@ -47,11 +47,7 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
   }, [map, view]);
 
   return (
-    <div
-      id="map"
-      className={"h-full w-full overflow-clip rounded-3xl"}
-      ref={ref}
-    >
+    <div id="map" className={"h-full w-full overflow-clip"} ref={ref}>
       <MapContext.Provider value={map}>{children}</MapContext.Provider>
     </div>
   );

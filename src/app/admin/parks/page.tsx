@@ -11,7 +11,11 @@ const AdminRoot = async () => {
   });
 
   return (
-    <div className={"flex h-full max-w-full flex-grow gap-5 overflow-auto"}>
+    <div
+      className={
+        "flex h-full max-w-full flex-grow gap-5 overflow-auto px-1 py-5"
+      }
+    >
       <div className={"flex w-full flex-col gap-1 overflow-auto shadow-md"}>
         <div className="flex justify-between">
           <h3 className={"text-2xl font-semibold"}>Locais</h3>

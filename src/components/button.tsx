@@ -19,7 +19,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-sky-500/70 text-white bg-blend-darken data-[hovered]:bg-sky-900 disabled:bg-sky-900",
+          "bg-brand text-white bg-blend-darken data-[hovered]:bg-brand-dark disabled:bg-gray-500",
         admin:
           "bg-purpureus text-white data-[hovered]:bg-eminence disabled:bg-eminence",
         constructive:
