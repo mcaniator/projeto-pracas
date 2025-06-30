@@ -38,6 +38,7 @@ const login = async (
     });
     return { statusCode: 200 };
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log(e);
     if (isRedirectError(e)) {
       throw e;
