@@ -328,62 +328,67 @@ const saveOngoingTallyData = async (
   });
 
   try {
-    await prisma.$transaction(async (prisma) => {
-      await prisma.tally.update({
-        where: {
-          id: tallyId,
-        },
-        data: {
-          temperature: weatherStats.temperature,
-          weatherCondition: weatherStats.weather,
-          animalsAmount: complementaryData.animalsAmount,
-          groups: complementaryData.groupsAmount,
-          commercialActivities:
-            Object.keys(commercialActivities).length > 0 ?
-              commercialActivities
-            : undefined,
-          endDate: endDate,
-        },
-      });
-      for (const person of persons) {
-        const { quantity, ...personCharacteristics } = person;
-        const databasePerson = await prisma.person.upsert({
+    await prisma.$transaction(
+      async (prisma) => {
+        await prisma.tally.update({
           where: {
-            person_characteristics: {
+            id: tallyId,
+          },
+          data: {
+            temperature: weatherStats.temperature,
+            weatherCondition: weatherStats.weather,
+            animalsAmount: complementaryData.animalsAmount,
+            groups: complementaryData.groupsAmount,
+            commercialActivities:
+              Object.keys(commercialActivities).length > 0 ?
+                commercialActivities
+              : undefined,
+            endDate: endDate,
+          },
+        });
+        for (const person of persons) {
+          const { quantity, ...personCharacteristics } = person;
+          const databasePerson = await prisma.person.upsert({
+            where: {
+              person_characteristics: {
+                ...personCharacteristics,
+              },
+            },
+            update: {},
+            create: {
               ...personCharacteristics,
             },
-          },
-          update: {},
-          create: {
-            ...personCharacteristics,
-          },
-        });
-        await prisma.tallyPerson.upsert({
-          where: {
-            tally_id_person_id: {
-              tallyId: tallyId,
-              personId: databasePerson.id,
-            },
-          },
-          update: {
-            quantity: quantity,
-          },
-          create: {
-            tally: {
-              connect: {
-                id: tallyId,
+          });
+          await prisma.tallyPerson.upsert({
+            where: {
+              tally_id_person_id: {
+                tallyId: tallyId,
+                personId: databasePerson.id,
               },
             },
-            person: {
-              connect: {
-                id: databasePerson.id,
-              },
+            update: {
+              quantity: quantity,
             },
-            quantity: quantity,
-          },
-        });
-      }
-    });
+            create: {
+              tally: {
+                connect: {
+                  id: tallyId,
+                },
+              },
+              person: {
+                connect: {
+                  id: databasePerson.id,
+                },
+              },
+              quantity: quantity,
+            },
+          });
+        }
+      },
+      {
+        timeout: 120000,
+      },
+    );
     return { statusCode: 200 };
   } catch (error) {
     return { statusCode: 500 };
