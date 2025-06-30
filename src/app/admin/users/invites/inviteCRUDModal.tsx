@@ -488,7 +488,7 @@ const InviteCRUDModal = ({
                   <Button
                     onPress={() => {
                       void navigator.clipboard.writeText(
-                        `${window.location.origin}/auth/register/?inviteToken=${invite?.token}`,
+                        `${process.env.BASE_URL}/auth/register?inviteToken=${invite?.token}`,
                       );
                       helperCardContext.setHelperCard({
                         show: true,
