@@ -1,5 +1,6 @@
 import { josefin_sans } from "@/lib/fonts";
 import type { Metadata, Viewport } from "next";
+import NextTopLoader from "nextjs-toploader";
 import { ReactNode } from "react";
 
 import { LoadingOverlayProvider } from "../components/context/loadingContext";
@@ -18,6 +19,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
       <body className={josefin_sans.className}>
+        <NextTopLoader showSpinner={false} />
         <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
       </body>
     </html>
