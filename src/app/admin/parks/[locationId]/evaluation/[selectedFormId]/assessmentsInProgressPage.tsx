@@ -1,11 +1,11 @@
 "use client";
 
+import { useHelperCard } from "@components/context/helperCardContext";
+import { AssessmentDataFetchedToAssessmentList } from "@customTypes/assessments/assessmentList";
 import { useEffect, useState } from "react";
 
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import AssessmentCreation from "./assessmentCreation";
 import { AssessmentList } from "./assessmentList";
-import { AssessmentDataFetchedToAssessmentList } from "./page";
 
 const AssessmentsInProgressPage = ({
   locationId,

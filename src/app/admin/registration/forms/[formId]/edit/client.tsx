@@ -3,56 +3,13 @@
 import { QuestionForm } from "@/app/admin/registration/forms/[formId]/edit/questionForm";
 import { CategoriesWithQuestionsAndStatusCode } from "@/serverActions/categoryUtil";
 import { FormToEditPage, createVersion } from "@/serverActions/formUtil";
+import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import {
-  CalculationTypes,
-  OptionTypes,
-  QuestionResponseCharacterTypes,
-  QuestionTypes,
-} from "@prisma/client";
+import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
+import { CalculationTypes } from "@prisma/client";
 import { useEffect, useState } from "react";
 
-import LoadingIcon from "../../../../../../components/LoadingIcon";
 import { FormUpdater } from "./formUpdater";
-
-interface DisplayQuestion {
-  id: number;
-  name: string;
-  notes: string | null;
-  type: QuestionTypes;
-  characterType: QuestionResponseCharacterTypes;
-  optionType: OptionTypes | null;
-  options: {
-    text: string;
-  }[];
-  category: {
-    id: number;
-    name: string;
-  };
-  subcategory: {
-    id: number;
-    name: string;
-    categoryId: number;
-  } | null;
-}
-
-interface DisplayCalculation {
-  id: number;
-  name: string;
-  type: CalculationTypes;
-  questions: {
-    id: number;
-    name: string;
-  }[];
-  category: {
-    id: number;
-    name: string;
-  };
-  subcategory: {
-    id: number;
-    name: string;
-  } | null;
-}
 
 interface AddCalculationToAddObj {
   name: string;
@@ -79,19 +36,17 @@ const Client = ({
   categories: CategoriesWithQuestionsAndStatusCode;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const [updatedQuestions, setUpdatedQuestions] = useState<DisplayQuestion[]>(
-    [],
-  );
+  const [updatedQuestions, setUpdatedQuestions] = useState<FormQuestion[]>([]);
 
-  const [questionsToAdd, setQuestionsToAdd] = useState<DisplayQuestion[]>([]);
-  const [questionsToRemove, setQuestionsToRemove] = useState<DisplayQuestion[]>(
+  const [questionsToAdd, setQuestionsToAdd] = useState<FormQuestion[]>([]);
+  const [questionsToRemove, setQuestionsToRemove] = useState<FormQuestion[]>(
     [],
   );
-  const [calculationsToAdd, setCalculationsToAdd] = useState<
-    DisplayCalculation[]
-  >([]);
+  const [calculationsToAdd, setCalculationsToAdd] = useState<FormCalculation[]>(
+    [],
+  );
   const [initialCalculations, setInitialCalculations] = useState<
-    DisplayCalculation[]
+    FormCalculation[]
   >(form.calculations);
   const [calculationsToAddIndex, setCalculationsToAddIndex] = useState(() => {
     const biggestId =
@@ -106,7 +61,7 @@ const Client = ({
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const [loadingView, setLoadingView] = useState(true);
   const [isPending, setIsPending] = useState(false);
-  const handleQuestionsToAdd = (question: DisplayQuestion) => {
+  const handleQuestionsToAdd = (question: FormQuestion) => {
     const questionExists = questionsToAdd.some((q) => q.id === question.id);
     if (!questionExists) {
       setQuestionsToAdd([...questionsToAdd, question]);
@@ -213,7 +168,7 @@ const Client = ({
     setInitialCalculationsModified(true);
   };
 
-  const handleUpdateCalculationToAdd = (calculation: DisplayCalculation) => {
+  const handleUpdateCalculationToAdd = (calculation: FormCalculation) => {
     setCalculationsToAdd((prev) =>
       prev.map((prevCalculation) => {
         if (calculation.id === prevCalculation.id) {
@@ -229,7 +184,7 @@ const Client = ({
     );
   };
 
-  const handleUpdateInitialCalculation = (calculation: DisplayCalculation) => {
+  const handleUpdateInitialCalculation = (calculation: FormCalculation) => {
     setInitialCalculations((prev) =>
       prev.map((prevCalculation) => {
         if (calculation.id === prevCalculation.id) {
@@ -248,14 +203,14 @@ const Client = ({
 
   const handleCreateVersion = async (
     formId: number,
-    oldQuestions: DisplayQuestion[],
-    questionsToAdd: DisplayQuestion[],
-    questionsToRemove: DisplayQuestion[],
+    oldQuestions: FormQuestion[],
+    questionsToAdd: FormQuestion[],
+    questionsToRemove: FormQuestion[],
   ) => {
     setIsPending(true);
-    let convertedQuestions: DisplayQuestion[];
-    let allQuestions: DisplayQuestion[];
-    let filteredQuestions: DisplayQuestion[];
+    let convertedQuestions: FormQuestion[];
+    let allQuestions: FormQuestion[];
+    let filteredQuestions: FormQuestion[];
 
     if (oldQuestions !== null) {
       convertedQuestions = oldQuestions.map((question) => question);
@@ -355,4 +310,4 @@ const Client = ({
       </>;
 };
 export default Client;
-export type { DisplayQuestion, DisplayCalculation, AddCalculationToAddObj };
+export type { FormCalculation, AddCalculationToAddObj };

@@ -1,7 +1,7 @@
 import { Button } from "@/components/button";
+import { FetchCitiesType } from "@serverActions/cityUtil";
 import { Dispatch, SetStateAction } from "react";
 
-import { FetchCitiesType } from "../../../serverActions/cityUtil";
 import { CreationWithoutDrawingModal } from "./creationWithouDrawingModal";
 
 const CreationSelecion = ({

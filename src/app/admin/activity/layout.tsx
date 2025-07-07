@@ -1,6 +1,5 @@
+import PermissionGuard from "@components/auth/permissionGuard";
 import { ReactNode } from "react";
-
-import PermissionGuard from "../../../components/auth/permissionGuard";
 
 const ActivityLayout = ({ children }: { children: ReactNode }) => {
   return (

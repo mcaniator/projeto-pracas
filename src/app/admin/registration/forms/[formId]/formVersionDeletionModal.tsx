@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { deleteFormVersion } from "@serverActions/formUtil";
 import {
   IconCalendarClock,
   IconCheck,
@@ -17,10 +20,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LoadingIcon from "../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../components/context/helperCardContext";
-import { deleteFormVersion } from "../../../../../serverActions/formUtil";
 
 const FormVersionDeletionModal = ({
   formId,

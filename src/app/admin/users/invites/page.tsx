@@ -1,4 +1,5 @@
-import PermissionGuard from "../../../../components/auth/permissionGuard";
+import PermissionGuard from "@components/auth/permissionGuard";
+
 import InvitesClient from "./invitesClient";
 
 const Invites = () => {

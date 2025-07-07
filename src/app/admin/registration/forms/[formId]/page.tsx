@@ -1,9 +1,9 @@
-import { Button } from "@/components/button";
 import { searchFormById } from "@/serverActions/formUtil";
+import PermissionGuard from "@components/auth/permissionGuard";
+import { Button } from "@components/button";
 import { IconEdit } from "@tabler/icons-react";
 import Link from "next/link";
 
-import PermissionGuard from "../../../../../components/auth/permissionGuard";
 import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
 const Page = async (props: { params: Promise<{ formId: string }> }) => {

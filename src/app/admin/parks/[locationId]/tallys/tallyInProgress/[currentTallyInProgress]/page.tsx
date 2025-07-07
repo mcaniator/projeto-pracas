@@ -1,6 +1,7 @@
-import { TallyInProgressPage } from "@/components/singleUse/admin/tallys/tallyInProgress/tallyInProgressPage";
 import { fetchOngoingTallyById } from "@/serverActions/tallyUtil";
 import { notFound } from "next/navigation";
+
+import { TallyInProgressPage } from "./tallyInProgressPage";
 
 const Page = async (props: {
   params: Promise<{ locationId: string; currentTallyInProgress: string }>;

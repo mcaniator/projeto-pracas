@@ -1,7 +1,8 @@
-import { TallysDataPage } from "@/components/singleUse/admin/tallys/tallyDataVisualization/TallysDataPage";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchFinalizedTallysToDataVisualization } from "@/serverActions/tallyUtil";
 import { notFound } from "next/navigation";
+
+import { TallysDataPage } from "./TallysDataPage";
 
 const Page = async (props: {
   params: Promise<{ locationId: string; selectedTallysIds: string }>;

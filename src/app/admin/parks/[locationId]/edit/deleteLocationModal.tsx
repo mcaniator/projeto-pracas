@@ -1,15 +1,14 @@
 "use client";
 
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { useLoadingOverlay } from "@components/context/loadingContext";
+import CustomModal from "@components/modal/customModal";
+import { deleteLocation } from "@serverActions/locationUtil";
 import { IconTrash } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DialogTrigger } from "react-aria-components";
-
-import { Button } from "../../../../../components/button";
-import { useHelperCard } from "../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../components/context/loadingContext";
-import CustomModal from "../../../../../components/modal/customModal";
-import { deleteLocation } from "../../../../../serverActions/locationUtil";
 
 const DeleteLocationModal = ({
   locationId,

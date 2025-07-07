@@ -1,3 +1,4 @@
+import { Button } from "@components/button";
 import {
   IconArrowsSort,
   IconSortAscending,
@@ -5,7 +6,6 @@ import {
 } from "@tabler/icons-react";
 import { Menu, MenuItem, MenuTrigger, Popover } from "react-aria-components";
 
-import { Button } from "../../../components/button";
 import { Order } from "./usersTable";
 
 const SortMenu = ({

@@ -1,6 +1,6 @@
 "use client";
 
-import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
+import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -22,7 +22,7 @@ const MapContext = createContext(new Map());
 const MapProvider = ({
   initialGeometries,
 }: {
-  initialGeometries: ModalGeometry[] | undefined;
+  initialGeometries: ResponseGeometry[] | undefined;
 }) => {
   useGeographic();
   const vectorSource = useRef<VectorSource>(new VectorSource());

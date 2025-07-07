@@ -1,9 +1,8 @@
 "use client";
 
+import { useHelperCard } from "@components/context/helperCardContext";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-
-import { useHelperCard } from "../../../../components/context/helperCardContext";
 
 const FormsClient = () => {
   const params = useSearchParams();

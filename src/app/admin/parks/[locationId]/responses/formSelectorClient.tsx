@@ -1,21 +1,15 @@
 "use client";
 
+import { FormListItem } from "@customTypes/forms/formList";
 import { IconLink } from "@tabler/icons-react";
 import Link from "next/link";
-
-interface FormProps {
-  selectedFormId: number;
-  name: string;
-  locationId: number;
-  version?: number;
-}
 
 const FormSelectorClient = ({
   selectedFormId,
   name,
   locationId,
   version,
-}: FormProps) => {
+}: FormListItem) => {
   return (
     <Link
       key={selectedFormId}

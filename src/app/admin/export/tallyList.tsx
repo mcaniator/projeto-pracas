@@ -1,19 +1,10 @@
 "use client";
 
-import { TallyDataFetchedToTallyList } from "@/components/singleUse/admin/tallys/tallyListPage";
-
-const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  weekday: "short",
-});
-const dateWithHoursFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  day: "2-digit",
-  month: "2-digit",
-  year: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
+import {
+  dateTimeWithoutSecondsFormmater,
+  weekdayFormatter,
+} from "@formatters/dateFormatters";
 
 const TallyComponent = ({
   startDate,
@@ -53,7 +44,7 @@ const TallyComponent = ({
           }}
           checked={checked}
         />
-        {`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateWithHoursFormatter.format(startDate)}`}
+        {`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateTimeWithoutSecondsFormmater.format(startDate)}`}
       </span>
       <span className="ml-auto">{observer}</span>
     </div>

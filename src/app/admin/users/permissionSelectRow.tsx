@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
 import { Role } from "@prisma/client";
 import { IconHelp, IconSelector } from "@tabler/icons-react";
 import {
@@ -11,8 +13,6 @@ import {
   SelectValue,
 } from "react-aria-components";
 
-import { Button } from "../../../components/button";
-import { useHelperCard } from "../../../components/context/helperCardContext";
 import { SystemSection, roles } from "./permissionsModal";
 
 type SectionInfoValue = {

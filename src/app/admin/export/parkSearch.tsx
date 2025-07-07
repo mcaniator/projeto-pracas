@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/button";
 import { search } from "@/lib/search";
+import { Input } from "@components/ui/input";
 import { IconCirclePlus } from "@tabler/icons-react";
 import Fuse, { FuseResult } from "fuse.js";
 import { useState } from "react";
 import React from "react";
 
-import { Input } from "../../../components/ui/input";
 import { SelectedLocationObj } from "./client";
 
 const LocationComponent = ({

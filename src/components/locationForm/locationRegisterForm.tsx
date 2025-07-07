@@ -1,9 +1,9 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
+
 import { FetchCitiesType } from "../../serverActions/cityUtil";
-import LocationRegisterFormClient, {
-  ParkData,
-} from "./locationRegisterFormClient";
+import LocationRegisterFormClient from "./locationRegisterFormClient";
 
 type LocationFormType = "CREATE" | "EDIT";
 
@@ -20,7 +20,7 @@ const LocationRegisterForm = ({
 }: {
   hasDrawing: boolean;
   cities: FetchCitiesType;
-  location?: ParkData;
+  location?: ParkRegisterData;
   formType: LocationFormType;
   locationId?: number;
   featuresGeoJson?: string;

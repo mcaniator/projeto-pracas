@@ -2,16 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
+import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
 import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import {
-  DisplayCalculation,
-  DisplayQuestion,
-} from "../app/admin/registration/forms/[formId]/edit/client";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import { QuestionWithCategories } from "./questionUtil";
 
@@ -20,7 +17,7 @@ interface FormToEditPage {
   name: string;
   version: number;
   questions: QuestionWithCategories[];
-  calculations: DisplayCalculation[];
+  calculations: FormCalculation[];
 }
 
 const formSubmit = async (
@@ -399,8 +396,8 @@ const updateForm = async (
 
 const createVersion = async (
   formId: number,
-  questions: DisplayQuestion[],
-  calculationsToCreate: DisplayCalculation[],
+  questions: FormQuestion[],
+  calculationsToCreate: FormCalculation[],
 ) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });

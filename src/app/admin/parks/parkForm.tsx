@@ -1,11 +1,10 @@
 "use client";
 
 import { search } from "@/lib/search";
+import { Input } from "@components/ui/input";
 import Fuse, { FuseResult } from "fuse.js";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-
-import { Input } from "../../../components/ui/input";
 
 const LocationList = ({
   locations,

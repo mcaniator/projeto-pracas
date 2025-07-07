@@ -1,9 +1,9 @@
-import { ParkForm } from "@/app/admin/parks/parkForm";
 import { prisma } from "@/lib/prisma";
+import PermissionGuard from "@components/auth/permissionGuard";
 import { IconCirclePlus } from "@tabler/icons-react";
 import Link from "next/link";
 
-import PermissionGuard from "../../../components/auth/permissionGuard";
+import { ParkForm } from "./parkForm";
 
 const AdminRoot = async () => {
   const parkNames = await prisma.location.findMany({

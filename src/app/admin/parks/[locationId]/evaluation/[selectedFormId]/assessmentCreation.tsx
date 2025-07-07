@@ -2,22 +2,12 @@
 
 import { Input } from "@/components/ui/input";
 import { createAssessment } from "@/serverActions/assessmentUtil";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
 import { useActionState, useEffect } from "react";
 
-import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { CreateAssessmentSubmitButton } from "./createAssessmentSubmitButton";
-
-type AssessmentCreationFormType = {
-  statusCode: number;
-  locationId: string;
-  userId: string;
-  formId: string;
-  startDate: string;
-  errors: {
-    startDate: boolean;
-  };
-};
 
 const AssessmentCreation = ({
   locationId,
@@ -102,4 +92,3 @@ const AssessmentCreation = ({
 };
 
 export default AssessmentCreation;
-export { type AssessmentCreationFormType };

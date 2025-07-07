@@ -1,12 +1,12 @@
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
 import { Role } from "@prisma/client";
+import { updateUserRoles } from "@serverActions/userUtil";
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
-import LoadingIcon from "../../../components/LoadingIcon";
-import { Button } from "../../../components/button";
-import { useHelperCard } from "../../../components/context/helperCardContext";
-import { updateUserRoles } from "../../../serverActions/userUtil";
 import PermissionSelectRow from "./permissionSelectRow";
 import { TableUser } from "./usersClient";
 

@@ -1,24 +1,13 @@
 "use client";
 
 import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { WeekdaysFilterItems } from "@customTypes/dates/dates";
+import { weekdayFormatter } from "@formatters/dateFormatters";
 import React, { useEffect, useRef, useState } from "react";
 
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { AssessmentsFilter } from "./assessmentsFilter";
 import { AssessmentsList } from "./assessmentsList";
-
-type WeekdaysFilterItems =
-  | "dom."
-  | "seg."
-  | "ter."
-  | "qua."
-  | "qui."
-  | "sex."
-  | "sáb.";
-const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  weekday: "short",
-});
 
 const AssessmentsListPage = ({
   locationId,

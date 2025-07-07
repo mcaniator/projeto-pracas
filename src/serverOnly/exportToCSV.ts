@@ -1,16 +1,11 @@
+import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
+import { hourFormatter } from "@formatters/dateFormatters";
+
 import { prisma } from "../lib/prisma";
-import { personType } from "../lib/zodValidators";
 import {
   TallyDataToProcessType,
   TallyDataToProcessTypeWithoutLocation,
 } from "../serverActions/exportToCSV";
-
-const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  hour12: false,
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -19,7 +14,7 @@ const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
   weekday: "short",
 });
-const weatherConditionMap = new Map([
+const weatherNameMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
 ]);
@@ -31,7 +26,7 @@ const otherPropertiesToCalcualtePercentage = [
   "isInApparentIllicitActivity",
   "isPersonWithoutHousing",
 ];
-const booleanPersonProperties: (keyof personType)[] = [
+const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithImpairment",
   "isTraversing",
   "isInApparentIllicitActivity",
@@ -408,8 +403,7 @@ const createTallyStringWithoutAddedData = (
       }
       let weatherCondition = "";
       if (tally.weatherCondition) {
-        weatherCondition =
-          weatherConditionMap.get(tally.weatherCondition) || "";
+        weatherCondition = weatherNameMap.get(tally.weatherCondition) || "";
       }
       return (
         `${tally.locationId},${tally.location.name},${tally.user.username},${date},${startDateTime},${duration},${tally.temperature ? tally.temperature : "-"},${weatherCondition},` +

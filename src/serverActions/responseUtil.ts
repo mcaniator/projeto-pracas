@@ -1,7 +1,7 @@
 "use server";
 
-import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
 import { prisma } from "@/lib/prisma";
+import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionTypes } from "@prisma/client";
 import { Coordinate } from "ol/coordinate";
 
@@ -25,7 +25,10 @@ interface ResponseToUpdate {
 const addResponses = async (
   assessmentId: number,
   responses: ResponseToAdd[],
-  geometriesByQuestion: { questionId: number; geometries: ModalGeometry[] }[],
+  geometriesByQuestion: {
+    questionId: number;
+    geometries: ResponseGeometry[];
+  }[],
   endAssessment: boolean,
 ) => {
   try {

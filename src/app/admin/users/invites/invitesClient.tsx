@@ -1,16 +1,16 @@
 "use client";
 
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { useLoadingOverlay } from "@components/context/loadingContext";
+import CustomModal from "@components/modal/customModal";
+import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
+import { deleteInvite, getInvites } from "@serverActions/inviteUtil";
 import { IconSearch, IconUserPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import LoadingIcon from "../../../../components/LoadingIcon";
-import { Button } from "../../../../components/button";
-import { useHelperCard } from "../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../components/context/loadingContext";
-import CustomModal from "../../../../components/modal/customModal";
-import { Input } from "../../../../components/ui/input";
-import { deleteInvite, getInvites } from "../../../../serverActions/inviteUtil";
 import InviteCRUDModal from "./inviteCRUDModal";
 import InvitesTable, { InviteOrdersObj } from "./invitesTable";
 

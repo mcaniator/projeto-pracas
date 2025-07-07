@@ -1,10 +1,9 @@
 "use client";
 
+import { useUserContext } from "@components/context/UserContext";
+import { AssessmentDataFetchedToAssessmentList } from "@customTypes/assessments/assessmentList";
 import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
-
-import { useUserContext } from "../../../../../../components/context/UserContext";
-import { AssessmentDataFetchedToAssessmentList } from "./page";
 
 const AssessmentList = ({
   locationId,

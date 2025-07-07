@@ -1,6 +1,7 @@
 "use client";
 
 import PermissionGuard from "@components/auth/permissionGuard";
+import { useHelperCard } from "@components/context/helperCardContext";
 import {
   IconFountain,
   IconListCheck,
@@ -12,8 +13,6 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-
-import { useHelperCard } from "../../../components/context/helperCardContext";
 
 const AdminRoot = () => {
   const { setHelperCard } = useHelperCard();

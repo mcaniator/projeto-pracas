@@ -1,9 +1,8 @@
 "use server";
 
+import { searchLocationsById } from "@serverActions/locationUtil";
 import { IconArrowBackUp } from "@tabler/icons-react";
 import Link from "next/link";
-
-import { searchLocationsById } from "../../../../../serverActions/locationUtil";
 
 const ParkInfo = async (props: { params: Promise<{ locationId: string }> }) => {
   const params = await props.params;

@@ -1,8 +1,7 @@
 import { searchLocationsById } from "@/serverActions/locationUtil";
+import PermissionGuard from "@components/auth/permissionGuard";
 import { IconMapPin } from "@tabler/icons-react";
 import Link from "next/link";
-
-import PermissionGuard from "../../../../components/auth/permissionGuard";
 
 const Page = async (props: { params: Promise<{ locationId: string }> }) => {
   const params = await props.params;

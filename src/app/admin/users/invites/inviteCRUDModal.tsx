@@ -1,16 +1,13 @@
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
+import { createInvite, updateInvite } from "@serverActions/inviteUtil";
 import { IconClipboard, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
-import LoadingIcon from "../../../../components/LoadingIcon";
-import { Button } from "../../../../components/button";
-import { useHelperCard } from "../../../../components/context/helperCardContext";
-import { Input } from "../../../../components/ui/input";
-import {
-  createInvite,
-  updateInvite,
-} from "../../../../serverActions/inviteUtil";
 import PermissionSelectRow from "../permissionSelectRow";
 import { Invite } from "./invitesClient";
 

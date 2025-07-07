@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@components/button";
+import { Input } from "@components/ui/input";
 import {
   IconCornerUpLeft,
   IconCornerUpRight,
@@ -9,8 +11,6 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../../components/button";
-import { Input } from "../../../../components/ui/input";
 import SortMenu from "../orderMenu";
 import { Order } from "../usersTable";
 import { Invite } from "./invitesClient";

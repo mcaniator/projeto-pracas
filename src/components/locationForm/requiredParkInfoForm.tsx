@@ -1,20 +1,20 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { IconArrowForwardUp } from "@tabler/icons-react";
 import { useState } from "react";
 
 import { Button } from "../button";
 import { Input } from "../ui/input";
-import { ParkData } from "./locationRegisterFormClient";
 
 const RequiredParkInfoForm = ({
   parkData,
   goToNextPage,
   setParkData,
 }: {
-  parkData: ParkData;
+  parkData: ParkRegisterData;
   goToNextPage: () => void;
-  setParkData: React.Dispatch<React.SetStateAction<ParkData>>;
+  setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
 }) => {
   const [showError, setShowError] = useState(false);
   const handlePageChange = () => {

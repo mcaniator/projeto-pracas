@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
@@ -28,17 +29,15 @@ import {
   useState,
 } from "react";
 
-import { ModalGeometry } from "./responseForm";
-
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 
 interface MapProviderProps {
   questionId: number;
-  initialGeometries: ModalGeometry[] | undefined;
+  initialGeometries: ResponseGeometry[] | undefined;
   drawType: "Point" | "Polygon";
   handleQuestionGeometryChange: (
     questionId: number,
-    geometries: ModalGeometry[],
+    geometries: ResponseGeometry[],
   ) => void;
   handleChangeIsInSelectMode: (val: boolean) => void;
 }

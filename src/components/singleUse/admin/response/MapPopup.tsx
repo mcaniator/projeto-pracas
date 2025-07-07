@@ -1,6 +1,10 @@
 "use client";
 
 import { Button } from "@/components/button";
+import {
+  ResponseGeometry,
+  ResponseGeometryType,
+} from "@customTypes/assessments/geometry";
 import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
@@ -12,8 +16,6 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { ModalGeometry, ResponseGeometry } from "./responseForm";
-
 const MapProvider = dynamic(() => import("./MapProvider"), { ssr: false });
 
 const MapPopup = ({
@@ -24,17 +26,17 @@ const MapPopup = ({
   handleQuestionGeometryChange,
 }: {
   questionId: number;
-  initialGeometries: ModalGeometry[] | undefined;
-  geometryType: ResponseGeometry;
+  initialGeometries: ResponseGeometry[] | undefined;
+  geometryType: ResponseGeometryType;
   questionName: string;
   handleQuestionGeometryChange: (
     questionId: number,
-    geometries: ModalGeometry[],
+    geometries: ResponseGeometry[],
   ) => void;
 }) => {
   const [isInSelectMode, setIsInSelectMode] = useState(false);
   const [currentGeometryType, setCurrentGeometryType] =
-    useState<ResponseGeometry>(
+    useState<ResponseGeometryType>(
       geometryType === "POINT_AND_POLYGON" ? "POINT" : geometryType,
     );
   const mapProviderRef = useRef<{

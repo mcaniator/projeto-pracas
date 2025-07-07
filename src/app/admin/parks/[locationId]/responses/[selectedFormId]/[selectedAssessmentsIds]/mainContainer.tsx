@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@components/button";
+import { AssessmentsWithResposes } from "@serverActions/assessmentUtil";
 import { IconListCheck, IconSum } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import { Button } from "../../../../../../../components/button";
-import { AssessmentsWithResposes } from "../../../../../../../serverActions/assessmentUtil";
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
 import { FrequencyTable } from "./frequencyTable";
 

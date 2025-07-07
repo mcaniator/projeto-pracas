@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
+import { FormQuestion } from "@customTypes/forms/formCreation";
 import { Question } from "@prisma/client";
 import { revalidateTag, unstable_cache } from "next/cache";
 
-import { DisplayQuestion } from "../app/admin/registration/forms/[formId]/edit/client";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface QuestionSearchedByStatement {
@@ -268,10 +268,10 @@ const searchQuestionsByStatement = async (statement: string) => {
     return { statusCode: 401, questions: [] };
   }
   const cachedQuestions = unstable_cache(
-    async (statement: string): Promise<DisplayQuestion[]> => {
+    async (statement: string): Promise<FormQuestion[]> => {
       if (statement.length < 2) return [];
 
-      let foundQuestions: DisplayQuestion[] = [];
+      let foundQuestions: FormQuestion[] = [];
 
       try {
         foundQuestions = await prisma.question.findMany({
@@ -336,8 +336,8 @@ const searchQuestionsByCategoryAndSubcategory = async (
       categoryId: number | undefined,
       subcategoryId: number | undefined,
       verifySubcategoryNullness: boolean,
-    ): Promise<DisplayQuestion[]> => {
-      let foundQuestions: DisplayQuestion[] = [];
+    ): Promise<FormQuestion[]> => {
+      let foundQuestions: FormQuestion[] = [];
       if (!categoryId) return [];
       try {
         foundQuestions = await prisma.question.findMany({

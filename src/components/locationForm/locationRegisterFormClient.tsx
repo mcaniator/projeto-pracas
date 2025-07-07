@@ -1,5 +1,6 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
 import React, {
@@ -23,33 +24,6 @@ import LocationRegisterFormCategory from "./locationRegisterFormCategoryType";
 import LocationRegisterOptionalData from "./locationRegisterOptionalData";
 import RequiredParkInfoForm from "./requiredParkInfoForm";
 
-interface ParkData {
-  name: string | null;
-  popularName: string | null;
-  firstStreet: string | null;
-  secondStreet: string | null;
-  thirdStreet: string | null;
-  fourthStreet: string | null;
-  city: string | null;
-  state: string | null;
-  notes: string | null;
-  isPark: boolean;
-  inactiveNotFound: boolean;
-  creationYear: number | null;
-  lastMaintenanceYear: number | null;
-  overseeingMayor: string | null;
-  legislation: string | null;
-  usableArea: string | null;
-  legalArea: string | null;
-  incline: string | null;
-  category: string | null;
-  type: string | null;
-  hasGeometry: boolean;
-  narrowAdministrativeUnit: string | null;
-  intermediateAdministrativeUnit: string | null;
-  broadAdministrativeUnit: string | null;
-}
-
 const initialState = {
   statusCode: -1,
   message: "Initial",
@@ -68,7 +42,7 @@ const LocationRegisterFormClient = ({
 }: {
   hasDrawing: boolean;
   cities: FetchCitiesType;
-  location?: ParkData;
+  location?: ParkRegisterData;
   formType: LocationFormType;
   locationId?: number;
   featuresGeoJson?: string;
@@ -84,7 +58,7 @@ const LocationRegisterFormClient = ({
   );
 
   const [page, setPage] = useState(0);
-  const [parkData, setParkData] = useState<ParkData>(
+  const [parkData, setParkData] = useState<ParkRegisterData>(
     location ? location : (
       {
         name: null,
@@ -282,4 +256,3 @@ const LocationRegisterFormClient = ({
 };
 
 export default LocationRegisterFormClient;
-export { type ParkData };

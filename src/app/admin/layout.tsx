@@ -1,13 +1,12 @@
 import { Header } from "@/app/_components/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
+import AutoSignOut from "@components/auth/autoSignOut";
+import { UserContextProvider } from "@components/context/UserContext";
+import { HelperCardProvider } from "@components/context/helperCardContext";
+import { auth } from "@lib/auth/auth";
+import { getUserAuthInfo } from "@serverActions/userUtil";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-
-import AutoSignOut from "../../components/auth/autoSignOut";
-import { UserContextProvider } from "../../components/context/UserContext";
-import { HelperCardProvider } from "../../components/context/helperCardContext";
-import { auth } from "../../lib/auth/auth";
-import { getUserAuthInfo } from "../../serverActions/userUtil";
 
 const AdminRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();

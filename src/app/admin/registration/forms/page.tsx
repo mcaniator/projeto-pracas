@@ -1,8 +1,8 @@
+import PermissionGuard from "@components/auth/permissionGuard";
+import { fetchFormsLatest } from "@serverActions/formUtil";
 import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
 
-import PermissionGuard from "../../../../components/auth/permissionGuard";
-import { fetchFormsLatest } from "../../../../serverActions/formUtil";
 import FormsClient from "./client";
 import { FormCreationModal } from "./formCreationModal";
 

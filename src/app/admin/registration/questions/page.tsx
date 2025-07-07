@@ -1,21 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-
-import PermissionGuard from "../../../../components/auth/permissionGuard";
-import { useHelperCard } from "../../../../components/context/helperCardContext";
-import { Select } from "../../../../components/ui/select";
+import PermissionGuard from "@components/auth/permissionGuard";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { Select } from "@components/ui/select";
+import { FormQuestion } from "@customTypes/forms/formCreation";
 import {
   questionOptionTypesFormatter,
   questionResponseCharacterTypesFormatter,
   questionTypesFormatter,
-} from "../../../../lib/enumsFormatation";
+} from "@lib/enumsFormatation";
 import {
   FetchedCategories,
   fetchCategories,
-} from "../../../../serverActions/categoryUtil";
-import { searchQuestionsByCategoryAndSubcategory } from "../../../../serverActions/questionUtil";
-import { DisplayQuestion } from "../forms/[formId]/edit/client";
+} from "@serverActions/categoryUtil";
+import { searchQuestionsByCategoryAndSubcategory } from "@serverActions/questionUtil";
+import { useCallback, useEffect, useState } from "react";
+
 import { CategoryCreationModal } from "./categoryCreationModal";
 import { CategoryDeletionModal } from "./categoryDeletionModal";
 import { QuestionCreationModal } from "./questionCreationModal";
@@ -48,7 +48,7 @@ const QuestionsPage = () => {
     subcategoryId: undefined,
     verifySubcategoryNullness: true,
   });
-  const [questions, setQuestions] = useState<DisplayQuestion[]>([]);
+  const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const handleCategoriesFetch = useCallback(async () => {
     const catObj = await fetchCategories();
     if (catObj.statusCode === 401) {

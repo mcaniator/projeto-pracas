@@ -3,31 +3,23 @@
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
 import { FormToEditPage, updateForm } from "@/serverActions/formUtil";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
 import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
+import { CategoriesWithQuestions } from "@serverActions/categoryUtil";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
+import { calculationTypesTranslationMap } from "@translationMaps/assessment";
 import { useActionState, useEffect, useRef, useState } from "react";
 
-import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { CategoriesWithQuestions } from "../../../../../../serverActions/categoryUtil";
 import { CalculationCreationModal } from "./calculationCreationModal";
 import { CalculationEditModal } from "./calculationEditModal";
-import {
-  AddCalculationToAddObj,
-  DisplayCalculation,
-  DisplayQuestion,
-} from "./client";
+import { AddCalculationToAddObj } from "./client";
 import { QuestionSearchModal } from "./questionSearchModal";
 
 const initialState = {
   statusCode: 0,
 };
-
-const calculationTypesPortugueseMap = new Map([
-  ["AVERAGE", "Média"],
-  ["SUM", "Soma"],
-  ["PERCENTAGE", "Porcentagem"],
-]);
 
 const CalculationComponent = ({
   questions,
@@ -43,31 +35,22 @@ const CalculationComponent = ({
     name: string;
     characterType: QuestionResponseCharacterTypes;
   }[];
-  calculation: DisplayCalculation;
+  calculation: FormCalculation;
   isInitialCalculation: boolean;
   removeCalculationToAdd: (id: number) => void;
   removeInitialCalculation: (id: number) => void;
-  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
-  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
+  handleUpdateCalculationToAdd: (calculation: FormCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: FormCalculation) => void;
 }) => {
   return (
     <li className="flex w-full flex-row items-center rounded-sm bg-white">
-      {/*<div>
-        {calculation.questions.map((q) => {
-          return (
-            <div className="text-black" key={q.id}>
-              {q.name}
-            </div>
-          );
-        })}
-      </div>*/}
       <span
         className={
           isInitialCalculation ? "p-2 text-black" : "p-2 text-blue-800"
         }
       >
         {calculation.name} -{" "}
-        {calculationTypesPortugueseMap.get(calculation.type)}
+        {calculationTypesTranslationMap.get(calculation.type)}
       </span>
       <div className="ml-auto flex flex-col gap-2 px-3 py-2 sm:flex-row">
         <CalculationEditModal
@@ -118,29 +101,29 @@ const FormUpdater = ({
   categoriesToModal,
 }: {
   form: FormToEditPage;
-  questionsToAdd: DisplayQuestion[];
-  calculationsToAdd: DisplayCalculation[];
-  initialCalculations: DisplayCalculation[];
-  questionsToRemove: DisplayQuestion[];
+  questionsToAdd: FormQuestion[];
+  calculationsToAdd: FormCalculation[];
+  initialCalculations: FormCalculation[];
+  questionsToRemove: FormQuestion[];
   isMobileView: boolean;
-  updatedQuestions: DisplayQuestion[];
+  updatedQuestions: FormQuestion[];
   initialCalculationsModified: boolean;
   cancelAddQuestion: (questionId: number) => void;
   handleQuestionsToRemove: (questionId: number) => void;
   addCalculationToAdd: (calculation: AddCalculationToAddObj) => void;
   removeCalculationToAdd: (id: number) => void;
   removeInitialCalculation: (id: number) => void;
-  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
-  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
+  handleUpdateCalculationToAdd: (calculation: FormCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: FormCalculation) => void;
   handleCreateVersion: (
     formId: number,
-    oldQuestions: DisplayQuestion[],
-    questionsToAdd: DisplayQuestion[],
-    questionsToRemove: DisplayQuestion[],
+    oldQuestions: FormQuestion[],
+    questionsToAdd: FormQuestion[],
+    questionsToRemove: FormQuestion[],
   ) => Promise<void>;
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  handleQuestionsToAdd: (question: FormQuestion) => void;
   categoriesToModal: CategoriesWithQuestions;
 }) => {
   const { setHelperCard } = useHelperCard();

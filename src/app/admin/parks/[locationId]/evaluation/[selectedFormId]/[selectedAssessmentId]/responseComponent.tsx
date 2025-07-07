@@ -1,30 +1,8 @@
-import { ResponseForm } from "@/components/singleUse/admin/response/responseForm";
+import { ResponseForm } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseForm";
 import { fetchAssessmentWithResponses } from "@/serverActions/assessmentUtil";
-import { CalculationTypes, Question } from "@prisma/client";
-
-import { FetchedAssessmentGeometries } from "../../../../../../../serverOnly/geometries";
-
-interface ResponseCalculation {
-  id: number;
-  name: string;
-  type: CalculationTypes;
-  questions: Question[];
-}
-
-interface SubcategoryWithQuestion {
-  id: number;
-  name: string;
-  questions: Question[];
-  calculations: ResponseCalculation[];
-}
-
-interface CategoryWithSubcategoryAndQuestion {
-  id: number;
-  name: string;
-  subcategories: SubcategoryWithQuestion[];
-  questions: Question[];
-  calculations: ResponseCalculation[];
-}
+import { ResponseCalculation } from "@customTypes/assessments/calculation";
+import { CategoryWithSubcategoryAndQuestionAndCalculation } from "@customTypes/assessments/category";
+import { FetchedAssessmentGeometries } from "@serverOnly/geometries";
 
 type AssessmentWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentWithResponses>>["assessment"]
@@ -43,7 +21,10 @@ const ResponseComponent = ({
 }) => {
   const questions = assessment?.form?.questions;
 
-  const categoriesMap = new Map<number, CategoryWithSubcategoryAndQuestion>();
+  const categoriesMap = new Map<
+    number,
+    CategoryWithSubcategoryAndQuestionAndCalculation
+  >();
 
   questions?.forEach((question) => {
     const { id: categoryId, name: categoryName } = question.category;
@@ -117,7 +98,6 @@ const ResponseComponent = ({
 
 export { ResponseComponent };
 export {
-  type CategoryWithSubcategoryAndQuestion,
   type AssessmentWithResposes,
   type ResponseCalculation,
   type FetchedAssessmentGeometries,

@@ -1,5 +1,6 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { BrazilianStates } from "@prisma/client";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,7 +10,6 @@ import LoadingIcon from "../LoadingIcon";
 import { Button } from "../button";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
-import { ParkData } from "./locationRegisterFormClient";
 
 type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
 const LocationRegisterCityForm = ({
@@ -22,7 +22,7 @@ const LocationRegisterCityForm = ({
   setRegisterAdministrativeUnit,
 }: {
   cities: FetchCitiesType["cities"];
-  parkData: ParkData;
+  parkData: ParkRegisterData;
   registerAdministrativeUnit: {
     narrow: boolean;
     intermediate: boolean;
@@ -30,7 +30,7 @@ const LocationRegisterCityForm = ({
   };
   goToPreviousPage: () => void;
   goToNextPage: () => void;
-  setParkData: React.Dispatch<React.SetStateAction<ParkData>>;
+  setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
   setRegisterAdministrativeUnit: React.Dispatch<
     React.SetStateAction<{
       narrow: boolean;

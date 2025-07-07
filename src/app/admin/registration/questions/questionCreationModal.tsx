@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { Checkbox } from "@components/ui/checkbox";
+import { Input } from "@components/ui/input";
+import { RadioButton } from "@components/ui/radioButton";
+import { Select } from "@components/ui/select";
+import { questionSubmit } from "@serverActions/questionUtil";
 import {
   IconCheck,
   IconCirclePlus,
@@ -14,14 +21,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LoadingIcon from "../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../components/context/helperCardContext";
-import { Checkbox } from "../../../../components/ui/checkbox";
-import { Input } from "../../../../components/ui/input";
-import { RadioButton } from "../../../../components/ui/radioButton";
-import { Select } from "../../../../components/ui/select";
-import { questionSubmit } from "../../../../serverActions/questionUtil";
 
 type CharacterType = "text" | "number";
 

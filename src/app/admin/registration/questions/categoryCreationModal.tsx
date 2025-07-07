@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { Input } from "@components/ui/input";
+import { categorySubmit } from "@serverActions/categoryUtil";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -10,10 +13,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LoadingIcon from "../../../../components/LoadingIcon";
-import { Input } from "../../../../components/ui/input";
-import { categorySubmit } from "../../../../serverActions/categoryUtil";
 
 const CategoryCreationModal = ({
   fetchCategoriesAfterCreation,

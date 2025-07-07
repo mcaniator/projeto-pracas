@@ -1,10 +1,10 @@
 import { searchLocationsById } from "@/serverActions/locationUtil";
+import LocationRegisterForm from "@components/locationForm/locationRegisterForm";
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
+import { fetchCities } from "@serverActions/cityUtil";
+import { fetchLocationCategories } from "@serverActions/locationCategoryUtil";
+import { fetchLocationTypes } from "@serverActions/locationTypeUtil";
 
-import LocationRegisterForm from "../../../../../components/locationForm/locationRegisterForm";
-import { ParkData } from "../../../../../components/locationForm/locationRegisterFormClient";
-import { fetchCities } from "../../../../../serverActions/cityUtil";
-import { fetchLocationCategories } from "../../../../../serverActions/locationCategoryUtil";
-import { fetchLocationTypes } from "../../../../../serverActions/locationTypeUtil";
 import DeleteLocationModal from "./deleteLocationModal";
 
 const Edit = async (props: { params: Promise<{ locationId: string }> }) => {
@@ -22,7 +22,7 @@ const Edit = async (props: { params: Promise<{ locationId: string }> }) => {
     location.intermediateAdministrativeUnit?.city ??
     location.broadAdministrativeUnit?.city ??
     null;
-  const formattedLocation: ParkData = {
+  const formattedLocation: ParkRegisterData = {
     name: location.name ?? null,
     popularName: location.popularName ?? null,
     firstStreet: location.firstStreet ?? null,

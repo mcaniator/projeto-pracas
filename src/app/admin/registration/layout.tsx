@@ -1,7 +1,6 @@
 import { NavBar } from "@/components/singleUse/admin/registration/navBar";
+import PermissionGuard from "@components/auth/permissionGuard";
 import { ReactNode } from "react";
-
-import PermissionGuard from "../../../components/auth/permissionGuard";
 
 const RegistrationLayout = ({ children }: { children: ReactNode }) => {
   return (

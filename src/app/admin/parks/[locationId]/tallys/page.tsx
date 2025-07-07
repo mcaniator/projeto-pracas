@@ -1,9 +1,8 @@
-import TallyPage from "@/components/singleUse/admin/tallys/tallyListPage";
+import TallyPage from "@/app/admin/parks/[locationId]/tallys/tallyListPage";
 import { searchLocationNameById } from "@/serverActions/locationUtil";
 import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
+import { auth } from "@lib/auth/auth";
 import { redirect } from "next/navigation";
-
-import { auth } from "../../../../../lib/auth/auth";
 
 const Tallys = async (props: { params: Promise<{ locationId: string }> }) => {
   const session = await auth();

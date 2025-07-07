@@ -4,15 +4,6 @@ import { searchLocationNameById } from "@/serverActions/locationUtil";
 
 import AssessmentsInProgressPage from "./assessmentsInProgressPage";
 
-interface AssessmentDataFetchedToAssessmentList {
-  id: number;
-  startDate: Date;
-  user: {
-    username: string | null;
-    id: string;
-  };
-}
-
 const AssessmentPage = async (props: {
   params: Promise<{ locationId: string; selectedFormId: string }>;
 }) => {
@@ -38,5 +29,3 @@ const AssessmentPage = async (props: {
 };
 
 export default AssessmentPage;
-
-export { type AssessmentDataFetchedToAssessmentList };

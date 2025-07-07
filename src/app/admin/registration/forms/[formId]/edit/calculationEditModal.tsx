@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/button";
 import { Select } from "@/components/ui/select";
+import { Input } from "@components/ui/input";
+import { FormCalculation } from "@customTypes/forms/formCreation";
 import {
   CalculationTypes,
   QuestionResponseCharacterTypes,
@@ -15,9 +17,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import { Input } from "../../../../../../components/ui/input";
-import { DisplayCalculation } from "./client";
 
 const QuestionComponent = ({
   checked,
@@ -67,10 +66,10 @@ const CalculationEditModal = ({
     name: string;
     characterType: QuestionResponseCharacterTypes;
   }[];
-  calculation: DisplayCalculation;
+  calculation: FormCalculation;
   isInitialCalculation: boolean;
-  handleUpdateCalculationToAdd: (calculation: DisplayCalculation) => void;
-  handleUpdateInitialCalculation: (calculation: DisplayCalculation) => void;
+  handleUpdateCalculationToAdd: (calculation: FormCalculation) => void;
+  handleUpdateInitialCalculation: (calculation: FormCalculation) => void;
 }) => {
   const numberQuestions = questions.filter(
     (question) => question.characterType === "NUMBER",

@@ -1,5 +1,6 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import {
   IconArrowBackUp,
   IconDeviceFloppy,
@@ -10,7 +11,6 @@ import { useState } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
-import { ParkData } from "./locationRegisterFormClient";
 
 const LocationRegisterOptionalData = ({
   hasDrawing,
@@ -22,10 +22,10 @@ const LocationRegisterOptionalData = ({
   setShapefile,
 }: {
   hasDrawing: boolean;
-  parkData: ParkData;
+  parkData: ParkRegisterData;
   shapefile: { file: Blob; name: string } | undefined;
   goToPreviousPage: () => void;
-  setParkData: React.Dispatch<React.SetStateAction<ParkData>>;
+  setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
   handleSubmit: () => void;
   setShapefile: React.Dispatch<
     React.SetStateAction<{ file: Blob; name: string } | undefined>

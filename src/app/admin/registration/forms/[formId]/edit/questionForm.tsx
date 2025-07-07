@@ -8,6 +8,9 @@ import {
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByStatement,
 } from "@/serverActions/questionUtil";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { FormQuestion } from "@customTypes/forms/formCreation";
 import {
   OptionTypes,
   Question,
@@ -16,10 +19,6 @@ import {
 } from "@prisma/client";
 import { IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
-
-import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { DisplayQuestion } from "./client";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
 
@@ -33,9 +32,9 @@ const QuestionForm = ({
 }: {
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
   categories: CategoriesWithQuestions;
 }) => {
   const { setHelperCard } = useHelperCard();
@@ -47,9 +46,9 @@ const QuestionForm = ({
 
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
-  const [foundQuestions, setFoundQuestions] = useState<DisplayQuestion[]>([]);
+  const [foundQuestions, setFoundQuestions] = useState<FormQuestion[]>([]);
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
-    DisplayQuestion[]
+    FormQuestion[]
   >([]);
 
   const [
@@ -308,12 +307,12 @@ const SearchedQuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questions: DisplayQuestion[];
+  questions: FormQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
 
@@ -366,12 +365,12 @@ const QuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questions: DisplayQuestion[];
+  questions: FormQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
 
@@ -433,7 +432,7 @@ const QuestionComponent = ({
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  handleQuestionsToAdd: (question: FormQuestion) => void;
   name: string;
   notes: string | null;
   type: QuestionTypes;

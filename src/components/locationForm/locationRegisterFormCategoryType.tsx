@@ -1,12 +1,12 @@
 "use client";
 
+import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useState } from "react";
 
 import { Button } from "../button";
 import { Input } from "../ui/input";
 import { Select } from "../ui/select";
-import { ParkData } from "./locationRegisterFormClient";
 
 type SelectType = "TYPE" | "CATEGORY";
 const LocationRegisterFormCategory = ({
@@ -17,7 +17,7 @@ const LocationRegisterFormCategory = ({
   goToNextPage,
   setParkData,
 }: {
-  parkData: ParkData;
+  parkData: ParkRegisterData;
   locationCategories: {
     statusCode: number;
     categories: {
@@ -34,7 +34,7 @@ const LocationRegisterFormCategory = ({
   };
   goToPreviousPage: () => void;
   goToNextPage: () => void;
-  setParkData: React.Dispatch<React.SetStateAction<ParkData>>;
+  setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
 }) => {
   const [selectedType, setSelectedType] = useState(parkData.type ?? "%NULL");
   const [selectedCategory, setSelectedCategory] = useState(

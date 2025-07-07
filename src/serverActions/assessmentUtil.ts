@@ -1,7 +1,7 @@
 "use server";
 
-import { AssessmentCreationFormType } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/assessmentCreation";
 import { prisma } from "@/lib/prisma";
+import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "../lib/auth/auth";

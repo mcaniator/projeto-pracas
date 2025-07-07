@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LocationRegisterForm from "@components/locationForm/locationRegisterForm";
+import { FetchCitiesType } from "@serverActions/cityUtil";
 import { IconX } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import {
@@ -9,9 +11,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LocationRegisterForm from "../../../components/locationForm/locationRegisterForm";
-import { FetchCitiesType } from "../../../serverActions/cityUtil";
 
 const CreationWithoutDrawingModal = ({
   setCurrentId,

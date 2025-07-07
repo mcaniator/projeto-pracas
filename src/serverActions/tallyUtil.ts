@@ -1,6 +1,6 @@
 "use server";
 
-import { TallyCreationFormType } from "@/components/singleUse/admin/tallys/tallyCreation";
+import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
 import { prisma } from "@/lib/prisma";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
 import { revalidatePath } from "next/cache";

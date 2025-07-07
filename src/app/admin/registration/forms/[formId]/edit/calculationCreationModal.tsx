@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { Select } from "@/components/ui/select";
+import { Input } from "@components/ui/input";
 import {
   CalculationTypes,
   QuestionResponseCharacterTypes,
@@ -16,7 +17,6 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { Input } from "../../../../../../components/ui/input";
 import { AddCalculationToAddObj } from "./client";
 
 const QuestionComponent = ({

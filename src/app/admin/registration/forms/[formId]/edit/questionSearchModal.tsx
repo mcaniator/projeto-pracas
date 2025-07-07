@@ -1,12 +1,22 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { Input } from "@components/ui/input";
+import { Select } from "@components/ui/select";
+import { FormQuestion } from "@customTypes/forms/formCreation";
 import {
   OptionTypes,
   Question,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
+import { CategoriesWithQuestions } from "@serverActions/categoryUtil";
+import {
+  searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByStatement,
+} from "@serverActions/questionUtil";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
 import {
@@ -15,17 +25,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { Input } from "../../../../../../components/ui/input";
-import { Select } from "../../../../../../components/ui/select";
-import { CategoriesWithQuestions } from "../../../../../../serverActions/categoryUtil";
-import {
-  searchQuestionsByCategoryAndSubcategory,
-  searchQuestionsByStatement,
-} from "../../../../../../serverActions/questionUtil";
-import { DisplayQuestion } from "./client";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
 const QuestionSearchModal = ({
@@ -38,9 +37,9 @@ const QuestionSearchModal = ({
 }: {
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
   categories: CategoriesWithQuestions;
 }) => {
   const { setHelperCard } = useHelperCard();
@@ -52,9 +51,9 @@ const QuestionSearchModal = ({
 
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
-  const [foundQuestions, setFoundQuestions] = useState<DisplayQuestion[]>([]);
+  const [foundQuestions, setFoundQuestions] = useState<FormQuestion[]>([]);
   const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
-    DisplayQuestion[]
+    FormQuestion[]
   >([]);
 
   const [
@@ -375,12 +374,12 @@ const SearchedQuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questions: DisplayQuestion[];
+  questions: FormQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
 
@@ -433,12 +432,12 @@ const QuestionList = ({
   questionsToAdd,
   questionsToRemove,
 }: {
-  questions: DisplayQuestion[];
+  questions: FormQuestion[];
   formId?: number;
   initialQuestions: Question[] | null;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
-  questionsToAdd: DisplayQuestion[];
-  questionsToRemove: DisplayQuestion[];
+  handleQuestionsToAdd: (question: FormQuestion) => void;
+  questionsToAdd: FormQuestion[];
+  questionsToRemove: FormQuestion[];
 }) => {
   useEffect(() => {}, [questionsToAdd.length, questionsToRemove.length]);
 
@@ -500,7 +499,7 @@ const QuestionComponent = ({
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
-  handleQuestionsToAdd: (question: DisplayQuestion) => void;
+  handleQuestionsToAdd: (question: FormQuestion) => void;
   name: string;
   notes: string | null;
   type: QuestionTypes;

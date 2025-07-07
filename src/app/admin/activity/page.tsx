@@ -1,3 +1,6 @@
+import PermissionGuard from "@components/auth/permissionGuard";
+import { fetchRecentlyCompletedAssessments } from "@serverActions/assessmentUtil";
+import { fetchRecentlyCompletedTallys } from "@serverActions/tallyUtil";
 import {
   IconCalendarCheck,
   IconCalendarClock,
@@ -6,10 +9,6 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import Link from "next/link";
-
-import PermissionGuard from "../../../components/auth/permissionGuard";
-import { fetchRecentlyCompletedAssessments } from "../../../serverActions/assessmentUtil";
-import { fetchRecentlyCompletedTallys } from "../../../serverActions/tallyUtil";
 
 const Activity = async () => {
   const assessments = await fetchRecentlyCompletedAssessments();

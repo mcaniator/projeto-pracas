@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { ModalGeometry } from "@/components/singleUse/admin/response/responseForm";
+import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { IconX } from "@tabler/icons-react";
 import { IconMap } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
@@ -29,7 +29,7 @@ const MapPopup = ({
     if (!geometry) {
       return { questionId, geometries: [] };
     }
-    const geometries: ModalGeometry[] = [];
+    const geometries: ResponseGeometry[] = [];
     const geometriesWithoutCollection = geometry
       .replace("GEOMETRYCOLLECTION(", "")
       .slice(0, -1);
