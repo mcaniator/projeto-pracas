@@ -11,9 +11,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { deleteAssessment } from "../../../../serverActions/assessmentUtil";
-import LoadingIcon from "../../../LoadingIcon";
-import { useHelperCard } from "../../../context/helperCardContext";
+import LoadingIcon from "../../../../../../../components/LoadingIcon";
+import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
+import { deleteAssessment } from "../../../../../../../serverActions/assessmentUtil";
 
 const DeleteAssessmentModal = ({
   assessmentId,

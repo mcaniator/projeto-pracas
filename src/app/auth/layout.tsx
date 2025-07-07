@@ -1,7 +1,7 @@
 import { HelperCardProvider } from "@components/context/helperCardContext";
 
+import { Header } from "../../components/header/header";
 import { auth } from "../../lib/auth/auth";
-import { Header } from "../_components/header";
 
 const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();

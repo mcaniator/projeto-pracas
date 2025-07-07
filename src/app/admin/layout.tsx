@@ -1,4 +1,4 @@
-import { Header } from "@/app/_components/header";
+import { Header } from "@/components/header/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
 import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";

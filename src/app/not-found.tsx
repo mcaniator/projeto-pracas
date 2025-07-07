@@ -1,6 +1,6 @@
-import { Footer } from "@/app/_components/footer";
-import { Header } from "@/app/_components/header";
+import { Footer } from "@/app/footer";
 import { Button } from "@/components/button";
+import { Header } from "@/components/header/header";
 
 import { auth } from "../lib/auth/auth";
 

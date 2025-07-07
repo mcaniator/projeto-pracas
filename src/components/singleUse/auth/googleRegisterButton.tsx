@@ -1,10 +1,9 @@
 "use client";
 
+import { Button } from "@components/button";
+import { googleRegister } from "@serverActions/googleLogin";
 import { useState } from "react";
 import { BsGoogle } from "react-icons/bs";
-
-import { googleRegister } from "../../../serverActions/googleLogin";
-import { Button } from "../../button";
 
 const GoogleRegisterButton = ({ inviteToken }: { inviteToken: string }) => {
   const [errorMessageGoogle, setErrorMessageGoogle] = useState<string | null>(

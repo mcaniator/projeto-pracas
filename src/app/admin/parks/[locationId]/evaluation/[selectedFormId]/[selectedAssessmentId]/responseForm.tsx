@@ -11,8 +11,6 @@ import { addResponses } from "@/serverActions/responseUtil";
 import LoadingIcon from "@components/LoadingIcon";
 import { useUserContext } from "@components/context/UserContext";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { MapPopup } from "@components/singleUse/admin/response/MapPopup";
-import { DeleteAssessmentModal } from "@components/singleUse/admin/response/deleteAssessmentModal";
 import { ResponseCalculation } from "@customTypes/assessments/calculation";
 import { CategoryWithSubcategoryAndQuestionAndCalculation } from "@customTypes/assessments/category";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
@@ -31,6 +29,9 @@ import { redirect } from "next/navigation";
 import { Coordinate } from "ol/coordinate";
 import React from "react";
 import { useEffect, useState } from "react";
+
+import { MapPopup } from "./MapPopup";
+import { DeleteAssessmentModal } from "./deleteAssessmentModal";
 
 const ResponseForm = ({
   locationId,
@@ -822,4 +823,3 @@ const ResponseForm = ({
 };
 
 export { ResponseForm };
-export { type ResponseGeometry };
