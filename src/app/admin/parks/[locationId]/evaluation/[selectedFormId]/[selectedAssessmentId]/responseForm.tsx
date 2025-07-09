@@ -7,7 +7,6 @@ import {
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { addResponses } from "@/serverActions/responseUtil";
 import LoadingIcon from "@components/LoadingIcon";
 import { useUserContext } from "@components/context/UserContext";
 import { useHelperCard } from "@components/context/helperCardContext";
@@ -16,6 +15,7 @@ import { CategoryWithSubcategoryAndQuestionAndCalculation } from "@customTypes/a
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { checkIfRolesArrayContainsAny } from "@lib/auth/rolesUtil";
 import { QuestionTypes } from "@prisma/client";
+import { addResponses } from "@serverActions/responseUtil";
 import {
   IconCheck,
   IconDeviceFloppy,

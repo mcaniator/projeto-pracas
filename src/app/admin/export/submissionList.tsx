@@ -1,6 +1,6 @@
 "use client";
 
-import { LocationAssessment } from "@/serverActions/assessmentUtil";
+import { LocationAssessment } from "@serverActions/assessmentUtil";
 
 const SubmissionComponent = ({
   checked,

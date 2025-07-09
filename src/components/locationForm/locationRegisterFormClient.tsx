@@ -1,6 +1,12 @@
 "use client";
 
+import { useHelperCard } from "@context/helperCardContext";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
+import { FetchCitiesType } from "@serverActions/cityUtil";
+import { LocationCategories } from "@serverActions/locationCategoryUtil";
+import { LocationTypes } from "@serverActions/locationTypeUtil";
+import { updateLocation } from "@serverActions/locationUtil";
+import { createLocation } from "@serverActions/manageLocations";
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
 import React, {
@@ -10,13 +16,7 @@ import React, {
   useState,
 } from "react";
 
-import { FetchCitiesType } from "../../serverActions/cityUtil";
-import { LocationCategories } from "../../serverActions/locationCategoryUtil";
-import { LocationTypes } from "../../serverActions/locationTypeUtil";
-import { updateLocation } from "../../serverActions/locationUtil";
-import { createLocation } from "../../serverActions/manageLocations";
 import LoadingIcon from "../LoadingIcon";
-import { useHelperCard } from "../context/helperCardContext";
 import { Input } from "../ui/input";
 import LocationRegisterCityForm from "./locationRegisterCityForm";
 import { LocationFormType } from "./locationRegisterForm";

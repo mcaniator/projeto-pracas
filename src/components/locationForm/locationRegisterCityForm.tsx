@@ -1,15 +1,14 @@
 "use client";
 
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import { Input } from "@components/ui/input";
+import { Select } from "@components/ui/select";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { BrazilianStates } from "@prisma/client";
+import { FetchCitiesType } from "@serverActions/cityUtil";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-import { FetchCitiesType } from "../../serverActions/cityUtil";
-import LoadingIcon from "../LoadingIcon";
-import { Button } from "../button";
-import { Input } from "../ui/input";
-import { Select } from "../ui/select";
 
 type AdministrativeUnitLevels = "NARROW" | "INTERMEDIATE" | "BROAD";
 const LocationRegisterCityForm = ({

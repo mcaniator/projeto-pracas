@@ -1,6 +1,6 @@
-import { fetchForms } from "@/serverActions/formUtil";
-import "@/serverActions/locationUtil";
 import { Location } from "@prisma/client";
+import { fetchForms } from "@serverActions/formUtil";
+import "@serverActions/locationUtil";
 import Link from "next/link";
 
 const FormSelector = async ({ location }: { location: Location }) => {

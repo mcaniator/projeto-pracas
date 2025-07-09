@@ -1,15 +1,14 @@
 "use client";
 
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import { Input } from "@components/ui/input";
+import { updateUserUsername } from "@serverActions/userUtil";
 import { IconCheck, IconHome } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
-
-import LoadingIcon from "../../../components/LoadingIcon";
-import { Button } from "../../../components/button";
-import { Input } from "../../../components/ui/input";
-import { updateUserUsername } from "../../../serverActions/userUtil";
 
 const UsernameForm = () => {
   const [state, formAction, isPending] = useActionState(

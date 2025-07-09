@@ -1,10 +1,10 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { createAssessment } from "@/serverActions/assessmentUtil";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
+import { createAssessment } from "@serverActions/assessmentUtil";
 import { useActionState, useEffect } from "react";
 
 import { CreateAssessmentSubmitButton } from "./createAssessmentSubmitButton";

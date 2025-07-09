@@ -1,6 +1,6 @@
-import { fetchAssessmentsInProgresss } from "@/serverActions/assessmentUtil";
-import { searchformNameById } from "@/serverActions/formUtil";
-import { searchLocationNameById } from "@/serverActions/locationUtil";
+import { fetchAssessmentsInProgresss } from "@serverActions/assessmentUtil";
+import { searchformNameById } from "@serverActions/formUtil";
+import { searchLocationNameById } from "@serverActions/locationUtil";
 
 import AssessmentsInProgressPage from "./assessmentsInProgressPage";
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@components/button";
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
 import {
   IconCalendarClock,
@@ -8,7 +9,6 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 
-import { Button } from "../../../../../components/button";
 import { TallyCreation } from "./tallyCreation";
 import { TallysInProgressList } from "./tallysInProgressList";
 

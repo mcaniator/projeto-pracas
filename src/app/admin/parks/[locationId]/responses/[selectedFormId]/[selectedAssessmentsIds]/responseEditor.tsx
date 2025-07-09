@@ -3,8 +3,8 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { ResponseToUpdate } from "@/serverActions/responseUtil";
 import { Question, QuestionTypes } from "@prisma/client";
+import { ResponseToUpdate } from "@serverActions/responseUtil";
 import Link from "next/link";
 import React from "react";
 import { useEffect, useState } from "react";

@@ -1,9 +1,8 @@
 "use client";
 
+import { useUserContext } from "@components/context/UserContext";
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
 import Link from "next/link";
-
-import { useUserContext } from "../../../../../components/context/UserContext";
 
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",

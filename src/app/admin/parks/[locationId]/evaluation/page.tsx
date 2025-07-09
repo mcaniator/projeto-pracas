@@ -1,4 +1,4 @@
-import { fetchLatestNonVersionZeroForms } from "@/serverActions/formUtil";
+import { fetchLatestNonVersionZeroForms } from "@serverActions/formUtil";
 import Link from "next/link";
 
 const Evaluation = async (props: {

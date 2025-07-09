@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { createTally } from "@/serverActions/tallyUtil";
+import { createTally } from "@serverActions/tallyUtil";
 import React, { useActionState, useEffect } from "react";
 
 import { useHelperCard } from "../../../../../components/context/helperCardContext";

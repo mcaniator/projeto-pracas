@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  LocationAssessment,
-  fetchAssessmentsByLocation,
-} from "@/serverActions/assessmentUtil";
-import { fetchTallysByLocationId } from "@/serverActions/tallyUtil";
 import LoadingIcon from "@components/LoadingIcon";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useUserContext } from "@components/context/UserContext";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
+import {
+  LocationAssessment,
+  fetchAssessmentsByLocation,
+} from "@serverActions/assessmentUtil";
+import { fetchTallysByLocationId } from "@serverActions/tallyUtil";
 import {
   IconArrowBackUp,
   IconArrowBackUpDouble,

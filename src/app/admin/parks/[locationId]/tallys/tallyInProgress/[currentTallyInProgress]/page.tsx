@@ -1,4 +1,4 @@
-import { fetchOngoingTallyById } from "@/serverActions/tallyUtil";
+import { fetchOngoingTallyById } from "@serverActions/tallyUtil";
 import { notFound } from "next/navigation";
 
 import { TallyInProgressPage } from "./tallyInProgressPage";

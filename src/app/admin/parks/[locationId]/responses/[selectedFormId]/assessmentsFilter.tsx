@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { FinalizedAssessmentsList } from "@/serverActions/assessmentUtil";
+import { FinalizedAssessmentsList } from "@serverActions/assessmentUtil";
 import { IconFilter } from "@tabler/icons-react";
 import Link from "next/link";
 import React from "react";

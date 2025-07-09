@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { deleteAssessment } from "@serverActions/assessmentUtil";
 import { IconTrash, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,10 +13,6 @@ import {
   Modal,
   ModalOverlay,
 } from "react-aria-components";
-
-import LoadingIcon from "../../../../../../../components/LoadingIcon";
-import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
-import { deleteAssessment } from "../../../../../../../serverActions/assessmentUtil";
 
 const DeleteAssessmentModal = ({
   assessmentId,

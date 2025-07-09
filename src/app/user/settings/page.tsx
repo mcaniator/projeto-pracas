@@ -1,8 +1,7 @@
 "use server";
 
+import { auth } from "@auth/auth";
 import { redirect } from "next/navigation";
-
-import { auth } from "../../../lib/auth/auth";
 
 const UserSettings = async () => {
   const session = await auth();

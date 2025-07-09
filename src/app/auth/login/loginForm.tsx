@@ -2,14 +2,13 @@
 
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
+import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
+import login from "@serverActions/login";
 import { IconTree } from "@tabler/icons-react";
 import { useActionState, useEffect } from "react";
-
-import { useHelperCard } from "../../../components/context/helperCardContext";
-import ButtonLink from "../../../components/ui/buttonLink";
-import login from "../../../serverActions/login";
 
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();

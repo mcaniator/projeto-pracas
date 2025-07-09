@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { editLocationPolygon } from "@/serverActions/manageLocations";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { editLocationPolygon } from "@serverActions/manageLocations";
 import { removePolygon } from "@serverActions/managePolygons";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";

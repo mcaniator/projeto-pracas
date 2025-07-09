@@ -1,5 +1,5 @@
-import { searchLocationsById } from "@/serverActions/locationUtil";
 import PermissionGuard from "@components/auth/permissionGuard";
+import { searchLocationsById } from "@serverActions/locationUtil";
 import { IconMapPin } from "@tabler/icons-react";
 import Link from "next/link";
 

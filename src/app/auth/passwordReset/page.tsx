@@ -1,7 +1,7 @@
+import { auth } from "@lib/auth/auth";
+import { getResetPasswordUserByToken } from "@serverActions/passwordResetUtil";
 import { redirect } from "next/navigation";
 
-import { auth } from "../../../lib/auth/auth";
-import { getResetPasswordUserByToken } from "../../../serverActions/passwordResetUtil";
 import AlreadyLoggedInError from "../alreadyLoggedInError";
 import PasswordResetForm from "./passwordResetForm";
 

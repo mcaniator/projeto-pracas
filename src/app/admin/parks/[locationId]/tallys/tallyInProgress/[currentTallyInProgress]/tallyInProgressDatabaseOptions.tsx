@@ -2,14 +2,14 @@
 
 import { Button } from "@/components/button";
 import { Input } from "@/components/ui/input";
+import LoadingIcon from "@components/LoadingIcon";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { WeatherConditions } from "@prisma/client";
 import {
   deleteTallys,
   redirectToTallysList,
   saveOngoingTallyData,
-} from "@/serverActions/tallyUtil";
-import LoadingIcon from "@components/LoadingIcon";
-import { useHelperCard } from "@components/context/helperCardContext";
-import { WeatherConditions } from "@prisma/client";
+} from "@serverActions/tallyUtil";
 import { useRef, useState } from "react";
 import React from "react";
 

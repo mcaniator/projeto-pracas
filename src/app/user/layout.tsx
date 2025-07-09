@@ -1,7 +1,6 @@
+import { Header } from "@components/header/header";
+import { auth } from "@lib/auth/auth";
 import { ReactNode } from "react";
-
-import { Header } from "../../components/header/header";
-import { auth } from "../../lib/auth/auth";
 
 const UserRoot = async ({ children }: { children: ReactNode }) => {
   const session = await auth();

@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { deleteTallys, redirectToTallysList } from "@/serverActions/tallyUtil";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { deleteTallys, redirectToTallysList } from "@serverActions/tallyUtil";
 import { useState } from "react";
 import React from "react";
 

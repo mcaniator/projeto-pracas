@@ -153,4 +153,3 @@ const TallyPage = ({
 };
 
 export default TallyPage;
-export { type TallyDataFetchedToTallyList, type WeekdaysFilterItems };
