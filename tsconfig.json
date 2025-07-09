@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -20,15 +21,20 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"],
-      "@serverActions/*": ["./src/serverActions/*"],
-      "@serverOnly/*": ["./src/serverOnly/*"],
-      "@customTypes/*": ["./src/lib/types/*"],
-      "@formatters/*": ["./src/lib/formatters/*"],
-      "@translationMaps/*": ["./src/lib/translationMaps/*"],
-      "@context/*": ["./src/components/context*"],
-      "@lib/*": ["./src/lib/*"]
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@serverActions/*": ["src/lib/queries/serverActions/*"],
+      "@serverOnly/*": ["src/lib/queries/serverOnly/*"],
+      "@customTypes/*": ["src/lib/types/*"],
+      "@formatters/*": ["src/lib/formatters/*"],
+      "@translationMaps/*": ["src/lib/translationMaps/*"],
+      "@context/*": ["src/components/context/*"],
+      "@lib/*": ["src/lib/*"],
+      "@errors/*": ["src/lib/errors/*"],
+      "@app/*": ["src/app/*"],
+      "@auth/*": ["src/lib/auth/*"],
+      "@zodValidators": ["src/lib/zodValidators.ts"],
+      "@signedCookies/*": ["src/lib/signedCookies/*"]
     }
   },
   "include": ["./next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
