@@ -2,15 +2,14 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { CalculationTypes, WeatherConditions } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
-
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import { checkIfLoggedInUserHasAnyPermission } from "@lib/queries/serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
   fetchAssessmentsForEvaluationExport,
   processAndFormatTallyDataLineWithAddedContent,
-} from "../serverOnly/exportToCSV";
+} from "@lib/queries/serverOnly/exportToCSV";
+import { CalculationTypes, WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {

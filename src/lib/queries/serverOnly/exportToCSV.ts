@@ -1,7 +1,7 @@
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { hourFormatter } from "@formatters/dateFormatters";
+import { prisma } from "@lib/prisma";
 
-import { prisma } from "../lib/prisma";
 import {
   TallyDataToProcessType,
   TallyDataToProcessTypeWithoutLocation,

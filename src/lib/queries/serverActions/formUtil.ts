@@ -3,13 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
+import { checkIfLoggedInUserHasAnyPermission } from "@lib/queries/serverOnly/checkPermission";
 import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 import { QuestionWithCategories } from "./questionUtil";
 
 interface FormToEditPage {

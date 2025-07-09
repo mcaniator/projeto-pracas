@@ -3,7 +3,7 @@ import { MultiPolygon, Polygon } from "geojson";
 import "server-only";
 import { parseShp } from "shpjs";
 
-import { prisma } from "../lib/prisma";
+import { prisma } from "../../prisma";
 
 type FetchedAssessmentGeometries = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentGeometries>>

@@ -4,11 +4,10 @@ import {
   categoryInfoToCreateSchema,
   subcategoryInfoToCreateSchema,
 } from "@/lib/zodValidators";
+import { prisma } from "@lib/prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidatePath, revalidateTag } from "next/cache";
-
-import { prisma } from "../lib/prisma";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type FetchedCategories = NonNullable<
   Awaited<ReturnType<typeof fetchCategories>>

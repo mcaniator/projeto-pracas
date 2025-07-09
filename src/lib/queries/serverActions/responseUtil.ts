@@ -1,12 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@auth/userUtil";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionTypes } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
-
-import { getSessionUser } from "../lib/auth/userUtil";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface ResponseToAdd {
   questionId: number;

@@ -1,14 +1,13 @@
 "use server";
 
+import { auth, signOut } from "@auth/auth";
+import { prisma } from "@lib/prisma";
+import { emailTransporter } from "@serverOnly/email";
+import { getPasswordResetEmail } from "@serverOnly/renderEmail";
+import { passwordResetSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
 import * as crypto from "crypto";
 import { ZodError, z } from "zod";
-
-import { auth, signOut } from "../lib/auth/auth";
-import { prisma } from "../lib/prisma";
-import { passwordResetSchema } from "../lib/zodValidators";
-import { emailTransporter } from "../serverOnly/email";
-import { getPasswordResetEmail } from "../serverOnly/renderEmail";
 
 const createPasswordReset = async (
   prevState: { statusCode: number } | null,

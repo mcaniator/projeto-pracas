@@ -1,15 +1,14 @@
 "use server";
 
+import { InviteOrdersObj } from "@app/admin/users/invites/invitesTable";
+import PermissionError from "@errors/permissionError";
+import { auth } from "@lib/auth/auth";
+import { prisma } from "@lib/prisma";
 import { Role } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import { emailTransporter } from "@serverOnly/email";
+import { getInviteEmail } from "@serverOnly/renderEmail";
 import * as crypto from "crypto";
-
-import { InviteOrdersObj } from "../app/admin/users/invites/invitesTable";
-import PermissionError from "../errors/permissionError";
-import { auth } from "../lib/auth/auth";
-import { prisma } from "../lib/prisma";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
-import { emailTransporter } from "../serverOnly/email";
-import { getInviteEmail } from "../serverOnly/renderEmail";
 
 const createInvite = async (email: string, roles: Role[]) => {
   try {

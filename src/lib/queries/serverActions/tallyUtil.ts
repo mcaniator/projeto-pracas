@@ -2,13 +2,12 @@
 
 import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@auth/userUtil";
+import PermissionError from "@errors/permissionError";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-import PermissionError from "../errors/permissionError";
-import { getSessionUserId } from "../lib/auth/userUtil";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface WeatherStats {
   temperature: number | null;

@@ -1,10 +1,9 @@
 "use server";
 
+import { auth, signIn, signOut } from "@lib/auth/auth";
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { cookies } from "next/headers";
-
-import { auth, signIn, signOut } from "../lib/auth/auth";
 
 const googleAuthenticate = async () => {
   if (process.env.ENABLE_GOOGLE_LOGIN !== "true") {

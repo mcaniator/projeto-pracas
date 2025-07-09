@@ -1,11 +1,10 @@
 "use server";
 
+import { prisma } from "@/lib/prisma";
+import { auth, signIn, signOut } from "@auth/auth";
+import { userLoginSchema } from "@zodValidators";
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-
-import { auth, signIn, signOut } from "../lib/auth/auth";
-import { prisma } from "../lib/prisma";
-import { userLoginSchema } from "../lib/zodValidators";
 
 const login = async (
   prevState: { statusCode: number } | null,

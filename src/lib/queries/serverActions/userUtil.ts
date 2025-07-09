@@ -1,14 +1,13 @@
 "use server";
 
+import { OrdersObj } from "@app/admin/users/usersTable";
+import { getSessionUser } from "@auth/userUtil";
+import { prisma } from "@lib/prisma";
 import { Prisma, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import { userUpdateUsernameSchema } from "@zodValidators";
 import { ZodError } from "zod";
-
-import { OrdersObj } from "../app/admin/users/usersTable";
-import { getSessionUser } from "../lib/auth/userUtil";
-import { prisma } from "../lib/prisma";
-import { userUpdateUsernameSchema } from "../lib/zodValidators";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 type UserPropertyToSearch = "username" | "email" | "name";
 

@@ -1,9 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag, unstable_cache } from "next/cache";
-
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 const fetchPolygons = async () => {
   try {

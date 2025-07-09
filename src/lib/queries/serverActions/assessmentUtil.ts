@@ -2,15 +2,14 @@
 
 import { prisma } from "@/lib/prisma";
 import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
-import { revalidatePath } from "next/cache";
-
-import { auth } from "../lib/auth/auth";
-import { getSessionUser } from "../lib/auth/userUtil";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import { auth } from "@lib/auth/auth";
+import { getSessionUser } from "@lib/auth/userUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   fetchAssessmentGeometries,
   fetchAssessmentsGeometries,
-} from "../serverOnly/geometries";
+} from "@serverOnly/geometries";
+import { revalidatePath } from "next/cache";
 
 type AssessmentsWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>

@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { FormQuestion } from "@customTypes/forms/formCreation";
 import { Question } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag, unstable_cache } from "next/cache";
-
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
 interface QuestionSearchedByStatement {
   id: number;

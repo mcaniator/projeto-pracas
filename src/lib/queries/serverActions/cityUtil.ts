@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "../lib/prisma";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import { prisma } from "@lib/prisma";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 type FetchCitiesType = Awaited<ReturnType<typeof fetchCities>>;
 

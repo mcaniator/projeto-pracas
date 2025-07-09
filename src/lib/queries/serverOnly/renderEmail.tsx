@@ -5,8 +5,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { pretty, render } from "@react-email/render";
 
-import InviteEmail from "../packages/transactional/emails/InviteEmail";
-import PasswordResetEmail from "../packages/transactional/emails/PasswordResetEmail";
+import InviteEmail from "../../../packages/transactional/emails/InviteEmail";
+import PasswordResetEmail from "../../../packages/transactional/emails/PasswordResetEmail";
 
 const getInviteEmail = async ({ registerLink }: { registerLink: string }) => {
   const html = await pretty(

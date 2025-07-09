@@ -3,15 +3,14 @@
 import { prisma } from "@/lib/prisma";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates } from "@prisma/client";
-import { revalidateTag } from "next/cache";
-import { z } from "zod";
-
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   addPolygon,
   addPolygonFromWKT,
   getPolygonsFromShp,
-} from "../serverOnly/geometries";
+} from "@serverOnly/geometries";
+import { revalidateTag } from "next/cache";
+import { z } from "zod";
 
 const createLocation = async (
   _curStatus: { statusCode: number; message: string },

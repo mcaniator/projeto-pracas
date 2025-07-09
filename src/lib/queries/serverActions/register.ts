@@ -1,14 +1,13 @@
 "use server";
 
+import { signIn } from "@auth/auth";
+import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
+import { getInviteToken } from "@serverOnly/invite";
+import { userRegisterSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ZodError, z } from "zod";
-
-import { signIn } from "../lib/auth/auth";
-import { prisma } from "../lib/prisma";
-import { userRegisterSchema } from "../lib/zodValidators";
-import { getInviteToken } from "../serverOnly/invite";
 
 const register = async (
   prevState: {

@@ -1,18 +1,18 @@
-import { Role } from "@prisma/client";
-import "server-only";
-
-import PermissionError from "../errors/permissionError";
-import { auth } from "../lib/auth/auth";
+import { auth } from "@auth/auth";
 import {
   RoleGroup,
   checkIfRolesArrayContainsAll,
   checkIfRolesArrayContainsAny,
-} from "../lib/auth/rolesUtil";
-import { prisma } from "../lib/prisma";
+} from "@auth/rolesUtil";
+import PermissionError from "@errors/permissionError";
+import { Role } from "@prisma/client";
 import {
   getSignedCookieValue,
   setSignedCookie,
-} from "../lib/signedCookies/signedCookies";
+} from "@signedCookies/signedCookies";
+import "server-only";
+
+import { prisma } from "../../prisma";
 
 const checkIfLoggedInUserHasAnyPermission = async ({
   roles,

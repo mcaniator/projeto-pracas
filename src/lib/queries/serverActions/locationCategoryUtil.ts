@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 type LocationCategories = Awaited<ReturnType<typeof fetchLocationCategories>>;
 
