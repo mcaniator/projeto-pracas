@@ -1,5 +1,5 @@
 import { Location } from "@prisma/client";
-import { fetchForms } from "@serverActions/formUtil";
+import { fetchForms } from "@queries/form";
 import "@serverActions/locationUtil";
 import Link from "next/link";
 

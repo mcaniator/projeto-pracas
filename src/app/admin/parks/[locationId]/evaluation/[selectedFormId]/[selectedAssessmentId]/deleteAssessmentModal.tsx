@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { deleteAssessment } from "@serverActions/assessmentUtil";
+import { _deleteAssessment } from "@serverActions/assessmentUtil";
 import { IconTrash, IconX } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,7 +26,7 @@ const DeleteAssessmentModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const handleDeleteAssessment = async () => {
     setIsLoading(true);
-    const response = await deleteAssessment(assessmentId);
+    const response = await _deleteAssessment(assessmentId);
     if (response.statusCode === 200) {
       setHelperCard({
         show: true,

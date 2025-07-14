@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUserId } from "@auth/userUtil";
 import PermissionError from "@errors/permissionError";
 import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
+import { fetchTallysByLocationId } from "@queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -26,196 +27,17 @@ interface PersonWithQuantity {
   isPersonWithoutHousing: boolean;
   quantity: number;
 }
-const fetchTallysByLocationId = async (locationId: number) => {
+const _fetchTallysByLocationId = async (locationId: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   } catch (e) {
     return { statusCode: 401, tallys: [] };
   }
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        locationId: locationId,
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        user: {
-          select: {
-            username: true,
-            id: true,
-          },
-        },
-      },
-    });
-    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return { statusCode: 200, tallys };
-  } catch (error) {
-    return { statusCode: 500, tallys: [] };
-  }
+  const response = await fetchTallysByLocationId(locationId);
+  return response;
 };
 
-const fetchRecentlyCompletedTallys = async () => {
-  const returnObj: {
-    statusCode: number;
-    tallys: {
-      id: number;
-      startDate: Date;
-      endDate: Date | null;
-      location: {
-        name: string;
-        id: number;
-      };
-      user: {
-        username: string | null;
-      };
-    }[];
-  } = { statusCode: 500, tallys: [] };
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, tallys: [] };
-  }
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        NOT: {
-          endDate: null,
-        },
-      },
-      orderBy: {
-        startDate: "desc",
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-    returnObj.statusCode = 200;
-    returnObj.tallys = tallys;
-  } catch (e) {
-    return returnObj;
-  }
-  return returnObj;
-};
-
-const fetchOngoingTallyById = async (tallyId: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
-  } catch (e) {
-    return { statusCode: 401, tally: null };
-  }
-  try {
-    const tally = await prisma.tally.findUnique({
-      where: {
-        id: tallyId,
-      },
-      select: {
-        tallyPerson: {
-          select: {
-            quantity: true,
-            person: {
-              select: {
-                ageGroup: true,
-                gender: true,
-                activity: true,
-                isTraversing: true,
-                isPersonWithImpairment: true,
-                isInApparentIllicitActivity: true,
-                isPersonWithoutHousing: true,
-              },
-            },
-          },
-        },
-        location: {
-          select: {
-            name: true,
-          },
-        },
-        startDate: true,
-        endDate: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-        animalsAmount: true,
-        temperature: true,
-        weatherCondition: true,
-        groups: true,
-        commercialActivities: true,
-      },
-    });
-    return { statusCode: 200, tally: tally?.endDate ? null : tally };
-  } catch (error) {
-    return { statusCode: 500, tally: null };
-  }
-};
-
-const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, tallys: [] };
-  }
-  try {
-    let tallys = await prisma.tally.findMany({
-      where: {
-        id: {
-          in: tallysIds,
-        },
-      },
-      include: {
-        tallyPerson: {
-          select: {
-            quantity: true,
-            person: {
-              select: {
-                ageGroup: true,
-                gender: true,
-                activity: true,
-                isTraversing: true,
-                isPersonWithImpairment: true,
-                isInApparentIllicitActivity: true,
-                isPersonWithoutHousing: true,
-              },
-            },
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-    tallys = tallys.filter((tally) => {
-      if (tally.endDate) return true;
-    });
-    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return { statusCode: 200, tallys };
-  } catch (error) {
-    return { statusCode: 500, tallys: null };
-  }
-};
-
-const createTally = async (
+const _createTally = async (
   prevState: TallyCreationFormType,
   formData: FormData,
 ) => {
@@ -279,7 +101,7 @@ const createTally = async (
   }
 };
 
-const saveOngoingTallyData = async (
+const _saveOngoingTallyData = async (
   tallyId: number,
   weatherStats: WeatherStats,
   tallyMap: Map<string, number>,
@@ -389,7 +211,7 @@ const saveOngoingTallyData = async (
   }
 };
 
-const deleteTallys = async (tallysIds: number[]) => {
+const _deleteTallys = async (tallysIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
@@ -437,17 +259,14 @@ const deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
-const redirectToTallysList = (locationId: number) => {
+const _redirectToTallysList = (locationId: number) => {
   redirect(`/admin/parks/${locationId}/tallys`);
 };
 
 export {
-  fetchTallysByLocationId,
-  fetchRecentlyCompletedTallys,
-  createTally,
-  fetchOngoingTallyById,
-  fetchFinalizedTallysToDataVisualization,
-  saveOngoingTallyData,
-  deleteTallys,
-  redirectToTallysList,
+  _fetchTallysByLocationId,
+  _createTally,
+  _saveOngoingTallyData,
+  _deleteTallys,
+  _redirectToTallysList,
 };

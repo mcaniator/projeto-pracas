@@ -1,4 +1,4 @@
-import { searchLocationsById } from "@serverActions/locationUtil";
+import { searchLocationsById } from "@queries/location";
 
 import { FormSelector } from "./formSelector";
 

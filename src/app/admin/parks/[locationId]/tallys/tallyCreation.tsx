@@ -1,10 +1,10 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { createTally } from "@serverActions/tallyUtil";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { _createTally } from "@serverActions/tallyUtil";
 import React, { useActionState, useEffect } from "react";
 
-import { useHelperCard } from "../../../../../components/context/helperCardContext";
 import { CreateTallySubmitButton } from "./createTallySubmitButton";
 
 type TallyCreationFormType = {
@@ -27,7 +27,7 @@ const TallyCreation = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const currentDatetime = new Date();
-  const [newTallyFormState, newTallyFormAction] = useActionState(createTally, {
+  const [newTallyFormState, newTallyFormAction] = useActionState(_createTally, {
     locationId: locationId,
     userId: "",
     date: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,

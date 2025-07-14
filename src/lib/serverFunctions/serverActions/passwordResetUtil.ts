@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
 import * as crypto from "crypto";
 import { ZodError, z } from "zod";
 
-const createPasswordReset = async (
+const _createPasswordReset = async (
   prevState: { statusCode: number } | null,
   formData: FormData,
 ) => {
@@ -92,27 +92,7 @@ const createPasswordReset = async (
   }
 };
 
-const getResetPasswordUserByToken = async (token: string) => {
-  try {
-    const passwordReset = await prisma.passwordReset.findUnique({
-      where: {
-        token,
-      },
-      select: {
-        user: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-    return passwordReset;
-  } catch (e) {
-    return false;
-  }
-};
-
-const resetPassword = async (
+const _resetPassword = async (
   prevState: { statusCode: number; errorMessage: string | null } | null,
   formData: FormData,
 ) => {
@@ -168,4 +148,4 @@ const resetPassword = async (
   }
 };
 
-export { createPasswordReset, getResetPasswordUserByToken, resetPassword };
+export { _createPasswordReset, _resetPassword };

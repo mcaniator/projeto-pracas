@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@components/button";
-import { AssessmentsWithResposes } from "@serverActions/assessmentUtil";
+import { AssessmentsWithResposes } from "@queries/assessment";
 import { IconListCheck, IconSum } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 

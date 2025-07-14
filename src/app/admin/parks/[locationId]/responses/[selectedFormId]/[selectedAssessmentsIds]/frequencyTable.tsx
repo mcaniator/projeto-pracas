@@ -3,7 +3,7 @@
 import { Button } from "@components/button";
 import { ResponseCalculation } from "@customTypes/assessments/calculation";
 import { OptionTypes, QuestionTypes } from "@prisma/client";
-import { AssessmentsWithResposes } from "@serverActions/assessmentUtil";
+import { AssessmentsWithResposes } from "@queries/assessment";
 import { IconHelp } from "@tabler/icons-react";
 import { useState } from "react";
 

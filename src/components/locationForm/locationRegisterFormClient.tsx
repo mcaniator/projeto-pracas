@@ -2,11 +2,10 @@
 
 import { useHelperCard } from "@context/helperCardContext";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
-import { FetchCitiesType } from "@serverActions/cityUtil";
-import { LocationCategories } from "@serverActions/locationCategoryUtil";
-import { LocationTypes } from "@serverActions/locationTypeUtil";
-import { updateLocation } from "@serverActions/locationUtil";
-import { createLocation } from "@serverActions/manageLocations";
+import { FetchCitiesType } from "@queries/city";
+import { LocationCategories } from "@queries/locationCategory";
+import { LocationTypes } from "@queries/locationType";
+import { _createLocation, _updateLocation } from "@serverActions/locationUtil";
 import { IconCircleDashedCheck } from "@tabler/icons-react";
 import Link from "next/link";
 import React, {
@@ -51,7 +50,7 @@ const LocationRegisterFormClient = ({
   onSuccess?: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const action = formType === "CREATE" ? createLocation : updateLocation;
+  const action = formType === "CREATE" ? _createLocation : _updateLocation;
   const [formState, formAction, isPending] = useActionState(
     action,
     initialState,

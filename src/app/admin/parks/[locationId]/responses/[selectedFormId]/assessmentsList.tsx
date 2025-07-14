@@ -1,6 +1,6 @@
 "use client";
 
-import { FinalizedAssessmentsList } from "@serverActions/assessmentUtil";
+import { FinalizedAssessmentsList } from "@queries/assessment";
 import { IconCalendarClock, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
 

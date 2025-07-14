@@ -23,8 +23,9 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@serverActions/*": ["src/lib/queries/serverActions/*"],
-      "@serverOnly/*": ["src/lib/queries/serverOnly/*"],
+      "@serverActions/*": ["src/lib/serverFunctions/serverActions/*"],
+      "@serverOnly/*": ["src/lib/serverFunctions/serverOnly/*"],
+      "@queries/*": ["src/lib/serverFunctions/queries/*"],
       "@customTypes/*": ["src/lib/types/*"],
       "@formatters/*": ["src/lib/formatters/*"],
       "@translationMaps/*": ["src/lib/translationMaps/*"],

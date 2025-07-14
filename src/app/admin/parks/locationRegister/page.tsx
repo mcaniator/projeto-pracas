@@ -1,7 +1,7 @@
 import LocationRegisterForm from "@components/locationForm/locationRegisterForm";
-import { fetchCities } from "@serverActions/cityUtil";
-import { fetchLocationCategories } from "@serverActions/locationCategoryUtil";
-import { fetchLocationTypes } from "@serverActions/locationTypeUtil";
+import { fetchCities } from "@queries/city";
+import { fetchLocationCategories } from "@queries/locationCategory";
+import { fetchLocationTypes } from "@queries/locationType";
 
 const RegisterLocation = async () => {
   const cities = await fetchCities();

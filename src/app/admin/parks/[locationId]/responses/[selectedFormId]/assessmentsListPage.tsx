@@ -3,7 +3,7 @@
 import { useHelperCard } from "@components/context/helperCardContext";
 import { WeekdaysFilterItems } from "@customTypes/dates/dates";
 import { weekdayFormatter } from "@formatters/dateFormatters";
-import { FinalizedAssessmentsList } from "@serverActions/assessmentUtil";
+import { FinalizedAssessmentsList } from "@queries/assessment";
 import React, { useEffect, useRef, useState } from "react";
 
 import { AssessmentsFilter } from "./assessmentsFilter";

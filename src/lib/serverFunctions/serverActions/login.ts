@@ -6,7 +6,7 @@ import { userLoginSchema } from "@zodValidators";
 import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-const login = async (
+const _login = async (
   prevState: { statusCode: number } | null,
   formData: FormData,
 ): Promise<{ statusCode: number } | null> => {
@@ -52,4 +52,4 @@ const login = async (
   }
 };
 
-export default login;
+export default _login;

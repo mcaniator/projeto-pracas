@@ -1,6 +1,4 @@
-"use server";
-
-import { searchLocationsById } from "@serverActions/locationUtil";
+import { searchLocationsById } from "@queries/location";
 import { IconArrowBackUp } from "@tabler/icons-react";
 import Link from "next/link";
 

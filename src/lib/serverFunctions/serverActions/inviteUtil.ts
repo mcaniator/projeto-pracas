@@ -10,7 +10,7 @@ import { emailTransporter } from "@serverOnly/email";
 import { getInviteEmail } from "@serverOnly/renderEmail";
 import * as crypto from "crypto";
 
-const createInvite = async (email: string, roles: Role[]) => {
+const _createInvite = async (email: string, roles: Role[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   } catch (e) {
@@ -53,7 +53,7 @@ const createInvite = async (email: string, roles: Role[]) => {
   }
 };
 
-const updateInvite = async (inviteToken: string, roles: Role[]) => {
+const _updateInvite = async (inviteToken: string, roles: Role[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   } catch (e) {
@@ -80,7 +80,7 @@ const updateInvite = async (inviteToken: string, roles: Role[]) => {
   }
 };
 
-const deleteInvite = async (token: string) => {
+const _deleteInvite = async (token: string) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   } catch (e) {
@@ -98,7 +98,7 @@ const deleteInvite = async (token: string) => {
   }
 };
 
-const getInvites = async (
+const _getInvites = async (
   page: number,
   take: number,
   search: string | null,
@@ -148,4 +148,4 @@ const getInvites = async (
   }
 };
 
-export { createInvite, getInvites, deleteInvite, updateInvite };
+export { _createInvite, _getInvites, _deleteInvite, _updateInvite };

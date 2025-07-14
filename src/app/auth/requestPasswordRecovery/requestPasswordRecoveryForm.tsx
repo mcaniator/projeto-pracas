@@ -4,7 +4,7 @@ import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import { Input } from "@components/ui/input";
-import { createPasswordReset } from "@serverActions/passwordResetUtil";
+import { _createPasswordReset } from "@serverActions/passwordResetUtil";
 import { IconTree } from "@tabler/icons-react";
 import { startTransition, useActionState, useEffect } from "react";
 
@@ -12,7 +12,7 @@ const RequestPasswordRecoveryForm = () => {
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlayVisible } = useLoadingOverlay();
   const [state, formAction, isPending] = useActionState(
-    createPasswordReset,
+    _createPasswordReset,
     null,
   );
 

@@ -1,5 +1,5 @@
-import { getCategories } from "@serverActions/categoryUtil";
-import { searchFormById } from "@serverActions/formUtil";
+import { getCategories } from "@queries/category";
+import { searchFormById } from "@queries/form";
 
 import Client from "./client";
 

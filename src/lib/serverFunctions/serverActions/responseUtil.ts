@@ -21,7 +21,7 @@ interface ResponseToUpdate {
   value: string[];
 }
 
-const addResponses = async (
+const _addResponses = async (
   assessmentId: number,
   responses: ResponseToAdd[],
   geometriesByQuestion: {
@@ -259,6 +259,6 @@ const addResponses = async (
   };
 };
 
-export { addResponses };
+export { _addResponses };
 
 export { type ResponseToUpdate };

@@ -4,7 +4,7 @@ import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
-import { categorySubmit } from "@serverActions/categoryUtil";
+import { _categorySubmit } from "@serverActions/categoryServerActions";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -25,7 +25,7 @@ const CategoryCreationModal = ({
     categoryName: null,
   };
   const [state, formAction, isPending] = useActionState(
-    categorySubmit,
+    _categorySubmit,
     initialState,
   );
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(

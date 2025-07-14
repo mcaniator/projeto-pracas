@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
-import { createAssessment } from "@serverActions/assessmentUtil";
+import { _createAssessment } from "@serverActions/assessmentUtil";
 import { useActionState, useEffect } from "react";
 
 import { CreateAssessmentSubmitButton } from "./createAssessmentSubmitButton";
@@ -19,7 +19,7 @@ const AssessmentCreation = ({
   const { setHelperCard } = useHelperCard();
   const currentDatetime = new Date();
   const [newAssessmentFormState, newAssessmentFormAction, isPending] =
-    useActionState(createAssessment, {
+    useActionState(_createAssessment, {
       locationId: locationId.toString(),
       formId: formId.toString(),
       startDate: `${currentDatetime.getFullYear()}-${String(currentDatetime.getMonth() + 1).padStart(2, "0")}-${String(currentDatetime.getDate()).padStart(2, "0")}T${String(currentDatetime.getHours()).padStart(2, "0")}:${String(currentDatetime.getMinutes()).padStart(2, "0")}`,

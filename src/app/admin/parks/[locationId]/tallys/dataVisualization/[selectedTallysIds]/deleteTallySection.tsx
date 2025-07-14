@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { deleteTallys, redirectToTallysList } from "@serverActions/tallyUtil";
+import { _deleteTallys, _redirectToTallysList } from "@serverActions/tallyUtil";
 import { useState } from "react";
 import React from "react";
 
@@ -20,7 +20,7 @@ const DeleteTallySection = ({
   const handleTallyDeletion = async () => {
     setDeleting(true);
     try {
-      const response = await deleteTallys(tallyIds);
+      const response = await _deleteTallys(tallyIds);
       if (response.statusCode === 401) {
         setHelperCard({
           show: true,
@@ -57,7 +57,7 @@ const DeleteTallySection = ({
       setDeleting(false);
       return;
     }
-    redirectToTallysList(locationId);
+    _redirectToTallysList(locationId);
   };
   return (
     <div className="flex flex-col gap-2">

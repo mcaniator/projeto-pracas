@@ -1,5 +1,5 @@
-import { searchLocationNameById } from "@serverActions/locationUtil";
-import { fetchFinalizedTallysToDataVisualization } from "@serverActions/tallyUtil";
+import { searchLocationNameById } from "@queries/location";
+import { fetchFinalizedTallysToDataVisualization } from "@queries/tally";
 import { notFound } from "next/navigation";
 
 import { TallysDataPage } from "./TallysDataPage";

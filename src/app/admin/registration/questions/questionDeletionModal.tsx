@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { deleteQuestion } from "@serverActions/questionUtil";
+import { _deleteQuestion } from "@serverActions/questionUtil";
 import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -23,7 +23,7 @@ const QuestionDeletionModal = ({
   fetchCategoriesAfterDeletion: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(deleteQuestion, null);
+  const [state, formAction, isPending] = useActionState(_deleteQuestion, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );

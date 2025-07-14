@@ -351,4 +351,4 @@ const UsersTable = ({
 };
 
 export default UsersTable;
-export type { Order, OrdersObj, OrderProperty };
+export { type Order, type OrdersObj, type OrderProperty };

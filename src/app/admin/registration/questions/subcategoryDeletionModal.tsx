@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { deleteSubcategory } from "@serverActions/categoryUtil";
+import { _deleteSubcategory } from "@serverActions/categoryServerActions";
 import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -26,7 +26,7 @@ const SubcategoryDeletionModal = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(
-    deleteSubcategory,
+    _deleteSubcategory,
     null,
   );
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(

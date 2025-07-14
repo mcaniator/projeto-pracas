@@ -1,5 +1,5 @@
-import { fetchAssessmentByLocationAndForm } from "@serverActions/assessmentUtil";
-import { searchLocationNameById } from "@serverActions/locationUtil";
+import { fetchAssessmentByLocationAndForm } from "@queries/assessment";
+import { searchLocationNameById } from "@queries/location";
 
 import { AssessmentsListPage } from "./assessmentsListPage";
 

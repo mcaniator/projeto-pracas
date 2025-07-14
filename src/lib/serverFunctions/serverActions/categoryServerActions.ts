@@ -10,18 +10,10 @@ import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission
 import { revalidatePath, revalidateTag } from "next/cache";
 
 type FetchedCategories = NonNullable<
-  Awaited<ReturnType<typeof fetchCategories>>
+  Awaited<ReturnType<typeof _fetchCategories>>
 >["categories"];
 
-type CategoriesWithQuestionsAndStatusCode = NonNullable<
-  Awaited<ReturnType<typeof getCategories>>
->;
-
-type CategoriesWithQuestions = NonNullable<
-  Awaited<ReturnType<typeof getCategories>>["categories"]
->;
-
-const fetchCategories = async () => {
+const _fetchCategories = async () => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
   } catch (e) {
@@ -42,7 +34,7 @@ const fetchCategories = async () => {
   }
 };
 
-const categorySubmit = async (
+const _categorySubmit = async (
   prevState: { statusCode: number; categoryName: string | null },
   formData: FormData,
 ) => {
@@ -80,7 +72,7 @@ const categorySubmit = async (
   }
 };
 
-const deleteCategory = async (
+const _deleteCategory = async (
   prevState: {
     statusCode: number;
     content: {
@@ -193,7 +185,7 @@ const deleteCategory = async (
   }
 };
 
-const deleteSubcategory = async (
+const _deleteSubcategory = async (
   prevState: {
     statusCode: number;
     content: {
@@ -312,7 +304,7 @@ const deleteSubcategory = async (
   }
 };
 
-const subcategorySubmit = async (
+const _subcategorySubmit = async (
   prevState: { statusCode: number; subcategoryName: string | null },
   formData: FormData,
 ) => {
@@ -354,47 +346,11 @@ const subcategorySubmit = async (
   }
 };
 
-const getCategories = async () => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return { statusCode: 401, categories: [] };
-  }
-  try {
-    const categories = await prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        subcategory: {
-          select: {
-            id: true,
-            name: true,
-          },
-          orderBy: {
-            name: "asc",
-          },
-        },
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-    return { statusCode: 200, categories: categories };
-  } catch (e) {
-    return { statusCode: 500, categories: [] };
-  }
-};
-
 export {
-  fetchCategories,
-  categorySubmit,
-  subcategorySubmit,
-  getCategories,
-  deleteCategory,
-  deleteSubcategory,
+  _fetchCategories,
+  _categorySubmit,
+  _subcategorySubmit,
+  _deleteCategory,
+  _deleteSubcategory,
 };
-export type {
-  FetchedCategories,
-  CategoriesWithQuestions,
-  CategoriesWithQuestionsAndStatusCode,
-};
+export type { FetchedCategories };

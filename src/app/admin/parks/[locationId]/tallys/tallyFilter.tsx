@@ -7,8 +7,8 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
 import PermissionError from "@errors/permissionError";
 import {
-  exportDailyTallysFromSingleLocation,
-  exportIndividualTallysToCSV,
+  _exportDailyTallysFromSingleLocation,
+  _exportIndividualTallysToCSV,
 } from "@serverActions/exportToCSV";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -41,14 +41,14 @@ const TallyFilter = ({
     try {
       if (addedContent) {
         setLoadingExport({ individual: false, added: true });
-        const returnObj = await exportDailyTallysFromSingleLocation(tallysIds);
+        const returnObj = await _exportDailyTallysFromSingleLocation(tallysIds);
         if (returnObj.statusCode === 401) {
           throw new PermissionError("Error");
         }
         csvString = returnObj.CSVstring;
       } else {
         setLoadingExport({ individual: true, added: false });
-        const returnObj = await exportIndividualTallysToCSV(tallysIds);
+        const returnObj = await _exportIndividualTallysToCSV(tallysIds);
         csvString = returnObj.CSVstring;
         if (returnObj.statusCode === 401) {
           throw new PermissionError("Error");

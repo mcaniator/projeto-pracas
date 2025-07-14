@@ -6,7 +6,7 @@ import { Input } from "@components/ui/input";
 import { Select } from "@components/ui/select";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { BrazilianStates } from "@prisma/client";
-import { FetchCitiesType } from "@serverActions/cityUtil";
+import { FetchCitiesType } from "@queries/city";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 

@@ -2,20 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-
 type LocationCategories = Awaited<ReturnType<typeof fetchLocationCategories>>;
 
 const fetchLocationCategories = async () => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
-  } catch (e) {
-    return {
-      statusCode: 401,
-      message: "No permission to fetch location categories",
-      categories: [],
-    };
-  }
   try {
     const locationCategories = await prisma.locationCategory.findMany();
     return {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { FetchCitiesType } from "@serverActions/cityUtil";
+import { FetchCitiesType } from "@queries/city";
 import { IconCancel, IconTrashX } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import { Geometry, MultiPolygon, Polygon } from "ol/geom";

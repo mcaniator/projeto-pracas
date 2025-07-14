@@ -1,5 +1,5 @@
 import PermissionGuard from "@components/auth/permissionGuard";
-import { fetchFormsLatest } from "@serverActions/formUtil";
+import { fetchFormsLatest } from "@queries/form";
 import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
 

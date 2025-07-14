@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { editLocationPolygon } from "@serverActions/manageLocations";
+import { _editLocationPolygon } from "@serverActions/locationUtil";
 import { removePolygon } from "@serverActions/managePolygons";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
@@ -93,7 +93,7 @@ const EditPolygonSubmitButton = ({
               featuresGeoJson.geometry,
             );
             setState("loading");
-            editLocationPolygon(id, featuresGeoJsonStringified)
+            _editLocationPolygon(id, featuresGeoJsonStringified)
               .then((response) => {
                 if (response.statusCode === 201) {
                   setHelperCard({

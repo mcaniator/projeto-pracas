@@ -6,8 +6,9 @@ import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
 import { Question, QuestionResponseCharacterTypes } from "@prisma/client";
-import { CategoriesWithQuestions } from "@serverActions/categoryUtil";
-import { FormToEditPage, updateForm } from "@serverActions/formUtil";
+import { CategoriesWithQuestions } from "@queries/category";
+import { FormToEditPage } from "@queries/form";
+import { _updateForm } from "@serverActions/formUtil";
 import { IconSquareRoundedMinus } from "@tabler/icons-react";
 import { calculationTypesTranslationMap } from "@translationMaps/assessment";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -128,7 +129,7 @@ const FormUpdater = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const [formState, formAction, isPending] = useActionState(
-    updateForm,
+    _updateForm,
     initialState,
   );
   const formRef = useRef<HTMLFormElement>(null);

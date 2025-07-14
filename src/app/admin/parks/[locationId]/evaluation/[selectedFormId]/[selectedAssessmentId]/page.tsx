@@ -1,4 +1,4 @@
-import { fetchAssessmentWithResponses } from "@serverActions/assessmentUtil";
+import { fetchAssessmentWithResponses } from "@queries/assessment";
 import { redirect } from "next/navigation";
 
 import { ResponseComponent } from "./responseComponent";

@@ -6,9 +6,9 @@ import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { WeatherConditions } from "@prisma/client";
 import {
-  deleteTallys,
-  redirectToTallysList,
-  saveOngoingTallyData,
+  _deleteTallys,
+  _redirectToTallysList,
+  _saveOngoingTallyData,
 } from "@serverActions/tallyUtil";
 import { useRef, useState } from "react";
 import React from "react";
@@ -59,7 +59,7 @@ const TallyInProgressDatabaseOptions = ({
       setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
     try {
-      const response = await saveOngoingTallyData(
+      const response = await _saveOngoingTallyData(
         tallyId,
         weatherStats,
         tallyMap,
@@ -84,7 +84,7 @@ const TallyInProgressDatabaseOptions = ({
         return;
       }
       if (endTally) {
-        redirectToTallysList(locationId);
+        _redirectToTallysList(locationId);
       } else {
         setSubmittingObj({
           submitting: false,
@@ -105,7 +105,7 @@ const TallyInProgressDatabaseOptions = ({
     setSubmittingObj({ submitting: true, finishing: false, deleting: true });
 
     try {
-      const response = await deleteTallys([tallyId]);
+      const response = await _deleteTallys([tallyId]);
       if (response.statusCode === 401) {
         setHelperCard({
           show: true,
@@ -158,7 +158,7 @@ const TallyInProgressDatabaseOptions = ({
       });
       return;
     }
-    redirectToTallysList(locationId);
+    _redirectToTallysList(locationId);
   };
 
   return (

@@ -5,8 +5,9 @@ import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
 import { CalculationTypes } from "@prisma/client";
-import { CategoriesWithQuestionsAndStatusCode } from "@serverActions/categoryUtil";
-import { FormToEditPage, createVersion } from "@serverActions/formUtil";
+import { CategoriesWithQuestionsAndStatusCode } from "@queries/category";
+import { FormToEditPage } from "@queries/form";
+import { _createVersion } from "@serverActions/formUtil";
 import { useEffect, useState } from "react";
 
 import { FormUpdater } from "./formUpdater";
@@ -230,7 +231,7 @@ const Client = ({
       );
     }
 
-    const createObj = await createVersion(
+    const createObj = await _createVersion(
       formId,
       filteredQuestions,
       calculationsToAdd.concat(initialCalculations),
@@ -310,4 +311,4 @@ const Client = ({
       </>;
 };
 export default Client;
-export type { FormCalculation, AddCalculationToAddObj };
+export { type AddCalculationToAddObj };

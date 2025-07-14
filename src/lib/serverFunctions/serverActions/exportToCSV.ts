@@ -2,14 +2,14 @@
 
 import { prisma } from "@/lib/prisma";
 import { personType } from "@/lib/zodValidators";
-import { checkIfLoggedInUserHasAnyPermission } from "@lib/queries/serverOnly/checkPermission";
+import { CalculationTypes, WeatherConditions } from "@prisma/client";
+import { JsonValue } from "@prisma/client/runtime/library";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
   fetchAssessmentsForEvaluationExport,
   processAndFormatTallyDataLineWithAddedContent,
-} from "@lib/queries/serverOnly/exportToCSV";
-import { CalculationTypes, WeatherConditions } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
+} from "@serverOnly/exportToCSV";
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
@@ -63,7 +63,7 @@ interface TallyDataToProcessTypeWithoutLocation {
   tallyPerson: TallyPerson[];
 }
 
-const exportRegistrationData = async (locationsIds: number[]) => {
+const _exportRegistrationData = async (locationsIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
   } catch (e) {
@@ -121,7 +121,7 @@ const exportRegistrationData = async (locationsIds: number[]) => {
   }
 };
 
-const exportEvaluation = async (assessmentsIds: number[]) => {
+const _exportEvaluation = async (assessmentsIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
   } catch (e) {
@@ -909,7 +909,7 @@ const exportEvaluation = async (assessmentsIds: number[]) => {
   }
 };
 
-const exportDailyTallys = async (
+const _exportDailyTallys = async (
   locationIds: number[],
   tallysIds: number[],
 ) => {
@@ -1188,7 +1188,7 @@ const exportDailyTallys = async (
   }
 };
 
-const exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
+const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   } catch (e) {
@@ -1304,7 +1304,7 @@ const exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
 
 //This function below is used to export tally content without combining data. It uses old spreadsheet formation.
 
-const exportIndividualTallysToCSV = async (tallysIds: number[]) => {
+const _exportIndividualTallysToCSV = async (tallysIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   } catch (e) {
@@ -1353,11 +1353,11 @@ const exportIndividualTallysToCSV = async (tallysIds: number[]) => {
 };
 
 export {
-  exportIndividualTallysToCSV,
-  exportDailyTallys,
-  exportDailyTallysFromSingleLocation,
-  exportRegistrationData,
-  exportEvaluation,
+  _exportIndividualTallysToCSV,
+  _exportDailyTallys,
+  _exportDailyTallysFromSingleLocation,
+  _exportRegistrationData,
+  _exportEvaluation,
 };
 
 export {

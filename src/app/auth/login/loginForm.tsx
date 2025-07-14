@@ -6,13 +6,13 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
-import login from "@serverActions/login";
+import _login from "@serverActions/login";
 import { IconTree } from "@tabler/icons-react";
 import { useActionState, useEffect } from "react";
 
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(login, null);
+  const [state, formAction, isPending] = useActionState(_login, null);
   useEffect(() => {
     if (!state) return;
     setHelperCard({

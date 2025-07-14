@@ -9,7 +9,7 @@ import CustomModal from "@components/modal/customModal";
 import { Input } from "@components/ui/input";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Location } from "@prisma/client";
-import { FetchCitiesType } from "@serverActions/cityUtil";
+import { FetchCitiesType } from "@queries/city";
 import { removePolygon } from "@serverActions/managePolygons";
 import {
   IconLocationPin,

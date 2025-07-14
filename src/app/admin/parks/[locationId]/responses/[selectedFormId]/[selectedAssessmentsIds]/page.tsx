@@ -1,5 +1,5 @@
-import { fetchMultipleAssessmentsWithResponses } from "@serverActions/assessmentUtil";
-import { searchLocationNameById } from "@serverActions/locationUtil";
+import { fetchMultipleAssessmentsWithResponses } from "@queries/assessment";
+import { searchLocationNameById } from "@queries/location";
 
 import { AssessmentsWithResponsesList } from "./assessmentsWithResponsesList";
 import MainContainer from "./mainContainer";

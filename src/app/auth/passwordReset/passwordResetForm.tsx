@@ -4,7 +4,7 @@ import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
-import { resetPassword } from "@serverActions/passwordResetUtil";
+import { _resetPassword } from "@serverActions/passwordResetUtil";
 import {
   IconEye,
   IconEyeClosed,
@@ -23,7 +23,7 @@ const PasswordResetForm = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(resetPassword, null);
+  const [state, formAction, isPending] = useActionState(_resetPassword, null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPassword: false,

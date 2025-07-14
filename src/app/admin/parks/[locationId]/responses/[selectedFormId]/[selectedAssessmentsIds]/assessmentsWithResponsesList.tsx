@@ -6,7 +6,7 @@ import { Checkbox } from "@components/ui/checkbox";
 import { RadioButton } from "@components/ui/radioButton";
 import { ResponseCalculation } from "@customTypes/assessments/calculation";
 import { QuestionTypes } from "@prisma/client";
-import { AssessmentsWithResposes } from "@serverActions/assessmentUtil";
+import { AssessmentsWithResposes } from "@queries/assessment";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { IconCaretDownFilled, IconCaretUpFilled } from "@tabler/icons-react";
 import Link from "next/link";

@@ -1,7 +1,7 @@
 "use client";
 
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
-import { FetchCitiesType } from "@serverActions/cityUtil";
+import { FetchCitiesType } from "@queries/city";
 
 import LocationRegisterFormClient from "./locationRegisterFormClient";
 

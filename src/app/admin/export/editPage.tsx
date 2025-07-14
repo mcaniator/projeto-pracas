@@ -9,9 +9,9 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
 import {
   LocationAssessment,
-  fetchAssessmentsByLocation,
+  _fetchAssessmentsByLocation,
 } from "@serverActions/assessmentUtil";
-import { fetchTallysByLocationId } from "@serverActions/tallyUtil";
+import { _fetchTallysByLocationId } from "@serverActions/tallyUtil";
 import {
   IconArrowBackUp,
   IconArrowBackUpDouble,
@@ -80,7 +80,7 @@ const EditPage = ({
   useEffect(() => {
     if (currentLocationId) {
       const fetchTallys = async () => {
-        const response = await fetchTallysByLocationId(currentLocationId);
+        const response = await _fetchTallysByLocationId(currentLocationId);
         if (response.statusCode === 401) {
           setHelperCard({
             show: true,
@@ -98,7 +98,7 @@ const EditPage = ({
         setFetchedTallysStatus("LOADED");
       };
       const fetchAssessments = async () => {
-        const response = await fetchAssessmentsByLocation(currentLocationId);
+        const response = await _fetchAssessmentsByLocation(currentLocationId);
         if (response.statusCode === 401) {
           if (response.statusCode === 401) {
             setHelperCard({

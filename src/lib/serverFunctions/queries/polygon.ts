@@ -1,15 +1,7 @@
-"use server";
-
-import { prisma } from "@/lib/prisma";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { prisma } from "@lib/prisma";
+import { unstable_cache } from "next/cache";
 
 const fetchPolygons = async () => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
-  } catch (e) {
-    return { statusCode: 401, polygons: [] };
-  }
   try {
     const polygons = await prisma.$queryRaw<
       Array<{ st_asgeojson: string; id: number }>
@@ -28,7 +20,6 @@ const fetchPolygons = async () => {
 
 const fetchSpecificPolygon = async (id: number) => {
   //UNUSED
-  await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
   const cached = unstable_cache(
     async () => {
       try {
@@ -56,30 +47,4 @@ const fetchSpecificPolygon = async (id: number) => {
   return await cached();
 };
 
-const removePolygon = async (id: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return { statusCode: 401 };
-  }
-  if (!id) {
-    return { statusCode: 500 };
-  }
-  try {
-    await prisma.$executeRaw`
-      UPDATE location
-      SET 
-        polygon = NULL,
-        polygon_area = NULL
-      WHERE id = ${id};
-    `;
-  } catch (e) {
-    return { statusCode: 500 };
-  }
-
-  revalidateTag("location");
-
-  return { statusCode: 200 };
-};
-
-export { fetchPolygons, fetchSpecificPolygon, removePolygon };
+export { fetchPolygons, fetchSpecificPolygon };

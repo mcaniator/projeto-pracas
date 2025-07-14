@@ -3,7 +3,7 @@ import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
-import { createInvite, updateInvite } from "@serverActions/inviteUtil";
+import { _createInvite, _updateInvite } from "@serverActions/inviteUtil";
 import { IconClipboard, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
@@ -279,7 +279,7 @@ const InviteCRUDModal = ({
     setIsLoading(true);
     try {
       if (!invite) {
-        const inviteReturn = await createInvite(
+        const inviteReturn = await _createInvite(
           newInviteEmail,
           userRoles
             .filter((ur) => ur.role !== null)
@@ -306,7 +306,7 @@ const InviteCRUDModal = ({
           });
         }
       } else {
-        const result = await updateInvite(
+        const result = await _updateInvite(
           invite.token,
           userRoles
             .filter((ur) => ur.role !== null)

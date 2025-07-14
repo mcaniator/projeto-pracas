@@ -11,9 +11,9 @@ import {
 } from "@lib/enumsFormatation";
 import {
   FetchedCategories,
-  fetchCategories,
-} from "@serverActions/categoryUtil";
-import { searchQuestionsByCategoryAndSubcategory } from "@serverActions/questionUtil";
+  _fetchCategories,
+} from "@serverActions/categoryServerActions";
+import { _searchQuestionsByCategoryAndSubcategory } from "@serverActions/questionUtil";
 import { useCallback, useEffect, useState } from "react";
 
 import { CategoryCreationModal } from "./categoryCreationModal";
@@ -50,7 +50,7 @@ const QuestionsPage = () => {
   });
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const handleCategoriesFetch = useCallback(async () => {
-    const catObj = await fetchCategories();
+    const catObj = await _fetchCategories();
     if (catObj.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -123,7 +123,7 @@ const QuestionsPage = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       if (selectedCategoryAndSubcategoryId) {
-        const questions = await searchQuestionsByCategoryAndSubcategory(
+        const questions = await _searchQuestionsByCategoryAndSubcategory(
           selectedCategoryAndSubcategoryId.categoryId,
           selectedCategoryAndSubcategoryId?.subcategoryId,
           selectedCategoryAndSubcategoryId.verifySubcategoryNullness,

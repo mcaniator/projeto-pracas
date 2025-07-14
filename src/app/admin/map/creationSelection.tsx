@@ -1,5 +1,5 @@
 import { Button } from "@/components/button";
-import { FetchCitiesType } from "@serverActions/cityUtil";
+import { FetchCitiesType } from "@queries/city";
 import { Dispatch, SetStateAction } from "react";
 
 import { CreationWithoutDrawingModal } from "./creationWithouDrawingModal";

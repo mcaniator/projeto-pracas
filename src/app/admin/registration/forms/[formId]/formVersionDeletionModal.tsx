@@ -3,7 +3,7 @@
 import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { deleteFormVersion } from "@serverActions/formUtil";
+import { _deleteFormVersion } from "@serverActions/formUtil";
 import {
   IconCalendarClock,
   IconCheck,
@@ -32,7 +32,7 @@ const FormVersionDeletionModal = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(
-    deleteFormVersion,
+    _deleteFormVersion,
     null,
   );
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(

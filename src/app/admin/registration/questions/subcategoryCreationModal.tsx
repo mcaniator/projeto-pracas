@@ -4,7 +4,7 @@ import { Button } from "@/components/button";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
-import { subcategorySubmit } from "@serverActions/categoryUtil";
+import { _subcategorySubmit } from "@serverActions/categoryServerActions";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 import {
@@ -29,7 +29,7 @@ const SubcategoryCreationModal = ({
     subcategoryName: null,
   };
   const [state, formAction, isPending] = useActionState(
-    subcategorySubmit,
+    _subcategorySubmit,
     initialState,
   );
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(

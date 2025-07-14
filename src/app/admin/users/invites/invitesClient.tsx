@@ -7,7 +7,7 @@ import { useLoadingOverlay } from "@components/context/loadingContext";
 import CustomModal from "@components/modal/customModal";
 import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
-import { deleteInvite, getInvites } from "@serverActions/inviteUtil";
+import { _deleteInvite, _getInvites } from "@serverActions/inviteUtil";
 import { IconSearch, IconUserPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -49,7 +49,7 @@ const InvitesClient = () => {
   const fetchInvites = useCallback(async () => {
     setIsLoading(true);
     try {
-      const invites = await getInvites(
+      const invites = await _getInvites(
         pagination.page,
         pagination.pageSize,
         searchRef.current,
@@ -89,7 +89,7 @@ const InvitesClient = () => {
       if (!selectedInvite) {
         return;
       }
-      const response = await deleteInvite(selectedInvite.token);
+      const response = await _deleteInvite(selectedInvite.token);
       if (response.statusCode === 200) {
         setHelperCard({
           show: true,

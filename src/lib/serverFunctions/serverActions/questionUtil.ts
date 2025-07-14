@@ -37,7 +37,7 @@ interface QuestionWithCategories extends Question {
   } | null;
 }
 
-const questionSubmit = async (
+const _questionSubmit = async (
   prevState: { statusCode: number; questionName: string | null } | null,
   formData: FormData,
 ): Promise<{ statusCode: number; questionName: string | null } | null> => {
@@ -191,7 +191,7 @@ const questionSubmit = async (
   return { statusCode: 400, questionName: null };
 };
 
-const deleteQuestion = async (
+const _deleteQuestion = async (
   prevState: {
     statusCode: number;
     content: {
@@ -260,7 +260,7 @@ const deleteQuestion = async (
   }
 };
 
-const searchQuestionsByStatement = async (statement: string) => {
+const _searchQuestionsByStatement = async (statement: string) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
   } catch (e) {
@@ -320,7 +320,7 @@ const searchQuestionsByStatement = async (statement: string) => {
   }
 };
 
-const searchQuestionsByCategoryAndSubcategory = async (
+const _searchQuestionsByCategoryAndSubcategory = async (
   categoryId: number | undefined,
   subcategoryId: number | undefined,
   verifySubcategoryNullness: boolean,
@@ -402,10 +402,10 @@ const searchQuestionsByCategoryAndSubcategory = async (
 };
 
 export {
-  questionSubmit,
-  deleteQuestion,
-  searchQuestionsByStatement,
-  searchQuestionsByCategoryAndSubcategory,
+  _questionSubmit,
+  _deleteQuestion,
+  _searchQuestionsByStatement,
+  _searchQuestionsByCategoryAndSubcategory,
 };
 
 export type { QuestionSearchedByStatement, QuestionWithCategories };

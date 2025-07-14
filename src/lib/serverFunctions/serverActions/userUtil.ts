@@ -11,40 +11,7 @@ import { ZodError } from "zod";
 
 type UserPropertyToSearch = "username" | "email" | "name";
 
-const getUserAuthInfo = async (
-  userId: string | undefined | null,
-): Promise<{
-  image: string | null;
-  id: string;
-  email: string;
-  username: string | null;
-  active: boolean;
-  roles: Role[];
-} | null> => {
-  if (!userId) return null;
-  const sessionUser = await getSessionUser();
-  if (!sessionUser || sessionUser.id !== userId) return null;
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        image: true,
-        active: true,
-        roles: true,
-      },
-    });
-    return user;
-  } catch (e) {
-    return null;
-  }
-};
-
-const updateUserUsername = async (
+const _updateUserUsername = async (
   prevState: {
     statusCode: number;
     username: string | null;
@@ -121,7 +88,7 @@ const updateUserUsername = async (
   }
 };
 
-const getUsers = async (
+const _getUsers = async (
   page: number,
   take: number,
   search: string | null,
@@ -210,7 +177,7 @@ const getUsers = async (
   }
 };
 
-const updateUserRoles = async (userId: string, roles: Role[]) => {
+const _updateUserRoles = async (userId: string, roles: Role[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   } catch (e) {
@@ -238,7 +205,7 @@ const updateUserRoles = async (userId: string, roles: Role[]) => {
   }
 };
 
-const deleteUser = async (userId: string) => {
+const _deleteUser = async (userId: string) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
   } catch (e) {
@@ -271,7 +238,7 @@ const deleteUser = async (userId: string) => {
   }
 };
 
-const getUserContentAmount = async (userId: string) => {
+const _getUserContentAmount = async (userId: string) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
   } catch (e) {
@@ -297,12 +264,11 @@ const getUserContentAmount = async (userId: string) => {
 };
 
 export {
-  updateUserUsername,
-  getUserAuthInfo,
-  getUsers,
-  updateUserRoles,
-  deleteUser,
-  getUserContentAmount,
+  _updateUserUsername,
+  _getUsers,
+  _updateUserRoles,
+  _deleteUser,
+  _getUserContentAmount,
 };
 
 export type { UserPropertyToSearch };

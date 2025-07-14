@@ -1,9 +1,9 @@
 import LocationRegisterForm from "@components/locationForm/locationRegisterForm";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
-import { fetchCities } from "@serverActions/cityUtil";
-import { fetchLocationCategories } from "@serverActions/locationCategoryUtil";
-import { fetchLocationTypes } from "@serverActions/locationTypeUtil";
-import { searchLocationsById } from "@serverActions/locationUtil";
+import { fetchCities } from "@queries/city";
+import { searchLocationsById } from "@queries/location";
+import { fetchLocationCategories } from "@queries/locationCategory";
+import { fetchLocationTypes } from "@queries/locationType";
 
 import DeleteLocationModal from "./deleteLocationModal";
 

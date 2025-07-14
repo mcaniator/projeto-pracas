@@ -4,9 +4,9 @@ import PermissionGuard from "@components/auth/permissionGuard";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import {
-  exportDailyTallys,
-  exportEvaluation,
-  exportRegistrationData,
+  _exportDailyTallys,
+  _exportEvaluation,
+  _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
   IconCheck,
@@ -51,7 +51,7 @@ const SelectedParks = ({
       (location) => location.exportRegistrationInfo,
     );
     const locationsIds = locationsToExport.map((location) => location.id);
-    const response = await exportRegistrationData(locationsIds);
+    const response = await _exportRegistrationData(locationsIds);
     if (response.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -93,7 +93,7 @@ const SelectedParks = ({
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessments.length > 0,
     );
-    const response = await exportEvaluation(
+    const response = await _exportEvaluation(
       locationsToExportEvaluations
         .map((location) =>
           location.assessments.map((assessment) => assessment.id),
@@ -149,7 +149,7 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, tallys: true }));
-    const response = await exportDailyTallys(
+    const response = await _exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
     );

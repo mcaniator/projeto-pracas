@@ -1,7 +1,7 @@
 import { ResponseForm } from "@/app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseForm";
 import { ResponseCalculation } from "@customTypes/assessments/calculation";
 import { CategoryWithSubcategoryAndQuestionAndCalculation } from "@customTypes/assessments/category";
-import { fetchAssessmentWithResponses } from "@serverActions/assessmentUtil";
+import { fetchAssessmentWithResponses } from "@queries/assessment";
 import { FetchedAssessmentGeometries } from "@serverOnly/geometries";
 
 type AssessmentWithResposes = NonNullable<

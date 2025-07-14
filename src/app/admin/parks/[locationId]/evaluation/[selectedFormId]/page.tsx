@@ -1,6 +1,6 @@
-import { fetchAssessmentsInProgresss } from "@serverActions/assessmentUtil";
-import { searchformNameById } from "@serverActions/formUtil";
-import { searchLocationNameById } from "@serverActions/locationUtil";
+import { fetchAssessmentsInProgress } from "@queries/assessment";
+import { searchformNameById } from "@queries/form";
+import { searchLocationNameById } from "@queries/location";
 
 import AssessmentsInProgressPage from "./assessmentsInProgressPage";
 
@@ -11,7 +11,7 @@ const AssessmentPage = async (props: {
 
   const locationId = Number(params.locationId);
   const formId = Number(params.selectedFormId);
-  const assessments = await fetchAssessmentsInProgresss(locationId, formId);
+  const assessments = await fetchAssessmentsInProgress(locationId, formId);
   const { locationName } = await searchLocationNameById(
     Number(params.locationId),
   );

@@ -12,10 +12,10 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { CategoriesWithQuestions } from "@serverActions/categoryUtil";
+import { CategoriesWithQuestions } from "@queries/category";
 import {
-  searchQuestionsByCategoryAndSubcategory,
-  searchQuestionsByStatement,
+  _searchQuestionsByCategoryAndSubcategory,
+  _searchQuestionsByStatement,
 } from "@serverActions/questionUtil";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
@@ -81,7 +81,7 @@ const QuestionSearchModal = ({
 
   useEffect(() => {
     setQuestionsListState("LOADING");
-    searchQuestionsByStatement(debouncedTargetQuestion)
+    _searchQuestionsByStatement(debouncedTargetQuestion)
       .then((questions) => {
         if (questions.statusCode === 200) {
           setQuestionsListState("LOADED");
@@ -115,7 +115,11 @@ const QuestionSearchModal = ({
 
   useEffect(() => {
     setQuestionsListState("LOADING");
-    searchQuestionsByCategoryAndSubcategory(categories[0]?.id, undefined, false)
+    _searchQuestionsByCategoryAndSubcategory(
+      categories[0]?.id,
+      undefined,
+      false,
+    )
       .then((questions) => {
         if (questions.statusCode === 200) {
           setQuestionsListState("LOADED");
@@ -145,7 +149,7 @@ const QuestionSearchModal = ({
 
   useEffect(() => {
     setQuestionsListState("LOADING");
-    searchQuestionsByCategoryAndSubcategory(
+    _searchQuestionsByCategoryAndSubcategory(
       selectedCategoryAndSubcategoryId.categoryId,
       selectedCategoryAndSubcategoryId.subcategoryId,
       selectedCategoryAndSubcategoryId.verifySubcategoryNullness,

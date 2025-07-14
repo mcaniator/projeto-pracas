@@ -4,7 +4,7 @@ import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";
 import { HelperCardProvider } from "@components/context/helperCardContext";
 import { auth } from "@lib/auth/auth";
-import { getUserAuthInfo } from "@serverActions/userUtil";
+import { getUserAuthInfo } from "@queries/user";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 

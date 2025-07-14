@@ -1,6 +1,6 @@
 import PermissionGuard from "@components/auth/permissionGuard";
-import { fetchRecentlyCompletedAssessments } from "@serverActions/assessmentUtil";
-import { fetchRecentlyCompletedTallys } from "@serverActions/tallyUtil";
+import { fetchRecentlyCompletedAssessments } from "@queries/assessment";
+import { fetchRecentlyCompletedTallys } from "@queries/tally";
 import {
   IconCalendarCheck,
   IconCalendarClock,

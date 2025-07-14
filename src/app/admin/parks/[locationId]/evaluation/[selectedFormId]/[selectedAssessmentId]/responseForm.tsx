@@ -15,7 +15,7 @@ import { CategoryWithSubcategoryAndQuestionAndCalculation } from "@customTypes/a
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { checkIfRolesArrayContainsAny } from "@lib/auth/rolesUtil";
 import { QuestionTypes } from "@prisma/client";
-import { addResponses } from "@serverActions/responseUtil";
+import { _addResponses } from "@serverActions/responseUtil";
 import {
   IconCheck,
   IconDeviceFloppy,
@@ -284,7 +284,7 @@ const ResponseForm = ({
       }),
     );
     setIsLoading(true);
-    const response = await addResponses(
+    const response = await _addResponses(
       assessment.id,
       responsesArray,
       geometries,

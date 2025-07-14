@@ -5,7 +5,7 @@ import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { cookies } from "next/headers";
 
-const googleAuthenticate = async () => {
+const _googleAuthenticate = async () => {
   if (process.env.ENABLE_GOOGLE_LOGIN !== "true") {
     return { statusCode: 503, message: "Serviço indisponível!" };
   }
@@ -25,7 +25,7 @@ const googleAuthenticate = async () => {
   }
 };
 
-const googleRegister = async (inviteToken: string) => {
+const _googleRegister = async (inviteToken: string) => {
   if (process.env.ENABLE_GOOGLE_LOGIN !== "true") {
     return { statusCode: 503, message: "Serviço indisponível!" };
   }
@@ -55,4 +55,4 @@ const googleRegister = async (inviteToken: string) => {
   }
 };
 
-export { googleAuthenticate, googleRegister };
+export { _googleAuthenticate, _googleRegister };

@@ -6,7 +6,7 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import GoogleRegisterButton from "@components/singleUse/auth/googleRegisterButton";
 import { Input } from "@components/ui/input";
-import register from "@serverActions/register";
+import _register from "@serverActions/register";
 import {
   IconEye,
   IconEyeClosed,
@@ -31,7 +31,7 @@ const RegisterForm = ({
 }) => {
   const { setLoadingOverlayVisible } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(register, null);
+  const [state, formAction, isPending] = useActionState(_register, null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPasswordError: false,

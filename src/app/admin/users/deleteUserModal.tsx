@@ -3,7 +3,7 @@
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import CustomModal from "@components/modal/customModal";
-import { deleteUser, getUserContentAmount } from "@serverActions/userUtil";
+import { _deleteUser, _getUserContentAmount } from "@serverActions/userUtil";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -30,7 +30,7 @@ const DeleteUserModal = ({
     if (!user) return;
     setIsLoading(true);
     try {
-      const deleteUserResult = await deleteUser(user.id);
+      const deleteUserResult = await _deleteUser(user.id);
       if (deleteUserResult.statusCode === 200) {
         helperCardContext.setHelperCard({
           show: true,
@@ -71,7 +71,7 @@ const DeleteUserModal = ({
     if (!user) return;
     setIsLoading(true);
     try {
-      const userContent = await getUserContentAmount(user.id);
+      const userContent = await _getUserContentAmount(user.id);
       setUserCreatedItems(userContent);
     } catch (e) {
       helperCardContext.setHelperCard({

@@ -7,7 +7,7 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
-import { getUsers } from "@serverActions/userUtil";
+import { _getUsers } from "@serverActions/userUtil";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
@@ -49,7 +49,7 @@ const UsersClient = () => {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const users = await getUsers(
+      const users = await _getUsers(
         pagination.page,
         pagination.pageSize,
         searchRef.current,
@@ -166,4 +166,4 @@ const UsersClient = () => {
 };
 
 export default UsersClient;
-export type { TableUser };
+export { type TableUser };

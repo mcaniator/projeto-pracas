@@ -1,8 +1,10 @@
+"use client";
+
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Role } from "@prisma/client";
-import { updateUserRoles } from "@serverActions/userUtil";
+import { _updateUserRoles } from "@serverActions/userUtil";
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
@@ -235,7 +237,7 @@ const PermissionsModal = ({
     }
     setIsLoading(true);
     try {
-      const updateResult = await updateUserRoles(
+      const updateResult = await _updateUserRoles(
         user?.id,
         userRoles.filter((ur) => ur.role !== null).map((ur) => ur.role as Role),
       );
@@ -412,4 +414,4 @@ const PermissionsModal = ({
 
 export default PermissionsModal;
 export { roles };
-export type { SystemSection };
+export { type SystemSection };
