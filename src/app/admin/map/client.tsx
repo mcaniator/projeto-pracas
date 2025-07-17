@@ -24,7 +24,7 @@ const Client = ({
   locationCategoriesPromise,
   locationTypesPromise,
 }: {
-  locationsPromise: Promise<LocationsWithPolygonResponse>;
+  locationsPromise: LocationsWithPolygonResponse;
   citiesPromise: Promise<FetchCitiesType>;
   locationCategoriesPromise: Promise<{
     statusCode: number;
@@ -51,7 +51,7 @@ const Client = ({
   const [drawingWindowVisible, setDrawingWindowVisible] = useState(false);
   const [panelRef] = useAutoAnimate();
   return (
-    <div className="relative">
+    <>
       <div className="fixed bottom-4 right-4 z-[60]">
         <Button
           onPress={() => {
@@ -103,7 +103,7 @@ const Client = ({
           >
             {currentId === -2 && (
               <div className="flex flex-col gap-2" ref={panelRef}>
-                <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
+                <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
                   <Button
                     variant="admin"
                     onPress={() => {
@@ -117,7 +117,7 @@ const Client = ({
                 </PermissionGuard>
                 <Suspense
                   fallback={
-                    <div className="flex justify-center">
+                    <div>
                       <LoadingIcon size={32} />
                     </div>
                   }
@@ -155,7 +155,7 @@ const Client = ({
         </Rnd>
       )}
       <BottomControls />
-    </div>
+    </>
   );
 };
 

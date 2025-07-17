@@ -19,7 +19,7 @@ import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { use, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -34,9 +34,9 @@ const ParkList = ({
 }: {
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   setCurrentId: Dispatch<SetStateAction<number>>;
-  locationsPromise: Promise<LocationsWithPolygonResponse>;
+  locationsPromise: LocationsWithPolygonResponse;
 }) => {
-  const locations = use(locationsPromise).locations;
+  const locations = locationsPromise.locations;
   const { setLoadingOverlayVisible } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
   const [deletionModalIsOpen, setDeletionModalIsOpen] = useState(false);

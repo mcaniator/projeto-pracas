@@ -14,7 +14,6 @@ import Text from "ol/style/Text";
 import {
   ReactNode,
   createContext,
-  use,
   useContext,
   useEffect,
   useMemo,
@@ -30,10 +29,10 @@ const PolygonProvider = ({
   fullLocationsPromise,
   children,
 }: {
-  fullLocationsPromise: Promise<LocationsWithPolygonResponse>;
+  fullLocationsPromise: LocationsWithPolygonResponse;
   children: ReactNode;
 }) => {
-  const fullLocations = use(fullLocationsPromise);
+  const fullLocations = fullLocationsPromise;
   const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
 
