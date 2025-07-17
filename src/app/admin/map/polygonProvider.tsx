@@ -1,7 +1,7 @@
 "use client";
 
 import { useHelperCard } from "@components/context/helperCardContext";
-import type { Location } from "@prisma/client";
+import { LocationsWithPolygonResponse } from "@customTypes/location/location";
 import Feature, { FeatureLike } from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import { Geometry } from "ol/geom";
@@ -14,6 +14,7 @@ import Text from "ol/style/Text";
 import {
   ReactNode,
   createContext,
+  use,
   useContext,
   useEffect,
   useMemo,
@@ -26,17 +27,13 @@ const PolygonProviderVectorSourceContext = createContext<
 >(new VectorSource());
 
 const PolygonProvider = ({
-  polygons,
-  locations,
+  fullLocationsPromise,
   children,
 }: {
-  polygons: {
-    statusCode: number;
-    polygons: { st_asgeojson: string; id: number }[];
-  };
-  locations: Location[];
+  fullLocationsPromise: Promise<LocationsWithPolygonResponse>;
   children: ReactNode;
 }) => {
+  const fullLocations = use(fullLocationsPromise);
   const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
 
@@ -46,13 +43,13 @@ const PolygonProvider = ({
   );
 
   useEffect(() => {
-    if (polygons.statusCode === 401) {
+    if (fullLocations.statusCode === 401) {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
         content: <>Sem permissão para visualizar polígonos!</>,
       });
-    } else if (polygons.statusCode === 500) {
+    } else if (fullLocations.statusCode === 500) {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
@@ -60,22 +57,21 @@ const PolygonProvider = ({
       });
     }
     const reader = new GeoJSON();
-    const featureArray = polygons.polygons.map((polygon) => {
-      const geometry = reader.readGeometry(polygon.st_asgeojson);
+    const featureArray = fullLocations.locations
+      .filter((location) => location.st_asgeojson)
+      .map((location) => {
+        const geometry = reader.readGeometry(location.st_asgeojson);
 
-      const polygonNamePos = locations.findIndex(
-        (val) => val.id === polygon.id,
-      );
-      const polygonName = locations[polygonNamePos]?.name;
-      geometry.set("name", polygonName ?? "");
+        const polygonName = location.name;
+        geometry.set("name", polygonName ?? "");
 
-      geometry.set("id", polygon.id);
+        geometry.set("id", location.id);
 
-      const feature = new Feature(geometry);
-      feature.setId(polygon.id);
+        const feature = new Feature(geometry);
+        feature.setId(location.id);
 
-      return feature;
-    });
+        return feature;
+      });
 
     const styleFunction = (feature: FeatureLike) => {
       const style = new Style({
@@ -118,7 +114,7 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, polygons, locations, polygonsVectorSource, setHelperCard]);
+  }, [map, fullLocations, polygonsVectorSource, setHelperCard]);
 
   return (
     <PolygonProviderVectorSourceContext.Provider value={polygonsVectorSource}>

@@ -31,7 +31,6 @@ const fetchLocationsWithPolygon =
             name,
             ST_AsGeoJSON(polygon)::text as st_asgeojson
           FROM location 
-          WHERE polygon IS NOT NULL;
         `;
       return { statusCode: 200, locations };
     } catch (e) {

@@ -7,7 +7,6 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import CustomModal from "@components/modal/customModal";
 import { Input } from "@components/ui/input";
-import { Location } from "@prisma/client";
 import { removePolygon } from "@serverActions/managePolygons";
 import {
   IconMapPin,
@@ -20,16 +19,13 @@ import Link from "next/link";
 import Feature from "ol/Feature";
 import { MultiPolygon, SimpleGeometry } from "ol/geom";
 import Geometry from "ol/geom/Geometry";
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { useContext, useEffect, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { LocationsWithPolygonResponse } from "../../../lib/types/location/location";
 import { MapContext } from "./mapProvider";
 import { PolygonProviderVectorSourceContext } from "./polygonProvider";
-
-interface fullLocation extends Location {
-  st_asgeojson: string | null;
-}
 
 const ParkList = ({
   setOriginalFeatures,
@@ -38,9 +34,9 @@ const ParkList = ({
 }: {
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   setCurrentId: Dispatch<SetStateAction<number>>;
-  locationsPromise: fullLocation[];
+  locationsPromise: Promise<LocationsWithPolygonResponse>;
 }) => {
-  const locations = locationsPromise;
+  const locations = use(locationsPromise).locations;
   const { setLoadingOverlayVisible } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
   const [deletionModalIsOpen, setDeletionModalIsOpen] = useState(false);

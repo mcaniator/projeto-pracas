@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/button";
+import LoadingIcon from "@components/LoadingIcon";
 import PermissionGuard from "@components/auth/permissionGuard";
+import { LocationsWithPolygonResponse } from "@customTypes/location/location";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Location } from "@prisma/client";
 import { FetchCitiesType } from "@queries/city";
 import { IconLocationPin, IconMinus, IconPlus } from "@tabler/icons-react";
 import Feature from "ol/Feature";
@@ -17,17 +18,13 @@ import { CreationPanel } from "./creationPanel";
 import { DrawingProvider } from "./drawingProvider";
 import { MapContext } from "./mapProvider";
 
-interface fullLocation extends Location {
-  st_asgeojson: string | null;
-}
-
 const Client = ({
   locationsPromise,
   citiesPromise,
   locationCategoriesPromise,
   locationTypesPromise,
 }: {
-  locationsPromise: fullLocation[];
+  locationsPromise: Promise<LocationsWithPolygonResponse>;
   citiesPromise: Promise<FetchCitiesType>;
   locationCategoriesPromise: Promise<{
     statusCode: number;
@@ -118,7 +115,13 @@ const Client = ({
 
                   <hr className="w-full rounded-full border-2 border-off-white" />
                 </PermissionGuard>
-                <Suspense>
+                <Suspense
+                  fallback={
+                    <div className="flex justify-center">
+                      <LoadingIcon size={32} />
+                    </div>
+                  }
+                >
                   <ParkList
                     locationsPromise={locationsPromise}
                     setOriginalFeatures={setOriginalFeatures}
