@@ -1,3 +1,7 @@
+import {
+  LocationWithPolygon,
+  LocationsWithPolygonResponse,
+} from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
 import { unstable_cache } from "next/cache";
 
@@ -17,6 +21,23 @@ const fetchPolygons = async () => {
     return { statusCode: 500, polygons: [] };
   }
 };
+
+const fetchLocationsWithPolygon =
+  async (): Promise<LocationsWithPolygonResponse> => {
+    try {
+      const locations = await prisma.$queryRaw<Array<LocationWithPolygon>>`
+          SELECT 
+            id,
+            name,
+            ST_AsGeoJSON(polygon)::text as st_asgeojson
+          FROM location 
+          WHERE polygon IS NOT NULL;
+        `;
+      return { statusCode: 200, locations };
+    } catch (e) {
+      return { statusCode: 500, locations: [] };
+    }
+  };
 
 const fetchSpecificPolygon = async (id: number) => {
   //UNUSED
@@ -47,4 +68,4 @@ const fetchSpecificPolygon = async (id: number) => {
   return await cached();
 };
 
-export { fetchPolygons, fetchSpecificPolygon };
+export { fetchPolygons, fetchSpecificPolygon, fetchLocationsWithPolygon };

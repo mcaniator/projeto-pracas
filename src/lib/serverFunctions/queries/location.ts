@@ -1,6 +1,20 @@
 import { prisma } from "@lib/prisma";
 import { hasPolygon } from "@serverOnly/geometries";
 
+const fetchLocationsNames = async () => {
+  try {
+    const locations = await prisma.location.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    return { statusCode: 200, locations };
+  } catch (e) {
+    return { statusCode: 500, locations: [] };
+  }
+};
+
 const searchLocationsById = async (id: number) => {
   let foundLocation;
   try {
@@ -80,4 +94,4 @@ const searchLocationNameById = async (id: number) => {
   }
 };
 
-export { searchLocationsById, searchLocationNameById };
+export { searchLocationsById, searchLocationNameById, fetchLocationsNames };

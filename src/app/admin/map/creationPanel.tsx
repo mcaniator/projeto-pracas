@@ -9,6 +9,7 @@ import { VectorSourceEvent } from "ol/source/Vector";
 import {
   Dispatch,
   SetStateAction,
+  use,
   useContext,
   useEffect,
   useState,
@@ -27,9 +28,9 @@ const CreationPanel = ({
   setCurrentId,
   drawingWindowVisible,
   setDrawingWindowVisible,
-  cities,
-  locationCategories,
-  locationTypes,
+  citiesPromise,
+  locationCategoriesPromise,
+  locationTypesPromise,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
@@ -37,24 +38,27 @@ const CreationPanel = ({
   setCurrentId: Dispatch<SetStateAction<number>>;
   drawingWindowVisible: boolean;
   setDrawingWindowVisible: Dispatch<SetStateAction<boolean>>;
-  cities: FetchCitiesType;
-  locationCategories: {
+  citiesPromise: Promise<FetchCitiesType>;
+  locationCategoriesPromise: Promise<{
     statusCode: number;
     message: string;
     categories: {
       id: number;
       name: string;
     }[];
-  };
-  locationTypes: {
+  }>;
+  locationTypesPromise: Promise<{
     statusCode: number;
     message: string;
     types: {
       id: number;
       name: string;
     }[];
-  };
+  }>;
 }) => {
+  const locationTypes = use(locationTypesPromise);
+  const locationCategories = use(locationCategoriesPromise);
+  const cities = use(citiesPromise);
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
 
