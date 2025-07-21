@@ -31,6 +31,7 @@ const CreationPanel = ({
   citiesPromise,
   locationCategoriesPromise,
   locationTypesPromise,
+  fetchLocations,
 }: {
   originalFeatures: Feature<Geometry>[];
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
@@ -55,6 +56,7 @@ const CreationPanel = ({
       name: string;
     }[];
   }>;
+  fetchLocations: () => Promise<void>;
 }) => {
   const locationTypes = use(locationTypesPromise);
   const locationCategories = use(locationCategoriesPromise);
@@ -172,6 +174,7 @@ const CreationPanel = ({
             features={features}
             setOriginalFeature={setOriginalFeatures}
             setCurrentId={setCurrentId}
+            fetchLocations={fetchLocations}
           />
         )}
 

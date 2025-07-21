@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { useLoadingOverlay } from "@components/context/loadingContext";
 import { _editLocationPolygon } from "@serverActions/locationUtil";
 import { removePolygon } from "@serverActions/managePolygons";
 import Feature from "ol/Feature";
@@ -14,16 +15,20 @@ const EditPolygonSubmitButton = ({
   features,
   setOriginalFeature,
   setCurrentId,
+  fetchLocations,
 }: {
   id: number;
   features: Feature<Geometry>[];
   setOriginalFeature: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   setCurrentId: Dispatch<SetStateAction<number>>;
+  fetchLocations: () => Promise<void>;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [state, setState] = useState<
     "normal" | "loading" | "success" | "error"
   >("normal");
+
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
 
   useEffect(() => {
     switch (state) {
@@ -35,15 +40,28 @@ const EditPolygonSubmitButton = ({
           setCurrentId(-2);
         }, 200);
 
+        setLoadingOverlayVisible(false);
+        void fetchLocations();
         break;
       case "error":
         setTimeout(() => {
           setState("normal");
         }, 2000);
+        setLoadingOverlayVisible(false);
 
         break;
+
+      case "loading":
+        setLoadingOverlayVisible(true);
+        break;
     }
-  }, [state, setOriginalFeature, setCurrentId]);
+  }, [
+    state,
+    setOriginalFeature,
+    setCurrentId,
+    setLoadingOverlayVisible,
+    fetchLocations,
+  ]);
 
   return (
     <div>
@@ -130,7 +148,7 @@ const EditPolygonSubmitButton = ({
         }}
         variant={state === "error" ? "destructive" : "admin"}
       >
-        <span className="-mb-1 group-disabled:text-opacity-50">Enviar</span>
+        <span className="-mb-1 group-disabled:text-opacity-50">Atualizar</span>
       </Button>
     </div>
   );

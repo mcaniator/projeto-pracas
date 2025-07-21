@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag } from "next/cache";
 
+import { fetchLocationsWithPolygon } from "../queries/polygon";
+
 const removePolygon = async (id: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
@@ -30,4 +32,18 @@ const removePolygon = async (id: number) => {
   return { statusCode: 200 };
 };
 
-export { removePolygon };
+const _fetchLocationsWithPolygon = async () => {
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+    } catch (e) {
+      return { statusCode: 401, locations: [] };
+    }
+    const locations = await fetchLocationsWithPolygon();
+    return locations;
+  } catch (e) {
+    return { statusCode: 500, locations: [] };
+  }
+};
+
+export { removePolygon, _fetchLocationsWithPolygon };

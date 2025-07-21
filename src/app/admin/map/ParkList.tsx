@@ -31,10 +31,12 @@ const ParkList = ({
   setOriginalFeatures,
   setCurrentId,
   locationsPromise,
+  fetchLocations,
 }: {
   setOriginalFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   setCurrentId: Dispatch<SetStateAction<number>>;
   locationsPromise: LocationsWithPolygonResponse;
+  fetchLocations: () => Promise<void>;
 }) => {
   const locations = locationsPromise.locations;
   const { setLoadingOverlayVisible } = useLoadingOverlay();
@@ -88,6 +90,7 @@ const ParkList = ({
     }
     setDeletionModalIsOpen(false);
     setLoadingOverlayVisible(false);
+    void fetchLocations();
   };
 
   useEffect(() => {

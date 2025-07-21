@@ -23,6 +23,7 @@ const Client = ({
   citiesPromise,
   locationCategoriesPromise,
   locationTypesPromise,
+  fetchLocations,
 }: {
   locationsPromise: LocationsWithPolygonResponse;
   citiesPromise: Promise<FetchCitiesType>;
@@ -42,6 +43,7 @@ const Client = ({
       name: string;
     }[];
   }>;
+  fetchLocations: () => Promise<void>;
 }) => {
   const [currentId, setCurrentId] = useState(-2);
   const [originalFeatures, setOriginalFeatures] = useState<Feature<Geometry>[]>(
@@ -126,6 +128,7 @@ const Client = ({
                     locationsPromise={locationsPromise}
                     setOriginalFeatures={setOriginalFeatures}
                     setCurrentId={setCurrentId}
+                    fetchLocations={fetchLocations}
                   />
                 </Suspense>
 
@@ -146,6 +149,7 @@ const Client = ({
                       citiesPromise={citiesPromise}
                       locationCategoriesPromise={locationCategoriesPromise}
                       locationTypesPromise={locationTypesPromise}
+                      fetchLocations={fetchLocations}
                     />
                   </DrawingProvider>
                 </Suspense>

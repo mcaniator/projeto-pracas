@@ -6,6 +6,7 @@ import { prisma } from "@lib/prisma";
 import { unstable_cache } from "next/cache";
 
 const fetchPolygons = async () => {
+  //UNUSED
   try {
     const polygons = await prisma.$queryRaw<
       Array<{ st_asgeojson: string; id: number }>
@@ -32,6 +33,7 @@ const fetchLocationsWithPolygon =
             ST_AsGeoJSON(polygon)::text as st_asgeojson
           FROM location 
         `;
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay for testing
       return { statusCode: 200, locations };
     } catch (e) {
       return { statusCode: 500, locations: [] };

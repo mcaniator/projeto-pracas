@@ -1,7 +1,6 @@
 import { fetchCities } from "@queries/city";
 import { fetchLocationCategories } from "@queries/locationCategory";
 import { fetchLocationTypes } from "@queries/locationType";
-import { fetchLocationsWithPolygon } from "@queries/polygon";
 import { Suspense } from "react";
 
 import LoadingIcon from "../../../components/LoadingIcon";
@@ -11,7 +10,6 @@ const Page = () => {
   const citiesPromise = fetchCities();
   const locationCategoriesPromise = fetchLocationCategories();
   const locationTypesPromise = fetchLocationTypes();
-  const locationsWithPolygonPromise = fetchLocationsWithPolygon();
   return (
     <Suspense
       fallback={
@@ -24,7 +22,6 @@ const Page = () => {
         locationCategoriesPromise={locationCategoriesPromise}
         locationTypesPromise={locationTypesPromise}
         citiesPromise={citiesPromise}
-        locationsWithPolygonPromise={locationsWithPolygonPromise}
       />
     </Suspense>
   );

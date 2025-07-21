@@ -1,7 +1,6 @@
 "use client";
 
 import LoadingIcon from "@components/LoadingIcon";
-import { LocationsWithPolygonResponse } from "@customTypes/location/location";
 import { FetchCitiesType } from "@queries/city";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
@@ -13,12 +12,10 @@ const MapProvider = dynamic(() => import("./mapProvider"), {
 });
 
 const Map = ({
-  locationsWithPolygonPromise,
   citiesPromise,
   locationCategoriesPromise,
   locationTypesPromise,
 }: {
-  locationsWithPolygonPromise: Promise<LocationsWithPolygonResponse>;
   citiesPromise: Promise<FetchCitiesType>;
   locationCategoriesPromise: Promise<{
     statusCode: number;
@@ -45,7 +42,6 @@ const Map = ({
           locationCategoriesPromise={locationCategoriesPromise}
           locationTypesPromise={locationTypesPromise}
           citiesPromise={citiesPromise}
-          locationsWithPolygonPromise={locationsWithPolygonPromise}
         />
       </Suspense>
     </MapProvider>

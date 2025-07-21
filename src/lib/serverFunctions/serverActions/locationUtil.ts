@@ -518,7 +518,7 @@ const _editLocationPolygon = async (id: number, featuresGeoJson: string) => {
   }
   try {
     await addPolygon(featuresGeoJson, id);
-    revalidateTag("location");
+    //revalidatePath("/admin/map");
     return { statusCode: 201 };
   } catch (e) {
     return { statusCode: 500 };

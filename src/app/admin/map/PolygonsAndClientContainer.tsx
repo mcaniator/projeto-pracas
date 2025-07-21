@@ -1,19 +1,19 @@
 "use client";
 
+import { useLoadingOverlay } from "@components/context/loadingContext";
 import { LocationsWithPolygonResponse } from "@customTypes/location/location";
-import { use } from "react";
+import { FetchCitiesType } from "@queries/city";
+import { useCallback, useEffect, useState } from "react";
 
-import { FetchCitiesType } from "../../../lib/serverFunctions/queries/city";
+import { _fetchLocationsWithPolygon } from "../../../lib/serverFunctions/serverActions/managePolygons";
 import Client from "./client";
 import PolygonProvider from "./polygonProvider";
 
 const PolygonsAndClientContainer = ({
-  locationsWithPolygonPromise,
   citiesPromise,
   locationCategoriesPromise,
   locationTypesPromise,
 }: {
-  locationsWithPolygonPromise: Promise<LocationsWithPolygonResponse>;
   citiesPromise: Promise<FetchCitiesType>;
   locationCategoriesPromise: Promise<{
     statusCode: number;
@@ -26,7 +26,19 @@ const PolygonsAndClientContainer = ({
     types: { id: number; name: string }[];
   }>;
 }) => {
-  const locationsWithPolygon = use(locationsWithPolygonPromise);
+  //const locationsWithPolygon = use(locationsWithPolygonPromise);
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
+  const [locationsWithPolygon, setLocationsWithPolygon] =
+    useState<LocationsWithPolygonResponse>({ statusCode: 1, locations: [] });
+  const fetchLocations = useCallback(async () => {
+    setLoadingOverlayVisible(true);
+    const locations = await _fetchLocationsWithPolygon();
+    setLocationsWithPolygon(locations);
+    setLoadingOverlayVisible(false);
+  }, [setLoadingOverlayVisible]);
+  useEffect(() => {
+    void fetchLocations();
+  }, [setLoadingOverlayVisible, fetchLocations]);
   return (
     <PolygonProvider fullLocationsPromise={locationsWithPolygon}>
       <Client
@@ -34,6 +46,7 @@ const PolygonsAndClientContainer = ({
         citiesPromise={citiesPromise}
         locationCategoriesPromise={locationCategoriesPromise}
         locationTypesPromise={locationTypesPromise}
+        fetchLocations={fetchLocations}
       />
     </PolygonProvider>
   );
