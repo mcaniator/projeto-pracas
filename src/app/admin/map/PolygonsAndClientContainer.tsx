@@ -1,11 +1,13 @@
 "use client";
 
 import { useLoadingOverlay } from "@components/context/loadingContext";
-import { LocationsWithPolygonResponse } from "@customTypes/location/location";
+import {
+  LocationWithPolygon,
+  LocationsWithPolygonResponse,
+} from "@customTypes/location/location";
 import { FetchCitiesType } from "@queries/city";
 import { useCallback, useEffect, useState } from "react";
 
-import { _fetchLocationsWithPolygon } from "../../../lib/serverFunctions/serverActions/managePolygons";
 import Client from "./client";
 import PolygonProvider from "./polygonProvider";
 
@@ -32,8 +34,15 @@ const PolygonsAndClientContainer = ({
     useState<LocationsWithPolygonResponse>({ statusCode: 1, locations: [] });
   const fetchLocations = useCallback(async () => {
     setLoadingOverlayVisible(true);
-    const locations = await _fetchLocationsWithPolygon();
-    setLocationsWithPolygon(locations);
+    const locationsResponse = await fetch("/api/admin/map/locations", {
+      method: "GET",
+      next: { tags: ["location", "database"] },
+    });
+    const locations = (await locationsResponse.json()) as LocationWithPolygon[];
+    setLocationsWithPolygon({
+      statusCode: locationsResponse.status,
+      locations,
+    });
     setLoadingOverlayVisible(false);
   }, [setLoadingOverlayVisible]);
   useEffect(() => {

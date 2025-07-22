@@ -33,7 +33,6 @@ const fetchLocationsWithPolygon =
             ST_AsGeoJSON(polygon)::text as st_asgeojson
           FROM location 
         `;
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay for testing
       return { statusCode: 200, locations };
     } catch (e) {
       return { statusCode: 500, locations: [] };
