@@ -1,6 +1,7 @@
 "use client";
 
 import { useHelperCard } from "@context/helperCardContext";
+import { useLoadingOverlay } from "@context/loadingContext";
 import { ParkRegisterData } from "@customTypes/parks/parkRegister";
 import { FetchCitiesType } from "@queries/city";
 import { LocationCategories } from "@queries/locationCategory";
@@ -15,7 +16,6 @@ import React, {
   useState,
 } from "react";
 
-import LoadingIcon from "../LoadingIcon";
 import { Input } from "../ui/input";
 import LocationRegisterCityForm from "./locationRegisterCityForm";
 import { LocationFormType } from "./locationRegisterForm";
@@ -50,6 +50,7 @@ const LocationRegisterFormClient = ({
   onSuccess?: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
+  const { setLoadingOverlayVisible } = useLoadingOverlay();
   const action = formType === "CREATE" ? _createLocation : _updateLocation;
   const [formState, formAction, isPending] = useActionState(
     action,
@@ -142,6 +143,10 @@ const LocationRegisterFormClient = ({
     }
   }, [cities, setHelperCard]);
 
+  useEffect(() => {
+    setLoadingOverlayVisible(isPending);
+  }, [isPending, setLoadingOverlayVisible]);
+
   const goToPreviousPage = () => {
     setPage((prev) => prev - 1);
   };
@@ -174,11 +179,7 @@ const LocationRegisterFormClient = ({
 
   return (
     <div>
-      {isPending && (
-        <div className="flex justify-center">
-          <LoadingIcon className="h-32 w-32 text-2xl" />
-        </div>
-      )}
+      {isPending && <div className="flex justify-center">Salvando...</div>}
       {!isPending &&
         formState.statusCode !== -1 &&
         formState.statusCode !== 201 &&

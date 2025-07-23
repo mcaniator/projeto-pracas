@@ -35,18 +35,14 @@ const EditPolygonSubmitButton = ({
       case "success":
         setOriginalFeature([]);
 
-        // timeout needed because otherwise it goes back to the park list without having gotten the new park data from the server
-        setTimeout(() => {
-          setCurrentId(-2);
-        }, 200);
+        setCurrentId(-2);
 
         setLoadingOverlayVisible(false);
         void fetchLocations();
         break;
       case "error":
-        setTimeout(() => {
-          setState("normal");
-        }, 2000);
+        setState("normal");
+
         setLoadingOverlayVisible(false);
 
         break;

@@ -166,6 +166,7 @@ const CreationPanel = ({
             cities={cities}
             locationCategories={locationCategories}
             locationTypes={locationTypes}
+            fetchLocations={fetchLocations}
           />
         )}
         {currentId >= 0 && (

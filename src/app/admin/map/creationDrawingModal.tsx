@@ -23,6 +23,7 @@ const CreationDrawingModal = ({
   cities,
   locationCategories,
   locationTypes,
+  fetchLocations,
 }: {
   features: Feature<Geometry>[];
   setCurrentId: Dispatch<SetStateAction<number>>;
@@ -45,6 +46,7 @@ const CreationDrawingModal = ({
       name: string;
     }[];
   };
+  fetchLocations: () => Promise<void>;
 }) => {
   const [open, setOpen] = useState(false);
   const [featuresGeoJson, setFeaturesGeoJson] = useState("");
@@ -123,11 +125,10 @@ const CreationDrawingModal = ({
                   locationCategories={locationCategories}
                   locationTypes={locationTypes}
                   onSuccess={() => {
+                    setCurrentId(-2);
+                    setDrawingWindowVisible(true);
+                    void fetchLocations();
                     close();
-                    setTimeout(() => {
-                      setCurrentId(-2);
-                      setDrawingWindowVisible(true);
-                    }, 200);
                   }}
                 />
               </div>
