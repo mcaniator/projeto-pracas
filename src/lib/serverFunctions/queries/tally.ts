@@ -86,17 +86,13 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         tallyPerson: {
           select: {
             quantity: true,
-            person: {
-              select: {
-                ageGroup: true,
-                gender: true,
-                activity: true,
-                isTraversing: true,
-                isPersonWithImpairment: true,
-                isInApparentIllicitActivity: true,
-                isPersonWithoutHousing: true,
-              },
-            },
+            ageGroup: true,
+            gender: true,
+            activity: true,
+            isTraversing: true,
+            isPersonWithImpairment: true,
+            isInApparentIllicitActivity: true,
+            isPersonWithoutHousing: true,
           },
         },
         location: {
@@ -119,7 +115,25 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         commercialActivities: true,
       },
     });
-    return { statusCode: 200, tally: tally?.endDate ? null : tally };
+    const formattedTallyPerson = tally?.tallyPerson.map((p) => {
+      return {
+        quantity: p.quantity,
+        person: {
+          ageGroup: p.ageGroup,
+          gender: p.gender,
+          activity: p.activity,
+          isTraversing: p.isTraversing,
+          isPersonWithImpairment: p.isPersonWithImpairment,
+          isInApparentIllicitActivity: p.isInApparentIllicitActivity,
+          isPersonWithoutHousing: p.isPersonWithoutHousing,
+        },
+      };
+    });
+    const formattedTally = { ...tally, tallyPerson: formattedTallyPerson! };
+    return {
+      statusCode: 200,
+      tally: formattedTally?.endDate ? null : formattedTally,
+    };
   } catch (error) {
     return { statusCode: 500, tally: null };
   }
@@ -137,17 +151,13 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
         tallyPerson: {
           select: {
             quantity: true,
-            person: {
-              select: {
-                ageGroup: true,
-                gender: true,
-                activity: true,
-                isTraversing: true,
-                isPersonWithImpairment: true,
-                isInApparentIllicitActivity: true,
-                isPersonWithoutHousing: true,
-              },
-            },
+            ageGroup: true,
+            gender: true,
+            activity: true,
+            isTraversing: true,
+            isPersonWithImpairment: true,
+            isInApparentIllicitActivity: true,
+            isPersonWithoutHousing: true,
           },
         },
         user: {

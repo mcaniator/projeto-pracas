@@ -51,22 +51,25 @@ const seed = async () => {
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const numberOfUsers = 100;
-      await prisma.$transaction(async (prisma) => {
-        for (let i = 0; i < numberOfUsers; i++) {
-          await prisma.user.upsert({
-            where: {
-              email: `usuario${i + 1}@teste.com`,
-            },
-            update: {},
-            create: {
-              name: `Usuário teste ${i + 1}`,
-              username: `usuario.teste${i + 1}`,
-              email: `usuario${i + 1}@teste.com`,
-              password: hashedPassword,
-            },
-          });
-        }
-      });
+      await prisma.$transaction(
+        async (prisma) => {
+          for (let i = 0; i < numberOfUsers; i++) {
+            await prisma.user.upsert({
+              where: {
+                email: `usuario${i + 1}@teste.com`,
+              },
+              update: {},
+              create: {
+                name: `Usuário teste ${i + 1}`,
+                username: `usuario.teste${i + 1}`,
+                email: `usuario${i + 1}@teste.com`,
+                password: hashedPassword,
+              },
+            });
+          }
+        },
+        { timeout: 120000 },
+      );
     } catch (e) {
       console.log("Error during dummy users creation: ", e);
     }
