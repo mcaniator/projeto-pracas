@@ -1,6 +1,5 @@
 "use client";
 
-import { OngoingTallyDataFetched } from "@customTypes/tallys/ongoingTally";
 import { WeatherConditions } from "@prisma/client";
 import {
   IconBinocularsFilled,
@@ -10,6 +9,7 @@ import {
   IconMoodDollar,
   IconTemperature,
 } from "@tabler/icons-react";
+import { OngoingTally } from "@zodValidators";
 import { FaPeopleGroup } from "react-icons/fa6";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 
@@ -23,7 +23,7 @@ const TallyInProgressTextualData = ({
   complementaryData,
   commercialActivities,
 }: {
-  tally: OngoingTallyDataFetched;
+  tally: OngoingTally;
   temperature: number | null;
   weather: WeatherConditions;
   complementaryData: { animalsAmount: number; groupsAmount: number };

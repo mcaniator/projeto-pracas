@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/button";
 import { IconChecklist, IconX } from "@tabler/icons-react";
+import { FinalizedTally } from "@zodValidators";
 import {
   Dialog,
   DialogTrigger,
@@ -9,13 +10,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { IndividualDataTable, TallyDataFetched } from "./individualDataTable";
+import { IndividualDataTable } from "./individualDataTable";
 
-const IndividualDataTableModal = ({
-  tallys,
-}: {
-  tallys: TallyDataFetched[];
-}) => {
+const IndividualDataTableModal = ({ tallys }: { tallys: FinalizedTally[] }) => {
   return (
     <DialogTrigger>
       <Button className="items-center p-2 text-sm sm:text-xl">

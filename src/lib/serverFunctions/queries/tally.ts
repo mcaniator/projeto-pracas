@@ -1,4 +1,5 @@
 import { prisma } from "@lib/prisma";
+import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
 
 const fetchTallysByLocationId = async (locationId: number) => {
   try {
@@ -83,18 +84,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         id: tallyId,
       },
       select: {
-        tallyPerson: {
-          select: {
-            quantity: true,
-            ageGroup: true,
-            gender: true,
-            activity: true,
-            isTraversing: true,
-            isPersonWithImpairment: true,
-            isInApparentIllicitActivity: true,
-            isPersonWithoutHousing: true,
-          },
-        },
+        tallyPerson: true,
         location: {
           select: {
             name: true,
@@ -115,24 +105,13 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         commercialActivities: true,
       },
     });
-    const formattedTallyPerson = tally?.tallyPerson.map((p) => {
-      return {
-        quantity: p.quantity,
-        person: {
-          ageGroup: p.ageGroup,
-          gender: p.gender,
-          activity: p.activity,
-          isTraversing: p.isTraversing,
-          isPersonWithImpairment: p.isPersonWithImpairment,
-          isInApparentIllicitActivity: p.isInApparentIllicitActivity,
-          isPersonWithoutHousing: p.isPersonWithoutHousing,
-        },
-      };
-    });
-    const formattedTally = { ...tally, tallyPerson: formattedTallyPerson! };
+    const parsedTally = ongoingTallySchema.safeParse(tally);
+    if (!parsedTally.success) {
+      return { statusCode: 400, tally: null };
+    }
     return {
       statusCode: 200,
-      tally: formattedTally?.endDate ? null : formattedTally,
+      tally: parsedTally.data.endDate ? null : parsedTally.data,
     };
   } catch (error) {
     return { statusCode: 500, tally: null };
@@ -141,25 +120,13 @@ const fetchOngoingTallyById = async (tallyId: number) => {
 
 const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
   try {
-    let tallys = await prisma.tally.findMany({
+    const tallys = await prisma.tally.findMany({
       where: {
         id: {
           in: tallysIds,
         },
       },
       include: {
-        tallyPerson: {
-          select: {
-            quantity: true,
-            ageGroup: true,
-            gender: true,
-            activity: true,
-            isTraversing: true,
-            isPersonWithImpairment: true,
-            isInApparentIllicitActivity: true,
-            isPersonWithoutHousing: true,
-          },
-        },
         user: {
           select: {
             username: true,
@@ -167,11 +134,17 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
         },
       },
     });
-    tallys = tallys.filter((tally) => {
+    const parsedTallys = finalizedTallyArraySchema.safeParse(tallys);
+    if (!parsedTallys.success) {
+      return { statusCode: 400, tallys: null };
+    }
+    const filteredParsedTallys = parsedTallys.data.filter((tally) => {
       if (tally.endDate) return true;
     });
-    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return { statusCode: 200, tallys };
+    filteredParsedTallys.sort(
+      (a, b) => b.startDate.getTime() - a.startDate.getTime(),
+    );
+    return { statusCode: 200, tallys: filteredParsedTallys };
   } catch (error) {
     return { statusCode: 500, tallys: null };
   }

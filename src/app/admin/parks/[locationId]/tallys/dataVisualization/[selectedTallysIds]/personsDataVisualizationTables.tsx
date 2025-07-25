@@ -1,6 +1,6 @@
 "use client ";
 
-import { Gender } from "@prisma/client";
+import { Gender } from "@enums/personCharacteristics";
 import React from "react";
 
 const PersonsDatavisualizationTables = ({

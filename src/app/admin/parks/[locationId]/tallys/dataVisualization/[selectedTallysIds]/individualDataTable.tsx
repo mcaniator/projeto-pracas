@@ -1,8 +1,7 @@
 "use client";
 
 import { dateFormatter, hourFormatter } from "@formatters/dateFormatters";
-import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
+import { FinalizedTally } from "@zodValidators";
 
 const formatName = (fullName: string) => {
   const parts = fullName.trim().split(/\s+/);
@@ -15,32 +14,8 @@ const weatherConditionsMap = new Map([
   ["CLOUDY", "Nublado"],
   ["SUNNY", "Ensolarado"],
 ]);
-interface TallyPerson {
-  person: {
-    gender: Gender;
-    ageGroup: AgeGroup;
-    activity: Activity;
-    isTraversing: boolean;
-    isPersonWithImpairment: boolean;
-    isInApparentIllicitActivity: boolean;
-    isPersonWithoutHousing: boolean;
-  };
-  quantity: number;
-}
-interface TallyDataFetched {
-  tallyPerson: TallyPerson[];
-  startDate: Date;
-  endDate: Date | null;
-  user: {
-    username: string | null;
-  };
-  animalsAmount: number | null;
-  groups: number | null;
-  temperature: number | null;
-  weatherCondition: WeatherConditions | null;
-  commercialActivities: JsonValue;
-}
-const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
+
+const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
   return (
     <>
       <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
@@ -98,4 +73,3 @@ const IndividualDataTable = ({ tallys }: { tallys: TallyDataFetched[] }) => {
 };
 
 export { IndividualDataTable };
-export { type TallyDataFetched };

@@ -1,15 +1,18 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { personType } from "@/lib/zodValidators";
-import { CalculationTypes, WeatherConditions } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
+import { CalculationTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
   fetchAssessmentsForEvaluationExport,
   processAndFormatTallyDataLineWithAddedContent,
 } from "@serverOnly/exportToCSV";
+import {
+  Tally,
+  locationArrayExportDailyTallysSchema,
+  tallyArraySchema,
+} from "@zodValidators";
 
 type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
 interface FetchedSubmission {
@@ -25,42 +28,6 @@ interface FetchedSubmission {
     username: string;
   };
   type: AnswerType;
-}
-
-interface TallyPerson {
-  person: personType;
-  quantity: number;
-}
-interface TallyDataToProcessType {
-  startDate: Date;
-  endDate: Date | null;
-  user: {
-    username: string | null;
-  };
-  animalsAmount: number | null;
-  groups: number | null;
-  temperature: number | null;
-  weatherCondition: WeatherConditions | null;
-  commercialActivities: JsonValue | null;
-  locationId: number;
-  location: {
-    name: string;
-  };
-  tallyPerson: TallyPerson[];
-}
-interface TallyDataToProcessTypeWithoutLocation {
-  startDate: Date;
-  endDate: Date | null;
-  user: {
-    username: string | null;
-  };
-  animalsAmount: number | null;
-  groups: number | null;
-  temperature: number | null;
-  weatherCondition: WeatherConditions | null;
-  commercialActivities: JsonValue | null;
-  locationId: number;
-  tallyPerson: TallyPerson[];
 }
 
 const _exportRegistrationData = async (locationsIds: number[]) => {
@@ -937,22 +904,6 @@ const _exportDailyTallys = async (
             },
           },
           include: {
-            tallyPerson: {
-              select: {
-                person: {
-                  select: {
-                    ageGroup: true,
-                    gender: true,
-                    activity: true,
-                    isTraversing: true,
-                    isPersonWithImpairment: true,
-                    isInApparentIllicitActivity: true,
-                    isPersonWithoutHousing: true,
-                  },
-                },
-                quantity: true,
-              },
-            },
             user: {
               select: {
                 username: true,
@@ -971,109 +922,121 @@ const _exportDailyTallys = async (
       }
     });
 
+    const parsedLocationObjs =
+      locationArrayExportDailyTallysSchema.safeParse(locationObjs);
+    if (!parsedLocationObjs.success) {
+      return {
+        statusCode: 400,
+        CSVstringWeekdays: [],
+        CSVstringWeekendDays: [],
+      };
+    }
+
     let maxWeekdays = 0;
     let maxWeekendDays = 0;
-    const locationsWithTallyGroupsByDate = locationObjs.map((location) => {
-      const tallyGroupsByDate = location.tally.reduce<{
-        [key: string]: typeof location.tally;
-      }>((acc, tally) => {
-        const weekday = tally.startDate.toLocaleString("pt-BR", {
-          weekday: "short",
-        });
-        const year = tally.startDate.getFullYear();
-        const month = String(tally.startDate.getMonth() + 1).padStart(2, "0");
-        const day = String(tally.startDate.getDate()).padStart(2, "0");
-        const key = `${weekday}-${year}-${month}-${day}`;
-        if (key) {
-          if (!acc[key]) {
-            acc[key] = [];
+    const locationsWithTallyGroupsByDate = parsedLocationObjs.data.map(
+      (location) => {
+        const tallyGroupsByDate = location.tally.reduce<{
+          [key: string]: typeof location.tally;
+        }>((acc, tally) => {
+          const weekday = tally.startDate.toLocaleString("pt-BR", {
+            weekday: "short",
+          });
+          const year = tally.startDate.getFullYear();
+          const month = String(tally.startDate.getMonth() + 1).padStart(2, "0");
+          const day = String(tally.startDate.getDate()).padStart(2, "0");
+          const key = `${weekday}-${year}-${month}-${day}`;
+          if (key) {
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            const currentAccElement = acc[key];
+            if (currentAccElement) {
+              currentAccElement.push(tally);
+            }
           }
-          const currentAccElement = acc[key];
-          if (currentAccElement) {
-            currentAccElement.push(tally);
-          }
-        }
-        return acc;
-      }, {});
+          return acc;
+        }, {});
 
-      const tallyGroupsByDateAndDayClassication: {
-        weekendDays: (typeof tallyGroupsByDate)[];
-        weekdays: (typeof tallyGroupsByDate)[];
-      } = { weekendDays: [], weekdays: [] };
-      for (const tallyGroupByDateKey of Object.keys(tallyGroupsByDate)) {
-        const dayName = tallyGroupByDateKey.split("-")[0];
-        if (dayName === "dom." || dayName === "sáb.") {
-          const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
-          if (tallyGroupToSort) {
-            tallyGroupsByDateAndDayClassication.weekendDays.push({
-              [tallyGroupByDateKey]: tallyGroupToSort,
-            });
-          }
-        } else {
-          const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
-          if (tallyGroupToSort) {
-            tallyGroupsByDateAndDayClassication.weekdays.push({
-              [tallyGroupByDateKey]: tallyGroupToSort,
-            });
+        const tallyGroupsByDateAndDayClassication: {
+          weekendDays: (typeof tallyGroupsByDate)[];
+          weekdays: (typeof tallyGroupsByDate)[];
+        } = { weekendDays: [], weekdays: [] };
+        for (const tallyGroupByDateKey of Object.keys(tallyGroupsByDate)) {
+          const dayName = tallyGroupByDateKey.split("-")[0];
+          if (dayName === "dom." || dayName === "sáb.") {
+            const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
+            if (tallyGroupToSort) {
+              tallyGroupsByDateAndDayClassication.weekendDays.push({
+                [tallyGroupByDateKey]: tallyGroupToSort,
+              });
+            }
+          } else {
+            const tallyGroupToSort = tallyGroupsByDate[tallyGroupByDateKey];
+            if (tallyGroupToSort) {
+              tallyGroupsByDateAndDayClassication.weekdays.push({
+                [tallyGroupByDateKey]: tallyGroupToSort,
+              });
+            }
           }
         }
-      }
-      tallyGroupsByDateAndDayClassication.weekdays.sort((a, b) => {
-        const keyA = Object.keys(a)[0];
-        const keyB = Object.keys(b)[0];
-        if (keyA && keyB) {
-          const objArrayA = a[keyA];
-          const objArrayB = b[keyB];
-          if (objArrayA && objArrayB) {
-            const objA = objArrayA[0];
-            const objB = objArrayB[0];
-            if (objA && objB) {
-              return objA.startDate.getTime() - objB.startDate.getTime();
+        tallyGroupsByDateAndDayClassication.weekdays.sort((a, b) => {
+          const keyA = Object.keys(a)[0];
+          const keyB = Object.keys(b)[0];
+          if (keyA && keyB) {
+            const objArrayA = a[keyA];
+            const objArrayB = b[keyB];
+            if (objArrayA && objArrayB) {
+              const objA = objArrayA[0];
+              const objB = objArrayB[0];
+              if (objA && objB) {
+                return objA.startDate.getTime() - objB.startDate.getTime();
+              } else {
+                return 0;
+              }
             } else {
               return 0;
             }
           } else {
             return 0;
           }
-        } else {
-          return 0;
-        }
-      });
-      tallyGroupsByDateAndDayClassication.weekendDays.sort((a, b) => {
-        const keyA = Object.keys(a)[0];
-        const keyB = Object.keys(b)[0];
-        if (keyA && keyB) {
-          const objArrayA = a[keyA];
-          const objArrayB = b[keyB];
-          if (objArrayA && objArrayB) {
-            const objA = objArrayA[0];
-            const objB = objArrayB[0];
-            if (objA && objB) {
-              return objA.startDate.getTime() - objB.startDate.getTime();
+        });
+        tallyGroupsByDateAndDayClassication.weekendDays.sort((a, b) => {
+          const keyA = Object.keys(a)[0];
+          const keyB = Object.keys(b)[0];
+          if (keyA && keyB) {
+            const objArrayA = a[keyA];
+            const objArrayB = b[keyB];
+            if (objArrayA && objArrayB) {
+              const objA = objArrayA[0];
+              const objB = objArrayB[0];
+              if (objA && objB) {
+                return objA.startDate.getTime() - objB.startDate.getTime();
+              } else {
+                return 0;
+              }
             } else {
               return 0;
             }
           } else {
             return 0;
           }
-        } else {
-          return 0;
-        }
-      });
-      const weekdays = tallyGroupsByDateAndDayClassication.weekdays.length;
-      const weekendDays =
-        tallyGroupsByDateAndDayClassication.weekendDays.length;
-      if (maxWeekdays < weekdays) maxWeekdays = weekdays;
-      if (maxWeekendDays < weekendDays) maxWeekendDays = weekendDays;
-      return {
-        location: {
-          id: location.id,
-          name: location.name,
-          createdAt: location.createdAt,
-        },
-        tallyGroupsByDateAndDayClassication,
-      };
-    });
+        });
+        const weekdays = tallyGroupsByDateAndDayClassication.weekdays.length;
+        const weekendDays =
+          tallyGroupsByDateAndDayClassication.weekendDays.length;
+        if (maxWeekdays < weekdays) maxWeekdays = weekdays;
+        if (maxWeekendDays < weekendDays) maxWeekendDays = weekendDays;
+        return {
+          location: {
+            id: location.id,
+            name: location.name,
+            createdAt: location.createdAt,
+          },
+          tallyGroupsByDateAndDayClassication,
+        };
+      },
+    );
     const CSVstringWeekdays: string[] = [];
     const CSVstringWeekendDays: string[] = [];
     for (let i = 0; i < maxWeekdays; i++) {
@@ -1085,7 +1048,7 @@ const _exportDailyTallys = async (
       CSVstring += locationsWithTallyGroupsByDate
         .map((locationObj) => {
           let observers = "";
-          const tallys: TallyDataToProcessTypeWithoutLocation[] = [];
+          const tallys: Tally[] = [];
           const tallyWithKey =
             locationObj.tallyGroupsByDateAndDayClassication.weekdays[0];
           locationObj.tallyGroupsByDateAndDayClassication.weekdays.shift();
@@ -1136,7 +1099,7 @@ const _exportDailyTallys = async (
       CSVstring += locationsWithTallyGroupsByDate
         .map((locationObj) => {
           let observers = "";
-          const tallys: TallyDataToProcessTypeWithoutLocation[] = [];
+          const tallys: Tally[] = [];
           const tallyWithKey =
             locationObj.tallyGroupsByDateAndDayClassication.weekendDays[0];
           locationObj.tallyGroupsByDateAndDayClassication.weekendDays.shift();
@@ -1195,7 +1158,7 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
     return { statusCode: 401, CSVstring: null };
   }
 
-  let tallys = await prisma.tally.findMany({
+  const unparsedTallys = await prisma.tally.findMany({
     where: {
       id: {
         in: tallysIds,
@@ -1206,23 +1169,6 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
         select: {
           name: true,
           id: true,
-          createdAt: true,
-        },
-      },
-      tallyPerson: {
-        select: {
-          person: {
-            select: {
-              ageGroup: true,
-              gender: true,
-              activity: true,
-              isTraversing: true,
-              isPersonWithImpairment: true,
-              isInApparentIllicitActivity: true,
-              isPersonWithoutHousing: true,
-            },
-          },
-          quantity: true,
         },
       },
       user: {
@@ -1232,6 +1178,14 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
       },
     },
   });
+
+  const parsedTallys = tallyArraySchema.safeParse(unparsedTallys);
+
+  if (!parsedTallys.success) {
+    return { statusCode: 400, CSVstring: "" };
+  }
+
+  let tallys = parsedTallys.data;
 
   let CSVstring =
     "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
@@ -1248,14 +1202,16 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
     }
   });
   const tallyGroupsByLocation: { [key: number]: typeof tallys } = {};
+  let index = 0;
   for (const tally of tallys) {
-    if (!tallyGroupsByLocation[tally.location.id]) {
-      tallyGroupsByLocation[tally.location.id] = [];
+    if (!tallyGroupsByLocation[index]) {
+      tallyGroupsByLocation[index] = [];
     }
-    const currentGroup = tallyGroupsByLocation[tally.location.id];
+    const currentGroup = tallyGroupsByLocation[index];
     if (currentGroup) {
       currentGroup.push(tally);
     }
+    index++;
   }
 
   CSVstring += Object.entries(tallyGroupsByLocation)
@@ -1323,22 +1279,6 @@ const _exportIndividualTallysToCSV = async (tallysIds: number[]) => {
           name: true,
         },
       },
-      tallyPerson: {
-        select: {
-          person: {
-            select: {
-              ageGroup: true,
-              gender: true,
-              activity: true,
-              isTraversing: true,
-              isPersonWithImpairment: true,
-              isInApparentIllicitActivity: true,
-              isPersonWithoutHousing: true,
-            },
-          },
-          quantity: true,
-        },
-      },
       user: {
         select: {
           username: true,
@@ -1347,7 +1287,12 @@ const _exportIndividualTallysToCSV = async (tallysIds: number[]) => {
     },
   });
 
-  const CSVstring = createTallyStringWithoutAddedData(tallys);
+  const parsedTallys = tallyArraySchema.safeParse(tallys);
+  if (!parsedTallys.success) {
+    return { statusCode: 400, CSVstring: "" };
+  }
+
+  const CSVstring = createTallyStringWithoutAddedData(parsedTallys.data);
 
   return { statusCode: 200, CSVstring };
 };
@@ -1360,8 +1305,4 @@ export {
   _exportEvaluation,
 };
 
-export {
-  type FetchedSubmission,
-  type TallyDataToProcessType,
-  type TallyDataToProcessTypeWithoutLocation,
-};
+export { type FetchedSubmission };

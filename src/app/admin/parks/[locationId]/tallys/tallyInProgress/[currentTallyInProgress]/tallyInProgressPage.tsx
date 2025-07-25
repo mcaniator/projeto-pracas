@@ -5,17 +5,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useUserContext } from "@components/context/UserContext";
-import {
-  OngoingTallyDataFetched,
-  PersonCharacteristics,
-  WeatherStats,
-} from "@customTypes/tallys/ongoingTally";
+import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
-import { Gender } from "@prisma/client";
-import { Activity } from "@prisma/client";
-import { AgeGroup } from "@prisma/client";
 import { WeatherConditions } from "@prisma/client";
 import { IconCirclePlus, IconTemperature } from "@tabler/icons-react";
+import { CommercialActivity, OngoingTally } from "@zodValidators";
 import { redirect } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import React from "react";
@@ -23,19 +17,37 @@ import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 
+import {
+  ActivityType,
+  AgeGroupType,
+  GenderType,
+} from "../../../../../../../lib/types/tallys/person";
 import TallyInProgressReview from "./tallyInProgressReview";
 import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
 import TallyInProgressSaveModal from "./tallyInProgressSaveModal";
-
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
 
 interface SubmittingObj {
   submitting: boolean;
   finishing: boolean;
   deleting: boolean;
 }
+
+type PersonCharacteristics = {
+  FEMALE: {
+    activity: ActivityType;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  MALE: {
+    activity: ActivityType;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+};
 
 const TallyInProgressPage = ({
   tallyId,
@@ -44,7 +56,7 @@ const TallyInProgressPage = ({
 }: {
   tallyId: number;
   locationId: number;
-  tally: OngoingTallyDataFetched;
+  tally: OngoingTally;
 }) => {
   const { user } = useUserContext();
   if (user.id !== tally.user.id) {
@@ -61,27 +73,30 @@ const TallyInProgressPage = ({
   });
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
-    for (const tallyPerson of tally.tallyPerson) {
-      const gender = tallyPerson.person.gender;
-      const ageGroup = tallyPerson.person.ageGroup;
-      const activity = tallyPerson.person.activity;
-      const isTraversing = tallyPerson.person.isTraversing;
-      const isPersonWithImpairment = tallyPerson.person.isPersonWithImpairment;
-      const isInApparentIllicitActivity =
-        tallyPerson.person.isInApparentIllicitActivity;
-      const isPersonWithoutHousing = tallyPerson.person.isPersonWithoutHousing;
-      tallyMap.set(
-        `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
-        tallyPerson.quantity,
-      );
+    if (tally.tallyPerson) {
+      for (const tallyPerson of tally.tallyPerson) {
+        const gender = tallyPerson.person.gender;
+        const ageGroup = tallyPerson.person.ageGroup;
+        const activity = tallyPerson.person.activity;
+        const isTraversing = tallyPerson.person.isTraversing;
+        const isPersonWithImpairment =
+          tallyPerson.person.isPersonWithImpairment;
+        const isInApparentIllicitActivity =
+          tallyPerson.person.isInApparentIllicitActivity;
+        const isPersonWithoutHousing =
+          tallyPerson.person.isPersonWithoutHousing;
+        tallyMap.set(
+          `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
+          tallyPerson.quantity,
+        );
+      }
     }
 
     return tallyMap;
   });
   const [commercialActivities, setCommercialActivities] =
-    useState<CommercialActivitiesObject>(() => {
-      if (tally.commercialActivities)
-        return tally.commercialActivities as CommercialActivitiesObject;
+    useState<CommercialActivity>(() => {
+      if (tally.commercialActivities) return tally.commercialActivities;
       else return {};
     });
   const [selectedCommercialActivity, setSelectedCommercialActivity] =
@@ -103,13 +118,13 @@ const TallyInProgressPage = ({
       ];
       if (!tally.commercialActivities) return defaultOptions;
 
-      const customOptions = Object.keys(tally.commercialActivities as string)
+      const customOptions = Object.keys(tally.commercialActivities)
         .filter(
           (activity) =>
             activity !== "Alimentos" &&
             activity !== "Produtos" &&
             activity !== "Pula-pula (ou outra ativ. infantil)" &&
-            activity !== "Mesas de bares" &&
+            activity !== "Mesas de bares do entorno" &&
             activity !== "Outros" &&
             activity !== "Criar nova atividade",
         )
@@ -150,7 +165,7 @@ const TallyInProgressPage = ({
       },
     });
 
-  const handlePersonAdd = (gender: Gender, ageGroup: AgeGroup) => {
+  const handlePersonAdd = (gender: GenderType, ageGroup: AgeGroupType) => {
     const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
     setTallyMap((prev) => {
       const newMap = new Map(prev);
@@ -159,7 +174,7 @@ const TallyInProgressPage = ({
       return newMap;
     });
   };
-  const handlePersonRemoval = (gender: Gender, ageGroup: AgeGroup) => {
+  const handlePersonRemoval = (gender: GenderType, ageGroup: AgeGroupType) => {
     const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
     setTallyMap((prev) => {
       const newMap = new Map(prev);
@@ -172,9 +187,9 @@ const TallyInProgressPage = ({
     });
   };
   const countPeople = (
-    gender: Gender,
-    ageGroup: AgeGroup,
-    activity: Activity,
+    gender: GenderType,
+    ageGroup: AgeGroupType,
+    activity: ActivityType,
     isTraversing: boolean,
     isPersonWithImpairment: boolean,
     isInApparentIllicitActivity: boolean,
@@ -1000,4 +1015,4 @@ const TallyInProgressPage = ({
 };
 
 export { TallyInProgressPage };
-export { type CommercialActivitiesObject, type SubmittingObj };
+export { type SubmittingObj };

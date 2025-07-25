@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity, AgeGroup, Gender } from "@prisma/client";
+import { GenderType } from "@customTypes/tallys/person";
+import { Activity, AgeGroup } from "@enums/personCharacteristics";
 import {
   BarElement,
   CategoryScale,
@@ -26,7 +27,7 @@ ChartJS.register(
 
 const calculateActivityArray = (
   tallyMap: Map<string, number>,
-  gender: Gender,
+  gender: GenderType,
 ) => {
   const activityArray: number[] = [];
   for (const activity of Object.values(Activity)) {
@@ -44,7 +45,7 @@ const calculateActivityArray = (
 
 const calculateAgeGroupArray = (
   tallyMap: Map<string, number>,
-  gender: Gender,
+  gender: GenderType,
 ) => {
   const ageGroupArray: number[] = [];
   for (const ageGroup of Object.values(AgeGroup)) {
@@ -63,7 +64,7 @@ const calculateAgeGroupArray = (
 
 const calculateBooleanCharacteristicsArray = (
   tallyMap: Map<string, number>,
-  gender: Gender,
+  gender: GenderType,
 ) => {
   const booleanCharacteristicsArray: number[] = [0, 0, 0, 0, 0];
   tallyMap.forEach((value, key) => {

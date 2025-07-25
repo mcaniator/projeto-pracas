@@ -1,13 +1,11 @@
 "use client";
 
 import { Button } from "@/components/button";
-import {
-  OngoingTallyDataFetched,
-  WeatherStats,
-} from "@customTypes/tallys/ongoingTally";
+import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { WeatherConditions } from "@prisma/client";
 import { IconChartBar, IconLogs, IconX } from "@tabler/icons-react";
 import { weatherNameMap } from "@translationMaps/tallys";
+import { CommercialActivity, OngoingTally } from "@zodValidators";
 import { useState } from "react";
 import {
   Dialog,
@@ -17,7 +15,6 @@ import {
 } from "react-aria-components";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
-import { CommercialActivitiesObject } from "./tallyInProgressPage";
 import { AssistBarStates } from "./tallyInProgressReview";
 import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
@@ -28,13 +25,13 @@ const TallyInProgressReviewModal = ({
   commercialActivities,
   tallyMap,
 }: {
-  tally: OngoingTallyDataFetched;
+  tally: OngoingTally;
   weatherStats: WeatherStats;
   complementaryData: {
     animalsAmount: number;
     groupsAmount: number;
   };
-  commercialActivities: CommercialActivitiesObject;
+  commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
 }) => {
   const [modalState, setModalState] = useState<AssistBarStates>("TEXTUAL_DATA");

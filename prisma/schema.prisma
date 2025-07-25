@@ -22,18 +22,6 @@ datasource db {
 //  Enums
 //  ------------------------------------------------------------------------------------------------------------
 
-enum WeekDays {
-  SUNDAY    @map("Sunday")
-  MONDAY    @map("Monday")
-  TUESDAY   @map("Tuesday")
-  WEDNESDAY @map("Wednesday")
-  THURSDAY  @map("Thursday")
-  FRIDAY    @map("Friday")
-  SATURDAY  @map("Saturday")
-
-  @@map("week_days")
-}
-
 enum BrazilianStates {
   AC
   AL
@@ -66,13 +54,6 @@ enum BrazilianStates {
   @@map("brazilian_states")
 }
 
-enum UserTypes {
-  ADMIN      @map("Admin")
-  RESEARCHER @map("Researcher")
-
-  @@map("user_types")
-}
-
 enum CalculationTypes {
   SUM        @map("Sum")
   AVERAGE    @map("Average")
@@ -103,30 +84,6 @@ enum OptionTypes {
   CHECKBOX @map("checkbox")
 
   @@map("option_types")
-}
-
-enum AgeGroup {
-  CHILD   @map("child")
-  TEEN    @map("teen")
-  ADULT   @map("adult")
-  ELDERLY @map("elderly")
-
-  @@map("age_group")
-}
-
-enum Activity {
-  SEDENTARY @map("sedentary")
-  WALKING   @map("walking")
-  STRENUOUS @map("strenuous")
-
-  @@map("atividade")
-}
-
-enum Gender {
-  MALE   @map("male")
-  FEMALE @map("female")
-
-  @@map("gender")
 }
 
 enum WeatherConditions {
@@ -611,33 +568,12 @@ model Tally {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  tallyPerson TallyPerson[]
+  tallyPerson Json[] @map("tally_person")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("tally")
-}
-
-model TallyPerson {
-  id Int @id @default(autoincrement())
-
-  tally   Tally @relation(fields: [tallyId], references: [id])
-  tallyId Int   @map("tally_id")
-
-  ageGroup                    AgeGroup @map("age_group")
-  gender                      Gender
-  activity                    Activity @map("activity")
-  isTraversing                Boolean  @map("is_traversing")
-  isPersonWithImpairment      Boolean  @map("is_person_with_impairment")
-  isInApparentIllicitActivity Boolean  @map("is_in_apparent_illicit_activity")
-  isPersonWithoutHousing      Boolean  @map("is_person_without_housing")
-
-  quantity Int
-
-  @@unique([tallyId, ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "tally_id_person_id")
-  @@index([tallyId, ageGroup, gender, activity, isTraversing, isPersonWithImpairment, isInApparentIllicitActivity, isPersonWithoutHousing], name: "tally_id_person_index")
-  @@map("tally_person")
 }
 
 // #endregion

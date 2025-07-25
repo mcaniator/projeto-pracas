@@ -3,10 +3,20 @@
 import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUserId } from "@auth/userUtil";
+import {
+  ActivityType,
+  AgeGroupType,
+  GenderType,
+} from "@customTypes/tallys/person";
 import PermissionError from "@errors/permissionError";
-import { Activity, AgeGroup, Gender, WeatherConditions } from "@prisma/client";
+import { WeatherConditions } from "@prisma/client";
 import { fetchTallysByLocationId } from "@queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import {
+  CommercialActivity,
+  commercialActivitySchema,
+  tallyPersonArraySchema,
+} from "@zodValidators";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -14,17 +24,17 @@ interface WeatherStats {
   temperature: number | null;
   weather: WeatherConditions;
 }
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
+
 interface PersonWithQuantity {
-  gender: Gender;
-  ageGroup: AgeGroup;
-  activity: Activity;
-  isTraversing: boolean;
-  isPersonWithImpairment: boolean;
-  isInApparentIllicitActivity: boolean;
-  isPersonWithoutHousing: boolean;
+  person: {
+    gender: GenderType;
+    ageGroup: AgeGroupType;
+    activity: ActivityType;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
   quantity: number;
 }
 const _fetchTallysByLocationId = async (locationId: number) => {
@@ -105,7 +115,7 @@ const _saveOngoingTallyData = async (
   tallyId: number,
   weatherStats: WeatherStats,
   tallyMap: Map<string, number>,
-  commercialActivities: CommercialActivitiesObject,
+  commercialActivities: CommercialActivity,
   complementaryData: { animalsAmount: number; groupsAmount: number },
   endDate: Date | null,
 ) => {
@@ -128,71 +138,53 @@ const _saveOngoingTallyData = async (
       isInApparentIllicitActivity,
       isPersonWithoutHousing,
     ] = key.split("-") as [
-      Gender,
-      AgeGroup,
-      Activity,
+      GenderType,
+      AgeGroupType,
+      ActivityType,
       string,
       string,
       string,
       string,
     ];
     persons.push({
-      gender,
-      ageGroup,
-      activity,
-      isTraversing: isTraversing === "true",
-      isPersonWithImpairment: isPersonWithImpairment === "true",
-      isInApparentIllicitActivity: isInApparentIllicitActivity === "true",
-      isPersonWithoutHousing: isPersonWithoutHousing === "true",
       quantity,
+      person: {
+        gender,
+        ageGroup,
+        activity,
+        isTraversing: isTraversing === "true",
+        isPersonWithImpairment: isPersonWithImpairment === "true",
+        isInApparentIllicitActivity: isInApparentIllicitActivity === "true",
+        isPersonWithoutHousing: isPersonWithoutHousing === "true",
+      },
     });
   });
-  const time1 = new Date().getTime();
+  const parsedTallyPersonArray = tallyPersonArraySchema.safeParse(persons);
+  if (!parsedTallyPersonArray.success) {
+    return { statusCode: 400 };
+  }
+  const parsedCommercialActivities =
+    commercialActivitySchema.safeParse(commercialActivities);
+  if (!parsedCommercialActivities.success) {
+    return { statusCode: 400 };
+  }
   try {
-    await prisma.$transaction(
-      async (prisma) => {
-        await prisma.tally.update({
-          where: {
-            id: tallyId,
-          },
-          data: {
-            temperature: weatherStats.temperature,
-            weatherCondition: weatherStats.weather,
-            animalsAmount: complementaryData.animalsAmount,
-            groups: complementaryData.groupsAmount,
-            commercialActivities:
-              Object.keys(commercialActivities).length > 0 ?
-                commercialActivities
-              : undefined,
-            endDate: endDate,
-          },
-        });
-        await Promise.all(
-          persons.map((person) => {
-            const { quantity, ...personCharacteristics } = person;
-            return prisma.tallyPerson.upsert({
-              where: {
-                tally_id_person_id: {
-                  tallyId,
-                  ...personCharacteristics,
-                },
-              },
-              update: { quantity },
-              create: {
-                tally: { connect: { id: tallyId } },
-                ...personCharacteristics,
-                quantity,
-              },
-            });
-          }),
-        );
+    await prisma.tally.update({
+      where: {
+        id: tallyId,
       },
-      { timeout: 10000 },
-    );
-    console.log("Transaction completed in", new Date().getTime() - time1, "ms");
+      data: {
+        temperature: weatherStats.temperature,
+        weatherCondition: weatherStats.weather,
+        animalsAmount: complementaryData.animalsAmount,
+        groups: complementaryData.groupsAmount,
+        commercialActivities: parsedCommercialActivities.data,
+        tallyPerson: parsedTallyPersonArray.data,
+        endDate: endDate,
+      },
+    });
     return { statusCode: 200 };
   } catch (error) {
-    console.log(error);
     return { statusCode: 500 };
   }
 };
@@ -223,14 +215,6 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
   try {
     await prisma.$transaction(async (prisma) => {
-      await prisma.tallyPerson.deleteMany({
-        where: {
-          tallyId: {
-            in: tallysIds,
-          },
-        },
-      });
-
       await prisma.tally.deleteMany({
         where: {
           id: {

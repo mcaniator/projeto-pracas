@@ -8,11 +8,9 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
+import { CommercialActivity } from "../../../../../../../lib/zodValidators";
 import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
-import {
-  CommercialActivitiesObject,
-  SubmittingObj,
-} from "./tallyInProgressPage";
+import { SubmittingObj } from "./tallyInProgressPage";
 
 const TallyInProgressSaveModal = ({
   submittingObj,
@@ -36,7 +34,7 @@ const TallyInProgressSaveModal = ({
     animalsAmount: number;
     groupsAmount: number;
   };
-  commercialActivities: CommercialActivitiesObject;
+  commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {

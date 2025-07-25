@@ -1,18 +1,13 @@
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import { Button } from "@components/button";
-import {
-  OngoingTallyDataFetched,
-  WeatherStats,
-} from "@customTypes/tallys/ongoingTally";
+import { WeatherStats } from "@customTypes/tallys/ongoingTally";
+import { CommercialActivity, OngoingTally } from "@lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
 import { useState } from "react";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
 import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
-import {
-  CommercialActivitiesObject,
-  SubmittingObj,
-} from "./tallyInProgressPage";
+import { SubmittingObj } from "./tallyInProgressPage";
 import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
@@ -35,13 +30,13 @@ const TallyInProgressReview = ({
   };
   tallyId: number;
   locationId: number;
-  tally: OngoingTallyDataFetched;
+  tally: OngoingTally;
   weatherStats: WeatherStats;
   complementaryData: {
     animalsAmount: number;
     groupsAmount: number;
   };
-  commercialActivities: CommercialActivitiesObject;
+  commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {

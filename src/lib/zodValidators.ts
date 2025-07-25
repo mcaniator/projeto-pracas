@@ -1,7 +1,5 @@
+import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
-  Activity,
-  AgeGroup,
-  Gender,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -310,19 +308,6 @@ export type { administrativeUnitsType, cityType, locationType };
 //  Campos das Avaliações Não Relacionadas à Avaliação Física
 //  ------------------------------------------------------------------------------------------------------------
 
-const tallySchema = z.object({
-  date: z.coerce.date().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().optional(),
-  observer: z.coerce.string().trim().min(1).max(255),
-
-  animalsAmount: z.coerce.number().int().finite().nonnegative().optional(),
-  temperature: z.coerce.number().finite().optional(),
-  weatherCondition: z.nativeEnum(WeatherConditions),
-
-  locationId: z.coerce.number().int().finite().nonnegative(),
-});
-
 const personSchema = z.object({
   ageGroup: z.nativeEnum(AgeGroup),
   gender: z.nativeEnum(Gender),
@@ -333,9 +318,122 @@ const personSchema = z.object({
   isPersonWithoutHousing: z.boolean(),
 });
 
-type tallyType = z.infer<typeof tallySchema>;
-type personType = z.infer<typeof personSchema>;
+const tallyPersonSchema = z.object({
+  person: personSchema,
+  quantity: z.coerce.number().int().finite().nonnegative(),
+});
 
-export { personSchema, tallySchema, questionsOnFormsSchema };
-export type { personType, tallyType };
+const tallyPersonArraySchema = z.array(tallyPersonSchema);
+
+const commercialActivitySchema = z.record(
+  z.coerce.number().finite().nonnegative(),
+);
+
+const ongoingTallySchema = z.object({
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
+  temperature: z.coerce.number().finite().nullable(),
+  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
+  groups: z.coerce.number().int().finite().nonnegative().nullable(),
+  user: z.object({
+    username: z.coerce.string().nullable(),
+    id: z.string(),
+  }),
+  location: z.object({
+    name: z.coerce.string(),
+  }),
+  tallyPerson: tallyPersonArraySchema.nullable(),
+  commercialActivities: commercialActivitySchema.nullable(),
+});
+
+const tallySchema = z.object({
+  id: z.coerce.number().int().nonnegative().finite(),
+  locationId: z.coerce.number().int().nonnegative().finite(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
+  temperature: z.coerce.number().finite().nullable(),
+  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
+  groups: z.coerce.number().int().finite().nonnegative().nullable(),
+  user: z.object({
+    username: z.coerce.string().nullable(),
+  }),
+  location: z.object({
+    name: z.coerce.string(),
+  }),
+  tallyPerson: tallyPersonArraySchema.nullable(),
+  commercialActivities: commercialActivitySchema.nullable(),
+});
+
+const finalizedTallySchema = tallySchema.omit({ location: true });
+
+const finalizedTallyArraySchema = z.array(finalizedTallySchema);
+
+const tallyArraySchema = z.array(tallySchema);
+
+const locationExportDailyTallysSchema = z.object({
+  id: z.coerce.number().int(),
+  name: z.coerce.string(),
+  createdAt: z.coerce.date(),
+  tally: tallyArraySchema,
+});
+
+const tallysExportIndividualTallysSchema = z.array(
+  z.object({
+    id: z.coerce.number().int().nonnegative().finite(),
+    locationId: z.coerce.number().int().nonnegative().finite(),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().nullable(),
+    animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
+    temperature: z.coerce.number().finite().nullable(),
+    weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
+    groups: z.coerce.number().int().finite().nonnegative().nullable(),
+    user: z.object({
+      username: z.coerce.string().nullable(),
+      id: z.string().optional(),
+    }),
+    location: z.object({
+      name: z.coerce.string(),
+    }),
+    tallyPerson: tallyPersonArraySchema.nullable(),
+    commercialActivities: commercialActivitySchema.nullable(),
+  }),
+);
+
+const locationArrayExportDailyTallysSchema = z.array(
+  locationExportDailyTallysSchema,
+);
+
+const ongoingTallyArraySchema = z.array(ongoingTallySchema);
+
+type Tally = z.infer<typeof tallySchema>;
+type personType = z.infer<typeof personSchema>;
+type TallyPerson = z.infer<typeof tallyPersonSchema>;
+type OngoingTally = z.infer<typeof ongoingTallySchema>;
+type CommercialActivity = z.infer<typeof commercialActivitySchema>;
+type FinalizedTally = z.infer<typeof finalizedTallySchema>;
+
+export {
+  personSchema,
+  tallySchema,
+  tallyArraySchema,
+  questionsOnFormsSchema,
+  tallyPersonSchema,
+  tallyPersonArraySchema,
+  ongoingTallySchema,
+  ongoingTallyArraySchema,
+  commercialActivitySchema,
+  locationArrayExportDailyTallysSchema,
+  tallysExportIndividualTallysSchema,
+  finalizedTallyArraySchema,
+};
+export type {
+  personType,
+  Tally,
+  TallyPerson,
+  OngoingTally,
+  CommercialActivity,
+  FinalizedTally,
+};
 // #endregion

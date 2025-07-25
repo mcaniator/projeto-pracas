@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, AgeGroup, Gender } from "@prisma/client";
+import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import React from "react";
 
 import { TallyDataVisualizationModes } from "./TallysDataPage";
@@ -34,7 +34,7 @@ const calculateActivityArrays = (tallyMap: Map<string, string | number>) => {
       });
       activityArray.push(count);
     }
-    activityArrays[gender as Gender] = activityArray;
+    activityArrays[gender as keyof TallyDataArraysByGender] = activityArray;
   }
   return activityArrays;
 };
@@ -52,7 +52,7 @@ const calculateAgeGroupArrays = (tallyMap: Map<string, string | number>) => {
       });
       ageGroupArray.push(count);
     }
-    ageGroupArrays[gender as Gender] = ageGroupArray;
+    ageGroupArrays[gender as keyof TallyDataArraysByGender] = ageGroupArray;
   }
   return ageGroupArrays;
 };
@@ -80,7 +80,7 @@ const calculateBooleanCharacteristicsArrays = (
         }
       });
     });
-    booleanCharacteristicsArrays[gender as Gender] =
+    booleanCharacteristicsArrays[gender as keyof TallyDataArraysByGender] =
       booleanCharacteristicsArray;
   }
   return booleanCharacteristicsArrays;

@@ -1,25 +1,7 @@
-import { Activity, WeatherConditions } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
+import { WeatherConditions } from "@prisma/client";
+import { TallyPerson } from "@zodValidators";
 
-import { TallyPersonWithCharacteristics } from "./tallyDataVisualization";
-
-type OngoingTallyDataFetched = {
-  tallyPerson: TallyPersonWithCharacteristics[];
-  location: {
-    name: string;
-  };
-  startDate: Date;
-  endDate: Date | null;
-  user: {
-    id: string;
-    username: string | null;
-  };
-  animalsAmount: number | null;
-  groups: number | null;
-  temperature: number | null;
-  weatherCondition: WeatherConditions | null;
-  commercialActivities: JsonValue;
-};
+import { ActivityType, AgeGroupType, GenderType } from "./person";
 
 type WeatherStats = {
   temperature: number | null;
@@ -27,24 +9,13 @@ type WeatherStats = {
 };
 
 type PersonCharacteristics = {
-  FEMALE: {
-    activity: Activity;
-    isTraversing: boolean;
-    isPersonWithImpairment: boolean;
-    isInApparentIllicitActivity: boolean;
-    isPersonWithoutHousing: boolean;
-  };
-  MALE: {
-    activity: Activity;
-    isTraversing: boolean;
-    isPersonWithImpairment: boolean;
-    isInApparentIllicitActivity: boolean;
-    isPersonWithoutHousing: boolean;
-  };
+  gender: GenderType;
+  ageGroup: AgeGroupType;
+  activity: ActivityType;
+  isTraversing: boolean;
+  isPersonWithImpairment: boolean;
+  isInApparentIllicitActivity: boolean;
+  isPersonWithoutHousing: boolean;
 };
 
-export {
-  type OngoingTallyDataFetched,
-  type WeatherStats,
-  type PersonCharacteristics,
-};
+export { type WeatherStats, type PersonCharacteristics, type TallyPerson };

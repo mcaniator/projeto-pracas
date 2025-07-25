@@ -10,6 +10,7 @@ import {
   _redirectToTallysList,
   _saveOngoingTallyData,
 } from "@serverActions/tallyUtil";
+import { CommercialActivity } from "@zodValidators";
 import { useRef, useState } from "react";
 import React from "react";
 
@@ -19,9 +20,7 @@ interface WeatherStats {
   temperature: number | null;
   weather: WeatherConditions;
 }
-interface CommercialActivitiesObject {
-  [key: string]: number;
-}
+
 interface ComplementaryDataObject {
   animalsAmount: number;
   groupsAmount: number;
@@ -42,7 +41,7 @@ const TallyInProgressDatabaseOptions = ({
   locationId: number;
   tallyMap: Map<string, number>;
   weatherStats: WeatherStats;
-  commercialActivities: CommercialActivitiesObject;
+  commercialActivities: CommercialActivity;
   complementaryData: ComplementaryDataObject;
   submittingObj: SubmittingObj;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;

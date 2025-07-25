@@ -2,10 +2,7 @@ import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { hourFormatter } from "@formatters/dateFormatters";
 import { prisma } from "@lib/prisma";
 
-import {
-  TallyDataToProcessType,
-  TallyDataToProcessTypeWithoutLocation,
-} from "../serverActions/exportToCSV";
+import { Tally } from "../../zodValidators";
 
 const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
@@ -121,9 +118,7 @@ const fetchAssessmentsForEvaluationExport = async (
 };
 
 //Functions below are used to process  and format tally content and are called by server actions
-const processAndFormatTallyDataLineWithAddedContent = (
-  tallys: TallyDataToProcessTypeWithoutLocation[],
-) => {
+const processAndFormatTallyDataLineWithAddedContent = (tallys: Tally[]) => {
   if (tallys.length === 0)
     return {
       tallyString: ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
@@ -179,7 +174,7 @@ const processAndFormatTallyDataLineWithAddedContent = (
         tallyMap.get("commercialActivities") + totalCommericalActivities,
       );
     }
-
+    if (!tally.tallyPerson) continue;
     for (const tallyPerson of tally.tallyPerson) {
       const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;
       tallyMap.set(key, tallyMap.get(key) + tallyPerson.quantity);
@@ -248,9 +243,7 @@ const processAndFormatTallyDataLineWithAddedContent = (
   };
 };
 
-const createTallyStringWithoutAddedData = (
-  tallys: TallyDataToProcessType[],
-) => {
+const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
   tallys = tallys.sort((a, b) => {
     if (a.location.name < b.location.name) return -1;
     else {

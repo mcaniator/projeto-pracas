@@ -1,11 +1,9 @@
 "use client";
 
 import { Button } from "@/components/button";
-import { TallyDataFetched } from "@customTypes/tallys/tallyDataVisualization";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
-import { Gender } from "@prisma/client";
-import { AgeGroup } from "@prisma/client";
-import { Activity } from "@prisma/client";
+import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
+import { FinalizedTally } from "@zodValidators";
 import { useEffect, useState } from "react";
 import React from "react";
 import { z } from "zod";
@@ -43,7 +41,7 @@ const booleanPersonPropertiesWithNoBooleanCharacteristic: BooleanPersonPropertie
     "noBooleanCharacteristic",
   ];
 
-const immutableTallyData = (tallys: TallyDataFetched[]) => {
+const immutableTallyData = (tallys: FinalizedTally[]) => {
   const commercialActivitiesMap = new Map();
   const tallyMap = new Map();
   tallyMap.set("Groups", 0);
@@ -71,7 +69,7 @@ const immutableTallyData = (tallys: TallyDataFetched[]) => {
   };
 };
 const processTallyData = (
-  tallys: TallyDataFetched[],
+  tallys: FinalizedTally[],
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[],
 ) => {
   const tallyMap = new Map();
@@ -107,6 +105,7 @@ const processTallyData = (
     tallyMap.set(`%${booleanCharacteristic}`, "0,00%");
   }
   for (const tally of tallys) {
+    if (!tally.tallyPerson) continue;
     for (const tallyPerson of tally.tallyPerson) {
       let skipToNextPerson = false;
       if (booleanConditionsFilter.length > 0) {
@@ -144,7 +143,7 @@ const processTallyData = (
         booleanPersonPropertiesWithNoBooleanCharacteristic.map((property) => {
           if (property !== "noBooleanCharacteristic") {
             if (
-              tallyPerson.person.gender === gender &&
+              tallyPerson.person.gender === (gender as Gender) &&
               tallyPerson.person[property]
             ) {
               tallyMap.set(
@@ -158,7 +157,7 @@ const processTallyData = (
               !tallyPerson.person.isPersonWithImpairment &&
               !tallyPerson.person.isPersonWithoutHousing &&
               !tallyPerson.person.isTraversing &&
-              tallyPerson.person.gender === gender
+              tallyPerson.person.gender === (gender as Gender)
             ) {
               tallyMap.set(
                 `${gender}-noBooleanCharacteristic`,
@@ -229,7 +228,7 @@ const TallysDataPage = ({
 }: {
   locationName: string;
   locationId: number;
-  tallys: TallyDataFetched[];
+  tallys: FinalizedTally[];
   tallysIds: number[];
 }) => {
   const [dataVisualizationMode, setDataVisualizationMode] =
