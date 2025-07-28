@@ -69,26 +69,24 @@ const QuestionsPage = () => {
     const cat = catObj.categories!;
     return cat;
   }, [setHelperCard]);
-  const fetchCategoriesAfterCreation = () => {
-    const fetchCategoriesAfterCreation = async () => {
-      const cat = await handleCategoriesFetch();
-      setCategories(cat);
-      if (!cat) return;
-      const currentCategory = cat.find(
-        (c) => c.id === selectedCategoryAndSubcategoryId.categoryId,
-      );
-      setSubcategories(currentCategory?.subcategory || []);
-      if (!selectedCategoryAndSubcategoryId.categoryId) {
-        setSelectedCategoryAndSubcategoryId({
-          categoryId: cat[0]?.id,
-          subcategoryId: undefined,
-          verifySubcategoryNullness:
-            cat[0]?.subcategory.length === 0 ? true : false,
-        });
-      }
-    };
-    void fetchCategoriesAfterCreation();
-  };
+
+  const fetchCategoriesAfterCreation = useCallback(async () => {
+    const cat = await handleCategoriesFetch();
+    setCategories(cat);
+    if (!cat) return;
+    const currentCategory = cat.find(
+      (c) => c.id === selectedCategoryAndSubcategoryId.categoryId,
+    );
+    setSubcategories(currentCategory?.subcategory || []);
+    if (!selectedCategoryAndSubcategoryId.categoryId) {
+      setSelectedCategoryAndSubcategoryId({
+        categoryId: cat[0]?.id,
+        subcategoryId: undefined,
+        verifySubcategoryNullness:
+          cat[0]?.subcategory.length === 0 ? true : false,
+      });
+    }
+  }, [selectedCategoryAndSubcategoryId.categoryId, handleCategoriesFetch]);
 
   const fetchCategoriesAfterDeletion = () => {
     const fetchCategoriesAfterDeletion = async () => {

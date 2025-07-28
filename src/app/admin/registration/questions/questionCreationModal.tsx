@@ -35,7 +35,7 @@ const QuestionCreationModal = ({
   categoryName: string | undefined;
   subcategoryId: number | undefined;
   subcategoryName: string | undefined;
-  fetchCategoriesAfterCreation: () => void;
+  fetchCategoriesAfterCreation: () => Promise<void>;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(_questionSubmit, null);
@@ -109,7 +109,6 @@ const QuestionCreationModal = ({
         helperCardType: "CONFIRM",
         content: <>Questão registrada!</>,
       });
-      fetchCategoriesAfterCreation();
     } else if (state?.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -125,7 +124,13 @@ const QuestionCreationModal = ({
       });
       setPageState("ERROR");
     }
-  }, [state, fetchCategoriesAfterCreation, setHelperCard]);
+  }, [state, setHelperCard]);
+
+  useEffect(() => {
+    if (state?.statusCode === 201) {
+      void fetchCategoriesAfterCreation();
+    }
+  }, [state, fetchCategoriesAfterCreation]);
   const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       if (!geometryTypes.includes(e.target.value)) {

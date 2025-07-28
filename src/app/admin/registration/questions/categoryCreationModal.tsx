@@ -17,7 +17,7 @@ import {
 const CategoryCreationModal = ({
   fetchCategoriesAfterCreation,
 }: {
-  fetchCategoriesAfterCreation: () => void;
+  fetchCategoriesAfterCreation: () => Promise<void>;
 }) => {
   const { setHelperCard } = useHelperCard();
   const initialState = {
@@ -45,7 +45,7 @@ const CategoryCreationModal = ({
         helperCardType: "CONFIRM",
         content: <>Categoria criada!</>,
       });
-      fetchCategoriesAfterCreation();
+      void fetchCategoriesAfterCreation();
     } else if (state.statusCode === 401) {
       setPageState("ERROR");
       setHelperCard({
