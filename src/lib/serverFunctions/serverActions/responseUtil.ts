@@ -10,7 +10,7 @@ import { Coordinate } from "ol/coordinate";
 interface ResponseToAdd {
   questionId: number;
   type: QuestionTypes;
-  response?: string[];
+  response: string[];
 }
 interface ResponseToUpdate {
   responseId: number[];
@@ -30,6 +30,7 @@ const _addResponses = async (
   }[],
   endAssessment: boolean,
 ) => {
+  console.log(responses);
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
@@ -69,6 +70,7 @@ const _addResponses = async (
     (response) => response.type === "OPTIONS",
   );
   try {
+    console.time();
     await prisma.assessment.update({
       where: {
         id: assessmentId,
@@ -104,108 +106,97 @@ const _addResponses = async (
         },
       },
     });
-    const existingResponseOptions = await prisma.responseOption.findMany({
-      where: {
-        assessmentId,
-      },
+    console.timeEnd();
+    console.time();
+    const existing = await prisma.responseOption.findMany({
+      where: { assessmentId },
+      orderBy: { createdAt: "asc" },
     });
-    for (const currentResponseOption of responsesOption) {
-      const existingResponseOptionsToCurrentQuestion =
-        existingResponseOptions.filter(
-          (responseOption) =>
-            responseOption.questionId === currentResponseOption.questionId,
-        );
+    // groupd responseOption by questionId
+    const responseOptionsByQuestion = existing.reduce<
+      Record<number, typeof existing>
+    >((acc, r) => {
+      (acc[r.questionId] ||= []).push(r);
+      return acc;
+    }, {});
 
-      if (currentResponseOption.response?.includes("null")) {
-        if (existingResponseOptionsToCurrentQuestion.length === 0) {
-          await prisma.responseOption.create({
-            data: {
-              user: {
-                connect: { id: user.id },
-              },
-              question: {
-                connect: { id: currentResponseOption.questionId },
-              },
-              assessment: {
-                connect: { id: assessmentId },
-              },
-            },
-          });
-        } else {
-          await prisma.responseOption.updateMany({
-            where: {
-              assessmentId,
-              questionId: currentResponseOption.questionId,
-              userId: user.id,
-            },
-            data: {
-              optionId: null,
-            },
-          });
-        }
-      } else {
-        const optionIds =
-          currentResponseOption.response?.map((id) => Number(id)) || [];
+    const responseOptionIds: number[] = [];
+    const cases: string[] = [];
 
-        for (let i = 0; i < optionIds.length; i++) {
-          const optionId = optionIds[i];
+    for (const { questionId, response } of responsesOption) {
+      const opts =
+        response?.includes("null") ?
+          [] //"null" sent means no option was selected. TODO: CHANGE TO CHECK IF AN EMPTY ARRAY WAS SENT
+        : response.map((s) => Number(s));
 
-          if (i < existingResponseOptionsToCurrentQuestion.length) {
-            const currentExistingResponseOptionsToCurrentQuestion =
-              existingResponseOptionsToCurrentQuestion[i];
-            if (currentExistingResponseOptionsToCurrentQuestion) {
-              await prisma.responseOption.update({
-                where: {
-                  id: currentExistingResponseOptionsToCurrentQuestion.id,
-                },
-                data: {
-                  option: {
-                    connect: { id: optionId },
-                  },
-                },
-              });
-            }
-          } else {
-            await prisma.responseOption.create({
-              data: {
-                user: {
-                  connect: { id: user.id },
-                },
-                question: {
-                  connect: { id: currentResponseOption.questionId },
-                },
-                assessment: {
-                  connect: { id: assessmentId },
-                },
-                option: {
-                  connect: { id: optionId },
-                },
-              },
-            });
-          }
-        }
-
-        if (
-          existingResponseOptionsToCurrentQuestion.length > optionIds.length
-        ) {
-          const excessResponseOptions =
-            existingResponseOptionsToCurrentQuestion.slice(optionIds.length);
-          await prisma.responseOption.updateMany({
-            where: {
-              id: {
-                in: excessResponseOptions.map(
-                  (excessResponseOption) => excessResponseOption.id,
-                ),
-              },
-            },
-            data: {
-              optionId: null,
-            },
-          });
-        }
+      //Creating CASE conditionals
+      //Each responseOption related to the assessment will be modified
+      //If there are more responseOption than options selected, the remaing responseOptions will have NULL atributed to optionId
+      const responseOptions = responseOptionsByQuestion[questionId] || [];
+      for (let i = 0; i < responseOptions.length; i++) {
+        const option = responseOptions[i];
+        if (!option) continue;
+        const id = option.id;
+        const newOpt = i < opts.length ? opts[i] : null;
+        responseOptionIds.push(id);
+        cases.push(`WHEN id = ${id} THEN ${newOpt === null ? "NULL" : newOpt}`);
       }
     }
+
+    if (responseOptionIds.length) {
+      const idsList = responseOptionIds.join(",");
+      const caseSql = cases.join("\n");
+      //TODO: CHANGE TO executeRaw. IMPORTANT!
+      await prisma.$executeRawUnsafe(`
+    UPDATE response_option
+    SET option_id = CASE
+      ${caseSql}
+      ELSE option_id
+    END
+    WHERE id IN (${idsList});
+  `);
+    }
+
+    //For each question, in case more options were sent than the current number of reponseOption, an INSERT will be made
+    const inserts: Array<[string, number, number, number]> = [];
+
+    for (const { questionId, response } of responsesOption) {
+      const opts = response?.includes("null") ? [null] : response.map(Number);
+      const existingResponseOptionCount = (
+        responseOptionsByQuestion[questionId] || []
+      ).length;
+
+      for (let i = existingResponseOptionCount; i < opts.length; i++) {
+        const option = opts[i];
+        if (!option) return;
+        inserts.push([user.id, assessmentId, questionId, option]);
+      }
+    }
+
+    if (inserts.length) {
+      const placeholders = inserts
+        .map(
+          (_, i) =>
+            `($${i * 4 + 1},$${i * 4 + 2},$${i * 4 + 3},$${i * 4 + 4},NOW(),NOW())`,
+        )
+        .join(",\n");
+      const flatInserts = inserts.flat();
+
+      await prisma.$executeRawUnsafe(
+        //TODO: change to executeRaw
+        `
+    INSERT INTO response_option
+      (user_id, assessment_id, question_id, option_id, created_at, updated_at)
+    VALUES
+      ${placeholders};
+    `,
+        ...flatInserts,
+      );
+    }
+
+    console.timeEnd();
   } catch (e) {
+    console.log(e);
     return {
       statusCode: 500,
     };
