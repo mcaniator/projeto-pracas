@@ -55,40 +55,40 @@ enum BrazilianStates {
 }
 
 enum CalculationTypes {
-  SUM        @map("Sum")
-  AVERAGE    @map("Average")
-  PERCENTAGE @map("Percentage")
+  SUM
+  AVERAGE
+  PERCENTAGE
 
   @@map("calculation_types")
 }
 
 enum QuestionTypes {
-  WRITTEN @map("Written")
-  OPTIONS @map("Options")
+  WRITTEN
+  OPTIONS
 
   @@map("question_types")
 }
 
 enum QuestionResponseCharacterTypes {
-  TEXT   @map("Text")
-  NUMBER @map("Number")
+  TEXT
+  NUMBER
 }
 
 enum QuestionGeometryTypes {
-  POINT   @map("Point")
-  POLYGON @map("Polygon")
+  POINT
+  POLYGON
 }
 
 enum OptionTypes {
-  RADIO    @map("radio")
-  CHECKBOX @map("checkbox")
+  RADIO
+  CHECKBOX
 
   @@map("option_types")
 }
 
 enum WeatherConditions {
-  CLOUDY @map("cloudy")
-  SUNNY  @map("sunny")
+  CLOUDY
+  SUNNY
 
   @@map("weather_conditions")
 }
@@ -100,18 +100,18 @@ enum WeatherConditions {
 //  Auth
 //  ------------------------------------------------------------------------------------------------------------
 enum Role {
-  PARK_VIEWER        @map("park_viewer")
-  PARK_MANAGER       @map("park_manager")
-  FORM_VIEWER        @map("form_viewer")
-  FORM_MANAGER       @map("form_manager")
-  ASSESSMENT_VIEWER  @map("assessment_viewer")
-  ASSESSMENT_EDITOR  @map("assessment_editor")
-  ASSESSMENT_MANAGER @map("assessment_manager")
-  TALLY_VIEWER       @map("tally_viewer")
-  TALLY_EDITOR       @map("tally_editor")
-  TALLY_MANAGER      @map("tally_manager")
-  USER_VIEWER        @map("user_viewer")
-  USER_MANAGER       @map("user_manager")
+  PARK_VIEWER
+  PARK_MANAGER
+  FORM_VIEWER
+  FORM_MANAGER
+  ASSESSMENT_VIEWER
+  ASSESSMENT_EDITOR
+  ASSESSMENT_MANAGER
+  TALLY_VIEWER
+  TALLY_EDITOR
+  TALLY_MANAGER
+  USER_VIEWER
+  USER_MANAGER
 }
 
 model User {

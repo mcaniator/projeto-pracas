@@ -139,7 +139,6 @@ const fetchMultipleAssessmentsWithResponses = async (
 
 const fetchAssessmentWithResponses = async (assessmentId: number) => {
   // WARNING: Make sure to check if user has permission to see this assessemnt
-  console.time();
   try {
     const assessment = await prisma.assessment.findUnique({
       where: {
@@ -187,7 +186,6 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
     });
 
     const geometries = await fetchAssessmentGeometries(assessmentId);
-    console.timeEnd();
     if (geometries && geometries.length > 0) {
       const returnObj = {
         statusCode: 200,

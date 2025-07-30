@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
-import { QuestionTypes } from "@prisma/client";
+import { Prisma, QuestionTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
 
@@ -71,7 +71,17 @@ const _addResponses = async (
   );
   try {
     console.time();
-    await prisma.assessment.update({
+    //
+    const responsesTextNumericSQLValues = responsesTextNumeric.map(
+      (r) =>
+        Prisma.sql`(${Prisma.raw(`'${r.type}'::question_types`)}, ${r.response ? r.response[0] : null}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
+    );
+    const responsesTextNumericSQL = Prisma.sql`INSERT INTO "response" ("type", "response", "user_id", "question_id", "assessment_id", "updated_at")
+    VALUES ${Prisma.join(responsesTextNumericSQLValues, `,`)}
+    ON CONFLICT ("assessment_id", "question_id")
+    DO UPDATE SET "response" = EXCLUDED."response"`;
+    await prisma.$executeRaw(responsesTextNumericSQL);
+    /*await prisma.assessment.update({
       where: {
         id: assessmentId,
       },
@@ -105,7 +115,7 @@ const _addResponses = async (
           })),
         },
       },
-    });
+    });*/
     console.timeEnd();
     console.time();
     const existing = await prisma.responseOption.findMany({
