@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { Prisma, QuestionTypes } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
 
@@ -69,8 +70,7 @@ const _addResponses = async (
     (response) => response.type === "OPTIONS",
   );
   try {
-    console.time();
-    await prisma.assessment.update({
+    const assessmentUpdate = prisma.assessment.update({
       where: {
         id: assessmentId,
       },
@@ -78,15 +78,38 @@ const _addResponses = async (
         endDate: endAssessment ? new Date() : null,
       },
     });
+
+    const transactions: Array<
+      | Prisma.PrismaPromise<number>
+      | Prisma.Prisma__AssessmentClient<
+          {
+            id: number;
+            startDate: Date;
+            endDate: Date | null;
+            userId: string;
+            locationId: number;
+            formId: number;
+            createdAt: Date;
+            updatedAt: Date;
+          },
+          never,
+          DefaultArgs
+        >
+    > = [];
+
+    transactions.push(assessmentUpdate);
+
     const responsesTextNumericSQLValues = responsesTextNumeric.map(
       (r) =>
         Prisma.sql`(${Prisma.raw(`'${r.type}'::question_types`)}, ${r.response ? r.response[0] : null}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
     );
-    const responsesTextNumericSQL = Prisma.sql`INSERT INTO "response" ("type", "response", "user_id", "question_id", "assessment_id", "updated_at")
+    const responsesTextNumericQuery = Prisma.sql`INSERT INTO "response" ("type", "response", "user_id", "question_id", "assessment_id", "updated_at")
     VALUES ${Prisma.join(responsesTextNumericSQLValues, `,`)}
     ON CONFLICT ("assessment_id", "question_id")
     DO UPDATE SET "response" = EXCLUDED."response"`;
-    await prisma.$executeRaw(responsesTextNumericSQL);
+
+    transactions.push(prisma.$executeRaw(responsesTextNumericQuery));
+
     const existing = await prisma.responseOption.findMany({
       where: { assessmentId },
       orderBy: { createdAt: "asc" },
@@ -122,7 +145,7 @@ const _addResponses = async (
       }
     }
 
-    if (responseOptionIds.length) {
+    if (responseOptionIds.length > 0) {
       const responseOptionUpdate = Prisma.sql`
     UPDATE response_option
     SET option_id = CASE
@@ -131,7 +154,8 @@ const _addResponses = async (
     END
     WHERE id IN (${Prisma.join(responseOptionIds)});
   `;
-      await prisma.$executeRaw(responseOptionUpdate);
+
+      transactions.push(prisma.$executeRaw(responseOptionUpdate));
     }
 
     //For each question, in case more options were sent than the current number of reponseOption, an INSERT will be made
@@ -150,57 +174,56 @@ const _addResponses = async (
         );
       }
     }
-
-    if (insertValues.length) {
+    if (insertValues.length > 0) {
       const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "assessment_id", "question_id", "option_id", "updated_at")
       VALUES ${Prisma.join(insertValues, ",")}`;
-      await prisma.$executeRaw(responseOptionInsert);
+      transactions.push(prisma.$executeRaw(responseOptionInsert));
     }
-  } catch (e) {
-    return {
-      statusCode: 500,
-    };
-  }
-  //GEOMETRIES
-  const geometryValues = geometriesByQuestion.map((geometryByQuestion) => {
-    const { questionId, geometries } = geometryByQuestion;
-    const wktGeometries = geometries
-      .map((geometry) => {
-        const { type, coordinates } = geometry;
-        if (type === "Point") {
-          const [longitude, latitude] = coordinates as number[];
-          return `POINT(${longitude} ${latitude})`;
-        } else if (type === "Polygon") {
-          const polygonCoordinates = (coordinates as Coordinate[][])
-            .map((ring) =>
-              ring
-                .map(([longitude, latitude]) => `${longitude} ${latitude}`)
-                .join(", "),
-            )
-            .join("), (");
 
-          return `POLYGON((${polygonCoordinates}))`;
-        }
-      })
-      .join(", ");
-    const geoText =
-      wktGeometries.length > 0 ?
-        Prisma.sql`ST_GeomFromText(${`GEOMETRYCOLLECTION(${wktGeometries})`}, 4326)`
-      : Prisma.sql`NULL`;
-    return Prisma.sql`(${assessmentId}, ${questionId}, ${geoText})`;
-  });
-  try {
-    await prisma.$executeRaw`
+    //GEOMETRIES
+    const geometryValues = geometriesByQuestion.map((geometryByQuestion) => {
+      const { questionId, geometries } = geometryByQuestion;
+      const wktGeometries = geometries
+        .map((geometry) => {
+          const { type, coordinates } = geometry;
+          if (type === "Point") {
+            const [longitude, latitude] = coordinates as number[];
+            return `POINT(${longitude} ${latitude})`;
+          } else if (type === "Polygon") {
+            const polygonCoordinates = (coordinates as Coordinate[][])
+              .map((ring) =>
+                ring
+                  .map(([longitude, latitude]) => `${longitude} ${latitude}`)
+                  .join(", "),
+              )
+              .join("), (");
+
+            return `POLYGON((${polygonCoordinates}))`;
+          }
+        })
+        .join(", ");
+      const geoText =
+        wktGeometries.length > 0 ?
+          Prisma.sql`ST_GeomFromText(${`GEOMETRYCOLLECTION(${wktGeometries})`}, 4326)`
+        : Prisma.sql`NULL`;
+      return Prisma.sql`(${assessmentId}, ${questionId}, ${geoText})`;
+    });
+    if (geometryValues.length > 0) {
+      const geometryQuery = Prisma.sql`
       INSERT INTO question_geometry (assessment_id, question_id, geometry)
       VALUES ${Prisma.join(geometryValues, ",")}
       ON CONFLICT (assessment_id, question_id)
       DO UPDATE SET geometry = EXCLUDED.geometry
     `;
+
+      transactions.push(prisma.$executeRaw(geometryQuery));
+    }
+
+    await prisma.$transaction(transactions);
   } catch (e) {
     return { statusCode: 500 };
   }
 
-  console.timeEnd();
   return {
     statusCode: 201,
   };
