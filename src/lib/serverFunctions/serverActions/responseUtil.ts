@@ -71,7 +71,14 @@ const _addResponses = async (
   );
   try {
     console.time();
-    //
+    await prisma.assessment.update({
+      where: {
+        id: assessmentId,
+      },
+      data: {
+        endDate: endAssessment ? new Date() : null,
+      },
+    });
     const responsesTextNumericSQLValues = responsesTextNumeric.map(
       (r) =>
         Prisma.sql`(${Prisma.raw(`'${r.type}'::question_types`)}, ${r.response ? r.response[0] : null}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
@@ -81,48 +88,13 @@ const _addResponses = async (
     ON CONFLICT ("assessment_id", "question_id")
     DO UPDATE SET "response" = EXCLUDED."response"`;
     await prisma.$executeRaw(responsesTextNumericSQL);
-    /*await prisma.assessment.update({
-      where: {
-        id: assessmentId,
-      },
-      data: {
-        endDate: endAssessment ? new Date() : null,
-        response: {
-          upsert: responsesTextNumeric.map((response) => ({
-            where: {
-              assessmentId_questionId: {
-                assessmentId,
-                questionId: response.questionId,
-              },
-            },
-            update: {
-              response: response.response ? response.response[0] : undefined,
-            },
-            create: {
-              type: response.type,
-              response: response.response ? response.response[0] : undefined,
-              user: {
-                connect: {
-                  id: user.id,
-                },
-              },
-              question: {
-                connect: {
-                  id: response.questionId,
-                },
-              },
-            },
-          })),
-        },
-      },
-    });*/
     console.timeEnd();
     console.time();
     const existing = await prisma.responseOption.findMany({
       where: { assessmentId },
       orderBy: { createdAt: "asc" },
     });
-    // groupd responseOption by questionId
+    // group responseOption by questionId
     const responseOptionsByQuestion = existing.reduce<
       Record<number, typeof existing>
     >((acc, r) => {
@@ -131,7 +103,7 @@ const _addResponses = async (
     }, {});
 
     const responseOptionIds: number[] = [];
-    const cases: string[] = [];
+    const caseStatements: Prisma.Sql[] = [];
 
     for (const { questionId, response } of responsesOption) {
       const opts =
@@ -149,27 +121,24 @@ const _addResponses = async (
         const id = option.id;
         const newOpt = i < opts.length ? opts[i] : null;
         responseOptionIds.push(id);
-        cases.push(`WHEN id = ${id} THEN ${newOpt === null ? "NULL" : newOpt}`);
+        caseStatements.push(Prisma.sql`WHEN id = ${id} THEN ${newOpt}`);
       }
     }
 
     if (responseOptionIds.length) {
-      const idsList = responseOptionIds.join(",");
-      const caseSql = cases.join("\n");
-      //TODO: CHANGE TO executeRaw. IMPORTANT!
-      await prisma.$executeRawUnsafe(`
+      const responseOptionUpdate = Prisma.sql`
     UPDATE response_option
     SET option_id = CASE
-      ${caseSql}
+      ${Prisma.join(caseStatements, "\n")}
       ELSE option_id
     END
-    WHERE id IN (${idsList});
-  `);
+    WHERE id IN (${Prisma.join(responseOptionIds)});
+  `;
+      await prisma.$executeRaw(responseOptionUpdate);
     }
 
     //For each question, in case more options were sent than the current number of reponseOption, an INSERT will be made
-    const inserts: Array<[string, number, number, number]> = [];
-
+    const insertValues: Prisma.Sql[] = [];
     for (const { questionId, response } of responsesOption) {
       const opts = response?.includes("null") ? [null] : response.map(Number);
       const existingResponseOptionCount = (
@@ -179,29 +148,16 @@ const _addResponses = async (
       for (let i = existingResponseOptionCount; i < opts.length; i++) {
         const option = opts[i];
         if (!option) return;
-        inserts.push([user.id, assessmentId, questionId, option]);
+        insertValues.push(
+          Prisma.sql`(${user.id}, ${assessmentId}, ${questionId}, ${option}, NOW())`,
+        );
       }
     }
 
-    if (inserts.length) {
-      const placeholders = inserts
-        .map(
-          (_, i) =>
-            `($${i * 4 + 1},$${i * 4 + 2},$${i * 4 + 3},$${i * 4 + 4},NOW(),NOW())`,
-        )
-        .join(",\n");
-      const flatInserts = inserts.flat();
-
-      await prisma.$executeRawUnsafe(
-        //TODO: change to executeRaw
-        `
-    INSERT INTO response_option
-      (user_id, assessment_id, question_id, option_id, created_at, updated_at)
-    VALUES
-      ${placeholders};
-    `,
-        ...flatInserts,
-      );
+    if (insertValues.length) {
+      const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "assessment_id", "question_id", "option_id", "updated_at")
+      VALUES ${Prisma.join(insertValues, ",")}`;
+      await prisma.$executeRaw(responseOptionInsert);
     }
 
     console.timeEnd();
@@ -212,7 +168,8 @@ const _addResponses = async (
     };
   }
   //GEOMETRIES
-
+  console.log("GEOMETRIES QUERY...");
+  console.time();
   for (const geometryByQuestion of geometriesByQuestion) {
     const { questionId, geometries } = geometryByQuestion;
     const wktGeometries = geometries
@@ -255,6 +212,7 @@ const _addResponses = async (
       return { statusCode: 500 };
     }
   }
+  console.timeEnd();
   return {
     statusCode: 201,
   };
