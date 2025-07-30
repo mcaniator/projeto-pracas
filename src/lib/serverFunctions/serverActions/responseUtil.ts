@@ -30,7 +30,6 @@ const _addResponses = async (
   }[],
   endAssessment: boolean,
 ) => {
-  console.log(responses);
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
@@ -88,8 +87,6 @@ const _addResponses = async (
     ON CONFLICT ("assessment_id", "question_id")
     DO UPDATE SET "response" = EXCLUDED."response"`;
     await prisma.$executeRaw(responsesTextNumericSQL);
-    console.timeEnd();
-    console.time();
     const existing = await prisma.responseOption.findMany({
       where: { assessmentId },
       orderBy: { createdAt: "asc" },
@@ -147,7 +144,7 @@ const _addResponses = async (
 
       for (let i = existingResponseOptionCount; i < opts.length; i++) {
         const option = opts[i];
-        if (!option) return;
+        if (!option) continue;
         insertValues.push(
           Prisma.sql`(${user.id}, ${assessmentId}, ${questionId}, ${option}, NOW())`,
         );
@@ -159,18 +156,13 @@ const _addResponses = async (
       VALUES ${Prisma.join(insertValues, ",")}`;
       await prisma.$executeRaw(responseOptionInsert);
     }
-
-    console.timeEnd();
   } catch (e) {
-    console.log(e);
     return {
       statusCode: 500,
     };
   }
   //GEOMETRIES
-  console.log("GEOMETRIES QUERY...");
-  console.time();
-  for (const geometryByQuestion of geometriesByQuestion) {
+  const geometryValues = geometriesByQuestion.map((geometryByQuestion) => {
     const { questionId, geometries } = geometryByQuestion;
     const wktGeometries = geometries
       .map((geometry) => {
@@ -191,27 +183,23 @@ const _addResponses = async (
         }
       })
       .join(", ");
-    try {
-      if (wktGeometries.length !== 0) {
-        const geoText = `GEOMETRYCOLLECTION(${wktGeometries})`;
-        await prisma.$executeRaw`
+    const geoText =
+      wktGeometries.length > 0 ?
+        Prisma.sql`ST_GeomFromText(${`GEOMETRYCOLLECTION(${wktGeometries})`}, 4326)`
+      : Prisma.sql`NULL`;
+    return Prisma.sql`(${assessmentId}, ${questionId}, ${geoText})`;
+  });
+  try {
+    await prisma.$executeRaw`
       INSERT INTO question_geometry (assessment_id, question_id, geometry)
-      VALUES (${assessmentId}, ${questionId}, ST_GeomFromText(${geoText}, 4326))
+      VALUES ${Prisma.join(geometryValues, ",")}
       ON CONFLICT (assessment_id, question_id)
-      DO UPDATE SET geometry = ST_GeomFromText(${geoText}, 4326)
+      DO UPDATE SET geometry = EXCLUDED.geometry
     `;
-      } else {
-        await prisma.$executeRaw`
-      INSERT INTO question_geometry (assessment_id, question_id, geometry)
-      VALUES (${assessmentId}, ${questionId}, NULL)
-      ON CONFLICT (assessment_id, question_id)
-      DO UPDATE SET geometry = NULL
-    `;
-      }
-    } catch (e) {
-      return { statusCode: 500 };
-    }
+  } catch (e) {
+    return { statusCode: 500 };
   }
+
   console.timeEnd();
   return {
     statusCode: 201,
