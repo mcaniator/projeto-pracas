@@ -142,7 +142,7 @@ const SubcategoryCreationModal = ({
                         htmlFor="subacategory-name"
                         className="text-base font-semibold sm:text-xl"
                       >
-                        Nome da subcategoria
+                        Nome da subcategoria*
                       </label>
                       <Input
                         required
@@ -150,6 +150,8 @@ const SubcategoryCreationModal = ({
                         name="subcategory-name"
                         className={`${state.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                       ></Input>
+                      <label htmlFor="notes">Observações</label>
+                      <Input id="notes" name="notes" />
                       {state.statusCode === 409 && (
                         <p className="text-red-500">
                           {`Esta subcategoria já existe na categoria "${categoryName}"!`}

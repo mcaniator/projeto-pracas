@@ -130,7 +130,7 @@ const CategoryCreationModal = ({
                         htmlFor="name"
                         className="text-base font-semibold sm:text-xl"
                       >
-                        Nome da categoria
+                        Nome da categoria*
                       </label>
                       <Input
                         required
@@ -138,6 +138,13 @@ const CategoryCreationModal = ({
                         name="name"
                         className={`${state.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                       ></Input>
+                      <label
+                        htmlFor="notes"
+                        className="text-base font-semibold sm:text-xl"
+                      >
+                        Observações
+                      </label>
+                      <Input id="notes" name="notes" />
                       {state.statusCode === 409 && (
                         <p className="text-red-500">
                           Esta categoria já existe!

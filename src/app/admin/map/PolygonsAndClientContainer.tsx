@@ -29,11 +29,11 @@ const PolygonsAndClientContainer = ({
   }>;
 }) => {
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
-  const { setLoadingOverlayVisible } = useLoadingOverlay();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const [locationsWithPolygon, setLocationsWithPolygon] =
     useState<LocationsWithPolygonResponse>({ statusCode: 1, locations: [] });
   const fetchLocations = useCallback(async () => {
-    setLoadingOverlayVisible(true);
+    setLoadingOverlay({ show: true, message: "Carregando praças..." });
     const locationsResponse = await fetch("/api/admin/map/locations", {
       method: "GET",
       next: { tags: ["location", "database"] },
@@ -43,11 +43,11 @@ const PolygonsAndClientContainer = ({
       statusCode: locationsResponse.status,
       locations,
     });
-    setLoadingOverlayVisible(false);
-  }, [setLoadingOverlayVisible]);
+    setLoadingOverlay({ show: false });
+  }, [setLoadingOverlay]);
   useEffect(() => {
     void fetchLocations();
-  }, [setLoadingOverlayVisible, fetchLocations]);
+  }, [setLoadingOverlay, fetchLocations]);
   return (
     <PolygonProvider fullLocationsPromise={locationsWithPolygon}>
       <Client

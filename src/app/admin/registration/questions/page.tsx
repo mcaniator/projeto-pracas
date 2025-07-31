@@ -3,16 +3,14 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Select } from "@components/ui/select";
+import { useLoadingOverlay } from "@context/loadingContext";
 import { FormQuestion } from "@customTypes/forms/formCreation";
 import {
   questionOptionTypesFormatter,
   questionResponseCharacterTypesFormatter,
   questionTypesFormatter,
 } from "@lib/enumsFormatation";
-import {
-  FetchedCategories,
-  _fetchCategories,
-} from "@serverActions/categoryServerActions";
+import { CategoriesForFieldsCreation } from "@queries/category";
 import { _searchQuestionsByCategoryAndSubcategory } from "@serverActions/questionUtil";
 import { useCallback, useEffect, useState } from "react";
 
@@ -25,8 +23,11 @@ import { SubcategoryDeletionModal } from "./subcategoryDeletionModal";
 import SubcategorySelect from "./subcategorySelect";
 
 const QuestionsPage = () => {
+  const { setLoadingOverlay } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
-  const [categories, setCategories] = useState<FetchedCategories>([]);
+  const [categories, setCategories] = useState<
+    CategoriesForFieldsCreation["categories"]
+  >([]);
   const [subcategories, setSubcategories] = useState<
     {
       id: number;
@@ -50,7 +51,16 @@ const QuestionsPage = () => {
   });
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const handleCategoriesFetch = useCallback(async () => {
-    const catObj = await _fetchCategories();
+    setLoadingOverlay({ show: true, message: "Carregando categorias..." });
+    const catObjResponse = await fetch(
+      "/api/admin/forms/fieldsCreation/category",
+      {
+        method: "GET",
+        next: { tags: ["category"] },
+      },
+    );
+    const catObj = (await catObjResponse.json()) as CategoriesForFieldsCreation;
+    setLoadingOverlay({ show: false, message: null });
     if (catObj.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -68,7 +78,7 @@ const QuestionsPage = () => {
     }
     const cat = catObj.categories!;
     return cat;
-  }, [setHelperCard]);
+  }, [setHelperCard, setLoadingOverlay]);
 
   const fetchCategoriesAfterCreation = useCallback(async () => {
     const cat = await handleCategoriesFetch();

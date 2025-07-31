@@ -114,16 +114,18 @@ export type { userRegisterType, userUpdateUsernameType, userLoginType };
 
 const categoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  notes: z.string().trim().optional().nullish(),
 });
 
 const subcategoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   categoryId: z.coerce.number().int().finite().nonnegative(),
+  notes: z.string().trim().optional().nullish(),
 });
 
 const questionSchema = z.object({
   name: z.string().trim().min(1).max(255),
-  notes: z.string().trim().min(1).max(255).optional().nullable(),
+  notes: z.string().trim().optional().nullish(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
   type: z.nativeEnum(QuestionTypes),

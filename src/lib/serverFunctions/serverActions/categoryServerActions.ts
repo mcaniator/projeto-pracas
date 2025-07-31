@@ -9,31 +9,6 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-type FetchedCategories = NonNullable<
-  Awaited<ReturnType<typeof _fetchCategories>>
->["categories"];
-
-const _fetchCategories = async () => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
-  } catch (e) {
-    return { statusCode: 401, categories: [] };
-  }
-  try {
-    const categories = await prisma.category.findMany({
-      include: {
-        subcategory: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-    return { statusCode: 200, categories };
-  } catch (e) {
-    return { statusCode: 500, categories: null };
-  }
-};
-
 const _categorySubmit = async (
   prevState: { statusCode: number; categoryName: string | null },
   formData: FormData,
@@ -50,6 +25,7 @@ const _categorySubmit = async (
   try {
     parse = categoryInfoToCreateSchema.parse({
       name: formData.get("name"),
+      notes: formData.get("notes"),
     });
   } catch (e) {
     return {
@@ -316,22 +292,15 @@ const _subcategorySubmit = async (
       subcategoryName: null,
     };
   }
-  const categoryId = formData.get("category-id") as string;
-  const subcategoryName = formData.get("subcategory-name") as string;
+
   try {
     const parsedSubcategoryInfo = subcategoryInfoToCreateSchema.parse({
-      name: subcategoryName,
-      categoryId: categoryId,
+      name: formData.get("subcategory-name"),
+      categoryId: formData.get("category-id"),
+      notes: formData.get("notes"),
     });
     const subcategory = await prisma.subcategory.create({
-      data: {
-        name: parsedSubcategoryInfo.name,
-        category: {
-          connect: {
-            id: parsedSubcategoryInfo.categoryId,
-          },
-        },
-      },
+      data: parsedSubcategoryInfo,
     });
     revalidateTag("question");
     revalidatePath("/");
@@ -347,10 +316,8 @@ const _subcategorySubmit = async (
 };
 
 export {
-  _fetchCategories,
   _categorySubmit,
   _subcategorySubmit,
   _deleteCategory,
   _deleteSubcategory,
 };
-export type { FetchedCategories };

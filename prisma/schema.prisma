@@ -219,6 +219,7 @@ model Category {
   name        String        @unique @db.VarChar(255)
   optional    Boolean       @default(false)
   active      Boolean       @default(true)
+  notes       String?       @db.Text
   question    Question[]
   calculation Calculation[]
 
@@ -236,6 +237,7 @@ model Subcategory {
   name        String        @db.VarChar(255)
   optional    Boolean       @default(false)
   active      Boolean       @default(true)
+  notes       String?       @db.Text
   question    Question[]
   calculation Calculation[]
 
@@ -250,7 +252,7 @@ model Question {
   id Int @id @default(autoincrement())
 
   name              String                         @db.VarChar(255)
-  notes             String?                        @db.VarChar(255)
+  notes             String?                        @db.Text
   type              QuestionTypes
   characterType     QuestionResponseCharacterTypes @map("character_type")
   forms             Form[]
