@@ -1,5 +1,6 @@
 "use client";
 
+import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Select } from "@components/ui/select";
@@ -11,7 +12,6 @@ import {
   questionTypesFormatter,
 } from "@lib/enumsFormatation";
 import { CategoriesForFieldsCreation } from "@queries/category";
-import { _searchQuestionsByCategoryAndSubcategory } from "@serverActions/questionUtil";
 import { useCallback, useEffect, useState } from "react";
 
 import { CategoryCreationModal } from "./categoryCreationModal";
@@ -131,16 +131,19 @@ const QuestionsPage = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       if (selectedCategoryAndSubcategoryId) {
-        const questions = await _searchQuestionsByCategoryAndSubcategory(
-          selectedCategoryAndSubcategoryId.categoryId,
-          selectedCategoryAndSubcategoryId?.subcategoryId,
-          selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
-        );
+        setLoadingOverlay({ show: true, message: "Carregando questões..." });
+        const questions = await _searchQuestionsByCategoryAndSubcategory({
+          categoryId: selectedCategoryAndSubcategoryId.categoryId,
+          subcategoryId: selectedCategoryAndSubcategoryId?.subcategoryId,
+          verifySubcategoryNullness:
+            selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+        });
+        setLoadingOverlay({ show: false });
         setQuestions(questions.questions);
       }
     };
     void fetchQuestions();
-  }, [selectedCategoryAndSubcategoryId, categories]);
+  }, [selectedCategoryAndSubcategoryId, categories, setLoadingOverlay]);
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSubcategories(
       categories?.find((cat) => cat.id === parseInt(e.target.value))

@@ -4,7 +4,7 @@ import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission
 export async function GET() {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
@@ -14,6 +14,6 @@ export async function GET() {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response("Error fetching locations", { status: 500 });
+    return new Response("Error fetching categories", { status: 500 });
   }
 }

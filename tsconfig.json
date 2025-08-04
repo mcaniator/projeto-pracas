@@ -36,7 +36,8 @@
       "@auth/*": ["src/lib/auth/*"],
       "@zodValidators": ["src/lib/zodValidators.ts"],
       "@signedCookies/*": ["src/lib/signedCookies/*"],
-      "@enums/*": ["src/lib/enums/*"]
+      "@enums/*": ["src/lib/enums/*"],
+      "@apiCalls/*": ["src/lib/serverFunctions/apiCalls/*"]
     }
   },
   "include": ["./next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

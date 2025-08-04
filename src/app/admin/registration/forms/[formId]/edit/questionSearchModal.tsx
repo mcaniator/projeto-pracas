@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
@@ -13,10 +14,7 @@ import {
   QuestionTypes,
 } from "@prisma/client";
 import { CategoriesWithQuestions } from "@queries/category";
-import {
-  _searchQuestionsByCategoryAndSubcategory,
-  _searchQuestionsByStatement,
-} from "@serverActions/questionUtil";
+import { _searchQuestionsByStatement } from "@serverActions/questionUtil";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useDeferredValue, useEffect, useState } from "react";
 import {
@@ -115,45 +113,12 @@ const QuestionSearchModal = ({
 
   useEffect(() => {
     setQuestionsListState("LOADING");
-    _searchQuestionsByCategoryAndSubcategory(
-      categories[0]?.id,
-      undefined,
-      false,
-    )
-      .then((questions) => {
-        if (questions.statusCode === 200) {
-          setQuestionsListState("LOADED");
-          setFoundQuestionsByCategory(questions.questions);
-        } else {
-          if (questions.statusCode === 401) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Não possui permissão para obter questões!</>,
-            });
-          } else {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Erro ao obter questões!</>,
-            });
-          }
-          setQuestionsListState("LOADED");
-          setFoundQuestionsByCategory([]);
-        }
-      })
-      .catch(() => {
-        setQuestionsListState("ERROR");
-      });
-  }, [categories, setHelperCard]);
-
-  useEffect(() => {
-    setQuestionsListState("LOADING");
-    _searchQuestionsByCategoryAndSubcategory(
-      selectedCategoryAndSubcategoryId.categoryId,
-      selectedCategoryAndSubcategoryId.subcategoryId,
-      selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
-    )
+    _searchQuestionsByCategoryAndSubcategory({
+      categoryId: selectedCategoryAndSubcategoryId.categoryId,
+      subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
+      verifySubcategoryNullness:
+        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+    })
       .then((questions) => {
         if (questions.statusCode === 200) {
           setQuestionsListState("LOADED");
