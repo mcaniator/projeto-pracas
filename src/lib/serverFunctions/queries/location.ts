@@ -1,3 +1,4 @@
+import { LocationWithPolygon } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
 import { hasPolygon } from "@serverOnly/geometries";
 
@@ -94,4 +95,27 @@ const searchLocationNameById = async (id: number) => {
   }
 };
 
-export { searchLocationsById, searchLocationNameById, fetchLocationsNames };
+const searchLocationsForMap = async () => {
+  try {
+    const locations = await prisma.$queryRaw<Array<LocationWithPolygon>>`
+          SELECT 
+            id,
+            name,
+            ST_AsGeoJSON(polygon)::text as st_asgeojson
+          FROM location 
+        `;
+    return { statusCode: 200, locations };
+  } catch (e) {
+    return { statusCode: 500, locations: [] } as {
+      statusCode: number;
+      locations: LocationWithPolygon[];
+    };
+  }
+};
+
+export {
+  searchLocationsById,
+  searchLocationNameById,
+  fetchLocationsNames,
+  searchLocationsForMap,
+};

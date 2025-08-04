@@ -1,5 +1,4 @@
-import { LocationWithPolygon } from "@customTypes/location/location";
-import { prisma } from "@lib/prisma";
+import { searchLocationsForMap } from "@queries/location";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function GET() {
@@ -9,13 +8,7 @@ export async function GET() {
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const locations = await prisma.$queryRaw<Array<LocationWithPolygon>>`
-          SELECT 
-            id,
-            name,
-            ST_AsGeoJSON(polygon)::text as st_asgeojson
-          FROM location 
-        `;
+    const locations = await searchLocationsForMap();
     return new Response(JSON.stringify(locations), {
       status: 200,
       headers: { "Content-Type": "application/json" },
