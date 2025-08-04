@@ -2,6 +2,7 @@ import { Button } from "@components/button";
 import { useUserContext } from "@components/context/UserContext";
 import { Checkbox } from "@components/ui/checkbox";
 import { Input } from "@components/ui/input";
+import { TableUser } from "@customTypes/users/usersTable";
 import {
   IconCheck,
   IconCornerUpLeft,
@@ -20,7 +21,6 @@ import React, { useEffect, useState } from "react";
 import DeleteUserModal from "./deleteUserModal";
 import SortMenu from "./orderMenu";
 import PermissionsModal from "./permissionsModal";
-import { TableUser } from "./usersClient";
 
 type Order = "asc" | "desc" | "none";
 type OrderProperty = "email" | "name" | "username" | "createdAt";
@@ -267,9 +267,10 @@ const UsersTable = ({
                 </Button>
                 <Input
                   value={
-                    Number.isNaN(localPagination.page) ? "" : (
+                    Number.isNaN(localPagination.page) ? ""
+                    : localPagination.page > 1 ?
                       localPagination.page
-                    )
+                    : 1
                   }
                   onChange={(e) => {
                     setLocalPagination((prev) => ({

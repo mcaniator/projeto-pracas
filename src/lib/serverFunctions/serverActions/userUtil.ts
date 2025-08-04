@@ -1,6 +1,5 @@
 "use server";
 
-import { OrdersObj } from "@app/admin/users/usersTable";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
 import { Prisma, Role } from "@prisma/client";
@@ -85,95 +84,6 @@ const _updateUserUsername = async (
       username: null,
       errors: [{ message: "Um erro desconhecido ocorreu.", element: "div" }],
     };
-  }
-};
-
-const _getUsers = async (
-  page: number,
-  take: number,
-  search: string | null,
-  orders: OrdersObj,
-  activeUsersFilters: boolean,
-) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
-  } catch (e) {
-    return { statusCode: 401, users: null, totalUsers: null };
-  }
-  try {
-    const skip = (page - 1) * take;
-    const [users, totalUsers] = await Promise.all([
-      prisma.user.findMany({
-        skip,
-        take,
-        orderBy: Object.keys(orders)
-          .filter((key) => orders[key as keyof OrdersObj] !== "none")
-          .map((key) => ({ [key]: orders[key as keyof OrdersObj] })),
-        where: {
-          active: activeUsersFilters,
-          ...(search ?
-            {
-              OR: [
-                {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  username: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              ],
-            }
-          : {}),
-        },
-      }),
-      prisma.user.count({
-        where: {
-          active: activeUsersFilters,
-          ...(search ?
-            {
-              OR: [
-                {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  username: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              ],
-            }
-          : {}),
-        },
-      }),
-    ]);
-    return {
-      statusCode: 200,
-      users,
-      totalUsers,
-    };
-  } catch (e) {
-    return { statusCode: 500, users: null, totalUsers: null };
   }
 };
 
@@ -265,7 +175,6 @@ const _getUserContentAmount = async (userId: string) => {
 
 export {
   _updateUserUsername,
-  _getUsers,
   _updateUserRoles,
   _deleteUser,
   _getUserContentAmount,

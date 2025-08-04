@@ -1,29 +1,19 @@
 "use client";
 
+import { _getUsers } from "@apiCalls/user";
 import LoadingIcon from "@components/LoadingIcon";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
-import { Role } from "@prisma/client";
-import { _getUsers } from "@serverActions/userUtil";
+import { TableUser } from "@customTypes/users/usersTable";
 import { IconSearch } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 
 import UsersTable, { OrdersObj } from "./usersTable";
 
-type TableUser = {
-  id: string;
-  image: string | null;
-  username?: string | null;
-  email: string;
-  name: string | null;
-  active: boolean;
-  createdAt: Date;
-  roles: Role[];
-};
 const UsersClient = () => {
   const { setHelperCard } = useHelperCard();
   const [search, setSearch] = useState<string>("");
@@ -166,4 +156,3 @@ const UsersClient = () => {
 };
 
 export default UsersClient;
-export { type TableUser };

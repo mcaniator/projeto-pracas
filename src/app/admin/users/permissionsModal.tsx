@@ -3,6 +3,7 @@
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { TableUser } from "@customTypes/users/usersTable";
 import { Role } from "@prisma/client";
 import { _updateUserRoles } from "@serverActions/userUtil";
 import { IconX } from "@tabler/icons-react";
@@ -10,7 +11,6 @@ import { useEffect, useState } from "react";
 import { Dialog, Modal, ModalOverlay } from "react-aria-components";
 
 import PermissionSelectRow from "./permissionSelectRow";
-import { TableUser } from "./usersClient";
 
 type SystemSection = "PARK" | "FORM" | "ASSESSMENT" | "TALLY" | "USER";
 
