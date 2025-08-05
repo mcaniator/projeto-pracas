@@ -9,7 +9,6 @@ export async function GET() {
       return new Response("Unauthorized", { status: 401 });
     }
     const locations = await searchLocationsForMap();
-    await new Promise((resolve) => setTimeout(resolve, 10000));
     return new Response(JSON.stringify(locations), {
       status: 200,
       headers: { "Content-Type": "application/json" },
