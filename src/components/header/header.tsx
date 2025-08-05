@@ -24,7 +24,7 @@ const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
   variants: {
     variant: {
       default:
-        "fixed z-30 bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
+        "fixed bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
       fixed: "fixed top-0",
       static: "static",
     },
@@ -52,7 +52,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
         ref={ref}
         {...props}
       >
-        <Link className="flex items-center" href={"/"}>
+        <Link className="z-[50] flex items-center" href={"/"}>
           <Button
             type={"button"}
             variant={"ghost"}
@@ -67,7 +67,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
           <DialogTrigger>
             <Button
               variant={"ghost"}
-              className="ml-auto flex items-center px-3 py-6 pl-2"
+              className="z-[50] ml-auto flex items-center px-3 py-6 pl-2"
             >
               {user !== null && user !== undefined ?
                 <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             </Button>
             <Popover
               className={
-                "z-50 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
+                "z-81 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
               }
             >
               <Dialog className={"outline-none"}>
@@ -106,7 +106,7 @@ const Header = forwardRef<HTMLElement, headerProps>(
             </Popover>
           </DialogTrigger>
         : !isAuthHeader && (
-            <div className="ml-auto flex flex-wrap gap-1">
+            <div className="z-[50] ml-auto flex flex-wrap gap-1">
               <Link href={"/auth/login"}>
                 <Button
                   variant={"ghost"}
