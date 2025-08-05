@@ -51,4 +51,31 @@ const _getUsers = async (
   }
 };
 
-export { _getUsers };
+const _getUserContentAmount = async ({ userId }: { userId: string }) => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    queryParams.append("userId", userId);
+
+    const response = await fetch(
+      `/api/admin/users/userContent?${queryParams.toString()}`,
+    );
+    const responseJson = (await response.json()) as {
+      statusCode: number;
+      assessments: number | null;
+      tallys: number | null;
+    };
+    const userContentAmount = z
+      .object({
+        statusCode: z.coerce.number(),
+        assessments: z.coerce.number(),
+        tallys: z.coerce.number(),
+      })
+      .parse(responseJson);
+    return userContentAmount;
+  } catch (e) {
+    return { statusCode: 500, assessments: null, tallys: null };
+  }
+};
+
+export { _getUsers, _getUserContentAmount };

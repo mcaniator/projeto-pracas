@@ -121,4 +121,24 @@ const getUsers = async (
   }
 };
 
-export { getUserAuthInfo, getUsers };
+const getUserContentAmount = async (userId: string) => {
+  try {
+    const [assessments, tallys] = await Promise.all([
+      prisma.assessment.count({
+        where: {
+          userId,
+        },
+      }),
+      prisma.tally.count({
+        where: {
+          userId,
+        },
+      }),
+    ]);
+    return { statusCode: 200, assessments, tallys };
+  } catch (e) {
+    return { statusCode: 500, assessments: null, tallys: null };
+  }
+};
+
+export { getUserAuthInfo, getUsers, getUserContentAmount };

@@ -1,10 +1,11 @@
 "use client";
 
+import { _getUserContentAmount } from "@apiCalls/user";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import CustomModal from "@components/modal/customModal";
 import { TableUser } from "@customTypes/users/usersTable";
-import { _deleteUser, _getUserContentAmount } from "@serverActions/userUtil";
+import { _deleteUser } from "@serverActions/userUtil";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -70,7 +71,7 @@ const DeleteUserModal = ({
     if (!user) return;
     setIsLoading(true);
     try {
-      const userContent = await _getUserContentAmount(user.id);
+      const userContent = await _getUserContentAmount({ userId: user.id });
       setUserCreatedItems(userContent);
     } catch (e) {
       helperCardContext.setHelperCard({
