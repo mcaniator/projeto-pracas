@@ -225,6 +225,8 @@ model Category {
 
   subcategory Subcategory[]
 
+  formCategories FormCategory[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -234,12 +236,13 @@ model Category {
 model Subcategory {
   id Int @id @default(autoincrement())
 
-  name        String        @db.VarChar(255)
-  optional    Boolean       @default(false)
-  active      Boolean       @default(true)
-  notes       String?       @db.Text
-  question    Question[]
-  calculation Calculation[]
+  name              String            @db.VarChar(255)
+  optional          Boolean           @default(false)
+  active            Boolean           @default(true)
+  notes             String?           @db.Text
+  question          Question[]
+  calculation       Calculation[]
+  formSubcategories FormSubcategory[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -260,6 +263,7 @@ model Question {
   optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?                           @map("maximum_selections")
+  version           Int                            @default(1)
   geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
 
   assessment Assessment[]
@@ -271,12 +275,16 @@ model Question {
   options       Option[]
   calculation   Calculation[]
 
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
   ResponseOption ResponseOption[]
 
   geometries QuestionGeometry[]
 
+  formQuestions FormQuestion[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([name, categoryId, subcategoryId, version])
   @@map("question")
 }
 
@@ -367,19 +375,54 @@ model ResponseOption {
 }
 
 model Form {
-  id      Int @id @default(autoincrement())
-  version Int @default(0)
-
-  name         String        @db.VarChar(255)
-  questions    Question[]
-  assessment   Assessment[]
-  calculations Calculation[]
+  id                Int               @id @default(autoincrement())
+  name              String            @db.VarChar(255)
+  archived          Boolean           @default(true)
+  finalized         Boolean           @default(false)
+  questions         Question[]
+  assessment        Assessment[]
+  calculations      Calculation[]
+  formCategories    FormCategory[]
+  formSubcategories FormSubcategory[]
+  formQuestion      FormQuestion[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([name, version])
   @@map("form")
+}
+
+model FormCategory {
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  formId     Int
+  form       Form     @relation(fields: [formId], references: [id])
+
+  position Int
+
+  @@unique([categoryId, formId])
+}
+
+model FormSubcategory {
+  subcategoryId Int
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+  formId        Int
+  form          Form        @relation(fields: [formId], references: [id])
+
+  position Int
+
+  @@unique([subcategoryId, formId])
+}
+
+model FormQuestion {
+  questionId  Int
+  subcategory Question @relation(fields: [questionId], references: [id])
+  formId      Int
+  form        Form     @relation(fields: [formId], references: [id])
+
+  position Int
+
+  @@unique([questionId, formId])
 }
 
 // #endregion

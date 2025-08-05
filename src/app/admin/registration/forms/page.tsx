@@ -1,4 +1,5 @@
 import PermissionGuard from "@components/auth/permissionGuard";
+import { dateTimeFormatter } from "@formatters/dateFormatters";
 import { fetchFormsLatest } from "@queries/form";
 import { IconListCheck } from "@tabler/icons-react";
 import Link from "next/link";
@@ -28,11 +29,14 @@ const AdminRoot = async () => {
                 {forms.map((form, index) => (
                   <Link
                     key={form.id}
-                    className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} p-2 hover:bg-transparent/10 hover:underline`}
+                    className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} flex items-center p-2 hover:bg-transparent/10 hover:underline`}
                     href={`/admin/registration/forms/${form.id}`}
                   >
                     <IconListCheck className="mb-1 inline" size={24} />
-                    <span className="inline">{`${form.name}, versão ${form.version}`}</span>
+                    <span className="inline">{`${form.name}`}</span>
+                    <span className="ml-auto">
+                      {dateTimeFormatter.format(form.updatedAt)}
+                    </span>
                   </Link>
                 ))}
               </div>

@@ -39,18 +39,11 @@ const fetchFormsLatest = async () => {
       select: {
         id: true,
         name: true,
-        version: true,
-        createdAt: true,
         updatedAt: true,
       },
-
-      distinct: ["name"],
       orderBy: [
         {
-          name: "asc",
-        },
-        {
-          version: "desc",
+          updatedAt: "asc",
         },
       ],
     });
