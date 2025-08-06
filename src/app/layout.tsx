@@ -1,4 +1,5 @@
 import { josefin_sans } from "@/lib/fonts";
+import MuiThemeProvider from "@components/theme/MuiThemeProvider";
 import type { Metadata, Viewport } from "next";
 import NextTopLoader from "nextjs-toploader";
 import { ReactNode } from "react";
@@ -19,8 +20,10 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
       <body className={josefin_sans.className}>
-        <NextTopLoader showSpinner={false} />
-        <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+        <MuiThemeProvider>
+          <NextTopLoader showSpinner={false} />
+          <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+        </MuiThemeProvider>
       </body>
     </html>
   );

@@ -1,7 +1,10 @@
 {
   "dependencies": {
     "@auth/prisma-adapter": "^2.8.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@formkit/auto-animate": "^0.8.2",
+    "@mui/material": "^7.3.0",
     "@prisma/adapter-pg": "6.0.1",
     "@prisma/client": "6.0.1",
     "@radix-ui/react-dialog": "^1.1.4",

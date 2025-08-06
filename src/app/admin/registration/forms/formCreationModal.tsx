@@ -1,9 +1,11 @@
 "use client";
 
 import { Button } from "@/components/button";
+import CTextField from "@/components/ui/cTextField";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { Input } from "@components/ui/input";
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CSwitch from "@components/ui/cSwtich";
 import { _formSubmit } from "@serverActions/formUtil";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
@@ -21,6 +23,8 @@ const FormCreationModal = () => {
     "FORM",
   );
   const [isOpen, setIsOpen] = useState(false);
+  const [enableSave, setEnableSave] = useState(false);
+  const [enableClone, setEnableClone] = useState(false);
   useEffect(() => {
     if (state?.statusCode === 201) {
       setHelperCard({
@@ -107,14 +111,36 @@ const FormCreationModal = () => {
                   {!isPending && pageState === "FORM" && (
                     <form action={formAction} className={"flex flex-col gap-2"}>
                       <div>
-                        <label htmlFor={"name"}>Nome do formulário:</label>
-                        <Input
+                        <label htmlFor={"name"}></label>
+                        <CTextField
                           type="text"
                           name="name"
-                          required
                           id={"name"}
+                          label="Nome do formulário"
+                          errorMessage="Obrigatório"
+                          required
+                          onRequiredCheck={(e) => {
+                            setEnableSave(e);
+                          }}
                           className={`${state?.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                         />
+                        <CSwitch
+                          label="Clonar formulário"
+                          value={enableClone}
+                          onChange={(e) => {
+                            setEnableClone(e.target.checked);
+                          }}
+                        />
+                        {enableClone && (
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <CAutocomplete
+                              options={["1", "2"]}
+                              label="Formulário"
+                              className="w-full"
+                              disablePortal
+                            />
+                          </div>
+                        )}
                         {state?.statusCode === 409 && (
                           <p className="text-red-500">
                             Este formulário já existe!
@@ -125,6 +151,7 @@ const FormCreationModal = () => {
                         variant={"constructive"}
                         type="submit"
                         className={"ml-auto w-min"}
+                        isDisabled={!enableSave}
                       >
                         Criar
                       </Button>
