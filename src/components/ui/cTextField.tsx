@@ -60,7 +60,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         margin={margin}
         size={size}
         error={(required && !isValid) || error}
-        helperText={required && !isValid ? errorMessage : helperText}
+        helperText={(required && !isValid) || error ? errorMessage : helperText}
         onChange={handleChange}
         onBlur={handleBlur}
         {...rest}
