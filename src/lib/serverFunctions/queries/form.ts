@@ -8,6 +8,7 @@ type FormToEditPage = {
   name: string;
   formQuestions: {
     question: QuestionWithCategories;
+    position: number;
   }[];
   calculations: FormCalculation[];
 };
@@ -44,6 +45,7 @@ const searchFormById = async (id: number) => {
           name: true,
           formQuestions: {
             select: {
+              position: true,
               question: {
                 include: {
                   options: true,

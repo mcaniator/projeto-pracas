@@ -86,7 +86,9 @@ const Client = ({
   };
 
   const handleQuestionsToRemove = (questionId: number) => {
-    const questionToRemove = form.questions.find((q) => q.id === questionId);
+    const questionToRemove = form.formQuestions.find(
+      (fq) => fq.question.id === questionId,
+    )?.question;
     if (questionToRemove) {
       setQuestionsToRemove([...questionsToRemove, questionToRemove]);
       setUpdatedQuestions([...updatedQuestions, questionToRemove]);
@@ -289,7 +291,7 @@ const Client = ({
                 handleUpdateInitialCalculation={handleUpdateInitialCalculation}
                 handleCreateVersion={handleCreateVersion}
                 formId={form.id}
-                initialQuestions={form.questions}
+                initialQuestions={form.formQuestions.map((fq) => fq.question)}
                 handleQuestionsToAdd={handleQuestionsToAdd}
                 categoriesToModal={categories.categories}
               />
@@ -299,7 +301,7 @@ const Client = ({
             >
               <QuestionForm
                 formId={form.id}
-                initialQuestions={form.questions}
+                initialQuestions={form.formQuestions.map((fq) => fq.question)}
                 handleQuestionsToAdd={handleQuestionsToAdd}
                 questionsToAdd={questionsToAdd}
                 questionsToRemove={questionsToRemove}
