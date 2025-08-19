@@ -6,9 +6,10 @@ import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CSwitch from "@components/ui/cSwtich";
+import { dateTimeWithoutSecondsFormmater } from "@formatters/dateFormatters";
 import { _formSubmit } from "@serverActions/formUtil";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -16,7 +17,17 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-const FormCreationModal = () => {
+const FormCreationModal = ({
+  forms,
+}: {
+  forms: { id: number; name: string; updatedAt: Date }[];
+}) => {
+  const formattedForms = useRef(
+    forms.map((f) => ({
+      id: f.id,
+      name: `${f.name}, ${dateTimeWithoutSecondsFormmater.format(f.updatedAt)}`,
+    })),
+  );
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(_formSubmit, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
@@ -126,20 +137,29 @@ const FormCreationModal = () => {
                         />
                         <CSwitch
                           label="Clonar formulário"
-                          value={enableClone}
+                          checked={enableClone}
                           onChange={(e) => {
                             setEnableClone(e.target.checked);
                           }}
                         />
                         {enableClone && (
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <CAutocomplete
-                              options={["1", "2"]}
-                              label="Formulário"
-                              className="w-full"
-                              disablePortal
-                            />
-                          </div>
+                          <CAutocomplete
+                            options={formattedForms.current}
+                            label="Formulário"
+                            className="w-full"
+                            mapValue
+                            optionLabel="name"
+                            optionValue="id"
+                            name="cloneFormId"
+                            id="cloneFormId"
+                            errorMessage="Obrigatório"
+                            disablePortal
+                            required
+                            validateOnMount
+                            onRequiredCheck={(e) => {
+                              setEnableSave(e);
+                            }}
+                          />
                         )}
                         {state?.statusCode === 409 && (
                           <p className="text-red-500">

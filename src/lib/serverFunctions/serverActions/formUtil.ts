@@ -24,8 +24,10 @@ const _formSubmit = async (
     };
   }
   try {
+    console.log(formData);
     parse = formSchema.parse({
       name: formData.get("name"),
+      cloneFormId: formData.get("cloneFormId"),
     });
   } catch (e) {
     return {
@@ -35,7 +37,32 @@ const _formSubmit = async (
   }
 
   try {
-    const createdForm = await prisma.form.create({ data: parse });
+    if (parse.cloneFormId) {
+      const formToBeCloned = await prisma.form.findUnique({
+        where: {
+          id: parse.cloneFormId,
+        },
+        select: {
+          calculations: {
+            include: {
+              questions: true,
+              targetQuestion: true,
+            },
+          },
+          formCategories: true,
+          formSubcategories: true,
+          formQuestion: true,
+        },
+      });
+      if (!formToBeCloned) {
+        throw new Error("Form not found");
+      }
+      //TODO
+      throw new Error("Not implemented");
+    }
+    const createdForm = await prisma.form.create({
+      data: { name: parse.name },
+    });
     revalidateTag("form");
     return { statusCode: 201, formName: createdForm.name };
   } catch (e) {

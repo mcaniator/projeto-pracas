@@ -187,6 +187,7 @@ const optionSchema = z
 
 const formSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  cloneFormId: z.coerce.number(),
 });
 
 type questionType = z.infer<typeof questionSchema>;

@@ -258,7 +258,6 @@ model Question {
   notes             String?                        @db.Text
   type              QuestionTypes
   characterType     QuestionResponseCharacterTypes @map("character_type")
-  forms             Form[]
   response          Response[]
   optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
@@ -274,6 +273,8 @@ model Question {
   subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   options       Option[]
   calculation   Calculation[]
+
+  targetForCalculation Calculation[] @relation("calculation_target_question")
 
   ResponseOption ResponseOption[]
 
@@ -304,15 +305,17 @@ model QuestionGeometry {
 model Calculation {
   id Int @id @default(autoincrement())
 
-  type          CalculationTypes
-  name          String           @db.VarChar(255)
-  questions     Question[]
-  categoryId    Int              @map("category_id")
-  category      Category         @relation(fields: [categoryId], references: [id])
-  subcategoryId Int?             @map("subcategory_id")
-  subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
-  formId        Int              @map("form_id")
-  form          Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  type             CalculationTypes
+  name             String           @db.VarChar(255)
+  questions        Question[]
+  categoryId       Int              @map("category_id")
+  category         Category         @relation(fields: [categoryId], references: [id])
+  subcategoryId    Int?             @map("subcategory_id")
+  subcategory      Subcategory?     @relation(fields: [subcategoryId], references: [id])
+  formId           Int              @map("form_id")
+  form             Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  targetQuestionId Int              @map("target_question_id")
+  targetQuestion   Question         @relation("calculation_target_question", fields: [targetQuestionId], references: [id])
 
   @@map("calculation")
 }
@@ -377,14 +380,13 @@ model ResponseOption {
 model Form {
   id                Int               @id @default(autoincrement())
   name              String            @db.VarChar(255)
-  archived          Boolean           @default(true)
-  finalized         Boolean           @default(false)
-  questions         Question[]
+  archived          Boolean           @default(false)
+  finalized         Boolean           @default(true)
   assessment        Assessment[]
   calculations      Calculation[]
   formCategories    FormCategory[]
   formSubcategories FormSubcategory[]
-  formQuestion      FormQuestion[]
+  formQuestions     FormQuestion[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -415,10 +417,10 @@ model FormSubcategory {
 }
 
 model FormQuestion {
-  questionId  Int
-  subcategory Question @relation(fields: [questionId], references: [id])
-  formId      Int
-  form        Form     @relation(fields: [formId], references: [id])
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+  formId     Int
+  form       Form     @relation(fields: [formId], references: [id])
 
   position Int
 

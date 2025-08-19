@@ -6,31 +6,10 @@ import { unstable_cache } from "next/cache";
 type FormToEditPage = {
   id: number;
   name: string;
-  version: number;
-  questions: QuestionWithCategories[];
+  formQuestions: {
+    question: QuestionWithCategories;
+  }[];
   calculations: FormCalculation[];
-};
-
-const fetchForms = async () => {
-  try {
-    const forms = await prisma.form.findMany({
-      where: {
-        version: {
-          not: 0,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        version: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-    return { statusCode: 200, forms };
-  } catch (e) {
-    return { statusCode: 500, forms: [] };
-  }
 };
 
 const fetchFormsLatest = async () => {
@@ -53,38 +32,6 @@ const fetchFormsLatest = async () => {
   }
 };
 
-const fetchLatestNonVersionZeroForms = async () => {
-  try {
-    const forms = await prisma.form.findMany({
-      where: {
-        NOT: {
-          version: 0,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        version: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-
-      distinct: ["name"],
-      orderBy: [
-        {
-          name: "asc",
-        },
-        {
-          version: "desc",
-        },
-      ],
-    });
-    return { statusCode: 200, forms };
-  } catch (e) {
-    return { statusCode: 500, forms: [] };
-  }
-};
-
 const searchFormById = async (id: number) => {
   const cachedForm = unstable_cache(
     async (id: number): Promise<FormToEditPage | undefined | null> => {
@@ -95,21 +42,24 @@ const searchFormById = async (id: number) => {
         select: {
           id: true,
           name: true,
-          version: true,
-          questions: {
-            include: {
-              options: true,
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              subcategory: {
-                select: {
-                  id: true,
-                  name: true,
-                  categoryId: true,
+          formQuestions: {
+            select: {
+              question: {
+                include: {
+                  options: true,
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                  subcategory: {
+                    select: {
+                      id: true,
+                      name: true,
+                      categoryId: true,
+                    },
+                  },
                 },
               },
             },
@@ -164,11 +114,5 @@ const searchformNameById = async (formId: number) => {
   }
 };
 
-export {
-  fetchForms,
-  fetchFormsLatest,
-  fetchLatestNonVersionZeroForms,
-  searchFormById,
-  searchformNameById,
-};
+export { fetchFormsLatest, searchFormById, searchformNameById };
 export { type FormToEditPage };

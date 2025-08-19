@@ -20,7 +20,7 @@ const AdminRoot = async () => {
         >
           <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
             <div>
-              <FormCreationModal />
+              <FormCreationModal forms={forms} />
             </div>
           </PermissionGuard>
           <div>

@@ -25,7 +25,8 @@ const Page = async (props: { params: Promise<{ formId: string }> }) => {
     }[];
   }[] = [];
   if (form) {
-    form.questions.forEach((question) => {
+    form.formQuestions.forEach((fq) => {
+      const question = fq.question;
       let categoryGroup = categories.find(
         (category) => category.id === question.category.id,
       );
@@ -115,12 +116,10 @@ const Page = async (props: { params: Promise<{ formId: string }> }) => {
                   <FormVersionDeletionModal
                     formId={form.id}
                     formName={form.name}
-                    formVersion={form.version}
                   />
                 </div>
               </PermissionGuard>
             </div>
-            <span>Versão: {form?.version}</span>
             <div>Perguntas do formulário:</div>
             <div className="flex flex-col gap-3">
               {categories.map((category) => {
