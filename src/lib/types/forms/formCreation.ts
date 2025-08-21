@@ -5,7 +5,7 @@ import {
   QuestionTypes,
 } from "@prisma/client";
 
-type FormQuestion = {
+type FormQuestionWithCategoryAndSubcategory = {
   id: number;
   name: string;
   notes: string | null;
@@ -44,4 +44,4 @@ type FormCalculation = {
   } | null;
 };
 
-export { type FormQuestion, type FormCalculation };
+export { type FormQuestionWithCategoryAndSubcategory, type FormCalculation };

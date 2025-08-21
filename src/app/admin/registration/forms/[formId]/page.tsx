@@ -24,6 +24,7 @@ const Page = async (props: { params: Promise<{ formId: string }> }) => {
       calculations: { id: number; name: string }[];
     }[];
   }[] = [];
+  console.log(form);
   if (form) {
     form.formQuestions.forEach((fq) => {
       const question = fq.question;

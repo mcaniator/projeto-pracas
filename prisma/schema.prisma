@@ -378,15 +378,13 @@ model ResponseOption {
 }
 
 model Form {
-  id                Int               @id @default(autoincrement())
-  name              String            @db.VarChar(255)
-  archived          Boolean           @default(false)
-  finalized         Boolean           @default(true)
-  assessment        Assessment[]
-  calculations      Calculation[]
-  formCategories    FormCategory[]
-  formSubcategories FormSubcategory[]
-  formQuestions     FormQuestion[]
+  id             Int            @id @default(autoincrement())
+  name           String         @db.VarChar(255)
+  archived       Boolean        @default(false)
+  finalized      Boolean        @default(true)
+  assessment     Assessment[]
+  calculations   Calculation[]
+  formCategories FormCategory[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -395,10 +393,13 @@ model Form {
 }
 
 model FormCategory {
-  categoryId Int
-  category   Category @relation(fields: [categoryId], references: [id])
-  formId     Int
-  form       Form     @relation(fields: [formId], references: [id])
+  id                Int               @id @default(autoincrement())
+  categoryId        Int
+  category          Category          @relation(fields: [categoryId], references: [id])
+  formId            Int
+  form              Form              @relation(fields: [formId], references: [id])
+  formSubcategories FormSubcategory[]
+  formQuestions     FormQuestion[]
 
   position Int
 
@@ -406,25 +407,30 @@ model FormCategory {
 }
 
 model FormSubcategory {
-  subcategoryId Int
-  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
-  formId        Int
-  form          Form        @relation(fields: [formId], references: [id])
+  id             Int            @id @default(autoincrement())
+  subcategoryId  Int
+  subcategory    Subcategory    @relation(fields: [subcategoryId], references: [id])
+  formCategoryId Int
+  formCategory   FormCategory   @relation(fields: [formCategoryId], references: [id])
+  formQuestions  FormQuestion[]
 
   position Int
 
-  @@unique([subcategoryId, formId])
+  @@unique([subcategoryId, formCategoryId])
 }
 
 model FormQuestion {
-  questionId Int
-  question   Question @relation(fields: [questionId], references: [id])
-  formId     Int
-  form       Form     @relation(fields: [formId], references: [id])
+  id                Int              @id @default(autoincrement())
+  questionId        Int
+  question          Question         @relation(fields: [questionId], references: [id])
+  formCategoryId    Int
+  formCategory      FormCategory     @relation(fields: [formCategoryId], references: [id])
+  formSubcategoryId Int?
+  formSubcategory   FormSubcategory? @relation(fields: [formSubcategoryId], references: [id])
 
   position Int
 
-  @@unique([questionId, formId])
+  @@unique([questionId, formCategoryId])
 }
 
 // #endregion

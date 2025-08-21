@@ -226,6 +226,41 @@ const _updateForm = async (
   }
 };
 
+const _updateFormV2 = async ({
+  formId,
+  formQuestionsToUpdate,
+  formQuestionsToRemove,
+  questionsToAdd,
+  newFormName,
+  oldFormName,
+}: {
+  formId: number;
+  formQuestionsToUpdate: { id: number; position: number }[];
+  formQuestionsToRemove: { id: number }[];
+  questionsToAdd: { id: number }[];
+  newFormName?: string;
+  oldFormName: string;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  try {
+    if (newFormName !== oldFormName) {
+      await prisma.form.update({
+        data: { name: newFormName },
+        where: { id: formId },
+      });
+    }
+    revalidateTag("form");
+    return { statusCode: 200 };
+  } catch (e) {
+    console.log(e);
+    return { statusCode: 500 };
+  }
+};
+
 const _createVersion = async (
   formId: number,
   questions: FormQuestion[],
@@ -287,4 +322,10 @@ const _createVersion = async (
   return { statusCode: 201 };
 };
 
-export { _formSubmit, _deleteFormVersion, _updateForm, _createVersion };
+export {
+  _formSubmit,
+  _deleteFormVersion,
+  _updateForm,
+  _createVersion,
+  _updateFormV2,
+};

@@ -13,6 +13,8 @@ type FormToEditPage = {
   calculations: FormCalculation[];
 };
 
+type FormToEditPageV2 = {};
+
 const fetchFormsLatest = async () => {
   try {
     const forms = await prisma.form.findMany({
@@ -34,66 +36,60 @@ const fetchFormsLatest = async () => {
 };
 
 const searchFormById = async (id: number) => {
-  const cachedForm = unstable_cache(
-    async (id: number): Promise<FormToEditPage | undefined | null> => {
-      const foundForm = await prisma.form.findUnique({
-        where: {
-          id: id,
-        },
-        select: {
-          id: true,
-          name: true,
-          formQuestions: {
-            select: {
-              position: true,
-              question: {
-                include: {
-                  options: true,
-                  category: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
-                  },
-                  subcategory: {
-                    select: {
-                      id: true,
-                      name: true,
-                      categoryId: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          calculations: {
-            include: {
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              subcategory: {
-                select: {
-                  id: true,
-                  name: true,
-                  categoryId: true,
-                },
-              },
-              questions: true,
-            },
-          },
-        },
-      });
-
-      return foundForm;
-    },
-    ["searchLocationsByIdCache"],
-    { tags: ["location", "form", "question"] },
-  );
   try {
-    const form = await cachedForm(id);
+    const form = await prisma.form.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        name: true,
+        formCategories: {
+          include: {
+            formQuestions: {
+              include: {
+                question: {
+                  include: {
+                    options: true,
+                  },
+                },
+              },
+            },
+            formSubcategories: {
+              include: {
+                formQuestions: {
+                  include: {
+                    question: {
+                      include: {
+                        options: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        calculations: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            subcategory: {
+              select: {
+                id: true,
+                name: true,
+                categoryId: true,
+              },
+            },
+            questions: true,
+          },
+        },
+      },
+    });
     return { statusCode: 200, form };
   } catch (e) {
     return { statusCode: 500, form: null };
