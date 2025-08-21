@@ -15,17 +15,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@mui/material/Button";
 import { IconTrash } from "@tabler/icons-react";
-import React, { SetStateAction, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   FormEditorTree,
   FormQuestionWithCategoryAndSubcategoryAndPosition,
 } from "./clientV2";
-
-interface FormEditorProps {
-  formTree: FormEditorTree;
-  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
-}
 
 export const FormEditor = ({
   rootFormTree,
@@ -40,146 +35,34 @@ export const FormEditor = ({
     setFormTree(rootFormTree);
   }, [rootFormTree]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // -------------------
+  // Handle categorias
+  // -------------------
+  const handleCategoryDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const activeParts = String(active.id).split("-");
-    const overParts = String(over.id).split("-");
 
-    const type = activeParts[0];
-    const overType = overParts[0];
+    const activeId = Number(String(active.id).split("-")[1]);
+    const overId = Number(String(over.id).split("-")[1]);
 
-    // ----------------------
-    // CATEGORIAS
-    // ----------------------
-    if (type === "category" && overType === "category") {
-      const activeId = Number(activeParts[1]);
-      const overId = Number(overParts[1]);
+    setFormTree((prev) => {
+      const oldIndex = prev.categories.findIndex((c) => c.id === activeId);
+      const newIndex = prev.categories.findIndex((c) => c.id === overId);
 
-      const oldIndex = formTree.categories.findIndex((c) => c.id === activeId);
-      const newIndex = formTree.categories.findIndex((c) => c.id === overId);
-
-      setFormTree((prev) => ({
+      return {
         ...prev,
         categories: arrayMove(prev.categories, oldIndex, newIndex).map(
-          (c, idx) => ({
-            ...c,
-            position: idx + 1,
-          }),
+          (c, idx) => ({ ...c, position: idx + 1 }),
         ),
-      }));
-      return;
-    }
-
-    // ----------------------
-    // SUBCATEGORIAS
-    // ----------------------
-    if (type === "subcategory" && overType === "subcategory") {
-      const subId = Number(activeParts[1]);
-      const catId = Number(activeParts[2]);
-      const overSubId = Number(overParts[1]);
-
-      const category = formTree.categories.find((c) => c.id === catId);
-      if (!category) return;
-
-      const oldIndex = category.subcategories.findIndex((s) => s.id === subId);
-      const newIndex = category.subcategories.findIndex(
-        (s) => s.id === overSubId,
-      );
-
-      const newSubcategories = arrayMove(
-        category.subcategories,
-        oldIndex,
-        newIndex,
-      ).map((s, idx) => ({ ...s, position: idx + 1 }));
-
-      setFormTree((prev) => ({
-        ...prev,
-        categories: prev.categories.map((c) =>
-          c.id === catId ? { ...c, subcategories: newSubcategories } : c,
-        ),
-      }));
-      return;
-    }
-
-    // ----------------------
-    // QUESTÕES
-    // ----------------------
-    if (type === "question" && overType === "question") {
-      const questionId = Number(activeParts[1]);
-      const catId = Number(activeParts[2]);
-      const subId = activeParts[3] ? Number(activeParts[3]) : undefined;
-
-      const overQuestionId = Number(overParts[1]);
-      const overCatId = Number(overParts[2]);
-      const overSubId = overParts[3] ? Number(overParts[3]) : undefined;
-
-      // só permite mover dentro do mesmo grupo
-      if (catId !== overCatId || subId !== overSubId) return;
-
-      setFormTree((prev) => {
-        const newCategories = prev.categories.map((cat) => {
-          if (cat.id !== catId) return cat;
-
-          // QUESTÕES SEM SUBCATEGORIA
-          if (!subId) {
-            const questionsSorted = [...cat.questions].sort(
-              (a, b) => a.position - b.position,
-            );
-            const oldIndex = questionsSorted.findIndex(
-              (q) => q.id === questionId,
-            );
-            const newIndex = questionsSorted.findIndex(
-              (q) => q.id === overQuestionId,
-            );
-
-            const newQuestions = arrayMove(
-              questionsSorted,
-              oldIndex,
-              newIndex,
-            ).map((q, idx) => ({ ...q, position: idx + 1 }));
-
-            return { ...cat, questions: newQuestions };
-          }
-
-          // QUESTÕES COM SUBCATEGORIA
-          const sub = cat.subcategories.find((s) => s.id === subId);
-          if (!sub) return cat;
-
-          const questionsSorted = [...sub.questions].sort(
-            (a, b) => a.position - b.position,
-          );
-          const oldIndex = questionsSorted.findIndex(
-            (q) => q.id === questionId,
-          );
-          const newIndex = questionsSorted.findIndex(
-            (q) => q.id === overQuestionId,
-          );
-
-          const newQuestions = arrayMove(
-            questionsSorted,
-            oldIndex,
-            newIndex,
-          ).map((q, idx) => ({ ...q, position: idx + 1 }));
-
-          return {
-            ...cat,
-            subcategories: cat.subcategories.map((s) =>
-              s.id === subId ? { ...s, questions: newQuestions } : s,
-            ),
-          };
-        });
-
-        return { ...prev, categories: newCategories };
-      });
-    }
+      };
+    });
   };
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
+      onDragEnd={handleCategoryDragEnd}
     >
       <SortableContext
         items={formTree.categories.map((c) => `category-${c.id}`)}
@@ -192,7 +75,6 @@ export const FormEditor = ({
               <SortableCategory
                 key={category.id}
                 category={category}
-                formTree={formTree}
                 setFormTree={setFormTree}
               />
             ))}
@@ -207,7 +89,6 @@ export const FormEditor = ({
 // ----------------------------
 const SortableCategory = ({
   category,
-  formTree,
   setFormTree,
 }: {
   category: {
@@ -222,7 +103,6 @@ const SortableCategory = ({
       questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
     }[];
   };
-  formTree: FormEditorTree;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
@@ -239,56 +119,106 @@ const SortableCategory = ({
     borderRadius: "4px",
   };
 
+  // -------------------
+  // Handle subcategorias
+  // -------------------
+  const handleSubcategoryDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const subId = Number(String(active.id).split("-")[1]);
+    const overSubId = Number(String(over.id).split("-")[1]);
+
+    setFormTree((prev) => ({
+      ...prev,
+      categories: prev.categories.map((c) => {
+        if (c.id !== category.id) return c;
+        const oldIndex = c.subcategories.findIndex((s) => s.id === subId);
+        const newIndex = c.subcategories.findIndex((s) => s.id === overSubId);
+        const newSubs = arrayMove(c.subcategories, oldIndex, newIndex).map(
+          (s, idx) => ({ ...s, position: idx + 1 }),
+        );
+        return { ...c, subcategories: newSubs };
+      }),
+    }));
+  };
+
+  // -------------------
+  // Handle questões sem subcategoria
+  // -------------------
+  const handleQuestionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const qId = Number(String(active.id).split("-")[1]);
+    const overQId = Number(String(over.id).split("-")[1]);
+
+    setFormTree((prev) => ({
+      ...prev,
+      categories: prev.categories.map((c) => {
+        if (c.id !== category.id) return c;
+
+        const questionsSorted = [...c.questions].sort(
+          (a, b) => a.position - b.position,
+        );
+        const oldIndex = questionsSorted.findIndex((q) => q.id === qId);
+        const newIndex = questionsSorted.findIndex((q) => q.id === overQId);
+        const newQuestions = arrayMove(questionsSorted, oldIndex, newIndex).map(
+          (q, idx) => ({ ...q, position: idx + 1 }),
+        );
+        return { ...c, questions: newQuestions };
+      }),
+    }));
+  };
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <strong>{category.name}</strong>
 
       {/* Questões sem subcategoria */}
-      <SortableContext
-        items={category.questions.map(
-          (q) => `question-${q.id}-${category.id}-${""}`,
-        )}
-        strategy={verticalListSortingStrategy}
-      >
-        <div style={{ paddingLeft: "16px" }}>
-          {category.questions
-            .sort((a, b) => a.position - b.position)
-            .map((q) => (
-              <SortableQuestion
-                key={q.id}
-                question={q}
-                parentIds={{ cat: category.id }}
-              />
-            ))}
-        </div>
-      </SortableContext>
+      <DndContext onDragEnd={handleQuestionDragEnd}>
+        <SortableContext
+          items={category.questions.map((q) => `question-${q.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div style={{ paddingLeft: "16px" }}>
+            {category.questions
+              .sort((a, b) => a.position - b.position)
+              .map((q) => (
+                <SortableQuestion key={q.id} question={q} />
+              ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Subcategorias */}
-      <SortableContext
-        items={category.subcategories.map(
-          (s) => `subcategory-${s.id}-${category.id}`,
-        )}
-        strategy={verticalListSortingStrategy}
-      >
-        <div style={{ paddingLeft: "16px" }}>
-          {category.subcategories
-            .sort((a, b) => a.position - b.position)
-            .map((sub) => (
-              <SortableSubcategory
-                key={sub.id}
-                subcategory={sub}
-                parentCategory={category}
-              />
-            ))}
-        </div>
-      </SortableContext>
+      <DndContext onDragEnd={handleSubcategoryDragEnd}>
+        <SortableContext
+          items={category.subcategories.map((s) => `subcategory-${s.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div style={{ paddingLeft: "16px" }}>
+            {category.subcategories
+              .sort((a, b) => a.position - b.position)
+              .map((sub) => (
+                <SortableSubcategory
+                  key={sub.id}
+                  subcategory={sub}
+                  categoryId={category.id}
+                  setFormTree={setFormTree}
+                />
+              ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };
 
 const SortableSubcategory = ({
   subcategory,
-  parentCategory,
+  categoryId,
+  setFormTree,
 }: {
   subcategory: {
     id: number;
@@ -296,22 +226,12 @@ const SortableSubcategory = ({
     position: number;
     questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
   };
-  parentCategory: {
-    id: number;
-    name: string;
-    position: number;
-    questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
-    subcategories: {
-      id: number;
-      name: string;
-      position: number;
-      questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
-    }[];
-  };
+  categoryId: number;
+  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: `subcategory-${subcategory.id}-${parentCategory.id}`,
+      id: `subcategory-${subcategory.id}`,
     });
 
   const style = {
@@ -323,42 +243,71 @@ const SortableSubcategory = ({
     borderRadius: "4px",
   };
 
+  // -------------------
+  // Handle questões dentro da subcategoria
+  // -------------------
+  const handleQuestionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const qId = Number(String(active.id).split("-")[1]);
+    const overQId = Number(String(over.id).split("-")[1]);
+
+    setFormTree((prev) => ({
+      ...prev,
+      categories: prev.categories.map((c) => {
+        if (c.id !== categoryId) return c;
+        return {
+          ...c,
+          subcategories: c.subcategories.map((s) => {
+            if (s.id !== subcategory.id) return s;
+            const questionsSorted = [...s.questions].sort(
+              (a, b) => a.position - b.position,
+            );
+            const oldIndex = questionsSorted.findIndex((q) => q.id === qId);
+            const newIndex = questionsSorted.findIndex((q) => q.id === overQId);
+            const newQuestions = arrayMove(
+              questionsSorted,
+              oldIndex,
+              newIndex,
+            ).map((q, idx) => ({ ...q, position: idx + 1 }));
+            return { ...s, questions: newQuestions };
+          }),
+        };
+      }),
+    }));
+  };
+
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <strong>{subcategory.name}</strong>
 
-      <SortableContext
-        items={subcategory.questions.map(
-          (q) => `question-${q.id}-${parentCategory.id}-${subcategory.id}`,
-        )}
-        strategy={verticalListSortingStrategy}
-      >
-        <div style={{ paddingLeft: "16px" }}>
-          {subcategory.questions
-            .sort((a, b) => a.position - b.position)
-            .map((q) => (
-              <SortableQuestion
-                key={q.id}
-                question={q}
-                parentIds={{ cat: parentCategory.id, sub: subcategory.id }}
-              />
-            ))}
-        </div>
-      </SortableContext>
+      <DndContext onDragEnd={handleQuestionDragEnd}>
+        <SortableContext
+          items={subcategory.questions.map((q) => `question-${q.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div style={{ paddingLeft: "16px" }}>
+            {subcategory.questions
+              .sort((a, b) => a.position - b.position)
+              .map((q) => (
+                <SortableQuestion key={q.id} question={q} />
+              ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };
 
 const SortableQuestion = ({
   question,
-  parentIds,
 }: {
   question: FormQuestionWithCategoryAndSubcategoryAndPosition;
-  parentIds: { cat: number; sub?: number };
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: `question-${question.id}-${question.category.id}-${question.subcategory?.id ?? ""}`,
+      id: `question-${question.id}`,
     });
 
   const style = {
