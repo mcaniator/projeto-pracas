@@ -2,7 +2,7 @@ import {
   DndContext,
   DragEndEvent,
   PointerSensor,
-  closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Button from "@mui/material/Button";
-import { IconTrash } from "@tabler/icons-react";
+import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -61,7 +61,7 @@ export const FormEditor = ({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragEnd={handleCategoryDragEnd}
     >
       <SortableContext
@@ -105,10 +105,16 @@ const SortableCategory = ({
   };
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: `category-${category.id}`,
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `category-${category.id}`,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -117,6 +123,7 @@ const SortableCategory = ({
     padding: "8px",
     marginBottom: "8px",
     borderRadius: "4px",
+    opacity: isDragging ? 0.6 : 1,
   };
 
   // -------------------
@@ -172,8 +179,20 @@ const SortableCategory = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <strong>{category.name}</strong>
+    <div ref={setNodeRef} style={style}>
+      <div className="flex flex-row">
+        <div
+          {...listeners}
+          {...attributes}
+          style={{
+            cursor: isDragging ? "grabbing" : "grab",
+            touchAction: "none",
+          }}
+        >
+          <IconGripVertical />
+        </div>
+        <strong>{category.name}</strong>
+      </div>
 
       {/* Questões sem subcategoria */}
       <DndContext onDragEnd={handleQuestionDragEnd}>
@@ -229,10 +248,16 @@ const SortableSubcategory = ({
   categoryId: number;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: `subcategory-${subcategory.id}`,
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `subcategory-${subcategory.id}`,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -241,6 +266,7 @@ const SortableSubcategory = ({
     padding: "6px",
     marginBottom: "6px",
     borderRadius: "4px",
+    opacity: isDragging ? 0.6 : 1,
   };
 
   // -------------------
@@ -279,8 +305,20 @@ const SortableSubcategory = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <strong>{subcategory.name}</strong>
+    <div ref={setNodeRef} style={style}>
+      <div className="flex flex-row">
+        <div
+          {...listeners}
+          {...attributes}
+          style={{
+            cursor: isDragging ? "grabbing" : "grab",
+            touchAction: "none",
+          }}
+        >
+          <IconGripVertical />
+        </div>
+        <strong>{subcategory.name}</strong>
+      </div>
 
       <DndContext onDragEnd={handleQuestionDragEnd}>
         <SortableContext
@@ -305,10 +343,16 @@ const SortableQuestion = ({
 }: {
   question: FormQuestionWithCategoryAndSubcategoryAndPosition;
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: `question-${question.id}`,
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `question-${question.id}`,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -318,16 +362,25 @@ const SortableQuestion = ({
     marginBottom: "4px",
     borderRadius: "4px",
     backgroundColor: "#f8f8f8",
+    opacity: isDragging ? 0.6 : 1,
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className="flex items-center justify-between"
     >
+      <div
+        {...listeners}
+        {...attributes}
+        style={{
+          cursor: isDragging ? "grabbing" : "grab",
+          touchAction: "none",
+        }}
+      >
+        <IconGripVertical />
+      </div>
       {question.name}
       <Button variant="text" color="error">
         <IconTrash />
