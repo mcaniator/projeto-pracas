@@ -257,8 +257,9 @@ const SortableCategory = ({
               backgroundColor: "#ccc",
             },
           }}
+          className="max-w-full"
         >
-          <div className="flex flex-row items-center">
+          <div className="flex max-w-[100vw] flex-wrap items-center gap-1">
             <div
               {...listeners}
               {...attributes}
@@ -273,7 +274,6 @@ const SortableCategory = ({
             <strong>{category.name}</strong>
             <Chip
               label={`Questões: ${category.questions.length}`}
-              className="ml-2"
               sx={{
                 backgroundColor: "#1976d2",
                 color: "#fff",
@@ -282,7 +282,6 @@ const SortableCategory = ({
             />
             <Chip
               label={`Subcategorias: ${category.subcategories.length}`}
-              className="ml-2"
               sx={{
                 backgroundColor: "#1976d2",
                 color: "#fff",
@@ -428,7 +427,7 @@ const SortableSubcategory = ({
             },
           }}
         >
-          <div className="flex flex-row items-center">
+          <div className="flex max-w-[100vw] flex-wrap items-center gap-1">
             <div
               {...listeners}
               {...attributes}
@@ -444,7 +443,6 @@ const SortableSubcategory = ({
             <strong>{subcategory.name}</strong>
             <Chip
               label={`Questões: ${subcategory.questions.length}`}
-              className="ml-2"
               sx={{
                 backgroundColor: "#1976d2",
                 color: "#fff",

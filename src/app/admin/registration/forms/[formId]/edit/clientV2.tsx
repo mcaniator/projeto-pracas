@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@components/button";
+import CustomModal from "@components/modal/customModal";
 import CTextField from "@components/ui/cTextField";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
@@ -54,6 +55,7 @@ const ClientV2 = ({
   const [questionsToAdd, setQuestionsToAdd] = useState<{ id: number }[]>([]);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>({ categories: [] });
+  const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
 
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
     if (formQuestionsIds.includes(question.id)) {
@@ -205,16 +207,38 @@ const ClientV2 = ({
                   setFormName(e.target.value);
                 }}
               />
-              <Button
-                className="w-fit"
-                variant={"constructive"}
-                onPress={() => {
-                  handleUpdateForm();
-                }}
-              >
-                Salvar
-              </Button>
+              {!isMobileView && (
+                <Button
+                  className="w-fit"
+                  variant={"constructive"}
+                  onPress={() => {
+                    void handleUpdateForm();
+                  }}
+                >
+                  Salvar
+                </Button>
+              )}
             </div>
+            {isMobileView && (
+              <div className="flex items-center gap-2">
+                <Button
+                  onPress={() => {
+                    setOpenQuestionFormModal(true);
+                  }}
+                >
+                  Questões
+                </Button>
+                <Button
+                  className="w-fit"
+                  variant={"constructive"}
+                  onPress={() => {
+                    void handleUpdateForm();
+                  }}
+                >
+                  Salvar
+                </Button>
+              </div>
+            )}
             <FormEditor
               formTree={formTree}
               setFormTree={setFormTree}
@@ -232,6 +256,20 @@ const ClientV2 = ({
           />
         </div>
       </div>
+      <CustomModal
+        disableModalActions
+        fullWidth
+        isOpen={openQuestionFormModal}
+        onOpenChange={(e) => {
+          setOpenQuestionFormModal(e);
+        }}
+      >
+        <QuestionFormV2
+          addQuestion={addQuestion}
+          categories={categories.categories}
+          formQuestionsIds={formQuestionsIds}
+        />
+      </CustomModal>
     </div>
   );
 };
