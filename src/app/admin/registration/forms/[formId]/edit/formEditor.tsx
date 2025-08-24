@@ -23,17 +23,70 @@ import {
 } from "./clientV2";
 
 export const FormEditor = ({
-  rootFormTree,
+  formTree,
+  setFormTree,
+  removeQuestionId,
 }: {
-  rootFormTree: FormEditorTree;
+  formTree: FormEditorTree;
+  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  removeQuestionId: (questionId: number) => void;
 }) => {
-  const [formTree, setFormTree] = useState<FormEditorTree>({ categories: [] });
   const sensors = useSensors(useSensor(PointerSensor));
   console.log(formTree);
 
-  useEffect(() => {
-    setFormTree(rootFormTree);
-  }, [rootFormTree]);
+  // -------------------
+  // Handle questionRemoval
+  // -------------------
+
+  const handleQuestionRemoval = (
+    questionId: number,
+    categoryId: number,
+    subcategoryId?: number,
+  ) => {
+    setFormTree((prev) => {
+      const newCategories = prev.categories
+        .map((c) => {
+          if (c.id !== categoryId) return c;
+
+          let updatedSubcategories = c.subcategories;
+
+          if (subcategoryId) {
+            // Remover questão da subcategoria
+            updatedSubcategories = c.subcategories
+              .map((s) => {
+                if (s.id !== subcategoryId) return s;
+                const newQuestions = s.questions
+                  .filter((q) => q.id !== questionId)
+                  .map((q, idx) => ({ ...q, position: idx + 1 }));
+                return { ...s, questions: newQuestions };
+              })
+              // Remover subcategorias sem questões
+              .filter((s) => s.questions.length > 0);
+          }
+
+          // Remover questão da categoria sem subcategoria
+          const updatedQuestions =
+            subcategoryId ?
+              c.questions
+            : c.questions
+                .filter((q) => q.id !== questionId)
+                .map((q, idx) => ({ ...q, position: idx + 1 }));
+
+          return {
+            ...c,
+            questions: updatedQuestions,
+            subcategories: updatedSubcategories,
+          };
+        })
+        // Remover categorias sem questões e sem subcategorias
+        .filter((c) => c.questions.length > 0 || c.subcategories.length > 0)
+        // Reordenar posições das categorias
+        .map((c, idx) => ({ ...c, position: idx + 1 }));
+
+      return { ...prev, categories: newCategories };
+    });
+    removeQuestionId(questionId);
+  };
 
   // -------------------
   // Handle categorias
@@ -76,6 +129,7 @@ export const FormEditor = ({
                 key={category.id}
                 category={category}
                 setFormTree={setFormTree}
+                handleQuestionRemoval={handleQuestionRemoval}
               />
             ))}
         </div>
@@ -90,6 +144,7 @@ export const FormEditor = ({
 const SortableCategory = ({
   category,
   setFormTree,
+  handleQuestionRemoval,
 }: {
   category: {
     id: number;
@@ -104,6 +159,11 @@ const SortableCategory = ({
     }[];
   };
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  handleQuestionRemoval: (
+    questionId: number,
+    categoryId: number,
+    subcategoryId?: number,
+  ) => void;
 }) => {
   const {
     attributes,
@@ -204,7 +264,11 @@ const SortableCategory = ({
             {category.questions
               .sort((a, b) => a.position - b.position)
               .map((q) => (
-                <SortableQuestion key={q.id} question={q} />
+                <SortableQuestion
+                  key={q.id}
+                  question={q}
+                  handleQuestionRemoval={handleQuestionRemoval}
+                />
               ))}
           </div>
         </SortableContext>
@@ -225,6 +289,7 @@ const SortableCategory = ({
                   subcategory={sub}
                   categoryId={category.id}
                   setFormTree={setFormTree}
+                  handleQuestionRemoval={handleQuestionRemoval}
                 />
               ))}
           </div>
@@ -238,6 +303,7 @@ const SortableSubcategory = ({
   subcategory,
   categoryId,
   setFormTree,
+  handleQuestionRemoval,
 }: {
   subcategory: {
     id: number;
@@ -247,6 +313,11 @@ const SortableSubcategory = ({
   };
   categoryId: number;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  handleQuestionRemoval: (
+    questionId: number,
+    categoryId: number,
+    subcategoryId?: number,
+  ) => void;
 }) => {
   const {
     attributes,
@@ -329,7 +400,11 @@ const SortableSubcategory = ({
             {subcategory.questions
               .sort((a, b) => a.position - b.position)
               .map((q) => (
-                <SortableQuestion key={q.id} question={q} />
+                <SortableQuestion
+                  key={q.id}
+                  question={q}
+                  handleQuestionRemoval={handleQuestionRemoval}
+                />
               ))}
           </div>
         </SortableContext>
@@ -340,8 +415,14 @@ const SortableSubcategory = ({
 
 const SortableQuestion = ({
   question,
+  handleQuestionRemoval,
 }: {
   question: FormQuestionWithCategoryAndSubcategoryAndPosition;
+  handleQuestionRemoval: (
+    questionId: number,
+    categoryId: number,
+    subcategoryId?: number,
+  ) => void;
 }) => {
   const {
     attributes,
@@ -382,7 +463,17 @@ const SortableQuestion = ({
         <IconGripVertical />
       </div>
       {question.name}
-      <Button variant="text" color="error">
+      <Button
+        variant="text"
+        color="error"
+        onClick={() => {
+          handleQuestionRemoval(
+            question.id,
+            question.category.id,
+            question?.subcategory?.id ?? undefined,
+          );
+        }}
+      >
         <IconTrash />
       </Button>
     </div>

@@ -133,6 +133,12 @@ const ClientV2 = ({
     });
   };
 
+  const removeQuestionId = (questionId: number) => {
+    setFormQuestionsIds((prev) => {
+      return prev.filter((id) => id !== questionId);
+    });
+  };
+
   console.log(formTree);
 
   useEffect(() => {
@@ -209,7 +215,11 @@ const ClientV2 = ({
                 Salvar
               </Button>
             </div>
-            <FormEditor rootFormTree={formTree} />
+            <FormEditor
+              formTree={formTree}
+              setFormTree={setFormTree}
+              removeQuestionId={removeQuestionId}
+            />
           </div>
         </div>
         <div
