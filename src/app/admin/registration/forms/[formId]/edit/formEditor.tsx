@@ -13,8 +13,17 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
-import { IconGripVertical, IconTrash } from "@tabler/icons-react";
+import Chip from "@mui/material/Chip";
+import {
+  IconChevronDown,
+  IconGripVertical,
+  IconTrash,
+} from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -240,61 +249,94 @@ const SortableCategory = ({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="flex flex-row">
-        <div
-          {...listeners}
-          {...attributes}
-          style={{
-            cursor: isDragging ? "grabbing" : "grab",
-            touchAction: "none",
+      <Accordion defaultExpanded>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            "&:hover": {
+              backgroundColor: "#ccc",
+            },
           }}
         >
-          <IconGripVertical />
-        </div>
-        <strong>{category.name}</strong>
-      </div>
-
-      {/* Questões sem subcategoria */}
-      <DndContext onDragEnd={handleQuestionDragEnd}>
-        <SortableContext
-          items={category.questions.map((q) => `question-${q.id}`)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div style={{ paddingLeft: "16px" }}>
-            {category.questions
-              .sort((a, b) => a.position - b.position)
-              .map((q) => (
-                <SortableQuestion
-                  key={q.id}
-                  question={q}
-                  handleQuestionRemoval={handleQuestionRemoval}
-                />
-              ))}
+          <div className="flex flex-row items-center">
+            <div
+              {...listeners}
+              {...attributes}
+              style={{
+                cursor: isDragging ? "grabbing" : "grab",
+                touchAction: "none",
+                padding: "0px 8px",
+              }}
+            >
+              <IconGripVertical />
+            </div>
+            <strong>{category.name}</strong>
+            <Chip
+              label={`Questões: ${category.questions.length}`}
+              className="ml-2"
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+            />
+            <Chip
+              label={`Subcategorias: ${category.subcategories.length}`}
+              className="ml-2"
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+            />
           </div>
-        </SortableContext>
-      </DndContext>
+        </AccordionSummary>
+        <AccordionDetails>
+          <>
+            {/* Questões sem subcategoria */}
+            <DndContext onDragEnd={handleQuestionDragEnd}>
+              <SortableContext
+                items={category.questions.map((q) => `question-${q.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div style={{ paddingLeft: "16px" }}>
+                  {category.questions
+                    .sort((a, b) => a.position - b.position)
+                    .map((q) => (
+                      <SortableQuestion
+                        key={q.id}
+                        question={q}
+                        handleQuestionRemoval={handleQuestionRemoval}
+                      />
+                    ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
-      {/* Subcategorias */}
-      <DndContext onDragEnd={handleSubcategoryDragEnd}>
-        <SortableContext
-          items={category.subcategories.map((s) => `subcategory-${s.id}`)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div style={{ paddingLeft: "16px" }}>
-            {category.subcategories
-              .sort((a, b) => a.position - b.position)
-              .map((sub) => (
-                <SortableSubcategory
-                  key={sub.id}
-                  subcategory={sub}
-                  categoryId={category.id}
-                  setFormTree={setFormTree}
-                  handleQuestionRemoval={handleQuestionRemoval}
-                />
-              ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+            {/* Subcategorias */}
+            <DndContext onDragEnd={handleSubcategoryDragEnd}>
+              <SortableContext
+                items={category.subcategories.map((s) => `subcategory-${s.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div style={{ paddingLeft: "16px" }}>
+                  {category.subcategories
+                    .sort((a, b) => a.position - b.position)
+                    .map((sub) => (
+                      <SortableSubcategory
+                        key={sub.id}
+                        subcategory={sub}
+                        categoryId={category.id}
+                        setFormTree={setFormTree}
+                        handleQuestionRemoval={handleQuestionRemoval}
+                      />
+                    ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </>
+        </AccordionDetails>
+      </Accordion>
     </div>
   );
 };
@@ -377,38 +419,62 @@ const SortableSubcategory = ({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="flex flex-row">
-        <div
-          {...listeners}
-          {...attributes}
-          style={{
-            cursor: isDragging ? "grabbing" : "grab",
-            touchAction: "none",
+      <Accordion defaultExpanded>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            "&:hover": {
+              backgroundColor: "#ccc",
+            },
           }}
         >
-          <IconGripVertical />
-        </div>
-        <strong>{subcategory.name}</strong>
-      </div>
+          <div className="flex flex-row items-center">
+            <div
+              {...listeners}
+              {...attributes}
+              style={{
+                cursor: isDragging ? "grabbing" : "grab",
+                touchAction: "none",
+                padding: "0px 8px",
+              }}
+            >
+              <IconGripVertical />
+            </div>
 
-      <DndContext onDragEnd={handleQuestionDragEnd}>
-        <SortableContext
-          items={subcategory.questions.map((q) => `question-${q.id}`)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div style={{ paddingLeft: "16px" }}>
-            {subcategory.questions
-              .sort((a, b) => a.position - b.position)
-              .map((q) => (
-                <SortableQuestion
-                  key={q.id}
-                  question={q}
-                  handleQuestionRemoval={handleQuestionRemoval}
-                />
-              ))}
+            <strong>{subcategory.name}</strong>
+            <Chip
+              label={`Questões: ${subcategory.questions.length}`}
+              className="ml-2"
+              sx={{
+                backgroundColor: "#1976d2",
+                color: "#fff",
+                fontWeight: "bold",
+              }}
+            />
           </div>
-        </SortableContext>
-      </DndContext>
+        </AccordionSummary>
+
+        <AccordionDetails>
+          <DndContext onDragEnd={handleQuestionDragEnd}>
+            <SortableContext
+              items={subcategory.questions.map((q) => `question-${q.id}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div style={{ paddingLeft: "16px" }}>
+                {subcategory.questions
+                  .sort((a, b) => a.position - b.position)
+                  .map((q) => (
+                    <SortableQuestion
+                      key={q.id}
+                      question={q}
+                      handleQuestionRemoval={handleQuestionRemoval}
+                    />
+                  ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </AccordionDetails>
+      </Accordion>
     </div>
   );
 };
@@ -458,6 +524,7 @@ const SortableQuestion = ({
         style={{
           cursor: isDragging ? "grabbing" : "grab",
           touchAction: "none",
+          padding: "0px 8px",
         }}
       >
         <IconGripVertical />
