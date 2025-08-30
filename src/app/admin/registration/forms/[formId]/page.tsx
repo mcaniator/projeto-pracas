@@ -1,6 +1,6 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { Button } from "@components/button";
-import { searchFormById } from "@queries/form";
+import { getFormTree } from "@queries/form";
 import { IconEdit } from "@tabler/icons-react";
 import Link from "next/link";
 
@@ -8,8 +8,8 @@ import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
 const Page = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
-  const response = await searchFormById(parseInt(params.formId));
-  const form = response.form;
+  const response = await getFormTree(parseInt(params.formId));
+  const form = response.formTree;
   const formIdNumber = parseInt(params.formId);
   const categories: {
     id: number;

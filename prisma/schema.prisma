@@ -394,9 +394,9 @@ model Form {
 
 model FormCategory {
   id                Int               @id @default(autoincrement())
-  categoryId        Int
+  categoryId        Int               @map("category_id")
   category          Category          @relation(fields: [categoryId], references: [id])
-  formId            Int
+  formId            Int               @map("form_id")
   form              Form              @relation(fields: [formId], references: [id])
   formSubcategories FormSubcategory[]
   formQuestions     FormQuestion[]
@@ -404,33 +404,36 @@ model FormCategory {
   position Int
 
   @@unique([categoryId, formId])
+  @@map("form_category")
 }
 
 model FormSubcategory {
   id             Int            @id @default(autoincrement())
-  subcategoryId  Int
+  subcategoryId  Int            @map("subcategory_id")
   subcategory    Subcategory    @relation(fields: [subcategoryId], references: [id])
-  formCategoryId Int
+  formCategoryId Int            @map("form_category_id")
   formCategory   FormCategory   @relation(fields: [formCategoryId], references: [id])
   formQuestions  FormQuestion[]
 
   position Int
 
   @@unique([subcategoryId, formCategoryId])
+  @@map("form_subcategory")
 }
 
 model FormQuestion {
   id                Int              @id @default(autoincrement())
-  questionId        Int
+  questionId        Int              @map("question_id")
   question          Question         @relation(fields: [questionId], references: [id])
-  formCategoryId    Int
+  formCategoryId    Int              @map("form_category_id")
   formCategory      FormCategory     @relation(fields: [formCategoryId], references: [id])
-  formSubcategoryId Int?
+  formSubcategoryId Int?             @map("form_subcategory_id")
   formSubcategory   FormSubcategory? @relation(fields: [formSubcategoryId], references: [id])
 
   position Int
 
   @@unique([questionId, formCategoryId])
+  @@map("form_question")
 }
 
 // #endregion

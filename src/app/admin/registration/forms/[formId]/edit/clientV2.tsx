@@ -7,68 +7,86 @@ import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
 import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
 import { DndContext, closestCorners } from "@dnd-kit/core";
+import {
+  OptionTypes,
+  QuestionResponseCharacterTypes,
+  QuestionTypes,
+} from "@prisma/client";
 import { CategoriesWithQuestionsAndStatusCode } from "@queries/category";
 import { FormToEditPage } from "@queries/form";
 import { _updateFormV2 } from "@serverActions/formUtil";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-import { FormEditor } from "./formEditor";
 import QuestionFormV2 from "./questionFormV2";
 
-type FormQuestionWithCategoryAndSubcategoryAndPosition =
-  FormQuestionWithCategoryAndSubcategory & {
-    position: number;
-  };
+const FormEditor = dynamic(() => import("./formEditor"), {
+  ssr: false,
+});
 
 type FormEditorTree = {
+  id: number;
+  name: string;
   categories: {
     id: number;
     name: string;
     position: number;
-    questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
+    questions: {
+      id: number;
+      name: string;
+      notes: string | null;
+      type: QuestionTypes;
+      characterType: QuestionResponseCharacterTypes;
+      optionType: OptionTypes | null;
+      options: {
+        text: string;
+      }[];
+      position: number;
+    }[];
     subcategories: {
       id: number;
       name: string;
       position: number;
-      questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
+      questions: {
+        id: number;
+        name: string;
+        notes: string | null;
+        type: QuestionTypes;
+        position: number;
+        characterType: QuestionResponseCharacterTypes;
+        optionType: OptionTypes | null;
+        options: {
+          text: string;
+        }[];
+      }[];
     }[];
   }[];
 };
 
 const ClientV2 = ({
-  form,
+  dbFormTree,
   categories,
 }: {
-  form: FormToEditPage;
+  dbFormTree: FormEditorTree;
   categories: CategoriesWithQuestionsAndStatusCode;
 }) => {
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const [formName, setFormName] = useState(form.name);
-  const [formQuestionsToUpdate, setFormQuestionsToUpdate] = useState<
-    { id: number; position: number }[]
-  >([]);
-  const [formQuestionsToRemove, setFormQuestionsToRemove] = useState<
-    { id: number }[]
-  >([]);
-  const [questionsToAdd, setQuestionsToAdd] = useState<{ id: number }[]>([]);
+  const [formName, setFormName] = useState(dbFormTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
-  const [formTree, setFormTree] = useState<FormEditorTree>({ categories: [] });
+  const [formTree, setFormTree] = useState<FormEditorTree>(dbFormTree);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
 
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
     if (formQuestionsIds.includes(question.id)) {
       return;
     }
-    setFormQuestionsIds((prev) => {
+    /*setFormQuestionsIds((prev) => {
       const newArr = [...prev];
       newArr.push(question.id);
       return newArr;
-    });
-    console.log("adding:", question);
-    const categoryId = question.category.id;
-    const subcategoryId = question.subcategory?.id;
+    });*/
     setFormTree((prev) => {
       const categoryId = question.category.id;
       const subcategoryId = question.subcategory?.id;
@@ -136,9 +154,9 @@ const ClientV2 = ({
   };
 
   const removeQuestionId = (questionId: number) => {
-    setFormQuestionsIds((prev) => {
+    /*setFormQuestionsIds((prev) => {
       return prev.filter((id) => id !== questionId);
-    });
+    });*/
   };
 
   console.log(formTree);
@@ -155,16 +173,31 @@ const ClientV2 = ({
     };
   }, []);
 
+  useEffect(() => {
+    console.log("TREE CHANGED");
+    const questionsIds: number[] = [];
+    formTree.categories.forEach((c) => {
+      c.questions.forEach((q) => {
+        questionsIds.push(q.id);
+      });
+
+      c.subcategories.forEach((s) => {
+        s.questions.forEach((q) => {
+          questionsIds.push(q.id);
+        });
+      });
+    });
+    setFormQuestionsIds(questionsIds);
+  }, [formTree]);
+
   const handleUpdateForm = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
       const response = await _updateFormV2({
-        formId: form.id,
-        oldFormName: form.name,
+        formId: dbFormTree.id,
+        oldFormName: dbFormTree.name,
         newFormName: formName,
-        formQuestionsToUpdate: formQuestionsToUpdate,
-        formQuestionsToRemove: formQuestionsToRemove,
-        questionsToAdd: questionsToAdd,
+        formTree: formTree,
       });
       if (response?.statusCode !== 200) {
         setHelperCard({
@@ -275,7 +308,4 @@ const ClientV2 = ({
 };
 
 export default ClientV2;
-export type {
-  FormEditorTree,
-  FormQuestionWithCategoryAndSubcategoryAndPosition,
-};
+export type { FormEditorTree };

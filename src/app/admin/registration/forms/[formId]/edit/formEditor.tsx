@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DndContext,
   DragEndEvent,
@@ -19,19 +21,12 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import {
-  IconChevronDown,
-  IconGripVertical,
-  IconTrash,
-} from "@tabler/icons-react";
-import React, { useEffect, useState } from "react";
+import { IconGripVertical, IconTrash } from "@tabler/icons-react";
+import React from "react";
 
-import {
-  FormEditorTree,
-  FormQuestionWithCategoryAndSubcategoryAndPosition,
-} from "./clientV2";
+import { FormEditorTree } from "./clientV2";
 
-export const FormEditor = ({
+const FormEditor = ({
   formTree,
   setFormTree,
   removeQuestionId,
@@ -41,7 +36,6 @@ export const FormEditor = ({
   removeQuestionId: (questionId: number) => void;
 }) => {
   const sensors = useSensors(useSensor(PointerSensor));
-  console.log(formTree);
 
   // -------------------
   // Handle questionRemoval
@@ -119,7 +113,13 @@ export const FormEditor = ({
       };
     });
   };
-
+  if (formTree.categories.length === 0) {
+    return (
+      <div className="text-black">
+        Adicione questões para montar o formulário!
+      </div>
+    );
+  }
   return (
     <DndContext
       sensors={sensors}
@@ -155,18 +155,7 @@ const SortableCategory = ({
   setFormTree,
   handleQuestionRemoval,
 }: {
-  category: {
-    id: number;
-    name: string;
-    position: number;
-    questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
-    subcategories: {
-      id: number;
-      name: string;
-      position: number;
-      questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
-    }[];
-  };
+  category: FormEditorTree["categories"][number];
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
   handleQuestionRemoval: (
     questionId: number,
@@ -305,6 +294,7 @@ const SortableCategory = ({
                       <SortableQuestion
                         key={q.id}
                         question={q}
+                        categoryId={category.id}
                         handleQuestionRemoval={handleQuestionRemoval}
                       />
                     ))}
@@ -346,12 +336,7 @@ const SortableSubcategory = ({
   setFormTree,
   handleQuestionRemoval,
 }: {
-  subcategory: {
-    id: number;
-    name: string;
-    position: number;
-    questions: FormQuestionWithCategoryAndSubcategoryAndPosition[];
-  };
+  subcategory: FormEditorTree["categories"][number]["subcategories"][number];
   categoryId: number;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
   handleQuestionRemoval: (
@@ -465,6 +450,8 @@ const SortableSubcategory = ({
                     <SortableQuestion
                       key={q.id}
                       question={q}
+                      categoryId={categoryId}
+                      subcategoryId={subcategory.id}
                       handleQuestionRemoval={handleQuestionRemoval}
                     />
                   ))}
@@ -479,9 +466,13 @@ const SortableSubcategory = ({
 
 const SortableQuestion = ({
   question,
+  categoryId,
+  subcategoryId,
   handleQuestionRemoval,
 }: {
-  question: FormQuestionWithCategoryAndSubcategoryAndPosition;
+  question: FormEditorTree["categories"][number]["subcategories"][number]["questions"][number];
+  categoryId: number;
+  subcategoryId?: number;
   handleQuestionRemoval: (
     questionId: number,
     categoryId: number,
@@ -532,11 +523,7 @@ const SortableQuestion = ({
         variant="text"
         color="error"
         onClick={() => {
-          handleQuestionRemoval(
-            question.id,
-            question.category.id,
-            question?.subcategory?.id ?? undefined,
-          );
+          handleQuestionRemoval(question.id, categoryId, subcategoryId);
         }}
       >
         <IconTrash />
@@ -544,3 +531,5 @@ const SortableQuestion = ({
     </div>
   );
 };
+
+export default FormEditor;

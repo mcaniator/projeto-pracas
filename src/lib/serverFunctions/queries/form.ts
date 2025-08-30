@@ -1,7 +1,8 @@
 import { FormCalculation } from "@customTypes/forms/formCreation";
+import { mapFormToFormTree } from "@formatters/formFormatters";
 import { prisma } from "@lib/prisma";
 import { QuestionWithCategories } from "@serverActions/questionUtil";
-import { unstable_cache } from "next/cache";
+import { getForm } from "@serverOnly/formTree";
 
 type FormToEditPage = {
   id: number;
@@ -12,8 +13,6 @@ type FormToEditPage = {
   }[];
   calculations: FormCalculation[];
 };
-
-type FormToEditPageV2 = {};
 
 const fetchFormsLatest = async () => {
   try {
@@ -35,64 +34,13 @@ const fetchFormsLatest = async () => {
   }
 };
 
-const searchFormById = async (id: number) => {
+const getFormTree = async (id: number) => {
   try {
-    const form = await prisma.form.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        id: true,
-        name: true,
-        formCategories: {
-          include: {
-            formQuestions: {
-              include: {
-                question: {
-                  include: {
-                    options: true,
-                  },
-                },
-              },
-            },
-            formSubcategories: {
-              include: {
-                formQuestions: {
-                  include: {
-                    question: {
-                      include: {
-                        options: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        calculations: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            subcategory: {
-              select: {
-                id: true,
-                name: true,
-                categoryId: true,
-              },
-            },
-            questions: true,
-          },
-        },
-      },
-    });
-    return { statusCode: 200, form };
+    const form = await getForm(id);
+    const formTree = mapFormToFormTree(form);
+    return { statusCode: 200, formTree };
   } catch (e) {
-    return { statusCode: 500, form: null };
+    return { statusCode: 500, formTree: null };
   }
 };
 
@@ -112,5 +60,5 @@ const searchformNameById = async (formId: number) => {
   }
 };
 
-export { fetchFormsLatest, searchFormById, searchformNameById };
+export { fetchFormsLatest, getFormTree, searchformNameById };
 export { type FormToEditPage };
