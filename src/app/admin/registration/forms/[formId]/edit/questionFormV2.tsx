@@ -197,7 +197,7 @@ const QuestionListV2 = ({
             characterType={question.characterType}
             name={question.name}
             notes={question.notes}
-            type={question.type}
+            questionType={question.questionType}
             optionType={question.optionType}
             options={question.options}
             addQuestion={addQuestion}
@@ -218,7 +218,7 @@ const QuestionComponentV2 = ({
   addQuestion,
   name,
   notes,
-  type,
+  questionType,
   optionType,
   options,
   showCategory,
@@ -232,7 +232,7 @@ const QuestionComponentV2 = ({
   addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
   name: string;
   notes: string | null;
-  type: QuestionTypes;
+  questionType: QuestionTypes;
   optionType: OptionTypes | null;
   options: { text: string }[];
   showCategory: boolean;
@@ -258,7 +258,7 @@ const QuestionComponentV2 = ({
             id: questionId,
             name,
             notes,
-            type,
+            questionType,
             optionType,
             options,
             category: { id: categoryId, name: categoryName },

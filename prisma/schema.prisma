@@ -93,6 +93,12 @@ enum WeatherConditions {
   @@map("weather_conditions")
 }
 
+enum FormItemType {
+  CATEGORY
+  SUBCATEGORY
+  QUESTION
+}
+
 // #endregion
 
 // #region Auth
@@ -225,8 +231,6 @@ model Category {
 
   subcategory Subcategory[]
 
-  formCategories FormCategory[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -236,13 +240,12 @@ model Category {
 model Subcategory {
   id Int @id @default(autoincrement())
 
-  name              String            @db.VarChar(255)
-  optional          Boolean           @default(false)
-  active            Boolean           @default(true)
-  notes             String?           @db.Text
-  question          Question[]
-  calculation       Calculation[]
-  formSubcategories FormSubcategory[]
+  name        String        @db.VarChar(255)
+  optional    Boolean       @default(false)
+  active      Boolean       @default(true)
+  notes       String?       @db.Text
+  question    Question[]
+  calculation Calculation[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -256,13 +259,12 @@ model Question {
 
   name              String                         @db.VarChar(255)
   notes             String?                        @db.Text
-  type              QuestionTypes
+  questionType      QuestionTypes                  @map("question_type")
   characterType     QuestionResponseCharacterTypes @map("character_type")
   response          Response[]
   optionType        OptionTypes?                   @map("option_type")
   // Should only have a value if optionType == CHECKBOX
   maximumSelections Int?                           @map("maximum_selections")
-  version           Int                            @default(1)
   geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
 
   assessment Assessment[]
@@ -280,12 +282,10 @@ model Question {
 
   geometries QuestionGeometry[]
 
-  formQuestions FormQuestion[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([name, categoryId, subcategoryId, version])
+  @@unique([name, categoryId, subcategoryId])
   @@map("question")
 }
 
@@ -378,13 +378,13 @@ model ResponseOption {
 }
 
 model Form {
-  id             Int            @id @default(autoincrement())
-  name           String         @db.VarChar(255)
-  archived       Boolean        @default(false)
-  finalized      Boolean        @default(true)
-  assessment     Assessment[]
-  calculations   Calculation[]
-  formCategories FormCategory[]
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(255)
+  archived     Boolean       @default(false)
+  finalized    Boolean       @default(true)
+  assessment   Assessment[]
+  calculations Calculation[]
+  formItems    FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -392,48 +392,20 @@ model Form {
   @@map("form")
 }
 
-model FormCategory {
-  id                Int               @id @default(autoincrement())
-  categoryId        Int               @map("category_id")
-  category          Category          @relation(fields: [categoryId], references: [id])
-  formId            Int               @map("form_id")
-  form              Form              @relation(fields: [formId], references: [id])
-  formSubcategories FormSubcategory[]
-  formQuestions     FormQuestion[]
+model FormItem {
+  id               Int          @id @default(autoincrement())
+  formId           Int          @map("form_id")
+  parentFormItemId Int?         @map("parent_form_item_id")
+  parentFormItem   FormItem?    @relation("form_item_children", fields: [parentFormItemId], references: [id])
+  formItemType     FormItemType @map("form_item_type")
+  position         Int
+  referenceId      Int          @map("reference_id") //questionId, subcategoryId or categoryId
 
-  position Int
+  children FormItem[] @relation("form_item_children")
+  Form     Form       @relation(fields: [formId], references: [id])
 
-  @@unique([categoryId, formId])
-  @@map("form_category")
-}
-
-model FormSubcategory {
-  id             Int            @id @default(autoincrement())
-  subcategoryId  Int            @map("subcategory_id")
-  subcategory    Subcategory    @relation(fields: [subcategoryId], references: [id])
-  formCategoryId Int            @map("form_category_id")
-  formCategory   FormCategory   @relation(fields: [formCategoryId], references: [id])
-  formQuestions  FormQuestion[]
-
-  position Int
-
-  @@unique([subcategoryId, formCategoryId])
-  @@map("form_subcategory")
-}
-
-model FormQuestion {
-  id                Int              @id @default(autoincrement())
-  questionId        Int              @map("question_id")
-  question          Question         @relation(fields: [questionId], references: [id])
-  formCategoryId    Int              @map("form_category_id")
-  formCategory      FormCategory     @relation(fields: [formCategoryId], references: [id])
-  formSubcategoryId Int?             @map("form_subcategory_id")
-  formSubcategory   FormSubcategory? @relation(fields: [formSubcategoryId], references: [id])
-
-  position Int
-
-  @@unique([questionId, formCategoryId])
-  @@map("form_question")
+  @@unique([formId, formItemType, referenceId])
+  @@map("form_item")
 }
 
 // #endregion

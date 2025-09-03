@@ -129,7 +129,7 @@ const questionSchema = z.object({
   notes: z.string().trim().optional().nullish(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
-  type: z.nativeEnum(QuestionTypes),
+  questionType: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   optionType: z.nativeEnum(OptionTypes).optional(),
   maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),

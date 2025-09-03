@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
 import { FormCalculation } from "@customTypes/forms/formCreation";
-import { Prisma } from "@prisma/client";
+import { FormItemType, Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag } from "next/cache";
@@ -251,355 +251,175 @@ const _updateFormV2 = async ({
         where: { id: formId },
       });
     }
-    const currentTree = await prisma.form.findUnique({
-      where: {
-        id: formId,
-      },
-      select: {
-        formCategories: {
-          select: {
-            id: true,
-            categoryId: true,
-            position: true,
-            formQuestions: {
-              where: {
-                formSubcategoryId: null,
-              },
-              select: {
-                id: true,
-                questionId: true,
-                position: true,
-              },
-            },
-            formSubcategories: {
-              select: {
-                id: true,
-                subcategoryId: true,
-                position: true,
-                formQuestions: {
-                  select: {
-                    id: true,
-                    questionId: true,
-                    position: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    type FlatFormItem = {
+      formItemType: FormItemType;
+      referenceId: number;
+      position: number;
+      parentTempIndex: number | null;
+    };
+    const flatItems: FlatFormItem[] = [];
 
-    console.log(currentTree?.formCategories);
-    const formQuestionsToDelete: { id: number; questionId: number }[] = [];
-    const formSubcategoriesToDelete: number[] = [];
-    const formCategoriesToDelete: number[] = [];
-
-    const treeQuestions: {
-      id: number;
-      position: number;
-      category: { id: number; position: number };
-      subcategory: { id: number; position: number; categoryId: number } | null;
-    }[] = [];
-    const treeCategories: { position: number; categoryId: number }[] = [];
-    const treeSubcategories: {
-      position: number;
-      categoryId: number;
-      subcategoryId: number;
-    }[] = [];
-
-    const formQuestionsToMaintain: {
-      id: number;
-      questionId: number;
-      position: number;
-    }[] = [];
-    const formCategoriesToMaintain: {
-      id: number;
-      categoryId: number;
-      position: number;
-    }[] = [];
-    const formSubcategoriesToMaintain: {
-      id: number;
-      subcategoryId: number;
-      position: number;
-    }[] = [];
-
-    const categoriesToAdd: { id: number; position: number }[] = [];
-    const subcategoriesToAdd: {
-      id: number;
-      categoryId: number;
-      position: number;
-    }[] = [];
-    const questionsToAdd: {
-      id: number;
-      category: { id: number; position: number };
-      subcategory: { id: number; position: number; categoryId: number } | null;
-      position: number;
-    }[] = [];
-
-    formTree.categories.forEach((fCategory) => {
-      const questions = fCategory.questions;
-      const subcategories = fCategory.subcategories;
-
-      questions.forEach((q) => {
-        treeQuestions.push({
-          id: q.id,
-          category: { id: fCategory.id, position: fCategory.position },
-          subcategory: null,
-          position: q.position,
-        });
+    formTree.categories.forEach((cat) => {
+      flatItems.push({
+        formItemType: "CATEGORY",
+        referenceId: cat.id,
+        position: cat.position,
+        parentTempIndex: null,
       });
 
-      subcategories.forEach((s) => {
-        s.questions.forEach((q) => {
-          treeQuestions.push({
-            id: q.id,
-            category: { id: fCategory.id, position: fCategory.position },
-            subcategory: {
-              id: s.id,
-              position: s.position,
-              categoryId: fCategory.id,
-            },
+      cat.formItems.forEach((fi) => {
+        flatItems.push({
+          formItemType: fi.formItemType,
+          referenceId: fi.referenceId,
+          position: fi.position,
+          parentTempIndex: flatItems.findIndex(
+            (p) => p.formItemType === "CATEGORY" && p.referenceId === cat.id,
+          ),
+        });
+
+        fi.questions?.forEach((q) => {
+          flatItems.push({
+            formItemType: "QUESTION",
+            referenceId: q.referenceId,
             position: q.position,
+            parentTempIndex: flatItems.findIndex(
+              (p) =>
+                p.formItemType === fi.formItemType &&
+                p.referenceId === fi.referenceId,
+            ),
           });
         });
-
-        treeSubcategories.push({
-          position: s.position,
-          categoryId: fCategory.id,
-          subcategoryId: s.id,
-        });
-      });
-
-      treeCategories.push({
-        position: fCategory.position,
-        categoryId: fCategory.id,
       });
     });
 
-    console.log("current tree", currentTree?.formCategories[0]?.formQuestions);
+    const currentFormItems = await prisma.formItem.findMany({
+      where: { formId },
+      select: {
+        id: true,
+        formItemType: true,
+        referenceId: true,
+        position: true,
+      },
+    });
 
-    currentTree?.formCategories.forEach((c) => {
-      let catHasItems = false;
-      c.formQuestions.forEach((q) => {
-        const updatedQuestion = treeQuestions.find(
-          (tQ) => q.questionId === tQ.id,
-        );
-        if (updatedQuestion) {
-          catHasItems = true;
-          console.log("PUSHING FROM CAT");
-          formQuestionsToMaintain.push({
-            ...q,
-            position: updatedQuestion.position,
-          });
-        } else {
-          formQuestionsToDelete.push(q);
-        }
-      });
+    const formItemsToDelete: { id: number }[] = [];
+    const formItemsToUpdate: { id: number; position: number }[] = [];
+    const formItemsToInsert: FlatFormItem[] = [];
 
-      c.formSubcategories.forEach((s) => {
-        let subHasItems = false;
-        s.formQuestions.forEach((q) => {
-          const updatedQuestion = treeQuestions.find(
-            (tQ) => q.questionId === tQ.id,
-          );
-          if (updatedQuestion) {
-            subHasItems = true;
-            catHasItems = true;
-            console.log("PUSHING FROM SUB");
-            formQuestionsToMaintain.push({
-              ...q,
-              position: updatedQuestion.position,
-            });
-          } else {
-            formQuestionsToDelete.push(q);
-          }
-        });
-        if (!subHasItems) {
-          formSubcategoriesToDelete.push(s.id);
-        } else {
-          console.log("TREE SUBCATEGORIES", treeSubcategories);
-          console.log("CURRENT SUBCATEGORY", s);
-          const updatedSubcategory = treeSubcategories.find(
-            (ts) => ts.subcategoryId === s.subcategoryId,
-          );
-          if (!updatedSubcategory) {
-            throw new Error("Expected subcategory to exist in form");
-          }
-          formSubcategoriesToMaintain.push({
-            id: s.id,
-            subcategoryId: s.subcategoryId,
-            position: updatedSubcategory.position,
-          });
-        }
-      });
-
-      if (!catHasItems) {
-        formCategoriesToDelete.push(c.id);
+    // Mapping items to delete or update
+    currentFormItems.forEach((cf) => {
+      const existing = flatItems.find(
+        (ft) =>
+          ft.formItemType === cf.formItemType &&
+          ft.referenceId === cf.referenceId,
+      );
+      if (existing) {
+        formItemsToUpdate.push({ id: cf.id, position: existing.position });
       } else {
-        const updatedCategory = treeCategories.find(
-          (tc) => tc.categoryId === c.categoryId,
-        );
-        if (!updatedCategory) {
-          throw new Error("Expected category to exist in new form");
-        }
-        formCategoriesToMaintain.push({
-          id: c.id,
-          categoryId: c.categoryId,
-          position: updatedCategory.position,
-        });
+        formItemsToDelete.push({ id: cf.id });
       }
     });
 
-    treeQuestions.forEach((tQ) => {
-      if (
-        !formQuestionsToMaintain.some((fq) => fq.questionId === tQ.id) &&
-        !formQuestionsToDelete.some((fq) => fq.questionId === tQ.id)
-      ) {
-        questionsToAdd.push(tQ);
-        if (tQ.subcategory) {
-          if (
-            !formSubcategoriesToMaintain.some(
-              (fs) => fs.subcategoryId === tQ.subcategory?.id,
-            ) &&
-            !subcategoriesToAdd.some((s) => s.id === tQ.subcategory?.id)
-          ) {
-            subcategoriesToAdd.push({
-              id: tQ.subcategory.id,
-              categoryId: tQ.category.id,
-              position: tQ.subcategory.position,
-            });
-          }
-        }
-        if (
-          !formCategoriesToMaintain.some(
-            (fc) => fc.categoryId === tQ.category.id,
-          ) &&
-          !categoriesToAdd.some((c) => c.id === tQ.category.id)
-        ) {
-          categoriesToAdd.push({
-            id: tQ.category.id,
-            position: tQ.category.position,
-          });
-        }
-      }
+    // Mapping items to insert
+    flatItems.forEach((ft) => {
+      const exists = currentFormItems.some(
+        (cf) =>
+          cf.formItemType === ft.formItemType &&
+          cf.referenceId === ft.referenceId,
+      );
+      if (!exists) formItemsToInsert.push(ft);
     });
-    console.log("categories to maintain", formCategoriesToMaintain);
-    console.log("categories to delete", formCategoriesToDelete);
-    console.log("categories to add:", categoriesToAdd);
-    console.log("subcategories to maintain", formCategoriesToMaintain);
-    console.log("subcategories to delete", formSubcategoriesToDelete);
-    console.log("subcategories to add:", subcategoriesToAdd);
-    console.log("questions to maintain", formQuestionsToMaintain);
-    console.log("questions to delete", formQuestionsToDelete);
-    console.log("questions to add:", questionsToAdd);
 
-    //TODO: DELETIONS FIRST, THEN UPDATES, THEN INSERTS
+    const deleteQueries: Prisma.Sql[] = [];
+    const updateQueries: Prisma.Sql[] = [];
+    const insertQueries: Prisma.Sql[] = [];
 
-    //DELETE
-    const deleteTransactions: Array<Prisma.Sql> = [];
-    if (formQuestionsToDelete.length > 0) {
-      const questionsIdsValues = formQuestionsToDelete.map(
-        (q) => Prisma.sql`${q.id}`,
+    // DELETE
+    if (formItemsToDelete.length) {
+      const ids = formItemsToDelete.map((i) => Prisma.sql`${i.id}`);
+      deleteQueries.push(
+        Prisma.sql`DELETE FROM form_item WHERE id IN (${Prisma.join(ids, ",")})`,
       );
-      const questionsDelete = Prisma.sql`DELETE FROM "form_question" WHERE id IN (${Prisma.join(questionsIdsValues, ",")})`;
-      deleteTransactions.push(questionsDelete);
     }
 
-    if (formSubcategoriesToDelete.length > 0) {
-      const subcategoriesIdsValues = formSubcategoriesToDelete.map(
-        (id) => Prisma.sql`${id}`,
+    // UPDATE
+    if (formItemsToUpdate.length) {
+      const values = formItemsToUpdate.map(
+        (i) => Prisma.sql`(${i.id}, ${i.position})`,
       );
-      const subcategoriesDelete = Prisma.sql`DELETE FROM "form_subcategory" WHERE id IN (${Prisma.join(subcategoriesIdsValues, ",")})`;
-      deleteTransactions.push(subcategoriesDelete);
+      updateQueries.push(
+        Prisma.sql`
+        UPDATE form_item AS fi
+        SET position = v.position
+        FROM (VALUES ${Prisma.join(values, ",")}) AS v(id, position)
+        WHERE fi.id = v.id
+      `,
+      );
     }
 
-    if (formCategoriesToDelete.length > 0) {
-      const categoriesIdsValues = formCategoriesToDelete.map(
-        (id) => Prisma.sql`${id}`,
+    // INSERT: Insert in three steps (categories, subcategories and questions) to ensure partent_form_item_id is correct
+    const categories = formItemsToInsert.filter(
+      (i) => i.formItemType === "CATEGORY",
+    );
+    const subcategories = formItemsToInsert.filter(
+      (i) => i.formItemType === "SUBCATEGORY",
+    );
+    const questions = formItemsToInsert.filter(
+      (i) => i.formItemType === "QUESTION",
+    );
+
+    if (categories.length) {
+      const values = categories.map(
+        (i) =>
+          Prisma.sql`(${formId}, ${i.formItemType}::"FormItemType", ${i.referenceId}, ${i.position}, NULL)`,
       );
-      const categoriesDelete = Prisma.sql`DELETE FROM "form_category" WHERE id IN (${Prisma.join(categoriesIdsValues, ",")})`;
-      deleteTransactions.push(categoriesDelete);
+      insertQueries.push(
+        Prisma.sql`
+      INSERT INTO form_item (form_id, form_item_type, reference_id, position, parent_form_item_id)
+      VALUES ${Prisma.join(values, ",")}
+    `,
+      );
     }
 
-    //UPDATE
-    const updateTransactions: Array<Prisma.Sql> = [];
-    if (formCategoriesToMaintain.length > 0) {
-      const categoriesUpdateSqlValues = formCategoriesToMaintain.map(
-        (c) => Prisma.sql`(${c.id}, ${c.position})`,
+    if (subcategories.length) {
+      const values = subcategories.map((i) => {
+        const parent = flatItems[i.parentTempIndex!];
+        const parentSql = Prisma.sql`(
+      SELECT id FROM form_item 
+      WHERE form_id = ${formId} AND form_item_type = ${parent?.formItemType}::"FormItemType" AND reference_id = ${parent?.referenceId}
+    )`;
+        return Prisma.sql`(${formId}, ${i.formItemType}::"FormItemType", ${i.referenceId}, ${i.position}, ${parentSql})`;
+      });
+      insertQueries.push(
+        Prisma.sql`
+      INSERT INTO form_item (form_id, form_item_type, reference_id, position, parent_form_item_id)
+      VALUES ${Prisma.join(values, ",")}
+    `,
       );
-      const categoriesUpdate = Prisma.sql`UPDATE form_category AS fc SET position = v.position
-      FROM (VALUES ${Prisma.join(categoriesUpdateSqlValues, ",")}) AS v(id, position)  
-      WHERE fc.id = v.id`;
-
-      updateTransactions.push(categoriesUpdate);
     }
 
-    if (formSubcategoriesToMaintain.length > 0) {
-      const subcategoriesUpdateSqlValues = formSubcategoriesToMaintain.map(
-        (s) => Prisma.sql`(${s.id}, ${s.position})`,
+    if (questions.length) {
+      const values = questions.map((i) => {
+        const parent = flatItems[i.parentTempIndex!];
+        const parentSql = Prisma.sql`(
+      SELECT id FROM form_item 
+      WHERE form_id = ${formId} AND form_item_type = ${parent?.formItemType}::"FormItemType" AND reference_id = ${parent?.referenceId}
+    )`;
+        return Prisma.sql`(${formId}, ${i.formItemType}::"FormItemType", ${i.referenceId}, ${i.position}, ${parentSql})`;
+      });
+      insertQueries.push(
+        Prisma.sql`
+      INSERT INTO form_item (form_id, form_item_type, reference_id, position, parent_form_item_id)
+      VALUES ${Prisma.join(values, ",")}
+    `,
       );
-      const subcategoriesUpdate = Prisma.sql`UPDATE form_subcategory AS fs SET position = v.position 
-      FROM (VALUES ${Prisma.join(subcategoriesUpdateSqlValues, ",")}) AS v(id, position) 
-      WHERE fs.id = v.id`;
-
-      updateTransactions.push(subcategoriesUpdate);
     }
 
-    if (formQuestionsToMaintain.length > 0) {
-      const quetionsUpdateSqlValues = formQuestionsToMaintain.map(
-        (q) => Prisma.sql`(${q.id}, ${q.position})`,
-      );
-      const questionsUpdate = Prisma.sql`UPDATE form_question AS fq SET position = v.position 
-      FROM (VALUES ${Prisma.join(quetionsUpdateSqlValues, ",")}) AS v(id, position) 
-      WHERE fq.id = v.id`;
-
-      updateTransactions.push(questionsUpdate);
-    }
-
-    //INSERT
-    const insertTransactions: Array<Prisma.Sql> = [];
-    if (categoriesToAdd.length > 0) {
-      const categoriesInsertSqlValues = categoriesToAdd.map(
-        (c) => Prisma.sql`(${formId},${c.id},${c.position})`,
-      );
-      const categoriesInsert = Prisma.sql`INSERT INTO "form_category" ("form_id", "category_id", "position") 
-      VALUES ${Prisma.join(categoriesInsertSqlValues, ",")}`;
-      insertTransactions.push(categoriesInsert);
-    }
-
-    if (subcategoriesToAdd.length > 0) {
-      const subcategoriesInsertSqlValues = subcategoriesToAdd.map(
-        (s) =>
-          Prisma.sql`((SELECT "id" FROM "form_category" WHERE "form_id" = ${formId} AND "category_id" = ${s.categoryId}), ${s.id}, ${s.position})`,
-      );
-      const subcategoriesInsert = Prisma.sql`INSERT INTO "form_subcategory" ("form_category_id", "subcategory_id", "position") 
-      VALUES ${Prisma.join(subcategoriesInsertSqlValues, ",")}`;
-      insertTransactions.push(subcategoriesInsert);
-    }
-
-    if (questionsToAdd.length > 0) {
-      const questionsInsertSqlValues = questionsToAdd.map(
-        (q) =>
-          Prisma.sql`((SELECT "id" FROM "form_category" WHERE "form_id" = ${formId} AND "category_id" = ${q.category.id}), 
-      ${q.subcategory ? Prisma.sql`(SELECT fs.id FROM form_subcategory fs JOIN form_category fc ON fs.form_category_id = fc.id WHERE fc.form_id = ${formId} AND fc.category_id = ${q.category.id} AND fs.subcategory_id = ${q.subcategory.id})` : Prisma.sql`NULL`}, 
-      ${q.id}, ${q.position})`,
-      );
-      const questionsInsert = Prisma.sql`INSERT INTO "form_question" ("form_category_id", "form_subcategory_id", "question_id", "position") 
-      VALUES ${Prisma.join(questionsInsertSqlValues, ",")}`;
-      insertTransactions.push(questionsInsert);
-    }
-
+    //Transactions
     await prisma.$transaction(async (tx) => {
-      for (const deleteTransaction of deleteTransactions) {
-        await tx.$executeRaw(deleteTransaction);
-      }
-      for (const update of updateTransactions) {
-        await tx.$executeRaw(update);
-      }
-      for (const insert of insertTransactions) {
-        await tx.$executeRaw(insert);
-      }
+      for (const q of deleteQueries) await tx.$executeRaw(q);
+      for (const q of updateQueries) await tx.$executeRaw(q);
+      for (const q of insertQueries) await tx.$executeRaw(q);
     });
 
     revalidateTag("form");

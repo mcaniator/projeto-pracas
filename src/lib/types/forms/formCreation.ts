@@ -9,7 +9,7 @@ type FormQuestionWithCategoryAndSubcategory = {
   id: number;
   name: string;
   notes: string | null;
-  type: QuestionTypes;
+  questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: {

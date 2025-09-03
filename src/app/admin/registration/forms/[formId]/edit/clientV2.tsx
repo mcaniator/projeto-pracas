@@ -8,6 +8,7 @@ import { useLoadingOverlay } from "@context/loadingContext";
 import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import {
+  FormItemType,
   OptionTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
@@ -31,27 +32,25 @@ type FormEditorTree = {
     id: number;
     name: string;
     position: number;
-    questions: {
-      id: number;
+    formItems: {
+      formItemType: FormItemType;
+      position: number;
+      referenceId: number;
       name: string;
       notes: string | null;
-      type: QuestionTypes;
-      characterType: QuestionResponseCharacterTypes;
-      optionType: OptionTypes | null;
-      options: {
+      questionType?: QuestionTypes; //only if type = QUESTION
+      characterType?: QuestionResponseCharacterTypes; //only if type = QUESTION
+      optionType?: OptionTypes | null; //only if type = QUESTION
+      options?: {
+        //only if type = QUESTION
         text: string;
       }[];
-      position: number;
-    }[];
-    subcategories: {
-      id: number;
-      name: string;
-      position: number;
-      questions: {
-        id: number;
+      questions?: {
+        //only if type = SUBCATEGORY
+        referenceId: number;
         name: string;
         notes: string | null;
-        type: QuestionTypes;
+        questionType: QuestionTypes;
         position: number;
         characterType: QuestionResponseCharacterTypes;
         optionType: OptionTypes | null;
@@ -73,77 +72,104 @@ const ClientV2 = ({
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const [formName, setFormName] = useState(dbFormTree.name);
+  const [formName, setFormName] = useState("test");
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>(dbFormTree);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
 
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
-    if (formQuestionsIds.includes(question.id)) {
-      return;
-    }
-    /*setFormQuestionsIds((prev) => {
-      const newArr = [...prev];
-      newArr.push(question.id);
-      return newArr;
-    });*/
+    if (formQuestionsIds.includes(question.id)) return;
+
     setFormTree((prev) => {
       const categoryId = question.category.id;
       const subcategoryId = question.subcategory?.id;
 
-      // Verifica se a categoria existe
+      // Busca ou cria categoria
       let category = prev.categories.find((cat) => cat.id === categoryId);
-
-      // Se não existir, cria a categoria
       if (!category) {
         category = {
           id: categoryId,
           name: question.category.name,
           position: prev.categories.length + 1,
-          questions: [],
-          subcategories: [],
+          formItems: [],
         };
       }
 
-      let newCategory = { ...category }; // Cria cópia da categoria para não mutar
+      let newCategory = { ...category };
 
       if (subcategoryId) {
-        // Trabalha com subcategoria
-        let sub = newCategory.subcategories.find((s) => s.id === subcategoryId);
+        // Adiciona questão dentro de subcategoria
+        let subItem = newCategory.formItems.find(
+          (item) =>
+            item.formItemType === "SUBCATEGORY" &&
+            item.referenceId === subcategoryId,
+        );
 
-        if (!sub) {
-          sub = {
-            id: subcategoryId,
+        if (!subItem) {
+          subItem = {
+            formItemType: "SUBCATEGORY",
+            referenceId: subcategoryId,
             name: question.subcategory!.name,
-            position: newCategory.subcategories.length + 1,
+            position: newCategory.formItems.length + 1, // insere no final
+            notes: null,
             questions: [],
           };
         }
 
-        // Cria novo array de questões da subcategoria
-        const newSubQuestions = [
-          ...sub.questions,
-          { ...question, position: sub.questions.length + 1 },
-        ];
-        sub = { ...sub, questions: newSubQuestions };
+        // Adiciona a questão dentro da subcategoria
+        subItem = {
+          ...subItem,
+          questions: [
+            ...(subItem.questions ?? []),
+            {
+              referenceId: question.id,
+              name: question.name,
+              notes: question.notes,
+              questionType: question.questionType,
+              position: (subItem.questions?.length ?? 0) + 1,
+              characterType: question.characterType,
+              optionType: question.optionType,
+              options: question.options,
+            },
+          ],
+        };
 
-        // Atualiza o array de subcategorias
-        const newSubcategories = [
-          ...newCategory.subcategories.filter((s) => s.id !== subcategoryId),
-          sub,
-        ];
+        // Atualiza formItems substituindo ou adicionando subcategoria
+        const newFormItems = [
+          ...newCategory.formItems.filter(
+            (item) =>
+              !(
+                item.formItemType === "SUBCATEGORY" &&
+                item.referenceId === subcategoryId
+              ),
+          ),
+          subItem,
+        ].sort((a, b) => a.position - b.position);
 
-        newCategory = { ...newCategory, subcategories: newSubcategories };
+        newCategory = { ...newCategory, formItems: newFormItems };
       } else {
-        // Questão sem subcategoria
-        const newQuestions = [
-          ...newCategory.questions,
-          { ...question, position: newCategory.questions.length + 1 },
-        ];
-        newCategory = { ...newCategory, questions: newQuestions };
+        // Adiciona questão direta na categoria
+        const questionItem: (typeof newCategory.formItems)[number] = {
+          formItemType: "QUESTION",
+          referenceId: question.id,
+          name: question.name,
+          notes: question.notes,
+          questionType: question.questionType,
+          characterType: question.characterType,
+          optionType: question.optionType,
+          options: question.options,
+          position: newCategory.formItems.length + 1,
+        };
+
+        newCategory = {
+          ...newCategory,
+          formItems: [...newCategory.formItems, questionItem].sort(
+            (a, b) => a.position - b.position,
+          ),
+        };
       }
 
-      // Atualiza a lista de categorias
+      // Atualiza lista de categorias
       const newCategories = [
         ...prev.categories.filter((cat) => cat.id !== categoryId),
         newCategory,
@@ -151,12 +177,6 @@ const ClientV2 = ({
 
       return { ...prev, categories: newCategories };
     });
-  };
-
-  const removeQuestionId = (questionId: number) => {
-    /*setFormQuestionsIds((prev) => {
-      return prev.filter((id) => id !== questionId);
-    });*/
   };
 
   console.log(formTree);
@@ -177,14 +197,14 @@ const ClientV2 = ({
     console.log("TREE CHANGED");
     const questionsIds: number[] = [];
     formTree.categories.forEach((c) => {
-      c.questions.forEach((q) => {
-        questionsIds.push(q.id);
-      });
-
-      c.subcategories.forEach((s) => {
-        s.questions.forEach((q) => {
-          questionsIds.push(q.id);
-        });
+      c.formItems.forEach((fi) => {
+        if (fi.formItemType === "QUESTION") {
+          questionsIds.push(fi.referenceId);
+        } else if (fi.formItemType === "SUBCATEGORY") {
+          fi.questions?.forEach((q) => {
+            questionsIds.push(q.referenceId);
+          });
+        }
       });
     });
     setFormQuestionsIds(questionsIds);
@@ -272,11 +292,7 @@ const ClientV2 = ({
                 </Button>
               </div>
             )}
-            <FormEditor
-              formTree={formTree}
-              setFormTree={setFormTree}
-              removeQuestionId={removeQuestionId}
-            />
+            {<FormEditor formTree={formTree} setFormTree={setFormTree} />}
           </div>
         </div>
         <div

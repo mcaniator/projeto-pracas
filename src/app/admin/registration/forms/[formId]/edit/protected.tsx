@@ -8,6 +8,7 @@ const Edit = async (props: { params: Promise<{ formId: string }> }) => {
   const response = await getFormTree(Number(params.formId));
   const dbFormTree = response.formTree;
   const categories = await getCategories();
+  console.log("DB FORM TREE", dbFormTree);
   if (dbFormTree)
     return <ClientV2 dbFormTree={dbFormTree} categories={categories} />;
 };
