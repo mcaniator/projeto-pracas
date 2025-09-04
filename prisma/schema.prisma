@@ -230,9 +230,9 @@ model Category {
   calculation Calculation[]
 
   subcategory Subcategory[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  formItems   FormItem[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
   @@map("category")
 }
@@ -246,6 +246,7 @@ model Subcategory {
   notes       String?       @db.Text
   question    Question[]
   calculation Calculation[]
+  formItems   FormItem[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -281,6 +282,8 @@ model Question {
   ResponseOption ResponseOption[]
 
   geometries QuestionGeometry[]
+
+  formItems FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -393,18 +396,20 @@ model Form {
 }
 
 model FormItem {
-  id               Int          @id @default(autoincrement())
-  formId           Int          @map("form_id")
-  parentFormItemId Int?         @map("parent_form_item_id")
-  parentFormItem   FormItem?    @relation("form_item_children", fields: [parentFormItemId], references: [id])
-  formItemType     FormItemType @map("form_item_type")
-  position         Int
-  referenceId      Int          @map("reference_id") //questionId, subcategoryId or categoryId
+  id       Int @id @default(autoincrement())
+  formId   Int @map("form_id")
+  position Int
 
-  children FormItem[] @relation("form_item_children")
-  Form     Form       @relation(fields: [formId], references: [id])
+  categoryId    Int  @map("category_id")
+  subcategoryId Int? @map("subcategory_id")
+  questionId    Int? @map("question_id")
 
-  @@unique([formId, formItemType, referenceId])
+  category    Category     @relation(fields: [categoryId], references: [id])
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
+  question    Question?    @relation(fields: [questionId], references: [id])
+  Form        Form         @relation(fields: [formId], references: [id])
+
+  @@unique([formId, categoryId, subcategoryId, questionId])
   @@map("form_item")
 }
 

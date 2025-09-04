@@ -6,60 +6,57 @@ import CTextField from "@components/ui/cTextField";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
 import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
-import { DndContext, closestCorners } from "@dnd-kit/core";
 import {
-  FormItemType,
   OptionTypes,
+  QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
 import { CategoriesWithQuestionsAndStatusCode } from "@queries/category";
-import { FormToEditPage } from "@queries/form";
 import { _updateFormV2 } from "@serverActions/formUtil";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import QuestionFormV2 from "./questionFormV2";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
   ssr: false,
 });
 
-type FormEditorTree = {
+export type SubcategoryItem = {
+  position: number;
+  subcategoryId: number;
+  name: string;
+  notes: string | null;
+  questions: QuestionItem[];
+};
+
+export type QuestionItem = {
+  position: number;
+  questionId: number;
+  name: string;
+  notes: string | null;
+  questionType: QuestionTypes;
+  characterType: QuestionResponseCharacterTypes;
+  optionType?: OptionTypes | null;
+  options?: {
+    text: string;
+  }[];
+  geometryTypes: [QuestionGeometryTypes];
+};
+
+export type CategoryItem = {
+  categoryId: number;
+  name: string;
+  position: number;
+  categoryChildren: (QuestionItem | SubcategoryItem)[];
+};
+
+export type FormEditorTree = {
   id: number;
   name: string;
-  categories: {
-    id: number;
-    name: string;
-    position: number;
-    formItems: {
-      formItemType: FormItemType;
-      position: number;
-      referenceId: number;
-      name: string;
-      notes: string | null;
-      questionType?: QuestionTypes; //only if type = QUESTION
-      characterType?: QuestionResponseCharacterTypes; //only if type = QUESTION
-      optionType?: OptionTypes | null; //only if type = QUESTION
-      options?: {
-        //only if type = QUESTION
-        text: string;
-      }[];
-      questions?: {
-        //only if type = SUBCATEGORY
-        referenceId: number;
-        name: string;
-        notes: string | null;
-        questionType: QuestionTypes;
-        position: number;
-        characterType: QuestionResponseCharacterTypes;
-        optionType: OptionTypes | null;
-        options: {
-          text: string;
-        }[];
-      }[];
-    }[];
-  }[];
+  categories: CategoryItem[];
 };
 
 const ClientV2 = ({
@@ -85,13 +82,15 @@ const ClientV2 = ({
       const subcategoryId = question.subcategory?.id;
 
       // Busca ou cria categoria
-      let category = prev.categories.find((cat) => cat.id === categoryId);
+      let category = prev.categories.find(
+        (cat) => cat.categoryId === categoryId,
+      );
       if (!category) {
         category = {
-          id: categoryId,
+          categoryId: categoryId,
           name: question.category.name,
           position: prev.categories.length + 1,
-          formItems: [],
+          categoryChildren: [],
         };
       }
 
@@ -99,18 +98,17 @@ const ClientV2 = ({
 
       if (subcategoryId) {
         // Adiciona questão dentro de subcategoria
-        let subItem = newCategory.formItems.find(
-          (item) =>
-            item.formItemType === "SUBCATEGORY" &&
-            item.referenceId === subcategoryId,
+        let subItem = newCategory.categoryChildren.find(
+          (item): item is SubcategoryItem =>
+            FormItemUtils.isSubcategoryType(item) &&
+            item.subcategoryId === subcategoryId,
         );
 
         if (!subItem) {
           subItem = {
-            formItemType: "SUBCATEGORY",
-            referenceId: subcategoryId,
+            subcategoryId: subcategoryId,
             name: question.subcategory!.name,
-            position: newCategory.formItems.length + 1, // insere no final
+            position: newCategory.categoryChildren.length + 1, // insere no final
             notes: null,
             questions: [],
           };
@@ -122,7 +120,7 @@ const ClientV2 = ({
           questions: [
             ...(subItem.questions ?? []),
             {
-              referenceId: question.id,
+              questionId: question.id,
               name: question.name,
               notes: question.notes,
               questionType: question.questionType,
@@ -130,48 +128,50 @@ const ClientV2 = ({
               characterType: question.characterType,
               optionType: question.optionType,
               options: question.options,
+              geometryTypes: question.geometryTypes,
             },
           ],
         };
 
         // Atualiza formItems substituindo ou adicionando subcategoria
-        const newFormItems = [
-          ...newCategory.formItems.filter(
+        const newCategoryChildren = [
+          ...newCategory.categoryChildren.filter(
             (item) =>
               !(
-                item.formItemType === "SUBCATEGORY" &&
-                item.referenceId === subcategoryId
+                FormItemUtils.isSubcategoryType(item) &&
+                item.subcategoryId === subcategoryId
               ),
           ),
           subItem,
         ].sort((a, b) => a.position - b.position);
 
-        newCategory = { ...newCategory, formItems: newFormItems };
+        newCategory = { ...newCategory, categoryChildren: newCategoryChildren };
       } else {
         // Adiciona questão direta na categoria
-        const questionItem: (typeof newCategory.formItems)[number] = {
-          formItemType: "QUESTION",
-          referenceId: question.id,
+        const questionItem: QuestionItem = {
+          questionId: question.id,
           name: question.name,
           notes: question.notes,
           questionType: question.questionType,
           characterType: question.characterType,
           optionType: question.optionType,
           options: question.options,
-          position: newCategory.formItems.length + 1,
+          geometryTypes: question.geometryTypes,
+          position: newCategory.categoryChildren.length + 1,
         };
 
         newCategory = {
           ...newCategory,
-          formItems: [...newCategory.formItems, questionItem].sort(
-            (a, b) => a.position - b.position,
-          ),
+          categoryChildren: [
+            ...newCategory.categoryChildren,
+            questionItem,
+          ].sort((a, b) => a.position - b.position),
         };
       }
 
       // Atualiza lista de categorias
       const newCategories = [
-        ...prev.categories.filter((cat) => cat.id !== categoryId),
+        ...prev.categories.filter((cat) => cat.categoryId !== categoryId),
         newCategory,
       ].sort((a, b) => a.position - b.position);
 
@@ -197,12 +197,12 @@ const ClientV2 = ({
     console.log("TREE CHANGED");
     const questionsIds: number[] = [];
     formTree.categories.forEach((c) => {
-      c.formItems.forEach((fi) => {
-        if (fi.formItemType === "QUESTION") {
-          questionsIds.push(fi.referenceId);
-        } else if (fi.formItemType === "SUBCATEGORY") {
+      c.categoryChildren.forEach((fi) => {
+        if (FormItemUtils.isQuestionType(fi)) {
+          questionsIds.push(fi.questionId);
+        } else if (FormItemUtils.isSubcategoryType(fi)) {
           fi.questions?.forEach((q) => {
-            questionsIds.push(q.referenceId);
+            questionsIds.push(q.questionId);
           });
         }
       });
@@ -297,6 +297,10 @@ const ClientV2 = ({
         </div>
         <div
           className={`col-span-2 h-full overflow-auto ${isMobileView ? "hidden" : ""}`}
+          style={{
+            borderLeft: "solid 1px gray",
+            boxShadow: "-4px 0 6px -2px rgba(0, 0, 0, 0.3)",
+          }}
         >
           <QuestionFormV2
             addQuestion={addQuestion}
@@ -324,4 +328,3 @@ const ClientV2 = ({
 };
 
 export default ClientV2;
-export type { FormEditorTree };

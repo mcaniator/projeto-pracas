@@ -6,16 +6,24 @@ import { Button } from "@components/button";
 import { Select } from "@components/ui/select";
 import { useHelperCard } from "@context/helperCardContext";
 import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
+import Chip from "@mui/material/Chip";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import {
   OptionTypes,
+  QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
 import { CategoriesWithQuestions } from "@queries/category";
-import { IconCirclePlus, IconX } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { IconCirclePlus, IconKeyboard, IconX } from "@tabler/icons-react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
+
+import CustomModal from "../../../../../../components/modal/customModal";
+import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
 
 type SearchMethods = "CATEGORY" | "STATEMENT";
 
@@ -86,7 +94,7 @@ const QuestionFormV2 = ({
       });
   }, [selectedCategoryAndSubcategoryId, setHelperCard]);
   return (
-    <div className="flex h-full flex-col bg-gray-400">
+    <div className="flex h-full flex-col bg-white px-3 text-black">
       <h3 className="text-2xl font-semibold">Questões</h3>
       <ToggleButtonGroup
         value={currentSearchMethod}
@@ -98,9 +106,53 @@ const QuestionFormV2 = ({
         }}
         size="small"
         color="primary"
+        sx={{
+          padding: "6px 6px",
+          bgcolor: "grey.100",
+          width: "fit-content",
+          boxShadow: "inset 0 0 4px rgba(0,0,0,0.3)",
+        }}
       >
-        <ToggleButton value="CATEGORY">Categorias</ToggleButton>
-        <ToggleButton value="STATEMENT">Enunciado</ToggleButton>
+        <ToggleButton
+          value="CATEGORY"
+          sx={{
+            bgcolor: "grey.100",
+            color: "black",
+            border: "none",
+            "&.Mui-selected": {
+              bgcolor: "primary.dark",
+              color: "white",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              },
+            },
+            "&:hover": {
+              bgcolor: "grey.300",
+            },
+          }}
+        >
+          Categorias
+        </ToggleButton>
+        <ToggleButton
+          value="STATEMENT"
+          sx={{
+            bgcolor: "grey.100",
+            color: "black",
+            border: "none",
+            "&.Mui-selected": {
+              bgcolor: "primary.dark",
+              color: "white",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              },
+            },
+            "&:hover": {
+              bgcolor: "grey.300",
+            },
+          }}
+        >
+          Enunciado
+        </ToggleButton>
       </ToggleButtonGroup>
       {currentSearchMethod === "CATEGORY" && (
         <div className="flex flex-col gap-2 overflow-auto">
@@ -186,8 +238,15 @@ const QuestionListV2 = ({
   formQuestionsIds: number[];
   addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
 }) => {
+  const [showQuestionOptionsDialog, setShowQuestionOptionsDialog] =
+    useState(false);
+  const [questionOptions, setQuestionOptions] = useState<{
+    questionName: string;
+    options: string[];
+    optionType: OptionTypes;
+  }>({ questionName: "", options: [], optionType: "RADIO" });
   return (
-    <>
+    <div className="px-1">
       {questions
         .filter((q) => !formQuestionsIds.includes(q.id))
         .map((question) => (
@@ -200,15 +259,36 @@ const QuestionListV2 = ({
             questionType={question.questionType}
             optionType={question.optionType}
             options={question.options}
+            geometryTypes={question.geometryTypes}
             addQuestion={addQuestion}
             showCategory={false}
             categoryId={question.category.id}
             subcategoryId={question.subcategory?.id}
             categoryName={question.category.name}
             subcategoryName={question.subcategory?.name}
+            setQuestionOptions={setQuestionOptions}
+            setShowQuestionOptionsDialog={setShowQuestionOptionsDialog}
           />
         ))}
-    </>
+      <CustomModal
+        title="Questão de múltipla escolha"
+        subtitle={questionOptions.questionName}
+        isOpen={showQuestionOptionsDialog}
+        onOpenChange={(e) => {
+          setShowQuestionOptionsDialog(e);
+        }}
+        disableModalActions
+      >
+        <>
+          <div>Botão radial (apenas uma opção é permitida)</div>
+          <ul className="list-disc px-6 py-3">
+            {questionOptions.options.map((o, index) => (
+              <li key={index}>{o}</li>
+            ))}
+          </ul>
+        </>
+      </CustomModal>
+    </div>
   );
 };
 
@@ -221,11 +301,14 @@ const QuestionComponentV2 = ({
   questionType,
   optionType,
   options,
+  geometryTypes,
   showCategory,
   categoryId,
   subcategoryId,
   categoryName,
   subcategoryName,
+  setQuestionOptions,
+  setShowQuestionOptionsDialog,
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
@@ -234,19 +317,59 @@ const QuestionComponentV2 = ({
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
+  geometryTypes: [QuestionGeometryTypes];
   options: { text: string }[];
   showCategory: boolean;
   categoryId: number;
   subcategoryId?: number;
   categoryName: string;
   subcategoryName?: string;
+  setQuestionOptions: Dispatch<
+    SetStateAction<{
+      questionName: string;
+      options: string[];
+      optionType: OptionTypes;
+    }>
+  >;
+  setShowQuestionOptionsDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
   return (
     <div
       key={questionId}
-      className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black"
+      className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black outline outline-1 outline-gray-600"
     >
-      {name}
+      <div className="flex gap-1" style={{ width: "120px" }}>
+        <CQuestionTypeChip
+          questionType={questionType}
+          optionType={optionType}
+          sx={
+            questionType === "OPTIONS" ?
+              {
+                color: "blue",
+                "&:hover": {
+                  cursor: "pointer",
+                  backgroundColor: "#9090ff",
+                },
+              }
+            : undefined
+          }
+          onClick={() => {
+            if (!optionType || questionType !== "OPTIONS") {
+              return;
+            }
+            setQuestionOptions({
+              questionName: name,
+              optionType: optionType,
+              options: options.map((o) => o.text),
+            });
+            setShowQuestionOptionsDialog(true);
+          }}
+        />
+        <CQuestionCharacterTypeChip characterType={characterType} />
+        <CQuestionGeometryChip geometryTypes={geometryTypes} />
+      </div>
+      <div className="truncate">{name}</div>
+
       {showCategory &&
         `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
       <Button
@@ -261,6 +384,7 @@ const QuestionComponentV2 = ({
             questionType,
             optionType,
             options,
+            geometryTypes,
             category: { id: categoryId, name: categoryName },
             subcategory:
               subcategoryId && subcategoryName ?

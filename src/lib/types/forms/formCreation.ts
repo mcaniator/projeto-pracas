@@ -1,6 +1,7 @@
 import {
   CalculationTypes,
   OptionTypes,
+  QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
@@ -15,6 +16,7 @@ type FormQuestionWithCategoryAndSubcategory = {
   options: {
     text: string;
   }[];
+  geometryTypes: [QuestionGeometryTypes];
   category: {
     id: number;
     name: string;

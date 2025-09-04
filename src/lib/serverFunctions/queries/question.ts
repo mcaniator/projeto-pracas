@@ -26,6 +26,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
         characterType: true,
         optionType: true,
         options: true,
+        geometryTypes: true,
         category: {
           select: {
             id: true,
