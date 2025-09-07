@@ -43,7 +43,7 @@ export type QuestionItem = {
   options?: {
     text: string;
   }[];
-  geometryTypes: [QuestionGeometryTypes];
+  geometryTypes: QuestionGeometryTypes[];
 };
 
 export type CategoryItem = {
@@ -60,18 +60,23 @@ export type FormEditorTree = {
 };
 
 const ClientV2 = ({
-  dbFormTree,
+  form,
   categories,
+  formId,
 }: {
-  dbFormTree: FormEditorTree;
+  form: {
+    formTree: FormEditorTree;
+    statusCode: number;
+  };
   categories: CategoriesWithQuestionsAndStatusCode;
+  formId: number;
 }) => {
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const [formName, setFormName] = useState("test");
+  const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
-  const [formTree, setFormTree] = useState<FormEditorTree>(dbFormTree);
+  const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
 
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
@@ -179,8 +184,6 @@ const ClientV2 = ({
     });
   };
 
-  console.log(formTree);
-
   useEffect(() => {
     const handleResize = () => {
       setIsMobileView(window.innerWidth < 1000);
@@ -194,7 +197,6 @@ const ClientV2 = ({
   }, []);
 
   useEffect(() => {
-    console.log("TREE CHANGED");
     const questionsIds: number[] = [];
     formTree.categories.forEach((c) => {
       c.categoryChildren.forEach((fi) => {
@@ -214,8 +216,8 @@ const ClientV2 = ({
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
       const response = await _updateFormV2({
-        formId: dbFormTree.id,
-        oldFormName: dbFormTree.name,
+        formId: formId,
+        oldFormName: form.formTree.name,
         newFormName: formName,
         formTree: formTree,
       });

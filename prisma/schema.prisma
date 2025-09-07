@@ -93,12 +93,6 @@ enum WeatherConditions {
   @@map("weather_conditions")
 }
 
-enum FormItemType {
-  CATEGORY
-  SUBCATEGORY
-  QUESTION
-}
-
 // #endregion
 
 // #region Auth

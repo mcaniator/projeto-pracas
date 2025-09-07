@@ -1,16 +1,13 @@
 import { FormCalculation } from "@customTypes/forms/formCreation";
-import { mapFormToFormTree } from "@formatters/formFormatters";
 import { prisma } from "@lib/prisma";
-import {
-  FormItemType,
-  OptionTypes,
-  QuestionResponseCharacterTypes,
-  QuestionTypes,
-} from "@prisma/client";
 import { QuestionWithCategories } from "@serverActions/questionUtil";
-import { getForm } from "@serverOnly/formTree";
 
-import { FormEditorTree } from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+import {
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+import { FormItemUtils } from "../../utils/formTreeUtils";
 
 type FormToEditPage = {
   id: number;
@@ -43,148 +40,167 @@ const fetchFormsLatest = async () => {
 };
 
 const getFormTree = async (formId: number) => {
-  type FlatFormItem = {
-    id: number;
-    formItemType: FormItemType;
-    referenceId: number;
-    position: number;
-    parentFormItemId: number | null;
-    name: string;
-    notes: string | null;
-    formItems?: FlatFormItem[]; // para CATEGORY
-    questions?: FlatFormItem[]; // para SUBCATEGORY
-    questionType?: QuestionTypes;
-    characterType?: QuestionResponseCharacterTypes;
-    optionType?: OptionTypes | null;
-    options?: { text: string }[];
-  };
   try {
-    const formItems = await prisma.formItem.findMany({
-      where: { formId },
+    const form = await prisma.form.findUnique({
+      where: { id: formId },
       select: {
         id: true,
-        formItemType: true,
-        referenceId: true,
-        position: true,
-        parentFormItemId: true,
+        name: true,
+        formItems: {
+          orderBy: { position: "asc" },
+          include: {
+            category: {
+              select: {
+                name: true,
+                notes: true,
+              },
+            },
+            subcategory: {
+              select: {
+                name: true,
+                notes: true,
+                categoryId: true,
+              },
+            },
+            question: {
+              select: {
+                name: true,
+                notes: true,
+                questionType: true,
+                characterType: true,
+                optionType: true,
+                options: { select: { text: true } },
+                categoryId: true,
+                subcategoryId: true,
+                geometryTypes: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    //Separate ids per type
-    const categoryIds = formItems
-      .filter((f) => f.formItemType === "CATEGORY")
-      .map((f) => f.referenceId);
-    const subcategoryIds = formItems
-      .filter((f) => f.formItemType === "SUBCATEGORY")
-      .map((f) => f.referenceId);
-    const questionIds = formItems
-      .filter((f) => f.formItemType === "QUESTION")
-      .map((f) => f.referenceId);
+    const formItems = form?.formItems ?? [];
 
-    //Fetch data in referenced tables
-    const [categories, subcategories, questions] = await Promise.all([
-      prisma.category.findMany({
-        where: { id: { in: categoryIds } },
-        select: { id: true, name: true, notes: true },
-      }),
-      prisma.subcategory.findMany({
-        where: { id: { in: subcategoryIds } },
-        select: { id: true, name: true, notes: true, categoryId: true },
-      }),
-      prisma.question.findMany({
-        where: { id: { in: questionIds } },
-        select: {
-          id: true,
-          name: true,
-          notes: true,
-          questionType: true,
-          characterType: true,
-          optionType: true,
-          categoryId: true,
-          subcategoryId: true,
-          options: { select: { text: true } },
-        },
-      }),
-      prisma.option.findMany({
-        where: { questionId: { in: questionIds } },
-        select: { questionId: true, text: true },
-      }),
-    ]);
+    const categories: CategoryItem[] = [];
 
-    // Mapping data
-    const flatItems = formItems.map((fi) => {
-      if (fi.formItemType === "CATEGORY") {
-        const data = categories.find((c) => c.id === fi.referenceId)!;
-        return { ...fi, name: data.name, notes: data.notes, formItems: [] };
-      }
-      if (fi.formItemType === "SUBCATEGORY") {
-        const data = subcategories.find((s) => s.id === fi.referenceId)!;
-        return { ...fi, name: data.name, notes: data.notes, questions: [] };
-      }
-      if (fi.formItemType === "QUESTION") {
-        const data = questions.find((q) => q.id === fi.referenceId)!;
-        return {
-          ...fi,
-          name: data.name,
-          notes: data.notes,
-          questionType: data.questionType,
-          characterType: data.characterType,
-          optionType: data.optionType,
-          options: data.options.map((o) => ({ text: o.text })),
-        };
-      }
-      return fi;
+    if (!form || !formItems) throw new Error("Form not found or has no items");
+
+    const sortedFormItems = formItems.sort((a, b) => {
+      const rankDiff =
+        FormItemUtils.getItemRankForSorting(a) -
+        FormItemUtils.getItemRankForSorting(b);
+      if (rankDiff !== 0) return rankDiff;
+
+      return a.position - b.position;
     });
 
-    // Building tree
-    const treeCategories: FormEditorTree["categories"] = [];
-    const itemMap = new Map<number, FlatFormItem>();
-    flatItems.forEach((fi) => itemMap.set(fi.id, fi));
-
-    flatItems.forEach((fi) => {
-      if (!fi.parentFormItemId && fi.formItemType === "CATEGORY") {
-        treeCategories.push(fi);
-      } else if (fi.parentFormItemId) {
-        const parent = itemMap.get(fi.parentFormItemId);
-        if (!parent) return;
-
-        if (fi.formItemType === "SUBCATEGORY") {
-          parent.formItems.push(fi);
-        } else if (fi.formItemType === "QUESTION") {
-          if (parent.formItemType === "CATEGORY") {
-            parent.formItems.push(fi);
-          } else if (parent.formItemType === "SUBCATEGORY") {
-            parent.questions.push(fi);
-          }
+    for (const item of sortedFormItems) {
+      // CATEGORY
+      if (FormItemUtils.isCategoryType(item)) {
+        if (!categories.find((c) => c.categoryId === item.categoryId)) {
+          categories.push({
+            categoryId: item.categoryId,
+            name: item.category.name,
+            position: item.position,
+            categoryChildren: [],
+          });
         }
+        continue;
       }
-    });
 
-    // Ordenar cada nível
-    treeCategories.sort((a, b) => a.position - b.position);
-    treeCategories.forEach((cat) => {
-      cat.formItems.sort((a, b) => a.position - b.position);
-      cat.formItems.forEach((sub) => {
-        if (sub.questions)
-          sub.questions.sort((a, b) => a.position - b.position);
+      // SUBCATEGORY
+      else if (FormItemUtils.isSubcategoryType(item)) {
+        const dbSubcategory = item.subcategory;
+        if (!dbSubcategory) {
+          throw new Error("Subcategory form item without subcategory data");
+        }
+        const category = categories.find(
+          (c) => c.categoryId === dbSubcategory.categoryId,
+        );
+        if (!category) {
+          throw new Error("Subcategory's category not found");
+        }
+
+        let subcategory = category.categoryChildren.find(
+          (c): c is SubcategoryItem =>
+            FormItemUtils.isSubcategoryType(c) &&
+            c.subcategoryId === item.subcategoryId,
+        );
+
+        if (!subcategory) {
+          subcategory = {
+            position: item.position,
+            subcategoryId: item.subcategoryId,
+            name: dbSubcategory.name,
+            notes: dbSubcategory.notes,
+            questions: [],
+          };
+          category.categoryChildren.push(subcategory);
+        }
+        continue;
+      }
+
+      // QUESTION
+      else if (FormItemUtils.isQuestionType(item)) {
+        const dbQuestion = item.question;
+        if (!dbQuestion) {
+          throw new Error("Question form item without question data");
+        }
+        const question: QuestionItem = {
+          position: item.position,
+          questionId: item.questionId,
+          name: dbQuestion.name,
+          notes: dbQuestion.notes,
+          questionType: dbQuestion.questionType,
+          characterType: dbQuestion.characterType,
+          optionType: dbQuestion.optionType,
+          options: dbQuestion.options,
+          geometryTypes: dbQuestion.geometryTypes,
+        };
+        const category = categories.find(
+          (c) => c.categoryId === dbQuestion.categoryId,
+        );
+        if (!category) {
+          throw new Error("Question's category not found");
+        }
+        if (dbQuestion.subcategoryId) {
+          // question is inserted in a subcategory
+          const subcategory = category.categoryChildren.find(
+            (c): c is SubcategoryItem =>
+              FormItemUtils.isSubcategoryType(c) &&
+              c.subcategoryId === dbQuestion.subcategoryId,
+          );
+          if (subcategory) {
+            subcategory.questions.push(question);
+          }
+        } else {
+          // question inserted directly in category
+          category.categoryChildren.push(question);
+        }
+        continue;
+      }
+    }
+
+    // Sorting by position
+    categories.sort((a, b) => a.position - b.position);
+    categories.forEach((cat) => {
+      cat.categoryChildren.sort((a, b) => a.position - b.position);
+      cat.categoryChildren.forEach((child) => {
+        if (FormItemUtils.isSubcategoryType(child))
+          child.questions.sort((a, b) => a.position - b.position);
       });
-    });
-
-    const form = await prisma.form.findUnique({
-      where: { id: formId },
-      select: { id: true, name: true },
     });
 
     return {
       statusCode: 200,
       formTree: {
-        id: form!.id,
-        name: form!.name,
-        categories: treeCategories,
+        id: form.id,
+        name: form.name,
+        categories: categories,
       },
     };
   } catch (e) {
-    console.log(e);
     return { statusCode: 500, formTree: null };
   }
 };

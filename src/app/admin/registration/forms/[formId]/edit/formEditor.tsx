@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { FormItemType } from "@enums/formTree";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -26,9 +27,9 @@ import {
   IconInfoCircle,
   IconTrash,
 } from "@tabler/icons-react";
+import { FormItemUtils } from "@utils/formTreeUtils";
 import React, { useState } from "react";
 
-import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import { FormEditorTree } from "./clientV2";
 
 const FormEditor = ({
@@ -215,7 +216,7 @@ const SortableCategory = ({
             </div>
             <strong>{category.name}</strong>
             <Chip
-              label={`Questões: ${category.categoryChildren.filter((fi) => FormItemUtils.getFormItemType(fi) === "QUESTION").length}`}
+              label={`Questões: ${category.categoryChildren.filter((fi) => FormItemUtils.isQuestionType(fi)).length}`}
               sx={{
                 backgroundColor: "#1976d2",
                 color: "#fff",
@@ -223,7 +224,7 @@ const SortableCategory = ({
               }}
             />
             <Chip
-              label={`Subcategorias: ${category.categoryChildren.filter((fi) => FormItemUtils.getFormItemType(fi) === "SUBCATEGORY").length}`}
+              label={`Subcategorias: ${category.categoryChildren.filter((fi) => FormItemUtils.isSubcategoryType(fi)).length}`}
               sx={{
                 backgroundColor: "#1976d2",
                 color: "#fff",
@@ -525,7 +526,7 @@ const SortableFormItem = ({
               <SortableContext
                 items={formItem.questions.map(
                   (fi) =>
-                    `formItem-${categoryId}-${formItem.subcategoryId}-QUESTION-${fi.questionId}`,
+                    `formItem-${categoryId}-${formItem.subcategoryId}-${FormItemType.QUESTION}-${fi.questionId}`,
                 )}
                 strategy={verticalListSortingStrategy}
               >

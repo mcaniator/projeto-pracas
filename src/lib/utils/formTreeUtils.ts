@@ -1,4 +1,4 @@
-import { FormItemType } from "@prisma/client";
+import { FormItemType } from "@enums/formTree";
 
 import {
   QuestionItem,
@@ -25,10 +25,13 @@ abstract class FormItemUtils {
     subcategoryId?: number | null;
     questionId?: number | null;
   }): item is SubcategoryItem {
-    if ("questionId" in item || "subcategoryId" in item) {
+    if (
+      ("questionId" in item && item.questionId !== null) ||
+      ("subcategoryId" in item && item.subcategoryId !== null)
+    ) {
       return false;
     }
-    return true;
+    return item.categoryId != null && "categoryId" in item;
   }
 
   public static isSubcategoryType(item: {
@@ -36,10 +39,10 @@ abstract class FormItemUtils {
     subcategoryId?: number | null;
     questionId?: number | null;
   }): item is SubcategoryItem {
-    if ("questionId" in item) {
+    if ("questionId" in item && item.questionId !== null) {
       return false;
     }
-    return true;
+    return item.subcategoryId != null && "subcategoryId" in item;
   }
 
   public static isQuestionType(item: {
@@ -48,7 +51,7 @@ abstract class FormItemUtils {
     questionId?: number | null;
   }): item is QuestionItem {
     if ("questionId" in item) {
-      return true;
+      return item.questionId !== null;
     }
     return false;
   }
@@ -68,6 +71,18 @@ abstract class FormItemUtils {
       //Is subcategory
       return `formItem-${categoryId}-${subcategoryId ?? "null"}-${FormItemType.SUBCATEGORY}-${item.subcategoryId}`;
     }
+  }
+
+  public static getItemRankForSorting(item: {
+    categoryId?: number;
+    subcategoryId?: number | null;
+    questionId?: number | null;
+  }) {
+    if (item.categoryId && !item.subcategoryId && !item.questionId) return 1;
+    if (item.categoryId && item.subcategoryId && !item.questionId) return 2;
+    if (item.questionId) return 3;
+    console.log("Invalid item for rank sorting:", item);
+    throw new Error("Invalid item type");
   }
 }
 
