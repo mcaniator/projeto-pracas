@@ -6,7 +6,7 @@ const _searchQuestionsByCategoryAndSubcategory = async ({
   verifySubcategoryNullness,
 }: {
   categoryId?: number;
-  subcategoryId?: number;
+  subcategoryId: number | null;
   verifySubcategoryNullness: boolean;
 }) => {
   const queryParams = new URLSearchParams();
@@ -15,7 +15,11 @@ const _searchQuestionsByCategoryAndSubcategory = async ({
     queryParams.append("categoryId", String(categoryId));
   }
 
-  if (subcategoryId !== undefined) {
+  if (
+    subcategoryId !== undefined &&
+    subcategoryId !== -1 &&
+    subcategoryId !== 0
+  ) {
     queryParams.append("subcategoryId", String(subcategoryId));
   }
 

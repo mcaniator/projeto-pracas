@@ -22,14 +22,14 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import {
-  IconGripVertical,
-  IconInfoCircle,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { FormItemUtils } from "@utils/formTreeUtils";
 import React, { useState } from "react";
 
+import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
+import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
 import { FormEditorTree } from "./clientV2";
 
 const FormEditor = ({
@@ -218,16 +218,16 @@ const SortableCategory = ({
             <Chip
               label={`Questões: ${category.categoryChildren.filter((fi) => FormItemUtils.isQuestionType(fi)).length}`}
               sx={{
-                backgroundColor: "#1976d2",
-                color: "#fff",
+                backgroundColor: "primary.main",
+                color: "primary.contrastText",
                 fontWeight: "bold",
               }}
             />
             <Chip
               label={`Subcategorias: ${category.categoryChildren.filter((fi) => FormItemUtils.isSubcategoryType(fi)).length}`}
               sx={{
-                backgroundColor: "#1976d2",
-                color: "#fff",
+                backgroundColor: "primary.main",
+                color: "primary.contrastText",
                 fontWeight: "bold",
               }}
             />
@@ -510,8 +510,8 @@ const SortableFormItem = ({
               <Chip
                 label={`Questões: ${formItem.questions?.length}`}
                 sx={{
-                  backgroundColor: "#1976d2",
-                  color: "#fff",
+                  backgroundColor: "primary.main",
+                  color: "primary.contrastText",
                   fontWeight: "bold",
                 }}
               />
@@ -559,26 +559,34 @@ const SortableFormItem = ({
         style={style}
         className="flex items-center justify-between"
       >
-        <div
-          {...listeners}
-          {...attributes}
-          style={{
-            cursor: isDragging ? "grabbing" : "grab",
-            touchAction: "none",
-            padding: "0px 8px",
-          }}
-        >
-          <IconGripVertical />
+        <div className="flex items-center gap-1">
+          <div
+            {...listeners}
+            {...attributes}
+            style={{
+              cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none",
+              padding: "0px 8px",
+            }}
+          >
+            <IconGripVertical />
+          </div>
+          <CQuestionTypeChip
+            questionType={formItem.questionType}
+            optionType={formItem.optionType}
+            options={formItem.options?.map((o) => o.text)}
+            name={formItem.name}
+          />
+          <CQuestionCharacterTypeChip characterType={formItem.characterType} />
+          <CQuestionGeometryChip geometryTypes={formItem.geometryTypes} />
+          <CNotesChip notes={formItem.notes} name={formItem.name} />
         </div>
+
         {formItem.name}
-        <div className="flex gap-1">
-          <Button variant="text">
-            <IconInfoCircle />
-          </Button>
-          <Button variant="text" color="error" onClick={handleQuestionRemoval}>
-            <IconTrash />
-          </Button>
-        </div>
+
+        <Button variant="text" color="error" onClick={handleQuestionRemoval}>
+          <IconTrash />
+        </Button>
       </div>
     );
   }

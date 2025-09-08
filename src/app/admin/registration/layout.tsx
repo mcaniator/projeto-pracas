@@ -5,10 +5,10 @@ import { ReactNode } from "react";
 const RegistrationLayout = ({ children }: { children: ReactNode }) => {
   return (
     <PermissionGuard requiresAnyRoleGroups={["FORM"]} redirect>
-      <main className={"flex h-full flex-col"}>
+      <div className={"flex h-full flex-col"}>
         <NavBar />
         {children}
-      </main>
+      </div>
     </PermissionGuard>
   );
 };

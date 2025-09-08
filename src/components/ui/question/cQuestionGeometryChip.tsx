@@ -1,5 +1,6 @@
 import CIconChip from "@components/ui/cIconChip";
 import { QuestionGeometryTypes } from "@prisma/client";
+import { IconMapOff } from "@tabler/icons-react";
 import { FaMapPin } from "react-icons/fa6";
 import { TbLassoPolygon, TbPolygon } from "react-icons/tb";
 
@@ -13,7 +14,10 @@ const CQuestionGeometryChip = ({
   let icon;
   let tooltip;
 
-  if (geometryTypes.length > 0) {
+  const hasGeometryType = geometryTypes.length > 0;
+  const variant = hasGeometryType ? "default" : "disabled";
+
+  if (hasGeometryType) {
     if (geometryTypes.length === 2) {
       icon = <TbLassoPolygon />;
       tooltip = "Permite adição de geometrias do tipo ponto e polígono no mapa";
@@ -27,10 +31,11 @@ const CQuestionGeometryChip = ({
       }
     }
   } else {
-    return <></>;
+    icon = <IconMapOff />;
+    tooltip = "Não permite adição de geometrias ao mapa";
   }
 
-  return <CIconChip icon={icon} tooltip={tooltip} />;
+  return <CIconChip icon={icon} tooltip={tooltip} variant={variant} />;
 };
 
 export default CQuestionGeometryChip;

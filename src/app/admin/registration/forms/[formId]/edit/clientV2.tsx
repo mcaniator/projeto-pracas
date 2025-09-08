@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@components/button";
 import CustomModal from "@components/modal/customModal";
 import CTextField from "@components/ui/cTextField";
 import { useHelperCard } from "@context/helperCardContext";
@@ -17,6 +16,7 @@ import { _updateFormV2 } from "@serverActions/formUtil";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+import CButton from "../../../../../../components/ui/cButton";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import QuestionFormV2 from "./questionFormV2";
 
@@ -246,14 +246,14 @@ const ClientV2 = ({
   };
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col overflow-auto bg-white">
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
           className={`${
             isMobileView ? "col-span-5" : "col-span-3"
           } overflow-auto`}
         >
-          <div className="flex flex-col gap-1">
+          <div className="mr-2 flex flex-col gap-1">
             <div className="flex flex-row items-center justify-between">
               <CTextField
                 label="Nome"
@@ -263,35 +263,33 @@ const ClientV2 = ({
                 }}
               />
               {!isMobileView && (
-                <Button
+                <CButton
                   className="w-fit"
-                  variant={"constructive"}
-                  onPress={() => {
+                  onClick={() => {
                     void handleUpdateForm();
                   }}
                 >
                   Salvar
-                </Button>
+                </CButton>
               )}
             </div>
             {isMobileView && (
               <div className="flex items-center gap-2">
-                <Button
-                  onPress={() => {
+                <CButton
+                  onClick={() => {
                     setOpenQuestionFormModal(true);
                   }}
                 >
                   Questões
-                </Button>
-                <Button
+                </CButton>
+                <CButton
                   className="w-fit"
-                  variant={"constructive"}
-                  onPress={() => {
+                  onClick={() => {
                     void handleUpdateForm();
                   }}
                 >
                   Salvar
-                </Button>
+                </CButton>
               </div>
             )}
             {<FormEditor formTree={formTree} setFormTree={setFormTree} />}
@@ -308,12 +306,14 @@ const ClientV2 = ({
             addQuestion={addQuestion}
             categories={categories.categories}
             formQuestionsIds={formQuestionsIds}
+            showTitle
           />
         </div>
       </div>
       <CustomModal
         disableModalActions
         fullWidth
+        title="Adicionar questões"
         isOpen={openQuestionFormModal}
         onOpenChange={(e) => {
           setOpenQuestionFormModal(e);
@@ -323,6 +323,7 @@ const ClientV2 = ({
           addQuestion={addQuestion}
           categories={categories.categories}
           formQuestionsIds={formQuestionsIds}
+          showTitle={false}
         />
       </CustomModal>
     </div>

@@ -2,11 +2,8 @@
 
 import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import LoadingIcon from "@components/LoadingIcon";
-import { Button } from "@components/button";
-import { Select } from "@components/ui/select";
 import { useHelperCard } from "@context/helperCardContext";
 import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
-import Chip from "@mui/material/Chip";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import {
@@ -16,11 +13,12 @@ import {
   QuestionTypes,
 } from "@prisma/client";
 import { CategoriesWithQuestions } from "@queries/category";
-import { IconCirclePlus, IconKeyboard, IconX } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
+import { IconCirclePlus, IconX } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
-import CustomModal from "../../../../../../components/modal/customModal";
+import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
+import CButton from "../../../../../../components/ui/cButton";
+import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
@@ -30,10 +28,12 @@ type SearchMethods = "CATEGORY" | "STATEMENT";
 const QuestionFormV2 = ({
   categories,
   formQuestionsIds,
+  showTitle,
   addQuestion,
 }: {
   categories: CategoriesWithQuestions;
   formQuestionsIds: number[];
+  showTitle: boolean;
   addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
@@ -51,11 +51,15 @@ const QuestionFormV2 = ({
     setSelectedCategoryAndSubcategoryId,
   ] = useState<{
     categoryId: number | undefined;
-    subcategoryId: number | undefined;
+    subcategoryId: number | null;
     verifySubcategoryNullness: boolean;
+    categoryName?: string;
+    subcategoryName?: string;
+    categoryNotes?: string | null;
+    subcategoryNotes?: string | null;
   }>({
     categoryId: categories[0]?.id,
-    subcategoryId: undefined,
+    subcategoryId: -1,
     verifySubcategoryNullness: false,
   });
 
@@ -93,15 +97,29 @@ const QuestionFormV2 = ({
         setQuestionsListState("ERROR");
       });
   }, [selectedCategoryAndSubcategoryId, setHelperCard]);
+
+  const subcategoriesOptions =
+    categories.find(
+      (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
+    )?.subcategory || [];
+  const fullSubcategoriesOptions = [
+    { id: -1, name: "TODAS" },
+    { id: 0, name: "NENHUMA" },
+    ...subcategoriesOptions,
+  ];
+
   return (
     <div className="flex h-full flex-col bg-white px-3 text-black">
-      <h3 className="text-2xl font-semibold">Questões</h3>
+      {showTitle && (
+        <h3 className="text-2xl font-semibold">Adicionar questões</h3>
+      )}
+
       <ToggleButtonGroup
         value={currentSearchMethod}
         exclusive
         onChange={(e, newVal) => {
           if (newVal && newVal !== currentSearchMethod) {
-            setCurrentSearchMethod(newVal);
+            setCurrentSearchMethod(newVal as SearchMethods);
           }
         }}
         size="small"
@@ -120,10 +138,10 @@ const QuestionFormV2 = ({
             color: "black",
             border: "none",
             "&.Mui-selected": {
-              bgcolor: "primary.dark",
+              bgcolor: "primary.main",
               color: "white",
               "&:hover": {
-                bgcolor: "primary.dark",
+                bgcolor: "primary.main",
               },
             },
             "&:hover": {
@@ -157,57 +175,42 @@ const QuestionFormV2 = ({
       {currentSearchMethod === "CATEGORY" && (
         <div className="flex flex-col gap-2 overflow-auto">
           <h4>Buscar por categoria: </h4>
-          <label htmlFor="category-select">Categoria: </label>
-          <Select
-            name="category-select"
-            onChange={(e) => {
+          <CAutocomplete
+            options={categories}
+            label="Categoria"
+            className="w-full"
+            value={categories.find(
+              (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
+            )}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            disableClearable
+            onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
-                ...selectedCategoryAndSubcategoryId,
-                categoryId: Number(e.target.value),
+                categoryId: Number(val?.id),
+                subcategoryId: -1,
+                verifySubcategoryNullness: false,
               });
             }}
-          >
-            {categories.map((category) => {
-              return (
-                <option value={category.id} key={category.id}>
-                  {category.name}
-                </option>
-              );
-            })}
-          </Select>
-          <label htmlFor="subcategory-select">Subcategoria: </label>
-          <Select
-            name="subcategory-select"
-            onChange={(e) => {
-              const subcategory =
-                e.target.value === "NULL" || e.target.value === "ALL" ?
-                  undefined
-                : typeof e === "number" ? e
-                : parseInt(e.target.value);
+          />
+          <CAutocomplete
+            options={fullSubcategoriesOptions}
+            label="Subcategoria"
+            className="w-full"
+            value={fullSubcategoriesOptions.find(
+              (fs) => fs.id === selectedCategoryAndSubcategoryId.subcategoryId,
+            )}
+            getOptionLabel={(option) => option.name}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            disableClearable
+            onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
-                subcategoryId: subcategory,
-                verifySubcategoryNullness:
-                  e.target.value === "ALL" ? false : true,
+                subcategoryId: val.id,
+                verifySubcategoryNullness: val.id === -1 ? false : true,
               });
             }}
-          >
-            <option value="ALL">TODAS</option>
-            <option value="NULL">NENHUMA</option>
-
-            {categories
-              .find(
-                (category) =>
-                  category.id === selectedCategoryAndSubcategoryId.categoryId,
-              )
-              ?.subcategory.map((subcategory) => {
-                return (
-                  <option value={subcategory.id} key={subcategory.id}>
-                    {subcategory.name}
-                  </option>
-                );
-              })}
-          </Select>
+          />
           {questionsListState === "LOADING" ?
             <div className="flex justify-center">
               <LoadingIcon className="h-32 w-32 text-2xl" />
@@ -238,56 +241,33 @@ const QuestionListV2 = ({
   formQuestionsIds: number[];
   addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
 }) => {
-  const [showQuestionOptionsDialog, setShowQuestionOptionsDialog] =
-    useState(false);
-  const [questionOptions, setQuestionOptions] = useState<{
-    questionName: string;
-    options: string[];
-    optionType: OptionTypes;
-  }>({ questionName: "", options: [], optionType: "RADIO" });
+  const filteredQuestions = questions.filter(
+    (q) => !formQuestionsIds.includes(q.id),
+  );
   return (
     <div className="px-1">
-      {questions
-        .filter((q) => !formQuestionsIds.includes(q.id))
-        .map((question) => (
-          <QuestionComponentV2
-            key={question.id}
-            questionId={question.id}
-            characterType={question.characterType}
-            name={question.name}
-            notes={question.notes}
-            questionType={question.questionType}
-            optionType={question.optionType}
-            options={question.options}
-            geometryTypes={question.geometryTypes}
-            addQuestion={addQuestion}
-            showCategory={false}
-            categoryId={question.category.id}
-            subcategoryId={question.subcategory?.id}
-            categoryName={question.category.name}
-            subcategoryName={question.subcategory?.name}
-            setQuestionOptions={setQuestionOptions}
-            setShowQuestionOptionsDialog={setShowQuestionOptionsDialog}
-          />
-        ))}
-      <CustomModal
-        title="Questão de múltipla escolha"
-        subtitle={questionOptions.questionName}
-        isOpen={showQuestionOptionsDialog}
-        onOpenChange={(e) => {
-          setShowQuestionOptionsDialog(e);
-        }}
-        disableModalActions
-      >
-        <>
-          <div>Botão radial (apenas uma opção é permitida)</div>
-          <ul className="list-disc px-6 py-3">
-            {questionOptions.options.map((o, index) => (
-              <li key={index}>{o}</li>
-            ))}
-          </ul>
-        </>
-      </CustomModal>
+      {filteredQuestions.length === 0 && (
+        <p className="my-4 text-center">Nenhuma questão restante encontrada!</p>
+      )}
+      {filteredQuestions.map((question) => (
+        <QuestionComponentV2
+          key={question.id}
+          questionId={question.id}
+          characterType={question.characterType}
+          name={question.name}
+          notes={question.notes}
+          questionType={question.questionType}
+          optionType={question.optionType}
+          options={question.options}
+          geometryTypes={question.geometryTypes}
+          addQuestion={addQuestion}
+          showCategory={false}
+          categoryId={question.category.id}
+          subcategoryId={question.subcategory?.id}
+          categoryName={question.category.name}
+          subcategoryName={question.subcategory?.name}
+        />
+      ))}
     </div>
   );
 };
@@ -307,8 +287,6 @@ const QuestionComponentV2 = ({
   subcategoryId,
   categoryName,
   subcategoryName,
-  setQuestionOptions,
-  setShowQuestionOptionsDialog,
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
@@ -324,59 +302,31 @@ const QuestionComponentV2 = ({
   subcategoryId?: number;
   categoryName: string;
   subcategoryName?: string;
-  setQuestionOptions: Dispatch<
-    SetStateAction<{
-      questionName: string;
-      options: string[];
-      optionType: OptionTypes;
-    }>
-  >;
-  setShowQuestionOptionsDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
   return (
     <div
       key={questionId}
       className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black outline outline-1 outline-gray-600"
     >
-      <div className="flex gap-1" style={{ width: "120px" }}>
+      <div className="mr-2 flex flex-wrap gap-1">
         <CQuestionTypeChip
           questionType={questionType}
           optionType={optionType}
-          sx={
-            questionType === "OPTIONS" ?
-              {
-                color: "blue",
-                "&:hover": {
-                  cursor: "pointer",
-                  backgroundColor: "#9090ff",
-                },
-              }
-            : undefined
-          }
-          onClick={() => {
-            if (!optionType || questionType !== "OPTIONS") {
-              return;
-            }
-            setQuestionOptions({
-              questionName: name,
-              optionType: optionType,
-              options: options.map((o) => o.text),
-            });
-            setShowQuestionOptionsDialog(true);
-          }}
+          options={options.map((o) => o.text)}
+          name={name}
         />
         <CQuestionCharacterTypeChip characterType={characterType} />
         <CQuestionGeometryChip geometryTypes={geometryTypes} />
+        <CNotesChip notes={notes} name={name} />
       </div>
-      <div className="truncate">{name}</div>
+      <div>{name}</div>
 
       {showCategory &&
         `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
-      <Button
-        variant={"constructive"}
+      <CButton
         type="submit"
         className={"w-min"}
-        onPress={() =>
+        onClick={() =>
           addQuestion({
             id: questionId,
             name,
@@ -397,7 +347,7 @@ const QuestionComponentV2 = ({
         <span>
           <IconCirclePlus />
         </span>
-      </Button>
+      </CButton>
     </div>
   );
 };
