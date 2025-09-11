@@ -1,7 +1,7 @@
 import { Button } from "@components/button";
 import { IconX } from "@tabler/icons-react";
 
-const DialogHeader = ({
+const CDialogHeader = ({
   title,
   subtitle,
   close,
@@ -35,4 +35,4 @@ const DialogHeader = ({
   );
 };
 
-export default DialogHeader;
+export default CDialogHeader;

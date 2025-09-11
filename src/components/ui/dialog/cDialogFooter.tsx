@@ -2,7 +2,7 @@ import CButton from "@components/ui/cButton";
 import { ButtonProps } from "@mui/material";
 import { ReactNode } from "react";
 
-const DialogFooter = ({
+const CDialogFooter = ({
   cancelChildren,
   confirmChildren,
   cancelVariant,
@@ -35,4 +35,4 @@ const DialogFooter = ({
   );
 };
 
-export default DialogFooter;
+export default CDialogFooter;

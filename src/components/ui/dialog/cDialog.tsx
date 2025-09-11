@@ -10,8 +10,8 @@ import {
 import { TransitionProps } from "@mui/material/transitions";
 import React, { ReactNode } from "react";
 
-import DialogFooter from "./dialogFooter";
-import DialogHeader from "./dialogHeader";
+import CDialogFooter from "./cDialogFooter";
+import CDialogHeader from "./dDialogHeader";
 
 type CDialogProps = DialogProps & {
   title?: string;
@@ -73,7 +73,7 @@ const CDialog = ({
           padding: "0px",
         }}
       >
-        <DialogHeader close={onClose} title={title} subtitle={subtitle} />
+        <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
       </DialogTitle>
 
       <DialogContent
@@ -87,7 +87,7 @@ const CDialog = ({
 
       {!disableModalActions && (
         <DialogActions sx={{ padding: "0px", marginTop: "8px" }}>
-          <DialogFooter
+          <CDialogFooter
             cancelChildren={cancelChildren}
             confirmChildren={confirmChildren}
             cancelVariant={cancelVariant}
