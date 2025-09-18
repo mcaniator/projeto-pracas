@@ -48,7 +48,11 @@ const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
 
       {isPending && <LoadingIcon className="h-32 w-32" />}
       {!isPending && (
-        <div className="z-10 flex w-full lg:w-1/2 flex-col gap-4 h-full p-8 text-center justify-center items-center">
+        <div className="z-10 relative flex w-full lg:w-1/2 flex-col gap-4 h-full p-8 text-center justify-center items-center">
+          <Link className="absolute top-0 -translate-y-28 left-1/2 -translate-x-1/2 flex items-center text-white transition-transform duration-300 ease-in-out hover:scale-105 lg:hidden" href={"/"}>
+            <IconTree size={36} className="inline" />
+            <h1 className="inline text-2xl">Projeto praças</h1>
+          </Link>
           <form action={formAction} className="w-full max-w-xs">
             <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Login</h2>
