@@ -30,9 +30,9 @@ const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   }, [state, setHelperCard]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cambridge-blue to-asparagus">
+    <div className="relative overflow-hidden flex min-h-screen items-center justify-center bg-gradient-to-br from-cambridge-blue to-asparagus">
       
-      <div className="absolute left-0 mt-[20em] lg:mt-0 top-0 h-full w-full ">
+      <div className="absolute lg:left-0 right-40 sm:right-60 top-20 sm:top-0 h-full w-full ">
         <img src="/loginWave.svg" className="h-full w-full object-cover" alt="" />
       </div>
 
