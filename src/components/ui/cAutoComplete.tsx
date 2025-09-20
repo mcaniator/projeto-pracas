@@ -26,12 +26,10 @@ function CAutocomplete<
   const { label, ...rest } = props;
 
   return (
-    <div className="flex items-center">
-      <Autocomplete
-        {...rest}
-        renderInput={(params) => <CTextField {...params} label={label} />}
-      />
-    </div>
+    <Autocomplete
+      {...rest}
+      renderInput={(params) => <CTextField {...params} label={label} />}
+    />
   );
 }
 

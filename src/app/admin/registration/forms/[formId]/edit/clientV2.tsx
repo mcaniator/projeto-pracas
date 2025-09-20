@@ -13,11 +13,16 @@ import {
 } from "@prisma/client";
 import { CategoriesWithQuestionsAndStatusCode } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
+import { IconCalculator } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import CButton from "../../../../../../components/ui/cButton";
+import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGroup";
+import CDialog from "../../../../../../components/ui/dialog/cDialog";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
+import CalculationCreation from "./calculationCreation";
+import Calculations from "./calculations";
 import QuestionFormV2 from "./questionFormV2";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
@@ -78,7 +83,8 @@ const ClientV2 = ({
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
-
+  const [openCalculationModal, setOpenCalculationModal] = useState(false);
+  const [calculationsDialogState, setCalculationsDialogState] = useState(0);
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
     if (formQuestionsIds.includes(question.id)) return;
 
@@ -263,14 +269,24 @@ const ClientV2 = ({
                 }}
               />
               {!isMobileView && (
-                <CButton
-                  className="w-fit"
-                  onClick={() => {
-                    void handleUpdateForm();
-                  }}
-                >
-                  Salvar
-                </CButton>
+                <div className="flex items-center gap-1">
+                  <CButton
+                    disableMinWidth
+                    onClick={() => {
+                      setOpenCalculationModal(true);
+                    }}
+                  >
+                    <IconCalculator />
+                  </CButton>
+                  <CButton
+                    className="w-fit"
+                    onClick={() => {
+                      void handleUpdateForm();
+                    }}
+                  >
+                    Salvar
+                  </CButton>
+                </div>
               )}
             </div>
             {isMobileView && (
@@ -281,6 +297,9 @@ const ClientV2 = ({
                   }}
                 >
                   Questões
+                </CButton>
+                <CButton>
+                  <IconCalculator />
                 </CButton>
                 <CButton
                   className="w-fit"
@@ -295,20 +314,22 @@ const ClientV2 = ({
             {<FormEditor formTree={formTree} setFormTree={setFormTree} />}
           </div>
         </div>
-        <div
-          className={`col-span-2 h-full overflow-auto ${isMobileView ? "hidden" : ""}`}
-          style={{
-            borderLeft: "solid 1px gray",
-            boxShadow: "-4px 0 6px -2px rgba(0, 0, 0, 0.3)",
-          }}
-        >
-          <QuestionFormV2
-            addQuestion={addQuestion}
-            categories={categories.categories}
-            formQuestionsIds={formQuestionsIds}
-            showTitle
-          />
-        </div>
+        {!isMobileView && (
+          <div
+            className={`col-span-2 h-full overflow-auto`}
+            style={{
+              borderLeft: "solid 1px gray",
+              boxShadow: "-4px 0 6px -2px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            <QuestionFormV2
+              addQuestion={addQuestion}
+              categories={categories.categories}
+              formQuestionsIds={formQuestionsIds}
+              showTitle
+            />
+          </div>
+        )}
       </div>
       <CustomModal
         disableModalActions
@@ -326,6 +347,33 @@ const ClientV2 = ({
           showTitle={false}
         />
       </CustomModal>
+      <CDialog
+        title="Cálculos"
+        subtitle="Cálculos preenchem automaticamente o valor de uma questão"
+        open={openCalculationModal}
+        fullScreen
+        onClose={() => {
+          setOpenCalculationModal(false);
+        }}
+      >
+        <CToggleButtonGroup
+          className="mt-2"
+          value={calculationsDialogState}
+          getLabel={(a) => a.label}
+          getValue={(a) => a.id}
+          options={[
+            { id: 0, label: "Criados" },
+            { id: 1, label: "Criar" },
+          ]}
+          onChange={(e, val) => {
+            setCalculationsDialogState(val.id);
+          }}
+        />
+        {calculationsDialogState === 0 && <Calculations />}
+        {calculationsDialogState === 1 && (
+          <CalculationCreation formTree={formTree} />
+        )}
+      </CDialog>
     </div>
   );
 };

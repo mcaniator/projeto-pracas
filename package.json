@@ -7,6 +7,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@formkit/auto-animate": "^0.8.2",
+    "@jackstenglein/mui-mentions": "^0.1.11",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
     "@prisma/adapter-pg": "6.0.1",

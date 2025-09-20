@@ -81,7 +81,6 @@ abstract class FormItemUtils {
     if (item.categoryId && !item.subcategoryId && !item.questionId) return 1;
     if (item.categoryId && item.subcategoryId && !item.questionId) return 2;
     if (item.questionId) return 3;
-    console.log("Invalid item for rank sorting:", item);
     throw new Error("Invalid item type");
   }
 }
