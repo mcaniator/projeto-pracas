@@ -1,13 +1,20 @@
 import { getCategories } from "@queries/category";
-import { searchFormById } from "@queries/form";
+import { getFormTree } from "@queries/form";
 
-import Client from "./client";
+import ClientV2 from "./clientV2";
 
 const Edit = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
-  const response = await searchFormById(parseInt(params.formId));
-  const form = response.form;
+  const response = await getFormTree(Number(params.formId));
   const categories = await getCategories();
-  if (form) return <Client form={form} categories={categories} />;
+  if (response.formTree)
+    return (
+      <ClientV2
+        formId={parseInt(params.formId)}
+        form={response}
+        categories={categories}
+      />
+    );
+  else return <div>Formulário não encontrado</div>;
 };
 export default Edit;

@@ -1,10 +1,10 @@
 import { Location } from "@prisma/client";
-import { fetchForms } from "@queries/form";
+import { fetchFormsLatest } from "@queries/form";
 import "@serverActions/locationUtil";
 import Link from "next/link";
 
 const FormSelector = async ({ location }: { location: Location }) => {
-  const response = await fetchForms();
+  const response = await fetchFormsLatest();
   const forms = response.forms;
 
   return (
@@ -20,9 +20,7 @@ const FormSelector = async ({ location }: { location: Location }) => {
               key={form.id}
               className={`p-2 ${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} text-xl hover:bg-transparent/10 hover:underline`}
               href={`/admin/parks/${location.id}/responses/${form.id}`}
-            >
-              {form.name} Versão {form.version}
-            </Link>
+            ></Link>
           ))}
         </div>
       : <div className="text-redwood">Ainda não há formulários!</div>}

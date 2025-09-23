@@ -7,6 +7,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@formkit/auto-animate": "^0.8.2",
+    "@jackstenglein/mui-mentions": "^0.1.11",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
     "@prisma/adapter-pg": "6.0.1",
@@ -41,11 +42,6 @@
     "ts-node": "^10.9.2",
     "zod": "^3.24.1"
   },
-  "overrides": {
-  "next-auth@5.0.0-beta.25": {
-    "nodemailer": "7.0.6"
-    }
-  },
   "devDependencies": {
     "@react-email/render": "^1.1.2",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
@@ -79,7 +75,20 @@
       "@prisma/engines",
       "prisma",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "@auth/core": "0.37.2",
+      "@types/react": "npm:types-react@rc",
+      "@types/react-dom": "npm:types-react-dom@rc"
+    },
+    "peerDependencyRules": {
+      "allowAny": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ]
+    }
   },
   "private": true,
   "scripts": {

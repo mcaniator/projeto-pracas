@@ -2,13 +2,16 @@
 
 import { prisma } from "@/lib/prisma";
 import { formSchema } from "@/lib/zodValidators";
-import { FormCalculation, FormQuestion } from "@customTypes/forms/formCreation";
+import { FormCalculation } from "@customTypes/forms/formCreation";
 import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+
+import { FormEditorTree } from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+import { FormItemUtils } from "../../utils/formTreeUtils";
 
 const _formSubmit = async (
   prevState: { statusCode: number; formName: string | null } | null,
@@ -24,8 +27,10 @@ const _formSubmit = async (
     };
   }
   try {
+    console.log(formData);
     parse = formSchema.parse({
       name: formData.get("name"),
+      cloneFormId: formData.get("cloneFormId"),
     });
   } catch (e) {
     return {
@@ -35,7 +40,32 @@ const _formSubmit = async (
   }
 
   try {
-    const createdForm = await prisma.form.create({ data: parse });
+    if (parse.cloneFormId) {
+      const formToBeCloned = await prisma.form.findUnique({
+        where: {
+          id: parse.cloneFormId,
+        },
+        select: {
+          calculations: {
+            include: {
+              questions: true,
+              targetQuestion: true,
+            },
+          },
+          formCategories: true,
+          formSubcategories: true,
+          formQuestion: true,
+        },
+      });
+      if (!formToBeCloned) {
+        throw new Error("Form not found");
+      }
+      //TODO
+      throw new Error("Not implemented");
+    }
+    const createdForm = await prisma.form.create({
+      data: { name: parse.name },
+    });
     revalidateTag("form");
     return { statusCode: 201, formName: createdForm.name };
   } catch (e) {
@@ -199,6 +229,166 @@ const _updateForm = async (
   }
 };
 
+const _updateFormV2 = async ({
+  formId,
+  formTree,
+  newFormName,
+  oldFormName,
+}: {
+  formId: number;
+  formTree: FormEditorTree;
+  newFormName?: string;
+  oldFormName: string;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return { statusCode: 401 };
+  }
+  try {
+    if (newFormName !== oldFormName) {
+      await prisma.form.update({
+        data: { name: newFormName },
+        where: { id: formId },
+      });
+    }
+
+    const flatItems: {
+      position: number;
+      categoryId: number;
+      subcategoryId?: number;
+      questionId?: number;
+    }[] = [];
+
+    formTree.categories.forEach((cat) => {
+      flatItems.push({ position: cat.position, categoryId: cat.categoryId });
+
+      cat.categoryChildren.forEach((fi) => {
+        if (FormItemUtils.isSubcategoryType(fi)) {
+          flatItems.push({
+            position: fi.position,
+            categoryId: cat.categoryId,
+            subcategoryId: fi.subcategoryId,
+          });
+          fi.questions.forEach((q) =>
+            flatItems.push({
+              ...q,
+              categoryId: cat.categoryId,
+              subcategoryId: fi.subcategoryId,
+            }),
+          );
+        } else {
+          flatItems.push({
+            position: fi.position,
+            categoryId: cat.categoryId,
+            questionId: fi.questionId,
+          });
+        }
+      });
+    });
+
+    const databaseFormItems = await prisma.formItem.findMany({
+      where: { formId },
+      select: {
+        id: true,
+        questionId: true,
+        categoryId: true,
+        subcategoryId: true,
+        position: true,
+      },
+    });
+
+    const formItemsToDelete: { id: number }[] = [];
+    const formItemsToUpdate: { id: number; position: number }[] = [];
+    const formItemsToInsert: {
+      position: number;
+      categoryId: number;
+      subcategoryId?: number;
+      questionId?: number;
+    }[] = [];
+
+    // Mapping items to delete or update
+    databaseFormItems.forEach((dbFi) => {
+      const treeItem = flatItems.find((fi) => {
+        return (
+          fi.categoryId == dbFi.categoryId &&
+          fi.subcategoryId == dbFi.subcategoryId &&
+          fi.questionId == dbFi.questionId
+        );
+      });
+      if (treeItem) {
+        if (treeItem.position !== dbFi.position) {
+          formItemsToUpdate.push({ id: dbFi.id, position: treeItem.position });
+        }
+      } else {
+        formItemsToDelete.push({ id: dbFi.id });
+      }
+    });
+
+    // Mapping items to insert
+    flatItems.forEach((fi) => {
+      const exists = databaseFormItems.some((dbFi) => {
+        return (
+          fi.categoryId == dbFi.categoryId &&
+          fi.subcategoryId == dbFi.subcategoryId &&
+          fi.questionId == dbFi.questionId
+        );
+      });
+      if (!exists) formItemsToInsert.push(fi);
+    });
+
+    // DELETE
+    let deleteQuery: Prisma.Sql | null = null;
+    if (formItemsToDelete.length) {
+      const ids = formItemsToDelete.map((i) => Prisma.sql`${i.id}`);
+      deleteQuery = Prisma.sql`DELETE FROM form_item WHERE id IN (${Prisma.join(ids, ",")})`;
+    }
+
+    // UPDATE
+    let updateQuery: Prisma.Sql | null = null;
+    if (formItemsToUpdate.length) {
+      const values = formItemsToUpdate.map(
+        (i) => Prisma.sql`(${i.id}, ${i.position})`,
+      );
+      updateQuery = Prisma.sql`
+        UPDATE form_item AS fi
+        SET position = v.position
+        FROM (VALUES ${Prisma.join(values, ",")}) AS v(id, position)
+        WHERE fi.id = v.id
+      `;
+    }
+
+    //INSERT
+    let insertQuery: Prisma.Sql | null = null;
+    if (formItemsToInsert.length) {
+      const values = formItemsToInsert.map(
+        (i) =>
+          Prisma.sql`(${formId}, ${i.categoryId}, ${i.subcategoryId ?? null}, ${i.questionId ?? null}, ${i.position})`,
+      );
+      insertQuery = Prisma.sql`INSERT INTO form_item (form_id, category_id, subcategory_id, question_id, position) VALUES ${Prisma.join(values, ",")}`;
+    }
+
+    //Transaction
+    await prisma.$transaction(async (tx) => {
+      if (deleteQuery) {
+        await tx.$executeRaw(deleteQuery);
+      }
+      if (updateQuery) {
+        await tx.$executeRaw(updateQuery);
+      }
+      if (insertQuery) {
+        await tx.$executeRaw(insertQuery);
+      }
+    });
+
+    revalidateTag("form");
+    return { statusCode: 200 };
+  } catch (e) {
+    console.log(e);
+    return { statusCode: 500 };
+  }
+};
+
 const _createVersion = async (
   formId: number,
   questions: FormQuestion[],
@@ -260,4 +450,10 @@ const _createVersion = async (
   return { statusCode: 201 };
 };
 
-export { _formSubmit, _deleteFormVersion, _updateForm, _createVersion };
+export {
+  _formSubmit,
+  _deleteFormVersion,
+  _updateForm,
+  _createVersion,
+  _updateFormV2,
+};

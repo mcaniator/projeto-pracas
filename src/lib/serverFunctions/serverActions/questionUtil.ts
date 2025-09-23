@@ -58,7 +58,7 @@ const _questionSubmit = async (
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
             notes: notes.length > 0 ? notes : null,
-            type: questionType,
+            questionType: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
             subcategoryId:
@@ -77,7 +77,7 @@ const _questionSubmit = async (
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
             notes: notes.length > 0 ? notes : null,
-            type: questionType,
+            questionType: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
             subcategoryId:
@@ -94,6 +94,7 @@ const _questionSubmit = async (
           });
         }
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
 
@@ -104,6 +105,7 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
@@ -128,7 +130,7 @@ const _questionSubmit = async (
         optionsQuestionParsed = questionSchema.parse({
           name,
           notes: notes.length > 0 ? notes : null,
-          type: questionType,
+          questionType: questionType,
           characterType: questionCharacterType,
           categoryId,
           subcategoryId,
@@ -158,7 +160,7 @@ const _questionSubmit = async (
             data: {
               name: optionsQuestionParsed.name,
               notes: optionsQuestionParsed.notes,
-              type: questionType,
+              questionType: questionType,
               characterType: optionsQuestionParsed.characterType,
               categoryId: optionsQuestionParsed.categoryId,
               subcategoryId: optionsQuestionParsed.subcategoryId,
@@ -285,7 +287,7 @@ const _searchQuestionsByStatement = async (statement: string) => {
             name: true,
             characterType: true,
             notes: true,
-            type: true,
+            questionType: true,
             options: true,
             optionType: true,
             category: {

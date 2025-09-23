@@ -1,6 +1,6 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { Button } from "@components/button";
-import { searchFormById } from "@queries/form";
+import { getFormTree } from "@queries/form";
 import { IconEdit } from "@tabler/icons-react";
 import Link from "next/link";
 
@@ -8,8 +8,8 @@ import { FormVersionDeletionModal } from "./formVersionDeletionModal";
 
 const Page = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
-  const response = await searchFormById(parseInt(params.formId));
-  const form = response.form;
+  const response = await getFormTree(parseInt(params.formId));
+  const form = response.formTree;
   const formIdNumber = parseInt(params.formId);
   const categories: {
     id: number;
@@ -24,8 +24,10 @@ const Page = async (props: { params: Promise<{ formId: string }> }) => {
       calculations: { id: number; name: string }[];
     }[];
   }[] = [];
+  console.log(form);
   if (form) {
-    form.questions.forEach((question) => {
+    form.formQuestions.forEach((fq) => {
+      const question = fq.question;
       let categoryGroup = categories.find(
         (category) => category.id === question.category.id,
       );
@@ -115,12 +117,10 @@ const Page = async (props: { params: Promise<{ formId: string }> }) => {
                   <FormVersionDeletionModal
                     formId={form.id}
                     formName={form.name}
-                    formVersion={form.version}
                   />
                 </div>
               </PermissionGuard>
             </div>
-            <span>Versão: {form?.version}</span>
             <div>Perguntas do formulário:</div>
             <div className="flex flex-col gap-3">
               {categories.map((category) => {

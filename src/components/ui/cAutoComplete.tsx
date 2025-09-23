@@ -13,34 +13,24 @@ type CAutocompleteProps<
   "renderInput"
 > & {
   label?: string;
-  mapValue?: boolean;
-  optionValue?: string;
-  optionLabel?: string;
+  value?: string | number | T | null;
+  options: T[];
 };
 
-const CAutocomplete = React.forwardRef(
-  <
-    T,
-    Multiple extends boolean | undefined = false,
-    DisableClearable extends boolean | undefined = false,
-    FreeSolo extends boolean | undefined = false,
-  >(
-    props: CAutocompleteProps<T, Multiple, DisableClearable, FreeSolo>,
-    ref: React.ForwardedRef<HTMLDivElement>,
-  ) => {
-    const { label, ...rest } = props;
+function CAutocomplete<
+  T,
+  Multiple extends boolean | undefined = false,
+  DisableClearable extends boolean | undefined = false,
+  FreeSolo extends boolean | undefined = false,
+>(props: CAutocompleteProps<T, Multiple, DisableClearable, FreeSolo>) {
+  const { label, ...rest } = props;
 
-    return (
-      <div className="flex items-center">
-        <Autocomplete
-          ref={ref}
-          {...rest}
-          renderInput={(params) => <CTextField {...params} label={label} />}
-        />
-      </div>
-    );
-  },
-);
+  return (
+    <Autocomplete
+      {...rest}
+      renderInput={(params) => <CTextField {...params} label={label} />}
+    />
+  );
+}
 
-CAutocomplete.displayName = "CAutocomplete";
 export default CAutocomplete;

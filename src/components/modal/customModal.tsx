@@ -13,7 +13,10 @@ const CustomModal = ({
   confirmLabel,
   cancelVariant,
   confirmVariant,
+  disableModalActions = false,
+  fullWidth = false,
   children,
+  modalClassName = "bg-white",
   onCancel,
   onConfirm,
   onOpenChange,
@@ -26,9 +29,12 @@ const CustomModal = ({
   confirmLabel?: ReactNode;
   cancelVariant?: ButtonVariant;
   confirmVariant?: ButtonVariant;
+  disableModalActions?: boolean;
+  fullWidth?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onOpenChange?: (isOpen: boolean) => void;
+  modalClassName?: string;
 }) => {
   return (
     <ModalOverlay
@@ -43,9 +49,9 @@ const CustomModal = ({
     >
       <Modal
         className={({ isEntering, isExiting }) =>
-          `overlow-auto mb-auto mt-auto min-w-[32rem] max-w-[90%] transform rounded-2xl bg-off-white p-6 text-left align-middle shadow-xl ${
+          `overlow-auto mb-auto mt-auto transform rounded-2xl p-6 text-left align-middle shadow-xl ${
             isEntering ? "duration-300 ease-out animate-in zoom-in-95" : ""
-          } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""}`
+          } ${isExiting ? "duration-200 ease-in animate-out zoom-out-95" : ""} ${fullWidth ? "min-w-[100%]" : "min-w-[32rem]"} ${modalClassName}`
         }
       >
         <Dialog className="outline-none data-[focus-visible]:outline data-[focus-visible]:ring-1 data-[focus-visible]:ring-ring">
@@ -60,14 +66,16 @@ const CustomModal = ({
                 subtitle={subtitle}
               />
               {children}
-              <DefaultModalFooter
-                cancelLabel={cancelLabel}
-                confirmLabel={confirmLabel}
-                cancelVariant={cancelVariant}
-                confirmVariant={confirmVariant}
-                onCancel={onCancel}
-                onConfirm={onConfirm}
-              />
+              {!disableModalActions && (
+                <DefaultModalFooter
+                  cancelLabel={cancelLabel}
+                  confirmLabel={confirmLabel}
+                  cancelVariant={cancelVariant}
+                  confirmVariant={confirmVariant}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              )}
             </div>
           )}
         </Dialog>

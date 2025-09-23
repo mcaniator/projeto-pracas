@@ -150,7 +150,8 @@ const FormUpdater = ({
     }
   >();
 
-  form.questions.forEach((question) => {
+  form.formQuestions.forEach((fq) => {
+    const question = fq.question;
     if (!initialCategoriesMap.has(question.category.id)) {
       initialCategoriesMap.set(question.category.id, {
         id: question.category.id,
@@ -236,7 +237,8 @@ const FormUpdater = ({
     }[];
   }[] = [];
 
-  form.questions.forEach((question) => {
+  form.formQuestions.forEach((fq) => {
+    const question = fq.question;
     let categoryGroup = categories.find(
       (category) => category.id === question.category.id,
     );
@@ -330,27 +332,25 @@ const FormUpdater = ({
               defaultValue={form.id}
             />
             <h3 className="text-xl font-semibold sm:text-2xl">{form.name}</h3>
-            {form.version === 0 && (
-              <>
-                <div>
-                  <label htmlFor={"name"}>Editar nome:</label>
-                  <Input
-                    className="w-full"
-                    type="text"
-                    name="name"
-                    required
-                    id={"name"}
-                    defaultValue={form.name === null ? "" : form.name}
-                  />
-                  <div>Versão: {form.version}</div>
-                </div>
-                <div className="mb-2 flex items-center justify-between rounded p-2">
-                  <Button type="submit" className={"px-2 text-sm sm:text-xl"}>
-                    <span>Atualizar nome</span>
-                  </Button>
-                </div>
-              </>
-            )}
+
+            <>
+              <div>
+                <label htmlFor={"name"}>Editar nome:</label>
+                <Input
+                  className="w-full"
+                  type="text"
+                  name="name"
+                  required
+                  id={"name"}
+                  defaultValue={form.name === null ? "" : form.name}
+                />
+              </div>
+              <div className="mb-2 flex items-center justify-between rounded p-2">
+                <Button type="submit" className={"px-2 text-sm sm:text-xl"}>
+                  <span>Atualizar nome</span>
+                </Button>
+              </div>
+            </>
           </form>
           {isPending ?
             <div className="flex justify-center">
@@ -1007,7 +1007,7 @@ const FormUpdater = ({
                   onPress={() =>
                     void handleCreateVersion(
                       form.id,
-                      form.questions,
+                      form.formQuestions.map((fq) => fq.question),
                       questionsToAdd,
                       questionsToRemove,
                     )

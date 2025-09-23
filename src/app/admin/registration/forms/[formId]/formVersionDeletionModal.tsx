@@ -24,11 +24,9 @@ import {
 const FormVersionDeletionModal = ({
   formId,
   formName,
-  formVersion,
 }: {
   formId: number;
   formName: string;
-  formVersion: number;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(
@@ -131,13 +129,6 @@ const FormVersionDeletionModal = ({
                       <h5 className="text-base font-semibold sm:text-xl">
                         {formName}
                       </h5>
-                      <h6 className="text-base font-semibold sm:text-xl">{`Versão: ${formVersion}`}</h6>
-                      {formVersion === 0 && (
-                        <h6 className="text-base font-semibold text-red-500">
-                          Aviso: Este formulário está na versão 0, após sua
-                          exclusão não haverão mais versões.
-                        </h6>
-                      )}
 
                       <input
                         type="hidden"
