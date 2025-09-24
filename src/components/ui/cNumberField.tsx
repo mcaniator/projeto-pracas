@@ -19,6 +19,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       helperText,
       required = false,
       value,
+      disabled,
       onRequiredCheck,
       onChange,
       onBlur,
@@ -44,6 +45,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       const filtered = raw.replace(/[^0-9+\-.]/g, "");
       const match = filtered.match(/^[-+]?\d*\.?\d*$/);
 
+      if (!match || match[0] === localValue) return;
+
       setLocalValue((prev) => (match ? filtered : prev));
 
       if (required) {
@@ -63,11 +66,31 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       }
     };
 
-    const handleIncrement = () =>
-      setLocalValue((prev) => String(Number(prev || 0) + 1));
-    const handleDecrement = () =>
-      setLocalValue((prev) => String(Number(prev || 0) - 1));
+    const handleIncrement = () => {
+      const next = String(Number(localValue || 0) + 1);
+      setLocalValue(() => {
+        return next;
+      });
+      forceFireOnChange(next);
+    };
 
+    const handleDecrement = () => {
+      const next = String(Number(localValue || 0) - 1);
+      setLocalValue(() => {
+        return next;
+      });
+      forceFireOnChange(next);
+    };
+
+    const forceFireOnChange = (next: string) => {
+      if (onChange && inputRef.current) {
+        const synthetic = {
+          ...new Event("change", { bubbles: true }),
+          target: { ...inputRef.current, value: next },
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        onChange(synthetic);
+      }
+    };
     useEffect(() => {
       setLocalValue(value != undefined ? String(value) : "");
     }, [value]);
@@ -80,6 +103,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         margin={margin}
         size={size}
         value={localValue}
+        disabled={disabled}
         type="text"
         inputMode="numeric"
         error={(required && !isValid) || error}
@@ -88,7 +112,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         onBlur={handleBlur}
         slotProps={{
           input: {
-            endAdornment: (
+            endAdornment: !disabled && (
               <InputAdornment position="end">
                 <div
                   style={{ display: "flex", flexDirection: "column", gap: 0 }}

@@ -7,6 +7,8 @@ const CDialogFooter = ({
   confirmChildren,
   cancelVariant,
   confirmVariant,
+  disableConfirmButton,
+  disableCancelButton,
   onCancel,
   onConfirm,
 }: {
@@ -14,20 +16,31 @@ const CDialogFooter = ({
   confirmChildren?: ReactNode;
   cancelVariant?: ButtonProps["variant"];
   confirmVariant?: ButtonProps["variant"];
+  disableConfirmButton: boolean;
+  disableCancelButton: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
 }) => {
+  console.log("disableconfirm", disableConfirmButton);
   return (
     <div
       className={`flex items-center ${cancelChildren ? "justify-between" : "justify-end"}`}
     >
       {cancelChildren && (
-        <CButton variant={cancelVariant} onClick={onCancel}>
+        <CButton
+          variant={cancelVariant}
+          disabled={disableCancelButton}
+          onClick={onCancel}
+        >
           {cancelChildren}
         </CButton>
       )}
       {confirmChildren && (
-        <CButton variant={confirmVariant} onClick={onConfirm}>
+        <CButton
+          variant={confirmVariant}
+          disabled={disableConfirmButton}
+          onClick={onConfirm}
+        >
           {confirmChildren}
         </CButton>
       )}

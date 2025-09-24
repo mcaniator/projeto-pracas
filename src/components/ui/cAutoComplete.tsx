@@ -28,7 +28,13 @@ function CAutocomplete<
   return (
     <Autocomplete
       {...rest}
-      renderInput={(params) => <CTextField {...params} label={label} />}
+      renderInput={(params) => (
+        <CTextField
+          {...params}
+          InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+          label={label}
+        />
+      )}
     />
   );
 }

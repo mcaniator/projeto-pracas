@@ -5,16 +5,19 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Chip,
-  Switch,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
 } from "@mui/material";
-import { CalculationTypes } from "@prisma/client";
-import { Dispatch, SetStateAction, useState } from "react";
+import { IconX } from "@tabler/icons-react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
-import CCheckbox from "../../../../../../components/ui/cCheckbox";
-import CTextField from "../../../../../../components/ui/cTextField";
-import { calculationTypesTranslationMap } from "../../../../../../lib/translationMaps/assessment";
+import CButton from "../../../../../../components/ui/cButton";
+import CNumberField from "../../../../../../components/ui/cNumberField";
+import { Calculation } from "../../../../../../lib/utils/calculationUtils";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import {
   CategoryItem,
@@ -23,121 +26,151 @@ import {
   SubcategoryItem,
 } from "./clientV2";
 
-const CalculationCreation = ({ formTree }: { formTree: FormEditorTree }) => {
-  const calculationTypes = Object.values(CalculationTypes).map((type) => ({
-    value: type,
-    label: calculationTypesTranslationMap.get(type)!,
-  }));
-  const [selectedType, setSelectedType] = useState<{
-    value: CalculationTypes;
-    label: string;
+type TestValue = Map<number, number | null>;
+
+const CalculationCreation = ({
+  formTree,
+  setEnableCalculationSave,
+}: {
+  formTree: FormEditorTree;
+  setEnableCalculationSave: Dispatch<SetStateAction<boolean>>;
+}) => {
+  const [expression, setExpression] = useState("");
+  const [selectedTargetQuestion, setSelectedTargetQuestion] = useState<{
+    id: string;
+    display: string;
   } | null>(null);
-  const [selectedTargetQuestion, setSelectedTargetQuestion] =
-    useState<QuestionItem | null>(null);
-  const [selectedQuestions, setSelectedQuestions] = useState<Set<number>>(
-    new Set<number>(),
-  );
-  const filteredCategories = formTree.categories.reduce<CategoryItem[]>(
-    (acc, cat) => {
-      const catQuestions = cat.categoryChildren.filter(
-        (child) =>
-          FormItemUtils.isQuestionType(child) &&
-          child.characterType === "NUMBER",
-      );
-      const subCats = cat.categoryChildren
-        .filter((child) => FormItemUtils.isSubcategoryType(child))
-        .map((sub) => ({
-          ...sub,
-          questions: sub.questions.filter((q) => q.characterType === "NUMBER"),
-        }))
-        .filter((sub) => sub.questions.length > 0);
-      if (catQuestions.length > 0 || (subCats && subCats.length > 0)) {
-        const children = catQuestions
-          .concat(subCats)
-          .sort((a, b) => a.position - b.position);
-        acc.push({
-          ...cat,
-          categoryChildren: children,
-        });
-      }
-      return acc;
-    },
+
+  const [mentions, setMentions] = useState<{ id: string; display: string }[]>(
     [],
   );
-  console.log(selectedQuestions);
-  const [mention, setMention] = useState("");
-  const stormlight = [
-    { id: "kaladin", display: "Kaladin Stormblessed" },
-    { id: "adolin", display: "Adolin Kholin" },
-    { id: "shallan", display: "Shallan Davar" },
-    { id: "dalinar", display: "Dalinar Kholin" },
-    { id: "renarin", display: "Renarin Kholin" },
-    { id: "syl", display: "Syl" },
-    { id: "teft", display: "Teft" },
-    { id: "hoid", display: "Hoid" },
-    { id: "moash", display: "Moash" },
-    { id: "sadeas", display: "Torol Sadeas" },
-    { id: "amaram", display: "Amaram" },
-    { id: "nohadon", display: "Nohadon" },
-  ];
-  const defaultValue = "Hello, @[Kaladin Stormblessed](kaladin)!";
+  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>(
+    [],
+  );
+  const [validExpression, setValidExpresssion] = useState(false);
+
+  const [testValues, setTestValues] = useState<TestValue>(new Map());
+
+  const [testResult, setTestResult] = useState<number | null>(null);
+
+  useEffect(() => {
+    const newMentions: { id: string; display: string }[] = [];
+    const newFilteredCategories = formTree.categories.reduce<CategoryItem[]>(
+      (acc, cat) => {
+        const catQuestions = cat.categoryChildren.filter(
+          (child) =>
+            FormItemUtils.isQuestionType(child) &&
+            child.characterType === "NUMBER",
+        );
+        const subCats = cat.categoryChildren
+          .filter((child) => FormItemUtils.isSubcategoryType(child))
+          .map((sub) => {
+            sub.questions.forEach((q) => {
+              newMentions.push({
+                id: String(q.questionId),
+                display: `${q.name} {id:${q.questionId}}`,
+              });
+            });
+            return {
+              ...sub,
+              questions: sub.questions.filter(
+                (q) => q.characterType === "NUMBER",
+              ),
+            };
+          })
+          .filter((sub) => sub.questions.length > 0);
+        if (catQuestions.length > 0 || (subCats && subCats.length > 0)) {
+          catQuestions
+            .filter((q) => FormItemUtils.isQuestionType(q))
+            .forEach((q) => {
+              newMentions.push({
+                id: String(q.questionId),
+                display: `${q.name} {id:${q.questionId}}`,
+              });
+            });
+          const children = catQuestions
+            .concat(subCats)
+            .sort((a, b) => a.position - b.position);
+          acc.push({
+            ...cat,
+            categoryChildren: children,
+          });
+        }
+        return acc;
+      },
+      [],
+    );
+    setFilteredCategories(newFilteredCategories);
+    setMentions(newMentions);
+  }, [formTree]);
+
+  useEffect(() => {
+    const calc = new Calculation(expression);
+    const valid = calc.validateExpression();
+    setValidExpresssion(valid);
+    setEnableCalculationSave(valid);
+  }, [expression, setEnableCalculationSave]);
+
+  useEffect(() => {
+    setExpression("");
+  }, [selectedTargetQuestion]);
+
+  useEffect(() => {
+    const calc = new Calculation(expression, testValues);
+    setTestResult(calc.evaluate());
+  }, [testValues, expression]);
   return (
-    <div className="flex flex-col">
+    <div className="mt-4 flex flex-col gap-1">
+      <CAutocomplete
+        label="Questão-alvo"
+        options={mentions}
+        getOptionLabel={(q) => q.display}
+        value={selectedTargetQuestion ?? null}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        onChange={(_, newValue) => setSelectedTargetQuestion(newValue)}
+      />
+      <div>
+        Crie uma expressão matemática, podendo selecionar questões com @. É
+        necessário ter um espaço antes do @, caso seja precedido por um
+        caractere.
+      </div>
       <MentionsTextField
-        label="Trigger with #"
+        label="Expressão"
         fullWidth
+        multiline
+        highlightColor="primary.main"
+        size="small"
+        highlightTextColor
+        spellCheck={false}
+        disabled={!selectedTargetQuestion}
+        value={expression}
+        error={!validExpression && !!selectedTargetQuestion}
+        helperText={
+          !validExpression && !!selectedTargetQuestion ?
+            "Expressão inválida"
+          : " "
+        }
         dataSources={[
           {
-            data: stormlight,
-            trigger: "#",
+            data: mentions.filter((m) => m.id !== selectedTargetQuestion?.id),
+            ignoreAccents: true,
           },
         ]}
-      />
-      <CAutocomplete
-        label="Tipo"
-        value={selectedType}
-        getOptionLabel={(option) => option.label}
-        isOptionEqualToValue={(option, value) => option === value}
-        options={calculationTypes}
-        onChange={(_, val) => {
-          setSelectedType(val);
+        onChange={(newVal) => {
+          setExpression(newVal);
         }}
       />
-      <CTextField
-        label="Questão-alvo"
-        disabled
-        value={selectedTargetQuestion?.name ?? ""}
-        slotProps={{
-          inputLabel: { shrink: true },
-        }}
-      />
-      <div className="flex flex-row items-center">
-        Total de questões:{" "}
-        <Chip
-          label={selectedQuestions.size}
-          className="ml-1"
-          sx={{
-            backgroundColor: "primary.main",
-            color: "primary.contrastText",
-            fontWeight: "bold",
-          }}
-        />
-      </div>
-      <div className="flex flex-row items-center">
-        Selecione a questão-alvo com : <Switch checked={true} />
-      </div>
-      <div className="flex flex-row items-center">
-        Selecione as questões que farão parte do cálculo com :{" "}
-        <CCheckbox checked={true} />
-      </div>
+
+      <div>Utilize os campos abaixo para testar a expressão:</div>
+
+      <CNumberField label="Resultado" disabled value={testResult} />
+
       <div className="flex flex-col gap-1">
         {filteredCategories.map((category, index) => (
           <Category
             key={index}
             category={category}
-            selectedQuestions={selectedQuestions}
-            setSelectedTargetQuestion={setSelectedTargetQuestion}
-            setSelectedQuestions={setSelectedQuestions}
+            setTestValues={setTestValues}
           />
         ))}
       </div>
@@ -147,14 +180,10 @@ const CalculationCreation = ({ formTree }: { formTree: FormEditorTree }) => {
 
 const Category = ({
   category,
-  selectedQuestions,
-  setSelectedTargetQuestion,
-  setSelectedQuestions,
+  setTestValues,
 }: {
   category: FormEditorTree["categories"][number];
-  selectedQuestions: Set<number>;
-  setSelectedTargetQuestion: Dispatch<SetStateAction<QuestionItem | null>>;
-  setSelectedQuestions: Dispatch<SetStateAction<Set<number>>>;
+  setTestValues: Dispatch<SetStateAction<TestValue>>;
 }) => {
   return (
     <div>
@@ -177,53 +206,6 @@ const Category = ({
           className="max-w-full"
         >
           <div className="flex flex-row items-center gap-1">
-            <CCheckbox
-              checked={
-                category.categoryChildren
-                  .filter((child) => FormItemUtils.isQuestionType(child))
-                  .every((child) => selectedQuestions.has(child.questionId)) &&
-                category.categoryChildren
-                  .filter((child) => FormItemUtils.isSubcategoryType(child))
-                  .every((sub) =>
-                    sub.questions.every((question) =>
-                      selectedQuestions.has(question.questionId),
-                    ),
-                  )
-              }
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setSelectedQuestions((prev) => {
-                    const newSet = new Set(prev);
-                    category.categoryChildren.forEach((child) => {
-                      if (FormItemUtils.isSubcategoryType(child)) {
-                        child.questions.forEach((q) => {
-                          newSet.add(q.questionId);
-                        });
-                      } else {
-                        newSet.add(child.questionId);
-                      }
-                    });
-                    return newSet;
-                  });
-                } else {
-                  setSelectedQuestions((prev) => {
-                    const newSet = new Set(prev);
-                    category.categoryChildren.forEach((child) => {
-                      if (FormItemUtils.isSubcategoryType(child)) {
-                        child.questions.forEach((question) => {
-                          newSet.delete(question.questionId);
-                        });
-                      } else {
-                        newSet.delete(child.questionId);
-                      }
-                    });
-                    return newSet;
-                  });
-                }
-              }}
-            />
             {category.name}
           </div>
         </AccordionSummary>
@@ -235,9 +217,7 @@ const Category = ({
                   <Subcategory
                     key={index}
                     subcategory={child}
-                    selectedQuestions={selectedQuestions}
-                    setSelectedTargetQuestion={setSelectedTargetQuestion}
-                    setSelectedQuestions={setSelectedQuestions}
+                    setTestValues={setTestValues}
                   />
                 );
               }
@@ -245,9 +225,7 @@ const Category = ({
                 <Question
                   key={index}
                   question={child}
-                  selectedQuestions={selectedQuestions}
-                  setSelectedTargetQuestion={setSelectedTargetQuestion}
-                  setSelectedQuestions={setSelectedQuestions}
+                  setTestValues={setTestValues}
                 />
               );
             })}
@@ -260,14 +238,10 @@ const Category = ({
 
 const Subcategory = ({
   subcategory,
-  selectedQuestions,
-  setSelectedTargetQuestion,
-  setSelectedQuestions,
+  setTestValues,
 }: {
   subcategory: SubcategoryItem;
-  selectedQuestions: Set<number>;
-  setSelectedTargetQuestion: Dispatch<SetStateAction<QuestionItem | null>>;
-  setSelectedQuestions: Dispatch<SetStateAction<Set<number>>>;
+  setTestValues: Dispatch<SetStateAction<TestValue>>;
 }) => {
   return (
     <Box
@@ -297,32 +271,6 @@ const Subcategory = ({
           className="max-w-full"
         >
           <div className="flex flex-row items-center gap-1">
-            <CCheckbox
-              checked={subcategory.questions.every((q) =>
-                selectedQuestions.has(q.questionId),
-              )}
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setSelectedQuestions((prev) => {
-                    const newSet = new Set(prev);
-                    subcategory.questions.forEach((q) => {
-                      newSet.add(q.questionId);
-                    });
-                    return newSet;
-                  });
-                } else {
-                  setSelectedQuestions((prev) => {
-                    const newSet = new Set(prev);
-                    subcategory.questions.forEach((q) => {
-                      newSet.delete(q.questionId);
-                    });
-                    return newSet;
-                  });
-                }
-              }}
-            />
             {subcategory.name}
           </div>
         </AccordionSummary>
@@ -332,9 +280,7 @@ const Subcategory = ({
               <Question
                 key={index}
                 question={question}
-                selectedQuestions={selectedQuestions}
-                setSelectedQuestions={setSelectedQuestions}
-                setSelectedTargetQuestion={setSelectedTargetQuestion}
+                setTestValues={setTestValues}
               />
             ))}
           </div>
@@ -346,15 +292,19 @@ const Subcategory = ({
 
 const Question = ({
   question,
-  selectedQuestions,
-  setSelectedTargetQuestion,
-  setSelectedQuestions,
+  setTestValues,
 }: {
   question: QuestionItem;
-  selectedQuestions: Set<number>;
-  setSelectedTargetQuestion: Dispatch<SetStateAction<QuestionItem | null>>;
-  setSelectedQuestions: Dispatch<SetStateAction<Set<number>>>;
+  setTestValues: Dispatch<SetStateAction<TestValue>>;
 }) => {
+  const [value, setValue] = useState<number | null>(null);
+  useEffect(() => {
+    setTestValues((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(question.questionId, value);
+      return newMap;
+    });
+  }, [value, setTestValues, question.questionId]);
   return (
     <Box
       sx={{
@@ -362,40 +312,53 @@ const Question = ({
         borderColor: "primary.main",
         borderRadius: 1,
       }}
-      className="flex flex-row justify-between"
+      className="flex flex-col justify-between px-4 py-2"
     >
       <div className="flex flex-row items-center gap-1">
-        <CCheckbox
-          checked={selectedQuestions.has(question.questionId)}
-          onClick={(e) => e.stopPropagation()}
-          onFocus={(e) => e.stopPropagation()}
+        {question.name + ` {Id: ${question.questionId}}`}
+      </div>
+      {question.questionType === "WRITTEN" && (
+        <CNumberField
+          label="Valor"
+          value={value}
           onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedQuestions((prev) => {
-                const newSet = new Set(prev);
-                newSet.add(question.questionId);
-                return newSet;
-              });
-            } else {
-              setSelectedQuestions((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(question.questionId);
-                return newSet;
-              });
-            }
+            setValue(Number(e.target.value));
           }}
         />
-        {question.name}
-      </div>
-      <Switch
-        onChange={(e) => {
-          if (e.target.checked) {
-            setSelectedTargetQuestion(question);
-          } else {
-            setSelectedTargetQuestion(null);
-          }
-        }}
-      />
+      )}
+      {question.questionType === "OPTIONS" && (
+        <FormControl>
+          <FormLabel>Valor</FormLabel>
+          <RadioGroup
+            aria-labelledby="demo-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group"
+            value={value}
+            onChange={(e) => {
+              setValue(Number(e.target.value));
+            }}
+          >
+            {question.options?.map((o, index) => (
+              <FormControlLabel
+                key={index}
+                value={Number(o.text)}
+                control={<Radio />}
+                label={o.text}
+              />
+            ))}
+          </RadioGroup>
+          <div>
+            <CButton
+              variant="outlined"
+              dense
+              onClick={() => {
+                setValue(null);
+              }}
+            >
+              <IconX />
+            </CButton>
+          </div>
+        </FormControl>
+      )}
     </Box>
   );
 };

@@ -67,6 +67,11 @@ const muiTheme = createTheme({
         },
       },
     },
+    MuiTextField: {
+      defaultProps: {
+        InputLabelProps: { shrink: true },
+      },
+    },
     MuiPopper: {
       styleOverrides: {
         root: {

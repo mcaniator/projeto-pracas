@@ -22,6 +22,7 @@ import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGro
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationCreation from "./calculationCreation";
+import CalculationDialog from "./calculationDialog";
 import Calculations from "./calculations";
 import QuestionFormV2 from "./questionFormV2";
 
@@ -83,8 +84,7 @@ const ClientV2 = ({
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
-  const [openCalculationModal, setOpenCalculationModal] = useState(false);
-  const [calculationsDialogState, setCalculationsDialogState] = useState(0);
+  const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
     if (formQuestionsIds.includes(question.id)) return;
 
@@ -273,7 +273,7 @@ const ClientV2 = ({
                   <CButton
                     disableMinWidth
                     onClick={() => {
-                      setOpenCalculationModal(true);
+                      setOpenCalculationDialog(true);
                     }}
                   >
                     <IconCalculator />
@@ -347,33 +347,11 @@ const ClientV2 = ({
           showTitle={false}
         />
       </CustomModal>
-      <CDialog
-        title="Cálculos"
-        subtitle="Cálculos preenchem automaticamente o valor de uma questão"
-        open={openCalculationModal}
-        fullScreen
-        onClose={() => {
-          setOpenCalculationModal(false);
-        }}
-      >
-        <CToggleButtonGroup
-          className="mt-2"
-          value={calculationsDialogState}
-          getLabel={(a) => a.label}
-          getValue={(a) => a.id}
-          options={[
-            { id: 0, label: "Criados" },
-            { id: 1, label: "Criar" },
-          ]}
-          onChange={(e, val) => {
-            setCalculationsDialogState(val.id);
-          }}
-        />
-        {calculationsDialogState === 0 && <Calculations />}
-        {calculationsDialogState === 1 && (
-          <CalculationCreation formTree={formTree} />
-        )}
-      </CDialog>
+      <CalculationDialog
+        formTree={formTree}
+        openCalculationDialog={openCalculationDialog}
+        setOpenCalculationModal={setOpenCalculationDialog}
+      />
     </div>
   );
 };

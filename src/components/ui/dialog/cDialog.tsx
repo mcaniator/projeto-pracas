@@ -21,7 +21,9 @@ type CDialogProps = DialogProps & {
   confirmChildren?: ReactNode;
   cancelVariant?: ButtonProps["variant"];
   confirmVariant?: ButtonProps["variant"];
-  disableModalActions?: boolean;
+  disableConfirmButton?: boolean;
+  disableCancelButton?: boolean;
+  disableDialogActions?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
@@ -44,7 +46,9 @@ const CDialog = ({
   confirmChildren,
   cancelVariant,
   confirmVariant,
-  disableModalActions = false,
+  disableConfirmButton = false,
+  disableCancelButton = false,
+  disableDialogActions = false,
   fullScreen,
   onCancel,
   onConfirm,
@@ -85,13 +89,15 @@ const CDialog = ({
         {children}
       </DialogContent>
 
-      {!disableModalActions && (
+      {!disableDialogActions && (
         <DialogActions sx={{ padding: "0px", marginTop: "8px" }}>
           <CDialogFooter
             cancelChildren={cancelChildren}
             confirmChildren={confirmChildren}
             cancelVariant={cancelVariant}
             confirmVariant={confirmVariant}
+            disableConfirmButton={disableConfirmButton}
+            disableCancelButton={disableCancelButton}
             onCancel={onCancel}
             onConfirm={onConfirm}
           />
