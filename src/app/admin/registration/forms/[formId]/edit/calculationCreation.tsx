@@ -1,4 +1,3 @@
-import { MentionsTextField } from "@jackstenglein/mui-mentions";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
@@ -16,9 +15,11 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CButton from "../../../../../../components/ui/cButton";
+import CMentionsTextField from "../../../../../../components/ui/cMentionsTextField";
 import CNumberField from "../../../../../../components/ui/cNumberField";
 import { Calculation } from "../../../../../../lib/utils/calculationUtils";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
+import { CalculationParams, Mention } from "./calculationDialog";
 import {
   CategoryItem,
   FormEditorTree,
@@ -29,11 +30,15 @@ import {
 type TestValue = Map<number, number | null>;
 
 const CalculationCreation = ({
-  formTree,
-  setEnableCalculationSave,
+  formCalculations,
+  mentions,
+  filteredCategories,
+  setNewCalculation,
 }: {
-  formTree: FormEditorTree;
-  setEnableCalculationSave: Dispatch<SetStateAction<boolean>>;
+  formCalculations: CalculationParams[];
+  mentions: Mention[];
+  filteredCategories: CategoryItem[];
+  setNewCalculation: Dispatch<SetStateAction<CalculationParams | null>>;
 }) => {
   const [expression, setExpression] = useState("");
   const [selectedTargetQuestion, setSelectedTargetQuestion] = useState<{
@@ -41,12 +46,6 @@ const CalculationCreation = ({
     display: string;
   } | null>(null);
 
-  const [mentions, setMentions] = useState<{ id: string; display: string }[]>(
-    [],
-  );
-  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>(
-    [],
-  );
   const [validExpression, setValidExpresssion] = useState(false);
 
   const [testValues, setTestValues] = useState<TestValue>(new Map());
@@ -54,62 +53,20 @@ const CalculationCreation = ({
   const [testResult, setTestResult] = useState<number | null>(null);
 
   useEffect(() => {
-    const newMentions: { id: string; display: string }[] = [];
-    const newFilteredCategories = formTree.categories.reduce<CategoryItem[]>(
-      (acc, cat) => {
-        const catQuestions = cat.categoryChildren.filter(
-          (child) =>
-            FormItemUtils.isQuestionType(child) &&
-            child.characterType === "NUMBER",
-        );
-        const subCats = cat.categoryChildren
-          .filter((child) => FormItemUtils.isSubcategoryType(child))
-          .map((sub) => {
-            sub.questions.forEach((q) => {
-              newMentions.push({
-                id: String(q.questionId),
-                display: `${q.name} {id:${q.questionId}}`,
-              });
-            });
-            return {
-              ...sub,
-              questions: sub.questions.filter(
-                (q) => q.characterType === "NUMBER",
-              ),
-            };
-          })
-          .filter((sub) => sub.questions.length > 0);
-        if (catQuestions.length > 0 || (subCats && subCats.length > 0)) {
-          catQuestions
-            .filter((q) => FormItemUtils.isQuestionType(q))
-            .forEach((q) => {
-              newMentions.push({
-                id: String(q.questionId),
-                display: `${q.name} {id:${q.questionId}}`,
-              });
-            });
-          const children = catQuestions
-            .concat(subCats)
-            .sort((a, b) => a.position - b.position);
-          acc.push({
-            ...cat,
-            categoryChildren: children,
-          });
-        }
-        return acc;
-      },
-      [],
-    );
-    setFilteredCategories(newFilteredCategories);
-    setMentions(newMentions);
-  }, [formTree]);
-
-  useEffect(() => {
     const calc = new Calculation(expression);
     const valid = calc.validateExpression();
     setValidExpresssion(valid);
-    setEnableCalculationSave(valid);
-  }, [expression, setEnableCalculationSave]);
+    if (valid && selectedTargetQuestion) {
+      setNewCalculation({
+        questionId: parseInt(selectedTargetQuestion.id),
+        questionName: selectedTargetQuestion.display,
+        expression: expression,
+        expressionQuestionsIds: calc.getExpressionQuestionIds(),
+      });
+    } else {
+      setNewCalculation(null);
+    }
+  }, [expression, selectedTargetQuestion, setNewCalculation]);
 
   useEffect(() => {
     setExpression("");
@@ -123,7 +80,15 @@ const CalculationCreation = ({
     <div className="mt-4 flex flex-col gap-1">
       <CAutocomplete
         label="Questão-alvo"
-        options={mentions}
+        options={mentions.filter(
+          (m) =>
+            m.questionType === "WRITTEN" &&
+            !formCalculations.some(
+              (fC) =>
+                fC.questionId === Number(m.id) ||
+                fC.expressionQuestionsIds.some((eQ) => eQ === Number(m.id)),
+            ),
+        )}
         getOptionLabel={(q) => q.display}
         value={selectedTargetQuestion ?? null}
         isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -134,7 +99,7 @@ const CalculationCreation = ({
         necessário ter um espaço antes do @, caso seja precedido por um
         caractere.
       </div>
-      <MentionsTextField
+      <CMentionsTextField
         label="Expressão"
         fullWidth
         multiline
@@ -152,7 +117,11 @@ const CalculationCreation = ({
         }
         dataSources={[
           {
-            data: mentions.filter((m) => m.id !== selectedTargetQuestion?.id),
+            data: mentions.filter(
+              (m) =>
+                m.id !== selectedTargetQuestion?.id &&
+                !formCalculations.some((fc) => fc.questionId === Number(m.id)),
+            ),
             ignoreAccents: true,
           },
         ]}
@@ -160,10 +129,9 @@ const CalculationCreation = ({
           setExpression(newVal);
         }}
       />
-
       <div>Utilize os campos abaixo para testar a expressão:</div>
 
-      <CNumberField label="Resultado" disabled value={testResult} />
+      <CNumberField label="Resultado" readOnly value={testResult} />
 
       <div className="flex flex-col gap-1">
         {filteredCategories.map((category, index) => (
@@ -322,7 +290,7 @@ const Question = ({
           label="Valor"
           value={value}
           onChange={(e) => {
-            setValue(Number(e.target.value));
+            setValue(e);
           }}
         />
       )}

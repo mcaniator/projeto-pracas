@@ -22,7 +22,7 @@ import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGro
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationCreation from "./calculationCreation";
-import CalculationDialog from "./calculationDialog";
+import CalculationDialog, { CalculationParams } from "./calculationDialog";
 import Calculations from "./calculations";
 import QuestionFormV2 from "./questionFormV2";
 
@@ -83,6 +83,9 @@ const ClientV2 = ({
   const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
+  const [formCalculations, setFormCalculations] = useState<CalculationParams[]>(
+    [],
+  );
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
@@ -350,7 +353,9 @@ const ClientV2 = ({
       <CalculationDialog
         formTree={formTree}
         openCalculationDialog={openCalculationDialog}
+        formCalculations={formCalculations}
         setOpenCalculationModal={setOpenCalculationDialog}
+        setFormCalculations={setFormCalculations}
       />
     </div>
   );

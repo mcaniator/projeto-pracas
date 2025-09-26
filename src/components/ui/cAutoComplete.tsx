@@ -23,8 +23,17 @@ function CAutocomplete<
   DisableClearable extends boolean | undefined = false,
   FreeSolo extends boolean | undefined = false,
 >(props: CAutocompleteProps<T, Multiple, DisableClearable, FreeSolo>) {
-  const { label, ...rest } = props;
-
+  const { label, readOnly, sx, ...rest } = props;
+  const readOnlySx =
+    readOnly ?
+      {
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderStyle: "dashed",
+          borderColor: "gray",
+          borderWidth: "2px",
+        },
+      }
+    : undefined;
   return (
     <Autocomplete
       {...rest}
@@ -32,6 +41,7 @@ function CAutocomplete<
         <CTextField
           {...params}
           InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+          sx={{ ...sx, ...readOnlySx }}
           label={label}
         />
       )}

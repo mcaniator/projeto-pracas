@@ -2,23 +2,115 @@
 
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import CDialog from "@components/ui/dialog/cDialog";
-import { Dispatch, SetStateAction, useState } from "react";
+import { QuestionTypes } from "@prisma/client";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
+import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationCreation from "./calculationCreation";
 import Calculations from "./calculations";
-import { FormEditorTree } from "./clientV2";
+import { CategoryItem, FormEditorTree } from "./clientV2";
+
+export type CalculationParams = {
+  questionId: number;
+  questionName: string;
+  expression: string;
+  expressionQuestionsIds: number[];
+};
+
+export type Mention = {
+  id: string;
+  display: string;
+  questionType: QuestionTypes;
+};
 
 const CalculationDialog = ({
   formTree,
   openCalculationDialog,
+  formCalculations,
   setOpenCalculationModal,
+  setFormCalculations,
 }: {
   formTree: FormEditorTree;
   openCalculationDialog: boolean;
+  formCalculations: CalculationParams[];
   setOpenCalculationModal: Dispatch<SetStateAction<boolean>>;
+  setFormCalculations: Dispatch<SetStateAction<CalculationParams[]>>;
 }) => {
   const [calculationsDialogState, setCalculationsDialogState] = useState(0);
-  const [enableCalculationSave, setEnableCalculationSave] = useState(false);
+  const [newCalculation, setNewCalculation] =
+    useState<CalculationParams | null>(null);
+
+  const [mentions, setMentions] = useState<Mention[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<CategoryItem[]>(
+    [],
+  );
+  const addCalculation = () => {
+    if (!newCalculation) return;
+    setFormCalculations((prev) => {
+      const newArr = prev;
+      newArr.push(newCalculation);
+      return [...newArr];
+    });
+    setNewCalculation(null);
+    setCalculationsDialogState(0);
+  };
+
+  useEffect(() => {
+    const newMentions: Mention[] = [];
+    const newFilteredCategories = formTree.categories.reduce<CategoryItem[]>(
+      (acc, cat) => {
+        const catQuestions = cat.categoryChildren.filter(
+          (child) =>
+            FormItemUtils.isQuestionType(child) &&
+            child.characterType === "NUMBER",
+        );
+        const subCats = cat.categoryChildren
+          .filter((child) => FormItemUtils.isSubcategoryType(child))
+          .map((sub) => {
+            sub.questions.forEach((q) => {
+              if (q.characterType === "NUMBER") {
+                newMentions.push({
+                  id: String(q.questionId),
+                  display: `${q.name} {id:${q.questionId}}`,
+                  questionType: q.questionType,
+                });
+              }
+            });
+            return {
+              ...sub,
+              questions: sub.questions.filter(
+                (q) => q.characterType === "NUMBER",
+              ),
+            };
+          })
+          .filter((sub) => sub.questions.length > 0);
+        if (catQuestions.length > 0 || (subCats && subCats.length > 0)) {
+          catQuestions
+            .filter((q) => FormItemUtils.isQuestionType(q))
+            .forEach((q) => {
+              if (q.characterType === "NUMBER") {
+                newMentions.push({
+                  id: String(q.questionId),
+                  display: `${q.name} {id:${q.questionId}}`,
+                  questionType: q.questionType,
+                });
+              }
+            });
+          const children = catQuestions
+            .concat(subCats)
+            .sort((a, b) => a.position - b.position);
+          acc.push({
+            ...cat,
+            categoryChildren: children,
+          });
+        }
+        return acc;
+      },
+      [],
+    );
+    setFilteredCategories(newFilteredCategories);
+    setMentions(newMentions);
+  }, [formTree]);
   return (
     <CDialog
       title="Cálculos"
@@ -30,10 +122,8 @@ const CalculationDialog = ({
       }}
       confirmChildren={<>Criar</>}
       disableDialogActions={calculationsDialogState === 0}
-      disableConfirmButton={!enableCalculationSave}
-      onConfirm={() => {
-        console.log("CONFIRM");
-      }}
+      disableConfirmButton={!newCalculation}
+      onConfirm={addCalculation}
     >
       <CToggleButtonGroup
         className="mt-2"
@@ -48,11 +138,15 @@ const CalculationDialog = ({
           setCalculationsDialogState(val.id);
         }}
       />
-      {calculationsDialogState === 0 && <Calculations />}
+      {calculationsDialogState === 0 && (
+        <Calculations formCalculations={formCalculations} mentions={mentions} />
+      )}
       {calculationsDialogState === 1 && (
         <CalculationCreation
-          formTree={formTree}
-          setEnableCalculationSave={setEnableCalculationSave}
+          formCalculations={formCalculations}
+          mentions={mentions}
+          filteredCategories={filteredCategories}
+          setNewCalculation={setNewCalculation}
         />
       )}
     </CDialog>
