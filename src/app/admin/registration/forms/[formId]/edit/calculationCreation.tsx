@@ -58,7 +58,7 @@ const CalculationCreation = ({
     setValidExpresssion(valid);
     if (valid && selectedTargetQuestion) {
       setNewCalculation({
-        questionId: parseInt(selectedTargetQuestion.id),
+        targetQuestionId: parseInt(selectedTargetQuestion.id),
         questionName: selectedTargetQuestion.display,
         expression: expression,
         expressionQuestionsIds: calc.getExpressionQuestionIds(),
@@ -85,7 +85,7 @@ const CalculationCreation = ({
             m.questionType === "WRITTEN" &&
             !formCalculations.some(
               (fC) =>
-                fC.questionId === Number(m.id) ||
+                fC.targetQuestionId === Number(m.id) ||
                 fC.expressionQuestionsIds.some((eQ) => eQ === Number(m.id)),
             ),
         )}
@@ -102,7 +102,6 @@ const CalculationCreation = ({
       <CMentionsTextField
         label="Expressão"
         fullWidth
-        multiline
         highlightColor="primary.main"
         size="small"
         highlightTextColor
@@ -120,7 +119,9 @@ const CalculationCreation = ({
             data: mentions.filter(
               (m) =>
                 m.id !== selectedTargetQuestion?.id &&
-                !formCalculations.some((fc) => fc.questionId === Number(m.id)),
+                !formCalculations.some(
+                  (fc) => fc.targetQuestionId === Number(m.id),
+                ),
             ),
             ignoreAccents: true,
           },

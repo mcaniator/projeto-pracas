@@ -11,7 +11,7 @@ import Calculations from "./calculations";
 import { CategoryItem, FormEditorTree } from "./clientV2";
 
 export type CalculationParams = {
-  questionId: number;
+  targetQuestionId: number;
   questionName: string;
   expression: string;
   expressionQuestionsIds: number[];
@@ -139,7 +139,11 @@ const CalculationDialog = ({
         }}
       />
       {calculationsDialogState === 0 && (
-        <Calculations formCalculations={formCalculations} mentions={mentions} />
+        <Calculations
+          formCalculations={formCalculations}
+          mentions={mentions}
+          setFormCalculations={setFormCalculations}
+        />
       )}
       {calculationsDialogState === 1 && (
         <CalculationCreation

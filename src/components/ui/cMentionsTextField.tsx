@@ -32,7 +32,6 @@ const CMentionsTextField = React.forwardRef<
   return (
     <MentionsTextField
       ref={ref}
-      aria-disabled
       type="text"
       inputMode="numeric"
       spellCheck={spellCheck}

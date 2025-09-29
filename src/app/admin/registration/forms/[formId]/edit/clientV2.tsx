@@ -68,6 +68,7 @@ export type FormEditorTree = {
 const ClientV2 = ({
   form,
   categories,
+  dbCalculations,
   formId,
 }: {
   form: {
@@ -75,6 +76,7 @@ const ClientV2 = ({
     statusCode: number;
   };
   categories: CategoriesWithQuestionsAndStatusCode;
+  dbCalculations: CalculationParams[];
   formId: number;
 }) => {
   const { setHelperCard } = useHelperCard();
@@ -83,9 +85,8 @@ const ClientV2 = ({
   const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
   const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
-  const [formCalculations, setFormCalculations] = useState<CalculationParams[]>(
-    [],
-  );
+  const [formCalculations, setFormCalculations] =
+    useState<CalculationParams[]>(dbCalculations);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
   const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
@@ -229,6 +230,7 @@ const ClientV2 = ({
         oldFormName: form.formTree.name,
         newFormName: formName,
         formTree: formTree,
+        calculations: formCalculations,
       });
       if (response?.statusCode !== 200) {
         setHelperCard({

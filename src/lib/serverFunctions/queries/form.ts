@@ -2,11 +2,13 @@ import { FormCalculation } from "@customTypes/forms/formCreation";
 import { prisma } from "@lib/prisma";
 import { QuestionWithCategories } from "@serverActions/questionUtil";
 
+import { CalculationParams } from "../../../app/admin/registration/forms/[formId]/edit/calculationDialog";
 import {
   CategoryItem,
   QuestionItem,
   SubcategoryItem,
 } from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 type FormToEditPage = {
@@ -221,5 +223,43 @@ const searchformNameById = async (formId: number) => {
   }
 };
 
-export { fetchFormsLatest, getFormTree, searchformNameById };
+const getCalculationByFormId = async (formId: number) => {
+  try {
+    const dbCalculations = await prisma.calculation.findMany({
+      where: {
+        formId: formId,
+      },
+      select: {
+        expression: true,
+        targetQuestion: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    const calculations = dbCalculations.reduce((acc, val) => {
+      const calc = new Calculation(val.expression);
+      const calcParams = {
+        targetQuestionId: val.targetQuestion.id,
+        questionName: val.targetQuestion.name,
+        expression: val.expression,
+        expressionQuestionsIds: calc.getExpressionQuestionIds(),
+      };
+      acc.push(calcParams);
+      return acc;
+    }, [] as CalculationParams[]);
+    return { statusCode: 200, calculations: calculations };
+  } catch (e) {
+    return { statusCode: 500, calculations: [] };
+  }
+};
+
+export {
+  fetchFormsLatest,
+  getFormTree,
+  searchformNameById,
+  getCalculationByFormId,
+};
 export { type FormToEditPage };

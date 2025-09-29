@@ -10,6 +10,7 @@ import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { CalculationParams } from "../../../app/admin/registration/forms/[formId]/edit/calculationDialog";
 import { FormEditorTree } from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
@@ -232,11 +233,13 @@ const _updateForm = async (
 const _updateFormV2 = async ({
   formId,
   formTree,
+  calculations,
   newFormName,
   oldFormName,
 }: {
   formId: number;
   formTree: FormEditorTree;
+  calculations: CalculationParams[];
   newFormName?: string;
   oldFormName: string;
 }) => {
@@ -286,6 +289,8 @@ const _updateFormV2 = async ({
         }
       });
     });
+
+    // #region form items
 
     const databaseFormItems = await prisma.formItem.findMany({
       where: { formId },
@@ -368,6 +373,90 @@ const _updateFormV2 = async ({
       insertQuery = Prisma.sql`INSERT INTO form_item (form_id, category_id, subcategory_id, question_id, position) VALUES ${Prisma.join(values, ",")}`;
     }
 
+    // #endregion
+
+    // #region calculations
+    const databaseCalculations = await prisma.calculation.findMany({
+      where: {
+        formId: formId,
+      },
+      select: {
+        id: true,
+        formId: true,
+        targetQuestionId: true,
+      },
+    });
+
+    const calculationsToDelete: {
+      id: number;
+    }[] = [];
+    const calculationsToUpdate: {
+      id: number;
+      targetQuestionId: number;
+      expression: string;
+    }[] = [];
+    const calculationsToInsert: {
+      expression: string;
+      targetQuestionId: number;
+    }[] = [];
+
+    // Mapping calculations to delete or update
+    // Currently calculations cannot be updated directly in the form editor. Review this code if it is implemented.
+    databaseCalculations.forEach((dbCalc) => {
+      const sentCalculation = calculations.find(
+        (calc) => calc.targetQuestionId === dbCalc.targetQuestionId,
+      );
+      if (sentCalculation) {
+        calculationsToUpdate.push({
+          id: dbCalc.id,
+          targetQuestionId: sentCalculation.targetQuestionId,
+          expression: sentCalculation.expression,
+        });
+      } else {
+        calculationsToDelete.push({ id: dbCalc.id });
+      }
+    });
+
+    // Mapping calculations to insert
+    calculations.forEach((calc) => {
+      const exists = databaseCalculations.some(
+        (dbCalc) => dbCalc.targetQuestionId === calc.targetQuestionId,
+      );
+      if (!exists) {
+        calculationsToInsert.push(calc);
+      }
+    });
+
+    let calculationsDeleteQuery: Prisma.Sql | null = null;
+    if (calculationsToDelete.length > 0) {
+      const values = calculationsToDelete.map((i) => Prisma.sql`(${i.id})`);
+      calculationsDeleteQuery = Prisma.sql`DELETE FROM calculation WHERE id IN  (${Prisma.join(values, ",")})`;
+    }
+
+    let calculationsUpdateQuery: Prisma.Sql | null = null;
+    if (calculationsToUpdate.length > 0) {
+      const values = calculationsToUpdate.map(
+        (i) => Prisma.sql`(${i.id}, ${i.targetQuestionId}, ${i.expression})`,
+      );
+      calculationsUpdateQuery = Prisma.sql`UPDATE calculation AS c
+      SET target_question_Id = v.target_question_Id,
+      expression = v.expression
+      FROM (VALUES ${Prisma.join(values, ",")}) AS v(id, target_question_Id, expression)
+      WHERE c.id = v.id`;
+    }
+
+    let calculationsInsertQuery: Prisma.Sql | null = null;
+    if (calculationsToInsert.length > 0) {
+      const values = calculationsToInsert.map(
+        (i) => Prisma.sql`(${formId}, ${i.targetQuestionId}, ${i.expression})`,
+      );
+      calculationsInsertQuery = Prisma.sql`INSERT INTO calculation (form_id, target_question_Id, expression) VALUES ${Prisma.join(values, ",")}`;
+    }
+
+    // INSERT
+
+    // #endregion
+
     //Transaction
     await prisma.$transaction(async (tx) => {
       if (deleteQuery) {
@@ -378,6 +467,15 @@ const _updateFormV2 = async ({
       }
       if (insertQuery) {
         await tx.$executeRaw(insertQuery);
+      }
+      if (calculationsDeleteQuery) {
+        await tx.$executeRaw(calculationsDeleteQuery);
+      }
+      if (calculationsUpdateQuery) {
+        await tx.$executeRaw(calculationsUpdateQuery);
+      }
+      if (calculationsInsertQuery) {
+        await tx.$executeRaw(calculationsInsertQuery);
       }
     });
 
