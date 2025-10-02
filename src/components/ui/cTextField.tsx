@@ -7,6 +7,7 @@ type CTextFieldProps = TextFieldProps & {
   errorMessage?: string;
   isSearch?: boolean;
   clearable?: boolean;
+  isAutocompleteInput?: boolean;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
@@ -24,6 +25,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       required = false,
       isSearch = false,
       clearable = false,
+      isAutocompleteInput = false,
       slotProps,
       value,
       onKeyDown,
@@ -137,7 +139,10 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        slotProps={{ ...slotProps, ...inputProps }}
+        slotProps={{
+          ...slotProps,
+          ...(!isAutocompleteInput ? inputProps : {}),
+        }}
         {...rest}
       />
     );

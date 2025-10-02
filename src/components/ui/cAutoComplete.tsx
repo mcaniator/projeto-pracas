@@ -34,12 +34,14 @@ function CAutocomplete<
         },
       }
     : undefined;
+
   return (
     <Autocomplete
       {...rest}
       renderInput={(params) => (
         <CTextField
           {...params}
+          isAutocompleteInput
           InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
           sx={{ ...sx, ...readOnlySx }}
           label={label}

@@ -287,7 +287,9 @@ const ClientV2 = ({
               {!isMobileView && (
                 <div className="flex items-center gap-1">
                   <CButton
+                    enableTopLeftChip
                     disableMinWidth
+                    topLeftChipLabel={formCalculations.length}
                     onClick={() => {
                       setOpenCalculationDialog(true);
                     }}
@@ -314,7 +316,10 @@ const ClientV2 = ({
                 >
                   Questões
                 </CButton>
-                <CButton>
+                <CButton
+                  enableTopLeftChip
+                  topLeftChipLabel={formCalculations.length}
+                >
                   <IconCalculator />
                 </CButton>
                 <CButton
