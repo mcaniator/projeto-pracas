@@ -471,9 +471,9 @@ const _updateFormV2 = async ({
       if (calculationsDeleteQuery) {
         await tx.$executeRaw(calculationsDeleteQuery);
       }
-      if (calculationsUpdateQuery) {
+      /*if (calculationsUpdateQuery) {
         await tx.$executeRaw(calculationsUpdateQuery);
-      }
+      }*/ // Remove comment if calculation update is implemented
       if (calculationsInsertQuery) {
         await tx.$executeRaw(calculationsInsertQuery);
       }
@@ -482,7 +482,6 @@ const _updateFormV2 = async ({
     revalidateTag("form");
     return { statusCode: 200 };
   } catch (e) {
-    console.log(e);
     return { statusCode: 500 };
   }
 };

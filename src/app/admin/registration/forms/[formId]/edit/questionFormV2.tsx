@@ -3,7 +3,14 @@
 import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@context/helperCardContext";
-import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
+import {
+  CategoryForQuestionPicker,
+  QuestionForQuestionPicker,
+  QuestionPickerQuestionToAdd,
+  SubCategoryForQuestionPicker,
+} from "@customTypes/forms/formCreation";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import {
@@ -34,14 +41,14 @@ const QuestionFormV2 = ({
   categories: CategoriesWithQuestions;
   formQuestionsIds: number[];
   showTitle: boolean;
-  addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
+  addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [questionsListState, setQuestionsListState] = useState<
     "LOADING" | "LOADED" | "ERROR"
   >("LOADING");
-  const [foundQuestionsByCategory, setFoundQuestionsByCategory] = useState<
-    FormQuestionWithCategoryAndSubcategory[]
+  const [categoriesList, setCategoriesList] = useState<
+    CategoryForQuestionPicker[]
   >([]);
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
@@ -71,12 +78,12 @@ const QuestionFormV2 = ({
       verifySubcategoryNullness:
         selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
     })
-      .then((questions) => {
-        if (questions.statusCode === 200) {
+      .then((categories) => {
+        if (categories.statusCode === 200) {
           setQuestionsListState("LOADED");
-          setFoundQuestionsByCategory(questions.questions);
+          setCategoriesList(categories.categories);
         } else {
-          if (questions.statusCode === 401) {
+          if (categories.statusCode === 401) {
             setHelperCard({
               show: true,
               helperCardType: "ERROR",
@@ -90,7 +97,7 @@ const QuestionFormV2 = ({
             });
           }
           setQuestionsListState("LOADED");
-          setFoundQuestionsByCategory([]);
+          setCategoriesList([]);
         }
       })
       .catch(() => {
@@ -216,8 +223,8 @@ const QuestionFormV2 = ({
               <LoadingIcon className="h-32 w-32 text-2xl" />
             </div>
           : questionsListState === "LOADED" ?
-            <QuestionListV2
-              questions={foundQuestionsByCategory}
+            <CategoriesListV2
+              categories={categoriesList}
               formQuestionsIds={formQuestionsIds}
               addQuestion={addQuestion}
             />
@@ -232,14 +239,141 @@ const QuestionFormV2 = ({
   );
 };
 
-const QuestionListV2 = ({
-  questions,
+const CategoriesListV2 = ({
+  categories,
   formQuestionsIds,
   addQuestion,
 }: {
-  questions: FormQuestionWithCategoryAndSubcategory[];
+  categories: CategoryForQuestionPicker[];
   formQuestionsIds: number[];
-  addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
+  addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+}) => {
+  return (
+    <div className="p-1">
+      {categories.map((cat, index) => {
+        return (
+          <Accordion
+            key={index}
+            sx={{
+              border: 1,
+              borderColor: "primary.main",
+              borderRadius: 1,
+            }}
+            defaultExpanded
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                backgroundColor: "primary.lighter4",
+                "&:hover": {
+                  backgroundColor: "primary.lighter3",
+                },
+              }}
+              className="max-w-full"
+            >
+              <div className="flex items-center gap-1 p-1">
+                {cat.name}
+                <CNotesChip notes={cat.notes} name={cat.name} />
+              </div>
+            </AccordionSummary>
+            <AccordionDetails>
+              <div className="flex flex-col gap-1">
+                {cat.subcategory.length > 0 && (
+                  <SubcategoriesListV2
+                    subcategories={cat.subcategory}
+                    formQuestionsIds={formQuestionsIds}
+                    categoryId={cat.id}
+                    addQuestion={addQuestion}
+                  />
+                )}
+                {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
+                  .length > 0 && (
+                  <QuestionListV2
+                    questions={cat.question}
+                    formQuestionsIds={formQuestionsIds}
+                    categoryId={cat.id}
+                    addQuestion={addQuestion}
+                  />
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
+        );
+      })}
+    </div>
+  );
+};
+
+const SubcategoriesListV2 = ({
+  subcategories,
+  formQuestionsIds,
+  categoryId,
+  addQuestion,
+}: {
+  subcategories: SubCategoryForQuestionPicker[];
+  formQuestionsIds: number[];
+  categoryId: number;
+  addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+}) => {
+  return (
+    <div className="p-1">
+      {subcategories.map((sub, index) => {
+        if (
+          sub.question.filter((q) => !formQuestionsIds.includes(q.id)).length >
+          0
+        ) {
+          return (
+            <Accordion
+              key={index}
+              sx={{
+                border: 1,
+                borderColor: "primary.main",
+                borderRadius: 1,
+              }}
+              defaultExpanded
+            >
+              <AccordionSummary
+                sx={{
+                  backgroundColor: "primary.lighter4",
+                  "&:hover": {
+                    backgroundColor: "primary.lighter3",
+                  },
+                }}
+              >
+                <div className="flex items-center gap-1 p-1">
+                  {sub.name}
+                  <CNotesChip notes={sub.notes} name={sub.name} />
+                </div>
+              </AccordionSummary>
+              <AccordionDetails>
+                <QuestionListV2
+                  questions={sub.question}
+                  formQuestionsIds={formQuestionsIds}
+                  categoryId={categoryId}
+                  subcategoryId={sub.id}
+                  addQuestion={addQuestion}
+                />
+              </AccordionDetails>
+            </Accordion>
+          );
+        }
+      })}
+    </div>
+  );
+};
+
+const QuestionListV2 = ({
+  questions,
+  formQuestionsIds,
+  categoryId,
+  subcategoryId,
+  addQuestion,
+}: {
+  questions: QuestionForQuestionPicker[];
+  formQuestionsIds: number[];
+  categoryId: number;
+  subcategoryId?: number | null;
+  addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
   const filteredQuestions = questions.filter(
     (q) => !formQuestionsIds.includes(q.id),
@@ -261,11 +395,8 @@ const QuestionListV2 = ({
           options={question.options}
           geometryTypes={question.geometryTypes}
           addQuestion={addQuestion}
-          showCategory={false}
-          categoryId={question.category.id}
-          subcategoryId={question.subcategory?.id}
-          categoryName={question.category.name}
-          subcategoryName={question.subcategory?.name}
+          categoryId={categoryId}
+          subcategoryId={subcategoryId}
         />
       ))}
     </div>
@@ -282,26 +413,20 @@ const QuestionComponentV2 = ({
   optionType,
   options,
   geometryTypes,
-  showCategory,
   categoryId,
   subcategoryId,
-  categoryName,
-  subcategoryName,
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
-  addQuestion: (question: FormQuestionWithCategoryAndSubcategory) => void;
+  addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   name: string;
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
-  geometryTypes: [QuestionGeometryTypes];
+  geometryTypes: QuestionGeometryTypes[];
   options: { text: string }[];
-  showCategory: boolean;
   categoryId: number;
-  subcategoryId?: number;
-  categoryName: string;
-  subcategoryName?: string;
+  subcategoryId?: number | null;
 }) => {
   return (
     <div
@@ -321,8 +446,6 @@ const QuestionComponentV2 = ({
       </div>
       <div>{name}</div>
 
-      {showCategory &&
-        `, Categoria: ${categoryName}, Subcategoria: ${subcategoryName ? subcategoryName : "NENHUMA"}`}
       <CButton
         type="submit"
         className={"w-min"}
@@ -335,11 +458,8 @@ const QuestionComponentV2 = ({
             optionType,
             options,
             geometryTypes,
-            category: { id: categoryId, name: categoryName },
-            subcategory:
-              subcategoryId && subcategoryName ?
-                { id: subcategoryId, name: subcategoryName, categoryId }
-              : null,
+            categoryId,
+            subcategoryId: subcategoryId ?? null,
             characterType: characterType,
           })
         }

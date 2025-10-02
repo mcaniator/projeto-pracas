@@ -4,7 +4,7 @@ import CustomModal from "@components/modal/customModal";
 import CTextField from "@components/ui/cTextField";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
-import { FormQuestionWithCategoryAndSubcategory } from "@customTypes/forms/formCreation";
+import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
 import {
   OptionTypes,
   QuestionGeometryTypes,
@@ -18,12 +18,8 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import CButton from "../../../../../../components/ui/cButton";
-import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGroup";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
-import CalculationCreation from "./calculationCreation";
 import CalculationDialog, { CalculationParams } from "./calculationDialog";
-import Calculations from "./calculations";
 import QuestionFormV2 from "./questionFormV2";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
@@ -55,6 +51,7 @@ export type QuestionItem = {
 export type CategoryItem = {
   categoryId: number;
   name: string;
+  notes: string | null;
   position: number;
   categoryChildren: (QuestionItem | SubcategoryItem)[];
 };
@@ -89,21 +86,28 @@ const ClientV2 = ({
     useState<CalculationParams[]>(dbCalculations);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
-  const addQuestion = (question: FormQuestionWithCategoryAndSubcategory) => {
+  const addQuestion = (question: QuestionPickerQuestionToAdd) => {
     if (formQuestionsIds.includes(question.id)) return;
 
     setFormTree((prev) => {
-      const categoryId = question.category.id;
-      const subcategoryId = question.subcategory?.id;
+      const categoryId = question.categoryId;
+      const subcategoryId = question.subcategoryId;
 
       // Busca ou cria categoria
       let category = prev.categories.find(
         (cat) => cat.categoryId === categoryId,
       );
+      const categoryFromCategoriesList = categories.categories.find(
+        (cat) => cat.id === categoryId,
+      );
       if (!category) {
+        if (!categoryFromCategoriesList) {
+          throw new Error("Tried to find category that does not exists");
+        }
         category = {
           categoryId: categoryId,
-          name: question.category.name,
+          name: categoryFromCategoriesList.name,
+          notes: categoryFromCategoriesList.notes,
           position: prev.categories.length + 1,
           categoryChildren: [],
         };
@@ -120,11 +124,18 @@ const ClientV2 = ({
         );
 
         if (!subItem) {
+          const subcategoryFromCategoriesList =
+            categoryFromCategoriesList?.subcategory.find(
+              (sub) => sub.id === subcategoryId,
+            );
+          if (!subcategoryFromCategoriesList) {
+            throw new Error("Tried to find subcategory that does not exists");
+          }
           subItem = {
             subcategoryId: subcategoryId,
-            name: question.subcategory!.name,
+            name: subcategoryFromCategoriesList.name,
             position: newCategory.categoryChildren.length + 1, // insere no final
-            notes: null,
+            notes: subcategoryFromCategoriesList.notes,
             questions: [],
           };
         }

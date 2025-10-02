@@ -52,7 +52,11 @@ const CIconChip = ({
   const button = (
     <IconButton
       size="small"
-      onClick={onClick}
+      component="span"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
       sx={sx ? sx : { ...baseSx, ...variantSx[variant] }}
     >
       {icon}

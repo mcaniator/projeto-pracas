@@ -104,6 +104,7 @@ const getFormTree = async (formId: number) => {
           categories.push({
             categoryId: item.categoryId,
             name: item.category.name,
+            notes: item.category.notes,
             position: item.position,
             categoryChildren: [],
           });

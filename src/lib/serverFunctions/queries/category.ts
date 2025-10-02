@@ -18,10 +18,12 @@ const getCategories = async () => {
       select: {
         id: true,
         name: true,
+        notes: true,
         subcategory: {
           select: {
             id: true,
             name: true,
+            notes: true,
           },
           orderBy: {
             name: "asc",

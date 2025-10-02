@@ -1,5 +1,4 @@
 import {
-  CalculationTypes,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -28,22 +27,42 @@ type FormQuestionWithCategoryAndSubcategory = {
   } | null;
 };
 
-type FormCalculation = {
+type QuestionForQuestionPicker = {
   id: number;
   name: string;
-  type: CalculationTypes;
-  questions: {
-    id: number;
-    name: string;
+  questionType: QuestionTypes;
+  notes: string | null;
+  characterType: QuestionResponseCharacterTypes;
+  optionType: OptionTypes | null;
+  options: {
+    text: string;
   }[];
-  category: {
-    id: number;
-    name: string;
-  };
-  subcategory: {
-    id: number;
-    name: string;
-  } | null;
+  geometryTypes: QuestionGeometryTypes[];
 };
 
-export { type FormQuestionWithCategoryAndSubcategory, type FormCalculation };
+type SubCategoryForQuestionPicker = {
+  id: number;
+  name: string;
+  notes: string | null;
+  question: QuestionForQuestionPicker[];
+};
+
+type CategoryForQuestionPicker = {
+  id: number;
+  name: string;
+  notes: string | null;
+  question: QuestionForQuestionPicker[];
+  subcategory: SubCategoryForQuestionPicker[];
+};
+
+type QuestionPickerQuestionToAdd = QuestionForQuestionPicker & {
+  categoryId: number;
+  subcategoryId: number | null;
+};
+export {
+  type FormQuestionWithCategoryAndSubcategory,
+  type CategoryForQuestionPicker,
+  type SubCategoryForQuestionPicker,
+  type QuestionForQuestionPicker,
+  type QuestionPickerQuestionToAdd,
+};

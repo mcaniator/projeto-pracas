@@ -215,6 +215,8 @@ const SortableCategory = ({
               <IconGripVertical />
             </div>
             <strong>{category.name}</strong>
+
+            <CNotesChip notes={category.notes} />
             <Chip
               label={`Questões: ${category.categoryChildren.filter((fi) => FormItemUtils.isQuestionType(fi)).length}`}
               sx={{
@@ -505,7 +507,7 @@ const SortableFormItem = ({
               >
                 <IconGripVertical />
               </div>
-
+              <CNotesChip notes={formItem.notes} />
               <strong>{formItem.name}</strong>
               <Chip
                 label={`Questões: ${formItem.questions?.length}`}

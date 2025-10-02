@@ -1,59 +1,74 @@
-import { FormQuestion } from "@customTypes/forms/formCreation";
 import { prisma } from "@lib/prisma";
+
+import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
 const searchQuestionsByCategoryAndSubcategory = async (
   categoryId: number | undefined,
   subcategoryId: number | undefined,
   verifySubcategoryNullness: boolean,
-): Promise<{ statusCode: number; questions: FormQuestion[] }> => {
-  if (!categoryId) return { statusCode: 400, questions: [] };
+): Promise<{ statusCode: number; categories: CategoryForQuestionPicker[] }> => {
+  if (!categoryId) return { statusCode: 400, categories: [] };
   try {
-    const questions = await prisma.question.findMany({
+    const categories = await prisma.category.findMany({
       where: {
-        categoryId,
-        ...(verifySubcategoryNullness && !subcategoryId ?
-          {
-            subcategoryId: null,
-          }
-        : !subcategoryId ? {}
-        : { subcategoryId }),
+        id: categoryId,
       },
+      orderBy: { name: "desc" },
       select: {
         id: true,
         name: true,
-        questionType: true,
         notes: true,
-        characterType: true,
-        optionType: true,
-        options: true,
-        geometryTypes: true,
-        category: {
+        question: {
+          where: {
+            subcategoryId: null,
+            ...(verifySubcategoryNullness && !subcategoryId ? {}
+            : !subcategoryId ? {}
+            : { subcategoryId }),
+          },
           select: {
             id: true,
             name: true,
+            questionType: true,
+            notes: true,
+            characterType: true,
+            optionType: true,
+            options: true,
+            geometryTypes: true,
           },
+          orderBy: { name: "desc" },
         },
         subcategory: {
+          orderBy: { name: "desc" },
           select: {
             id: true,
             name: true,
-            categoryId: true,
+            notes: true,
+            question: {
+              where: {
+                ...(verifySubcategoryNullness && !subcategoryId ? {}
+                : !subcategoryId ? {}
+                : { subcategoryId }),
+              },
+              select: {
+                id: true,
+                name: true,
+                questionType: true,
+                notes: true,
+                characterType: true,
+                optionType: true,
+                options: true,
+                geometryTypes: true,
+              },
+              orderBy: { name: "desc" },
+            },
           },
         },
-      },
-      orderBy: {
-        name: "desc",
       },
     });
 
-    questions.sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    });
-    return { statusCode: 200, questions: questions };
+    return { statusCode: 200, categories: categories };
   } catch (e) {
-    return { statusCode: 500, questions: [] };
+    return { statusCode: 500, categories: [] };
   }
 };
 
