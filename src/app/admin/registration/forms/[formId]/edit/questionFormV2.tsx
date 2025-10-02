@@ -11,8 +11,6 @@ import {
 } from "@customTypes/forms/formCreation";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import {
   OptionTypes,
   QuestionGeometryTypes,
@@ -26,12 +24,11 @@ import { useCallback, useEffect, useState } from "react";
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CButton from "../../../../../../components/ui/cButton";
 import CTextField from "../../../../../../components/ui/cTextField";
+import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGroup";
 import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
-
-type SearchMethods = "CATEGORY" | "STATEMENT";
 
 const QuestionFormV2 = ({
   categories,
@@ -51,8 +48,7 @@ const QuestionFormV2 = ({
   const [categoriesList, setCategoriesList] = useState<
     CategoryForQuestionPicker[]
   >([]);
-  const [currentSearchMethod, setCurrentSearchMethod] =
-    useState<SearchMethods>("CATEGORY");
+  const [currentSearchMethod, setCurrentSearchMethod] = useState(0);
 
   const [searchedName, setSearchedName] = useState("");
 
@@ -158,7 +154,7 @@ const QuestionFormV2 = ({
 
   useEffect(() => {
     setCategoriesList([]);
-    if (currentSearchMethod === "STATEMENT") {
+    if (currentSearchMethod === 1) {
       searchByName();
     } else {
       searchByCategoryAndSubcateogory();
@@ -180,66 +176,20 @@ const QuestionFormV2 = ({
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
-
-      <ToggleButtonGroup
+      <CToggleButtonGroup
+        options={[
+          { id: 0, label: "Categorias" },
+          { id: 1, label: "Nome" },
+        ]}
+        getLabel={(i) => i.label}
+        getValue={(i) => i.id}
         value={currentSearchMethod}
-        exclusive
         onChange={(e, newVal) => {
-          if (newVal && newVal !== currentSearchMethod) {
-            setCurrentSearchMethod(newVal as SearchMethods);
-          }
+          setCurrentSearchMethod(newVal.id);
         }}
-        size="small"
-        color="primary"
-        sx={{
-          padding: "6px 6px",
-          bgcolor: "grey.100",
-          width: "fit-content",
-          boxShadow: "inset 0 0 4px rgba(0,0,0,0.3)",
-        }}
-      >
-        <ToggleButton
-          value="CATEGORY"
-          sx={{
-            bgcolor: "grey.100",
-            color: "black",
-            border: "none",
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "white",
-              "&:hover": {
-                bgcolor: "primary.main",
-              },
-            },
-            "&:hover": {
-              bgcolor: "grey.300",
-            },
-          }}
-        >
-          Categorias
-        </ToggleButton>
-        <ToggleButton
-          value="STATEMENT"
-          sx={{
-            bgcolor: "grey.100",
-            color: "black",
-            border: "none",
-            "&.Mui-selected": {
-              bgcolor: "primary.dark",
-              color: "white",
-              "&:hover": {
-                bgcolor: "primary.dark",
-              },
-            },
-            "&:hover": {
-              bgcolor: "grey.300",
-            },
-          }}
-        >
-          Nome
-        </ToggleButton>
-      </ToggleButtonGroup>
-      {currentSearchMethod === "CATEGORY" && (
+      />
+
+      {currentSearchMethod === 0 && (
         <div className="flex flex-col gap-2 overflow-auto">
           <h4>Buscar por categoria: </h4>
           <CAutocomplete
@@ -280,13 +230,14 @@ const QuestionFormV2 = ({
           />
         </div>
       )}
-      {currentSearchMethod === "STATEMENT" && (
+      {currentSearchMethod === 1 && (
         <div className="mb-2 flex flex-col gap-2 overflow-auto">
           <h4>Buscar por nome: </h4>
           <CTextField
             label="Nome"
             value={searchedName}
             isSearch
+            clearable
             onSearch={searchByName}
             onChange={(e) => {
               setSearchedName(e.target.value);
@@ -435,6 +386,7 @@ const SubcategoriesListV2 = ({
               defaultExpanded
             >
               <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
                 sx={{
                   backgroundColor: "primary.lighter4",
                   "&:hover": {

@@ -1,11 +1,12 @@
 import { IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
-import { IconSearch } from "@tabler/icons-react";
-import React, { useRef, useState } from "react";
+import { IconSearch, IconX } from "@tabler/icons-react";
+import React, { useEffect, useRef, useState } from "react";
 
 type CTextFieldProps = TextFieldProps & {
   errorMessage?: string;
   isSearch?: boolean;
+  clearable?: boolean;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
@@ -22,7 +23,9 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       helperText,
       required = false,
       isSearch = false,
+      clearable = false,
       slotProps,
+      value,
       onKeyDown,
       onRequiredCheck,
       onChange,
@@ -33,9 +36,11 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     } = props;
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [localValue, setLocalValue] = useState<string>("");
+    const [mounted, setMounted] = useState(false); // SSR safe flag
 
     const validate = () => {
-      const value = inputRef?.current?.value ?? "";
+      const value = localValue;
       const valid = value.trim().length > 0;
       setIsValid(valid);
       if (required && onRequiredCheck) {
@@ -83,26 +88,48 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       }
     };
 
-    const searchProps =
-      isSearch ?
-        {
-          input: {
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton edge="end" onClick={handleSearch}>
-                  <IconSearch />
-                </IconButton>
-              </InputAdornment>
-            ),
-          },
-        }
-      : {};
+    const handleClear = () => {
+      setLocalValue("");
+    };
+
+    useEffect(() => {
+      setLocalValue(value != undefined ? String(value) : "");
+    }, [value]);
+
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
+    const endAdornment =
+      mounted ?
+        <InputAdornment position="end">
+          {clearable ?
+            localValue.length > 0 ?
+              <IconButton edge="end" onClick={handleClear}>
+                <IconX />
+              </IconButton>
+            : <div style={{ width: 28, height: 24 }} />
+          : null}
+          {isSearch && (
+            <IconButton edge="end" onClick={handleSearch}>
+              <IconSearch />
+            </IconButton>
+          )}
+        </InputAdornment>
+      : null;
+
+    const inputProps = {
+      input: {
+        endAdornment,
+      },
+    };
 
     return (
       <TextField
         ref={ref}
         inputRef={inputRef}
         variant={variant}
+        value={localValue}
         margin={margin}
         size={size}
         error={(required && !isValid) || error}
@@ -110,7 +137,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        slotProps={{ ...slotProps, ...searchProps }}
+        slotProps={{ ...slotProps, ...inputProps }}
         {...rest}
       />
     );
