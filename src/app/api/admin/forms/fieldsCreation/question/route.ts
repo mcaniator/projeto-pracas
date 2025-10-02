@@ -1,4 +1,7 @@
-import { searchQuestionsByCategoryAndSubcategory } from "@queries/question";
+import {
+  searchQuestionsByCategoryAndSubcategory,
+  searchQuestionsByName,
+} from "@queries/question";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -21,6 +24,14 @@ export async function GET(request: NextRequest) {
       .enum(["true", "false"])
       .transform((val) => val === "true")
       .parse(request.nextUrl.searchParams.get("verCatNull") ?? "false");
+    const name = z.string().safeParse(request.nextUrl.searchParams.get("name"));
+    if (name.success) {
+      const questions = await searchQuestionsByName(name.data);
+      return new Response(JSON.stringify(questions), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     const questions = await searchQuestionsByCategoryAndSubcategory(
       categoryId,
       subcategoryId,

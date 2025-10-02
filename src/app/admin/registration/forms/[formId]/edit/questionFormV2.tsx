@@ -21,10 +21,11 @@ import {
 } from "@prisma/client";
 import { CategoriesWithQuestions } from "@queries/category";
 import { IconCirclePlus, IconX } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CButton from "../../../../../../components/ui/cButton";
+import CTextField from "../../../../../../components/ui/cTextField";
 import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
@@ -53,6 +54,8 @@ const QuestionFormV2 = ({
   const [currentSearchMethod, setCurrentSearchMethod] =
     useState<SearchMethods>("CATEGORY");
 
+  const [searchedName, setSearchedName] = useState("");
+
   const [
     selectedCategoryAndSubcategoryId,
     setSelectedCategoryAndSubcategoryId,
@@ -70,7 +73,47 @@ const QuestionFormV2 = ({
     verifySubcategoryNullness: false,
   });
 
-  useEffect(() => {
+  const searchByName = useCallback(() => {
+    if (!searchedName || searchedName.length === 0) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Digite um nome para fazer a pesquisa!</>,
+      });
+      return;
+    }
+    setQuestionsListState("LOADING");
+    _searchQuestionsByCategoryAndSubcategory({
+      name: searchedName,
+    })
+      .then((categories) => {
+        if (categories.statusCode === 200) {
+          setQuestionsListState("LOADED");
+          setCategoriesList(categories.categories);
+        } else {
+          if (categories.statusCode === 401) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não possui permissão para obter questões!</>,
+            });
+          } else {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao obter questões!</>,
+            });
+          }
+          setQuestionsListState("LOADED");
+          setCategoriesList([]);
+        }
+      })
+      .catch(() => {
+        setQuestionsListState("ERROR");
+      });
+  }, [searchedName, setHelperCard]);
+
+  const searchByCategoryAndSubcateogory = useCallback(() => {
     setQuestionsListState("LOADING");
     _searchQuestionsByCategoryAndSubcategory({
       categoryId: selectedCategoryAndSubcategoryId.categoryId,
@@ -105,18 +148,35 @@ const QuestionFormV2 = ({
       });
   }, [selectedCategoryAndSubcategoryId, setHelperCard]);
 
+  useEffect(() => {
+    searchByCategoryAndSubcateogory();
+  }, [
+    selectedCategoryAndSubcategoryId,
+    setHelperCard,
+    searchByCategoryAndSubcateogory,
+  ]);
+
+  useEffect(() => {
+    setCategoriesList([]);
+    if (currentSearchMethod === "STATEMENT") {
+      searchByName();
+    } else {
+      searchByCategoryAndSubcateogory();
+    }
+  }, [currentSearchMethod]);
+
   const subcategoriesOptions =
     categories.find(
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
     )?.subcategory || [];
   const fullSubcategoriesOptions = [
-    { id: -1, name: "TODAS" },
-    { id: 0, name: "NENHUMA" },
+    { id: 0, name: "TODAS" },
+    { id: -1, name: "NENHUMA" },
     ...subcategoriesOptions,
   ];
 
   return (
-    <div className="flex h-full flex-col bg-white px-3 text-black">
+    <div className="flex flex-col gap-2 overflow-auto bg-white px-3 text-black">
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
@@ -176,7 +236,7 @@ const QuestionFormV2 = ({
             },
           }}
         >
-          Enunciado
+          Nome
         </ToggleButton>
       </ToggleButtonGroup>
       {currentSearchMethod === "CATEGORY" && (
@@ -195,7 +255,7 @@ const QuestionFormV2 = ({
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
-                subcategoryId: -1,
+                subcategoryId: 0,
                 verifySubcategoryNullness: false,
               });
             }}
@@ -214,27 +274,46 @@ const QuestionFormV2 = ({
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
                 subcategoryId: val.id,
-                verifySubcategoryNullness: val.id === -1 ? false : true,
+                verifySubcategoryNullness: val.id === -1 ? true : false,
               });
             }}
           />
-          {questionsListState === "LOADING" ?
-            <div className="flex justify-center">
-              <LoadingIcon className="h-32 w-32 text-2xl" />
-            </div>
-          : questionsListState === "LOADED" ?
-            <CategoriesListV2
-              categories={categoriesList}
-              formQuestionsIds={formQuestionsIds}
-              addQuestion={addQuestion}
-            />
-          : <div className="flex flex-col justify-center">
-              <p className="text-center">Erro ao carregar questões</p>
-              <IconX className="h-32 w-32 text-2xl" />
-            </div>
-          }
         </div>
       )}
+      {currentSearchMethod === "STATEMENT" && (
+        <div className="mb-2 flex flex-col gap-2 overflow-auto">
+          <h4>Buscar por nome: </h4>
+          <CTextField
+            label="Nome"
+            value={searchedName}
+            isSearch
+            onSearch={searchByName}
+            onChange={(e) => {
+              setSearchedName(e.target.value);
+            }}
+          />
+          {(!searchedName || searchedName.length === 0) && (
+            <div>Digite um nome e pressione enter para realizar uma busca</div>
+          )}
+        </div>
+      )}
+      {questionsListState === "LOADING" ?
+        <div className="m-2 flex justify-center">
+          <LoadingIcon className="h-32 w-32 text-2xl" />
+        </div>
+      : questionsListState === "LOADED" ?
+        <div className="flex flex-col">
+          <CategoriesListV2
+            categories={categoriesList}
+            formQuestionsIds={formQuestionsIds}
+            addQuestion={addQuestion}
+          />
+        </div>
+      : <div className="flex flex-col justify-center">
+          <p className="text-center">Erro ao carregar questões</p>
+          <IconX className="h-32 w-32 text-2xl" />
+        </div>
+      }
     </div>
   );
 };
@@ -248,57 +327,80 @@ const CategoriesListV2 = ({
   formQuestionsIds: number[];
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
+  const searchHasRemainingQuestions = categories.some(
+    (cat) =>
+      cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
+      cat.subcategory.some((sub) =>
+        sub.question.some((q) => !formQuestionsIds.includes(q.id)),
+      ),
+  );
+  if (!searchHasRemainingQuestions || categories.length === 0) {
+    return (
+      <div className="p-1">
+        <div>
+          Não há questões restantes para os parâmetros de busca selecionados!
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-1">
       {categories.map((cat, index) => {
-        return (
-          <Accordion
-            key={index}
-            sx={{
-              border: 1,
-              borderColor: "primary.main",
-              borderRadius: 1,
-            }}
-            defaultExpanded
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
+        const categoryHasRemainingQuestions =
+          cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
+          cat.subcategory.some((sub) =>
+            sub.question.some((q) => !formQuestionsIds.includes(q.id)),
+          );
+        if (categoryHasRemainingQuestions) {
+          return (
+            <Accordion
+              key={index}
               sx={{
-                backgroundColor: "primary.lighter4",
-                "&:hover": {
-                  backgroundColor: "primary.lighter3",
-                },
+                border: 1,
+                borderColor: "primary.main",
+                borderRadius: 1,
               }}
-              className="max-w-full"
+              defaultExpanded
             >
-              <div className="flex items-center gap-1 p-1">
-                {cat.name}
-                <CNotesChip notes={cat.notes} name={cat.name} />
-              </div>
-            </AccordionSummary>
-            <AccordionDetails>
-              <div className="flex flex-col gap-1">
-                {cat.subcategory.length > 0 && (
-                  <SubcategoriesListV2
-                    subcategories={cat.subcategory}
-                    formQuestionsIds={formQuestionsIds}
-                    categoryId={cat.id}
-                    addQuestion={addQuestion}
-                  />
-                )}
-                {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
-                  .length > 0 && (
-                  <QuestionListV2
-                    questions={cat.question}
-                    formQuestionsIds={formQuestionsIds}
-                    categoryId={cat.id}
-                    addQuestion={addQuestion}
-                  />
-                )}
-              </div>
-            </AccordionDetails>
-          </Accordion>
-        );
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  backgroundColor: "primary.lighter4",
+                  "&:hover": {
+                    backgroundColor: "primary.lighter3",
+                  },
+                }}
+                className="max-w-full"
+              >
+                <div className="flex items-center gap-1 p-1">
+                  {cat.name}
+                  <CNotesChip notes={cat.notes} name={cat.name} />
+                </div>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div className="flex flex-col gap-1">
+                  {cat.subcategory.length > 0 && (
+                    <SubcategoriesListV2
+                      subcategories={cat.subcategory}
+                      formQuestionsIds={formQuestionsIds}
+                      categoryId={cat.id}
+                      addQuestion={addQuestion}
+                    />
+                  )}
+                  {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
+                    .length > 0 && (
+                    <QuestionListV2
+                      questions={cat.question}
+                      formQuestionsIds={formQuestionsIds}
+                      categoryId={cat.id}
+                      addQuestion={addQuestion}
+                    />
+                  )}
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          );
+        }
       })}
     </div>
   );

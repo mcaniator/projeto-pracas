@@ -1,9 +1,14 @@
+import { IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
+import { IconSearch } from "@tabler/icons-react";
 import React, { useRef, useState } from "react";
 
 type CTextFieldProps = TextFieldProps & {
   errorMessage?: string;
+  isSearch?: boolean;
   onRequiredCheck?: (filled: boolean) => void;
+  onEnterDown?: () => void;
+  onSearch?: () => void;
 };
 
 const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
@@ -16,9 +21,14 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       errorMessage,
       helperText,
       required = false,
+      isSearch = false,
+      slotProps,
+      onKeyDown,
       onRequiredCheck,
       onChange,
       onBlur,
+      onEnterDown,
+      onSearch,
       ...rest
     } = props;
     const [isValid, setIsValid] = useState(true);
@@ -52,6 +62,42 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter") {
+        if (onEnterDown) {
+          onEnterDown();
+        }
+
+        if (isSearch) {
+          handleSearch();
+        }
+      }
+      if (onKeyDown) {
+        onKeyDown(e);
+      }
+    };
+
+    const handleSearch = () => {
+      if (onSearch) {
+        onSearch();
+      }
+    };
+
+    const searchProps =
+      isSearch ?
+        {
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton edge="end" onClick={handleSearch}>
+                  <IconSearch />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }
+      : {};
+
     return (
       <TextField
         ref={ref}
@@ -63,6 +109,8 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         helperText={(required && !isValid) || error ? errorMessage : helperText}
         onChange={handleChange}
         onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        slotProps={{ ...slotProps, ...searchProps }}
         {...rest}
       />
     );

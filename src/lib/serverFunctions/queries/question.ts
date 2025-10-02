@@ -23,7 +23,79 @@ const searchQuestionsByCategoryAndSubcategory = async (
             subcategoryId: null,
             ...(verifySubcategoryNullness && !subcategoryId ? {}
             : !subcategoryId ? {}
-            : { subcategoryId }),
+            : { id: -1 }),
+          },
+          select: {
+            id: true,
+            name: true,
+            questionType: true,
+            notes: true,
+            characterType: true,
+            optionType: true,
+            options: true,
+            geometryTypes: true,
+          },
+          orderBy: { name: "desc" },
+        },
+        subcategory: {
+          orderBy: { name: "desc" },
+          select: {
+            id: true,
+            name: true,
+            notes: true,
+            question: {
+              where:
+                verifySubcategoryNullness ? { id: -1 }
+                : !subcategoryId ? {}
+                : { subcategoryId },
+              select: {
+                id: true,
+                name: true,
+                questionType: true,
+                notes: true,
+                characterType: true,
+                optionType: true,
+                options: true,
+                geometryTypes: true,
+              },
+              orderBy: { name: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    const nonEmptyCategories = categories.filter(
+      (cat) =>
+        cat.subcategory.some((sub) => sub.question.length > 0) ||
+        cat.question.length > 0,
+    );
+
+    return { statusCode: 200, categories: nonEmptyCategories };
+  } catch (e) {
+    return { statusCode: 500, categories: [] };
+  }
+};
+
+const searchQuestionsByName = async (
+  name: string,
+): Promise<{ statusCode: number; categories: CategoryForQuestionPicker[] }> => {
+  if (!name) return { statusCode: 400, categories: [] };
+
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: "desc" },
+      select: {
+        id: true,
+        name: true,
+        notes: true,
+        question: {
+          where: {
+            name: {
+              contains: name,
+              mode: "insensitive",
+            },
+            subcategoryId: null,
           },
           select: {
             id: true,
@@ -45,9 +117,10 @@ const searchQuestionsByCategoryAndSubcategory = async (
             notes: true,
             question: {
               where: {
-                ...(verifySubcategoryNullness && !subcategoryId ? {}
-                : !subcategoryId ? {}
-                : { subcategoryId }),
+                name: {
+                  contains: name,
+                  mode: "insensitive",
+                },
               },
               select: {
                 id: true,
@@ -66,10 +139,16 @@ const searchQuestionsByCategoryAndSubcategory = async (
       },
     });
 
-    return { statusCode: 200, categories: categories };
+    const nonEmptyCategories = categories.filter(
+      (cat) =>
+        cat.subcategory.some((sub) => sub.question.length > 0) ||
+        cat.question.length > 0,
+    );
+
+    return { statusCode: 200, categories: nonEmptyCategories };
   } catch (e) {
     return { statusCode: 500, categories: [] };
   }
 };
 
-export { searchQuestionsByCategoryAndSubcategory };
+export { searchQuestionsByCategoryAndSubcategory, searchQuestionsByName };

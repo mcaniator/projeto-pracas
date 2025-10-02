@@ -1,29 +1,42 @@
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
 const _searchQuestionsByCategoryAndSubcategory = async ({
+  name,
   categoryId,
   subcategoryId,
   verifySubcategoryNullness,
 }: {
+  name?: string;
   categoryId?: number;
-  subcategoryId: number | null;
-  verifySubcategoryNullness: boolean;
+  subcategoryId?: number | null;
+  verifySubcategoryNullness?: boolean;
 }) => {
   const queryParams = new URLSearchParams();
 
-  if (categoryId !== undefined) {
-    queryParams.append("categoryId", String(categoryId));
-  }
+  if (name) {
+    queryParams.append("name", name);
+  } else {
+    if (categoryId !== undefined) {
+      queryParams.append("categoryId", String(categoryId));
+    }
 
-  if (
-    subcategoryId !== undefined &&
-    subcategoryId !== -1 &&
-    subcategoryId !== 0
-  ) {
-    queryParams.append("subcategoryId", String(subcategoryId));
-  }
+    if (
+      subcategoryId !== undefined &&
+      subcategoryId !== -1 &&
+      subcategoryId !== 0
+    ) {
+      queryParams.append("subcategoryId", String(subcategoryId));
+    }
 
-  queryParams.append("verCatNull", String(verifySubcategoryNullness));
+    queryParams.append(
+      "verCatNull",
+      String(
+        verifySubcategoryNullness === undefined ? false : (
+          verifySubcategoryNullness
+        ),
+      ),
+    );
+  }
 
   const url = `/api/admin/forms/fieldsCreation/question?${queryParams.toString()}`;
 
