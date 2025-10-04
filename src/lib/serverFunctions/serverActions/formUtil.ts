@@ -234,14 +234,14 @@ const _updateFormV2 = async ({
   formId,
   formTree,
   calculations,
+  isFinalized,
   newFormName,
-  oldFormName,
 }: {
   formId: number;
   formTree: FormEditorTree;
   calculations: CalculationParams[];
+  isFinalized: boolean;
   newFormName?: string;
-  oldFormName: string;
 }) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
@@ -249,12 +249,20 @@ const _updateFormV2 = async ({
     return { statusCode: 401 };
   }
   try {
-    if (newFormName !== oldFormName) {
-      await prisma.form.update({
-        data: { name: newFormName },
-        where: { id: formId },
-      });
+    const currentForm = await prisma.form.findFirst({
+      where: {
+        id: formId,
+        finalized: false,
+      },
+    });
+    if (!currentForm) {
+      return { statusCode: 400 };
     }
+
+    await prisma.form.update({
+      data: { name: newFormName, finalized: isFinalized },
+      where: { id: formId },
+    });
 
     const flatItems: {
       position: number;

@@ -21,6 +21,7 @@ import CButton from "../../../../../../components/ui/cButton";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationDialog, { CalculationParams } from "./calculationDialog";
 import QuestionFormV2 from "./questionFormV2";
+import SaveFormDialog from "./saveFormDialog";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
   ssr: false,
@@ -86,6 +87,8 @@ const ClientV2 = ({
     useState<CalculationParams[]>(dbCalculations);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
+  const [openSaveFormDialog, setOpenSaveFormDialog] = useState(false);
+  const [saveAsDone, setSaveAsDone] = useState(false);
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
     if (formQuestionsIds.includes(question.id)) return;
 
@@ -238,9 +241,9 @@ const ClientV2 = ({
       setLoadingOverlay({ show: true, message: "Salvando..." });
       const response = await _updateFormV2({
         formId: formId,
-        oldFormName: form.formTree.name,
         newFormName: formName,
         formTree: formTree,
+        isFinalized: saveAsDone,
         calculations: formCalculations,
       });
       if (response?.statusCode !== 200) {
@@ -275,7 +278,7 @@ const ClientV2 = ({
             isMobileView ? "col-span-5" : "col-span-3"
           } overflow-auto`}
         >
-          <div className="mr-2 flex flex-col gap-1">
+          <div className="ml-1 mr-2 flex flex-col gap-1">
             <div className="flex flex-row items-center justify-between">
               <CTextField
                 label="Nome"
@@ -299,7 +302,7 @@ const ClientV2 = ({
                   <CButton
                     className="w-fit"
                     onClick={() => {
-                      void handleUpdateForm();
+                      setOpenSaveFormDialog(true);
                     }}
                   >
                     Salvar
@@ -325,7 +328,7 @@ const ClientV2 = ({
                 <CButton
                   className="w-fit"
                   onClick={() => {
-                    void handleUpdateForm();
+                    setOpenSaveFormDialog(true);
                   }}
                 >
                   Salvar
@@ -374,6 +377,15 @@ const ClientV2 = ({
         formCalculations={formCalculations}
         setOpenCalculationModal={setOpenCalculationDialog}
         setFormCalculations={setFormCalculations}
+      />
+      <SaveFormDialog
+        openSaveFormDialog={openSaveFormDialog}
+        setOpenSaveFormDialog={setOpenSaveFormDialog}
+        saveAsDone={saveAsDone}
+        setSaveAsDone={setSaveAsDone}
+        save={() => {
+          void handleUpdateForm();
+        }}
       />
     </div>
   );

@@ -21,10 +21,9 @@ const CDialogFooter = ({
   onCancel?: () => void;
   onConfirm?: () => void;
 }) => {
-  console.log("disableconfirm", disableConfirmButton);
   return (
     <div
-      className={`flex items-center ${cancelChildren ? "justify-between" : "justify-end"}`}
+      className={`flex w-full items-center ${cancelChildren ? "justify-between" : "justify-end"}`}
     >
       {cancelChildren && (
         <CButton

@@ -361,7 +361,7 @@ model Form {
   id           Int           @id @default(autoincrement())
   name         String        @db.VarChar(255)
   archived     Boolean       @default(false)
-  finalized    Boolean       @default(true)
+  finalized    Boolean       @default(false)
   assessment   Assessment[]
   calculations Calculation[]
   formItems    FormItem[]
