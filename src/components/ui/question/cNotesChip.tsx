@@ -1,8 +1,9 @@
-import CustomModal from "@components/modal/customModal";
 import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps } from "@mui/material";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { useState } from "react";
+
+import CDialog from "../dialog/cDialog";
 
 type NotesChipProps = {
   name?: string;
@@ -32,17 +33,17 @@ const CNotesChip = ({ notes, name, sx }: NotesChipProps) => {
         variant={variant}
         clickable={!!notes}
       />
-      <CustomModal
+      <CDialog
         title="Observações"
         subtitle={name}
-        isOpen={isOpen}
-        onOpenChange={(e) => {
-          setIsOpen(e);
+        open={isOpen}
+        onClose={() => {
+          setIsOpen(false);
         }}
-        disableModalActions
+        disableDialogActions
       >
-        <div className="pl-2">{notes}</div>
-      </CustomModal>
+        <div className="p-2">{notes}</div>
+      </CDialog>
     </>
   );
 };

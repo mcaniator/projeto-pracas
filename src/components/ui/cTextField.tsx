@@ -8,6 +8,7 @@ type CTextFieldProps = TextFieldProps & {
   isSearch?: boolean;
   clearable?: boolean;
   isAutocompleteInput?: boolean;
+  readOnly?: boolean;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
@@ -26,7 +27,9 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       isSearch = false,
       clearable = false,
       isAutocompleteInput = false,
+      readOnly,
       slotProps,
+      sx,
       value,
       onKeyDown,
       onRequiredCheck,
@@ -52,6 +55,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     };
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (readOnly) return;
       if (required) {
         validate();
       }
@@ -102,6 +106,20 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       setMounted(true);
     }, []);
 
+    const readOnlySx =
+      readOnly ?
+        {
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderStyle: "dashed",
+            borderColor: "gray",
+            borderWidth: "2px",
+          },
+          "& .MuiOutlinedInput-input": {
+            cursor: "not-allowed",
+          },
+        }
+      : undefined;
+
     const endAdornment =
       mounted ?
         <InputAdornment position="end">
@@ -136,6 +154,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         size={size}
         error={(required && !isValid) || error}
         helperText={(required && !isValid) || error ? errorMessage : helperText}
+        sx={{ ...sx, ...readOnlySx }}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}

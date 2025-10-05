@@ -27,12 +27,14 @@ const CalculationDialog = ({
   formTree,
   openCalculationDialog,
   formCalculations,
+  isFinalized,
   setOpenCalculationModal,
   setFormCalculations,
 }: {
   formTree: FormEditorTree;
   openCalculationDialog: boolean;
   formCalculations: CalculationParams[];
+  isFinalized: boolean;
   setOpenCalculationModal: Dispatch<SetStateAction<boolean>>;
   setFormCalculations: Dispatch<SetStateAction<CalculationParams[]>>;
 }) => {
@@ -125,23 +127,27 @@ const CalculationDialog = ({
       disableConfirmButton={!newCalculation}
       onConfirm={addCalculation}
     >
-      <CToggleButtonGroup
-        className="mt-2"
-        value={calculationsDialogState}
-        getLabel={(a) => a.label}
-        getValue={(a) => a.id}
-        options={[
-          { id: 0, label: "Criados" },
-          { id: 1, label: "Criar" },
-        ]}
-        onChange={(e, val) => {
-          setCalculationsDialogState(val.id);
-        }}
-      />
+      {!isFinalized && (
+        <CToggleButtonGroup
+          className="mt-2"
+          value={calculationsDialogState}
+          getLabel={(a) => a.label}
+          getValue={(a) => a.id}
+          options={[
+            { id: 0, label: "Criados" },
+            { id: 1, label: "Criar" },
+          ]}
+          onChange={(e, val) => {
+            setCalculationsDialogState(val.id);
+          }}
+        />
+      )}
+
       {calculationsDialogState === 0 && (
         <Calculations
           formCalculations={formCalculations}
           mentions={mentions}
+          isFinalized={isFinalized}
           setFormCalculations={setFormCalculations}
         />
       )}

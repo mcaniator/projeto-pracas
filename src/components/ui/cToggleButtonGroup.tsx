@@ -26,10 +26,27 @@ function CToggleButtonGroup<T>({
   ...rest
 }: CToggleButtonGroupProps<T>) {
   const defaultSx = {
-    padding: "6px 6px",
+    padding: { xs: "4px 4px", sm: "6px 6px" },
     bgcolor: "grey.100",
     width: "fit-content",
     boxShadow: "inset 0 0 4px rgba(0,0,0,0.3)",
+  };
+
+  const toggleButtonSx = {
+    bgcolor: "grey.100",
+    color: "black",
+    border: "none",
+    "&.Mui-selected": {
+      bgcolor: "primary.main",
+      color: "white",
+      "&:hover": {
+        bgcolor: "primary.main",
+      },
+    },
+    "&:hover": {
+      bgcolor: "grey.300",
+    },
+    padding: { xs: "4px", sm: "8px" },
   };
 
   if (!mapValues) {
@@ -44,25 +61,7 @@ function CToggleButtonGroup<T>({
         }}
       >
         {options.map((option, index) => (
-          <ToggleButton
-            key={index}
-            value={String(option)}
-            sx={{
-              bgcolor: "grey.100",
-              color: "black",
-              border: "none",
-              "&.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "white",
-                "&:hover": {
-                  bgcolor: "primary.main",
-                },
-              },
-              "&:hover": {
-                bgcolor: "grey.300",
-              },
-            }}
-          >
+          <ToggleButton key={index} value={String(option)} sx={toggleButtonSx}>
             {String(option)}
           </ToggleButton>
         ))}
@@ -88,21 +87,7 @@ function CToggleButtonGroup<T>({
           <ToggleButton
             key={String(getValue(option))}
             value={getValue(option)}
-            sx={{
-              bgcolor: "grey.100",
-              color: "black",
-              border: "none",
-              "&.Mui-selected": {
-                bgcolor: "primary.main",
-                color: "white",
-                "&:hover": {
-                  bgcolor: "primary.main",
-                },
-              },
-              "&:hover": {
-                bgcolor: "grey.300",
-              },
-            }}
+            sx={toggleButtonSx}
           >
             {getLabel(option)}
           </ToggleButton>

@@ -24,7 +24,14 @@ function CButton(props: CButtonProps) {
   const denseSx = dense ? { padding: "0px 0px", minWidth: "0px" } : {};
 
   return (
-    <Box position="relative">
+    <Box
+      position="relative"
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       {enableTopLeftChip && topLeftChipLabel != null && (
         <Chip
           label={topLeftChipLabel}

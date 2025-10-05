@@ -17,15 +17,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { FormItemType } from "@enums/formTree";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { FormItemUtils } from "@utils/formTreeUtils";
 import React, { useState } from "react";
 
+import CAccordion from "../../../../../../components/ui/accordion/CAccordion";
+import CAccordionDetails from "../../../../../../components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "../../../../../../components/ui/accordion/CAccordionSummary";
 import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
@@ -34,9 +34,11 @@ import { FormEditorTree } from "./clientV2";
 
 const FormEditor = ({
   formTree,
+  isFinalized,
   setFormTree,
 }: {
   formTree: FormEditorTree;
+  isFinalized: boolean;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
   const sensors = useSensors(useSensor(PointerSensor));
@@ -96,6 +98,7 @@ const FormEditor = ({
               <SortableCategory
                 key={category.categoryId}
                 category={category}
+                isFinalized={isFinalized}
                 setFormTree={setFormTree}
               />
             ))}
@@ -110,9 +113,11 @@ const FormEditor = ({
 // ----------------------------
 const SortableCategory = ({
   category,
+  isFinalized,
   setFormTree,
 }: {
   category: FormEditorTree["categories"][number];
+  isFinalized: boolean;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
   const {
@@ -192,8 +197,8 @@ const SortableCategory = ({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Accordion defaultExpanded>
-        <AccordionSummary
+      <CAccordion defaultExpanded>
+        <CAccordionSummary
           expandIcon={<ExpandMoreIcon />}
           sx={{
             "&:hover": {
@@ -234,8 +239,8 @@ const SortableCategory = ({
               }}
             />
           </div>
-        </AccordionSummary>
-        <AccordionDetails>
+        </CAccordionSummary>
+        <CAccordionDetails>
           <>
             <DndContext
               onDragEnd={handleFormItemDragEnd}
@@ -267,6 +272,7 @@ const SortableCategory = ({
                         } //This key is only used for react to distinguish between items created in a iteration
                         formItem={fi}
                         categoryId={category.categoryId}
+                        isFinalized={isFinalized}
                         setFormTree={setFormTree}
                       />
                     ))}
@@ -274,8 +280,8 @@ const SortableCategory = ({
               </SortableContext>
             </DndContext>
           </>
-        </AccordionDetails>
-      </Accordion>
+        </CAccordionDetails>
+      </CAccordion>
     </div>
   );
 };
@@ -284,11 +290,13 @@ const SortableFormItem = ({
   categoryId,
   subcategoryId,
   formItem,
+  isFinalized,
   setFormTree,
 }: {
   categoryId: number;
   subcategoryId?: number;
   formItem: FormEditorTree["categories"][number]["categoryChildren"][number];
+  isFinalized: boolean;
   setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
 }) => {
   const {
@@ -486,8 +494,8 @@ const SortableFormItem = ({
   if (FormItemUtils.isSubcategoryType(formItem)) {
     return (
       <div ref={setNodeRef} style={style}>
-        <Accordion defaultExpanded>
-          <AccordionSummary
+        <CAccordion defaultExpanded>
+          <CAccordionSummary
             expandIcon={<ExpandMoreIcon />}
             sx={{
               "&:hover": {
@@ -518,9 +526,9 @@ const SortableFormItem = ({
                 }}
               />
             </div>
-          </AccordionSummary>
+          </CAccordionSummary>
 
-          <AccordionDetails>
+          <CAccordionDetails>
             <DndContext
               onDragEnd={handleSubcategoryQuestionDragEnd}
               onDragStart={handleSubcategoryQuestionDragStart}
@@ -544,14 +552,15 @@ const SortableFormItem = ({
                         formItem={q}
                         categoryId={categoryId}
                         subcategoryId={formItem.subcategoryId}
+                        isFinalized={isFinalized}
                         setFormTree={setFormTree}
                       />
                     ))}
                 </div>
               </SortableContext>
             </DndContext>
-          </AccordionDetails>
-        </Accordion>
+          </CAccordionDetails>
+        </CAccordion>
       </div>
     );
   } else {
@@ -559,9 +568,12 @@ const SortableFormItem = ({
       <div
         ref={setNodeRef}
         style={style}
-        className="flex items-center justify-between"
+        className={
+          `flex flex-col items-center sm:flex-row ` +
+          `${isFinalized ? "justify-start" : "justify-between"}`
+        }
       >
-        <div className="flex items-center gap-1">
+        <div className="flex w-full items-center justify-between gap-1 sm:w-fit sm:justify-start">
           <div
             {...listeners}
             {...attributes}
@@ -583,12 +595,15 @@ const SortableFormItem = ({
           <CQuestionGeometryChip geometryTypes={formItem.geometryTypes} />
           <CNotesChip notes={formItem.notes} name={formItem.name} />
         </div>
+        <span className={`break-all ${isFinalized ? "ml-2" : ""}`}>
+          {formItem.name}
+        </span>
 
-        {formItem.name}
-
-        <Button variant="text" color="error" onClick={handleQuestionRemoval}>
-          <IconTrash />
-        </Button>
+        {!isFinalized && (
+          <Button variant="text" color="error" onClick={handleQuestionRemoval}>
+            <IconTrash />
+          </Button>
+        )}
       </div>
     );
   }

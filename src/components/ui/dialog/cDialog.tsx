@@ -67,7 +67,11 @@ const CDialog = ({
           className: "bg-black/25 backdrop-blur",
         },
         paper: {
-          sx: { borderRadius: fullScreen ? "0px" : "12px", padding: "16px" },
+          sx: {
+            borderRadius: fullScreen ? "0px" : "12px",
+            px: { xs: "4px", sm: "16px" },
+            py: { xs: "4px", sm: "16px" },
+          },
         },
       }}
       {...rest}
@@ -82,7 +86,8 @@ const CDialog = ({
 
       <DialogContent
         sx={{
-          padding: "0px 12px",
+          px: { xs: "0px", sm: "12px" },
+          py: "0px",
         }}
         dividers
       >

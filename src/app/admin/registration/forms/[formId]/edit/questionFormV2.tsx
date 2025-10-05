@@ -10,7 +10,6 @@ import {
   SubCategoryForQuestionPicker,
 } from "@customTypes/forms/formCreation";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import {
   OptionTypes,
   QuestionGeometryTypes,
@@ -21,6 +20,9 @@ import { CategoriesWithQuestions } from "@queries/category";
 import { IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
+import CAccordion from "../../../../../../components/ui/accordion/CAccordion";
+import CAccordionDetails from "../../../../../../components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "../../../../../../components/ui/accordion/CAccordionSummary";
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CButton from "../../../../../../components/ui/cButton";
 import CTextField from "../../../../../../components/ui/cTextField";
@@ -172,7 +174,7 @@ const QuestionFormV2 = ({
   ];
 
   return (
-    <div className="flex flex-col gap-2 overflow-auto bg-white px-3 text-black">
+    <div className="flex flex-col gap-2 overflow-auto bg-white text-black sm:px-3">
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
@@ -304,7 +306,7 @@ const CategoriesListV2 = ({
           );
         if (categoryHasRemainingQuestions) {
           return (
-            <Accordion
+            <CAccordion
               key={index}
               sx={{
                 border: 1,
@@ -313,7 +315,7 @@ const CategoriesListV2 = ({
               }}
               defaultExpanded
             >
-              <AccordionSummary
+              <CAccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 sx={{
                   backgroundColor: "primary.lighter4",
@@ -327,8 +329,8 @@ const CategoriesListV2 = ({
                   {cat.name}
                   <CNotesChip notes={cat.notes} name={cat.name} />
                 </div>
-              </AccordionSummary>
-              <AccordionDetails>
+              </CAccordionSummary>
+              <CAccordionDetails>
                 <div className="flex flex-col gap-1">
                   {cat.subcategory.length > 0 && (
                     <SubcategoriesListV2
@@ -348,8 +350,8 @@ const CategoriesListV2 = ({
                     />
                   )}
                 </div>
-              </AccordionDetails>
-            </Accordion>
+              </CAccordionDetails>
+            </CAccordion>
           );
         }
       })}
@@ -376,7 +378,7 @@ const SubcategoriesListV2 = ({
           0
         ) {
           return (
-            <Accordion
+            <CAccordion
               key={index}
               sx={{
                 border: 1,
@@ -385,21 +387,13 @@ const SubcategoriesListV2 = ({
               }}
               defaultExpanded
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  backgroundColor: "primary.lighter4",
-                  "&:hover": {
-                    backgroundColor: "primary.lighter3",
-                  },
-                }}
-              >
+              <CAccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <div className="flex items-center gap-1 p-1">
                   {sub.name}
                   <CNotesChip notes={sub.notes} name={sub.name} />
                 </div>
-              </AccordionSummary>
-              <AccordionDetails>
+              </CAccordionSummary>
+              <CAccordionDetails>
                 <QuestionListV2
                   questions={sub.question}
                   formQuestionsIds={formQuestionsIds}
@@ -407,8 +401,8 @@ const SubcategoriesListV2 = ({
                   subcategoryId={sub.id}
                   addQuestion={addQuestion}
                 />
-              </AccordionDetails>
-            </Accordion>
+              </CAccordionDetails>
+            </CAccordion>
           );
         }
       })}
@@ -485,7 +479,7 @@ const QuestionComponentV2 = ({
   return (
     <div
       key={questionId}
-      className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black outline outline-1 outline-gray-600"
+      className="mb-2 flex flex-col items-center justify-center rounded bg-white p-2 text-black outline outline-1 outline-gray-600 sm:flex-row sm:justify-between"
     >
       <div className="mr-2 flex flex-wrap gap-1">
         <CQuestionTypeChip
@@ -498,7 +492,7 @@ const QuestionComponentV2 = ({
         <CQuestionGeometryChip geometryTypes={geometryTypes} />
         <CNotesChip notes={notes} name={name} />
       </div>
-      <div>{name}</div>
+      <div className="max-w-full break-all">{name}</div>
 
       <CButton
         type="submit"

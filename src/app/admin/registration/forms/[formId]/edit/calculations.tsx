@@ -8,10 +8,12 @@ import { CalculationParams, Mention } from "./calculationDialog";
 const Calculations = ({
   formCalculations,
   mentions,
+  isFinalized,
   setFormCalculations,
 }: {
   formCalculations: CalculationParams[];
   mentions: Mention[];
+  isFinalized: boolean;
   setFormCalculations: Dispatch<SetStateAction<CalculationParams[]>>;
 }) => {
   const removeCalculation = (calculationToRemove: CalculationParams) => {
@@ -30,17 +32,24 @@ const Calculations = ({
       )}
       {formCalculations.map((calc, index) => (
         <div key={index} className="flex flex-col gap-2 p-1 outline outline-1">
-          <div className="flex flex-row justify-between">
+          <div
+            className={
+              `flex flex-row justify-between ` +
+              ` ${isFinalized ? "justify-start" : "justify-end"}`
+            }
+          >
             <div>{calc.questionName}</div>
-            <CButton
-              dense
-              color="error"
-              onClick={() => {
-                removeCalculation(calc);
-              }}
-            >
-              <IconTrash />
-            </CButton>
+            {!isFinalized && (
+              <CButton
+                dense
+                color="error"
+                onClick={() => {
+                  removeCalculation(calc);
+                }}
+              >
+                <IconTrash />
+              </CButton>
+            )}
           </div>
           <CMentionsTextField
             label="Expressão"

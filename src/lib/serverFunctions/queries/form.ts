@@ -48,6 +48,7 @@ const getFormTree = async (formId: number) => {
       select: {
         id: true,
         name: true,
+        finalized: true,
         formItems: {
           orderBy: { position: "asc" },
           include: {
@@ -200,6 +201,7 @@ const getFormTree = async (formId: number) => {
       formTree: {
         id: form.id,
         name: form.name,
+        finalized: form.finalized,
         categories: categories,
       },
     };

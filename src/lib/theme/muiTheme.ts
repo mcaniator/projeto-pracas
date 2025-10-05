@@ -24,6 +24,15 @@ const muiTheme = createTheme({
   typography: {
     fontFamily: josefin_sans.style.fontFamily,
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 680,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+    },
+  },
   palette: {
     primary: {
       main: "#648547",
@@ -46,18 +55,17 @@ const muiTheme = createTheme({
   },
   components: {
     MuiOutlinedInput: {
-      defaultProps: {
-        sx: {
-          fontSize: 20,
-        },
-      },
       styleOverrides: {
-        root: {
+        root: () => ({
           borderRadius: 16,
-        },
-        input: {
           fontSize: 20,
-        },
+        }),
+        input: ({ theme }) => ({
+          fontSize: 16,
+          [theme.breakpoints.up("sm")]: {
+            fontSize: 20,
+          },
+        }),
       },
     },
     MuiInputLabel: {

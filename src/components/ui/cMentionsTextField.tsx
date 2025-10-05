@@ -33,7 +33,6 @@ const CMentionsTextField = React.forwardRef<
     <MentionsTextField
       ref={ref}
       type="text"
-      inputMode="numeric"
       spellCheck={spellCheck}
       InputProps={{ readOnly: readOnly }}
       sx={{ ...sx, ...readOnlySx }}

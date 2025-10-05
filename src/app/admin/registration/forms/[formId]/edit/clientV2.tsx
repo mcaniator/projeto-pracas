@@ -1,6 +1,5 @@
 "use client";
 
-import CustomModal from "@components/modal/customModal";
 import CTextField from "@components/ui/cTextField";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
@@ -18,6 +17,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import CButton from "../../../../../../components/ui/cButton";
+import CDialog from "../../../../../../components/ui/dialog/cDialog";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationDialog, { CalculationParams } from "./calculationDialog";
 import QuestionFormV2 from "./questionFormV2";
@@ -60,6 +60,7 @@ export type CategoryItem = {
 export type FormEditorTree = {
   id: number;
   name: string;
+  finalized: boolean;
   categories: CategoryItem[];
 };
 
@@ -79,6 +80,7 @@ const ClientV2 = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
+  const [isFinalized] = useState(form.formTree.finalized);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
@@ -275,7 +277,7 @@ const ClientV2 = ({
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
           className={`${
-            isMobileView ? "col-span-5" : "col-span-3"
+            isMobileView || isFinalized ? "col-span-5" : "col-span-3"
           } overflow-auto`}
         >
           <div className="ml-1 mr-2 flex flex-col gap-1">
@@ -283,6 +285,7 @@ const ClientV2 = ({
               <CTextField
                 label="Nome"
                 value={formName}
+                readOnly={isFinalized}
                 onChange={(e) => {
                   setFormName(e.target.value);
                 }}
@@ -299,14 +302,16 @@ const ClientV2 = ({
                   >
                     <IconCalculator />
                   </CButton>
-                  <CButton
-                    className="w-fit"
-                    onClick={() => {
-                      setOpenSaveFormDialog(true);
-                    }}
-                  >
-                    Salvar
-                  </CButton>
+                  {!isFinalized && (
+                    <CButton
+                      className="w-fit"
+                      onClick={() => {
+                        setOpenSaveFormDialog(true);
+                      }}
+                    >
+                      Salvar
+                    </CButton>
+                  )}
                 </div>
               )}
             </div>
@@ -321,24 +326,36 @@ const ClientV2 = ({
                 </CButton>
                 <CButton
                   enableTopLeftChip
+                  disableMinWidth
                   topLeftChipLabel={formCalculations.length}
+                  onClick={() => {
+                    setOpenCalculationDialog(true);
+                  }}
                 >
                   <IconCalculator />
                 </CButton>
-                <CButton
-                  className="w-fit"
-                  onClick={() => {
-                    setOpenSaveFormDialog(true);
-                  }}
-                >
-                  Salvar
-                </CButton>
+                {!isFinalized && (
+                  <CButton
+                    className="w-fit"
+                    onClick={() => {
+                      setOpenSaveFormDialog(true);
+                    }}
+                  >
+                    Salvar
+                  </CButton>
+                )}
               </div>
             )}
-            {<FormEditor formTree={formTree} setFormTree={setFormTree} />}
+            {
+              <FormEditor
+                formTree={formTree}
+                isFinalized={isFinalized}
+                setFormTree={setFormTree}
+              />
+            }
           </div>
         </div>
-        {!isMobileView && (
+        {!isMobileView && !isFinalized && (
           <div
             className={`col-span-2 h-full overflow-auto`}
             style={{
@@ -355,26 +372,29 @@ const ClientV2 = ({
           </div>
         )}
       </div>
-      <CustomModal
-        disableModalActions
-        fullWidth
-        title="Adicionar questões"
-        isOpen={openQuestionFormModal}
-        onOpenChange={(e) => {
-          setOpenQuestionFormModal(e);
-        }}
-      >
-        <QuestionFormV2
-          addQuestion={addQuestion}
-          categories={categories.categories}
-          formQuestionsIds={formQuestionsIds}
-          showTitle={false}
-        />
-      </CustomModal>
+      {isMobileView && !isFinalized && (
+        <CDialog
+          fullScreen
+          title="Adicionar questões"
+          open={openQuestionFormModal}
+          onClose={() => {
+            setOpenQuestionFormModal(false);
+          }}
+        >
+          <QuestionFormV2
+            addQuestion={addQuestion}
+            categories={categories.categories}
+            formQuestionsIds={formQuestionsIds}
+            showTitle={false}
+          />
+        </CDialog>
+      )}
+
       <CalculationDialog
         formTree={formTree}
         openCalculationDialog={openCalculationDialog}
         formCalculations={formCalculations}
+        isFinalized={isFinalized}
         setOpenCalculationModal={setOpenCalculationDialog}
         setFormCalculations={setFormCalculations}
       />

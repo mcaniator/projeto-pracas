@@ -5,7 +5,7 @@ import { useState } from "react";
 import { FaKeyboard as IconKeyboard } from "react-icons/fa";
 import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
 
-import CustomModal from "../../modal/customModal";
+import CDialog from "../dialog/cDialog";
 
 type QuestionTypeChipProps = {
   questionType: QuestionTypes;
@@ -56,14 +56,14 @@ const CQuestionTypeChip = ({
         sx={sx}
         clickable={clickable}
       />
-      <CustomModal
+      <CDialog
         title="Opções"
         subtitle={name}
-        isOpen={isOpen}
-        onOpenChange={(e) => {
-          setIsOpen(e);
+        open={isOpen}
+        onClose={() => {
+          setIsOpen(false);
         }}
-        disableModalActions
+        disableDialogActions
       >
         <>
           <div>
@@ -77,7 +77,7 @@ const CQuestionTypeChip = ({
             ))}
           </ul>
         </>
-      </CustomModal>
+      </CDialog>
     </>
   );
 };
