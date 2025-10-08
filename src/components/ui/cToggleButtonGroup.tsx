@@ -1,3 +1,4 @@
+import { Divider } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup, {
   ToggleButtonGroupProps,
@@ -46,6 +47,9 @@ function CToggleButtonGroup<T>({
     "&:hover": {
       bgcolor: "grey.300",
     },
+
+    boxShadow: "inset 0px 0px 1px rgba(0,0,0,0.50)",
+
     padding: { xs: "4px", sm: "8px" },
   };
 
@@ -61,9 +65,16 @@ function CToggleButtonGroup<T>({
         }}
       >
         {options.map((option, index) => (
-          <ToggleButton key={index} value={String(option)} sx={toggleButtonSx}>
-            {String(option)}
-          </ToggleButton>
+          <>
+            <ToggleButton
+              key={index}
+              value={String(option)}
+              sx={toggleButtonSx}
+            >
+              {String(option)}
+            </ToggleButton>
+            <Divider orientation="vertical" />
+          </>
         ))}
       </ToggleButtonGroup>
     );

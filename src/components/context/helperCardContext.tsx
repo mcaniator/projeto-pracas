@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 
+import { APIResponseInfo } from "../../lib/types/backendCalls/APIResponse";
 import HelperCard, { HelperCardType } from "../popups/HelperCard";
 
 interface HelperCardContextType {
@@ -23,6 +24,9 @@ interface HelperCardContextType {
     customTimeout?: number;
     content: ReactNode;
   }) => void;
+  helperCardProcessResponse: (
+    responseInfo: APIResponseInfo | undefined | null,
+  ) => void;
 }
 
 const HelperCardContext = createContext<HelperCardContextType | undefined>(
@@ -90,12 +94,43 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  const helperCardProcessResponse = useCallback(
+    (responseInfo: APIResponseInfo | undefined | null) => {
+      if (!responseInfo || responseInfo.statusCode <= 0) return;
+      if (
+        !responseInfo.showSuccessCard &&
+        responseInfo.statusCode >= 200 &&
+        responseInfo.statusCode < 300
+      )
+        return;
+      const config: {
+        show: boolean;
+        helperCardType: HelperCardType;
+        customTimeout?: number;
+        content: ReactNode;
+      } = {
+        show: true,
+        helperCardType: "INFO",
+        content: <>{responseInfo.message}</>,
+      };
+      if (responseInfo.statusCode === 200 || responseInfo.statusCode === 201) {
+        config.helperCardType = "CONFIRM";
+      } else {
+        config.helperCardType = "ERROR";
+      }
+      setHelperCard(config);
+    },
+    [setHelperCard],
+  );
+
   const close = () => {
     setVisible(false);
   };
 
   return (
-    <HelperCardContext.Provider value={{ setHelperCard }}>
+    <HelperCardContext.Provider
+      value={{ setHelperCard, helperCardProcessResponse }}
+    >
       {children}
       {
         <div

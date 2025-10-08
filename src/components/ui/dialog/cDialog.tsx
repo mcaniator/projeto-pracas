@@ -24,9 +24,11 @@ type CDialogProps = DialogProps & {
   disableConfirmButton?: boolean;
   disableCancelButton?: boolean;
   disableDialogActions?: boolean;
+  isForm?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
+  action?: (formData: FormData) => void;
 };
 
 const Transition = React.forwardRef(function Transition(
@@ -50,11 +52,78 @@ const CDialog = ({
   disableCancelButton = false,
   disableDialogActions = false,
   fullScreen,
+  isForm,
+  action,
   onCancel,
   onConfirm,
   onClose,
   ...rest
 }: CDialogProps) => {
+  if (action && !isForm) {
+    throw new Error(
+      "Action defined in a CDialog that does not have 'isForm' set as true",
+    );
+  }
+  if (isForm) {
+    return (
+      <Dialog
+        onClose={onClose}
+        slots={{
+          transition: Transition,
+        }}
+        fullScreen={fullScreen}
+        slotProps={{
+          backdrop: {
+            className: "bg-black/25 backdrop-blur",
+          },
+          paper: {
+            sx: {
+              borderRadius: fullScreen ? "0px" : "12px",
+              px: { xs: "4px", sm: "16px" },
+              py: { xs: "4px", sm: "16px" },
+            },
+          },
+        }}
+        {...rest}
+      >
+        <form action={action}>
+          <DialogTitle
+            sx={{
+              padding: "0px",
+            }}
+          >
+            <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
+          </DialogTitle>
+
+          <DialogContent
+            sx={{
+              px: { xs: "0px", sm: "12px" },
+              py: "0px",
+            }}
+            dividers
+          >
+            {children}
+          </DialogContent>
+
+          {!disableDialogActions && (
+            <DialogActions sx={{ padding: "0px", marginTop: "8px" }}>
+              <CDialogFooter
+                cancelChildren={cancelChildren}
+                confirmChildren={confirmChildren}
+                cancelVariant={cancelVariant}
+                confirmVariant={confirmVariant}
+                disableConfirmButton={disableConfirmButton}
+                disableCancelButton={disableCancelButton}
+                isForm={isForm}
+                onCancel={onCancel}
+                onConfirm={onConfirm}
+              />
+            </DialogActions>
+          )}
+        </form>
+      </Dialog>
+    );
+  }
   return (
     <Dialog
       onClose={onClose}

@@ -7,6 +7,7 @@ type CButtonProps = ButtonProps & {
   disableMinWidth?: boolean;
   enableTopLeftChip?: boolean;
   topLeftChipLabel?: string | number;
+  square?: boolean;
 };
 
 function CButton(props: CButtonProps) {
@@ -17,12 +18,14 @@ function CButton(props: CButtonProps) {
     enableTopLeftChip,
     topLeftChipLabel,
     dense,
+    square,
+    sx,
     ...rest
   } = props;
   const minWidthSx =
     disableMinWidth ? { minWidth: "0px" } : { minWidth: "64px" };
   const denseSx = dense ? { padding: "0px 0px", minWidth: "0px" } : {};
-
+  const squareSx = square ? { padding: "6px", minWidth: "0px" } : {};
   return (
     <Box
       position="relative"
@@ -50,7 +53,7 @@ function CButton(props: CButtonProps) {
       <Button
         color="primary"
         variant={variant}
-        sx={{ ...minWidthSx, ...denseSx, ...props.sx }}
+        sx={{ ...minWidthSx, ...denseSx, ...squareSx, ...sx }}
         {...rest}
       >
         {children}

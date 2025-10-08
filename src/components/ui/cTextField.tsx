@@ -9,9 +9,12 @@ type CTextFieldProps = TextFieldProps & {
   clearable?: boolean;
   isAutocompleteInput?: boolean;
   readOnly?: boolean;
+  resetOnFormSubmit?: boolean;
+  appendIconButton?: React.ReactNode;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
+  onAppendIconButtonClick?: () => void;
 };
 
 const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
@@ -27,6 +30,8 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       isSearch = false,
       clearable = false,
       isAutocompleteInput = false,
+      resetOnFormSubmit,
+      appendIconButton,
       readOnly,
       slotProps,
       sx,
@@ -37,6 +42,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       onBlur,
       onEnterDown,
       onSearch,
+      onAppendIconButtonClick,
       ...rest
     } = props;
     const [isValid, setIsValid] = useState(true);
@@ -61,6 +67,9 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       }
       if (onChange) {
         onChange(event);
+      }
+      if (!value) {
+        setLocalValue(event.target.value);
       }
     };
 
@@ -98,13 +107,26 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       setLocalValue("");
     };
 
+    const handleAppendIconButtonClick = () => {
+      if (onAppendIconButtonClick) {
+        onAppendIconButtonClick();
+      }
+    };
+
     useEffect(() => {
       setLocalValue(value != undefined ? String(value) : "");
     }, [value]);
 
     useEffect(() => {
       setMounted(true);
-    }, []);
+      if (resetOnFormSubmit) {
+        const parentForm = inputRef.current?.closest("form");
+        if (parentForm) {
+          parentForm.addEventListener("reset", handleClear);
+          return () => parentForm.removeEventListener("reset", handleClear);
+        }
+      }
+    }, [resetOnFormSubmit]);
 
     const readOnlySx =
       readOnly ?
@@ -123,6 +145,11 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     const endAdornment =
       mounted ?
         <InputAdornment position="end">
+          {appendIconButton ?
+            <IconButton edge="end" onClick={handleAppendIconButtonClick}>
+              {appendIconButton}
+            </IconButton>
+          : null}
           {clearable ?
             localValue.length > 0 ?
               <IconButton edge="end" onClick={handleClear}>
@@ -158,6 +185,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
+        required={required}
         slotProps={{
           ...slotProps,
           ...(!isAutocompleteInput ? inputProps : {}),

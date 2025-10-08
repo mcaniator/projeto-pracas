@@ -9,6 +9,7 @@ const CDialogFooter = ({
   confirmVariant,
   disableConfirmButton,
   disableCancelButton,
+  isForm,
   onCancel,
   onConfirm,
 }: {
@@ -18,6 +19,7 @@ const CDialogFooter = ({
   confirmVariant?: ButtonProps["variant"];
   disableConfirmButton: boolean;
   disableCancelButton: boolean;
+  isForm?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
 }) => {
@@ -36,6 +38,7 @@ const CDialogFooter = ({
       )}
       {confirmChildren && (
         <CButton
+          type={isForm ? "submit" : "button"}
           variant={confirmVariant}
           disabled={disableConfirmButton}
           onClick={onConfirm}
