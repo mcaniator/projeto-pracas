@@ -6,9 +6,9 @@ import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import { QuestionTypes } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
+import { CategoryItem, FormEditorTree } from "../clientV2";
 import CalculationCreation from "./calculationCreation";
 import Calculations from "./calculations";
-import { CategoryItem, FormEditorTree } from "./clientV2";
 
 export type CalculationParams = {
   targetQuestionId: number;

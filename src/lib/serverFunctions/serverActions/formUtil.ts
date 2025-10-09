@@ -10,7 +10,7 @@ import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculationDialog";
+import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 

@@ -1,6 +1,6 @@
 import { prisma } from "@lib/prisma";
 
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculationDialog";
+import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import {
   CategoryItem,
   QuestionItem,

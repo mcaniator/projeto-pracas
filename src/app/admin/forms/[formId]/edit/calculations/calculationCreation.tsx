@@ -19,13 +19,13 @@ import {
 import { IconX } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import { CalculationParams, Mention } from "./calculationDialog";
 import {
   CategoryItem,
   FormEditorTree,
   QuestionItem,
   SubcategoryItem,
-} from "./clientV2";
+} from "../clientV2";
+import { CalculationParams, Mention } from "./calculationDialog";
 
 type TestValue = Map<number, number | null>;
 

@@ -20,8 +20,10 @@ import { IconCalculator } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 
-import CalculationDialog, { CalculationParams } from "./calculationDialog";
-import QuestionFormV2 from "./questionFormV2";
+import CalculationDialog, {
+  CalculationParams,
+} from "./calculations/calculationDialog";
+import QuestionFormV2 from "./questionManager/questionFormV2";
 import SaveFormDialog from "./saveFormDialog";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
