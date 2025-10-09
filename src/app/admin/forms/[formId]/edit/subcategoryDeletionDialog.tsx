@@ -1,9 +1,8 @@
+import CDialog from "@components/ui/dialog/cDialog";
+import { useHelperCard } from "@context/helperCardContext";
+import { useLoadingOverlay } from "@context/loadingContext";
+import { _deleteSubcategory } from "@serverActions/categoryServerActions";
 import { useActionState, useEffect, useState } from "react";
-
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { _deleteSubcategory } from "../../../../../../lib/serverFunctions/serverActions/categoryServerActions";
 
 const SubcategoryDeletionDialog = ({
   subcategoryId,

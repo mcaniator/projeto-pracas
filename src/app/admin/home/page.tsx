@@ -55,7 +55,7 @@ const AdminRoot = () => {
 
         <PermissionGuard requiresAnyRoleGroups={["FORM"]}>
           <Link
-            href="registration/questions"
+            href="forms"
             className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
           >
             <IconListCheck className="mb-1" size={34} />

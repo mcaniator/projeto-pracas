@@ -1,28 +1,25 @@
 "use client";
 
+import { _getCategoriesWithSubcategories } from "@apiCalls/category";
+import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
+import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
 import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
+import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import {
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import {
-  CategoriesWithQuestions,
-  CategoriesWithQuestionsAndStatusCode,
-} from "@queries/category";
+import { CategoriesWithQuestions } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 
-import CButton from "../../../../../../components/ui/cButton";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { _getCategoriesWithSubcategories } from "../../../../../../lib/serverFunctions/apiCalls/category";
-import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationDialog, { CalculationParams } from "./calculationDialog";
 import QuestionFormV2 from "./questionFormV2";
 import SaveFormDialog from "./saveFormDialog";
@@ -97,7 +94,6 @@ const ClientV2 = ({
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const fetchCategories = useCallback(async () => {
-    console.log("RELOADING MAIN GETCH");
     setIsLoadingCategories(true);
     setLoadingOverlay({ show: true, message: "Carregando categorias..." });
     const response = await _getCategoriesWithSubcategories();

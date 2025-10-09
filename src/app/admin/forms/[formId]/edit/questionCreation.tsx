@@ -1,5 +1,15 @@
 "use client";
 
+import LoadingIcon from "@components/LoadingIcon";
+import { Button } from "@components/button";
+import CButton from "@components/ui/cButton";
+import { Checkbox } from "@components/ui/checkbox";
+import CDialog from "@components/ui/dialog/cDialog";
+import { Input } from "@components/ui/input";
+import { RadioButton } from "@components/ui/radioButton";
+import { Select } from "@components/ui/select";
+import { useHelperCard } from "@context/helperCardContext";
+import { _questionSubmit } from "@serverActions/questionUtil";
 import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
 import React, {
   startTransition,
@@ -7,17 +17,6 @@ import React, {
   useEffect,
   useState,
 } from "react";
-
-import LoadingIcon from "../../../../../../components/LoadingIcon";
-import { Button } from "../../../../../../components/button";
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import CButton from "../../../../../../components/ui/cButton";
-import { Checkbox } from "../../../../../../components/ui/checkbox";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { Input } from "../../../../../../components/ui/input";
-import { RadioButton } from "../../../../../../components/ui/radioButton";
-import { Select } from "../../../../../../components/ui/select";
-import { _questionSubmit } from "../../../../../../lib/serverFunctions/serverActions/questionUtil";
 
 type CharacterType = "text" | "number";
 

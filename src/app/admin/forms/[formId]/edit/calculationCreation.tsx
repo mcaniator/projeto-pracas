@@ -1,3 +1,9 @@
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CButton from "@components/ui/cButton";
+import CMentionsTextField from "@components/ui/cMentionsTextField";
+import CNumberField from "@components/ui/cNumberField";
+import { Calculation } from "@lib/utils/calculationUtils";
+import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Accordion,
@@ -13,12 +19,6 @@ import {
 import { IconX } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
-import CButton from "../../../../../../components/ui/cButton";
-import CMentionsTextField from "../../../../../../components/ui/cMentionsTextField";
-import CNumberField from "../../../../../../components/ui/cNumberField";
-import { Calculation } from "../../../../../../lib/utils/calculationUtils";
-import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import { CalculationParams, Mention } from "./calculationDialog";
 import {
   CategoryItem,

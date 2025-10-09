@@ -3,7 +3,7 @@ import { FormItemType } from "@enums/formTree";
 import {
   QuestionItem,
   SubcategoryItem,
-} from "../../app/admin/registration/forms/[formId]/edit/clientV2";
+} from "../../app/admin/forms/[formId]/edit/clientV2";
 
 abstract class FormItemUtils {
   public static getFormItemType(item: {

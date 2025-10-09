@@ -1,6 +1,6 @@
 import { GetFormReturn } from "@serverOnly/formTree";
 
-import { FormEditorTree } from "../../app/admin/registration/forms/[formId]/edit/clientV2";
+import { FormEditorTree } from "../../app/admin/forms/[formId]/edit/clientV2";
 
 const mapFormToFormTree = (form: GetFormReturn): FormEditorTree | null => {
   if (!form) {

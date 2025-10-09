@@ -2,10 +2,10 @@
 
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import CDialog from "@components/ui/dialog/cDialog";
+import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import { QuestionTypes } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationCreation from "./calculationCreation";
 import Calculations from "./calculations";
 import { CategoryItem, FormEditorTree } from "./clientV2";

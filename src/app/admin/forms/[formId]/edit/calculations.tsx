@@ -1,8 +1,8 @@
+import CButton from "@components/ui/cButton";
+import CMentionsTextField from "@components/ui/cMentionsTextField";
 import { IconTrash } from "@tabler/icons-react";
 import { Dispatch, SetStateAction } from "react";
 
-import CButton from "../../../../../../components/ui/cButton";
-import CMentionsTextField from "../../../../../../components/ui/cMentionsTextField";
 import { CalculationParams, Mention } from "./calculationDialog";
 
 const Calculations = ({

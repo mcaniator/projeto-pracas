@@ -30,7 +30,7 @@ const AdminRoot = async () => {
                   <Link
                     key={form.id}
                     className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} flex items-center p-2 hover:bg-transparent/10 hover:underline`}
-                    href={`/admin/registration/forms/${form.id}/edit`}
+                    href={`/admin/forms/${form.id}/edit`}
                   >
                     <IconListCheck className="mb-1 inline" size={24} />
                     <span className="inline">{`${form.name}`}</span>

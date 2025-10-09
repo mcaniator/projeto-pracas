@@ -70,7 +70,7 @@ const Sidebar = () => {
     {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
-      path: "/admin/registration/questions",
+      path: "/admin/forms",
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
     },
     {

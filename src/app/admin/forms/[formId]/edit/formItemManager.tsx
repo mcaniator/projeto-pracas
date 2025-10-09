@@ -1,9 +1,9 @@
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CButton from "@components/ui/cButton";
+import { CategoriesWithQuestions } from "@queries/category";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
-import CButton from "../../../../../../components/ui/cButton";
-import { CategoriesWithQuestions } from "../../../../../../lib/serverFunctions/queries/category";
 import CategoryCreationDialog from "./categoryCreationDialog";
 import CategoryDeletionDialog from "./categoryDeletionDialog";
 import QuestionCreation from "./questionCreation";

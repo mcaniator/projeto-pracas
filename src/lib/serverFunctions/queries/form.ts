@@ -1,25 +1,13 @@
-import { FormCalculation } from "@customTypes/forms/formCreation";
 import { prisma } from "@lib/prisma";
-import { QuestionWithCategories } from "@serverActions/questionUtil";
 
-import { CalculationParams } from "../../../app/admin/registration/forms/[formId]/edit/calculationDialog";
+import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculationDialog";
 import {
   CategoryItem,
   QuestionItem,
   SubcategoryItem,
-} from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+} from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
-
-type FormToEditPage = {
-  id: number;
-  name: string;
-  formQuestions: {
-    question: QuestionWithCategories;
-    position: number;
-  }[];
-  calculations: FormCalculation[];
-};
 
 const fetchFormsLatest = async () => {
   try {
@@ -265,4 +253,3 @@ export {
   searchformNameById,
   getCalculationByFormId,
 };
-export { type FormToEditPage };

@@ -1,5 +1,12 @@
 "use client";
 
+import CAccordion from "@components/ui/accordion/CAccordion";
+import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
+import CNotesChip from "@components/ui/question/cNotesChip";
+import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   DndContext,
   DragEndEvent,
@@ -23,13 +30,6 @@ import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { FormItemUtils } from "@utils/formTreeUtils";
 import React, { useState } from "react";
 
-import CAccordion from "../../../../../../components/ui/accordion/CAccordion";
-import CAccordionDetails from "../../../../../../components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "../../../../../../components/ui/accordion/CAccordionSummary";
-import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
 import { FormEditorTree } from "./clientV2";
 
 const FormEditor = ({

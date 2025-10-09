@@ -1,7 +1,18 @@
 "use client";
 
+import CButton from "@/components/ui/cButton";
 import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import LoadingIcon from "@components/LoadingIcon";
+import CAccordion from "@components/ui/accordion/CAccordion";
+import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CTextField from "@components/ui/cTextField";
+import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
+import CNotesChip from "@components/ui/question/cNotesChip";
+import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import { useHelperCard } from "@context/helperCardContext";
 import {
   CategoryForQuestionPicker,
@@ -20,17 +31,6 @@ import { CategoriesWithQuestions } from "@queries/category";
 import { IconCirclePlus, IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
-import CAccordion from "../../../../../../components/ui/accordion/CAccordion";
-import CAccordionDetails from "../../../../../../components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "../../../../../../components/ui/accordion/CAccordionSummary";
-import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
-import CButton from "../../../../../../components/ui/cButton";
-import CTextField from "../../../../../../components/ui/cTextField";
-import CToggleButtonGroup from "../../../../../../components/ui/cToggleButtonGroup";
-import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
 import FormItemManager from "./formItemManager";
 
 const QuestionFormV2 = ({

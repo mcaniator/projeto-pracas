@@ -1,10 +1,9 @@
+import CTextField from "@components/ui/cTextField";
+import CDialog from "@components/ui/dialog/cDialog";
+import { useHelperCard } from "@context/helperCardContext";
+import { useLoadingOverlay } from "@context/loadingContext";
+import { _subcategorySubmit } from "@serverActions/categoryServerActions";
 import { useActionState, useEffect } from "react";
-
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
-import CTextField from "../../../../../../components/ui/cTextField";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { _subcategorySubmit } from "../../../../../../lib/serverFunctions/serverActions/categoryServerActions";
 
 const SubcategoryCreationDialog = ({
   categoryId,

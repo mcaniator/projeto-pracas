@@ -1,7 +1,6 @@
+import CSwitch from "@components/ui/cSwtich";
+import CDialog from "@components/ui/dialog/cDialog";
 import { Dispatch, SetStateAction } from "react";
-
-import CSwitch from "../../../../../../components/ui/cSwtich";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
 
 const SaveFormDialog = ({
   openSaveFormDialog,

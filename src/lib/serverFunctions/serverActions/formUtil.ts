@@ -10,8 +10,8 @@ import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { CalculationParams } from "../../../app/admin/registration/forms/[formId]/edit/calculationDialog";
-import { FormEditorTree } from "../../../app/admin/registration/forms/[formId]/edit/clientV2";
+import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculationDialog";
+import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 const _formSubmit = async (
@@ -551,7 +551,7 @@ const _createVersion = async (
   }
 
   revalidateTag("questionOnForm");
-  redirect("/admin/registration/forms?formCreated=true");
+  redirect("/admin/forms?formCreated=true");
   return { statusCode: 201 };
 };
 
