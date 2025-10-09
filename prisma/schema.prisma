@@ -271,6 +271,7 @@ model Question {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([name, categoryId, subcategoryId])
+  @@index([name])
   @@map("question")
 }
 
@@ -384,7 +385,7 @@ model FormItem {
   category    Category     @relation(fields: [categoryId], references: [id])
   subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
   question    Question?    @relation(fields: [questionId], references: [id])
-  Form        Form         @relation(fields: [formId], references: [id])
+  form        Form         @relation(fields: [formId], references: [id])
 
   @@unique([formId, categoryId, subcategoryId, questionId])
   @@map("form_item")

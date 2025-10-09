@@ -31,17 +31,22 @@ import CNotesChip from "../../../../../../components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "../../../../../../components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "../../../../../../components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "../../../../../../components/ui/question/cQuestionTypeChip";
+import FormItemManager from "./formItemManager";
 
 const QuestionFormV2 = ({
   categories,
   formQuestionsIds,
   showTitle,
+  isLoadingCategories,
   addQuestion,
+  reloadCategories,
 }: {
   categories: CategoriesWithQuestions;
   formQuestionsIds: number[];
   showTitle: boolean;
+  isLoadingCategories: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+  reloadCategories: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [questionsListState, setQuestionsListState] = useState<
@@ -66,7 +71,7 @@ const QuestionFormV2 = ({
     categoryNotes?: string | null;
     subcategoryNotes?: string | null;
   }>({
-    categoryId: categories[0]?.id,
+    categoryId: undefined,
     subcategoryId: -1,
     verifySubcategoryNullness: false,
   });
@@ -112,6 +117,12 @@ const QuestionFormV2 = ({
   }, [searchedName, setHelperCard]);
 
   const searchByCategoryAndSubcateogory = useCallback(() => {
+    if (
+      categories.length === 0 ||
+      isLoadingCategories ||
+      !selectedCategoryAndSubcategoryId.categoryId
+    )
+      return;
     setQuestionsListState("LOADING");
     _searchQuestionsByCategoryAndSubcategory({
       categoryId: selectedCategoryAndSubcategoryId.categoryId,
@@ -144,7 +155,12 @@ const QuestionFormV2 = ({
       .catch(() => {
         setQuestionsListState("ERROR");
       });
-  }, [selectedCategoryAndSubcategoryId, setHelperCard]);
+  }, [
+    selectedCategoryAndSubcategoryId,
+    categories,
+    isLoadingCategories,
+    setHelperCard,
+  ]);
 
   useEffect(() => {
     searchByCategoryAndSubcateogory();
@@ -158,10 +174,19 @@ const QuestionFormV2 = ({
     setCategoriesList([]);
     if (currentSearchMethod === 1) {
       searchByName();
-    } else {
+    } else if (currentSearchMethod === 0) {
       searchByCategoryAndSubcateogory();
     }
   }, [currentSearchMethod]);
+
+  useEffect(() => {
+    if (categories.length > 0)
+      setSelectedCategoryAndSubcategoryId({
+        categoryId: categories[0]?.id,
+        subcategoryId: -1,
+        verifySubcategoryNullness: false,
+      });
+  }, [categories]);
 
   const subcategoriesOptions =
     categories.find(
@@ -182,6 +207,7 @@ const QuestionFormV2 = ({
         options={[
           { id: 0, label: "Categorias" },
           { id: 1, label: "Nome" },
+          { id: 2, label: "Criar" },
         ]}
         getLabel={(i) => i.label}
         getValue={(i) => i.id}
@@ -191,47 +217,49 @@ const QuestionFormV2 = ({
         }}
       />
 
-      {currentSearchMethod === 0 && (
-        <div className="flex flex-col gap-2 overflow-auto">
-          <h4>Buscar por categoria: </h4>
-          <CAutocomplete
-            options={categories}
-            label="Categoria"
-            className="w-full"
-            value={categories.find(
-              (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
-            )}
-            getOptionLabel={(option) => option.name}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            disableClearable
-            onChange={(evt, val) => {
-              setSelectedCategoryAndSubcategoryId({
-                categoryId: Number(val?.id),
-                subcategoryId: 0,
-                verifySubcategoryNullness: false,
-              });
-            }}
-          />
-          <CAutocomplete
-            options={fullSubcategoriesOptions}
-            label="Subcategoria"
-            className="w-full"
-            value={fullSubcategoriesOptions.find(
-              (fs) => fs.id === selectedCategoryAndSubcategoryId.subcategoryId,
-            )}
-            getOptionLabel={(option) => option.name}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            disableClearable
-            onChange={(evt, val) => {
-              setSelectedCategoryAndSubcategoryId({
-                ...selectedCategoryAndSubcategoryId,
-                subcategoryId: val.id,
-                verifySubcategoryNullness: val.id === -1 ? true : false,
-              });
-            }}
-          />
-        </div>
-      )}
+      {currentSearchMethod === 0 &&
+        selectedCategoryAndSubcategoryId.categoryId && (
+          <div className="flex flex-col gap-2 overflow-auto">
+            <h4>Buscar por categoria: </h4>
+            <CAutocomplete
+              options={categories}
+              label="Categoria"
+              className="w-full"
+              value={categories.find(
+                (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
+              )}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              disableClearable
+              onChange={(evt, val) => {
+                setSelectedCategoryAndSubcategoryId({
+                  categoryId: Number(val?.id),
+                  subcategoryId: 0,
+                  verifySubcategoryNullness: false,
+                });
+              }}
+            />
+            <CAutocomplete
+              options={fullSubcategoriesOptions}
+              label="Subcategoria"
+              className="w-full"
+              value={fullSubcategoriesOptions.find(
+                (fs) =>
+                  fs.id === selectedCategoryAndSubcategoryId.subcategoryId,
+              )}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              disableClearable
+              onChange={(evt, val) => {
+                setSelectedCategoryAndSubcategoryId({
+                  ...selectedCategoryAndSubcategoryId,
+                  subcategoryId: val.id,
+                  verifySubcategoryNullness: val.id === -1 ? true : false,
+                });
+              }}
+            />
+          </div>
+        )}
       {currentSearchMethod === 1 && (
         <div className="mb-2 flex flex-col gap-2 overflow-auto">
           <h4>Buscar por nome: </h4>
@@ -250,22 +278,41 @@ const QuestionFormV2 = ({
           )}
         </div>
       )}
-      {questionsListState === "LOADING" ?
-        <div className="m-2 flex justify-center">
-          <LoadingIcon className="h-32 w-32 text-2xl" />
+      {currentSearchMethod == 2 && (
+        <div className="flex flex-col gap-2 overflow-auto">
+          <h4>Criar questão: </h4>
+          <div className="text-red-500">
+            Atenção: Antes de criar uma questão, certifique-se se já existe uma
+            questão que aborde a avaliação desejada.
+          </div>
+          <div>
+            Questões são reutilizáveis entre formulários, para garantir a
+            comparação correta entre avaliações.
+          </div>
         </div>
-      : questionsListState === "LOADED" ?
-        <div className="flex flex-col">
-          <CategoriesListV2
-            categories={categoriesList}
-            formQuestionsIds={formQuestionsIds}
-            addQuestion={addQuestion}
-          />
-        </div>
-      : <div className="flex flex-col justify-center">
-          <p className="text-center">Erro ao carregar questões</p>
-          <IconX className="h-32 w-32 text-2xl" />
-        </div>
+      )}
+      {currentSearchMethod !== 2 ?
+        questionsListState === "LOADING" || isLoadingCategories ?
+          <div className="m-2 flex justify-center">
+            <LoadingIcon className="h-32 w-32 text-2xl" />
+          </div>
+        : questionsListState === "LOADED" ?
+          <div className="flex flex-col">
+            <CategoriesListV2
+              categories={categoriesList}
+              formQuestionsIds={formQuestionsIds}
+              addQuestion={addQuestion}
+            />
+          </div>
+        : <div className="flex flex-col justify-center">
+            <p className="text-center">Erro ao carregar questões</p>
+            <IconX className="h-32 w-32 text-2xl" />
+          </div>
+
+      : <FormItemManager
+          categories={categories}
+          reloadCategories={reloadCategories}
+        />
       }
     </div>
   );

@@ -1,4 +1,4 @@
-import { getCategories } from "@queries/category";
+//import { getCategories } from "@queries/category";
 import { getCalculationByFormId, getFormTree } from "@queries/form";
 
 import ClientV2 from "./clientV2";
@@ -6,14 +6,13 @@ import ClientV2 from "./clientV2";
 const Edit = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
   const response = await getFormTree(Number(params.formId));
-  const categories = await getCategories();
+  //const categories = await getCategories();
   const calculations = await getCalculationByFormId(Number(params.formId));
   if (response.formTree)
     return (
       <ClientV2
         formId={parseInt(params.formId)}
         form={response}
-        categories={categories}
         dbCalculations={calculations.calculations}
       />
     );

@@ -1,18 +1,18 @@
 import { prisma } from "@lib/prisma";
 
 type CategoriesWithQuestionsAndStatusCode = NonNullable<
-  Awaited<ReturnType<typeof getCategories>>
+  Awaited<ReturnType<typeof getCategoriesWithSubcategories>>
 >;
 
 type CategoriesWithQuestions = NonNullable<
-  Awaited<ReturnType<typeof getCategories>>["categories"]
+  Awaited<ReturnType<typeof getCategoriesWithSubcategories>>["categories"]
 >;
 
 type CategoriesForFieldsCreation = NonNullable<
   Awaited<ReturnType<typeof fetchCategoriesForFieldsCreation>>
 >;
 
-const getCategories = async () => {
+const getCategoriesWithSubcategories = async () => {
   try {
     const categories = await prisma.category.findMany({
       select: {
@@ -56,7 +56,7 @@ const fetchCategoriesForFieldsCreation = async () => {
   }
 };
 
-export { getCategories, fetchCategoriesForFieldsCreation };
+export { getCategoriesWithSubcategories, fetchCategoriesForFieldsCreation };
 export {
   type CategoriesWithQuestions,
   type CategoriesWithQuestionsAndStatusCode,

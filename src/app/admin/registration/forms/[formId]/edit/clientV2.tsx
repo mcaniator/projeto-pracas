@@ -10,14 +10,18 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { CategoriesWithQuestionsAndStatusCode } from "@queries/category";
+import {
+  CategoriesWithQuestions,
+  CategoriesWithQuestionsAndStatusCode,
+} from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import CButton from "../../../../../../components/ui/cButton";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
+import { _getCategoriesWithSubcategories } from "../../../../../../lib/serverFunctions/apiCalls/category";
 import { FormItemUtils } from "../../../../../../lib/utils/formTreeUtils";
 import CalculationDialog, { CalculationParams } from "./calculationDialog";
 import QuestionFormV2 from "./questionFormV2";
@@ -66,7 +70,6 @@ export type FormEditorTree = {
 
 const ClientV2 = ({
   form,
-  categories,
   dbCalculations,
   formId,
 }: {
@@ -74,11 +77,10 @@ const ClientV2 = ({
     formTree: FormEditorTree;
     statusCode: number;
   };
-  categories: CategoriesWithQuestionsAndStatusCode;
   dbCalculations: CalculationParams[];
   formId: number;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(form.formTree.finalized);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
@@ -91,6 +93,24 @@ const ClientV2 = ({
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
   const [openSaveFormDialog, setOpenSaveFormDialog] = useState(false);
   const [saveAsDone, setSaveAsDone] = useState(false);
+  const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  const fetchCategories = useCallback(async () => {
+    console.log("RELOADING MAIN GETCH");
+    setIsLoadingCategories(true);
+    setLoadingOverlay({ show: true, message: "Carregando categorias..." });
+    const response = await _getCategoriesWithSubcategories();
+    helperCardProcessResponse(response.responseInfo);
+    setCategories(response.categories);
+    setLoadingOverlay({ show: false });
+    setIsLoadingCategories(false);
+  }, [helperCardProcessResponse, setLoadingOverlay]);
+
+  const reloadCategories = useCallback(() => {
+    void fetchCategories();
+  }, [fetchCategories]);
+
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
     if (formQuestionsIds.includes(question.id)) return;
 
@@ -102,7 +122,7 @@ const ClientV2 = ({
       let category = prev.categories.find(
         (cat) => cat.categoryId === categoryId,
       );
-      const categoryFromCategoriesList = categories.categories.find(
+      const categoryFromCategoriesList = categories.find(
         (cat) => cat.id === categoryId,
       );
       if (!category) {
@@ -209,6 +229,11 @@ const ClientV2 = ({
       return { ...prev, categories: newCategories };
     });
   };
+
+  useEffect(() => {
+    if (isFinalized) return;
+    void fetchCategories();
+  }, [fetchCategories, isFinalized]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -365,8 +390,10 @@ const ClientV2 = ({
           >
             <QuestionFormV2
               addQuestion={addQuestion}
-              categories={categories.categories}
+              reloadCategories={reloadCategories}
+              categories={categories}
               formQuestionsIds={formQuestionsIds}
+              isLoadingCategories={isLoadingCategories}
               showTitle
             />
           </div>
@@ -383,8 +410,10 @@ const ClientV2 = ({
         >
           <QuestionFormV2
             addQuestion={addQuestion}
-            categories={categories.categories}
+            reloadCategories={reloadCategories}
+            categories={categories}
             formQuestionsIds={formQuestionsIds}
+            isLoadingCategories={isLoadingCategories}
             showTitle={false}
           />
         </CDialog>

@@ -29,6 +29,7 @@ type CDialogProps = DialogProps & {
   onConfirm?: () => void;
   onClose: () => void;
   action?: (formData: FormData) => void;
+  onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
 
 const Transition = React.forwardRef(function Transition(
@@ -57,11 +58,17 @@ const CDialog = ({
   onCancel,
   onConfirm,
   onClose,
+  onSubmit,
   ...rest
 }: CDialogProps) => {
   if (action && !isForm) {
     throw new Error(
       "Action defined in a CDialog that does not have 'isForm' set as true",
+    );
+  }
+  if (onSubmit && !isForm) {
+    throw new Error(
+      "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
   if (isForm) {
@@ -86,7 +93,7 @@ const CDialog = ({
         }}
         {...rest}
       >
-        <form action={action}>
+        <form action={action} onSubmit={onSubmit}>
           <DialogTitle
             sx={{
               padding: "0px",
@@ -98,7 +105,7 @@ const CDialog = ({
           <DialogContent
             sx={{
               px: { xs: "0px", sm: "12px" },
-              py: "0px",
+              py: "4px",
             }}
             dividers
           >
@@ -156,7 +163,7 @@ const CDialog = ({
       <DialogContent
         sx={{
           px: { xs: "0px", sm: "12px" },
-          py: "0px",
+          py: "4px",
         }}
         dividers
       >

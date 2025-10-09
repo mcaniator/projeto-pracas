@@ -315,7 +315,7 @@ const Question = ({
               />
             ))}
           </RadioGroup>
-          <div>
+          <div className="w-fit">
             <CButton
               variant="outlined"
               dense
