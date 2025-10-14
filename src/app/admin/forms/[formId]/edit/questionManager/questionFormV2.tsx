@@ -43,6 +43,10 @@ const QuestionFormV2 = ({
 
   const [searchedName, setSearchedName] = useState("");
 
+  const [showAllQuestions, setShowAllQuestions] = useState(
+    currentSearchMethod !== 2,
+  );
+
   const [
     selectedCategoryAndSubcategoryId,
     setSelectedCategoryAndSubcategoryId,
@@ -50,15 +54,13 @@ const QuestionFormV2 = ({
     categoryId: number | undefined;
     subcategoryId: number | null;
     verifySubcategoryNullness: boolean;
-    categoryName?: string;
-    subcategoryName?: string;
-    categoryNotes?: string | null;
-    subcategoryNotes?: string | null;
   }>({
     categoryId: undefined,
     subcategoryId: -1,
     verifySubcategoryNullness: false,
   });
+
+  console.log(selectedCategoryAndSubcategoryId);
 
   const searchByName = useCallback(() => {
     if (!searchedName || searchedName.length === 0) {
@@ -157,9 +159,18 @@ const QuestionFormV2 = ({
   useEffect(() => {
     setCategoriesList([]);
     if (currentSearchMethod === 1) {
+      setShowAllQuestions(false);
       searchByName();
     } else if (currentSearchMethod === 0) {
+      setShowAllQuestions(false);
       searchByCategoryAndSubcateogory();
+    } else if (currentSearchMethod === 2) {
+      setSelectedCategoryAndSubcategoryId((prev) => ({
+        ...prev,
+        verifySubcategoryNullness: true,
+      }));
+      searchByCategoryAndSubcateogory();
+      setShowAllQuestions(true);
     }
   }, [currentSearchMethod]);
 
@@ -227,7 +238,11 @@ const QuestionFormV2 = ({
       {currentSearchMethod == 2 && (
         <FormItemManager
           categories={categories}
+          selectedCategoryAndSubcategoryId={selectedCategoryAndSubcategoryId}
           reloadCategories={reloadCategories}
+          setSelectedCategoryAndSubcategoryId={
+            setSelectedCategoryAndSubcategoryId
+          }
         />
       )}
       {questionsListState === "LOADING" || isLoadingCategories ?
@@ -239,6 +254,7 @@ const QuestionFormV2 = ({
           <CategoriesListV2
             categories={categoriesList}
             formQuestionsIds={formQuestionsIds}
+            showAllQuestions={showAllQuestions}
             addQuestion={addQuestion}
           />
         </div>

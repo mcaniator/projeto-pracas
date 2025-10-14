@@ -15,6 +15,7 @@ const fetchFormsLatest = async () => {
       select: {
         id: true,
         name: true,
+        finalized: true,
         updatedAt: true,
       },
       orderBy: [

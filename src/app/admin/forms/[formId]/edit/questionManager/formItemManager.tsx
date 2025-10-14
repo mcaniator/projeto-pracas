@@ -12,18 +12,25 @@ import SubcategoryDeletionDialog from "./subcategoryDeletionDialog";
 
 const FormItemManager = ({
   categories,
+  selectedCategoryAndSubcategoryId,
   reloadCategories,
+  setSelectedCategoryAndSubcategoryId,
 }: {
   categories: CategoriesWithQuestions;
+  selectedCategoryAndSubcategoryId: {
+    categoryId: number | undefined;
+    subcategoryId: number | null;
+    verifySubcategoryNullness: boolean;
+  };
   reloadCategories: () => void;
+  setSelectedCategoryAndSubcategoryId: React.Dispatch<
+    React.SetStateAction<{
+      categoryId: number | undefined;
+      subcategoryId: number | null;
+      verifySubcategoryNullness: boolean;
+    }>
+  >;
 }) => {
-  const [
-    selectedCategoryAndSubcategoryId,
-    setSelectedCategoryAndSubcategoryId,
-  ] = useState<{ categoryId: number | null; subcategoryId: number | null }>({
-    categoryId: categories[0]?.id ?? null,
-    subcategoryId: -1,
-  });
   const [openCategoryCreationDialog, setOpenCategoryCreationDialog] =
     useState(false);
   const [openCategoryDeletionDialog, setOpenCategoryDeletionDialog] =
@@ -82,8 +89,9 @@ const FormItemManager = ({
   }) => {
     if (params?.resetSelectedCategory) {
       setSelectedCategoryAndSubcategoryId({
-        categoryId: null,
+        categoryId: undefined,
         subcategoryId: null,
+        verifySubcategoryNullness: false,
       });
     } else if (params?.resetSelectedSubcategory) {
       setSelectedCategoryAndSubcategoryId((prev) => ({
@@ -125,7 +133,6 @@ const FormItemManager = ({
         correta entre avaliações.
       </div>
       <div className="flex flex-col gap-2 overflow-auto">
-        <h4>Selecionar categoria / subcategoria: </h4>
         <div className="flex items-center justify-center gap-1">
           <CAutocomplete
             options={categories}
@@ -149,6 +156,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
                 subcategoryId: -1,
+                verifySubcategoryNullness: false,
               });
             }}
           />
@@ -187,6 +195,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
                 subcategoryId: val.id,
+                verifySubcategoryNullness: false,
               });
             }}
           />

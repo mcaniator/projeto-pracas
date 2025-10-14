@@ -19,25 +19,30 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { IconCirclePlus } from "@tabler/icons-react";
+import { IconCirclePlus, IconTrash } from "@tabler/icons-react";
 
 const CategoriesListV2 = ({
   categories,
+  showAllQuestions,
   formQuestionsIds,
   addQuestion,
 }: {
   categories: CategoryForQuestionPicker[];
   formQuestionsIds: number[];
+  showAllQuestions: boolean;
+
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
-  const searchHasRemainingQuestions = categories.some(
-    (cat) =>
-      cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
-      cat.subcategory.some((sub) =>
-        sub.question.some((q) => !formQuestionsIds.includes(q.id)),
-      ),
-  );
-  if (!searchHasRemainingQuestions || categories.length === 0) {
+  const searchHasRemainingQuestions =
+    showAllQuestions ||
+    categories.some(
+      (cat) =>
+        cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
+        cat.subcategory.some((sub) =>
+          sub.question.some((q) => !formQuestionsIds.includes(q.id)),
+        ),
+    );
+  if (!searchHasRemainingQuestions) {
     return (
       <div className="p-1">
         <div>
@@ -50,6 +55,7 @@ const CategoriesListV2 = ({
     <div className="p-1">
       {categories.map((cat, index) => {
         const categoryHasRemainingQuestions =
+          showAllQuestions ||
           cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
           cat.subcategory.some((sub) =>
             sub.question.some((q) => !formQuestionsIds.includes(q.id)),
@@ -87,6 +93,7 @@ const CategoriesListV2 = ({
                       subcategories={cat.subcategory}
                       formQuestionsIds={formQuestionsIds}
                       categoryId={cat.id}
+                      showAllQuestions={showAllQuestions}
                       addQuestion={addQuestion}
                     />
                   )}
@@ -96,6 +103,7 @@ const CategoriesListV2 = ({
                       questions={cat.question}
                       formQuestionsIds={formQuestionsIds}
                       categoryId={cat.id}
+                      showAllQuestions={showAllQuestions}
                       addQuestion={addQuestion}
                     />
                   )}
@@ -113,19 +121,22 @@ const SubcategoriesListV2 = ({
   subcategories,
   formQuestionsIds,
   categoryId,
+  showAllQuestions,
   addQuestion,
 }: {
   subcategories: SubCategoryForQuestionPicker[];
   formQuestionsIds: number[];
   categoryId: number;
+  showAllQuestions: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
   return (
     <div className="p-1">
       {subcategories.map((sub, index) => {
         if (
+          (showAllQuestions && sub.question.length > 0) ||
           sub.question.filter((q) => !formQuestionsIds.includes(q.id)).length >
-          0
+            0
         ) {
           return (
             <CAccordion
@@ -149,6 +160,7 @@ const SubcategoriesListV2 = ({
                   formQuestionsIds={formQuestionsIds}
                   categoryId={categoryId}
                   subcategoryId={sub.id}
+                  showAllQuestions={showAllQuestions}
                   addQuestion={addQuestion}
                 />
               </CAccordionDetails>
@@ -165,22 +177,28 @@ const QuestionListV2 = ({
   formQuestionsIds,
   categoryId,
   subcategoryId,
+  showAllQuestions,
   addQuestion,
 }: {
   questions: QuestionForQuestionPicker[];
   formQuestionsIds: number[];
   categoryId: number;
   subcategoryId?: number | null;
+  showAllQuestions: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
 }) => {
-  const filteredQuestions = questions.filter(
-    (q) => !formQuestionsIds.includes(q.id),
-  );
+  const filteredQuestions =
+    showAllQuestions ? questions : (
+      questions.filter((q) => !formQuestionsIds.includes(q.id))
+    );
   return (
     <div className="px-1">
-      {filteredQuestions.length === 0 && (
-        <p className="my-4 text-center">Nenhuma questão restante encontrada!</p>
-      )}
+      {!showAllQuestions ||
+        (filteredQuestions.length === 0 && (
+          <p className="my-4 text-center">
+            Nenhuma questão restante encontrada!
+          </p>
+        ))}
       {filteredQuestions.map((question) => (
         <QuestionComponentV2
           key={question.id}
@@ -195,6 +213,7 @@ const QuestionListV2 = ({
           addQuestion={addQuestion}
           categoryId={categoryId}
           subcategoryId={subcategoryId}
+          showAllQuestions={showAllQuestions}
         />
       ))}
     </div>
@@ -213,6 +232,7 @@ const QuestionComponentV2 = ({
   geometryTypes,
   categoryId,
   subcategoryId,
+  showAllQuestions,
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
@@ -225,6 +245,7 @@ const QuestionComponentV2 = ({
   options: { text: string }[];
   categoryId: number;
   subcategoryId?: number | null;
+  showAllQuestions: boolean;
 }) => {
   return (
     <div
@@ -243,29 +264,33 @@ const QuestionComponentV2 = ({
         <CNotesChip notes={notes} name={name} />
       </div>
       <div className="max-w-full break-all">{name}</div>
-
-      <CButton
-        type="submit"
-        className={"w-min"}
-        onClick={() =>
-          addQuestion({
-            id: questionId,
-            name,
-            notes,
-            questionType,
-            optionType,
-            options,
-            geometryTypes,
-            categoryId,
-            subcategoryId: subcategoryId ?? null,
-            characterType: characterType,
-          })
-        }
-      >
-        <span>
-          <IconCirclePlus />
-        </span>
-      </CButton>
+      {showAllQuestions ?
+        <CButton variant="text" color="error">
+          <IconTrash />
+        </CButton>
+      : <CButton
+          type="submit"
+          className={"w-min"}
+          onClick={() =>
+            addQuestion({
+              id: questionId,
+              name,
+              notes,
+              questionType,
+              optionType,
+              options,
+              geometryTypes,
+              categoryId,
+              subcategoryId: subcategoryId ?? null,
+              characterType: characterType,
+            })
+          }
+        >
+          <span>
+            <IconCirclePlus />
+          </span>
+        </CButton>
+      }
     </div>
   );
 };

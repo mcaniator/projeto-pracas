@@ -22,6 +22,7 @@ module.exports = {
         "temporario-bg": "url(/bg7.jpg)",
       },
       colors: {
+        main: "#648547",
         "ugly-white": "#A7ACB4",
         redwood: "#A34C4C",
         cordovan: "#893838",
