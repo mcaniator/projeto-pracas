@@ -1,7 +1,7 @@
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
 import { CategoriesWithQuestions } from "@queries/category";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import CategoryCreationDialog from "./categoryCreationDialog";
@@ -31,6 +31,7 @@ const FormItemManager = ({
     }>
   >;
 }) => {
+  const [isEdition, setIsEdition] = useState(false);
   const [openCategoryCreationDialog, setOpenCategoryCreationDialog] =
     useState(false);
   const [openCategoryDeletionDialog, setOpenCategoryDeletionDialog] =
@@ -147,11 +148,12 @@ const FormItemManager = ({
             disableAppendIconButton={
               !selectedCategoryAndSubcategoryId.categoryId
             }
-            appendIconButton={<IconTrash />}
+            appendIconButton={<IconPencil />}
             onAppendIconButtonClick={() => {
-              setOpenCategoryDeletionDialog(true);
+              setIsEdition(true);
+              setOpenCategoryCreationDialog(true);
             }}
-            appendIconButtonSx={{ color: "error.main" }}
+            appendIconButtonSx={{ color: "primary.main" }}
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
@@ -164,6 +166,7 @@ const FormItemManager = ({
             square
             sx={{ marginTop: "8px" }}
             onClick={() => {
+              setIsEdition(false);
               setOpenCategoryCreationDialog(true);
             }}
           >
@@ -186,11 +189,12 @@ const FormItemManager = ({
               !selectedCategoryAndSubcategoryId.subcategoryId ||
               selectedCategoryAndSubcategoryId.subcategoryId === -1
             }
-            appendIconButton={<IconTrash />}
+            appendIconButton={<IconPencil />}
             onAppendIconButtonClick={() => {
-              setOpenSubcategoryDeletionDialog(true);
+              setIsEdition(true);
+              setOpenSubcategoryCreationDialog(true);
             }}
-            appendIconButtonSx={{ color: "error.main" }}
+            appendIconButtonSx={{ color: "primary.main" }}
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
@@ -204,6 +208,7 @@ const FormItemManager = ({
             disabled={!selectedCategoryAndSubcategoryId.categoryId}
             sx={{ marginTop: "8px" }}
             onClick={() => {
+              setIsEdition(false);
               setOpenSubcategoryCreationDialog(true);
             }}
           >
@@ -219,8 +224,15 @@ const FormItemManager = ({
         </CButton>
         <CategoryCreationDialog
           open={openCategoryCreationDialog}
+          categoryId={isEdition ? selectedCategory?.id : undefined}
+          categoryName={isEdition ? selectedCategory?.name : undefined}
+          notes={isEdition ? (selectedCategory?.notes ?? undefined) : undefined}
           onClose={() => {
             setOpenCategoryCreationDialog(false);
+          }}
+          openCategoryDeletionDialog={() => {
+            setOpenCategoryCreationDialog(false);
+            setOpenCategoryDeletionDialog(true);
           }}
           reloadCategories={handleReloadCategories}
         />
@@ -230,7 +242,20 @@ const FormItemManager = ({
             <SubcategoryCreationDialog
               categoryId={selectedCategoryAndSubcategoryId.categoryId}
               categoryName={selectedCategory?.name ?? "ERRO"}
+              subcategoryId={isEdition ? selectedSubcategory?.id : undefined}
+              subcategoryName={
+                isEdition ? selectedSubcategory?.name : undefined
+              }
+              notes={
+                isEdition ?
+                  (selectedSubcategory?.notes ?? undefined)
+                : undefined
+              }
               open={openSubcategoryCreationDialog}
+              openSubcategoryDeletionDialog={() => {
+                setOpenSubcategoryCreationDialog(false);
+                setOpenSubcategoryDeletionDialog(true);
+              }}
               onClose={() => {
                 setOpenSubcategoryCreationDialog(false);
               }}

@@ -1,5 +1,5 @@
 import { Box, Chip } from "@mui/material";
-import Button, { ButtonProps } from "@mui/material/Button";
+import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
 import React from "react";
 
 type CButtonProps = ButtonProps & {
@@ -8,6 +8,7 @@ type CButtonProps = ButtonProps & {
   enableTopLeftChip?: boolean;
   topLeftChipLabel?: string | number;
   square?: boolean;
+  color?: ButtonOwnProps["color"];
 };
 
 function CButton(props: CButtonProps) {
@@ -19,6 +20,7 @@ function CButton(props: CButtonProps) {
     topLeftChipLabel,
     dense,
     square,
+    color,
     sx,
     ...rest
   } = props;
@@ -51,7 +53,7 @@ function CButton(props: CButtonProps) {
       )}
 
       <Button
-        color="primary"
+        color={color ?? "primary"}
         variant={variant}
         sx={{ ...minWidthSx, ...denseSx, ...squareSx, ...sx }}
         {...rest}

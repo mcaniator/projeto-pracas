@@ -45,7 +45,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
             notes: true,
             question: {
               where:
-                verifySubcategoryNullness ? { id: -1 }
+                verifySubcategoryNullness && !subcategoryId ? { id: -1 }
                 : !subcategoryId ? {}
                 : { subcategoryId },
               select: {

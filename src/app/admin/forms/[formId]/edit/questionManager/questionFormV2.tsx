@@ -60,8 +60,6 @@ const QuestionFormV2 = ({
     verifySubcategoryNullness: false,
   });
 
-  console.log(selectedCategoryAndSubcategoryId);
-
   const searchByName = useCallback(() => {
     if (!searchedName || searchedName.length === 0) {
       setHelperCard({

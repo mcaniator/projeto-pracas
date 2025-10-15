@@ -23,6 +23,10 @@ type CDialogProps = DialogProps & {
   confirmVariant?: ButtonProps["variant"];
   disableConfirmButton?: boolean;
   disableCancelButton?: boolean;
+  confirmSx?: ButtonProps["sx"];
+  cancelSx?: ButtonProps["sx"];
+  confirmColor?: ButtonProps["color"];
+  cancelColor?: ButtonProps["color"];
   disableDialogActions?: boolean;
   isForm?: boolean;
   onCancel?: () => void;
@@ -51,6 +55,10 @@ const CDialog = ({
   confirmVariant,
   disableConfirmButton = false,
   disableCancelButton = false,
+  confirmSx,
+  cancelSx,
+  confirmColor,
+  cancelColor,
   disableDialogActions = false,
   fullScreen,
   isForm,
@@ -71,6 +79,7 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
+  //TODO: Study ways to remove code duplication
   if (isForm) {
     return (
       <Dialog
@@ -121,6 +130,10 @@ const CDialog = ({
                 confirmVariant={confirmVariant}
                 disableConfirmButton={disableConfirmButton}
                 disableCancelButton={disableCancelButton}
+                confirmSx={confirmSx}
+                cancelSx={cancelSx}
+                confirmColor={confirmColor}
+                cancelColor={cancelColor}
                 isForm={isForm}
                 onCancel={onCancel}
                 onConfirm={onConfirm}
@@ -179,6 +192,10 @@ const CDialog = ({
             confirmVariant={confirmVariant}
             disableConfirmButton={disableConfirmButton}
             disableCancelButton={disableCancelButton}
+            confirmSx={confirmSx}
+            cancelSx={cancelSx}
+            confirmColor={confirmColor}
+            cancelColor={cancelColor}
             onCancel={onCancel}
             onConfirm={onConfirm}
           />

@@ -34,6 +34,7 @@ const _categorySubmit = async (
     parse = categoryInfoToCreateSchema.parse({
       name: formData.get("name"),
       notes: formData.get("notes"),
+      categoryId: formData.get("categoryId"),
     });
   } catch (e) {
     return {
@@ -46,6 +47,21 @@ const _categorySubmit = async (
   }
 
   try {
+    if (parse.categoryId) {
+      const category = await prisma.category.update({
+        where: { id: parse.categoryId },
+        data: { name: parse.name, notes: parse.notes ?? null },
+      });
+      revalidateTag("category");
+      return {
+        responseInfo: {
+          statusCode: 201,
+          showSuccessCard: true,
+          message: `Categoria ${category.name} editada!`,
+        } as APIResponseInfo,
+        categoryName: category.name,
+      };
+    }
     const category = await prisma.category.create({ data: parse });
     revalidateTag("category");
     return {
@@ -336,14 +352,46 @@ const _subcategorySubmit = async (
     };
   }
 
+  let parse;
   try {
-    const parsedSubcategoryInfo = subcategoryInfoToCreateSchema.parse({
+    parse = subcategoryInfoToCreateSchema.parse({
       name: formData.get("subcategory-name"),
       categoryId: formData.get("category-id"),
       notes: formData.get("notes"),
+      subcategoryId: formData.get("subcategoryId"),
     });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+      subcategoryName: null,
+    };
+  }
+
+  try {
+    if (parse.subcategoryId) {
+      const subcategory = await prisma.subcategory.update({
+        where: { id: parse.subcategoryId },
+        data: { name: parse.name, notes: parse.notes ?? null },
+      });
+      revalidateTag("subcategory");
+      return {
+        responseInfo: {
+          statusCode: 201,
+          showSuccessCard: true,
+          message: `Subcategoria ${subcategory.name} editada!`,
+        } as APIResponseInfo,
+        subcategoryName: subcategory.name,
+      };
+    }
     const subcategory = await prisma.subcategory.create({
-      data: parsedSubcategoryInfo,
+      data: {
+        name: parse.name,
+        categoryId: parse.categoryId,
+        notes: parse.notes ?? null,
+      },
     });
     revalidateTag("subcategory");
 

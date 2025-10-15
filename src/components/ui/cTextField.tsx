@@ -34,6 +34,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       appendIconButton,
       readOnly,
       slotProps,
+      defaultValue,
       sx,
       value,
       onKeyDown,
@@ -127,6 +128,12 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         }
       }
     }, [resetOnFormSubmit]);
+
+    useEffect(() => {
+      if (defaultValue) {
+        setLocalValue(String(defaultValue));
+      }
+    }, [defaultValue]);
 
     const readOnlySx =
       readOnly ?
