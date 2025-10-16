@@ -242,15 +242,13 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String                         @db.VarChar(255)
-  notes             String?                        @db.Text
-  questionType      QuestionTypes                  @map("question_type")
-  characterType     QuestionResponseCharacterTypes @map("character_type")
-  response          Response[]
-  optionType        OptionTypes?                   @map("option_type")
-  // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?                           @map("maximum_selections")
-  geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
+  name          String                         @db.VarChar(255)
+  notes         String?                        @db.Text
+  questionType  QuestionTypes                  @map("question_type")
+  characterType QuestionResponseCharacterTypes @map("character_type")
+  response      Response[]
+  optionType    OptionTypes?                   @map("option_type")
+  geometryTypes QuestionGeometryTypes[]        @map("geometryTypes")
 
   assessment Assessment[]
 

@@ -50,7 +50,7 @@ const _categorySubmit = async (
     if (parse.categoryId) {
       const category = await prisma.category.update({
         where: { id: parse.categoryId },
-        data: { name: parse.name, notes: parse.notes ?? null },
+        data: { name: parse.name, notes: parse.notes },
       });
       revalidateTag("category");
       return {
@@ -62,7 +62,9 @@ const _categorySubmit = async (
         categoryName: category.name,
       };
     }
-    const category = await prisma.category.create({ data: parse });
+    const category = await prisma.category.create({
+      data: { name: parse.name, notes: parse.notes },
+    });
     revalidateTag("category");
     return {
       responseInfo: {
@@ -73,6 +75,7 @@ const _categorySubmit = async (
       categoryName: category.name,
     };
   } catch (e) {
+    console.log(e);
     if (e instanceof PrismaClientKnownRequestError)
       if (e.code === "P2002")
         return {

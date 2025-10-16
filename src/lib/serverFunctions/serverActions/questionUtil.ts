@@ -49,6 +49,7 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
+  console.log("FORM DATA", formData);
   switch (questionType) {
     case "WRITTEN": {
       let writtenQuestionParsed;
@@ -112,7 +113,6 @@ const _questionSubmit = async (
 
     case "OPTIONS": {
       const optionType = formData.get("optionType");
-      const maximumSelections = formData.get("maximumSelection");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
       const subcategoryId =
@@ -120,10 +120,7 @@ const _questionSubmit = async (
           formData.get("subcategoryId")
         : undefined;
 
-      const optionsQuestionObject =
-        optionType === "CHECKBOX" ?
-          { optionType, maximumSelections }
-        : { optionType };
+      const optionsQuestionObject = { optionType };
 
       let optionsQuestionParsed;
       try {
@@ -147,12 +144,7 @@ const _questionSubmit = async (
       } catch (err) {
         return { statusCode: 400, questionName: null };
       }
-      if (
-        optionsQuestionParsed.optionType === "CHECKBOX" &&
-        optionsQuestionParsed.maximumSelections === undefined
-      ) {
-        return { statusCode: 1, questionName: null };
-      }
+
       try {
         let questionName: string | null = null;
         await prisma.$transaction(async (prisma) => {
@@ -165,7 +157,6 @@ const _questionSubmit = async (
               categoryId: optionsQuestionParsed.categoryId,
               subcategoryId: optionsQuestionParsed.subcategoryId,
               optionType: optionsQuestionParsed.optionType,
-              maximumSelections: optionsQuestionParsed.maximumSelections,
               geometryTypes: optionsQuestionParsed.geometryTypes,
             },
           });
@@ -185,6 +176,7 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: questionName };
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }

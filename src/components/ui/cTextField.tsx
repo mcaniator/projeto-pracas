@@ -1,16 +1,18 @@
-import { IconButton, InputAdornment } from "@mui/material";
+import { Box, IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconSearch, IconX } from "@tabler/icons-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-type CTextFieldProps = TextFieldProps & {
+type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   errorMessage?: string;
   isSearch?: boolean;
   clearable?: boolean;
   isAutocompleteInput?: boolean;
   readOnly?: boolean;
+  autoComplete?: boolean;
   resetOnFormSubmit?: boolean;
   appendIconButton?: React.ReactNode;
+  maxCharacters?: number;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
@@ -32,9 +34,12 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       isAutocompleteInput = false,
       resetOnFormSubmit,
       appendIconButton,
+      maxCharacters,
       readOnly,
       slotProps,
       defaultValue,
+      autoComplete,
+      label,
       sx,
       value,
       onKeyDown,
@@ -50,8 +55,9 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState<string>("");
     const [mounted, setMounted] = useState(false); // SSR safe flag
+    const [characterCount, setCharacterCount] = useState(0);
 
-    const validate = () => {
+    const validate = useCallback(() => {
       const value = localValue;
       const valid = value.trim().length > 0;
       setIsValid(valid);
@@ -59,13 +65,16 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         onRequiredCheck(valid);
       }
       return valid;
-    };
+    }, [localValue, onRequiredCheck, required]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
-      if (required) {
-        validate();
+      if (maxCharacters && event.target.value.length > maxCharacters) {
+        return;
       }
+      /*if (required) {
+        validate();
+      }*/
       if (onChange) {
         onChange(event);
       }
@@ -115,8 +124,19 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     };
 
     useEffect(() => {
-      setLocalValue(value != undefined ? String(value) : "");
-    }, [value]);
+      if (maxCharacters && String(value).length > maxCharacters) {
+        const trimmedValue = String(value).substring(0, maxCharacters);
+        if (onChange) {
+          const event = {
+            target: { value: trimmedValue },
+          } as React.ChangeEvent<HTMLInputElement>;
+          onChange(event);
+        }
+        setLocalValue(trimmedValue);
+      } else {
+        setLocalValue(value != undefined ? String(value) : "");
+      }
+    }, [value, maxCharacters, onChange]);
 
     useEffect(() => {
       setMounted(true);
@@ -134,6 +154,15 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
         setLocalValue(String(defaultValue));
       }
     }, [defaultValue]);
+
+    useEffect(() => {
+      if (required) {
+        validate();
+      }
+      setCharacterCount(localValue.length);
+    }, [localValue, required, validate]);
+
+    const defaultSx = { mt: "0px", mb: "0px" };
 
     const readOnlySx =
       readOnly ?
@@ -179,26 +208,45 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     };
 
     return (
-      <TextField
-        ref={ref}
-        inputRef={inputRef}
-        variant={variant}
-        value={localValue}
-        margin={margin}
-        size={size}
-        error={(required && !isValid) || error}
-        helperText={(required && !isValid) || error ? errorMessage : helperText}
-        sx={{ ...sx, ...readOnlySx }}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        required={required}
-        slotProps={{
-          ...slotProps,
-          ...(!isAutocompleteInput ? inputProps : {}),
+      <Box
+        className="flex w-full flex-col"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          mt: label ? "8px" : "0px",
         }}
-        {...rest}
-      />
+      >
+        <TextField
+          ref={ref}
+          label={label}
+          inputRef={inputRef}
+          variant={variant}
+          value={localValue}
+          margin={margin}
+          size={size}
+          autoComplete={autoComplete ? "on" : "off"}
+          error={(required && !isValid) || error}
+          helperText={
+            (required && !isValid) || error ? errorMessage : helperText
+          }
+          sx={{ ...sx, ...defaultSx, ...readOnlySx }}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          required={required}
+          slotProps={{
+            ...slotProps,
+            ...(!isAutocompleteInput ? inputProps : {}),
+          }}
+          {...rest}
+        />
+        {maxCharacters && (
+          <Box sx={{ ml: "8px" }}>
+            {characterCount}/{maxCharacters}
+          </Box>
+        )}
+      </Box>
     );
   },
 );

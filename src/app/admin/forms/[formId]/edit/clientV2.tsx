@@ -304,7 +304,7 @@ const ClientV2 = ({
           } overflow-auto`}
         >
           <div className="ml-1 mr-2 flex flex-col gap-1">
-            <div className="flex flex-row items-center justify-between">
+            <div className="flex flex-row items-center justify-between gap-2">
               <CTextField
                 label="Nome"
                 value={formName}

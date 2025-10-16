@@ -2,9 +2,6 @@
 
 import {
   Chip,
-  IconButton,
-  Menu,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -12,10 +9,8 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { IconDotsVertical } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
+import CMenu from "../../../components/ui/menu/cMenu";
 import { dateTimeFormatter } from "../../../lib/formatters/dateFormatters";
 
 const FormsTable = ({
@@ -28,31 +23,8 @@ const FormsTable = ({
     id: number;
   }[];
 }) => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
-  const router = useRouter();
-
-  const handleOpenMenu = (
-    event: React.MouseEvent<HTMLElement>,
-    formId: number,
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedFormId(formId);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-    setSelectedFormId(null);
-  };
-
-  const handleView = () => {
-    if (selectedFormId) router.push(`/admin/forms/${selectedFormId}/edit`);
-    handleCloseMenu();
-  };
-
   const handleClone = () => {
-    console.log("Clone form", selectedFormId);
-    handleCloseMenu();
+    console.log("Clone form");
   };
 
   return (
@@ -85,32 +57,20 @@ const FormsTable = ({
                 {dateTimeFormatter.format(form.updatedAt)}
               </TableCell>
               <TableCell align="right" sx={{ width: "20%" }}>
-                {
-                  <IconButton onClick={(e) => handleOpenMenu(e, form.id)}>
-                    <IconDotsVertical />
-                  </IconButton>
-                }
+                <CMenu
+                  options={[
+                    {
+                      label: "Ver",
+                      href: `/admin/forms/${form.id}/edit`,
+                    },
+                    { label: "Clonar", onClick: handleClone },
+                  ]}
+                />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseMenu}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-      >
-        <MenuItem onClick={handleView}>Ver</MenuItem>
-        <MenuItem onClick={handleClone}>Clonar</MenuItem>
-      </Menu>
     </TableContainer>
   );
 };

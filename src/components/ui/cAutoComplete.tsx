@@ -20,6 +20,7 @@ type CAutocompleteProps<
   appendIconButtonSx?: IconButtonOwnProps["sx"];
   disableAppendIconButton?: boolean;
   placeholder?: string;
+  name?: string;
   onAppendIconButtonClick?: () => void;
 };
 
@@ -38,6 +39,7 @@ function CAutocomplete<
     disableAppendIconButton,
     appendIconButtonSx,
     placeholder,
+    name,
     onAppendIconButtonClick,
     ...rest
   } = props;
@@ -59,45 +61,51 @@ function CAutocomplete<
   };
 
   return (
-    <Autocomplete
-      key={!value ? "uncontrolled" : "controlled"}
-      value={value}
-      {...rest}
-      renderInput={(params) => (
-        <CTextField
-          {...params}
-          isAutocompleteInput
-          placeholder={placeholder}
-          InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {params.InputProps.endAdornment}
-                {appendIconButton && (
-                  <InputAdornment position="end">
-                    <IconButton
-                      sx={{
-                        padding: "0px 8px",
-                        color: disableAppendIconButton ? "gray" : "inherit",
-                        ...appendIconButtonSx,
-                      }}
-                      disabled={disableAppendIconButton}
-                      edge="end"
-                      onClick={handleAppendIconButtonClick}
-                    >
-                      {appendIconButton}
-                    </IconButton>
-                  </InputAdornment>
-                )}
-              </>
-            ),
-          }}
-          sx={{ ...sx, ...readOnlySx }}
-          label={label}
-        />
+    <>
+      {!!name && name.length > 0 && (
+        <input type="hidden" value={value ? String(value) : ""} />
       )}
-    />
+
+      <Autocomplete
+        key={!value ? "uncontrolled" : "controlled"}
+        value={value}
+        {...rest}
+        renderInput={(params) => (
+          <CTextField
+            {...params}
+            isAutocompleteInput
+            placeholder={placeholder}
+            InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {params.InputProps.endAdornment}
+                  {appendIconButton && (
+                    <InputAdornment position="end">
+                      <IconButton
+                        sx={{
+                          padding: "0px 8px",
+                          color: disableAppendIconButton ? "gray" : "inherit",
+                          ...appendIconButtonSx,
+                        }}
+                        disabled={disableAppendIconButton}
+                        edge="end"
+                        onClick={handleAppendIconButtonClick}
+                      >
+                        {appendIconButton}
+                      </IconButton>
+                    </InputAdornment>
+                  )}
+                </>
+              ),
+            }}
+            sx={{ ...sx, ...readOnlySx }}
+            label={label}
+          />
+        )}
+      />
+    </>
   );
 }
 

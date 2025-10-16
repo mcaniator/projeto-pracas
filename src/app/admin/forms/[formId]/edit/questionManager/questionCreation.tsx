@@ -1,16 +1,10 @@
 "use client";
 
-import LoadingIcon from "@components/LoadingIcon";
-import { Button } from "@components/button";
 import CButton from "@components/ui/cButton";
-import { Checkbox } from "@components/ui/checkbox";
 import CDialog from "@components/ui/dialog/cDialog";
-import { Input } from "@components/ui/input";
-import { RadioButton } from "@components/ui/radioButton";
-import { Select } from "@components/ui/select";
 import { useHelperCard } from "@context/helperCardContext";
 import { _questionSubmit } from "@serverActions/questionUtil";
-import { IconCheck, IconTrash, IconX } from "@tabler/icons-react";
+import { IconCheck, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import React, {
   startTransition,
   useActionState,
@@ -18,7 +12,13 @@ import React, {
   useState,
 } from "react";
 
-type CharacterType = "text" | "number";
+import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
+import CCheckboxGroup from "../../../../../../components/ui/cCheckboxGroup";
+import CNumberField from "../../../../../../components/ui/cNumberField";
+import CRadioGroup from "../../../../../../components/ui/cRadioGroup";
+import CTextField from "../../../../../../components/ui/cTextField";
+
+type CharacterType = "TEXT" | "NUMBER";
 
 const QuestionCreation = ({
   categoryId,
@@ -38,71 +38,60 @@ const QuestionCreation = ({
   fetchCategoriesAfterCreation: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const [state, formAction, isPending] = useActionState(_questionSubmit, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
     "FORM",
   );
   const [isOpen, setIsOpen] = useState(false);
+  const [reloadOnClose, setReloadOnClose] = useState(false);
   const [type, setType] = useState("");
-  const [characterType, setCharacterType] = useState<CharacterType | null>();
-  const [optionType, setOptionType] = useState("RADIO");
-  const [hasAssociatedGeometry, setHasAssociatedGeometry] =
-    useState<boolean>(false);
+  const [characterType, setCharacterType] = useState<CharacterType | null>(
+    null,
+  );
+  const [hasAssociatedGeometry, setHasAssociatedGeometry] = useState<
+    boolean | null
+  >(null);
   const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
+  const [selectionType, setSelectionType] = useState<string | null>(null);
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
-  const handleScale = (isChecked: boolean) => {
-    if (isChecked) {
-      if (!addedOptions?.some((option) => option.text === "Péssimo")) {
-        setAddedOptions((prevOptions) => [
-          ...(prevOptions || []),
+  const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
+
+  const handleQuestionTemplate = (template: string) => {
+    switch (template) {
+      case "YES_NO":
+        setAddedOptions([{ text: "Sim" }, { text: "Não" }]);
+        break;
+      case "QUALITY_SCALE":
+        setAddedOptions([
           { text: "Péssimo" },
           { text: "Ruim" },
           { text: "Bom" },
           { text: "Ótimo" },
         ]);
-      }
-    } else {
-      setAddedOptions((prevOptions) =>
-        prevOptions?.filter(
-          (option) =>
-            option.text !== "Péssimo" &&
-            option.text !== "Ruim" &&
-            option.text !== "Bom" &&
-            option.text !== "Ótimo",
-        ),
-      );
+        break;
+      default:
+        break;
     }
+    setQuestionTemplate(template);
   };
-  const handleYesNoOptions = (isChecked: boolean) => {
-    if (isChecked) {
-      if (!addedOptions?.some((option) => option.text === "Sim")) {
-        setAddedOptions((prevOptions) => [
-          ...(prevOptions || []),
-          { text: "Sim" },
-          { text: "Não" },
-        ]);
-      }
-    } else {
-      setAddedOptions((prevOptions) =>
-        prevOptions?.filter(
-          (option) => option.text !== "Sim" && option.text !== "Não",
-        ),
-      );
-    }
-  };
+
   const resetModal = () => {
     setType("");
     setCharacterType(null);
+    setSelectionType(null);
     setCurrentOption("");
-    setHasAssociatedGeometry(false);
+    setHasAssociatedGeometry(null);
     setAddedOptions(undefined);
+    setQuestionTemplate(null);
     setGeometryTypes([]);
     setPageState("FORM");
   };
   useEffect(() => {
     if (state?.statusCode === 201) {
+      setReloadOnClose(true);
       setPageState("SUCCESS");
       setHelperCard({
         show: true,
@@ -126,31 +115,15 @@ const QuestionCreation = ({
     }
   }, [state, setHelperCard]);
 
-  useEffect(() => {
-    if (state?.statusCode === 201) {
-      fetchCategoriesAfterCreation();
-    }
-  }, [state, fetchCategoriesAfterCreation]);
-  const handleGeometryTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      if (!geometryTypes.includes(e.target.value)) {
-        setGeometryTypes((prev) => [...prev, e.target.value]);
-      }
-    } else if (geometryTypes.length > 1) {
-      setGeometryTypes((prev) => prev.filter((p) => p !== e.target.value));
-    }
-  };
   const handleRemoveOption = (option: string) => {
     setAddedOptions((prev) => prev?.filter((p) => p.text !== option));
   };
 
   const handleClose = () => {
-    setPageState("FORM");
-    setType("");
-    setCharacterType(null);
-    setCurrentOption("");
-    setAddedOptions(undefined);
-    setGeometryTypes([]);
+    if (reloadOnClose) {
+      fetchCategoriesAfterCreation();
+    }
+    resetModal();
     setIsOpen(false);
     onClose();
   };
@@ -158,11 +131,21 @@ const QuestionCreation = ({
   useEffect(() => {
     setAddedOptions(undefined);
   }, [characterType, type]);
+
   useEffect(() => {
     if (!isOpen) {
       setPageState("FORM");
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isPending) {
+      setLoadingOverlay({ show: true, message: "Salvando questão..." });
+    } else {
+      setLoadingOverlay({ show: false });
+    }
+  }, [isPending, setLoadingOverlay]);
+
   return (
     <CDialog
       onClose={handleClose}
@@ -194,14 +177,11 @@ const QuestionCreation = ({
       }}
       title="Criar questão"
       confirmChildren={<>Criar</>}
-      disableConfirmButton={!type || !characterType}
+      disableConfirmButton={
+        isPending || pageState !== "FORM" || hasAssociatedGeometry === null
+      }
     >
       <div className="h-full">
-        {isPending && (
-          <div className="flex justify-center">
-            <LoadingIcon className="h-32 w-32 text-2xl" />
-          </div>
-        )}
         {!isPending && pageState === "FORM" && (
           <div className="flex w-full flex-col rounded-l">
             <h5 className="text-base font-semibold sm:text-xl">
@@ -226,324 +206,238 @@ const QuestionCreation = ({
             />
             <div className="flex flex-col gap-2">
               <div>
-                <label htmlFor="question" className="font-semibold">
-                  Título
-                </label>
-                <Input
+                <CTextField
                   className="w-full"
-                  type="text"
+                  label="Título"
                   name="name"
-                  id="question"
+                  id="name"
                   required
+                  maxCharacters={255}
                 />
               </div>
               <div>
-                <label htmlFor="notes">Observações</label>
-                <Input className="w-full" type="text" name="notes" id="notes" />
+                <CTextField
+                  className="w-full"
+                  label="Observações"
+                  name="notes"
+                  id="notes"
+                  maxCharacters={255}
+                />
               </div>
-              <div className={"flex flex-col"}>
-                <h4 className="font-semibold">Tipo de pergunta:</h4>
-                <div
-                  className={
-                    "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
-                  }
-                >
-                  <RadioButton
-                    type={"radio"}
-                    id={"text"}
-                    value={"WRITTEN"}
-                    checked={type === "WRITTEN"}
-                    name="questionType"
-                    onChange={(e) => {
-                      setType(e.target.value);
-                    }}
-                    className={"border-white"}
-                    required
-                  >
-                    Escrito
-                  </RadioButton>
-                  <RadioButton
-                    type="radio"
-                    id="numeric"
-                    value={"OPTIONS"}
-                    checked={type === "OPTIONS"}
-                    name="questionType"
-                    onChange={(e) => {
-                      setType(e.target.value);
-                    }}
-                    className={"border-white"}
-                    required
-                  >
-                    Opção
-                  </RadioButton>
-                </div>
-              </div>
-              <div className={"flex flex-col"}>
-                <h4 className="font-semibold">Possui geometria associada?</h4>
-                <div
-                  className={
-                    "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
-                  }
-                >
-                  <RadioButton
-                    type={"radio"}
-                    id={"hasGeometry"}
-                    value={"true"}
-                    name="hasAssociatedGeometry"
-                    onChange={() => {
-                      setHasAssociatedGeometry(true);
-                    }}
-                    className={"border-white"}
-                    checked={hasAssociatedGeometry}
-                    required
-                  >
-                    Sim
-                  </RadioButton>
-                  <RadioButton
-                    type="radio"
-                    id="noGeometry"
-                    value={"false"}
-                    name="hasAssociatedGeometry"
-                    onChange={() => {
-                      setHasAssociatedGeometry(false);
-                    }}
-                    className={"border-white"}
-                    checked={!hasAssociatedGeometry}
-                    required
-                  >
-                    Não
-                  </RadioButton>
-                </div>
-              </div>
-              {hasAssociatedGeometry && (
-                <div className="flex flex-col">
-                  <h4 className="font-semibold">
-                    Selecione os tipos de geometria aceitos:
-                  </h4>
-                  <div
-                    className={
-                      "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
-                    }
-                  >
-                    <Checkbox
-                      value={"POINT"}
-                      name="geometryTypes"
-                      checked={geometryTypes.includes("POINT")}
-                      onChange={(e) => handleGeometryTypeChange(e)}
-                    >
-                      Ponto
-                    </Checkbox>
-                    <Checkbox
-                      value={"POLYGON"}
-                      name="geometryTypes"
-                      checked={geometryTypes.includes("POLYGON")}
-                      onChange={(e) => handleGeometryTypeChange(e)}
-                    >
-                      Polígono
-                    </Checkbox>
-                  </div>
-                </div>
+
+              <CRadioGroup
+                label="Tipo de questão"
+                name="questionType"
+                options={[
+                  { value: "WRITTEN", label: "Escrito" },
+                  { value: "OPTIONS", label: "Seleção" },
+                ]}
+                value={type}
+                onChange={(val) => {
+                  setType(val);
+                }}
+                getOptionValue={(i) => i.value}
+                getOptionLabel={(i) => i.label}
+              />
+
+              {type.length > 0 && (
+                <CRadioGroup
+                  label="Tipo de caracteres"
+                  name="characterType"
+                  options={[
+                    { value: "TEXT", label: "Texto" },
+                    { value: "NUMBER", label: "Numérico" },
+                  ]}
+                  value={characterType}
+                  onChange={(e) => {
+                    setCharacterType(e as CharacterType);
+                  }}
+                  getOptionValue={(i) => i.value}
+                  getOptionLabel={(i) => i.label}
+                />
               )}
 
               <div className={"flex flex-col gap-2"}>
-                {type == "WRITTEN" && (
-                  <div>
-                    <div>
-                      <label htmlFor={"text"} className="font-semibold">
-                        Tipo de caracteres:
-                      </label>
-                      <div
-                        className={
-                          "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
-                        }
-                      >
-                        <RadioButton
-                          name="characterType"
-                          value={"TEXT"}
-                          onChange={() => setCharacterType("text")}
-                          checked={characterType === "text"}
-                          required
-                        >
-                          Texto
-                        </RadioButton>
-                        <RadioButton
-                          name="characterType"
-                          value={"NUMBER"}
-                          onChange={() => setCharacterType("number")}
-                          checked={characterType === "number"}
-                          required
-                        >
-                          Numérico
-                        </RadioButton>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {type == "OPTIONS" && (
+                {!!characterType && type == "OPTIONS" && (
                   <>
-                    <div>
-                      <label htmlFor={"tipoSelecao"} className="font-semibold">
-                        Tipo de seleção:
-                      </label>
-                      <Select
-                        name={"optionType"}
-                        onChange={(e) => {
-                          setOptionType(e.target.value);
-                        }}
-                        id={"tipoSelecao"}
-                      >
-                        <option value={"RADIO"}>Botões Radias</option>
-                        <option value={"CHECKBOX"}>Caixa de Checagem</option>
-                      </Select>
-                    </div>
+                    <CRadioGroup
+                      label="Tipo de seleção"
+                      name="optionType"
+                      options={[
+                        { value: "RADIO", label: "Única" },
+                        { value: "CHECKBOX", label: "Múltipla" },
+                      ]}
+                      value={selectionType}
+                      onChange={(val) => {
+                        setSelectionType(val);
+                      }}
+                      getOptionValue={(i) => i.value}
+                      getOptionLabel={(i) => i.label}
+                    />
 
-                    <div>
-                      <label htmlFor={"text"} className="font-semibold">
-                        Tipo de caracteres:
-                      </label>
-                      <div
-                        className={
-                          "flex flex-col gap-1 rounded-lg border-2 border-off-white/80 bg-gray-400/50 px-2 py-1 shadow-md"
-                        }
-                      >
-                        <RadioButton
-                          name="characterType"
-                          value={"TEXT"}
-                          onChange={() => setCharacterType("text")}
-                          checked={characterType === "text"}
-                          required
-                        >
-                          Texto
-                        </RadioButton>
-                        <RadioButton
-                          name="characterType"
-                          value={"NUMBER"}
-                          onChange={() => setCharacterType("number")}
-                          checked={characterType === "number"}
-                          required
-                        >
-                          Numérico
-                        </RadioButton>
-                      </div>
-                    </div>
-                    {characterType && (
-                      <div className={"flex flex-col"}>
-                        {characterType === "text" && (
-                          <>
-                            <Checkbox
-                              id={"escala"}
-                              variant={"default"}
-                              onChange={(e) => {
-                                handleScale(e.target.checked);
-                              }}
-                            >
-                              Escala de qualidade
-                            </Checkbox>
-                            <Checkbox
-                              id={"simNao"}
-                              variant={"default"}
-                              onChange={(e) => {
-                                handleYesNoOptions(e.target.checked);
-                              }}
-                            >
-                              Sim ou não
-                            </Checkbox>
-                          </>
-                        )}
-
-                        <label htmlFor={"opcao"} className="font-semibold">
-                          Digite as suas opções:
-                        </label>
-                        <Input
-                          className="w-full"
-                          id={"opcao"}
-                          type={characterType}
-                          value={currentOption}
+                    <div className={"flex flex-col"}>
+                      {selectionType && selectionType.length > 0 && (
+                        <CRadioGroup
+                          label="Tipo de opções"
+                          value={questionTemplate}
                           onChange={(e) => {
-                            setCurrentOption(e.target.value);
+                            handleQuestionTemplate(e);
                           }}
+                          options={
+                            (
+                              characterType === "NUMBER" ||
+                              selectionType === "CHECKBOX"
+                            ) ?
+                              [{ value: "FREE", label: "Livre" }]
+                            : [
+                                { value: "FREE", label: "Livre" },
+                                { value: "YES_NO", label: "Sim ou não" },
+                                {
+                                  value: "QUALITY_SCALE",
+                                  label: "Escala de qualidade",
+                                },
+                              ]
+                          }
+                          getOptionLabel={(i) => i.label}
+                          getOptionValue={(i) => i.value}
                         />
-                        {minumumOptionsError && (
-                          <p className="text-red-500">
-                            Adicione pelo menos uma opção!
-                          </p>
-                        )}
-                        <div className="mt-1">
-                          <Button
-                            type="button"
-                            variant={"admin"}
-                            isDisabled={currentOption == ""}
-                            onPress={() => {
-                              if (addedOptions != undefined) {
-                                if (
-                                  !addedOptions.some(
-                                    (opt) => opt.text === currentOption,
+                      )}
+
+                      {questionTemplate === "FREE" && (
+                        <>
+                          <div className="mt-1 font-semibold">
+                            Digite as opções:
+                          </div>
+                          <div className="flex w-full items-center">
+                            {characterType === "NUMBER" ?
+                              <CNumberField
+                                className="w-full"
+                                value={
+                                  currentOption.length > 0 ?
+                                    Number(currentOption)
+                                  : null
+                                }
+                                onChange={(val) => {
+                                  setCurrentOption(
+                                    val != null ? String(val) : "",
+                                  );
+                                }}
+                              />
+                            : <CTextField
+                                className="w-full"
+                                value={currentOption}
+                                onChange={(e) => {
+                                  setCurrentOption(e.target.value);
+                                }}
+                              />
+                            }
+                            <CButton
+                              sx={{ ml: "4px" }}
+                              square
+                              disabled={currentOption === ""}
+                              onClick={() => {
+                                if (addedOptions != undefined) {
+                                  if (
+                                    !addedOptions.some(
+                                      (opt) => opt.text === currentOption,
+                                    )
                                   )
-                                )
-                                  setAddedOptions([
-                                    ...addedOptions,
-                                    { text: currentOption },
-                                  ]);
-                              } else setAddedOptions([{ text: currentOption }]);
+                                    setAddedOptions([
+                                      ...addedOptions,
+                                      { text: currentOption },
+                                    ]);
+                                } else
+                                  setAddedOptions([{ text: currentOption }]);
 
-                              setCurrentOption("");
-                            }}
-                            className={"text-white transition-all"}
-                          >
-                            Adicionar
-                          </Button>
-                          <div className="font-semibold">Opções:</div>
-                          <ul className="list-inside list-disc space-y-2 pl-2">
-                            {addedOptions?.map((option) => {
-                              return (
-                                <li
-                                  key={option.text}
-                                  className="flex items-center rounded-md bg-white p-2"
+                                setCurrentOption("");
+                              }}
+                            >
+                              <IconPlus />
+                            </CButton>
+                          </div>
+                        </>
+                      )}
+
+                      {minumumOptionsError && (
+                        <p className="text-red-500">
+                          Adicione pelo menos uma opção!
+                        </p>
+                      )}
+                      <div className="mt-1">
+                        <div className="font-semibold">Opções:</div>
+                        <ul className="list-inside list-disc space-y-2">
+                          {addedOptions?.map((option) => {
+                            return (
+                              <li
+                                key={option.text}
+                                className="flex items-center rounded-md bg-white p-2 outline outline-1 outline-black"
+                              >
+                                {option.text}
+
+                                <CButton
+                                  className="ml-auto"
+                                  square
+                                  color="error"
+                                  variant={"text"}
+                                  disabled={questionTemplate !== "FREE"}
+                                  onClick={() =>
+                                    handleRemoveOption(option.text)
+                                  }
                                 >
-                                  {option.text}
-                                  <Button
-                                    className="ml-auto px-2"
-                                    variant={"destructive"}
-                                    onPress={() =>
-                                      handleRemoveOption(option.text)
-                                    }
-                                  >
-                                    <IconTrash />
-                                  </Button>
-                                  <input
-                                    type="hidden"
-                                    name="options"
-                                    value={option.text}
-                                  />
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
+                                  <IconTrash />
+                                </CButton>
+                                <input
+                                  type="hidden"
+                                  name="options"
+                                  value={option.text}
+                                />
+                              </li>
+                            );
+                          })}
+                        </ul>
                       </div>
-                    )}
-
-                    {optionType == "CHECKBOX" && (
-                      <div>
-                        <label
-                          htmlFor={"optionLimit"}
-                          className="font-semibold"
-                        >
-                          Máximo de seleções:
-                        </label>
-                        <Input
-                          className="w-full"
-                          type="number"
-                          name="maximumSelection"
-                          id={"optionLimit"}
-                          required
-                        />
-                      </div>
-                    )}
+                    </div>
                   </>
                 )}
               </div>
+
+              {(type === "WRITTEN" ||
+                (questionTemplate && questionTemplate.length > 0)) &&
+                characterType &&
+                characterType.length > 0 && (
+                  <CRadioGroup
+                    label="Possui geometria associada?"
+                    name="hasAssociatedGeometry"
+                    id="hasAssociatedGeometry"
+                    options={[
+                      { value: true, label: "Sim" },
+                      { value: false, label: "Não" },
+                    ]}
+                    value={hasAssociatedGeometry}
+                    onChange={(val) => {
+                      setHasAssociatedGeometry(val === "true");
+                    }}
+                    getOptionValue={(i) => i.value}
+                    getOptionLabel={(i) => i.label}
+                  />
+                )}
+
+              {hasAssociatedGeometry && (
+                <CCheckboxGroup
+                  label="Tipos de geomtria aceitos"
+                  name="geometryTypes"
+                  value={geometryTypes}
+                  options={[
+                    { value: "POINT", label: "Pontos" },
+                    { value: "POLYGON", label: "Polígonos" },
+                  ]}
+                  getOptionLabel={(i) => i.label}
+                  getOptionValue={(i) => i.value}
+                  onChange={(val) => {
+                    setGeometryTypes(val);
+                  }}
+                />
+              )}
             </div>
           </div>
         )}

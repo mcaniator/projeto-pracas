@@ -34,9 +34,9 @@ function CToggleButtonGroup<T>({
   };
 
   const toggleButtonSx = {
-    bgcolor: "grey.100",
     color: "black",
-    border: "none",
+    borderTop: "none",
+    borderBottom: "none",
     "&.Mui-selected": {
       bgcolor: "primary.main",
       color: "white",
@@ -47,8 +47,6 @@ function CToggleButtonGroup<T>({
     "&:hover": {
       bgcolor: "grey.300",
     },
-
-    boxShadow: "inset 0px 0px 1px rgba(0,0,0,0.50)",
 
     padding: { xs: "4px", sm: "8px" },
   };

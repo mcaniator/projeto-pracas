@@ -18,6 +18,7 @@ function CButton(props: CButtonProps) {
     disableMinWidth,
     enableTopLeftChip,
     topLeftChipLabel,
+    className,
     dense,
     square,
     color,
@@ -31,6 +32,7 @@ function CButton(props: CButtonProps) {
   return (
     <Box
       position="relative"
+      className={className}
       sx={{
         display: "flex",
         alignItems: "center",

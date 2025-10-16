@@ -23,6 +23,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       value,
       disabled,
       readOnly,
+      label,
       sx,
       onRequiredCheck,
       onChange,
@@ -127,6 +128,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     return (
       <TextField
         ref={ref}
+        label={label}
         inputRef={inputRef}
         variant={variant}
         margin={margin}
@@ -139,7 +141,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         helperText={(required && !isValid) || error ? errorMessage : helperText}
         onChange={handleChange}
         onBlur={handleBlur}
-        sx={{ mb: 0, mt: 0, ...sx, ...readOnlySx }}
+        sx={{ mb: 0, mt: label ? "8px" : "0px", ...sx, ...readOnlySx }}
         slotProps={{
           input: {
             endAdornment: !disabled && !readOnly && (
