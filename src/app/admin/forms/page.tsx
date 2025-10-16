@@ -1,17 +1,5 @@
 import PermissionGuard from "@components/auth/permissionGuard";
-import { dateTimeFormatter } from "@formatters/dateFormatters";
-import {
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
 import { fetchFormsLatest } from "@queries/form";
-import { IconListCheck } from "@tabler/icons-react";
-import Link from "next/link";
 
 import FormsClient from "./client";
 import { FormCreationModal } from "./formCreationModal";
@@ -29,7 +17,7 @@ const AdminRoot = async () => {
       <h3 className="text-4xl font-semibold text-black">Formulários</h3>
       <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
         <div>
-          <FormCreationModal forms={forms} />
+          <FormCreationModal />
         </div>
       </PermissionGuard>
       <div>

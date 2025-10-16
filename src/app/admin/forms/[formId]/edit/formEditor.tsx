@@ -129,6 +129,7 @@ const SortableCategory = ({
     isDragging,
   } = useSortable({
     id: `category-${category.categoryId}`,
+    disabled: isFinalized,
   });
 
   const style = {
@@ -208,17 +209,20 @@ const SortableCategory = ({
           className="max-w-full"
         >
           <div className="flex max-w-[100vw] flex-wrap items-center gap-1">
-            <div
-              {...listeners}
-              {...attributes}
-              style={{
-                cursor: isDragging ? "grabbing" : "grab",
-                touchAction: "none",
-                padding: "0px 8px",
-              }}
-            >
-              <IconGripVertical />
-            </div>
+            {!isFinalized && (
+              <div
+                {...listeners}
+                {...attributes}
+                style={{
+                  cursor: isDragging ? "grabbing" : "grab",
+                  touchAction: "none",
+                  padding: "0px 8px",
+                }}
+              >
+                <IconGripVertical />
+              </div>
+            )}
+
             <strong>{category.name}</strong>
 
             <CNotesChip notes={category.notes} />
@@ -312,6 +316,7 @@ const SortableFormItem = ({
       categoryId: categoryId,
       subcategoryId: subcategoryId,
     }),
+    disabled: isFinalized,
   });
 
   const style = {
@@ -504,17 +509,20 @@ const SortableFormItem = ({
             }}
           >
             <div className="flex max-w-[100vw] flex-wrap items-center gap-1">
-              <div
-                {...listeners}
-                {...attributes}
-                style={{
-                  cursor: isDragging ? "grabbing" : "grab",
-                  touchAction: "none",
-                  padding: "0px 8px",
-                }}
-              >
-                <IconGripVertical />
-              </div>
+              {!isFinalized && (
+                <div
+                  {...listeners}
+                  {...attributes}
+                  style={{
+                    cursor: isDragging ? "grabbing" : "grab",
+                    touchAction: "none",
+                    padding: "0px 8px",
+                  }}
+                >
+                  <IconGripVertical />
+                </div>
+              )}
+
               <CNotesChip notes={formItem.notes} />
               <strong>{formItem.name}</strong>
               <Chip
@@ -574,17 +582,20 @@ const SortableFormItem = ({
         }
       >
         <div className="flex w-full items-center justify-between gap-1 sm:w-fit sm:justify-start">
-          <div
-            {...listeners}
-            {...attributes}
-            style={{
-              cursor: isDragging ? "grabbing" : "grab",
-              touchAction: "none",
-              padding: "0px 8px",
-            }}
-          >
-            <IconGripVertical />
-          </div>
+          {!isFinalized && (
+            <div
+              {...listeners}
+              {...attributes}
+              style={{
+                cursor: isDragging ? "grabbing" : "grab",
+                touchAction: "none",
+                padding: "0px 8px",
+              }}
+            >
+              <IconGripVertical />
+            </div>
+          )}
+
           <CQuestionTypeChip
             questionType={formItem.questionType}
             optionType={formItem.optionType}

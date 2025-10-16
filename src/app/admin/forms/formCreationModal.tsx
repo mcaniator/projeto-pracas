@@ -4,12 +4,9 @@ import { Button } from "@/components/button";
 import CTextField from "@/components/ui/cTextField";
 import LoadingIcon from "@components/LoadingIcon";
 import { useHelperCard } from "@components/context/helperCardContext";
-import CAutocomplete from "@components/ui/cAutoComplete";
-import CSwitch from "@components/ui/cSwtich";
-import { dateTimeWithoutSecondsFormmater } from "@formatters/dateFormatters";
 import { _formSubmit } from "@serverActions/formUtil";
 import { IconCheck, IconCirclePlus, IconX } from "@tabler/icons-react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -17,17 +14,7 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-const FormCreationModal = ({
-  forms,
-}: {
-  forms: { id: number; name: string; updatedAt: Date }[];
-}) => {
-  const formattedForms = useRef(
-    forms.map((f) => ({
-      id: f.id,
-      name: `${f.name}, ${dateTimeWithoutSecondsFormmater.format(f.updatedAt)}`,
-    })),
-  );
+const FormCreationModal = () => {
   const { setHelperCard } = useHelperCard();
   const [state, formAction, isPending] = useActionState(_formSubmit, null);
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
@@ -35,7 +22,6 @@ const FormCreationModal = ({
   );
   const [isOpen, setIsOpen] = useState(false);
   const [enableSave, setEnableSave] = useState(false);
-  const [enableClone, setEnableClone] = useState(false);
   useEffect(() => {
     if (state?.statusCode === 201) {
       setHelperCard({
@@ -135,32 +121,7 @@ const FormCreationModal = ({
                           }}
                           className={`${state?.statusCode === 409 ? "w-full outline outline-2 outline-red-500" : "w-full"}`}
                         />
-                        <CSwitch
-                          label="Clonar formulário"
-                          checked={enableClone}
-                          onChange={(e) => {
-                            setEnableClone(e.target.checked);
-                          }}
-                        />
-                        {enableClone && (
-                          <CAutocomplete
-                            options={formattedForms.current}
-                            label="Formulário"
-                            className="w-full"
-                            mapValue
-                            optionLabel="name"
-                            optionValue="id"
-                            name="cloneFormId"
-                            id="cloneFormId"
-                            errorMessage="Obrigatório"
-                            disablePortal
-                            required
-                            validateOnMount
-                            onRequiredCheck={(e) => {
-                              setEnableSave(e);
-                            }}
-                          />
-                        )}
+
                         {state?.statusCode === 409 && (
                           <p className="text-red-500">
                             Este formulário já existe!
