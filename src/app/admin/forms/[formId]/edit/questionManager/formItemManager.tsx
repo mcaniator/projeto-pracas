@@ -158,7 +158,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
                 subcategoryId: -1,
-                verifySubcategoryNullness: false,
+                verifySubcategoryNullness: true,
               });
             }}
           />
@@ -199,7 +199,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
                 subcategoryId: val.id,
-                verifySubcategoryNullness: false,
+                verifySubcategoryNullness: true,
               });
             }}
           />

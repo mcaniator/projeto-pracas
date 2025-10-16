@@ -140,6 +140,15 @@ const questionSchema = z.object({
   subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
+const questionEditDataSchema = z.object({
+  questionId: z.coerce.number(),
+  questionName: z.string().trim().min(1).max(255),
+  notes: z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return null;
+    return val;
+  }, z.string().trim().max(255).nullable()),
+});
+
 const questionsOnFormsSchema = z.object({
   formId: z.coerce.number().int().finite().nonnegative(),
   questionId: z.coerce.number().int().finite().nonnegative(),
@@ -202,6 +211,7 @@ export {
   optionSchema,
   optionsQuestionSchema,
   questionSchema,
+  questionEditDataSchema,
   // textQuestionSchema,
 };
 export type { formType, questionType };

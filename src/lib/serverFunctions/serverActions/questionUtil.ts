@@ -1,11 +1,18 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { optionSchema, questionSchema } from "@/lib/zodValidators";
+import {
+  optionSchema,
+  questionEditDataSchema,
+  questionSchema,
+} from "@/lib/zodValidators";
 import { FormQuestion } from "@customTypes/forms/formCreation";
 import { Question } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { ZodError, z } from "zod";
+
+import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -185,6 +192,57 @@ const _questionSubmit = async (
   return { statusCode: 400, questionName: null };
 };
 
+const _questionUpdate = async (
+  prevState: { responseInfo: { statusCode: number } },
+  formData: FormData,
+): Promise<{ responseInfo: APIResponseInfo }> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para editar questões!",
+      },
+    };
+  }
+
+  try {
+    const parse = questionEditDataSchema.parse({
+      questionId: formData.get("questionId"),
+      questionName: formData.get("questionName"),
+      notes: formData.get("notes"),
+    });
+    const question = await prisma.question.update({
+      where: {
+        id: parse.questionId,
+      },
+      data: {
+        name: parse.questionName,
+        notes: parse.notes,
+      },
+      select: {
+        name: true,
+      },
+    });
+    revalidateTag("question");
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: `Questão \"${question.name}\" editada!`,
+        showSuccessCard: true,
+      },
+    };
+  } catch (e) {
+    if (e instanceof ZodError) {
+      return { responseInfo: { statusCode: 400, message: "Dados inválidos!" } };
+    }
+    return {
+      responseInfo: { statusCode: 500, message: "Erro ao editar questão!" },
+    };
+  }
+};
+
 const _deleteQuestion = async (
   prevState: {
     statusCode: number;
@@ -314,6 +372,11 @@ const _searchQuestionsByStatement = async (statement: string) => {
   }
 };
 
-export { _questionSubmit, _deleteQuestion, _searchQuestionsByStatement };
+export {
+  _questionSubmit,
+  _deleteQuestion,
+  _questionUpdate,
+  _searchQuestionsByStatement,
+};
 
 export type { QuestionSearchedByStatement, QuestionWithCategories };

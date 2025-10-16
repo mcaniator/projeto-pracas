@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import CategoriesListV2 from "./categoriesList";
 import FormItemManager from "./formItemManager";
+import QuestionEditDialog from "./questionEditDialog";
 import SearchQuestionByCategoryAndSubcategory from "./searchQuestionByCategoryAndSubcategory";
 
 const QuestionFormV2 = ({
@@ -59,6 +60,14 @@ const QuestionFormV2 = ({
     subcategoryId: -1,
     verifySubcategoryNullness: false,
   });
+
+  const [questionToEdit, setQuestionToEdit] = useState<{
+    questionId: number;
+    questionName: string;
+    notes: string | null;
+    categoryName: string;
+    subcategoryName: string | null;
+  } | null>(null);
 
   const searchByName = useCallback(() => {
     if (!searchedName || searchedName.length === 0) {
@@ -146,15 +155,7 @@ const QuestionFormV2 = ({
     setHelperCard,
   ]);
 
-  useEffect(() => {
-    searchByCategoryAndSubcateogory();
-  }, [
-    selectedCategoryAndSubcategoryId,
-    setHelperCard,
-    searchByCategoryAndSubcateogory,
-  ]);
-
-  useEffect(() => {
+  const searchQuestions = useCallback(() => {
     setCategoriesList([]);
     if (currentSearchMethod === 1) {
       setShowAllQuestions(false);
@@ -172,6 +173,36 @@ const QuestionFormV2 = ({
     }
   }, [currentSearchMethod]);
 
+  const handleOpenQuestionEdit = ({
+    questionId,
+    questionName,
+    notes,
+    categoryName,
+    subcategoryName,
+  }: {
+    questionId: number;
+    questionName: string;
+    notes: string | null;
+    categoryName: string;
+    subcategoryName: string | null;
+  }) => {
+    setQuestionToEdit({
+      questionId,
+      questionName,
+      notes,
+      categoryName,
+      subcategoryName,
+    });
+  };
+
+  useEffect(() => {
+    searchByCategoryAndSubcateogory();
+  }, [
+    selectedCategoryAndSubcategoryId,
+    setHelperCard,
+    searchByCategoryAndSubcateogory,
+  ]);
+
   useEffect(() => {
     if (categories.length > 0)
       setSelectedCategoryAndSubcategoryId({
@@ -180,6 +211,10 @@ const QuestionFormV2 = ({
         verifySubcategoryNullness: false,
       });
   }, [categories]);
+
+  useEffect(() => {
+    searchQuestions();
+  }, [searchQuestions]);
 
   const subcategoriesOptions =
     categories.find(
@@ -254,6 +289,9 @@ const QuestionFormV2 = ({
             formQuestionsIds={formQuestionsIds}
             showAllQuestions={showAllQuestions}
             addQuestion={addQuestion}
+            editQuestion={(val) => {
+              handleOpenQuestionEdit(val);
+            }}
           />
         </div>
       : <div className="flex flex-col justify-center">
@@ -261,6 +299,20 @@ const QuestionFormV2 = ({
           <IconX className="h-32 w-32 text-2xl" />
         </div>
       }
+      <QuestionEditDialog
+        open={!!questionToEdit}
+        questionId={questionToEdit?.questionId ?? -1}
+        questionName={questionToEdit?.questionName ?? ""}
+        notes={questionToEdit?.notes ?? null}
+        categoryName={questionToEdit?.categoryName ?? ""}
+        subcategoryName={questionToEdit?.subcategoryName ?? ""}
+        onClose={() => {
+          setQuestionToEdit(null);
+        }}
+        reloadCategories={() => {
+          searchQuestions();
+        }}
+      />
     </div>
   );
 };

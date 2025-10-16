@@ -19,19 +19,26 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { IconCirclePlus, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconPencil } from "@tabler/icons-react";
 
 const CategoriesListV2 = ({
   categories,
   showAllQuestions,
   formQuestionsIds,
   addQuestion,
+  editQuestion,
 }: {
   categories: CategoryForQuestionPicker[];
   formQuestionsIds: number[];
   showAllQuestions: boolean;
-
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+  editQuestion?: (question: {
+    questionId: number;
+    questionName: string;
+    categoryName: string;
+    notes: string | null;
+    subcategoryName: string | null;
+  }) => void;
 }) => {
   const searchHasRemainingQuestions =
     showAllQuestions ||
@@ -94,7 +101,9 @@ const CategoriesListV2 = ({
                       formQuestionsIds={formQuestionsIds}
                       categoryId={cat.id}
                       showAllQuestions={showAllQuestions}
+                      categoryName={cat.name}
                       addQuestion={addQuestion}
+                      editQuestion={editQuestion}
                     />
                   )}
                   {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
@@ -105,6 +114,9 @@ const CategoriesListV2 = ({
                       categoryId={cat.id}
                       showAllQuestions={showAllQuestions}
                       addQuestion={addQuestion}
+                      categoryName={cat.name}
+                      subcategoryName={null}
+                      editQuestion={editQuestion}
                     />
                   )}
                 </div>
@@ -122,13 +134,23 @@ const SubcategoriesListV2 = ({
   formQuestionsIds,
   categoryId,
   showAllQuestions,
+  categoryName,
+  editQuestion,
   addQuestion,
 }: {
   subcategories: SubCategoryForQuestionPicker[];
   formQuestionsIds: number[];
   categoryId: number;
   showAllQuestions: boolean;
+  categoryName: string;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+  editQuestion?: (question: {
+    questionId: number;
+    questionName: string;
+    categoryName: string;
+    notes: string | null;
+    subcategoryName: string | null;
+  }) => void;
 }) => {
   return (
     <div className="p-1">
@@ -161,7 +183,10 @@ const SubcategoriesListV2 = ({
                   categoryId={categoryId}
                   subcategoryId={sub.id}
                   showAllQuestions={showAllQuestions}
+                  categoryName={categoryName}
+                  subcategoryName={sub.name}
                   addQuestion={addQuestion}
+                  editQuestion={editQuestion}
                 />
               </CAccordionDetails>
             </CAccordion>
@@ -176,8 +201,11 @@ const QuestionListV2 = ({
   questions,
   formQuestionsIds,
   categoryId,
+  categoryName,
+  subcategoryName,
   subcategoryId,
   showAllQuestions,
+  editQuestion,
   addQuestion,
 }: {
   questions: QuestionForQuestionPicker[];
@@ -185,7 +213,16 @@ const QuestionListV2 = ({
   categoryId: number;
   subcategoryId?: number | null;
   showAllQuestions: boolean;
+  categoryName: string;
+  subcategoryName: string | null;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
+  editQuestion?: (question: {
+    questionId: number;
+    questionName: string;
+    categoryName: string;
+    notes: string | null;
+    subcategoryName: string | null;
+  }) => void;
 }) => {
   const filteredQuestions =
     showAllQuestions ? questions : (
@@ -214,6 +251,9 @@ const QuestionListV2 = ({
           categoryId={categoryId}
           subcategoryId={subcategoryId}
           showAllQuestions={showAllQuestions}
+          categoryName={categoryName}
+          subcategoryName={subcategoryName}
+          editQuestion={editQuestion}
         />
       ))}
     </div>
@@ -233,6 +273,9 @@ const QuestionComponentV2 = ({
   categoryId,
   subcategoryId,
   showAllQuestions,
+  categoryName,
+  subcategoryName,
+  editQuestion,
 }: {
   questionId: number;
   characterType: QuestionResponseCharacterTypes;
@@ -244,8 +287,17 @@ const QuestionComponentV2 = ({
   geometryTypes: QuestionGeometryTypes[];
   options: { text: string }[];
   categoryId: number;
+  categoryName: string;
   subcategoryId?: number | null;
+  subcategoryName: string | null;
   showAllQuestions: boolean;
+  editQuestion?: (question: {
+    questionId: number;
+    questionName: string;
+    categoryName: string;
+    notes: string | null;
+    subcategoryName: string | null;
+  }) => void;
 }) => {
   return (
     <div
@@ -265,8 +317,19 @@ const QuestionComponentV2 = ({
       </div>
       <div className="max-w-full break-all">{name}</div>
       {showAllQuestions ?
-        <CButton variant="text" color="error">
-          <IconTrash />
+        <CButton
+          variant="text"
+          onClick={() => {
+            editQuestion?.({
+              questionId: questionId,
+              questionName: name,
+              categoryName: categoryName,
+              subcategoryName: subcategoryName,
+              notes: notes,
+            });
+          }}
+        >
+          <IconPencil />
         </CButton>
       : <CButton
           type="submit"
