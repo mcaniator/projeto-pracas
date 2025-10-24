@@ -5,7 +5,7 @@ const Evaluation = async (props: {
   params: Promise<{ locationId: string }>;
 }) => {
   const params = await props.params;
-  const formsResponse = await fetchFormsLatest();
+  const formsResponse = await fetchFormsLatest({ finalizedOnly: true });
   const forms = formsResponse.forms;
   return (
     <div className={"flex max-h-full min-h-0 flex-col gap-5"}>
@@ -20,7 +20,9 @@ const Evaluation = async (props: {
                 key={form.id}
                 className={`${index % 2 === 0 ? "bg-gray-400/70" : "bg-gray-400/50"} flex items-center justify-between p-2 hover:bg-transparent/10 hover:underline`}
                 href={`/admin/parks/${Number(params.locationId)}/evaluation/${form.id}`}
-              ></Link>
+              >
+                {form.name}
+              </Link>
             ))}
           </div>
         : <div className="text-redwood">Ainda não há formulários válidos!</div>}

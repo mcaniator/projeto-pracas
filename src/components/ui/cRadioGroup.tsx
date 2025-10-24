@@ -16,9 +16,10 @@ type CRadioGroupProps<T> = Omit<RadioGroupProps, "value" | "onChange"> & {
   value?: string | number | boolean | null;
   clearable?: boolean;
   disableBorder?: boolean;
+  isNumber?: boolean;
   getOptionLabel: (option: T) => string;
   getOptionValue: (option: T) => string | number | boolean;
-  onChange?: (value: string) => void;
+  onChange?: (value: string | number | boolean) => void;
 };
 
 function CRadioGroup<T>({
@@ -27,6 +28,7 @@ function CRadioGroup<T>({
   label,
   clearable,
   disableBorder,
+  isNumber,
   onChange,
   getOptionLabel,
   getOptionValue,
@@ -49,7 +51,9 @@ function CRadioGroup<T>({
     val: string,
   ) => {
     if (onChange) {
-      onChange(val);
+      onChange(isNumber ? Number(val) : val);
+    } else {
+      setLocalValue(isNumber ? Number(val) : val);
     }
   };
 
@@ -86,6 +90,8 @@ function CRadioGroup<T>({
           px: 1,
           borderBottomLeftRadius: "16px",
           borderBottomRightRadius: "16px",
+          borderTopLeftRadius: label ? "0px" : "16px",
+          borderTopRightRadius: label ? "0px" : "16px",
           ...borderSx,
         }}
         {...props}
@@ -102,6 +108,11 @@ function CRadioGroup<T>({
             />
           );
         })}
+        {!label && clearable && localValue && (
+          <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
+            <IconX />
+          </IconButton>
+        )}
       </RadioGroup>
     </FormControl>
   );

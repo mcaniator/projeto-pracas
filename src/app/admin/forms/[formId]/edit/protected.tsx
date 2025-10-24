@@ -4,7 +4,7 @@ import ClientV2 from "./clientV2";
 
 const Edit = async (props: { params: Promise<{ formId: string }> }) => {
   const params = await props.params;
-  const response = await getFormTree(Number(params.formId));
+  const response = await getFormTree({ formId: Number(params.formId) });
   const calculations = await getCalculationByFormId(Number(params.formId));
   if (response.formTree)
     return (

@@ -9,9 +9,14 @@ import {
 import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
-const fetchFormsLatest = async () => {
+const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
+  const whereStatement: Record<string, boolean | number | string> = {};
+  if (params?.finalizedOnly) {
+    whereStatement.finalized = true;
+  }
   try {
     const forms = await prisma.form.findMany({
+      where: whereStatement,
       select: {
         id: true,
         name: true,
@@ -30,10 +35,10 @@ const fetchFormsLatest = async () => {
   }
 };
 
-const getFormTree = async (formId: number) => {
+const getFormTree = async (params: { formId: number }) => {
   try {
     const form = await prisma.form.findUnique({
-      where: { id: formId },
+      where: { id: params.formId },
       select: {
         id: true,
         name: true,

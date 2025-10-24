@@ -86,6 +86,8 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
           px: 1,
           borderBottomLeftRadius: "16px",
           borderBottomRightRadius: "16px",
+          borderTopLeftRadius: label ? "0px" : "16px",
+          borderTopRightRadius: label ? "0px" : "16px",
           ...borderSx,
         }}
       >
@@ -107,6 +109,11 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
             />
           );
         })}
+        {!label && clearable && localValue && (
+          <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
+            <IconX />
+          </IconButton>
+        )}
       </FormGroup>
     </FormControl>
   );

@@ -101,9 +101,9 @@ const _addResponses = async (
 
     const responsesTextNumericSQLValues = responsesTextNumeric.map(
       (r) =>
-        Prisma.sql`(${Prisma.raw(`'${r.type}'::question_types`)}, ${r.response ? r.response[0] : null}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
+        Prisma.sql`(${r.response ? r.response[0] : null}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
     );
-    const responsesTextNumericQuery = Prisma.sql`INSERT INTO "response" ("type", "response", "user_id", "question_id", "assessment_id", "updated_at")
+    const responsesTextNumericQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "assessment_id", "updated_at")
     VALUES ${Prisma.join(responsesTextNumericSQLValues, `,`)}
     ON CONFLICT ("assessment_id", "question_id")
     DO UPDATE SET "response" = EXCLUDED."response"`;

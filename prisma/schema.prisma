@@ -300,8 +300,7 @@ model Calculation {
 }
 
 model Response {
-  id   Int           @id @default(autoincrement())
-  type QuestionTypes
+  id Int @id @default(autoincrement())
 
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
