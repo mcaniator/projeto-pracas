@@ -1,4 +1,4 @@
-import { Divider } from "@mui/material";
+import { Tooltip } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup, {
   ToggleButtonGroupProps,
@@ -14,6 +14,7 @@ type CToggleButtonGroupProps<T> = Omit<
   mapValues?: boolean;
   getLabel?: (option: T) => React.ReactNode;
   getValue?: (option: T) => string | number;
+  getTooltip?: (option: T) => string;
   onChange?: (event: React.MouseEvent<HTMLElement>, option: T) => void;
 };
 
@@ -23,6 +24,7 @@ function CToggleButtonGroup<T>({
   getLabel,
   getValue,
   onChange,
+  getTooltip,
   sx,
   ...rest
 }: CToggleButtonGroupProps<T>) {
@@ -64,14 +66,20 @@ function CToggleButtonGroup<T>({
       >
         {options.map((option, index) => (
           <>
-            <ToggleButton
-              key={index}
-              value={String(option)}
-              sx={toggleButtonSx}
-            >
-              {String(option)}
-            </ToggleButton>
-            <Divider orientation="vertical" />
+            {getTooltip ?
+              <Tooltip key={index} title={getTooltip(option)}>
+                <ToggleButton value={String(option)} sx={toggleButtonSx}>
+                  {String(option)}
+                </ToggleButton>
+              </Tooltip>
+            : <ToggleButton
+                key={index}
+                value={String(option)}
+                sx={toggleButtonSx}
+              >
+                {String(option)}
+              </ToggleButton>
+            }
           </>
         ))}
       </ToggleButtonGroup>
@@ -92,15 +100,25 @@ function CToggleButtonGroup<T>({
           if (onChange && selected) onChange(e, selected);
         }}
       >
-        {options.map((option) => (
-          <ToggleButton
-            key={String(getValue(option))}
-            value={getValue(option)}
-            sx={toggleButtonSx}
-          >
-            {getLabel(option)}
-          </ToggleButton>
-        ))}
+        {options.map((option, index) =>
+          getTooltip ?
+            <Tooltip key={index} title={getTooltip(option)} enterTouchDelay={0}>
+              <ToggleButton
+                key={String(getValue(option))}
+                value={getValue(option)}
+                sx={toggleButtonSx}
+              >
+                {getLabel(option)}
+              </ToggleButton>
+            </Tooltip>
+          : <ToggleButton
+              key={index}
+              value={getValue(option)}
+              sx={toggleButtonSx}
+            >
+              {getLabel(option)}
+            </ToggleButton>,
+        )}
       </ToggleButtonGroup>
     );
   }

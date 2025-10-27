@@ -26,6 +26,7 @@ export type AssessmentQuestionItem = QuestionItem & {
       text: string;
     };
   };
+  calculationExpression?: string;
 };
 
 export type AssessmentSubcategoryItem = {
@@ -284,6 +285,12 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           select: {
             id: true,
             name: true,
+            calculations: {
+              select: {
+                expression: true,
+                targetQuestionId: true,
+              },
+            },
             formItems: {
               orderBy: { position: "asc" },
               include: {
@@ -348,8 +355,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
 
     const categories: AssessmentCategoryItem[] = [];
 
-    console.log(assessment.form);
-
     const sortedFormItems = form.formItems.sort((a, b) => {
       const rankDiff =
         FormItemUtils.getItemRankForSorting(a) -
@@ -358,6 +363,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
 
       return a.position - b.position;
     });
+
+    let totalQuestions = 0;
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -414,6 +421,11 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         if (!dbQuestion) {
           throw new Error("Question form item without question data");
         }
+        totalQuestions++;
+        const relatedCalculation = form.calculations.find(
+          (calc) => calc.targetQuestionId === item.questionId,
+        );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -425,6 +437,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           optionType: dbQuestion.optionType,
           options: dbQuestion.options,
           geometryTypes: dbQuestion.geometryTypes,
+          calculationExpression: relatedCalculation?.expression,
         };
         const category = categories.find(
           (c) => c.categoryId === dbQuestion.categoryId,
@@ -467,6 +480,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       assessmentTree: {
         id: assessment.id,
         formName: assessment.form.name,
+        totalQuestions: totalQuestions,
         categories: categories,
       },
     };

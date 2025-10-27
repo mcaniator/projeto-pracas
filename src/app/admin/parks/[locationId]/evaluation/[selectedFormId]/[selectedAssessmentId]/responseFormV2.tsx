@@ -1,11 +1,14 @@
 "use client";
 
 import { Box, Button, Typography } from "@mui/material";
+import { IconMap } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
 import CAccordion from "../../../../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../../../../components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "../../../../../../../components/ui/accordion/CAccordionSummary";
+import CButton from "../../../../../../../components/ui/cButton";
 import CCheckboxGroup from "../../../../../../../components/ui/cCheckboxGroup";
 import CNumberField from "../../../../../../../components/ui/cNumberField";
 import CRadioGroup from "../../../../../../../components/ui/cRadioGroup";
@@ -15,23 +18,38 @@ import {
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "../../../../../../../lib/serverFunctions/queries/assessment";
+import { ResponseGeometry } from "../../../../../../../lib/types/assessments/geometry";
+import { Calculation } from "../../../../../../../lib/utils/calculationUtils";
 import { FormItemUtils } from "../../../../../../../lib/utils/formTreeUtils";
+import MapDialog from "./MapDialog";
 
 type FormValues = {
   [key: string]: string | number | string[] | null;
 };
+
+type ResponseFormGeometry = {
+  questionId: number;
+  geometries: ResponseGeometry[];
+};
+
 const ResponseFormV2 = ({
   assessmentTree,
 }: {
   assessmentTree: {
     id: number;
     formName: string;
+    totalQuestions: number;
     categories: AssessmentCategoryItem[];
   };
 }) => {
   const { control, handleSubmit } = useForm<FormValues>({
     mode: "onChange",
   });
+  const [numericResponses, setNumericResponses] = useState(
+    new Map<number, number>(),
+  );
+
+  const [geometries, setGeometries] = useState<ResponseFormGeometry[]>([]);
 
   const allValues = useWatch({ control });
 
@@ -39,11 +57,44 @@ const ResponseFormV2 = ({
     (v) => v != null && v !== "" && (!(v instanceof Array) || v.length > 0),
   ).length;
 
-  const totalQuestions = 10;
+  const totalQuestions = assessmentTree.totalQuestions;
+
+  const handleQuestionGeometryChange = ({
+    questionId,
+    geometries,
+  }: {
+    questionId: number;
+    geometries: ResponseGeometry[];
+  }) => {
+    setGeometries((prev) => {
+      if (prev.some((p) => p.questionId === questionId)) {
+        return prev.map((p) => {
+          if (p.questionId === questionId) {
+            return { questionId: questionId, geometries: geometries };
+          } else {
+            return p;
+          }
+        });
+      } else {
+        prev.push({ questionId: questionId, geometries: geometries });
+        return [...prev];
+      }
+    });
+  };
 
   const onSubmit = (data: FormValues) => {
     console.log(data);
   };
+
+  useEffect(() => {
+    const numericResponses = new Map<number, number>();
+    Object.entries(allValues).forEach(([key, val]) => {
+      if (typeof val === "number") {
+        numericResponses.set(Number(key), val);
+      }
+    });
+    setNumericResponses(numericResponses);
+  }, [allValues]);
 
   return (
     <form
@@ -53,7 +104,14 @@ const ResponseFormV2 = ({
       className="flex w-full flex-col gap-4"
     >
       {assessmentTree.categories.map((cat, index) => (
-        <Category key={index} category={cat} control={control} />
+        <Category
+          key={index}
+          category={cat}
+          numericResponses={numericResponses}
+          geometries={geometries}
+          handleQuestionGeometryChange={handleQuestionGeometryChange}
+          control={control}
+        />
       ))}
 
       <Typography mt={2} className="text-black">
@@ -61,7 +119,7 @@ const ResponseFormV2 = ({
       </Typography>
 
       <Button type="submit" variant="contained">
-        Enviar
+        Salvar
       </Button>
     </form>
   );
@@ -69,9 +127,15 @@ const ResponseFormV2 = ({
 
 const Category = ({
   category,
+  numericResponses,
+  geometries,
+  handleQuestionGeometryChange,
   control,
 }: {
   category: AssessmentCategoryItem;
+  numericResponses: Map<number, number>;
+  geometries: ResponseFormGeometry[];
+  handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
   return (
@@ -87,12 +151,22 @@ const Category = ({
                 <Subcategory
                   key={index}
                   subcategory={child}
+                  numericResponses={numericResponses}
+                  geometries={geometries}
+                  handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
               );
             } else if (FormItemUtils.isQuestionType(child)) {
               return (
-                <Question key={index} question={child} control={control} />
+                <Question
+                  key={index}
+                  question={child}
+                  numericResponses={numericResponses}
+                  geometries={geometries}
+                  handleQuestionGeometryChange={handleQuestionGeometryChange}
+                  control={control}
+                />
               );
             }
           })}
@@ -104,9 +178,15 @@ const Category = ({
 
 const Subcategory = ({
   subcategory,
+  numericResponses,
+  geometries,
+  handleQuestionGeometryChange,
   control,
 }: {
   subcategory: AssessmentSubcategoryItem;
+  numericResponses: Map<number, number>;
+  geometries: ResponseFormGeometry[];
+  handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
   return (
@@ -127,7 +207,14 @@ const Subcategory = ({
         <CAccordionDetails>
           <div className="flex flex-col gap-3">
             {subcategory.questions.map((question, index) => (
-              <Question key={index} question={question} control={control} />
+              <Question
+                key={index}
+                question={question}
+                numericResponses={numericResponses}
+                geometries={geometries}
+                handleQuestionGeometryChange={handleQuestionGeometryChange}
+                control={control}
+              />
             ))}
           </div>
         </CAccordionDetails>
@@ -138,20 +225,61 @@ const Subcategory = ({
 
 const Question = ({
   question,
+  numericResponses,
+  geometries,
+  handleQuestionGeometryChange,
   control,
 }: {
   question: AssessmentQuestionItem;
+  numericResponses: Map<number, number>;
+  geometries: ResponseFormGeometry[];
+  handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
+  const [openMapDialog, setOpenMapDialog] = useState(false);
   return (
     <Box
       sx={{ border: 1, borderColor: "primary.main", borderRadius: 1 }}
       className="flex flex-col justify-between px-4 py-2"
     >
       <div className="flex flex-row items-center gap-1">{question.name}</div>
+      <div className="mb-1 flex flex-wrap justify-start gap-1">
+        {question.geometryTypes.length > 0 && (
+          <>
+            <CButton
+              square
+              onClick={() => {
+                setOpenMapDialog(true);
+              }}
+            >
+              <IconMap />
+            </CButton>
+            <MapDialog
+              openMapDialog={openMapDialog}
+              onClose={() => {
+                setOpenMapDialog(false);
+              }}
+              questionId={question.questionId}
+              questionName={question.name}
+              initialGeometries={
+                geometries.find((g) => g.questionId === question.questionId)
+                  ?.geometries
+              }
+              geometryType={question.geometryTypes}
+              handleQuestionGeometryChange={(e, v) => {
+                handleQuestionGeometryChange({ questionId: e, geometries: v });
+              }}
+            />
+          </>
+        )}
+      </div>
 
       {question.questionType === "WRITTEN" && (
-        <WrittenQuestion question={question} control={control} />
+        <WrittenQuestion
+          question={question}
+          numericResponses={numericResponses}
+          control={control}
+        />
       )}
 
       {question.questionType === "OPTIONS" && (
@@ -163,19 +291,30 @@ const Question = ({
 
 const WrittenQuestion = ({
   question,
+  numericResponses,
   control,
 }: {
   question: AssessmentQuestionItem;
+  numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
+  if (question.calculationExpression) {
+    return (
+      <CalculationQuestion
+        question={question}
+        numericResponses={numericResponses}
+        control={control}
+      />
+    );
+  }
   return question.characterType === "NUMBER" ?
       <Controller
-        name={String(question.id)}
+        name={String(question.questionId)}
         control={control}
         render={({ field }) => <CNumberField {...field} />}
       />
     : <Controller
-        name={String(question.id)}
+        name={String(question.questionId)}
         control={control}
         render={({ field }) => <CTextField {...field} />}
       />;
@@ -194,7 +333,7 @@ const OptionsQuestion = ({
   if (question.optionType === "CHECKBOX") {
     return (
       <Controller
-        name={String(question.id)}
+        name={String(question.questionId)}
         control={control}
         render={({ field }) => (
           <CCheckboxGroup
@@ -211,7 +350,7 @@ const OptionsQuestion = ({
   } else {
     return (
       <Controller
-        name={String(question.id)}
+        name={String(question.questionId)}
         control={control}
         render={({ field }) => (
           <CRadioGroup
@@ -229,6 +368,33 @@ const OptionsQuestion = ({
       />
     );
   }
+};
+
+const CalculationQuestion = ({
+  question,
+  numericResponses,
+  control,
+}: {
+  question: AssessmentQuestionItem;
+  numericResponses: Map<number, number>;
+  control: Control<FormValues, unknown, FormValues>;
+}) => {
+  const [value, setValue] = useState<number | null>(null);
+
+  useEffect(() => {
+    const calc = new Calculation(
+      question.calculationExpression!,
+      numericResponses,
+    );
+    setValue(calc.evaluate());
+  }, [numericResponses, question.calculationExpression]);
+  return (
+    <Controller
+      name={String(question.questionId)}
+      control={control}
+      render={({ field }) => <CNumberField {...field} readOnly value={value} />}
+    />
+  );
 };
 
 export default ResponseFormV2;

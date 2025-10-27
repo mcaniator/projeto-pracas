@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/button";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
+import { QuestionGeometryTypes } from "@prisma/client";
 import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
@@ -11,7 +11,6 @@ import { Point, Polygon } from "ol/geom";
 import { Draw, Modify, Select } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
-import "ol/ol.css";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
@@ -29,12 +28,40 @@ import {
   useState,
 } from "react";
 
+import CToggleButtonGroup from "../../../../../../../components/ui/cToggleButtonGroup";
+
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 
+const geometryTypeTranslation = new globalThis.Map<
+  QuestionGeometryTypes,
+  string
+>([
+  ["POINT", "Pontos"],
+  ["POLYGON", "Polígonos"],
+]);
+
+const geometryTypeFormatter = new globalThis.Map<
+  QuestionGeometryTypes,
+  "Point" | "Polygon"
+>([
+  ["POINT", "Point"],
+  ["POLYGON", "Polygon"],
+]);
+
+const mapModeOptions: {
+  id: MapMode;
+  icon: React.ReactNode;
+  tooltip: string;
+}[] = [
+  { id: "DRAW", icon: <IconPolygon />, tooltip: "Desenhar" },
+  { id: "SELECT", icon: <IconClick />, tooltip: "Excluir" },
+  { id: "DRAG", icon: <IconDragDrop />, tooltip: "Arrastar" },
+];
+
 interface MapProviderProps {
+  geometryType: QuestionGeometryTypes[];
   questionId: number;
   initialGeometries: ResponseGeometry[] | undefined;
-  drawType: "Point" | "Polygon";
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ResponseGeometry[],
@@ -47,15 +74,24 @@ const MapContext = createContext(new Map());
 const MapProvider = forwardRef(
   (
     {
+      geometryType,
       questionId,
       initialGeometries,
-      drawType,
       handleQuestionGeometryChange,
       handleChangeIsInSelectMode,
     }: MapProviderProps,
     ref,
   ) => {
     useGeographic();
+    const [geometryTypeOptions] = useState(
+      geometryType.map((g) => ({
+        id: geometryTypeFormatter.get(g)!,
+        label: geometryTypeTranslation.get(g),
+      })),
+    );
+    const [currentGeometryType, setCurrentGeometryType] = useState<
+      "Point" | "Polygon"
+    >(geometryTypeOptions[0]!.id);
     const [mapMode, setMapMode] = useState<MapMode>("DRAW");
     const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
       null,
@@ -133,9 +169,9 @@ const MapProvider = forwardRef(
       });
       const draw = new Draw({
         source: vectorSource.current,
-        type: drawType,
+        type: currentGeometryType,
         style:
-          drawType === "Polygon" ?
+          currentGeometryType === "Polygon" ?
             {
               "fill-color": "#9B59B24D",
               "stroke-color": "#7C4091",
@@ -154,7 +190,7 @@ const MapProvider = forwardRef(
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, view, drawType, handleChangeIsInSelectMode]);
+    }, [map, view, currentGeometryType, handleChangeIsInSelectMode]);
 
     useEffect(() => {
       if (initialGeometries) {
@@ -233,7 +269,7 @@ const MapProvider = forwardRef(
         });
         const draw = new Draw({
           source: vectorSource.current,
-          type: drawType,
+          type: currentGeometryType,
         });
         map.addInteraction(draw);
         setMapMode("DRAW");
@@ -264,28 +300,26 @@ const MapProvider = forwardRef(
         ref={mapRef}
       >
         <MapContext.Provider value={map}>
-          <div className="fixed z-50 inline-flex w-fit gap-1 rounded-xl bg-gray-400 py-1 shadow-inner">
-            <Button
-              variant={"ghost"}
-              onPress={() => switchMode("DRAW")}
-              className={`rounded-xl px-4 py-1 ${mapMode === "DRAW" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-            >
-              <IconPolygon></IconPolygon>
-            </Button>
-            <Button
-              variant={"ghost"}
-              onPress={() => switchMode("SELECT")}
-              className={`rounded-xl bg-blue-500 px-4 py-1 ${mapMode === "SELECT" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-            >
-              <IconClick />
-            </Button>
-            <Button
-              variant={"ghost"}
-              onPress={() => switchMode("DRAG")}
-              className={`rounded-xl bg-blue-500 px-4 py-1 ${mapMode === "DRAG" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-            >
-              <IconDragDrop />
-            </Button>
+          <div className="fixed z-50 flex w-full flex-wrap justify-between">
+            <CToggleButtonGroup
+              value={currentGeometryType}
+              options={geometryTypeOptions}
+              getLabel={(i) => i.label}
+              getValue={(i) => i.id}
+              onChange={(_, v) => {
+                setCurrentGeometryType(v.id);
+              }}
+            />
+            <CToggleButtonGroup
+              options={mapModeOptions}
+              value={mapMode}
+              getLabel={(i) => i.icon}
+              getValue={(i) => i.id}
+              getTooltip={(i) => i.tooltip}
+              onChange={(_, v) => {
+                switchMode(v.id);
+              }}
+            />
           </div>
         </MapContext.Provider>
       </div>

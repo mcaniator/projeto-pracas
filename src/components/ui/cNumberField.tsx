@@ -123,7 +123,10 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
     useEffect(() => {
       setLocalValue(value != undefined ? String(value) : "");
-    }, [value]);
+      if (readOnly && onChange) {
+        onChange(value != undefined ? Number(value) : null);
+      }
+    }, [value, readOnly, onChange]);
 
     return (
       <TextField

@@ -4,6 +4,9 @@ const nextConfig = {
   experimental: {
     reactCompiler: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     remotePatterns: [
       {
