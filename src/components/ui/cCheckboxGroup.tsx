@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Checkbox,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -10,6 +9,8 @@ import {
 } from "@mui/material";
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+
+import CCheckbox from "./cCheckbox";
 
 type CCheckboxGroupProps<T, V extends string | number | boolean = string> = {
   label?: string;
@@ -98,7 +99,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
             <FormControlLabel
               key={index}
               control={
-                <Checkbox
+                <CCheckbox
                   name={name}
                   value={optionValue}
                   checked={localValue.includes(optionValue)}

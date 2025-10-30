@@ -3,6 +3,8 @@ import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconSearch, IconX } from "@tabler/icons-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
+import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
+
 type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   errorMessage?: string;
   isSearch?: boolean;
@@ -164,19 +166,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
 
     const defaultSx = { mt: "0px", mb: "0px" };
 
-    const readOnlySx =
-      readOnly ?
-        {
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderStyle: "dashed",
-            borderColor: "gray",
-            borderWidth: "2px",
-          },
-          "& .MuiOutlinedInput-input": {
-            cursor: "not-allowed",
-          },
-        }
-      : undefined;
+    const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
 
     const endAdornment =
       mounted ?

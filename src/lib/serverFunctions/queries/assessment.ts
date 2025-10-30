@@ -3,8 +3,11 @@ import {
   fetchAssessmentGeometries,
   fetchAssessmentsGeometries,
 } from "@serverOnly/geometries";
+import { Coordinate } from "ol/coordinate";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
+import { FormValues } from "../../../app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseFormV2";
+import { ResponseGeometry } from "../../types/assessments/geometry";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
@@ -365,6 +368,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
     });
 
     let totalQuestions = 0;
+    const responsesFormValues: FormValues = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -422,6 +426,18 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           throw new Error("Question form item without question data");
         }
         totalQuestions++;
+        if (dbQuestion.questionType === "WRITTEN") {
+          if (dbQuestion.characterType) {
+            responsesFormValues[dbQuestion.id] =
+              dbQuestion.response[0]?.response ?
+                Number(dbQuestion.response[0].response)
+              : null;
+          } else {
+            responsesFormValues[dbQuestion.id] =
+              dbQuestion.response[0]?.response ?? null;
+          }
+        }
+
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
@@ -473,6 +489,63 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       });
     });
 
+    const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
+    const geometries = rawGeometries.map((fetchedGeometry) => {
+      const { questionId, geometry } = fetchedGeometry;
+      if (!geometry) {
+        return { questionId, geometries: [] };
+      }
+      const geometries: ResponseGeometry[] = [];
+      const geometriesWithoutCollection = geometry
+        .replace("GEOMETRYCOLLECTION(", "")
+        .slice(0, -1);
+      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
+      const geometriesStrs = geometriesWithoutCollection.match(regex);
+      if (geometriesStrs) {
+        for (const geometry of geometriesStrs) {
+          if (geometry.startsWith("POINT")) {
+            const geometryPointsStr = geometry
+              .replace("POINT(", "")
+              .replace(")", "");
+            const geometryPoints = geometryPointsStr.split(" ");
+            const geometryPointsNumber: number[] = [];
+            for (const geo of geometryPoints) {
+              geometryPointsNumber.push(Number(geo));
+            }
+            geometries.push({
+              type: "Point",
+              coordinates: geometryPointsNumber,
+            });
+          } else if (geometry.startsWith("POLYGON")) {
+            const geometryRingsStr = geometry
+              .replace("POLYGON(", " ")
+              .slice(0, -1);
+            const ringsStrs = geometryRingsStr.split("),(");
+            const ringsCoordinates: Coordinate[][] = [];
+            for (const ring of ringsStrs) {
+              const geometryPointsStr = ring.split(",");
+              const geometryPointsCoordinates: Coordinate[] = [];
+              for (const point of geometryPointsStr) {
+                const pointClean = point
+                  .replace("(", "")
+                  .replace(")", "")
+                  .trim();
+                const geometryPoints = pointClean.split(" ");
+                const geometryPointsNumber: number[] = [];
+                for (const geo of geometryPoints) {
+                  geometryPointsNumber.push(Number(geo));
+                }
+                geometryPointsCoordinates.push(geometryPointsNumber);
+              }
+              ringsCoordinates.push(geometryPointsCoordinates);
+            }
+            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
+          }
+        }
+      }
+
+      return { questionId, geometries: geometries };
+    });
     return {
       responseInfo: {
         statusCode: 200,
@@ -481,6 +554,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         id: assessment.id,
         formName: assessment.form.name,
         totalQuestions: totalQuestions,
+        responsesFormValues: responsesFormValues,
+        geometries: geometries,
         categories: categories,
       },
     };

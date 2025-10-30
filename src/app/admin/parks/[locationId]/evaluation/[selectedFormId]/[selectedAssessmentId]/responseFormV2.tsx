@@ -1,8 +1,13 @@
 "use client";
 
-import { Box, Button, Typography } from "@mui/material";
-import { IconMap } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
+import {
+  IconDeviceFloppy,
+  IconDownload,
+  IconFileImport,
+  IconMap,
+} from "@tabler/icons-react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
 import CAccordion from "../../../../../../../components/ui/accordion/CAccordion";
@@ -13,6 +18,11 @@ import CCheckboxGroup from "../../../../../../../components/ui/cCheckboxGroup";
 import CNumberField from "../../../../../../../components/ui/cNumberField";
 import CRadioGroup from "../../../../../../../components/ui/cRadioGroup";
 import CTextField from "../../../../../../../components/ui/cTextField";
+import CCalculationChip from "../../../../../../../components/ui/question/cCalculationChip";
+import CNotesChip from "../../../../../../../components/ui/question/cNotesChip";
+import CQuestionCharacterTypeChip from "../../../../../../../components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "../../../../../../../components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "../../../../../../../components/ui/question/cQuestionTypeChip";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -22,34 +32,71 @@ import { ResponseGeometry } from "../../../../../../../lib/types/assessments/geo
 import { Calculation } from "../../../../../../../lib/utils/calculationUtils";
 import { FormItemUtils } from "../../../../../../../lib/utils/formTreeUtils";
 import MapDialog from "./MapDialog";
+import SaveAssessmentDialog from "./saveAssessmentDialog";
 
-type FormValues = {
-  [key: string]: string | number | string[] | null;
+export type FormValues = {
+  [key: string]: string | number | number[] | null;
 };
 
-type ResponseFormGeometry = {
+export type ResponseFormGeometry = {
   questionId: number;
   geometries: ResponseGeometry[];
 };
 
+export type SimpleMention = {
+  id: string;
+  display: string;
+};
+
 const ResponseFormV2 = ({
+  locationName,
   assessmentTree,
 }: {
+  locationName: string;
   assessmentTree: {
     id: number;
     formName: string;
     totalQuestions: number;
+    responsesFormValues: FormValues;
+    geometries: ResponseFormGeometry[];
     categories: AssessmentCategoryItem[];
   };
 }) => {
-  const { control, handleSubmit } = useForm<FormValues>({
+  const { control, handleSubmit, getValues } = useForm<FormValues>({
     mode: "onChange",
+    defaultValues: assessmentTree.responsesFormValues,
   });
   const [numericResponses, setNumericResponses] = useState(
     new Map<number, number>(),
   );
 
-  const [geometries, setGeometries] = useState<ResponseFormGeometry[]>([]);
+  const [questionsForMention] = useState(() => {
+    const questions: SimpleMention[] = [];
+    assessmentTree.categories.forEach((c) => {
+      c.categoryChildren.forEach((ch) => {
+        if (FormItemUtils.isSubcategoryType(ch)) {
+          ch.questions.forEach((q) => {
+            questions.push({
+              id: String(q.questionId),
+              display: `${q.name} {id:${q.questionId}}`,
+            });
+          });
+        } else if (FormItemUtils.isQuestionType(ch)) {
+          questions.push({
+            id: String(ch.questionId),
+            display: `${ch.name} {id:${ch.questionId}}`,
+          });
+        }
+      });
+    });
+    return questions;
+  });
+
+  const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
+    assessmentTree.geometries,
+  );
+  const [formValues, setFormValues] = useState<FormValues>({});
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
 
   const allValues = useWatch({ control });
 
@@ -83,7 +130,30 @@ const ResponseFormV2 = ({
   };
 
   const onSubmit = (data: FormValues) => {
-    console.log(data);
+    setFormValues(data);
+    setOpenSaveDialog(true);
+  };
+
+  const generateExport = () => {
+    const responses = getValues();
+    const data = {
+      assessmentId: assessmentTree.id,
+      responses: responses,
+      geometries: geometries,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `avaliacao_${locationName}_${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log("FILE INPUT", e);
   };
 
   useEffect(() => {
@@ -103,12 +173,25 @@ const ResponseFormV2 = ({
       }}
       className="flex w-full flex-col gap-4"
     >
+      <div>
+        <CButton
+          filePicker
+          fileAccept="application/json"
+          className="w-fit"
+          onFileInput={importData}
+        >
+          <IconFileImport />
+          Importar respostas
+        </CButton>
+      </div>
+
       {assessmentTree.categories.map((cat, index) => (
         <Category
           key={index}
           category={cat}
           numericResponses={numericResponses}
           geometries={geometries}
+          questionsForMention={questionsForMention}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           control={control}
         />
@@ -117,10 +200,26 @@ const ResponseFormV2 = ({
       <Typography mt={2} className="text-black">
         Campos preenchidos: {filledCount} / {totalQuestions}
       </Typography>
+      <div className="flew-row flex justify-center gap-1">
+        <CButton type="submit">
+          <IconDeviceFloppy />
+          Salvar
+        </CButton>
+        <CButton onClick={generateExport}>
+          <IconDownload />
+          Exportar
+        </CButton>
+      </div>
 
-      <Button type="submit" variant="contained">
-        Salvar
-      </Button>
+      <SaveAssessmentDialog
+        assessmentId={assessmentTree.id}
+        open={openSaveDialog}
+        formValues={formValues}
+        geometries={geometries}
+        onClose={() => {
+          setOpenSaveDialog(false);
+        }}
+      />
     </form>
   );
 };
@@ -129,19 +228,24 @@ const Category = ({
   category,
   numericResponses,
   geometries,
+  questionsForMention,
   handleQuestionGeometryChange,
   control,
 }: {
   category: AssessmentCategoryItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
   return (
     <CAccordion defaultExpanded>
       <CAccordionSummary>
-        <div className="flex flex-row items-center gap-1">{category.name}</div>
+        <div className="flex flex-row items-center gap-1">
+          <CNotesChip notes={category.notes} />
+          {category.name}
+        </div>
       </CAccordionSummary>
       <CAccordionDetails>
         <div className="flex flex-col gap-3">
@@ -153,6 +257,7 @@ const Category = ({
                   subcategory={child}
                   numericResponses={numericResponses}
                   geometries={geometries}
+                  questionsForMention={questionsForMention}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -164,6 +269,7 @@ const Category = ({
                   question={child}
                   numericResponses={numericResponses}
                   geometries={geometries}
+                  questionsForMention={questionsForMention}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -180,12 +286,14 @@ const Subcategory = ({
   subcategory,
   numericResponses,
   geometries,
+  questionsForMention,
   handleQuestionGeometryChange,
   control,
 }: {
   subcategory: AssessmentSubcategoryItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
@@ -201,6 +309,7 @@ const Subcategory = ({
       <CAccordion defaultExpanded>
         <CAccordionSummary>
           <div className="flex flex-row items-center gap-1">
+            <CNotesChip notes={subcategory.notes} />
             {subcategory.name}
           </div>
         </CAccordionSummary>
@@ -212,6 +321,7 @@ const Subcategory = ({
                 question={question}
                 numericResponses={numericResponses}
                 geometries={geometries}
+                questionsForMention={questionsForMention}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 control={control}
               />
@@ -227,12 +337,14 @@ const Question = ({
   question,
   numericResponses,
   geometries,
+  questionsForMention,
   handleQuestionGeometryChange,
   control,
 }: {
   question: AssessmentQuestionItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
@@ -240,9 +352,26 @@ const Question = ({
   return (
     <Box
       sx={{ border: 1, borderColor: "primary.main", borderRadius: 1 }}
-      className="flex flex-col justify-between px-4 py-2"
+      className="flex flex-col justify-between gap-1 px-4 py-2"
     >
-      <div className="flex flex-row items-center gap-1">{question.name}</div>
+      <div className="flex flex-row items-center gap-1">
+        {" "}
+        <CQuestionTypeChip
+          questionType={question.questionType}
+          optionType={question.optionType}
+          options={question.options?.map((o) => o.text)}
+          name={question.name}
+        />
+        <CQuestionCharacterTypeChip characterType={question.characterType} />
+        <CQuestionGeometryChip geometryTypes={question.geometryTypes} />
+        <CNotesChip notes={question.notes} name={question.name} />
+        <CCalculationChip
+          name={question.name}
+          expression={question.calculationExpression}
+          questions={questionsForMention}
+        />
+      </div>
+      <div className="break-all">{question.name}</div>
       <div className="mb-1 flex flex-wrap justify-start gap-1">
         {question.geometryTypes.length > 0 && (
           <>

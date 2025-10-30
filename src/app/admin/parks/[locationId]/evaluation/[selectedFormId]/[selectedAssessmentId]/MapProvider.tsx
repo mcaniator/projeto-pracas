@@ -296,11 +296,11 @@ const MapProvider = forwardRef(
     return (
       <div
         id="map"
-        className={"h-full w-full overflow-clip rounded-xl"}
+        className={"relative h-full w-full overflow-clip"}
         ref={mapRef}
       >
         <MapContext.Provider value={map}>
-          <div className="fixed z-50 flex w-full flex-wrap justify-between">
+          <div className="absolute z-50 flex w-full flex-wrap justify-between">
             <CToggleButtonGroup
               value={currentGeometryType}
               options={geometryTypeOptions}

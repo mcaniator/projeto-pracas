@@ -29,6 +29,7 @@ type CDialogProps = DialogProps & {
   cancelColor?: ButtonProps["color"];
   disableDialogActions?: boolean;
   isForm?: boolean;
+  disableContentPadding?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
@@ -62,6 +63,7 @@ const CDialog = ({
   disableDialogActions = false,
   fullScreen,
   isForm,
+  disableContentPadding,
   action,
   onCancel,
   onConfirm,
@@ -79,6 +81,11 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
+
+  const contentSx =
+    disableContentPadding ?
+      { px: "0px", py: "0px" }
+    : { px: { xs: "4px", sm: "12px" }, py: "4px" };
   //TODO: Study ways to remove code duplication
   if (isForm) {
     return (
@@ -95,7 +102,6 @@ const CDialog = ({
           paper: {
             sx: {
               borderRadius: fullScreen ? "0px" : "12px",
-              px: { xs: "4px", sm: "16px" },
               py: { xs: "4px", sm: "16px" },
             },
           },
@@ -105,24 +111,21 @@ const CDialog = ({
         <form action={action} onSubmit={onSubmit}>
           <DialogTitle
             sx={{
-              padding: "0px",
+              px: { xs: "4px", sm: "16px" },
+              py: "0px",
             }}
           >
             <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
           </DialogTitle>
 
-          <DialogContent
-            sx={{
-              px: { xs: "0px", sm: "12px" },
-              py: "4px",
-            }}
-            dividers
-          >
+          <DialogContent sx={contentSx} dividers>
             {children}
           </DialogContent>
 
           {!disableDialogActions && (
-            <DialogActions sx={{ padding: "0px", marginTop: "8px" }}>
+            <DialogActions
+              sx={{ px: { xs: "4px", sm: "16px" }, marginTop: "8px" }}
+            >
               <CDialogFooter
                 cancelChildren={cancelChildren}
                 confirmChildren={confirmChildren}
@@ -158,7 +161,6 @@ const CDialog = ({
         paper: {
           sx: {
             borderRadius: fullScreen ? "0px" : "12px",
-            px: { xs: "4px", sm: "16px" },
             py: { xs: "4px", sm: "16px" },
           },
         },
@@ -167,24 +169,19 @@ const CDialog = ({
     >
       <DialogTitle
         sx={{
-          padding: "0px",
+          px: { xs: "4px", sm: "16px" },
+          py: "0px",
         }}
       >
         <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
       </DialogTitle>
 
-      <DialogContent
-        sx={{
-          px: { xs: "0px", sm: "12px" },
-          py: "4px",
-        }}
-        dividers
-      >
+      <DialogContent sx={contentSx} dividers>
         {children}
       </DialogContent>
 
       {!disableDialogActions && (
-        <DialogActions sx={{ padding: "0px", marginTop: "8px" }}>
+        <DialogActions sx={{ px: { xs: "4px", sm: "16px" }, marginTop: "8px" }}>
           <CDialogFooter
             cancelChildren={cancelChildren}
             confirmChildren={confirmChildren}

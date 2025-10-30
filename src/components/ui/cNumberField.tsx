@@ -3,6 +3,8 @@ import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import React, { useEffect, useRef, useState } from "react";
 
+import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
+
 type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   errorMessage?: string;
   readOnly?: boolean;
@@ -30,19 +32,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       onBlur,
       ...rest
     } = props;
-    const readOnlySx =
-      readOnly ?
-        {
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderStyle: "dashed",
-            borderColor: "gray",
-            borderWidth: "2px",
-          },
-          "& .MuiOutlinedInput-input": {
-            cursor: "not-allowed",
-          },
-        }
-      : undefined;
+    const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState("");

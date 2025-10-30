@@ -5,6 +5,7 @@ import NextTopLoader from "nextjs-toploader";
 import { ReactNode } from "react";
 
 import { LoadingOverlayProvider } from "../components/context/loadingContext";
+import AppProviders from "./appProviders";
 import "./globals.css";
 
 const metadata: Metadata = {
@@ -21,8 +22,10 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
     <html lang="en">
       <body className={josefin_sans.className}>
         <MuiThemeProvider>
-          <NextTopLoader showSpinner={false} />
-          <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+          <AppProviders>
+            <NextTopLoader showSpinner={false} />
+            <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+          </AppProviders>
         </MuiThemeProvider>
       </body>
     </html>

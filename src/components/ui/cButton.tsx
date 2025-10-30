@@ -1,6 +1,6 @@
 import { Box, Chip } from "@mui/material";
 import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
-import React from "react";
+import React, { InputHTMLAttributes, useRef } from "react";
 
 type CButtonProps = ButtonProps & {
   dense?: boolean;
@@ -9,6 +9,9 @@ type CButtonProps = ButtonProps & {
   topLeftChipLabel?: string | number;
   square?: boolean;
   color?: ButtonOwnProps["color"];
+  filePicker?: boolean;
+  fileAccept?: InputHTMLAttributes<HTMLInputElement>["accept"];
+  onFileInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 function CButton(props: CButtonProps) {
@@ -22,6 +25,10 @@ function CButton(props: CButtonProps) {
     dense,
     square,
     color,
+    filePicker,
+    fileAccept,
+    onClick,
+    onFileInput,
     sx,
     ...rest
   } = props;
@@ -29,6 +36,14 @@ function CButton(props: CButtonProps) {
     disableMinWidth ? { minWidth: "0px" } : { minWidth: "64px" };
   const denseSx = dense ? { padding: "0px 0px", minWidth: "0px" } : {};
   const squareSx = square ? { padding: "6px", minWidth: "0px" } : {};
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(e);
+    if (filePicker) {
+      fileInputRef.current?.click();
+    }
+  };
   return (
     <Box
       position="relative"
@@ -58,10 +73,20 @@ function CButton(props: CButtonProps) {
         color={color ?? "primary"}
         variant={variant}
         sx={{ ...minWidthSx, ...denseSx, ...squareSx, ...sx }}
+        onClick={handleClick}
         {...rest}
       >
         {children}
       </Button>
+      {filePicker && (
+        <input
+          type="file"
+          accept={fileAccept}
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={onFileInput}
+        />
+      )}
     </Box>
   );
 }

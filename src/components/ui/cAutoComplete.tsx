@@ -2,6 +2,7 @@ import { IconButton, IconButtonOwnProps, InputAdornment } from "@mui/material";
 import Autocomplete, { AutocompleteProps } from "@mui/material/Autocomplete";
 import React from "react";
 
+import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import CTextField from "./cTextField";
 
 type CAutocompleteProps<
@@ -43,16 +44,7 @@ function CAutocomplete<
     onAppendIconButtonClick,
     ...rest
   } = props;
-  const readOnlySx =
-    readOnly ?
-      {
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderStyle: "dashed",
-          borderColor: "gray",
-          borderWidth: "2px",
-        },
-      }
-    : undefined;
+  const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
 
   const handleAppendIconButtonClick = () => {
     if (onAppendIconButtonClick) {

@@ -10,6 +10,7 @@
     "@jackstenglein/mui-mentions": "^0.1.11",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
+    "@mui/x-date-pickers": "^8.16.0",
     "@prisma/adapter-pg": "6.0.1",
     "@prisma/client": "6.0.1",
     "@radix-ui/react-dialog": "^1.1.4",
@@ -23,6 +24,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
+    "dayjs": "^1.11.18",
     "fuse.js": "^7.0.0",
     "mathjs": "^14.7.0",
     "next-auth": "5.0.0-beta.25",
@@ -95,7 +97,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "lint": "next lint",
     "start": "next start",
     "postinstall": "prisma generate"

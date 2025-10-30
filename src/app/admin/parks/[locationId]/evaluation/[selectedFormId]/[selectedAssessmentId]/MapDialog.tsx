@@ -55,6 +55,7 @@ const MapDialog = ({
   return (
     <CDialog
       fullScreen
+      disableContentPadding
       title={"Geometrias"}
       subtitle={questionName}
       open={openMapDialog}

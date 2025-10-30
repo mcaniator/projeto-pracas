@@ -36,7 +36,10 @@ const Responses = async (props: {
         Avaliando: {location.name} com o formulário:{" "}
         {assessment.assessmentTree.formName}
       </h3>
-      <ResponseFormV2 assessmentTree={assessment.assessmentTree} />
+      <ResponseFormV2
+        locationName={location.name}
+        assessmentTree={assessment.assessmentTree}
+      />
     </div>
   );
 

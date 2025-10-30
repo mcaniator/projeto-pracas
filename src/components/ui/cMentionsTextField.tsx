@@ -5,6 +5,8 @@ import {
 } from "@jackstenglein/mui-mentions";
 import React from "react";
 
+import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
+
 type CMentionsTextFieldProps<T extends BaseSuggestionData> =
   MentionsTextFieldProps<T> & {
     readOnly?: boolean;
@@ -15,19 +17,7 @@ const CMentionsTextField = React.forwardRef<
   CMentionsTextFieldProps<BaseSuggestionData>
 >((props, ref) => {
   const { sx, readOnly, spellCheck = false, ...rest } = props;
-  const readOnlySx =
-    readOnly ?
-      {
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderStyle: "dashed",
-          borderColor: "gray",
-          borderWidth: "2px",
-        },
-        "& .MuiOutlinedInput-input": {
-          cursor: "not-allowed",
-        },
-      }
-    : undefined;
+  const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
 
   return (
     <MentionsTextField
