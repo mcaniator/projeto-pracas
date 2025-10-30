@@ -51,6 +51,7 @@ const SaveAssessmentDialog = ({
     >
       <div className="flex w-full flex-col gap-1">
         <CSwitch
+          checked={finalized}
           label="Salvar como finalizado"
           onChange={(e) => {
             setIsFinalized(e.target.checked);
