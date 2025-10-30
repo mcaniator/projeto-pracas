@@ -4,17 +4,20 @@ import { Box, Typography } from "@mui/material";
 import {
   IconDeviceFloppy,
   IconDownload,
-  IconFileImport,
   IconMap,
+  IconUpload,
 } from "@tabler/icons-react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
+import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
 import CAccordion from "../../../../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../../../../components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "../../../../../../../components/ui/accordion/CAccordionSummary";
 import CButton from "../../../../../../../components/ui/cButton";
+import CButtonFilePicker from "../../../../../../../components/ui/cButtonFilePicker";
 import CCheckboxGroup from "../../../../../../../components/ui/cCheckboxGroup";
+import CHelpChip from "../../../../../../../components/ui/cHelpChip";
 import CNumberField from "../../../../../../../components/ui/cNumberField";
 import CRadioGroup from "../../../../../../../components/ui/cRadioGroup";
 import CTextField from "../../../../../../../components/ui/cTextField";
@@ -62,7 +65,8 @@ const ResponseFormV2 = ({
     categories: AssessmentCategoryItem[];
   };
 }) => {
-  const { control, handleSubmit, getValues } = useForm<FormValues>({
+  const { setHelperCard } = useHelperCard();
+  const { control, handleSubmit, getValues, reset } = useForm<FormValues>({
     mode: "onChange",
     defaultValues: assessmentTree.responsesFormValues,
   });
@@ -152,8 +156,42 @@ const ResponseFormV2 = ({
     URL.revokeObjectURL(url);
   };
 
-  const importData = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log("FILE INPUT", e);
+  const importData = async (e: ChangeEvent<HTMLInputElement>) => {
+    //TODO: Add validation with Zod
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+
+      if (!parsed || typeof parsed !== "object") {
+        throw new Error();
+      }
+
+      const importedData = parsed as {
+        assessmentId: number;
+        responses: FormValues;
+        geometries?: ResponseFormGeometry[];
+      };
+
+      if (importedData.responses) {
+        reset(importedData.responses);
+      }
+
+      const incomingGeoms = importedData.geometries ?? [];
+      setGeometries(incomingGeoms);
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Avaliação importada!</>,
+      });
+    } catch (err) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Arquivo inválido!</>,
+      });
+    }
   };
 
   useEffect(() => {
@@ -173,15 +211,21 @@ const ResponseFormV2 = ({
       }}
       className="flex w-full flex-col gap-4"
     >
-      <div>
-        <CButton
-          filePicker
+      <div className="flex flex-wrap content-center justify-center gap-1 sm:justify-end">
+        <CHelpChip tooltip="Salvar offline permite salvar uma avaliação em seu dispositivo. Caso esteja sem conexão com a internet, é possível salvar uma avaliação localmente e enviá-la posteriormente." />
+        <CButtonFilePicker
           fileAccept="application/json"
           className="w-fit"
-          onFileInput={importData}
+          onFileInput={(e) => {
+            void importData(e);
+          }}
         >
-          <IconFileImport />
-          Importar respostas
+          <IconUpload />
+          Importar
+        </CButtonFilePicker>
+        <CButton onClick={generateExport}>
+          <IconDownload />
+          Salvar offline
         </CButton>
       </div>
 
@@ -204,10 +248,6 @@ const ResponseFormV2 = ({
         <CButton type="submit">
           <IconDeviceFloppy />
           Salvar
-        </CButton>
-        <CButton onClick={generateExport}>
-          <IconDownload />
-          Exportar
         </CButton>
       </div>
 
