@@ -30,14 +30,23 @@ const SaveAssessmentDialog = ({
   const { helperCardProcessResponse } = useHelperCard();
   const save = async () => {
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
-    const response = await _addResponsesV2({
-      assessmentId,
-      responses: formValues,
-      geometries: geometries,
-      finalizationDate: dateTime?.toDate() ?? null,
-    });
+    console.log("VALUES", formValues);
+    try {
+      const response = await _addResponsesV2({
+        assessmentId,
+        responses: formValues,
+        geometries: geometries,
+        finalizationDate: dateTime?.toDate() ?? null,
+      });
+      helperCardProcessResponse(response.responseInfo);
+      if (response.responseInfo.statusCode !== 201) {
+        console.log("ENABLE OFFLINE SAVING"); //TODO
+      }
+    } catch (e) {
+      console.log("ENABLE OFFLINE SAVING"); //TODO
+    }
+
     setLoadingOverlay({ show: false });
-    helperCardProcessResponse(response.responseInfo);
   };
   return (
     <CDialog

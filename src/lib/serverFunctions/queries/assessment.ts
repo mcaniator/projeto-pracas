@@ -19,14 +19,18 @@ type AssessmentsWithResposes = NonNullable<
   Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>
 >;
 
-export type AssessmentQuestionItem = QuestionItem & {
+export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
+  options?: {
+    id: number;
+    text: string;
+  }[];
   response?: {
     text: string;
   };
   ResponseOption?: {
     option: {
-      text: string;
+      id: number;
     };
   };
   calculationExpression?: string;
@@ -320,7 +324,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true } },
+                    options: { select: { text: true, id: true } },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -335,12 +339,13 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     ResponseOption: {
                       where: {
                         assessmentId: params.assessmentId,
+                        optionId: { not: null },
                       },
                       select: {
                         id: true,
                         option: {
                           select: {
-                            text: true,
+                            id: true,
                           },
                         },
                       },
@@ -435,6 +440,16 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           } else {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.response[0]?.response ?? null;
+          }
+        } else if (dbQuestion.questionType === "OPTIONS") {
+          console.log(dbQuestion.optionType);
+          if (dbQuestion.optionType === "RADIO") {
+            responsesFormValues[dbQuestion.id] =
+              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+          } else if (dbQuestion.optionType === "CHECKBOX") {
+            responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
+              (r) => r.option!.id,
+            );
           }
         }
 
@@ -560,6 +575,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       },
     };
   } catch (e) {
+    console.log(e);
     return {
       responseInfo: {
         statusCode: 200,

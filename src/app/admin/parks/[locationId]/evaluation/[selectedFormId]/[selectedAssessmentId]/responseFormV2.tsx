@@ -65,6 +65,7 @@ const ResponseFormV2 = ({
     categories: AssessmentCategoryItem[];
   };
 }) => {
+  console.log("cat", assessmentTree.responsesFormValues);
   const { setHelperCard } = useHelperCard();
   const { control, handleSubmit, getValues, reset } = useForm<FormValues>({
     mode: "onChange",
@@ -507,11 +508,11 @@ const OptionsQuestion = ({
         render={({ field }) => (
           <CCheckboxGroup
             {...field}
-            value={Array.isArray(field.value) ? field.value : []}
+            value={Array.isArray(field.value) ? field.value : ([] as number[])}
             clearable
-            options={question.options!.map((opt) => opt.text)}
-            getOptionValue={(opt) => opt}
-            getOptionLabel={(opt) => opt}
+            options={question.options!.map((opt) => opt)}
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.text}
           />
         )}
       />
@@ -524,14 +525,12 @@ const OptionsQuestion = ({
         render={({ field }) => (
           <CRadioGroup
             {...field}
-            value={Array.isArray(field.value) ? null : field.value}
-            label={question.characterType}
+            value={Array.isArray(field.value) ? null : Number(field.value)}
             clearable
             onChange={(e) => field.onChange(e)}
-            isNumber={question.characterType === "NUMBER"}
-            options={question.options!.map((opt) => opt.text)}
-            getOptionValue={(opt) => opt}
-            getOptionLabel={(opt) => opt}
+            options={question.options!}
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.text}
           />
         )}
       />

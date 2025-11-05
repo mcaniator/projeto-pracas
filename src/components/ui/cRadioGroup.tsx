@@ -10,57 +10,61 @@ import {
 import { IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-type CRadioGroupProps<T> = Omit<RadioGroupProps, "value" | "onChange"> & {
+type CRadioGroupProps<T, V extends string | number | boolean = string> = Omit<
+  RadioGroupProps,
+  "value" | "onChange"
+> & {
   label?: string;
   options: T[];
-  value?: string | number | boolean | null;
+  value?: V | null;
   clearable?: boolean;
   disableBorder?: boolean;
-  isNumber?: boolean;
+  name?: string;
   getOptionLabel: (option: T) => string;
-  getOptionValue: (option: T) => string | number | boolean;
-  onChange?: (value: string | number | boolean) => void;
+  getOptionValue: (option: T) => V;
+  onChange?: (value: V | null) => void;
 };
 
-function CRadioGroup<T>({
+function CRadioGroup<T, V extends string | number | boolean = string>({
   options,
   value,
   label,
   clearable,
   disableBorder,
-  isNumber,
+  name,
   onChange,
   getOptionLabel,
   getOptionValue,
   ...props
-}: CRadioGroupProps<T>) {
-  const [localValue, setLocalValue] = useState<
-    number | string | boolean | null
-  >("");
+}: CRadioGroupProps<T, V>) {
+  const [localValue, setLocalValue] = useState<V | null>(null);
   const borderSx = disableBorder ? {} : { border: "1px solid #ccc" };
 
   const handleClear = () => {
     setLocalValue(null);
-    if (onChange) {
-      onChange("");
-    }
+    onChange?.(null);
   };
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    _: React.ChangeEvent<HTMLInputElement>,
     val: string,
   ) => {
-    if (onChange) {
-      onChange(isNumber ? Number(val) : val);
-    } else {
-      setLocalValue(isNumber ? Number(val) : val);
-    }
+    const selectedOption = options.find(
+      (opt) => String(getOptionValue(opt)) === val,
+    );
+
+    if (!selectedOption) return;
+
+    const realValue = getOptionValue(selectedOption);
+    setLocalValue(realValue);
+    onChange?.(realValue);
   };
 
   useEffect(() => {
     if (value === undefined) return;
     setLocalValue(value);
   }, [value]);
+
   return (
     <FormControl>
       {label && (
@@ -75,8 +79,8 @@ function CRadioGroup<T>({
             ...borderSx,
           }}
         >
-          {label}{" "}
-          {clearable && localValue && (
+          {label}
+          {clearable && localValue !== null && (
             <IconButton onClick={handleClear}>
               <IconX />
             </IconButton>
@@ -84,7 +88,8 @@ function CRadioGroup<T>({
         </FormLabel>
       )}
       <RadioGroup
-        value={localValue}
+        name={name}
+        value={localValue !== null ? String(localValue) : ""}
         onChange={handleChange}
         sx={{
           px: 1,
@@ -102,13 +107,13 @@ function CRadioGroup<T>({
           return (
             <FormControlLabel
               key={index}
-              value={optionValue}
+              value={String(optionValue)}
               control={<Radio />}
               label={optionLabel}
             />
           );
         })}
-        {!label && clearable && localValue && (
+        {!label && clearable && !!localValue && (
           <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
             <IconX />
           </IconButton>
@@ -119,5 +124,4 @@ function CRadioGroup<T>({
 }
 
 CRadioGroup.displayName = "CRadioGroup";
-
 export default CRadioGroup;

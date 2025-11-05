@@ -316,7 +316,7 @@ const _addResponsesV2 = async ({
       value: string | number | null;
     }[] = [];
     const optionsResponses: { questionId: number; value: number[] }[] = [];
-
+    console.log(responses);
     questions.forEach((q) => {
       if (!Object.keys(responses).includes(String(q.id))) {
         throw new Error("Resposta não enviada para uma ou mais questões!");
@@ -329,9 +329,13 @@ const _addResponsesV2 = async ({
         writtenResponses.push({ questionId: q.id, value: response ?? null });
       } else {
         if (!Array.isArray(response)) {
-          throw new Error("Resposta simples enviada para questão em opções!");
+          optionsResponses.push({
+            questionId: q.id,
+            value: response == null ? [] : [Number(response)],
+          });
+        } else {
+          optionsResponses.push({ questionId: q.id, value: response });
         }
-        optionsResponses.push({ questionId: q.id, value: response });
       }
     });
 
@@ -368,12 +372,14 @@ const _addResponsesV2 = async ({
       (r) =>
         Prisma.sql`(${r.value}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
     );
-    const writtenResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "assessment_id", "updated_at")
+    if (writtenResponsesSQLValues.length > 0) {
+      const writtenResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "assessment_id", "updated_at")
     VALUES ${Prisma.join(writtenResponsesSQLValues, `,`)}
     ON CONFLICT ("assessment_id", "question_id")
     DO UPDATE SET "response" = EXCLUDED."response"`;
 
-    transactions.push(prisma.$executeRaw(writtenResponsesQuery));
+      transactions.push(prisma.$executeRaw(writtenResponsesQuery));
+    }
 
     const existingOptions = await prisma.responseOption.findMany({
       where: { assessmentId },
@@ -408,7 +414,7 @@ const _addResponsesV2 = async ({
       }
     }
 
-    if (responseOptionIds.length > 0) {
+    if (responseOptionIds.length > 0 && caseStatements.length > 0) {
       const responseOptionUpdate = Prisma.sql`
     UPDATE response_option
     SET option_id = CASE

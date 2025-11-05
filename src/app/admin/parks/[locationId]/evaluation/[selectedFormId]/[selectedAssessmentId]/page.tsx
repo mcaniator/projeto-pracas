@@ -25,7 +25,7 @@ const Responses = async (props: {
       name: true,
     },
   });
-
+  console.log("ASSESSMENT", assessment);
   if (!location || !assessment || !assessment.assessmentTree) {
     redirect("/error");
   }

@@ -15,7 +15,7 @@ import CCheckbox from "./cCheckbox";
 type CCheckboxGroupProps<T, V extends string | number | boolean = string> = {
   label?: string;
   options: T[];
-  value?: Array<string | number | boolean>;
+  value?: Array<V>;
   clearable?: boolean;
   disableBorder?: boolean;
   name?: string;
@@ -59,7 +59,6 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
     if (value === undefined) return;
     setLocalValue(value);
   }, [value]);
-
   return (
     <FormControl>
       {label && (
@@ -110,7 +109,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
             />
           );
         })}
-        {!label && clearable && localValue && (
+        {!label && clearable && localValue.length > 0 && (
           <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
             <IconX />
           </IconButton>
