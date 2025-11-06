@@ -3,7 +3,7 @@ const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
   weekday: "short",
 });
 
-const dateTimeWithoutSecondsFormmater = new Intl.DateTimeFormat("pt-BR", {
+const dateTimeWithoutSecondsFormater = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo",
   day: "2-digit",
   month: "2-digit",
@@ -19,6 +19,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   year: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  second: "2-digit",
 });
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
@@ -37,7 +38,7 @@ const hourFormatter = new Intl.DateTimeFormat("pt-BR", {
 
 export {
   weekdayFormatter,
-  dateTimeWithoutSecondsFormmater,
+  dateTimeWithoutSecondsFormater,
   dateFormatter,
   hourFormatter,
   dateTimeFormatter,

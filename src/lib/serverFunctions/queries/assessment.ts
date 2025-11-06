@@ -288,6 +288,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       where: { id: params.assessmentId },
       select: {
         id: true,
+        endDate: true,
+        startDate: true,
         form: {
           select: {
             id: true,
@@ -432,7 +434,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         }
         totalQuestions++;
         if (dbQuestion.questionType === "WRITTEN") {
-          if (dbQuestion.characterType) {
+          if (dbQuestion.characterType === "NUMBER") {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.response[0]?.response ?
                 Number(dbQuestion.response[0].response)
@@ -567,6 +569,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       } as APIResponseInfo,
       assessmentTree: {
         id: assessment.id,
+        startDate: assessment.startDate,
+        endDate: assessment.endDate,
         formName: assessment.form.name,
         totalQuestions: totalQuestions,
         responsesFormValues: responsesFormValues,

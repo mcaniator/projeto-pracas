@@ -3,10 +3,11 @@
 import { Box, Typography } from "@mui/material";
 import {
   IconDeviceFloppy,
-  IconDownload,
   IconMap,
+  IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
+import dayjs, { Dayjs } from "dayjs";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
@@ -35,6 +36,7 @@ import { ResponseGeometry } from "../../../../../../../lib/types/assessments/geo
 import { Calculation } from "../../../../../../../lib/utils/calculationUtils";
 import { FormItemUtils } from "../../../../../../../lib/utils/formTreeUtils";
 import MapDialog from "./MapDialog";
+import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
 export type FormValues = {
@@ -53,21 +55,26 @@ export type SimpleMention = {
 
 const ResponseFormV2 = ({
   locationName,
+  locationId,
   assessmentTree,
+  finalized,
 }: {
   locationName: string;
+  locationId: number;
   assessmentTree: {
     id: number;
+    startDate: Date;
+    endDate: Date | null;
     formName: string;
     totalQuestions: number;
     responsesFormValues: FormValues;
     geometries: ResponseFormGeometry[];
     categories: AssessmentCategoryItem[];
   };
+  finalized: boolean;
 }) => {
-  console.log("cat", assessmentTree.responsesFormValues);
   const { setHelperCard } = useHelperCard();
-  const { control, handleSubmit, getValues, reset } = useForm<FormValues>({
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     mode: "onChange",
     defaultValues: assessmentTree.responsesFormValues,
   });
@@ -97,11 +104,16 @@ const ResponseFormV2 = ({
     return questions;
   });
 
+  const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
+    useState<Dayjs | null>(null);
+
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     assessmentTree.geometries,
   );
   const [formValues, setFormValues] = useState<FormValues>({});
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
+    useState(false);
 
   const allValues = useWatch({ control });
 
@@ -139,24 +151,6 @@ const ResponseFormV2 = ({
     setOpenSaveDialog(true);
   };
 
-  const generateExport = () => {
-    const responses = getValues();
-    const data = {
-      assessmentId: assessmentTree.id,
-      responses: responses,
-      geometries: geometries,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `avaliacao_${locationName}_${new Date().toISOString()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const importData = async (e: ChangeEvent<HTMLInputElement>) => {
     //TODO: Add validation with Zod
     const file = e.target.files?.[0];
@@ -173,6 +167,7 @@ const ResponseFormV2 = ({
         assessmentId: number;
         responses: FormValues;
         geometries?: ResponseFormGeometry[];
+        finalizationDateTime: string | null;
       };
 
       if (importedData.responses) {
@@ -181,6 +176,12 @@ const ResponseFormV2 = ({
 
       const incomingGeoms = importedData.geometries ?? [];
       setGeometries(incomingGeoms);
+
+      const finalizationDateTime = dayjs(importedData.finalizationDateTime);
+      setImportedFinalizationDatetime(
+        finalizationDateTime.isValid() ? finalizationDateTime : null,
+      );
+
       setHelperCard({
         show: true,
         helperCardType: "CONFIRM",
@@ -212,23 +213,33 @@ const ResponseFormV2 = ({
       }}
       className="flex w-full flex-col gap-4"
     >
-      <div className="flex flex-wrap content-center justify-center gap-1 sm:justify-end">
-        <CHelpChip tooltip="Salvar offline permite salvar uma avaliação em seu dispositivo. Caso esteja sem conexão com a internet, é possível salvar uma avaliação localmente e enviá-la posteriormente." />
-        <CButtonFilePicker
-          fileAccept="application/json"
-          className="w-fit"
-          onFileInput={(e) => {
-            void importData(e);
-          }}
-        >
-          <IconUpload />
-          Importar
-        </CButtonFilePicker>
-        <CButton onClick={generateExport}>
-          <IconDownload />
-          Salvar offline
-        </CButton>
-      </div>
+      {!finalized && (
+        <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
+          <div className="flex gap-1">
+            <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
+            <CButtonFilePicker
+              fileAccept="application/json"
+              className="w-fit"
+              onFileInput={(e) => {
+                void importData(e);
+              }}
+            >
+              <IconUpload />
+              Importar
+            </CButtonFilePicker>
+          </div>
+
+          <CButton
+            square
+            color="error"
+            onClick={() => {
+              setOpenDeleteAssessmentDialog(true);
+            }}
+          >
+            <IconTrash />
+          </CButton>
+        </div>
+      )}
 
       {assessmentTree.categories.map((cat, index) => (
         <Category
@@ -237,6 +248,7 @@ const ResponseFormV2 = ({
           numericResponses={numericResponses}
           geometries={geometries}
           questionsForMention={questionsForMention}
+          finalized={finalized}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           control={control}
         />
@@ -253,12 +265,22 @@ const ResponseFormV2 = ({
       </div>
 
       <SaveAssessmentDialog
+        locationName={locationName}
         assessmentId={assessmentTree.id}
         open={openSaveDialog}
         formValues={formValues}
         geometries={geometries}
+        importedFinalizationDatetime={importedFinalizationDatetime}
         onClose={() => {
           setOpenSaveDialog(false);
+        }}
+      />
+      <DeleteAssessmentDialog
+        assessmentId={assessmentTree.id}
+        locationId={locationId}
+        open={openDeleteAssessmentDialog}
+        onClose={() => {
+          setOpenDeleteAssessmentDialog(false);
         }}
       />
     </form>
@@ -272,6 +294,7 @@ const Category = ({
   questionsForMention,
   handleQuestionGeometryChange,
   control,
+  finalized,
 }: {
   category: AssessmentCategoryItem;
   numericResponses: Map<number, number>;
@@ -279,6 +302,7 @@ const Category = ({
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
 }) => {
   return (
     <CAccordion defaultExpanded>
@@ -299,6 +323,7 @@ const Category = ({
                   numericResponses={numericResponses}
                   geometries={geometries}
                   questionsForMention={questionsForMention}
+                  finalized={finalized}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -311,6 +336,7 @@ const Category = ({
                   numericResponses={numericResponses}
                   geometries={geometries}
                   questionsForMention={questionsForMention}
+                  finalized={finalized}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -330,6 +356,7 @@ const Subcategory = ({
   questionsForMention,
   handleQuestionGeometryChange,
   control,
+  finalized,
 }: {
   subcategory: AssessmentSubcategoryItem;
   numericResponses: Map<number, number>;
@@ -337,6 +364,7 @@ const Subcategory = ({
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
 }) => {
   return (
     <Box
@@ -363,6 +391,7 @@ const Subcategory = ({
                 numericResponses={numericResponses}
                 geometries={geometries}
                 questionsForMention={questionsForMention}
+                finalized={finalized}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 control={control}
               />
@@ -381,6 +410,7 @@ const Question = ({
   questionsForMention,
   handleQuestionGeometryChange,
   control,
+  finalized,
 }: {
   question: AssessmentQuestionItem;
   numericResponses: Map<number, number>;
@@ -388,6 +418,7 @@ const Question = ({
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
 }) => {
   const [openMapDialog, setOpenMapDialog] = useState(false);
   return (
@@ -436,6 +467,7 @@ const Question = ({
                   ?.geometries
               }
               geometryType={question.geometryTypes}
+              finalized={finalized}
               handleQuestionGeometryChange={(e, v) => {
                 handleQuestionGeometryChange({ questionId: e, geometries: v });
               }}
@@ -448,12 +480,17 @@ const Question = ({
         <WrittenQuestion
           question={question}
           numericResponses={numericResponses}
+          finalized={finalized}
           control={control}
         />
       )}
 
       {question.questionType === "OPTIONS" && (
-        <OptionsQuestion question={question} control={control} />
+        <OptionsQuestion
+          question={question}
+          finalized={finalized}
+          control={control}
+        />
       )}
     </Box>
   );
@@ -463,10 +500,12 @@ const WrittenQuestion = ({
   question,
   numericResponses,
   control,
+  finalized,
 }: {
   question: AssessmentQuestionItem;
   numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
 }) => {
   if (question.calculationExpression) {
     return (
@@ -481,21 +520,23 @@ const WrittenQuestion = ({
       <Controller
         name={String(question.questionId)}
         control={control}
-        render={({ field }) => <CNumberField {...field} />}
+        render={({ field }) => <CNumberField readOnly={finalized} {...field} />}
       />
     : <Controller
         name={String(question.questionId)}
         control={control}
-        render={({ field }) => <CTextField {...field} />}
+        render={({ field }) => <CTextField readOnly={finalized} {...field} />}
       />;
 };
 
 const OptionsQuestion = ({
   question,
   control,
+  finalized,
 }: {
   question: AssessmentQuestionItem;
   control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
 }) => {
   if (!question.options) {
     throw new Error("Options questions must have options");
@@ -510,6 +551,7 @@ const OptionsQuestion = ({
             {...field}
             value={Array.isArray(field.value) ? field.value : ([] as number[])}
             clearable
+            readOnly={finalized}
             options={question.options!.map((opt) => opt)}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.text}
@@ -527,6 +569,7 @@ const OptionsQuestion = ({
             {...field}
             value={Array.isArray(field.value) ? null : Number(field.value)}
             clearable
+            readOnly={finalized}
             onChange={(e) => field.onChange(e)}
             options={question.options!}
             getOptionValue={(opt) => opt.id}

@@ -67,6 +67,7 @@ interface MapProviderProps {
     geometries: ResponseGeometry[],
   ) => void;
   handleChangeIsInSelectMode: (val: boolean) => void;
+  finalized: boolean;
 }
 
 const MapContext = createContext(new Map());
@@ -79,6 +80,7 @@ const MapProvider = forwardRef(
       initialGeometries,
       handleQuestionGeometryChange,
       handleChangeIsInSelectMode,
+      finalized,
     }: MapProviderProps,
     ref,
   ) => {
@@ -184,13 +186,16 @@ const MapProvider = forwardRef(
               "circle-fill-color": "#9B59B2",
             },
       });
-      map.addInteraction(draw);
-      handleChangeIsInSelectMode(false);
-      setMapMode("DRAW");
+      if (!finalized) {
+        map.addInteraction(draw);
+        handleChangeIsInSelectMode(false);
+        setMapMode("DRAW");
+      }
+
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, view, currentGeometryType, handleChangeIsInSelectMode]);
+    }, [map, view, currentGeometryType, finalized, handleChangeIsInSelectMode]);
 
     useEffect(() => {
       if (initialGeometries) {
@@ -236,6 +241,7 @@ const MapProvider = forwardRef(
       }
     };
     const switchMode = (newMode: MapMode) => {
+      if (finalized) return;
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
 
@@ -300,27 +306,29 @@ const MapProvider = forwardRef(
         ref={mapRef}
       >
         <MapContext.Provider value={map}>
-          <div className="absolute z-50 flex w-full flex-wrap justify-between">
-            <CToggleButtonGroup
-              value={currentGeometryType}
-              options={geometryTypeOptions}
-              getLabel={(i) => i.label}
-              getValue={(i) => i.id}
-              onChange={(_, v) => {
-                setCurrentGeometryType(v.id);
-              }}
-            />
-            <CToggleButtonGroup
-              options={mapModeOptions}
-              value={mapMode}
-              getLabel={(i) => i.icon}
-              getValue={(i) => i.id}
-              getTooltip={(i) => i.tooltip}
-              onChange={(_, v) => {
-                switchMode(v.id);
-              }}
-            />
-          </div>
+          {!finalized && (
+            <div className="absolute z-50 flex w-full flex-wrap justify-between">
+              <CToggleButtonGroup
+                value={currentGeometryType}
+                options={geometryTypeOptions}
+                getLabel={(i) => i.label}
+                getValue={(i) => i.id}
+                onChange={(_, v) => {
+                  setCurrentGeometryType(v.id);
+                }}
+              />
+              <CToggleButtonGroup
+                options={mapModeOptions}
+                value={mapMode}
+                getLabel={(i) => i.icon}
+                getValue={(i) => i.id}
+                getTooltip={(i) => i.tooltip}
+                onChange={(_, v) => {
+                  switchMode(v.id);
+                }}
+              />
+            </div>
+          )}
         </MapContext.Provider>
       </div>
     );

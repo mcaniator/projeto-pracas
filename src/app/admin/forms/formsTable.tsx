@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 import CMenu from "../../../components/ui/menu/cMenu";
-import { dateTimeFormatter } from "../../../lib/formatters/dateFormatters";
+import { dateTimeWithoutSecondsFormater } from "../../../lib/formatters/dateFormatters";
 
 const FormsTable = ({
   forms,
@@ -54,7 +54,7 @@ const FormsTable = ({
                 />
               </TableCell>
               <TableCell align="right" sx={{ width: "20%" }}>
-                {dateTimeFormatter.format(form.updatedAt)}
+                {dateTimeWithoutSecondsFormater.format(form.updatedAt)}
               </TableCell>
               <TableCell align="right" sx={{ width: "20%" }}>
                 <CMenu

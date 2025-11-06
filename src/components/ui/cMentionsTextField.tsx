@@ -18,14 +18,21 @@ const CMentionsTextField = React.forwardRef<
 >((props, ref) => {
   const { sx, readOnly, spellCheck = false, ...rest } = props;
   const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
+  const baseSx = {
+    "& .MuiInputBase-input": {
+      fontSize: "20px",
+    },
+  };
 
   return (
     <MentionsTextField
       ref={ref}
       type="text"
       spellCheck={spellCheck}
-      InputProps={{ readOnly: readOnly }}
-      sx={{ ...sx, ...readOnlySx }}
+      InputProps={{
+        readOnly: readOnly,
+      }}
+      sx={{ ...baseSx, ...sx, ...readOnlySx }}
       {...rest}
     />
   );

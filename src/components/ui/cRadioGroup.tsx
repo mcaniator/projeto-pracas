@@ -19,6 +19,7 @@ type CRadioGroupProps<T, V extends string | number | boolean = string> = Omit<
   value?: V | null;
   clearable?: boolean;
   disableBorder?: boolean;
+  readOnly?: boolean;
   name?: string;
   getOptionLabel: (option: T) => string;
   getOptionValue: (option: T) => V;
@@ -32,13 +33,21 @@ function CRadioGroup<T, V extends string | number | boolean = string>({
   clearable,
   disableBorder,
   name,
+  readOnly,
   onChange,
   getOptionLabel,
   getOptionValue,
   ...props
 }: CRadioGroupProps<T, V>) {
   const [localValue, setLocalValue] = useState<V | null>(null);
-  const borderSx = disableBorder ? {} : { border: "1px solid #ccc" };
+  const borderSx =
+    disableBorder ?
+      {}
+    : {
+        borderWidth: readOnly ? "2px" : "1px",
+        borderStyle: readOnly ? "dashed" : "solid",
+        borderColor: "#ccc",
+      };
 
   const handleClear = () => {
     setLocalValue(null);
@@ -49,6 +58,7 @@ function CRadioGroup<T, V extends string | number | boolean = string>({
     _: React.ChangeEvent<HTMLInputElement>,
     val: string,
   ) => {
+    if (readOnly) return;
     const selectedOption = options.find(
       (opt) => String(getOptionValue(opt)) === val,
     );

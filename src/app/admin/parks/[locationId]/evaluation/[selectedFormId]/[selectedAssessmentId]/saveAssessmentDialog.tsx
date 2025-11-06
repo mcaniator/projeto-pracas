@@ -1,7 +1,8 @@
 "use client";
 
 import { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useRouter } from "next-nprogress-bar";
+import { useEffect, useState } from "react";
 
 import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
 import { useLoadingOverlay } from "../../../../../../../components/context/loadingContext";
@@ -13,52 +14,116 @@ import { FormValues, ResponseFormGeometry } from "./responseFormV2";
 
 const SaveAssessmentDialog = ({
   open,
+  locationName,
   assessmentId,
   formValues,
   geometries,
+  importedFinalizationDatetime,
   onClose,
 }: {
   open: boolean;
+  locationName: string;
   assessmentId: number;
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
+  importedFinalizationDatetime: Dayjs | null;
   onClose: () => void;
 }) => {
-  const [finalized, setIsFinalized] = useState(false);
-  const [dateTime, setDateTime] = useState<Dayjs | null>(null);
+  const [enableJsonSaving, setEnableJsonSaving] = useState(false);
+  const [showDatePickerError, setShowDatePickerError] = useState(false);
+  const router = useRouter();
+  const [finalized, setIsFinalized] = useState(!!importedFinalizationDatetime);
+  const [dateTime, setDateTime] = useState<Dayjs | null>(
+    importedFinalizationDatetime,
+  );
   const { setLoadingOverlay } = useLoadingOverlay();
-  const { helperCardProcessResponse } = useHelperCard();
+  const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const save = async () => {
+    if (finalized && !dateTime) {
+      setShowDatePickerError(true);
+      return;
+    }
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
-    console.log("VALUES", formValues);
     try {
       const response = await _addResponsesV2({
         assessmentId,
         responses: formValues,
         geometries: geometries,
-        finalizationDate: dateTime?.toDate() ?? null,
+        finalizationDate: finalized ? (dateTime?.toDate() ?? null) : null,
       });
       helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 201) {
-        console.log("ENABLE OFFLINE SAVING"); //TODO
+        setEnableJsonSaving(true);
+      } else {
+        if (finalized) {
+          router.refresh();
+        }
       }
     } catch (e) {
-      console.log("ENABLE OFFLINE SAVING"); //TODO
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao salvar avaliação!</>,
+      });
+      setEnableJsonSaving(true);
     }
 
     setLoadingOverlay({ show: false });
   };
+
+  const generateExport = () => {
+    const data = {
+      finalizationDateTime: finalized ? (dateTime ?? null) : null,
+      assessmentId: assessmentId,
+      responses: formValues,
+      geometries: geometries,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `avaliação_${locationName}_${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  useEffect(() => {
+    setDateTime(importedFinalizationDatetime);
+    setIsFinalized(!!importedFinalizationDatetime);
+  }, [importedFinalizationDatetime]);
+
   return (
     <CDialog
       open={open}
       onClose={onClose}
-      title="Salvar"
-      confirmChildren={<>Salvar</>}
+      title={"Salvar avaliação"}
+      confirmChildren={enableJsonSaving ? <>Salvar offline</> : <>Salvar</>}
       onConfirm={() => {
-        void save();
+        if (enableJsonSaving) {
+          generateExport();
+        } else {
+          void save();
+        }
       }}
     >
       <div className="flex w-full flex-col gap-1">
+        {enableJsonSaving && (
+          <div className="flex w-full flex-col gap-1">
+            <p>{"Ocorreu um erro ao salvar a avaliação."}</p>
+            <p>
+              {
+                'Clique em "SALVAR OFFLINE" para salvar a avaliação em seu dispositivo.'
+              }
+            </p>
+            <p>
+              {
+                "Com este arquivo, é possível enviar a avaliação posteriormente."
+              }
+            </p>
+          </div>
+        )}
         <CSwitch
           checked={finalized}
           label="Salvar como finalizado"
@@ -69,7 +134,9 @@ const SaveAssessmentDialog = ({
         {finalized && (
           <CDateTimePicker
             value={dateTime}
+            error={showDatePickerError}
             onChange={(e) => {
+              setShowDatePickerError(false);
               setDateTime(e);
             }}
             label="Finalizado em"

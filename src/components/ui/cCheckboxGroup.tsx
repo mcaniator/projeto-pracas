@@ -19,6 +19,7 @@ type CCheckboxGroupProps<T, V extends string | number | boolean = string> = {
   clearable?: boolean;
   disableBorder?: boolean;
   name?: string;
+  readOnly?: boolean;
   getOptionLabel: (option: T) => string;
   getOptionValue: (option: T) => V;
   onChange?: (value: V[]) => void;
@@ -31,6 +32,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
   clearable,
   disableBorder,
   name,
+  readOnly,
   onChange,
   getOptionLabel,
   getOptionValue,
@@ -39,7 +41,14 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
     [],
   );
 
-  const borderSx = disableBorder ? {} : { border: "1px solid #ccc" };
+  const borderSx =
+    disableBorder ?
+      {}
+    : {
+        borderWidth: readOnly ? "2px" : "1px",
+        borderStyle: readOnly ? "dashed" : "solid",
+        borderColor: "#ccc",
+      };
 
   const handleClear = () => {
     setLocalValue([]);
@@ -47,6 +56,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
   };
 
   const handleToggle = (val: V) => {
+    if (readOnly) return;
     const newValue =
       localValue.includes(val) ?
         (localValue.filter((v) => v !== val) as V[])

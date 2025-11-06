@@ -19,6 +19,7 @@ const MapDialog = ({
   initialGeometries,
   geometryType,
   questionName,
+  finalized,
   handleQuestionGeometryChange,
 }: {
   openMapDialog: boolean;
@@ -27,6 +28,7 @@ const MapDialog = ({
   initialGeometries: ResponseGeometry[] | undefined;
   geometryType: QuestionGeometryTypes[];
   questionName: string;
+  finalized: boolean;
   handleQuestionGeometryChange: (
     questionId: number,
     geometries: ResponseGeometry[],
@@ -65,7 +67,7 @@ const MapDialog = ({
       open={openMapDialog}
       onClose={onClose}
       onConfirm={handleConcluir}
-      confirmChildren={<IconCheck />}
+      confirmChildren={finalized ? undefined : <IconCheck />}
       onCancel={handleDeleteGeometry}
       cancelSx={{ backgroundColor: "error.main" }}
       cancelChildren={isInSelectMode ? <IconTrash /> : undefined}
@@ -77,6 +79,7 @@ const MapDialog = ({
           initialGeometries={initialGeometries}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           handleChangeIsInSelectMode={handleChangeIsInSelectMode}
+          finalized={finalized}
           ref={mapProviderRef}
         />
       </div>

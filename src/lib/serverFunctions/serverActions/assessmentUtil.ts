@@ -7,6 +7,8 @@ import { getSessionUser } from "@lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidatePath } from "next/cache";
 
+import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+
 type LocationAssessment = NonNullable<
   Awaited<ReturnType<typeof _fetchAssessmentsByLocation>>
 >["assessments"][number];
@@ -124,7 +126,12 @@ const _deleteAssessment = async (assessmentId: number) => {
       roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
     });
   } catch (e) {
-    return { statusCode: 401 };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para excluir avaliação!",
+      } as APIResponseInfo,
+    };
   }
   try {
     const assessment = await prisma.assessment.findUnique({
@@ -142,11 +149,21 @@ const _deleteAssessment = async (assessmentId: number) => {
           roles: ["ASSESSMENT_MANAGER"],
         });
       } catch (e) {
-        return { statusCode: 401 };
+        return {
+          responseInfo: {
+            statusCode: 401,
+            message: "Sem permissão para excluir avaliação!",
+          } as APIResponseInfo,
+        };
       }
     }
   } catch (e) {
-    return { statusCode: 500 };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir avaliação!",
+      } as APIResponseInfo,
+    };
   }
   try {
     await prisma.assessment.delete({
@@ -154,10 +171,19 @@ const _deleteAssessment = async (assessmentId: number) => {
         id: assessmentId,
       },
     });
-    return { statusCode: 200 };
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Avaliação excluída!",
+        showSuccessCard: true,
+      } as APIResponseInfo,
+    };
   } catch (e) {
     return {
-      statusCode: 500,
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir avaliação!",
+      } as APIResponseInfo,
     };
   }
 };
