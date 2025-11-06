@@ -45,6 +45,14 @@ const Page = async (props: { params: Promise<{ locationId: string }> }) => {
           <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
             <Link
               className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
+              href={`/admin/parks/${locationIdNumber}/assessments`}
+            >
+              Avaliações
+            </Link>
+          </PermissionGuard>
+          <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
+            <Link
+              className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
               href={`/admin/parks/${locationIdNumber}/responses`}
             >
               Ver Avaliações

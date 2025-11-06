@@ -109,7 +109,6 @@ const _fetchAssessmentsByLocation = async (locationId: number) => {
         form: {
           select: {
             name: true,
-            version: true,
           },
         },
       },
