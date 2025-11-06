@@ -34,6 +34,8 @@ module.exports = {
         "sea-green": "#608E66",
         emerald: "#65A26D",
         asparagus: "#6DA34D",
+        "praca-green-dark": "#2c753e",
+        "praca-green-lime": "#85cd28",
         "seasick-green": "#DDFBE133",
         "off-white": "#D9D9D9",
         "imperial-red": "#FA4646",
