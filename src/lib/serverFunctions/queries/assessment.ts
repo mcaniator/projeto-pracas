@@ -444,7 +444,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
               dbQuestion.response[0]?.response ?? null;
           }
         } else if (dbQuestion.questionType === "OPTIONS") {
-          console.log(dbQuestion.optionType);
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.ResponseOption[0]?.option?.id ?? null;
@@ -579,10 +578,9 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       },
     };
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
-        statusCode: 200,
+        statusCode: 500,
       } as APIResponseInfo,
       assessmentTree: null,
     };
