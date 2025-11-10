@@ -1,15 +1,73 @@
-import { DateTimePicker, DateTimePickerProps } from "@mui/x-date-pickers";
-import React from "react";
+import {
+  DateTimePicker,
+  DateTimePickerProps,
+  DateTimeValidationError,
+  PickerChangeHandlerContext,
+} from "@mui/x-date-pickers";
+import { PickerValue } from "@mui/x-date-pickers/internals";
+import React, { useCallback } from "react";
 
 type CDateTimePickerProps = DateTimePickerProps & {
   error?: boolean;
+  debounce?: number;
+  clearable?: boolean;
 };
 
 const CDateTimePicker = React.forwardRef<
   HTMLInputElement,
   CDateTimePickerProps
 >((props, ref) => {
-  const { ampm = false, ...rest } = props;
+  const {
+    ampm = false,
+    debounce,
+    clearable,
+    onAccept,
+    onChange,
+    ...rest
+  } = props;
+
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleChange = useCallback(
+    (
+      newValue: PickerValue,
+      context: PickerChangeHandlerContext<DateTimeValidationError>,
+    ) => {
+      if (!onChange) return;
+
+      if (!debounce || debounce <= 0) {
+        onChange(newValue, context);
+        return;
+      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      timeoutRef.current = setTimeout(() => {
+        onChange(newValue, context);
+      }, debounce);
+    },
+    [onChange, debounce],
+  );
+
+  const handleAccept = useCallback(
+    (
+      newValue: PickerValue,
+      context: PickerChangeHandlerContext<DateTimeValidationError>,
+    ) => {
+      if (!onAccept) return;
+
+      if (!debounce || debounce <= 0) {
+        onAccept(newValue, context);
+        return;
+      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      timeoutRef.current = setTimeout(() => {
+        onAccept(newValue, context);
+      }, debounce);
+    },
+    [onAccept, debounce],
+  );
+
   const fieldsetSx =
     props.error ?
       {
@@ -26,9 +84,16 @@ const CDateTimePicker = React.forwardRef<
     <DateTimePicker
       ref={ref}
       ampm={ampm}
+      onChange={handleChange}
+      onAccept={handleAccept}
       slotProps={{
+        field: {
+          clearable: clearable,
+        },
         textField: {
+          InputLabelProps: { shrink: true },
           sx: {
+            mt: "8px",
             "& .MuiPickersOutlinedInput-root": {
               borderRadius: 6,
               fontSize: 20,
@@ -38,6 +103,22 @@ const CDateTimePicker = React.forwardRef<
               color: "primary.main",
             },
             "& .MuiInputLabel-root": labelSx,
+            "& fieldset legend": {
+              display: "none",
+            },
+            "& fieldset": {
+              backgroundColor: "white",
+            },
+            "& .MuiPickersSectionList-root": {
+              zIndex: 1,
+              py: "8.5px",
+            },
+            "& .MuiInputAdornment-root": {
+              zIndex: 1,
+            },
+            "& .MuiPickersInputBase-root": {
+              borderRadius: "16px",
+            },
           },
         },
       }}

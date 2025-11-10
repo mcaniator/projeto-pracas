@@ -5,4 +5,9 @@ type APIResponseInfo = {
   showSuccessCard?: boolean;
 };
 
-export type { APIResponseInfo };
+type APIResponse<T> = {
+  responseInfo: APIResponseInfo;
+  data: T | null;
+};
+
+export type { APIResponseInfo, APIResponse };

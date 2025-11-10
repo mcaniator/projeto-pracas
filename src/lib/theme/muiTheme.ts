@@ -46,6 +46,9 @@ const muiTheme = createTheme({
       lighter5: "#F0F8E8",
       lighter6: "#F6FAF2",
     },
+    secondary: {
+      main: "#0079AB",
+    },
     error: {
       main: "#D32F2F",
       light: "#EF5350",
@@ -58,7 +61,23 @@ const muiTheme = createTheme({
       styleOverrides: {
         root: () => ({
           borderRadius: 16,
+          backgroundColor: "white",
           fontSize: 20,
+          "& fieldset legend": {
+            display: "none",
+          },
+          "& fieldset": {
+            backgroundColor: "white",
+          },
+          "& .MuiOutlinedInput-input": {
+            zIndex: 1,
+          },
+          "& .MuiAutocomplete-endAdornment": {
+            zIndex: 1,
+          },
+          "& .MuiInputAdornment-outlined": {
+            zIndex: 1,
+          },
         }),
         input: ({ theme }) => ({
           fontSize: 16,
@@ -72,6 +91,7 @@ const muiTheme = createTheme({
       defaultProps: {
         sx: {
           fontSize: 20,
+          top: "10%",
         },
       },
     },

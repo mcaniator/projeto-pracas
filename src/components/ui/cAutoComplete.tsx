@@ -62,6 +62,15 @@ function CAutocomplete<
         key={!value ? "uncontrolled" : "controlled"}
         value={value}
         {...rest}
+        renderOption={(
+          props,
+          option,
+          { index }, //By default, Autocomplete uses the option label to generate the option  key. This can lead to render errors in case there are options with the same label. This workaorund in renderOptions aims to fix this.
+        ) => (
+          <li {...props} key={index}>
+            {rest.getOptionLabel ? rest.getOptionLabel(option) : String(option)}
+          </li>
+        )}
         renderInput={(params) => (
           <CTextField
             {...params}

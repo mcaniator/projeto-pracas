@@ -1,6 +1,6 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { searchLocationsById } from "@queries/location";
-import { IconMapPin } from "@tabler/icons-react";
+import { IconLeaf, IconMapPin, IconPlant2 } from "@tabler/icons-react";
 import Link from "next/link";
 
 const Page = async (props: { params: Promise<{ locationId: string }> }) => {
@@ -16,7 +16,7 @@ const Page = async (props: { params: Promise<{ locationId: string }> }) => {
     return (
       <div
         className={
-          "flex h-full w-full flex-col items-center gap-5 overflow-auto rounded-3xl bg-gray-300/30 p-6 text-center shadow-md md:grid-cols-[1fr_auto]"
+          "flex h-full w-full flex-col items-center justify-center gap-5 overflow-auto bg-gradient-to-br from-cambridge-blue to-asparagus text-center md:grid-cols-[1fr_auto]"
         }
       >
         <h3 className="text-4xl font-semibold">{location?.name}</h3>
@@ -27,7 +27,7 @@ const Page = async (props: { params: Promise<{ locationId: string }> }) => {
           </p>
         )}
 
-        <div className="flex flex-wrap place-content-center gap-3">
+        <div className="mb-12 flex flex-wrap place-content-center gap-3">
           <Link
             className="flex w-64 items-center justify-center rounded-lg bg-true-blue p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-indigo-dye"
             href={`/admin/parks/${locationIdNumber}/info`}

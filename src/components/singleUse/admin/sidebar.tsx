@@ -113,7 +113,7 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-[51] flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-[51] flex h-full w-64 flex-col bg-main p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}

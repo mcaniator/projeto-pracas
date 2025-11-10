@@ -25,13 +25,11 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
     <AutoSignOut userActive={user.active}>
       <UserContextProvider initialUserInfo={user}>
         <HelperCardProvider>
-          <div className="white flex h-[100dvh] flex-col bg-gradient-to-br from-gray-950 to-black text-white">
+          <div className="white from-olivine flex h-[100dvh] flex-col bg-gradient-to-br to-asparagus text-white">
             <Header variant={"static"} user={user ?? null} />
             <div className="flex min-h-0 flex-grow justify-center">
               <Sidebar />
-              <div className="max-w-full basis-full rounded-3xl bg-gray-700/10 shadow-inner">
-                {children}
-              </div>
+              <div className="max-w-full basis-full">{children}</div>
             </div>
           </div>
         </HelperCardProvider>

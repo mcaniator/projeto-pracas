@@ -94,13 +94,11 @@ const _fetchAssessmentsByLocation = async (locationId: number) => {
     const assessments = await prisma.assessment.findMany({
       where: {
         locationId,
-        endDate: {
-          not: null,
-        },
       },
       select: {
         id: true,
         startDate: true,
+        endDate: true,
         user: {
           select: {
             username: true,
@@ -113,7 +111,15 @@ const _fetchAssessmentsByLocation = async (locationId: number) => {
         },
       },
     });
-    return { statusCode: 200, assessments };
+    const result = assessments.map((a) => ({
+      id: a.id,
+      startDate: a.startDate,
+      endDate: a.endDate,
+      username: a.user.username!,
+      formName: a.form.name,
+      status: a.endDate ? "Finalizada" : "Em progresso",
+    }));
+    return { statusCode: 200, assessments: result };
   } catch (e) {
     return { statusCode: 500, assessments: [] };
   }

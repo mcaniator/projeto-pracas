@@ -9,40 +9,69 @@ import { useMemo, useState } from "react";
 const LocationList = ({
   locations,
 }: {
-  locations: FuseResult<{ id: number; name: string; city: string; image: string }>[];
+  locations: FuseResult<{
+    id: number;
+    name: string;
+    city: string;
+    image: string;
+  }>[];
 }) => {
-
-  locations = [
+  /*locations = [
     {
-      item: { id: 0, name: "Praça da Igreja", city: "Juiz de Fora", image: "/fotoPraca.jpg"},
-      refIndex: 0
+      item: {
+        id: 0,
+        name: "Praça da Igreja",
+        city: "Juiz de Fora",
+        image: "/fotoPraca.jpg",
+      },
+      refIndex: 0,
     },
     {
-      item: { id: 0, name: "Praça da Lajinha", city: "Juiz de Fora", image: "/fotoPraca.jpg" },
-      refIndex: 0
+      item: {
+        id: 0,
+        name: "Praça da Lajinha",
+        city: "Juiz de Fora",
+        image: "/fotoPraca.jpg",
+      },
+      refIndex: 0,
     },
     {
-      item: { id: 0, name: "Pracinha São Pedro", city: "Juiz de Fora", image: "/fotoPraca.jpg" },
-      refIndex: 0
+      item: {
+        id: 0,
+        name: "Pracinha São Pedro",
+        city: "Juiz de Fora",
+        image: "/fotoPraca.jpg",
+      },
+      refIndex: 0,
     },
     {
-      item: { id: 0, name: "Jardim das Tulipas", city: "Juiz de Fora", image: "/fotoPraca.jpg" },
-      refIndex: 0
-    }
-  ]
+      item: {
+        id: 0,
+        name: "Jardim das Tulipas",
+        city: "Juiz de Fora",
+        image: "/fotoPraca.jpg",
+      },
+      refIndex: 0,
+    },
+  ];*/
 
   return (
     <>
       {locations.map((location, index) => (
         <Link
-          className={`b w-full h-auto flex flex-row gap-4 rounded-full bg-praca-green-lime p-2 pl-12 shadow-xl transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer`}
+          className={`b flex h-auto w-full cursor-pointer flex-row gap-4 rounded-full bg-main p-2 pl-12 shadow-xl transition-transform duration-300 ease-in-out hover:scale-110`}
           key={index}
           href={`/admin/parks/${location.item.id}`}
         >
-          <img src={location.item.image} className="h-14 w-14 rounded-full"></img>
+          <img
+            src={location.item.image}
+            className="h-14 w-14 rounded-full"
+          ></img>
           <div>
             <p className="text-left text-2xl font-bold">{location.item.name}</p>
-            <p className="text-left text-l font-semibold">{location.item.city}</p>
+            <p className="text-l text-left font-semibold">
+              {location.item.city}
+            </p>
           </div>
         </Link>
       ))}
@@ -53,7 +82,7 @@ const LocationList = ({
 const ParkForm = ({
   location,
 }: {
-  location: { id: number; name: string }[];
+  location: { id: number; name: string; city: string; image: string }[];
 }) => {
   const sortedLocations = useMemo(
     () =>
@@ -69,10 +98,10 @@ const ParkForm = ({
   const [hay, setHay] = useState(search("", sortedLocations, fuseHaystack));
 
   return (
-    <div className="flex mt-10 h-full flex-col gap-4 py-1 items-center">
-      <div className={"flex flex-col w-full items-center gap-2"}>
-        <Input 
-          className="w-5/6 h-16 rounded-full bg-stone-50 border-none text-praca-green-dark text-xl font-semibold pl-12"
+    <div className="mt-10 flex h-full flex-col items-center gap-4 py-1">
+      <div className={"flex w-full flex-col items-center gap-2"}>
+        <Input
+          className="h-16 w-5/6 rounded-full border-none bg-stone-50 pl-12 text-xl font-semibold text-praca-green-dark"
           name="name"
           id={"name"}
           onChange={(e) => {

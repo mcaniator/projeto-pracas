@@ -23,6 +23,11 @@ module.exports = {
       },
       colors: {
         main: "#648547",
+        "main-light": "#8FAE6C",
+        "main-dark": "#3F5A2A",
+        "tea-green": "#DCF2B0",
+        viriian: "#1D7860",
+        olivine: "#93B574",
         "ugly-white": "#A7ACB4",
         redwood: "#A34C4C",
         cordovan: "#893838",

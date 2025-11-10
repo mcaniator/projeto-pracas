@@ -7,8 +7,16 @@ import { Coordinate } from "ol/coordinate";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormValues } from "../../../app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseFormV2";
+import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
 import { ResponseGeometry } from "../../types/assessments/geometry";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIResponse,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
+import {
+  generatePaginationResponseInfo,
+  generatePrismaPaginationObject,
+} from "../../utils/apiCall";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 type FinalizedAssessmentsList = NonNullable<
@@ -587,6 +595,89 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
   }
 };
 
+type FetchAssessmentsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessments>>["data"]
+>;
+
+const fetchAssessments = async (params: FetchAssessmentsParams) => {
+  try {
+    const pagination = generatePrismaPaginationObject({
+      pageNumber: params.pageNumber,
+      pageSize: params.pageSize,
+    });
+
+    const where = {
+      startDate: {
+        gte: params.startDate,
+        lte: params.endDate,
+      },
+      formId: params.formId,
+      userId: params.userId,
+      locationId: params.locationId,
+    };
+    const [assessments, totalItems] = await Promise.all([
+      prisma.assessment.findMany({
+        where: where,
+        ...pagination,
+        orderBy: {
+          startDate: "desc",
+        },
+        select: {
+          id: true,
+          startDate: true,
+          endDate: true,
+          user: {
+            select: {
+              username: true,
+            },
+          },
+          form: {
+            select: {
+              name: true,
+            },
+          },
+          location: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      prisma.assessment.count({ where }),
+    ]);
+    console.log(
+      "generated",
+      generatePaginationResponseInfo({
+        totalItems,
+        pageNumber: params.pageNumber,
+        pageSize: params.pageSize,
+      }),
+    );
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        assessments,
+        paginationInfo: generatePaginationResponseInfo({
+          totalItems,
+          pageNumber: params.pageNumber,
+          pageSize: params.pageSize,
+        }),
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliações!",
+      } as APIResponseInfo,
+      data: {
+        assessments: [],
+        paginationInfo: generatePaginationResponseInfo({}),
+      },
+    };
+  }
+};
+
 export {
   fetchAssessmentsInProgress,
   fetchAssessmentByLocationAndForm,
@@ -594,5 +685,10 @@ export {
   fetchAssessmentWithResponses,
   fetchRecentlyCompletedAssessments,
   getAssessmentTree,
+  fetchAssessments,
 };
-export { type FinalizedAssessmentsList, type AssessmentsWithResposes };
+export {
+  type FinalizedAssessmentsList,
+  type AssessmentsWithResposes,
+  type FetchAssessmentsResponse,
+};

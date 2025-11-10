@@ -3,6 +3,7 @@
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import {
+  IconClipboard,
   IconFountain,
   IconListCheck,
   IconLogs,
@@ -51,6 +52,13 @@ const AdminRoot = () => {
         >
           <IconMap className="mb-1" size={34} />
           Mapa
+        </Link>
+        <Link
+          href="assessments"
+          className="flex w-64 items-center justify-center rounded-lg bg-sky-500/70 p-4 text-3xl bg-blend-darken shadow-md transition-all duration-200 hover:bg-sky-900"
+        >
+          <IconClipboard className="mb-1" size={34} />
+          Avaliações
         </Link>
 
         <PermissionGuard requiresAnyRoleGroups={["FORM"]}>
