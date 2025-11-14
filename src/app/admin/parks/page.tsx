@@ -27,7 +27,7 @@ const AdminRoot = async () => {
             "flex flex-col gap-1 overflow-auto rounded-3xl p-3 text-center"
           }
         >
-          <h3 className={"text-5xl font-semibold"}>Locais</h3>
+          <h3 className={"text-5xl font-semibold"}>Praças</h3>
 
           <ParkForm
             location={parks.map((p) => ({

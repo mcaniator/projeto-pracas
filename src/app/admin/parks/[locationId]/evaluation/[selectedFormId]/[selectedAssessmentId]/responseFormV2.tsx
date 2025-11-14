@@ -114,12 +114,10 @@ const ResponseFormV2 = ({
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
+  const [filledCount, setFilledCount] = useState(0);
 
   const allValues = useWatch({ control });
-
-  const filledCount = Object.values(allValues).filter(
-    (v) => v != null && v !== "" && (!(v instanceof Array) || v.length > 0),
-  ).length;
+  console.log(allValues);
 
   const totalQuestions = assessmentTree.totalQuestions;
 
@@ -198,18 +196,48 @@ const ResponseFormV2 = ({
 
   useEffect(() => {
     const numericResponses = new Map<number, number>();
+    let filledFieldsCounter = 0;
     Object.entries(allValues).forEach(([key, val]) => {
       if (typeof val === "number") {
         numericResponses.set(Number(key), val);
       }
+      if (
+        val != null &&
+        val !== "" &&
+        (!(val instanceof Array) || val.length > 0)
+      ) {
+        filledFieldsCounter++;
+      }
     });
     setNumericResponses(numericResponses);
+    setFilledCount(filledFieldsCounter);
   }, [allValues]);
 
   return (
     <form
       onSubmit={(e) => {
         void handleSubmit(onSubmit)(e);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+
+          const form = e.currentTarget;
+          const elements = Array.from(form.elements);
+          const currentIndex = elements.indexOf(e.target as Element);
+          for (let i = currentIndex + 1; i < elements.length; i++) {
+            const el = elements[i] as HTMLElement;
+            const realInput =
+              el.tagName === "INPUT" ?
+                el
+              : (el.querySelector("input") as HTMLElement | null);
+
+            if (realInput) {
+              realInput.focus();
+              return;
+            }
+          }
+        }
       }}
       className="flex w-full flex-col gap-4"
     >
@@ -520,12 +548,16 @@ const WrittenQuestion = ({
       <Controller
         name={String(question.questionId)}
         control={control}
-        render={({ field }) => <CNumberField readOnly={finalized} {...field} />}
+        render={({ field }) => (
+          <CNumberField readOnly={finalized} debounce={1000} {...field} />
+        )}
       />
     : <Controller
         name={String(question.questionId)}
         control={control}
-        render={({ field }) => <CTextField readOnly={finalized} {...field} />}
+        render={({ field }) => (
+          <CTextField readOnly={finalized} debounce={1000} {...field} />
+        )}
       />;
 };
 

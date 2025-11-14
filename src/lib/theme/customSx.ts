@@ -7,4 +7,7 @@ export const readOnlyTextFieldSx = {
   "& .MuiOutlinedInput-input": {
     cursor: "not-allowed",
   },
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "#000",
+  },
 };

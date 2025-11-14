@@ -1,9 +1,16 @@
 import { Box, IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconSearch, IconX } from "@tabler/icons-react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
+import { createDebouncedFunction } from "../../lib/utils/ui";
 
 type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   errorMessage?: string;
@@ -15,6 +22,7 @@ type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   resetOnFormSubmit?: boolean;
   appendIconButton?: React.ReactNode;
   maxCharacters?: number;
+  debounce?: number;
   onRequiredCheck?: (filled: boolean) => void;
   onEnterDown?: () => void;
   onSearch?: () => void;
@@ -42,6 +50,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       defaultValue,
       autoComplete,
       label,
+      debounce = 0,
       sx,
       value,
       onKeyDown,
@@ -53,11 +62,18 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       onAppendIconButtonClick,
       ...rest
     } = props;
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState<string>("");
     const [mounted, setMounted] = useState(false); // SSR safe flag
     const [characterCount, setCharacterCount] = useState(0);
+
+    const debouncedOnChange = useMemo(
+      () => createDebouncedFunction({ func: onChange, timeoutRef, debounce }),
+      [debounce, onChange],
+    );
 
     const validate = useCallback(() => {
       const value = localValue;
@@ -77,11 +93,11 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       /*if (required) {
         validate();
       }*/
-      if (onChange) {
-        onChange(event);
-      }
-      if (!value) {
-        setLocalValue(event.target.value);
+
+      setLocalValue(event.target.value);
+
+      if (debouncedOnChange) {
+        debouncedOnChange(event);
       }
     };
 
@@ -126,6 +142,9 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     };
 
     useEffect(() => {
+      if (localValue === value) {
+        return;
+      }
       if (maxCharacters && String(value).length > maxCharacters) {
         const trimmedValue = String(value).substring(0, maxCharacters);
         if (onChange) {
@@ -161,8 +180,10 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       if (required) {
         validate();
       }
-      setCharacterCount(localValue.length);
-    }, [localValue, required, validate]);
+      if (maxCharacters) {
+        setCharacterCount(localValue.length);
+      }
+    }, [localValue, required, maxCharacters, validate]);
 
     const defaultSx = { mt: "0px", mb: "0px" };
 

@@ -1,13 +1,15 @@
 import { IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
+import { createDebouncedFunction } from "../../lib/utils/ui";
 
 type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   errorMessage?: string;
   readOnly?: boolean;
+  debounce?: number;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
 };
@@ -26,16 +28,23 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       disabled,
       readOnly,
       label,
+      debounce = 0,
       sx,
       onRequiredCheck,
       onChange,
       onBlur,
       ...rest
     } = props;
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState("");
+
+    const debouncedOnChange = useMemo(
+      () => createDebouncedFunction({ func: onChange, timeoutRef, debounce }),
+      [debounce, onChange],
+    );
 
     const validate = () => {
       const value = inputRef?.current?.value ?? "";
@@ -63,16 +72,16 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       if (required) {
         validate();
       }
-      if (onChange) {
+      if (debouncedOnChange) {
         if (
           newLocalValue === "" ||
           newLocalValue === "-" ||
           newLocalValue === "+" ||
           newLocalValue === "."
         ) {
-          onChange(null);
+          debouncedOnChange(null);
         } else {
-          onChange(Number(newLocalValue));
+          debouncedOnChange(Number(newLocalValue));
         }
       }
     };
@@ -103,11 +112,11 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const forceFireOnChange = (next: string) => {
-      if (onChange) {
+      if (debouncedOnChange) {
         if (next === "") {
-          onChange(null);
+          debouncedOnChange(null);
         } else {
-          onChange(Number(next));
+          debouncedOnChange(Number(next));
         }
       }
     };
@@ -127,15 +136,33 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         margin={margin}
         size={size}
         value={localValue}
-        disabled={disabled}
+        disabled={disabled || readOnly}
         type="text"
-        inputMode="numeric"
         error={(required && !isValid) || error}
         helperText={(required && !isValid) || error ? errorMessage : helperText}
         onChange={handleChange}
         onBlur={handleBlur}
-        sx={{ mb: 0, mt: label ? "8px" : "0px", ...sx, ...readOnlySx }}
+        sx={{
+          mb: 0,
+          mt: label ? "8px" : "0px",
+          ...sx,
+          ...readOnlySx,
+          "& input[type=number]::-webkit-inner-spin-button": {
+            WebkitAppearance: "none",
+            margin: 0,
+          },
+          "& input[type=number]::-webkit-outer-spin-button": {
+            WebkitAppearance: "none",
+            margin: 0,
+          },
+          "& input[type=number]": {
+            MozAppearance: "textfield",
+          },
+        }}
         slotProps={{
+          htmlInput: {
+            inputMode: "decimal",
+          },
           input: {
             endAdornment: !disabled && !readOnly && (
               <InputAdornment position="end">

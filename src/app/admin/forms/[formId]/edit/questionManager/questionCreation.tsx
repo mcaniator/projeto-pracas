@@ -415,7 +415,7 @@ const QuestionCreation = ({
                     ]}
                     value={hasAssociatedGeometry}
                     onChange={(val) => {
-                      setHasAssociatedGeometry(val === "true");
+                      setHasAssociatedGeometry(val);
                     }}
                     getOptionValue={(i) => i.value}
                     getOptionLabel={(i) => i.label}
