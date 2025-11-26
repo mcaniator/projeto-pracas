@@ -21,8 +21,6 @@ import {
   useMemo,
 } from "react";
 
-import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
-import { APIResponseInfo } from "../../../lib/types/backendCalls/APIResponse";
 import { MapContext } from "./mapProvider";
 
 const PolygonProviderVectorSourceContext = createContext<
@@ -30,16 +28,14 @@ const PolygonProviderVectorSourceContext = createContext<
 >(new VectorSource());
 
 const PolygonProvider = ({
-  fullLocations,
-  fetchLocationsResponseInfo,
+  fullLocationsPromise,
   children,
 }: {
-  fullLocations: FetchLocationsResponse["locations"];
-  fetchLocationsResponseInfo: APIResponseInfo;
+  fullLocationsPromise: LocationsWithPolygonResponse;
   children: ReactNode;
 }) => {
-  //const fullLocations = fullLocationsPromise;
-  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
+  const fullLocations = fullLocationsPromise;
+  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
 
   const polygonsVectorSource = useMemo(
@@ -48,10 +44,21 @@ const PolygonProvider = ({
   );
 
   useEffect(() => {
-    helperCardProcessResponse(fetchLocationsResponseInfo);
+    if (fullLocations.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para visualizar polígonos!</>,
+      });
+    } else if (fullLocations.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao carregar polígonos!</>,
+      });
+    }
     const reader = new GeoJSON();
-    console.log("FRONT", fullLocations);
-    const featureArray = fullLocations
+    const featureArray = fullLocations.locations
       .filter((location) => location.st_asgeojson)
       .map((location) => {
         const geometry = reader.readGeometry(location.st_asgeojson);

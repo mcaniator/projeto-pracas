@@ -17,8 +17,8 @@ type ParkRegisterData = {
   usableArea: string | null;
   legalArea: string | null;
   incline: string | null;
-  category: string | null;
-  type: string | null;
+  categoryId: number | null;
+  typeId: number | null;
   hasGeometry: boolean;
   narrowAdministrativeUnit: string | null;
   intermediateAdministrativeUnit: string | null;

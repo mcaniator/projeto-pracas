@@ -9,4 +9,15 @@ type LocationsWithPolygonResponse = {
   locations: LocationWithPolygon[];
 };
 
+export type LocationForMap = {
+  id: number;
+  name: string;
+  popularName: string | null;
+  typeId: number;
+  categoryId: number;
+  assessmentCount: number;
+  tallyCount: number;
+  st_asgeojson: string | null;
+};
+
 export { type LocationWithPolygon, type LocationsWithPolygonResponse };

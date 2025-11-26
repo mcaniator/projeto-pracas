@@ -20,7 +20,7 @@ const CCalculationChip = ({
   questions,
 }: CalculationChipProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const tooltip = "Questão preenchida por cáculo";
+  const tooltip = "Questão preenchida por cálculo";
   const icon = <IconCalculator />;
   const variant = "default";
 

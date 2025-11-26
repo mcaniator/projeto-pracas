@@ -26,7 +26,7 @@ const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
       default:
         "fixed bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
       fixed: "fixed top-0",
-      static: "static bg-main",
+      static: "static",
     },
   },
 

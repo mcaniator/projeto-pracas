@@ -93,10 +93,11 @@ export async function fetchAPI<T>({
   const response = await fetch(fullUrl, options);
 
   if (!response.ok) {
+    const message = await response.text();
     return {
       responseInfo: {
         statusCode: response.status,
-        message: `Erro na requisição ao servidor!`,
+        message: message ?? `Erro na requisição ao servidor!`,
       },
       data: null,
     };

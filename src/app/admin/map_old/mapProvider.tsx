@@ -49,7 +49,7 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
   return (
     <div
       id="map"
-      className={"relative h-full w-full max-w-[100vw] overflow-hidden"}
+      className={"h-full w-full overflow-clip rounded-3xl"}
       ref={ref}
     >
       <MapContext.Provider value={map}>{children}</MapContext.Provider>

@@ -399,11 +399,11 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String  @db.VarChar(255)
-  popularName         String? @db.VarChar(255)
-  firstStreet         String  @db.VarChar(255)
-  secondStreet        String? @db.VarChar(255)
-  thirdStreet         String? @db.VarChar(255)
-  fourthStreet        String? @db.VarChar(255)
+  popularName         String? @map("popular_name") @db.VarChar(255)
+  firstStreet         String  @map("first_street") @db.VarChar(255)
+  secondStreet        String? @map("second_street") @db.VarChar(255)
+  thirdStreet         String? @map("third_street") @db.VarChar(255)
+  fourthStreet        String? @map("fourth_street") @db.VarChar(255)
   notes               String? @db.Text
   cityId              Int?    @map("city_id")
   city                City?   @relation(fields: [cityId], references: [id])

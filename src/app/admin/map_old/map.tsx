@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import PolygonsAndClientContainer from "./PolygonsAndClientContainer";
-import Sidebar from "./sidebar/sidebar";
 
 const MapProvider = dynamic(() => import("./mapProvider"), {
   ssr: false,
@@ -35,14 +34,14 @@ const Map = ({
         fallback={
           <div className="fixed left-0 top-0 z-50 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-50 text-lg">
             <LoadingIcon size={32} />
-            Carregando filtros...
+            Carregando praças...
           </div>
         }
       >
         <PolygonsAndClientContainer
-          citiesPromise={citiesPromise}
           locationCategoriesPromise={locationCategoriesPromise}
           locationTypesPromise={locationTypesPromise}
+          citiesPromise={citiesPromise}
         />
       </Suspense>
     </MapProvider>
