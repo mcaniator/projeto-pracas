@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
@@ -17,7 +15,6 @@ export const fetchLocationCategories = async () => {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
-      statusCode: 200,
       data: {
         categories: locationCategories,
       },

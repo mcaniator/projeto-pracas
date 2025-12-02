@@ -1,9 +1,9 @@
+import { prisma } from "@/lib/prisma";
 import { getAssessmentTree } from "@queries/assessment";
 import { IconClipboard, IconMapPin } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
 import { dateTimeFormatter } from "../../../../../../../lib/formatters/dateFormatters";
-import { prisma } from "../../../../../../../lib/prisma";
 import ResponseFormV2 from "./responseFormV2";
 
 const Responses = async (props: {

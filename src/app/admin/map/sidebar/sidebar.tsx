@@ -1,40 +1,48 @@
 "use client";
 
-import { IconFilter, IconPlus } from "@tabler/icons-react";
-import { use, useState } from "react";
+import { IconFilter } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
-import PermissionGuard from "../../../../components/auth/permissionGuard";
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "../../../../components/ui/accordion/CAccordionSummary";
 import CAutocomplete from "../../../../components/ui/cAutoComplete";
-import CButton from "../../../../components/ui/cButton";
 import CTextField from "../../../../components/ui/cTextField";
-import CToggleButtonGroup from "../../../../components/ui/cToggleButtonGroup";
-import { FetchCitiesType } from "../../../../lib/serverFunctions/queries/city";
+import { FetchCitiesResponse } from "../../../../lib/serverFunctions/queries/city";
 import { LocationsWithPolygonResponse } from "../../../../lib/types/location/location";
 
-const Sidebar = ({
-  citiesPromise,
-  locationCategoriesPromise,
-  locationTypesPromise,
-}: {
-  citiesPromise: Promise<FetchCitiesType>;
-  locationCategoriesPromise: Promise<{
-    statusCode: number;
-    message: string;
-    categories: { id: number; name: string }[];
-  }>;
-  locationTypesPromise: Promise<{
-    statusCode: number;
-    message: string;
-    types: { id: number; name: string }[];
-  }>;
-}) => {
-  const cities = use(citiesPromise);
-  const locationCategories = use(locationCategoriesPromise);
-  const locationTypes = use(locationTypesPromise);
-  const [selectedCity, setSelectedCity] = useState(cities.cities[0]);
+type UnitType =
+  FetchCitiesResponse["cities"][number]["narrowAdministrativeUnit"];
+
+const Sidebar = () => {
+  const [citiesOptions, setCitiesOptions] = useState<
+    FetchCitiesResponse["cities"] | null
+  >(null);
+  const [selectedCity, setSelectedCity] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
+  const [cityAdmUnits, setCityAdmUnits] = useState<{
+    narrowUnits: UnitType;
+    intermediateUnits: UnitType;
+    broadUnits: UnitType;
+  }>({
+    narrowUnits: [],
+    intermediateUnits: [],
+    broadUnits: [],
+  });
+
+  useEffect(() => {}, []);
+
+  useEffect(() => {
+    const cityOption = citiesOptions?.find((c) => c.id === parkData.cityId);
+    setCityAdmUnits({
+      broadUnits: cityOption?.broadAdministrativeUnit ?? [],
+      intermediateUnits: cityOption?.intermediateAdministrativeUnit ?? [],
+      narrowUnits: cityOption?.narrowAdministrativeUnit ?? [],
+    });
+  }, [citiesOptions]);
   return (
     <div
       className="flex w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1"
@@ -43,9 +51,9 @@ const Sidebar = ({
       <div className="flex flex-col gap-1 overflow-auto">
         <CAutocomplete
           label="Cidade"
-          value={selectedCity}
+          value={selectedCity ?? { id: -1, name: "Nenhuma cidade cadastrada" }}
           disableClearable
-          options={cities.cities}
+          options={citiesOptions ?? []}
           isOptionEqualToValue={(option, value) => option.id === value.id}
           getOptionLabel={(o) => o.name}
           onChange={(_, v) => setSelectedCity(v)}
@@ -66,35 +74,19 @@ const Sidebar = ({
             <div className="flex flex-col gap-1">
               <CTextField label="Nome" />
               <CAutocomplete
+                label="Região administrativa ampla"
+                options={cityAdmUnits.broadUnits ?? []}
+              />
+              <CAutocomplete
+                label="Região administrativa intermendiária"
+                options={cityAdmUnits.intermediateUnits ?? []}
+              />
+              <CAutocomplete
                 label="Região administrativa estreita"
-                options={selectedCity?.narrowAdministrativeUnit ?? []}
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                getOptionLabel={(i) => i.name}
+                options={cityAdmUnits.narrowUnits ?? []}
               />
-              <CAutocomplete
-                label="Região administrativa intermediária"
-                options={selectedCity?.intermediateAdministrativeUnit ?? []}
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                getOptionLabel={(i) => i.name}
-              />
-              <CAutocomplete
-                label="Região adminstrativa ampla"
-                options={selectedCity?.broadAdministrativeUnit ?? []}
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                getOptionLabel={(i) => i.name}
-              />
-              <CAutocomplete
-                label="Categoria"
-                options={locationCategories.categories}
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                getOptionLabel={(i) => i.name}
-              />
-              <CAutocomplete
-                label="Tipo"
-                options={locationTypes.types}
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                getOptionLabel={(i) => i.name}
-              />
+              <CAutocomplete label="Categoria" options={[]} />
+              <CAutocomplete label="Tipo" options={[]} />
             </div>
           </CAccordionDetails>
         </CAccordion>

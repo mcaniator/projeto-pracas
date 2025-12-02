@@ -1,4 +1,10 @@
-import { IconButton, IconButtonOwnProps, InputAdornment } from "@mui/material";
+import CButton from "@/components/ui/cButton";
+import {
+  IconButton,
+  IconButtonOwnProps,
+  InputAdornment,
+  Skeleton,
+} from "@mui/material";
 import Autocomplete, { AutocompleteProps } from "@mui/material/Autocomplete";
 import React from "react";
 
@@ -22,6 +28,9 @@ type CAutocompleteProps<
   disableAppendIconButton?: boolean;
   placeholder?: string;
   name?: string;
+  suffixButtonChildren?: React.ReactNode;
+  showAppendButtonWhenClear?: boolean;
+  onSuffixButtonClick?: () => void;
   onAppendIconButtonClick?: () => void;
 };
 
@@ -41,73 +50,103 @@ function CAutocomplete<
     appendIconButtonSx,
     placeholder,
     name,
+    loading,
+    suffixButtonChildren,
+    showAppendButtonWhenClear,
     onAppendIconButtonClick,
+    onSuffixButtonClick,
     ...rest
   } = props;
   const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
 
   const handleAppendIconButtonClick = () => {
-    if (onAppendIconButtonClick) {
-      onAppendIconButtonClick();
-    }
+    onAppendIconButtonClick?.();
   };
 
-  return (
-    <>
-      {!!name && name.length > 0 && (
-        <input type="hidden" value={value ? String(value) : ""} />
-      )}
+  const handleSuffixButtonClick = () => {
+    onSuffixButtonClick?.();
+  };
 
-      <Autocomplete
-        key={!value ? "uncontrolled" : "controlled"}
-        value={value}
-        {...rest}
-        renderOption={(
-          props,
-          option,
-          { index }, //By default, Autocomplete uses the option label to generate the option  key. This can lead to render errors in case there are options with the same label. This workaorund in renderOptions aims to fix this.
-        ) => (
-          <li {...props} key={index}>
-            {rest.getOptionLabel ? rest.getOptionLabel(option) : String(option)}
-          </li>
-        )}
-        renderInput={(params) => (
-          <CTextField
-            {...params}
-            isAutocompleteInput
-            placeholder={placeholder}
-            InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
-            InputProps={{
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {params.InputProps.endAdornment}
-                  {appendIconButton && (
-                    <InputAdornment position="end">
-                      <IconButton
-                        sx={{
-                          padding: "0px 8px",
-                          color: disableAppendIconButton ? "gray" : "inherit",
-                          ...appendIconButtonSx,
-                        }}
-                        disabled={disableAppendIconButton}
-                        edge="end"
-                        onClick={handleAppendIconButtonClick}
-                      >
-                        {appendIconButton}
-                      </IconButton>
-                    </InputAdornment>
-                  )}
-                </>
-              ),
-            }}
-            sx={{ ...sx, ...readOnlySx }}
-            label={label}
-          />
-        )}
-      />
-    </>
+  const innerComponent = (
+    <Autocomplete
+      key={!value ? "uncontrolled" : "controlled"}
+      value={value}
+      {...rest}
+      renderOption={(
+        props,
+        option,
+        { index }, //By default, Autocomplete uses the option label to generate the option  key. This can lead to render errors in case there are options with the same label. This workaorund in renderOptions aims to fix this.
+      ) => (
+        <li {...props} key={index}>
+          {rest.getOptionLabel ? rest.getOptionLabel(option) : String(option)}
+        </li>
+      )}
+      renderInput={(params) => (
+        <CTextField
+          {...params}
+          isAutocompleteInput
+          placeholder={placeholder}
+          InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
+          InputProps={{
+            ...params.InputProps,
+            endAdornment: (
+              <>
+                {params.InputProps.endAdornment}
+                {((appendIconButton && showAppendButtonWhenClear) ||
+                  (appendIconButton && value)) && (
+                  <InputAdornment position="end">
+                    <IconButton
+                      sx={{
+                        padding: "0px 8px",
+                        color: disableAppendIconButton ? "gray" : "inherit",
+                        ...appendIconButtonSx,
+                      }}
+                      disabled={disableAppendIconButton}
+                      edge="end"
+                      onClick={handleAppendIconButtonClick}
+                    >
+                      {appendIconButton}
+                    </IconButton>
+                  </InputAdornment>
+                )}
+              </>
+            ),
+          }}
+          sx={{ ...sx, ...readOnlySx }}
+          label={label}
+        />
+      )}
+    />
   );
+
+  if (loading) {
+    return (
+      <Skeleton height={53} variant="rectangular" sx={{ width: "100%" }} />
+    );
+  } else if (suffixButtonChildren) {
+    return (
+      <div className="flex w-full gap-1">
+        {!!name && name.length > 0 && (
+          <input type="hidden" name={name} value={value ? String(value) : ""} />
+        )}
+
+        {innerComponent}
+        <CButton square onClick={handleSuffixButtonClick}>
+          {suffixButtonChildren}
+        </CButton>
+      </div>
+    );
+  } else {
+    return (
+      <>
+        {!!name && name.length > 0 && (
+          <input type="hidden" name={name} value={value ? String(value) : ""} />
+        )}
+
+        {innerComponent}
+      </>
+    );
+  }
 }
 
 export default CAutocomplete;

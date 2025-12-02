@@ -1,49 +1,47 @@
 "use client";
 
-import { IconTrash } from "@tabler/icons-react";
+import { _saveLocationType } from "@/lib/serverFunctions/serverActions/locationType";
 import { useActionState, useEffect } from "react";
 
 import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
 import CTextField from "../../../../../../components/ui/cTextField";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { _createLocationCategory } from "../../../../../../lib/serverFunctions/serverActions/locationCategory";
 
-const LocationCategoryCreationDialog = ({
+const LocationTypeCreationDialog = ({
   open,
-  selectedCategory,
+  selectedType,
   onClose,
-  reloadCategories,
+  reloadTypes,
 }: {
   open: boolean;
-  selectedCategory: {
+  selectedType: {
     id: number;
     name: string;
   } | null;
   onClose: () => void;
-  reloadCategories: () => void;
+  reloadTypes: () => void;
 }) => {
   const { helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending] = useActionState(
-    _createLocationCategory,
-    { responseInfo: { statusCode: 0 } },
-  );
+  const [state, formAction, isPending] = useActionState(_saveLocationType, {
+    responseInfo: { statusCode: 0 },
+  });
   useEffect(() => {
     helperCardProcessResponse(state.responseInfo);
     if (isPending) {
-      setLoadingOverlay({ show: true, message: "Salvando categoria..." });
+      setLoadingOverlay({ show: true, message: "Salvando tipo..." });
     } else {
       setLoadingOverlay({ show: false });
     }
     if (state.responseInfo.statusCode === 201) {
-      reloadCategories();
+      reloadTypes();
     }
   }, [
     isPending,
     state,
     helperCardProcessResponse,
-    reloadCategories,
+    reloadTypes,
     setLoadingOverlay,
   ]);
 
@@ -53,18 +51,18 @@ const LocationCategoryCreationDialog = ({
       action={formAction}
       open={open}
       onClose={onClose}
-      title={selectedCategory ? "Editar categoria" : "Criar categoria"}
-      confirmChildren={selectedCategory ? "Editar" : "Criar"}
-      cancelChildren={selectedCategory ? <IconTrash /> : undefined}
+      title={selectedType ? "Editar tipo" : "Criar tipo"}
+      confirmChildren={selectedType ? "Editar" : "Criar"}
+      cancelChildren={selectedType ? "Excluir" : undefined}
       cancelColor="error"
     >
       <input
         type="hidden"
         name="typeId"
-        value={selectedCategory?.id ?? undefined}
+        value={selectedType?.id ?? undefined}
       />
       <CTextField
-        defaultValue={selectedCategory ? selectedCategory.name : ""}
+        defaultValue={selectedType ? selectedType.name : ""}
         resetOnFormSubmit
         required
         maxCharacters={255}
@@ -75,4 +73,4 @@ const LocationCategoryCreationDialog = ({
   );
 };
 
-export default LocationCategoryCreationDialog;
+export default LocationTypeCreationDialog;

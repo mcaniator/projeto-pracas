@@ -1,3 +1,5 @@
+import { BrazilianStates } from "@prisma/client";
+
 type ParkRegisterData = {
   name: string | null;
   popularName: string | null;
@@ -5,8 +7,8 @@ type ParkRegisterData = {
   secondStreet: string | null;
   thirdStreet: string | null;
   fourthStreet: string | null;
-  city: string | null;
-  state: string | null;
+  cityId: number | null;
+  state: BrazilianStates;
   notes: string | null;
   isPark: boolean;
   inactiveNotFound: boolean;

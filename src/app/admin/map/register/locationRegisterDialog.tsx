@@ -19,6 +19,7 @@ import {
   _updateLocation,
 } from "../../../../lib/serverFunctions/serverActions/locationUtil";
 import { ParkRegisterData } from "../../../../lib/types/parks/parkRegister";
+import AddressStep from "./registerSteps/addressStep";
 import BasicInfoStep from "./registerSteps/basicInfoStep";
 
 const initialState = {
@@ -51,7 +52,7 @@ const LocationRegisterDialog = ({
         thirdStreet: null,
         fourthStreet: null,
         city: null,
-        state: null,
+        state: "MG",
         notes: null,
         isPark: true,
         inactiveNotFound: false,
@@ -153,7 +154,7 @@ const LocationRegisterDialog = ({
       fullScreen
     >
       <div className="flex flex-col gap-1">
-        <Stepper activeStep={step} alternativeLabel>
+        <Stepper activeStep={step - 1} alternativeLabel>
           {steps.map((label, index) => (
             <Step key={index}>
               <StepLabel>{label}</StepLabel>
@@ -162,6 +163,13 @@ const LocationRegisterDialog = ({
         </Stepper>
         {step === 1 && (
           <BasicInfoStep
+            parkData={parkData}
+            setParkData={setParkData}
+            setEnableNextStep={setEnableNextStep}
+          />
+        )}
+        {step === 2 && (
+          <AddressStep
             parkData={parkData}
             setParkData={setParkData}
             setEnableNextStep={setEnableNextStep}

@@ -1,34 +1,16 @@
 "use client";
 
 import LoadingIcon from "@components/LoadingIcon";
-import { FetchCitiesType } from "@queries/city";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import PolygonsAndClientContainer from "./PolygonsAndClientContainer";
-import Sidebar from "./sidebar/sidebar";
 
 const MapProvider = dynamic(() => import("./mapProvider"), {
   ssr: false,
 });
 
-const Map = ({
-  citiesPromise,
-  locationCategoriesPromise,
-  locationTypesPromise,
-}: {
-  citiesPromise: Promise<FetchCitiesType>;
-  locationCategoriesPromise: Promise<{
-    statusCode: number;
-    message: string;
-    categories: { id: number; name: string }[];
-  }>;
-  locationTypesPromise: Promise<{
-    statusCode: number;
-    message: string;
-    types: { id: number; name: string }[];
-  }>;
-}) => {
+const Map = () => {
   return (
     <MapProvider>
       <Suspense
@@ -39,11 +21,7 @@ const Map = ({
           </div>
         }
       >
-        <PolygonsAndClientContainer
-          citiesPromise={citiesPromise}
-          locationCategoriesPromise={locationCategoriesPromise}
-          locationTypesPromise={locationTypesPromise}
-        />
+        <PolygonsAndClientContainer />
       </Suspense>
     </MapProvider>
   );

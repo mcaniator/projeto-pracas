@@ -1,25 +1,34 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 
 type LocationTypes = Awaited<ReturnType<typeof fetchLocationTypes>>;
 
-const fetchLocationTypes = async () => {
+export type FetchLocationTypesResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchLocationTypes>>["data"]
+>;
+
+export const fetchLocationTypes = async () => {
   try {
     const locationTypes = await prisma.locationType.findMany();
     return {
-      statusCode: 200,
-      message: "Location types fetch successful",
-      types: locationTypes,
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        types: locationTypes,
+      },
     };
   } catch (e) {
     return {
-      statusCode: 500,
-      message: "Error during category fetch",
-      types: [],
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao buscar categorias de praças!",
+      } as APIResponseInfo,
+      data: {
+        types: [],
+      },
     };
   }
 };
 
-export { fetchLocationTypes };
 export { type LocationTypes };
