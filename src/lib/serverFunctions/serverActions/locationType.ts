@@ -25,7 +25,7 @@ export const _saveLocationType = async (
   let typeId: number | null | undefined = null;
   try {
     name = z.string().trim().max(255).min(1).parse(formData.get("name"));
-    typeId = z.coerce.number().nullish().parse(formData.get("typeId"));
+    typeId = z.coerce.number().nullish().parse(formData.get("itemId"));
   } catch (e) {
     return {
       responseInfo: { statusCode: 400, message: "" } as APIResponseInfo,

@@ -1,18 +1,20 @@
+import SaveCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/SaveCityDialog";
+import DeleteCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteCityDialog";
 import { BrazilianStates } from "@prisma/client";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
-import CButton from "../../../../../components/ui/cButton";
-import CSkeletonGroup from "../../../../../components/ui/cSkeletonGroup";
 import CTextField from "../../../../../components/ui/cTextField";
 import { _fetchCities } from "../../../../../lib/serverFunctions/apiCalls/city";
 import { FetchCitiesResponse } from "../../../../../lib/serverFunctions/queries/city";
 import { ParkRegisterData } from "../../../../../lib/types/parks/parkRegister";
-import CityCreationDialog from "./parametersDialogs/cityCreationDialog";
 
 type UnitType =
   FetchCitiesResponse["cities"][number]["narrowAdministrativeUnit"];
+
+export type CategoryOrType = "CATEGORY" | "TYPE";
+export type AdministrativeUnitLevel = "NARROW" | "INTERMEDIATE" | "BROAD";
 
 const AddressStep = ({
   parkData,
@@ -23,7 +25,9 @@ const AddressStep = ({
   setEnableNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
 }) => {
-  const [openCityCreationDialog, setOpenCityCreationDialog] = useState(false);
+  const [openCitySaveDialog, setOpenCitySaveDialog] = useState(false);
+  const [openCityDeleDialog, setOpenCityDeleteDialog] = useState(false);
+
   const [requiredFieldsFilled, setRequiredFieldsFilled] = useState({
     firstStreet: false,
     cityId: false,
@@ -32,6 +36,12 @@ const AddressStep = ({
     FetchCitiesResponse["cities"] | null
   >(null);
   const [isLoadingCity, setIsLoadingCity] = useState(false);
+
+  const [selectedItemToEdit, setSelectedItemToEdit] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+
   const loadCitiesOptions = useCallback(async () => {
     setIsLoadingCity(true);
     const response = await _fetchCities({
@@ -68,7 +78,7 @@ const AddressStep = ({
       intermediateUnits: cityOption?.intermediateAdministrativeUnit ?? [],
       narrowUnits: cityOption?.narrowAdministrativeUnit ?? [],
     });
-  }, [citiesOptions]);
+  }, [citiesOptions, parkData.cityId]);
 
   return (
     <div className="flex flex-col gap-1">
@@ -79,68 +89,65 @@ const AddressStep = ({
         value={parkData.state}
         onChange={(_, e) => setParkData((prev) => ({ ...prev, state: e }))}
       />
-      {isLoadingCity ?
-        <CSkeletonGroup quantity={4} />
-      : <>
-          <div className="flex w-full gap-1">
-            <CAutocomplete
-              className="w-full"
-              label="Cidade"
-              options={citiesOptions ?? []}
-              getOptionLabel={(o) => o.name}
-              isOptionEqualToValue={(o, v) => o.id === v.id}
-            />
-            <CButton
-              square
-              onClick={() => {
-                setOpenCityCreationDialog((prev) => !prev);
-              }}
-            >
-              <IconPlus />
-            </CButton>
-          </div>
-          <div className="flex w-full gap-1">
-            <CAutocomplete
-              className="w-full"
-              label="Região administrativa ampla"
-              options={cityAdmUnits.broadUnits ?? []}
-            />
-            <CButton square>
-              <IconPlus />
-            </CButton>
-          </div>
-          <div className="flex w-full gap-1">
-            <CAutocomplete
-              className="w-full"
-              label="Região administrativa intermendiária"
-              options={cityAdmUnits.intermediateUnits ?? []}
-            />
-            <CButton square>
-              <IconPlus />
-            </CButton>
-          </div>
-          <div className="flex w-full gap-1">
-            <CAutocomplete
-              className="w-full"
-              label="Região administrativa intermendiária"
-              options={cityAdmUnits.intermediateUnits ?? []}
-            />
-            <CButton square>
-              <IconPlus />
-            </CButton>
-          </div>
-          <div className="flex w-full gap-1">
-            <CAutocomplete
-              className="w-full"
-              label="Região administrativa estreita"
-              options={cityAdmUnits.narrowUnits ?? []}
-            />
-            <CButton square>
-              <IconPlus />
-            </CButton>
-          </div>
-        </>
-      }
+
+      <CAutocomplete
+        value={citiesOptions?.find((c) => parkData.cityId === c.id)}
+        className="w-full"
+        label="Cidade"
+        options={citiesOptions ?? []}
+        getOptionLabel={(o) => o.name}
+        isOptionEqualToValue={(o, v) => o.id === v.id}
+        suffixButtonChildren={<IconPlus />}
+        appendIconButton={<IconPencil />}
+        onAppendIconButtonClick={() => {
+          setSelectedItemToEdit({
+            id: parkData.cityId!,
+            name:
+              citiesOptions?.find((c) => c.id === parkData.cityId)?.name ?? "",
+          });
+          setOpenCitySaveDialog(true);
+        }}
+        loading={isLoadingCity}
+        onSuffixButtonClick={() => {
+          setSelectedItemToEdit(null);
+          setOpenCitySaveDialog((prev) => !prev);
+        }}
+        onChange={(_, v) => {
+          setParkData((prev) => ({ ...prev, cityId: v?.id ?? null }));
+        }}
+      />
+
+      <CAutocomplete
+        className="w-full"
+        label="Região administrativa ampla"
+        options={cityAdmUnits.broadUnits ?? []}
+        loading={isLoadingCity}
+        suffixButtonChildren={<IconPlus />}
+      />
+
+      <CAutocomplete
+        className="w-full"
+        label="Região administrativa intermendiária"
+        options={cityAdmUnits.intermediateUnits ?? []}
+        loading={isLoadingCity}
+        suffixButtonChildren={<IconPlus />}
+      />
+
+      <CAutocomplete
+        className="w-full"
+        label="Região administrativa intermendiária"
+        options={cityAdmUnits.intermediateUnits ?? []}
+        loading={isLoadingCity}
+        suffixButtonChildren={<IconPlus />}
+      />
+
+      <CAutocomplete
+        className="w-full"
+        label="Região administrativa estreita"
+        options={cityAdmUnits.narrowUnits ?? []}
+        loading={isLoadingCity}
+        suffixButtonChildren={<IconPlus />}
+      />
 
       <CTextField
         maxCharacters={255}
@@ -154,14 +161,37 @@ const AddressStep = ({
       <CTextField maxCharacters={255} label="Segunda rua" />
       <CTextField maxCharacters={255} label="Terceira rua" />
       <CTextField maxCharacters={255} label="Quarta rua" />
-      <CityCreationDialog
-        open={openCityCreationDialog}
+      <SaveCityDialog
+        open={openCitySaveDialog}
         onClose={() => {
-          setOpenCityCreationDialog(false);
+          setOpenCitySaveDialog(false);
         }}
+        selectedCity={selectedItemToEdit}
         previouslySelectedState={parkData.state}
         reloadCities={() => {
           void loadCitiesOptions();
+        }}
+        openDeleteDialog={() => {
+          setSelectedItemToEdit({
+            id: parkData.cityId!,
+            name:
+              citiesOptions?.find((c) => c.id === parkData.cityId)?.name ?? "",
+          });
+          setOpenCitySaveDialog(false);
+          setOpenCityDeleteDialog(true);
+        }}
+      />
+      <DeleteCityDialog
+        selectedItem={selectedItemToEdit}
+        open={openCityDeleDialog}
+        cityState={
+          citiesOptions?.find((c) => c.id === selectedItemToEdit?.id)?.state
+        }
+        reloadItems={() => {
+          void loadCitiesOptions();
+        }}
+        onClose={() => {
+          setOpenCityDeleteDialog(false);
         }}
       />
     </div>

@@ -134,7 +134,7 @@ export const HelperCardProvider = ({ children }: { children: ReactNode }) => {
       {children}
       {
         <div
-          className={`${visible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"} fixed bottom-4 left-1/2 z-[10000] flex w-full items-center justify-between transition-all duration-500`}
+          className={`${visible ? "translate-y-0 opacity-100" : "translate-y-12 opacity-0"} fixed bottom-4 left-1/2 z-[10000] flex w-fit -translate-x-1/2 items-center justify-between transition-all duration-500`}
         >
           <HelperCard helperCardType={helperCardType} close={close}>
             {helperContent}

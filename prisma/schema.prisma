@@ -5,14 +5,15 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions", "relationJoins"]
+  //previewFeatures = ["postgresqlExtensions", "relationJoins"] moved extensions management to custom migration
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   //directUrl  = env("DIRECT_URL")
-  extensions = [postgis]
+  //extensions = [postgis]
 }
 
 // #endregion
@@ -405,8 +406,8 @@ model Location {
   thirdStreet         String? @map("third_street") @db.VarChar(255)
   fourthStreet        String? @map("fourth_street") @db.VarChar(255)
   notes               String? @db.Text
-  cityId              Int?    @map("city_id")
-  city                City?   @relation(fields: [cityId], references: [id])
+  cityId              Int     @map("city_id")
+  city                City    @relation(fields: [cityId], references: [id])
   image               String? @default("/fotoPraca.jpg")
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")

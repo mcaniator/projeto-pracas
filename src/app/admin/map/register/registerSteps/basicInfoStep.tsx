@@ -1,19 +1,18 @@
 "use client";
 
-import LocationTypeCreationDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/locationTypeCreationDialog";
+import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressStep";
+import DeleteLocationCateogryOrTypeDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteLocationCateogoryOrTypeDialog";
+import LocationCategoryOrTypeSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/locationCategoryOrTypeSaveDialog";
 import { _fetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
-import { Skeleton } from "@mui/material";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
-import CButton from "../../../../../components/ui/cButton";
 import CTextField from "../../../../../components/ui/cTextField";
 import { _fetchLocationCategories } from "../../../../../lib/serverFunctions/apiCalls/locationCategory";
 import { FetchLocationCategoriesResponse } from "../../../../../lib/serverFunctions/queries/locationCategory";
 import { ParkRegisterData } from "../../../../../lib/types/parks/parkRegister";
-import LocationCategoryCreationDialog from "./parametersDialogs/locationCategoryCreationDialog";
 
 const BasicInfoStep = ({
   parkData,
@@ -42,10 +41,10 @@ const BasicInfoStep = ({
     name: string;
   } | null>(null);
 
-  const [openCategoryCreationDialog, setOpenCategoryCreationDialog] =
-    useState(false);
+  const [itemType, setItemType] = useState<CategoryOrType>("CATEGORY");
 
-  const [openTypeCreationDialog, setOpenTypeCreationDialog] = useState(false);
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   useEffect(() => {
     setEnableNextStep(requiredFieldsFilled.name);
@@ -100,7 +99,8 @@ const BasicInfoStep = ({
           }}
           onSuffixButtonClick={() => {
             setSelectedItemToEdit(null);
-            setOpenCategoryCreationDialog(true);
+            setItemType("CATEGORY");
+            setOpenSaveDialog(true);
           }}
           onAppendIconButtonClick={() => {
             const id = parkData.categoryId;
@@ -109,7 +109,8 @@ const BasicInfoStep = ({
             )?.name;
             if (id && name) {
               setSelectedItemToEdit({ id, name });
-              setOpenCategoryCreationDialog(true);
+              setItemType("CATEGORY");
+              setOpenSaveDialog(true);
             }
           }}
           value={locationCategories.find((o) => o.id === parkData.categoryId)}
@@ -129,7 +130,8 @@ const BasicInfoStep = ({
           }}
           onSuffixButtonClick={() => {
             setSelectedItemToEdit(null);
-            setOpenTypeCreationDialog(true);
+            setItemType("TYPE");
+            setOpenSaveDialog(true);
           }}
           onAppendIconButtonClick={() => {
             const id = parkData.typeId;
@@ -138,7 +140,8 @@ const BasicInfoStep = ({
             )?.name;
             if (id && name) {
               setSelectedItemToEdit({ id, name });
-              setOpenTypeCreationDialog(true);
+              setItemType("TYPE");
+              setOpenSaveDialog(true);
             }
           }}
           value={locationTypes.find((o) => o.id === parkData.typeId)}
@@ -152,24 +155,38 @@ const BasicInfoStep = ({
           suffixButtonChildren={<IconPlus />}
         />
       </div>
-      <LocationCategoryCreationDialog
-        reloadCategories={() => {
-          void loadLocationCategories();
+      <LocationCategoryOrTypeSaveDialog
+        reloadItems={() => {
+          if (itemType === "CATEGORY") {
+            void loadLocationCategories();
+          } else {
+            void loadLocationTypes();
+          }
         }}
-        selectedCategory={selectedItemToEdit}
-        open={openCategoryCreationDialog}
+        selectedItem={selectedItemToEdit}
+        itemType={itemType}
+        open={openSaveDialog}
         onClose={() => {
-          setOpenCategoryCreationDialog(false);
+          setOpenSaveDialog(false);
+        }}
+        openDeleteDialog={() => {
+          setOpenSaveDialog(false);
+          setOpenDeleteDialog(true);
         }}
       />
-      <LocationTypeCreationDialog
-        reloadTypes={() => {
-          void loadLocationTypes();
-        }}
-        selectedType={selectedItemToEdit}
-        open={openTypeCreationDialog}
+      <DeleteLocationCateogryOrTypeDialog
+        selectedItem={selectedItemToEdit}
+        itemType={itemType}
+        open={openDeleteDialog}
         onClose={() => {
-          setOpenTypeCreationDialog(false);
+          setOpenDeleteDialog(false);
+        }}
+        reloadItems={() => {
+          if (itemType === "CATEGORY") {
+            void loadLocationCategories();
+          } else {
+            void loadLocationTypes();
+          }
         }}
       />
     </div>
