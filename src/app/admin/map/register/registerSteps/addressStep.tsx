@@ -75,7 +75,6 @@ const AddressStep = ({
       requiredFieldsFilled.firstStreet && requiredFieldsFilled.cityId,
     );
   }, [requiredFieldsFilled, setEnableNextStep]);
-
   useEffect(() => {
     const cityOption = citiesOptions?.find((c) => c.id === parkData.cityId);
     setCityAdmUnits({
@@ -85,6 +84,13 @@ const AddressStep = ({
     });
   }, [citiesOptions, parkData.cityId]);
 
+  useEffect(() => {
+    setRequiredFieldsFilled({
+      firstStreet: !!parkData.firstStreet,
+      cityId: !!parkData.cityId,
+    });
+  }, [parkData.cityId, parkData.firstStreet]);
+
   return (
     <div className="flex flex-col gap-1">
       <CAutocomplete
@@ -92,13 +98,23 @@ const AddressStep = ({
         disableClearable
         options={Object.values(BrazilianStates)}
         value={parkData.state}
-        onChange={(_, e) => setParkData((prev) => ({ ...prev, state: e }))}
+        onChange={(_, e) =>
+          setParkData((prev) => ({
+            ...prev,
+            state: e,
+            cityId: null,
+            narrowAdministrativeUnitId: null,
+            intermediateAdministrativeUnitId: null,
+            broadAdministrativeUnitId: null,
+          }))
+        }
       />
 
       <CAutocomplete
         value={citiesOptions?.find((c) => parkData.cityId === c.id)}
         className="w-full"
         label="Cidade"
+        error={!requiredFieldsFilled.cityId}
         options={citiesOptions ?? []}
         getOptionLabel={(o) => o.name}
         isOptionEqualToValue={(o, v) => o.id === v.id}
@@ -118,7 +134,13 @@ const AddressStep = ({
           setOpenCitySaveDialog((prev) => !prev);
         }}
         onChange={(_, v) => {
-          setParkData((prev) => ({ ...prev, cityId: v?.id ?? null }));
+          setParkData((prev) => ({
+            ...prev,
+            cityId: v?.id ?? null,
+            narrowAdministrativeUnitId: null,
+            intermediateAdministrativeUnitId: null,
+            broadAdministrativeUnitId: null,
+          }));
         }}
       />
 
@@ -234,14 +256,35 @@ const AddressStep = ({
         maxCharacters={255}
         required
         label="Primeira rua"
-        value={parkData.name}
-        onRequiredCheck={(e) => {
-          setRequiredFieldsFilled((prev) => ({ ...prev, firstStreet: e }));
+        value={parkData.firstStreet}
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, firstStreet: e.target.value }));
         }}
       />
-      <CTextField maxCharacters={255} label="Segunda rua" />
-      <CTextField maxCharacters={255} label="Terceira rua" />
-      <CTextField maxCharacters={255} label="Quarta rua" />
+      <CTextField
+        maxCharacters={255}
+        label="Segunda rua"
+        value={parkData.secondStreet}
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, secondStreet: e.target.value }));
+        }}
+      />
+      <CTextField
+        maxCharacters={255}
+        label="Terceira rua"
+        value={parkData.thirdStreet}
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, thirdStreet: e.target.value }));
+        }}
+      />
+      <CTextField
+        maxCharacters={255}
+        label="Quarta rua"
+        value={parkData.fourthStreet}
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, fourthStreet: e.target.value }));
+        }}
+      />
       <SaveCityDialog
         open={openCitySaveDialog}
         onClose={() => {
