@@ -3,15 +3,10 @@ import {
   LocationWithPolygon,
 } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
-import { Prisma } from "@prisma/client";
 import { hasPolygon } from "@serverOnly/geometries";
 
 import { FetchLocationsParams } from "../../../app/api/admin/locations/route";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import {
-  generatePaginationResponseInfo,
-  generatePrismaPaginationObject,
-} from "../../utils/apiCall";
 
 const fetchLocationsNames = async () => {
   try {
@@ -168,6 +163,104 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     };
   }
 };
+
+export const fetchLocationsAssociatedWithAdministrativeUnit = async (
+  administrativeUnitId: number,
+  administrativeUnitType: "NARROW" | "INTERMEDIATE" | "BROAD",
+) => {
+  if (administrativeUnitType === "NARROW") {
+    const locations = await prisma.location.findMany({
+      where: {
+        narrowAdministrativeUnitId: administrativeUnitId,
+      },
+      select: {
+        name: true,
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return orderLocationsByCity(locations);
+  } else if (administrativeUnitType === "INTERMEDIATE") {
+    const locations = await prisma.location.findMany({
+      where: {
+        intermediateAdministrativeUnitId: administrativeUnitId,
+      },
+      select: {
+        name: true,
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return orderLocationsByCity(locations);
+  } else if (administrativeUnitType === "BROAD") {
+    const locations = await prisma.location.findMany({
+      where: {
+        broadAdministrativeUnitId: administrativeUnitId,
+      },
+      select: {
+        name: true,
+        city: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return orderLocationsByCity(locations);
+  }
+};
+
+// Helper function to order locations by city
+const orderLocationsByCity = (
+  locations: {
+    city: {
+      id: number;
+      name: string;
+    };
+    name: string;
+  }[],
+) => {
+  const grouped = Object.values(
+    locations.reduce(
+      (acc, loc) => {
+        const cityName = loc.city.name;
+        const cityId = loc.city.id;
+        if (!acc[cityId]) {
+          acc[cityId] = {
+            cityName,
+            cityId,
+            locations: [],
+          };
+        }
+
+        acc[cityId].locations.push({
+          name: loc.name,
+        });
+
+        return acc;
+      },
+      {} as Record<
+        number,
+        {
+          cityId: number;
+          cityName: string;
+          locations: { name: string }[];
+        }
+      >,
+    ),
+  );
+  return grouped;
+};
+
 export {
   searchLocationsById,
   searchLocationNameById,

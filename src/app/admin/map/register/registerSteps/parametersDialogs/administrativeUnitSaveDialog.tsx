@@ -16,6 +16,7 @@ const AdministrativeUnitSaveDialog = ({
   city,
   selectedUnit,
   reloadItems,
+  openDeleteDialog,
 }: {
   open: boolean;
   onClose: () => void;
@@ -23,6 +24,7 @@ const AdministrativeUnitSaveDialog = ({
   city?: { id: number; name: string; state: BrazilianStates };
   selectedUnit: { id: number; name: string } | null;
   reloadItems: () => void;
+  openDeleteDialog: () => void;
 }) => {
   const [formAction, state] = useResettableActionState(
     _saveAdministrativeUnit,
@@ -40,7 +42,6 @@ const AdministrativeUnitSaveDialog = ({
       reloadItems();
     }
   }, [state, reloadItems]);
-
   return (
     <CDialog
       isForm
@@ -52,6 +53,7 @@ const AdministrativeUnitSaveDialog = ({
       confirmChildren={selectedUnit ? "Editar" : "Cadastrar"}
       cancelChildren={selectedUnit ? <IconTrash /> : undefined}
       cancelColor="error"
+      onCancel={openDeleteDialog}
     >
       <div className="flex flex-col gap-1">
         <input type="hidden" name="cityId" value={city?.id} />

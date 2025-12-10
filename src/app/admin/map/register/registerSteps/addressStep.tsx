@@ -1,5 +1,6 @@
 import SaveCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/SaveCityDialog";
 import AdministrativeUnitSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/administrativeUnitSaveDialog";
+import DeleteAdministrativeUnitDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteAdministrativeUnitDialog";
 import DeleteCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteCityDialog";
 import { BrazilianStates } from "@prisma/client";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
@@ -29,6 +30,7 @@ const AddressStep = ({
   const [openCitySaveDialog, setOpenCitySaveDialog] = useState(false);
   const [openCityDeleDialog, setOpenCityDeleteDialog] = useState(false);
   const [openUnitSaveDialog, setOpenUnitSaveDialog] = useState(false);
+  const [openUnitDeleteDialog, setOpenUnitDeleteDialog] = useState(false);
 
   const [requiredFieldsFilled, setRequiredFieldsFilled] = useState({
     firstStreet: false,
@@ -133,6 +135,7 @@ const AddressStep = ({
         getOptionLabel={(o) => o.name}
         isOptionEqualToValue={(a, b) => a.id === b.id}
         onSuffixButtonClick={() => {
+          setSelectedItemToEdit(null);
           setUnitLevel("BROAD");
           setOpenUnitSaveDialog(true);
         }}
@@ -168,6 +171,7 @@ const AddressStep = ({
         getOptionLabel={(o) => o.name}
         isOptionEqualToValue={(a, b) => a.id === b.id}
         onSuffixButtonClick={() => {
+          setSelectedItemToEdit(null);
           setUnitLevel("INTERMEDIATE");
           setOpenUnitSaveDialog(true);
         }}
@@ -203,6 +207,7 @@ const AddressStep = ({
         getOptionLabel={(o) => o.name}
         isOptionEqualToValue={(a, b) => a.id === b.id}
         onSuffixButtonClick={() => {
+          setSelectedItemToEdit(null);
           setUnitLevel("NARROW");
           setOpenUnitSaveDialog(true);
         }}
@@ -264,6 +269,8 @@ const AddressStep = ({
           citiesOptions?.find((c) => c.id === selectedItemToEdit?.id)?.state
         }
         reloadItems={() => {
+          setParkData((prev) => ({ ...prev, cityId: null }));
+          setSelectedItemToEdit(null);
           void loadCitiesOptions();
         }}
         onClose={() => {
@@ -278,7 +285,44 @@ const AddressStep = ({
         onClose={() => {
           setOpenUnitSaveDialog(false);
         }}
+        openDeleteDialog={() => {
+          setOpenUnitSaveDialog(false);
+          setOpenUnitDeleteDialog(true);
+        }}
         selectedUnit={selectedItemToEdit}
+        city={citiesOptions?.find((c) => c.id === parkData.cityId)}
+        level={unitLevel}
+      />
+      <DeleteAdministrativeUnitDialog
+        open={openUnitDeleteDialog}
+        onClose={() => {
+          setOpenUnitDeleteDialog(false);
+        }}
+        reloadItems={() => {
+          switch (unitLevel) {
+            case "NARROW":
+              setParkData((prev) => ({
+                ...prev,
+                narrowAdministrativeUnitId: null,
+              }));
+              break;
+            case "INTERMEDIATE":
+              setParkData((prev) => ({
+                ...prev,
+                intermediateAdministrativeUnitId: null,
+              }));
+              break;
+            case "BROAD":
+              setParkData((prev) => ({
+                ...prev,
+                broadAdministrativeUnitId: null,
+              }));
+              break;
+          }
+          setSelectedItemToEdit(null);
+          void loadCitiesOptions();
+        }}
+        selectedItem={selectedItemToEdit}
         city={citiesOptions?.find((c) => c.id === parkData.cityId)}
         level={unitLevel}
       />

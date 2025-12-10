@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { fetchLocationsAssociatedWithAdministrativeUnit } from "@/lib/serverFunctions/queries/location";
 import { checkIfLoggedInUserHasAnyPermission } from "@/lib/serverFunctions/serverOnly/checkPermission";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -28,7 +29,7 @@ export const _saveAdministrativeUnit = async (
     const unitType = z
       .enum(["NARROW", "INTERMEDIATE", "BROAD"])
       .parse(formData.get("unitType"));
-    const unitId = z.coerce.number().nullish().parse(formData.get("UnitId"));
+    const unitId = z.coerce.number().nullish().parse(formData.get("unitId"));
     const name = z
       .string()
       .trim()
@@ -182,6 +183,104 @@ export const _saveAdministrativeUnit = async (
         responseInfo: {
           statusCode: 500,
           message: `Erro ao atualizar região administrativa ${unitTypeName}!`,
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 409,
+        message: "Dados incorretos!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export const _deleteAdministrativeUnit = async (
+  prevState: {
+    responseInfo: APIResponseInfo;
+  },
+  formData: FormData,
+) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para excluir regiões administrativas!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+  try {
+    const unitId = z.coerce.number().parse(formData.get("unitId"));
+    const unitType = z
+      .enum(["NARROW", "INTERMEDIATE", "BROAD"])
+      .parse(formData.get("unitType"));
+    try {
+      const conflictingItems =
+        await fetchLocationsAssociatedWithAdministrativeUnit(unitId, unitType);
+      if (conflictingItems && conflictingItems.length > 0) {
+        return {
+          responseInfo: {
+            statusCode: 403,
+            message: `Esta região administrativa ${unitType} possui praças associadas!`,
+          } as APIResponseInfo,
+          data: {
+            conflictingItems: conflictingItems,
+          },
+        };
+      }
+      let deleted: { name: string } | null = null;
+      if (unitType === "NARROW") {
+        deleted = await prisma.narrowAdministrativeUnit.delete({
+          where: {
+            id: unitId,
+          },
+          select: {
+            name: true,
+          },
+        });
+      } else if (unitType === "INTERMEDIATE") {
+        deleted = await prisma.intermediateAdministrativeUnit.delete({
+          where: {
+            id: unitId,
+          },
+          select: {
+            name: true,
+          },
+        });
+      } else if (unitType === "BROAD") {
+        deleted = await prisma.broadAdministrativeUnit.delete({
+          where: {
+            id: unitId,
+          },
+          select: {
+            name: true,
+          },
+        });
+      }
+
+      if (deleted) {
+        return {
+          responseInfo: {
+            statusCode: 200,
+            message: `Região administrativa ${deleted.name} excluída!`,
+            showSuccessCard: true,
+          } as APIResponseInfo,
+          data: null,
+        };
+      } else {
+        throw new Error("Erro ao excluir região administrativa!");
+      }
+    } catch (e) {
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: `Erro ao excluir região administrativa!`,
         } as APIResponseInfo,
         data: null,
       };
