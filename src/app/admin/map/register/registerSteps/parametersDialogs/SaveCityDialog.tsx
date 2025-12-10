@@ -6,8 +6,6 @@ import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../../components/ui/cTextField";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
@@ -27,29 +25,13 @@ const SaveCityDialog = ({
   reloadCities: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending, reset] = useResettableActionState(
-    _saveCity,
-    {
-      responseInfo: { statusCode: 0 },
-    },
-  );
+  const [formAction, state] = useResettableActionState(_saveCity);
   useEffect(() => {
-    helperCardProcessResponse(state.responseInfo);
-
     if (state.responseInfo.statusCode === 201) {
-      reset();
       reloadCities();
     }
-  }, [isPending, state, helperCardProcessResponse, reloadCities, reset]);
-  useEffect(() => {
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Salvando cidade..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
-  }, [isPending, setLoadingOverlay]);
+  }, [state, reloadCities]);
+
   const [cityState, setCityState] = useState(previouslySelectedState);
 
   useEffect(() => {

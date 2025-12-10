@@ -7,8 +7,6 @@ import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
 import { useEffect } from "react";
 
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
 import CTextField from "../../../../../../components/ui/cTextField";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
 
@@ -30,33 +28,14 @@ const LocationCategoryOrTypeSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending, resetState] = useResettableActionState(
+  const [formAction, state] = useResettableActionState(
     itemType === "CATEGORY" ? _saveLocationCategory : _saveLocationType,
-    {
-      responseInfo: { statusCode: 0 },
-    },
   );
   useEffect(() => {
-    helperCardProcessResponse(state.responseInfo);
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Salvando..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
     if (state.responseInfo.statusCode === 201) {
       reloadItems();
-      resetState();
     }
-  }, [
-    isPending,
-    state,
-    helperCardProcessResponse,
-    reloadItems,
-    setLoadingOverlay,
-    resetState,
-  ]);
+  }, [state, reloadItems]);
 
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
 

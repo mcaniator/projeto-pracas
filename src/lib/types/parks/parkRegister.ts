@@ -22,9 +22,9 @@ type ParkRegisterData = {
   categoryId: number | null;
   typeId: number | null;
   hasGeometry: boolean;
-  narrowAdministrativeUnit: string | null;
-  intermediateAdministrativeUnit: string | null;
-  broadAdministrativeUnit: string | null;
+  narrowAdministrativeUnitId: number | null;
+  intermediateAdministrativeUnitId: number | null;
+  broadAdministrativeUnitId: number | null;
 };
 
 export { type ParkRegisterData };

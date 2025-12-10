@@ -1,11 +1,8 @@
 "use client";
 
 import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressStep";
-import { useHelperCard } from "@/components/context/helperCardContext";
-import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { _deleteLocationCategoryOrType } from "@/lib/serverFunctions/serverActions/locationCategory";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -27,13 +24,10 @@ const DeleteLocationCateogryOrTypeDialog = ({
   itemType: CategoryOrType;
 }) => {
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending, resetState] = useResettableActionState(
+  const [formAction, state] = useResettableActionState(
     _deleteLocationCategoryOrType,
     {
-      responseInfo: { statusCode: 0 } as APIResponseInfo,
-      data: null,
+      loadingMessage: "Excluindo...",
     },
   );
   const [conflictingLocations, setConflictingLocations] = useState<
@@ -44,15 +38,8 @@ const DeleteLocationCateogryOrTypeDialog = ({
     }[]
   >([]);
   useEffect(() => {
-    helperCardProcessResponse(state?.responseInfo);
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Excluindo..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
     if (state?.responseInfo.statusCode === 200) {
       reloadItems();
-      resetState();
       setConflictingLocations([]);
       onClose();
     } else if (
@@ -62,15 +49,7 @@ const DeleteLocationCateogryOrTypeDialog = ({
     ) {
       setConflictingLocations(state.data?.conflictingItems ?? []);
     }
-  }, [
-    isPending,
-    state,
-    helperCardProcessResponse,
-    reloadItems,
-    setLoadingOverlay,
-    resetState,
-    onClose,
-  ]);
+  }, [state, reloadItems, onClose]);
   return (
     <CDialog
       isForm

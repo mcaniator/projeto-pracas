@@ -1,10 +1,7 @@
 "use client";
 
-import { useHelperCard } from "@/components/context/helperCardContext";
-import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { _deleteCity } from "@/lib/serverFunctions/serverActions/city";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
@@ -26,26 +23,13 @@ const DeleteCityDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending, resetState] = useResettableActionState(
-    _deleteCity,
-    {
-      responseInfo: { statusCode: 0 } as APIResponseInfo,
-      data: null,
-    },
-  );
+  const [formAction, state] = useResettableActionState(_deleteCity, {
+    loadingMessage: "Excluindo cidade...",
+  });
   const [numberOfLocations, setNumberOfLocations] = useState(0);
   useEffect(() => {
-    helperCardProcessResponse(state?.responseInfo);
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Excluindo..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
     if (state?.responseInfo.statusCode === 200) {
       reloadItems();
-      resetState();
       setNumberOfLocations(0);
       onClose();
     } else if (
@@ -55,15 +39,7 @@ const DeleteCityDialog = ({
     ) {
       setNumberOfLocations(state.data?.numberOfLocations);
     }
-  }, [
-    isPending,
-    state,
-    helperCardProcessResponse,
-    reloadItems,
-    setLoadingOverlay,
-    resetState,
-    onClose,
-  ]);
+  }, [state, reloadItems, onClose]);
   return (
     <CDialog
       isForm
