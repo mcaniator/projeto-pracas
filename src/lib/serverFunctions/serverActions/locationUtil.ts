@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -9,6 +10,7 @@ import {
   addPolygonFromWKT,
   getPolygonsFromShp,
 } from "@serverOnly/geometries";
+import { stat } from "fs";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -107,6 +109,7 @@ const _deleteLocation = async (id: number) => {
 };
 
 const _updateLocation = async (
+  //TODO: REMOVE! Creation and update should be in the same function
   prevState: { statusCode: number; message: string },
   formData: FormData,
 ) => {
@@ -314,21 +317,35 @@ const _updateLocation = async (
 };
 
 const _createLocation = async (
-  _curStatus: { statusCode: number; message: string },
+  _curStatus: { responseInfo: APIResponseInfo },
   formData: FormData,
 ) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
-    return { statusCode: 401, message: "Invalid permission" };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Invalid permission",
+      } as APIResponseInfo,
+    };
   }
-  let location;
+
   try {
-    location = locationSchema.parse({
-      name: formData.get("name"),
+    const locationData = locationSchema.parse({
+      name: z.coerce
+        .string()
+        .trim()
+        .max(255)
+        .min(1)
+        .parse(formData.get("name")),
       popularName: formData.get("popularName"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
+      thirdStreet: formData.get("thirdStreet"),
+      fourthStreet: formData.get("fourthStreet"),
+      cityId: formData.get("cityId"),
+      notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
       overseeingMayor: formData.get("overseeingMayor"),
@@ -336,178 +353,100 @@ const _createLocation = async (
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
       incline: formData.get("incline"),
-      notes: formData.get("notes"),
-      isPark: formData.get("isPark") === "true",
-      inactiveNotFound: formData.get("inactiveNotFound") === "true",
+      isPark: formData.get("isPark"),
+      inactiveNotFound: formData.get("inactiveNotFound"),
+      categoryId: formData.get("categoryId"),
+      typeId: formData.get("typeId"),
+      narrowAdministrativeUnitId: formData.get("narrowAdministrativeUnitId"),
+      intermediateAdministrativeUnitId: formData.get(
+        "intermediateAdministrativeUnitId",
+      ),
+      broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
     });
-  } catch (err) {
-    return { statusCode: 400, message: "Invalid data" };
-  }
 
-  const cityName = formData.get("city");
-  const stateName = formData.get("state") as string;
-  const narrowAdministrativeUnitName = formData.get("narrowAdministrativeUnit");
-  const intermediateAdministrativeUnitName = formData.get(
-    "intermediateAdministrativeUnit",
-  );
-  const broadAdministrativeUnitName = formData.get("broadAdministrativeUnit");
+    const locationId = z.coerce
+      .number()
+      .int()
+      .finite()
+      .nonnegative()
+      .nullish()
+      .parse(formData.get("locationId"));
 
-  let result;
-  try {
-    await prisma.$transaction(async (prisma) => {
-      const city = await prisma.city.upsert({
-        where: {
-          name_state: {
-            name: cityName as string,
-            state: stateName as BrazilianStates,
+    try {
+      if (locationId) {
+        const location = await prisma.location.update({
+          data: {
+            ...locationData,
           },
-        },
-        update: {},
-        create: {
-          name: cityName as string,
-          state: stateName as BrazilianStates,
-        },
-      });
-      let narrowAdministrativeUnitId: number | null = null;
-      let intermediateAdministrativeUnitId: number | null = null;
-      let broadAdministrativeUnitId: number | null = null;
-
-      if (narrowAdministrativeUnitName) {
-        const narrowAdministrativeUnit =
-          await prisma.narrowAdministrativeUnit.upsert({
-            where: {
-              cityId_narrowUnitName: {
-                cityId: city.id,
-                name: narrowAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: narrowAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
-      }
-
-      if (intermediateAdministrativeUnitName) {
-        const intermediateAdministrativeUnit =
-          await prisma.intermediateAdministrativeUnit.upsert({
-            where: {
-              cityId_intermediateUnitName: {
-                cityId: city.id,
-                name: intermediateAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: intermediateAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
-      }
-
-      if (broadAdministrativeUnitName) {
-        const broadAdministrativeUnit =
-          await prisma.broadAdministrativeUnit.upsert({
-            where: {
-              cityId_broadUnitName: {
-                cityId: city.id,
-                name: broadAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: broadAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        broadAdministrativeUnitId = broadAdministrativeUnit.id;
-      }
-
-      if (
-        !narrowAdministrativeUnitId &&
-        !intermediateAdministrativeUnitId &&
-        !broadAdministrativeUnitId
-      ) {
-        throw new Error("No administrative unit created or connected");
-      }
-      const category = formData.get("category");
-      const categoryValue =
-        category === "" || category === null ? null : String(category);
-      const type = formData.get("type");
-      const typeValue = category === "" || type === null ? null : String(type);
-      let locationTypeId: number | null = null;
-      if (typeValue) {
-        const locationType = await prisma.locationType.upsert({
           where: {
-            name: typeValue,
-          },
-          update: {},
-          create: {
-            name: typeValue,
+            id: locationId,
           },
         });
-        locationTypeId = locationType.id;
+        return {
+          responseInfo: {
+            statusCode: 201,
+            showSuccessCard: true,
+            message: `Praça ${location.name} atualizada!`,
+          } as APIResponseInfo,
+        };
       }
-      let locationCategoryId: number | null = null;
-      if (categoryValue) {
-        const locationCategory = await prisma.locationCategory.upsert({
-          where: {
-            name: categoryValue,
+      let locationName = "";
+      await prisma.$transaction(async (prisma) => {
+        const location = await prisma.location.create({
+          data: {
+            ...locationData,
           },
-          update: {},
-          create: {
-            name: categoryValue,
+          select: {
+            id: true,
+            name: true,
           },
         });
-        locationCategoryId = locationCategory.id;
-      }
-      result = await prisma.location.create({
-        data: {
-          ...location,
-          narrowAdministrativeUnitId,
-          intermediateAdministrativeUnitId,
-          broadAdministrativeUnitId,
-          typeId: locationTypeId,
-          categoryId: locationCategoryId,
-        },
-      });
-      // Após a criação da localização, adicionar os polígonos
-      try {
-        if (formData.get("featuresGeoJson")) {
-          const featuresGeoJson = z
-            .string()
-            .parse(formData.get("featuresGeoJson"));
+        // Após a criação da localização, adicionar os polígonos
+        try {
+          if (formData.get("featuresGeoJson")) {
+            const featuresGeoJson = z
+              .string()
+              .parse(formData.get("featuresGeoJson"));
 
-          await addPolygon(featuresGeoJson, result.id, prisma);
-        }
-
-        if (formData.get("file")) {
+            await addPolygon(featuresGeoJson, location.id, prisma);
+          }
+          locationName = location.name;
+          /*if (formData.get("file")) {
           const wkt = await getPolygonsFromShp(formData.get("file") as File);
           if (wkt) {
             await addPolygonFromWKT(wkt, result.id, prisma);
           }
+        }*/
+        } catch (err) {
+          throw new Error("Error inserting polygon into database");
         }
-      } catch (err) {
-        throw new Error("Error inserting polygon into database");
-      }
-      return { statusCode: 200, message: "Location created" };
-    });
+      });
+
+      revalidateTag("location");
+
+      return {
+        responseInfo: {
+          statusCode: 201,
+          showSuccessCard: true,
+          message: `Praça  ${locationName} registrada!`,
+        } as APIResponseInfo,
+      };
+    } catch (err) {
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao registrar praça!!",
+        } as APIResponseInfo,
+      };
+    }
   } catch (err) {
-    return { statusCode: 400, message: "Database error" };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
   }
-
-  revalidateTag("location");
-
-  return { statusCode: 201, message: "locationCreated" };
 };
 
 const _editLocationPolygon = async (id: number, featuresGeoJson: string) => {

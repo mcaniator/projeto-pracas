@@ -91,7 +91,7 @@ const muiTheme = createTheme({
       defaultProps: {
         sx: {
           fontSize: 20,
-          top: "10%",
+          top: "5px",
         },
       },
     },

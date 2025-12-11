@@ -8,7 +8,13 @@ import CButton from "../../../../components/ui/cButton";
 import { DrawingProvider } from "../drawingProvider";
 import FeatureList from "./featureList";
 
-const RegisterMenu = ({ close }: { close: () => void }) => {
+const RegisterMenu = ({
+  close,
+  reloadLocations,
+}: {
+  close: () => void;
+  reloadLocations: () => void;
+}) => {
   const [isDrawingCreation, setIsDrawingCreation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const handleClose = () => {
@@ -48,7 +54,12 @@ const RegisterMenu = ({ close }: { close: () => void }) => {
         )}
         {isCreating && isDrawingCreation && (
           <DrawingProvider>
-            <FeatureList />
+            <FeatureList
+              reloadLocations={() => {
+                setIsCreating(false);
+                reloadLocations();
+              }}
+            />
           </DrawingProvider>
         )}
       </div>

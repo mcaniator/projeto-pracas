@@ -74,6 +74,9 @@ const PolygonsAndClientContainer = () => {
               close={() => {
                 setIsCreating(false);
               }}
+              reloadLocations={() => {
+                void fetchLocations();
+              }}
             />
           </div>
         </div>

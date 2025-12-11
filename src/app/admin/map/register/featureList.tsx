@@ -10,7 +10,7 @@ import CButton from "../../../../components/ui/cButton";
 import { DrawingProviderVectorSourceContext } from "../drawingProvider";
 import LocationRegisterDialog from "./locationRegisterDialog";
 
-const FeatureList = () => {
+const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const [openLocationRegisterFormDialog, setOpenLocationRegisterFormDialog] =
@@ -92,7 +92,6 @@ const FeatureList = () => {
       drawingProviderContext.removeFeatures(features);
     };
   }, [drawingProviderContext, features]);
-  console.log(features);
   return (
     <div className="flex h-full flex-col gap-2 overflow-auto">
       {features.length === 0 && (
@@ -142,6 +141,7 @@ const FeatureList = () => {
         onClose={() => {
           setOpenLocationRegisterFormDialog(false);
         }}
+        reloadLocations={reloadLocations}
       />
     </div>
   );

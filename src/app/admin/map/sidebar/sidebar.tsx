@@ -1,5 +1,6 @@
 "use client";
 
+import { _fetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { IconFilter } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
@@ -9,7 +10,6 @@ import CAccordionSummary from "../../../../components/ui/accordion/CAccordionSum
 import CAutocomplete from "../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../components/ui/cTextField";
 import { FetchCitiesResponse } from "../../../../lib/serverFunctions/queries/city";
-import { LocationsWithPolygonResponse } from "../../../../lib/types/location/location";
 
 type UnitType =
   FetchCitiesResponse["cities"][number]["narrowAdministrativeUnit"];
@@ -33,10 +33,20 @@ const Sidebar = () => {
     broadUnits: [],
   });
 
-  useEffect(() => {}, []);
+  const loadCitiesOptions = async () => {
+    const citiesResponse = await _fetchCities({
+      state: "MG",
+      includeAdminstrativeRegions: true,
+    });
+    setCitiesOptions(citiesResponse.data?.cities ?? []);
+  };
 
   useEffect(() => {
-    const cityOption = citiesOptions?.find((c) => c.id === parkData.cityId);
+    void loadCitiesOptions();
+  }, []);
+
+  useEffect(() => {
+    const cityOption = citiesOptions?.find((c) => c.id === selectedCity?.id);
     setCityAdmUnits({
       broadUnits: cityOption?.broadAdministrativeUnit ?? [],
       intermediateUnits: cityOption?.intermediateAdministrativeUnit ?? [],
@@ -51,7 +61,7 @@ const Sidebar = () => {
       <div className="flex flex-col gap-1 overflow-auto">
         <CAutocomplete
           label="Cidade"
-          value={selectedCity ?? { id: -1, name: "Nenhuma cidade cadastrada" }}
+          value={selectedCity ?? { id: -1, name: "Nenhuma cidade selecionada" }}
           disableClearable
           options={citiesOptions ?? []}
           isOptionEqualToValue={(option, value) => option.id === value.id}

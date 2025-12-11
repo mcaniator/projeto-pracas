@@ -1,5 +1,7 @@
 "use client";
 
+import OptionalInfoStep from "@/app/admin/map/register/registerSteps/optionalnfoStep";
+import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import {
   IconArrowBackUp,
@@ -9,10 +11,8 @@ import {
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
 import { Geometry, MultiPolygon, SimpleGeometry } from "ol/geom";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
-import { useHelperCard } from "../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../components/context/loadingContext";
 import CDialog from "../../../../components/ui/dialog/cDialog";
 import {
   _createLocation,
@@ -22,11 +22,6 @@ import { ParkRegisterData } from "../../../../lib/types/parks/parkRegister";
 import AddressStep from "./registerSteps/addressStep";
 import BasicInfoStep from "./registerSteps/basicInfoStep";
 
-const initialState = {
-  statusCode: -1,
-  message: "Initial",
-};
-
 const steps = ["", "", ""];
 
 const LocationRegisterDialog = ({
@@ -34,12 +29,14 @@ const LocationRegisterDialog = ({
   location,
   locationId,
   features,
+  reloadLocations,
   onClose,
 }: {
   open: boolean;
   location?: ParkRegisterData;
   locationId?: number;
   features: Feature<Geometry>[];
+  reloadLocations: () => void;
   onClose: () => void;
 }) => {
   const [parkData, setParkData] = useState<ParkRegisterData>(
@@ -51,7 +48,7 @@ const LocationRegisterDialog = ({
         secondStreet: null,
         thirdStreet: null,
         fourthStreet: null,
-        city: null,
+        cityId: null,
         state: "MG",
         notes: null,
         isPark: true,
@@ -65,10 +62,9 @@ const LocationRegisterDialog = ({
         incline: null,
         categoryId: null,
         typeId: null,
-        hasGeometry: false,
-        narrowAdministrativeUnit: null,
-        intermediateAdministrativeUnit: null,
-        broadAdministrativeUnit: null,
+        narrowAdministrativeUnitId: null,
+        intermediateAdministrativeUnitId: null,
+        broadAdministrativeUnitId: null,
       }
     ),
   );
@@ -98,12 +94,12 @@ const LocationRegisterDialog = ({
   const [step, setStep] = useState(1);
   const [enableNextStep, setEnableNextStep] = useState(false);
 
-  const { setHelperCard } = useHelperCard();
-  const { setLoadingOverlayVisible } = useLoadingOverlay();
   const action = !location ? _createLocation : _updateLocation;
-  const [formState, formAction, isPending] = useActionState(
-    action,
-    initialState,
+  const [formAction, state, resetState] = useResettableActionState(
+    _createLocation,
+    {
+      loadingMessage: "Salvando...",
+    },
   );
 
   const handleSubmit = () => {
@@ -137,6 +133,14 @@ const LocationRegisterDialog = ({
   const goToPreviousStep = () => {
     setStep((prev) => prev - 1);
   };
+
+  useEffect(() => {
+    if (state.responseInfo.statusCode === 201) {
+      reloadLocations();
+      onClose();
+    }
+    resetState();
+  }, [state.responseInfo.statusCode, reloadLocations, onClose, resetState]);
 
   return (
     <CDialog
@@ -173,6 +177,13 @@ const LocationRegisterDialog = ({
             parkData={parkData}
             setParkData={setParkData}
             setEnableNextStep={setEnableNextStep}
+          />
+        )}
+        {step === 3 && (
+          <OptionalInfoStep
+            parkData={parkData}
+            setEnableNextStep={setEnableNextStep}
+            setParkData={setParkData}
           />
         )}
       </div>

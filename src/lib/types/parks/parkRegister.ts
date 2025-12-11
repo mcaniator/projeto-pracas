@@ -16,12 +16,11 @@ type ParkRegisterData = {
   lastMaintenanceYear: number | null;
   overseeingMayor: string | null;
   legislation: string | null;
-  usableArea: string | null;
-  legalArea: string | null;
-  incline: string | null;
+  usableArea: number | null;
+  legalArea: number | null;
+  incline: number | null;
   categoryId: number | null;
   typeId: number | null;
-  hasGeometry: boolean;
   narrowAdministrativeUnitId: number | null;
   intermediateAdministrativeUnitId: number | null;
   broadAdministrativeUnitId: number | null;

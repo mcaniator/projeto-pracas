@@ -1,5 +1,6 @@
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
+  BrazilianStates,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -221,34 +222,46 @@ export type { formType, questionType };
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
-const locationSchema = z
-  .object({
-    name: z.string().trim().min(1).max(255),
-    popularName: z.string().trim().nullish(),
-    firstStreet: z.string().trim().min(1).max(255),
-    secondStreet: z.string().trim().min(1).max(255).nullish(),
-    isPark: z.boolean(),
-    notes: z.string().trim().min(1).nullish(),
-    creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
-    lastMaintenanceYear: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .nullish(),
-    overseeingMayor: z.string().trim().min(1).max(255).nullish(),
-    legislation: z.string().trim().min(1).max(255).nullish(),
-    usableArea: z.coerce.number().finite().nonnegative().nullish(),
-    legalArea: z.coerce.number().finite().nonnegative().nullish(),
-    incline: z.coerce.number().finite().nonnegative().nullish(),
-    inactiveNotFound: z.boolean(),
-    polygonArea: z.coerce.number().finite().nonnegative().nullish(),
-  })
-  .refine((value) => {
-    if (value.creationYear && value.lastMaintenanceYear)
-      return value.lastMaintenanceYear >= value.creationYear;
-    return true;
-  });
+const locationSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  popularName: z.string().trim().nullish(),
+  firstStreet: z.string().trim().min(1).max(255),
+  secondStreet: z.string().trim().min(1).max(255).nullish(),
+  thirdStreet: z.string().trim().min(1).max(255).nullish(),
+  fourthStreet: z.string().trim().min(1).max(255).nullish(),
+  isPark: z.coerce.boolean(),
+  inactiveNotFound: z.coerce.boolean(),
+  creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
+  cityId: z.coerce.number().int().finite().nonnegative(),
+  notes: z.string().trim().min(1).max(1024).nullish(),
+  lastMaintenanceYear: z.coerce.number().int().finite().nonnegative().nullish(),
+  overseeingMayor: z.string().trim().min(1).max(255).nullish(),
+  legislation: z.string().trim().min(1).max(255).nullish(),
+  usableArea: z.coerce.number().finite().nonnegative().nullish(),
+  legalArea: z.coerce.number().finite().nonnegative().nullish(),
+  incline: z.coerce.number().finite().nonnegative().nullish(),
+  categoryId: z.coerce.number().int().finite().nonnegative().nullish(),
+  typeId: z.coerce.number().int().finite().nonnegative().nullish(),
+  narrowAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  intermediateAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  broadAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  polygonArea: z.coerce.number().finite().nonnegative().nullish(),
+});
 
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
