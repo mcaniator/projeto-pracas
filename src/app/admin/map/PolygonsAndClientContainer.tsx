@@ -1,54 +1,118 @@
 "use client";
 
-import { useLoadingOverlay } from "@components/context/loadingContext";
+import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
+import { _fetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
+import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import { CircularProgress } from "@mui/material";
+import { BrazilianStates } from "@prisma/client";
 import { IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 import PermissionGuard from "../../../components/auth/permissionGuard";
 import CButton from "../../../components/ui/cButton";
-import { _fetchLocations } from "../../../lib/serverFunctions/apiCalls/location";
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
-import { APIResponseInfo } from "../../../lib/types/backendCalls/APIResponse";
 import PolygonProvider from "./polygonProvider";
 import RegisterMenu from "./register/registerMenu";
 import Sidebar from "./sidebar/sidebar";
 
 const PolygonsAndClientContainer = () => {
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [locationsWithPolygon, setLocationsWithPolygon] = useState<{
-    locations: FetchLocationsResponse["locations"];
-    responseInfo: APIResponseInfo;
-  }>({ locations: [], responseInfo: { statusCode: 0 } });
+  const [locationsWithPolygon, setLocationsWithPolygon] = useState<
+    FetchLocationsResponse["locations"]
+  >([]);
+
+  const [selectedLocation, setSelectedLocation] = useState<
+    FetchLocationsResponse["locations"][number] | null
+  >(null);
+
+  const [citiesOptions, setCitiesOptions] = useState<
+    FetchCitiesResponse["cities"] | null
+  >(null);
 
   const [isCreating, setIsCreating] = useState(false);
+  const [state, setState] = useState<BrazilianStates>("MG");
+  const [cityId, setCityId] = useState<number | null>(null);
+
+  const [fetchLocationsAPI, loadingLocations] = useFetchLocations({
+    cityId: cityId ?? -1,
+  });
 
   const fetchLocations = useCallback(async () => {
-    setLoadingOverlay({ show: true, message: "Carregando praças..." });
-    const locationsResponse = await _fetchLocations({ cityId: 1 });
-    setLocationsWithPolygon({
-      locations: locationsResponse.data?.locations ?? [],
-      responseInfo: locationsResponse.responseInfo,
+    const locationsResponse = await fetchLocationsAPI();
+    setLocationsWithPolygon(locationsResponse.data?.locations ?? []);
+  }, [fetchLocationsAPI]);
+
+  const loadCitiesOptions = async () => {
+    const citiesResponse = await _fetchCities({
+      state: state,
+      includeAdminstrativeRegions: true,
     });
-    setLoadingOverlay({ show: false });
-  }, [setLoadingOverlay]);
+    setCitiesOptions(citiesResponse.data?.cities ?? []);
+    const initialCityId = citiesResponse.data?.cities[0]?.id ?? null;
+    setCityId(initialCityId);
+  };
+
+  useEffect(() => {
+    void loadCitiesOptions();
+  }, [state]);
 
   useEffect(() => {
     void fetchLocations();
-  }, [setLoadingOverlay, fetchLocations]);
+  }, [fetchLocations, cityId]);
+
+  const selectLocation = (locationId: number | null) => {
+    if (locationId === null || locationId === selectedLocation?.id) {
+      setSelectedLocation(null);
+      return;
+    }
+    const location =
+      locationsWithPolygon.find((loc) => loc.id === locationId) || null;
+    if (!location) return;
+    setSelectedLocation(location);
+  };
 
   return (
     <PolygonProvider
-      fullLocations={locationsWithPolygon.locations}
-      fetchLocationsResponseInfo={locationsWithPolygon.responseInfo}
+      fullLocations={locationsWithPolygon}
+      handleSelectLocation={selectLocation}
+      selectedLocation={selectedLocation}
     >
       <div
-        className={`absolute bottom-0 top-0 z-50 w-fit overflow-auto pr-4 transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} `}
+        className={`absolute bottom-0 top-0 z-50 flex max-h-full w-fit overflow-auto pr-4 transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} `}
       >
         <div className="flex max-h-full w-fit justify-between overflow-auto p-4">
-          <Sidebar />
+          <Sidebar
+            loadingLocations={loadingLocations}
+            locations={locationsWithPolygon}
+            citiesOptions={citiesOptions}
+            cityId={cityId}
+            setCityId={setCityId}
+            setState={setState}
+            selectLocation={selectLocation}
+            state={state}
+          />
         </div>
+        {selectedLocation && (
+          <div className="flex max-h-full w-fit justify-between overflow-auto py-4">
+            <LocationDetails
+              location={selectedLocation}
+              closeLocationDetails={() => {
+                setSelectedLocation(null);
+              }}
+              reloadLocations={() => {
+                void fetchLocations();
+              }}
+            />
+          </div>
+        )}
       </div>
+
+      {loadingLocations && (
+        <div className="absolute bottom-4 right-4 z-50 h-fit w-fit pr-4">
+          <CircularProgress color="secondary" size={64} />
+        </div>
+      )}
 
       <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
         {!isCreating && (

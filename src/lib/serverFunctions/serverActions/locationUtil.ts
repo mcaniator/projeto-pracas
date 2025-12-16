@@ -1,7 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIResponse,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -10,7 +13,6 @@ import {
   addPolygonFromWKT,
   getPolygonsFromShp,
 } from "@serverOnly/geometries";
-import { stat } from "fs";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -50,61 +52,82 @@ interface LocationWithCity extends Location {
   } | null;
 }
 
-const _deleteLocation = async (id: number) => {
+const _deleteLocation = async (
+  prevState: { responseInfo: APIResponseInfo },
+  formData: FormData,
+) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
-    return { statusCode: 401, formNamesAndVersions: null, itemsCount: null };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para excluir praças!",
+      } as APIResponseInfo,
+    };
   }
   try {
-    const location = await prisma.location.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        assessment: {
-          select: {
-            form: {
-              select: {
-                name: true,
-                version: true,
-              },
-            },
+    const id = z.coerce.number().parse(formData.get("id"));
+    try {
+      const location = await prisma.location.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          name: true,
+          _count: {
+            select: { tally: true, assessment: true },
           },
         },
-        _count: {
-          select: { tally: true, assessment: true },
-        },
-      },
-    });
-    if (!location) {
-      return { statusCode: 404, formNamesAndVersions: null, itemsCount: null };
-    }
-
-    if (location.assessment.length > 0) {
-      const formNamesAndVersions = new Map<string, Set<number>>();
-      location.assessment.forEach((assessment) => {
-        if (!formNamesAndVersions.has(assessment.form.name)) {
-          formNamesAndVersions.set(assessment.form.name, new Set());
-        }
-        const versionSet = formNamesAndVersions.get(assessment.form.name);
-        versionSet?.add(assessment.form.version);
       });
+      if (!location) {
+        return {
+          responseInfo: {
+            statusCode: 404,
+            message: "Praça nao encontrada!",
+          } as APIResponseInfo,
+        };
+      }
+
+      if (location._count.tally > 0 || location._count.assessment > 0) {
+        return {
+          responseInfo: {
+            statusCode: 403,
+            message: `Esta praça possui ${location._count.assessment} avaliações e ${location._count.tally} contagens!`,
+          } as APIResponseInfo,
+        };
+      }
+      const deletedLocation = await prisma.location.delete({
+        where: {
+          id,
+        },
+        select: {
+          name: true,
+        },
+      });
+      revalidateTag("location");
       return {
-        statusCode: 409,
-        formNamesAndVersions,
-        itemsCount: location._count,
+        responseInfo: {
+          statusCode: 200,
+          message: `Praça ${deletedLocation.name} excluida!`,
+          showSuccessCard: true,
+        } as APIResponseInfo,
+      };
+    } catch (err) {
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao excluir praça!",
+        } as APIResponseInfo,
       };
     }
-    await prisma.location.delete({
-      where: {
-        id,
-      },
-    });
-    revalidateTag("location");
-    return { statusCode: 200, formNamesAndVersions: null, itemsCount: null };
-  } catch (err) {
-    return { statusCode: 500, formNamesAndVersions: null, itemsCount: null };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 403,
+        meessage: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
   }
 };
 

@@ -1,7 +1,7 @@
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { LocationWithPolygon } from "@customTypes/location/location";
 
 import { FetchLocationsParams } from "../../../app/api/admin/locations/route";
-import { fetchAPI } from "../../utils/apiCall";
 import { FetchLocationsResponse } from "../queries/location";
 
 const _searchLocationsForMap = async () => {
@@ -26,10 +26,10 @@ const _searchLocationsForMap = async () => {
   return locations;
 };
 
-export const _fetchLocations = async (params: FetchLocationsParams) => {
+export const useFetchLocations = (params: FetchLocationsParams) => {
   const url = `/api/admin/locations`;
 
-  const response = await fetchAPI<FetchLocationsResponse>({
+  return useFetchAPI<FetchLocationsResponse>({
     url,
     params,
     options: {
@@ -37,8 +37,6 @@ export const _fetchLocations = async (params: FetchLocationsParams) => {
       next: { tags: ["location", "database"] },
     },
   });
-
-  return response;
 };
 
 export { _searchLocationsForMap };

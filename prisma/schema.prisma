@@ -427,11 +427,11 @@ model Location {
 
   polygon Unsupported("Geometry(MultiPolygon, 4326)")?
 
-  narrowAdministrativeUnitId       Int?
+  narrowAdministrativeUnitId       Int?                            @map("narrow_administrative_unit_id")
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
-  intermediateAdministrativeUnitId Int?
+  intermediateAdministrativeUnitId Int?                            @map("intermediate_administrative_unit_id")
   intermediateAdministrativeUnit   IntermediateAdministrativeUnit? @relation(fields: [intermediateAdministrativeUnitId], references: [id])
-  broadAdministrativeUnitId        Int?
+  broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   assessment Assessment[]
@@ -447,12 +447,16 @@ model LocationType {
   id        Int        @id @default(autoincrement())
   name      String     @unique() @db.VarChar(255)
   locations Location[]
+
+  @@map("location_type")
 }
 
 model LocationCategory {
   id        Int        @id @default(autoincrement())
   name      String     @unique() @db.VarChar(255)
   locations Location[]
+
+  @@map("location_category")
 }
 
 model City {

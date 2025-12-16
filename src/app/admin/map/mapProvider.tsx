@@ -49,7 +49,9 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
   return (
     <div
       id="map"
-      className={"relative h-full w-full max-w-[100vw] overflow-hidden"}
+      className={
+        "animate-map-bg-pulse relative h-full w-full max-w-[100vw] overflow-hidden"
+      }
       ref={ref}
     >
       <MapContext.Provider value={map}>{children}</MapContext.Provider>

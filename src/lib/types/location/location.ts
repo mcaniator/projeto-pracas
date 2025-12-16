@@ -12,11 +12,31 @@ type LocationsWithPolygonResponse = {
 export type LocationForMap = {
   id: number;
   name: string;
+  firstStreet: string;
+  secondStreet: string;
+  thirdStreet: string;
+  fourthStreet: string;
+  image: string | null;
   popularName: string | null;
   typeId: number;
   categoryId: number;
+  notes: string | null;
+  incline: number | null;
+  isPark: boolean;
+  inactiveNotFound: boolean;
+  narrowAdministrativeUnitName: string | null;
+  intermediateAdministrativeUnitName: string | null;
+  broadAdministrativeUnitName: string | null;
+  creationYear: number | null;
+  lastMaintenanceYear: number | null;
+  overseeingMayor: string | null;
+  legislation: string | null;
+  usableArea: number | null;
+  legalArea: number | null;
   assessmentCount: number;
   tallyCount: number;
+  categoryName: string | null;
+  typeName: string | null;
   st_asgeojson: string | null;
 };
 

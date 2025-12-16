@@ -133,15 +133,39 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.type_id      AS "typeId",
     l.category_id  AS "categoryId",
     l.popular_name AS "popularName",
+    l.first_street AS "firstStreet",
+    l.second_street AS "secondStreet",
+    l.third_street AS "thirdStreet",
+    l.fourth_street AS "fourthStreet",
+    l.notes as "notes",
+    l.creation_year as "creationYear",
+    l.last_maintenance_year as "lastMaintenanceYear",
+    l.overseeing_mayor as "overseeingMayor",
+    l.legislation as "legislation",
+    l.usable_area as "usableArea",
+    l.legal_area as "legalArea",
+    l.incline as "incline",
+    l.is_park as "isPark",
+    l.inactive_not_found as "inactiveNotFound",
+    nau.name AS "narrowAdministrativeUnitName",
+    iau.name AS "intermediateAdministrativeUnitName",
+    bau.name AS "broadAdministrativeUnitName",
+    lc.name AS "categoryName",
+    lt.name AS "typeName",
     COUNT(DISTINCT a.id) AS "assessmentCount",
     COUNT(DISTINCT t.id) AS "tallyCount",
     ST_AsGeoJSON(l.polygon)::text AS st_asgeojson
   FROM location l
   LEFT JOIN assessment a ON a.location_id = l.id
   LEFT JOIN tally t      ON t.location_id = l.id
+  LEFT JOIN narrow_administrative_unit nau ON nau.id = l.narrow_administrative_unit_id
+  LEFT JOIN intermediate_administrative_unit iau ON iau.id = l.intermediate_administrative_unit_id
+  LEFT JOIN broad_administrative_unit bau ON bau.id = l.broad_administrative_unit_id
+  LEFT JOIN location_category lc ON lc.id = l.category_id
+  LEFT JOIN location_type lt ON lt.id = l.type_id
   WHERE l.city_id = ${params.cityId}
   GROUP BY 
-    l.id, l.name, l.image, l.type_id, l.category_id, l.st_asgeojson
+    l.id, l.name, l.image, l.type_id, l.category_id, l.st_asgeojson, nau.name, iau.name, bau.name, lc.name, lt.name
 `;
     return {
       responseInfo: {
@@ -152,6 +176,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       },
     };
   } catch (e) {
+    console.log(e);
     return {
       responseInfo: {
         statusCode: 500,

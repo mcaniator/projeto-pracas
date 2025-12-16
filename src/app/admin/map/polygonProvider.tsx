@@ -1,11 +1,9 @@
 "use client";
 
-import { useHelperCard } from "@components/context/helperCardContext";
-import { LocationsWithPolygonResponse } from "@customTypes/location/location";
 import Feature, { FeatureLike } from "ol/Feature";
 import { click } from "ol/events/condition";
 import GeoJSON from "ol/format/GeoJSON";
-import { Geometry } from "ol/geom";
+import { Geometry, SimpleGeometry } from "ol/geom";
 import { Select } from "ol/interaction";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
@@ -22,7 +20,6 @@ import {
 } from "react";
 
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
-import { APIResponseInfo } from "../../../lib/types/backendCalls/APIResponse";
 import { MapContext } from "./mapProvider";
 
 const PolygonProviderVectorSourceContext = createContext<
@@ -31,15 +28,15 @@ const PolygonProviderVectorSourceContext = createContext<
 
 const PolygonProvider = ({
   fullLocations,
-  fetchLocationsResponseInfo,
+  selectedLocation,
   children,
+  handleSelectLocation,
 }: {
   fullLocations: FetchLocationsResponse["locations"];
-  fetchLocationsResponseInfo: APIResponseInfo;
+  selectedLocation: FetchLocationsResponse["locations"][number] | null;
   children: ReactNode;
+  handleSelectLocation: (id: number | null) => void;
 }) => {
-  //const fullLocations = fullLocationsPromise;
-  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
   const map = useContext(MapContext);
 
   const polygonsVectorSource = useMemo(
@@ -48,9 +45,8 @@ const PolygonProvider = ({
   );
 
   useEffect(() => {
-    helperCardProcessResponse(fetchLocationsResponseInfo);
+    //Definição do estilo e comportamento dos polígonos
     const reader = new GeoJSON();
-    console.log("FRONT", fullLocations);
     const featureArray = fullLocations
       .filter((location) => location.st_asgeojson)
       .map((location) => {
@@ -145,17 +141,9 @@ const PolygonProvider = ({
     selectInteraction.on("select", (event) => {
       const selected = event.selected[0];
       if (selected) {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: "Polígono selecionado",
-        });
+        handleSelectLocation(Number(selected.getId()));
       } else {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: "Polígono  deselecionado",
-        });
+        handleSelectLocation(null);
       }
     });
     map?.addInteraction(selectInteraction);
@@ -169,7 +157,31 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, fullLocations, polygonsVectorSource, setHelperCard]);
+  }, [map, fullLocations, polygonsVectorSource]);
+
+  useEffect(() => {
+    //Foco no local selecionado
+    const features = polygonsVectorSource.getFeatures();
+    const selectedFeature = features.find(
+      (feature) => feature.getId() === selectedLocation?.id,
+    );
+    for (const interaction of map?.getInteractions().getArray() ?? []) {
+      if (interaction instanceof Select) {
+        interaction.getFeatures().clear();
+        if (!selectedFeature) return;
+        interaction.getFeatures().push(selectedFeature);
+        const geometry = selectedFeature.getGeometry();
+        if (geometry !== undefined && geometry instanceof SimpleGeometry) {
+          const view = map?.getView();
+          view?.fit(geometry, {
+            duration: 1000,
+            padding: [100, 100, 100, 800],
+          });
+        }
+        break;
+      }
+    }
+  }, [selectedLocation]);
 
   return (
     <PolygonProviderVectorSourceContext.Provider value={polygonsVectorSource}>
