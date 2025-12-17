@@ -1,4 +1,4 @@
-import { Box, Chip } from "@mui/material";
+import { Box, Chip, Tooltip } from "@mui/material";
 import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
 import React from "react";
 
@@ -12,6 +12,7 @@ export type CButtonProps = ButtonProps & {
   square?: boolean;
   color?: ButtonOwnProps["color"];
   toDo?: boolean;
+  tooltip?: string;
 };
 
 function CButton(props: CButtonProps) {
@@ -26,6 +27,7 @@ function CButton(props: CButtonProps) {
     square,
     color,
     toDo,
+    tooltip,
     onClick,
     sx,
     ...rest
@@ -36,7 +38,7 @@ function CButton(props: CButtonProps) {
   const squareSx = square ? { padding: "6px", minWidth: "0px" } : {};
   const { setHelperCard } = useHelperCard();
 
-  return (
+  const component = (
     <Box
       position="relative"
       className={className}
@@ -82,6 +84,8 @@ function CButton(props: CButtonProps) {
       </Button>
     </Box>
   );
+
+  return tooltip ? <Tooltip title={tooltip}>{component}</Tooltip> : component;
 }
 
 export default CButton;

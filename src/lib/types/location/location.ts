@@ -16,7 +16,7 @@ export type LocationForMap = {
   secondStreet: string;
   thirdStreet: string;
   fourthStreet: string;
-  image: string | null;
+  mainImage: string | null;
   popularName: string | null;
   typeId: number;
   categoryId: number;

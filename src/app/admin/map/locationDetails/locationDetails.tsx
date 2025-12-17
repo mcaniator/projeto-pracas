@@ -1,4 +1,5 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
+import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
@@ -13,7 +14,6 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import Image from "next/image";
 import { useState } from "react";
 
 const LocationDetails = ({
@@ -42,8 +42,8 @@ const LocationDetails = ({
           <IconX />
         </CButton>
       </div>
-      <Image
-        src={location.image}
+      <CImage
+        src={location.mainImage}
         alt={location.name}
         width={384}
         height={200}
@@ -89,13 +89,13 @@ const LocationDetails = ({
         <Breadcrumbs separator="›" aria-label="breadcrumb">
           {location.narrowAdministrativeUnitName ?
             <div>{location.narrowAdministrativeUnitName}</div>
-          : <IconX size={12} />}
+          : <span className="ml-1">-</span>}
           {location.intermediateAdministrativeUnitName ?
             <div>{location.intermediateAdministrativeUnitName}</div>
-          : <IconX size={12} />}
+          : <span>-</span>}
           {location.broadAdministrativeUnitName ?
             <div>{location.broadAdministrativeUnitName}</div>
-          : <IconX size={12} />}
+          : <span>-</span>}
         </Breadcrumbs>
       </div>
 
@@ -114,26 +114,26 @@ const LocationDetails = ({
       <h4 className="font-semibold">Categorização</h4>
       <span>
         <CIconChip icon={<IconCircleDashedLetterT />} tooltip="Tipo" />
-        {`${location.typeName}`}
+        {location.typeName ?? "-"}
       </span>
       <span>
         <CIconChip icon={<IconCircleDashedLetterC />} tooltip="Categoria" />
-        {`${location.categoryName}`}
+        {location.categoryName ?? "-"}
       </span>
       <Divider />
       <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área na prefeitura: ${location.legalArea} m²`}</span>
+      <span>{`Área na prefeitura: ${location.legalArea ?? "-"} m²`}</span>
 
-      <span>{`Área útil: ${location.usableArea} m²`}</span>
+      <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
       <Divider />
       <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear}`}</span>
-      <span>{`Prefeito fundador: ${location.overseeingMayor}`}</span>
-      <span>{`Legislação: ${location.legislation}`}</span>
+      <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
+      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
+      <span>{`Prefeito fundador: ${location.overseeingMayor ?? "-"}`}</span>
+      <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
       <Divider />
       <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">{location.notes}</div>
+      <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
       <LocationDeleteDialog
         location={location}
         open={openDeleteLocationDialog}

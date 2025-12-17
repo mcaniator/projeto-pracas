@@ -132,6 +132,7 @@ const addPolygon = async (
       WHERE id = ${id};
     `;
   } catch (e) {
+    console.log(e);
     throw new Error();
   }
 };

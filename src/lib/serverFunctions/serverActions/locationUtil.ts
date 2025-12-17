@@ -5,6 +5,7 @@ import {
   APIResponse,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import { uploadImage } from "@/lib/utils/image";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -395,11 +396,18 @@ const _createLocation = async (
       .nullish()
       .parse(formData.get("locationId"));
 
+    const image = formData.get("mainImage") as File | null;
+    console.log(formData);
+    let imageUrl: string | null = null;
     try {
+      if (image) {
+        imageUrl = await uploadImage(image);
+      }
       if (locationId) {
         const location = await prisma.location.update({
           data: {
             ...locationData,
+            mainImage: imageUrl,
           },
           where: {
             id: locationId,
@@ -418,6 +426,7 @@ const _createLocation = async (
         const location = await prisma.location.create({
           data: {
             ...locationData,
+            mainImage: imageUrl,
           },
           select: {
             id: true,
@@ -455,10 +464,11 @@ const _createLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
+      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
-          message: "Erro ao registrar praça!!",
+          message: "Erro ao registrar praça!",
         } as APIResponseInfo,
       };
     }

@@ -1,3 +1,4 @@
+import { buildImageUrl } from "@/lib/utils/image";
 import {
   LocationForMap,
   LocationWithPolygon,
@@ -129,7 +130,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   SELECT
     l.id,
     l.name,
-    l.image,
+    l.main_image AS "mainImage",
     l.type_id      AS "typeId",
     l.category_id  AS "categoryId",
     l.popular_name AS "popularName",
@@ -165,14 +166,18 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_type lt ON lt.id = l.type_id
   WHERE l.city_id = ${params.cityId}
   GROUP BY 
-    l.id, l.name, l.image, l.type_id, l.category_id, l.st_asgeojson, nau.name, iau.name, bau.name, lc.name, lt.name
+    l.id, l.name, l.main_image, l.type_id, l.category_id, l.st_asgeojson, nau.name, iau.name, bau.name, lc.name, lt.name
 `;
+    const formatedLocations = locations.map((location) => ({
+      ...location,
+      mainImage: buildImageUrl(location.mainImage),
+    }));
     return {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        locations: locations,
+        locations: formatedLocations,
       },
     };
   } catch (e) {

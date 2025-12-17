@@ -65,6 +65,7 @@ const LocationRegisterDialog = ({
         narrowAdministrativeUnitId: null,
         intermediateAdministrativeUnitId: null,
         broadAdministrativeUnitId: null,
+        mainImage: null,
       }
     ),
   );

@@ -24,6 +24,7 @@ type ParkRegisterData = {
   narrowAdministrativeUnitId: number | null;
   intermediateAdministrativeUnitId: number | null;
   broadAdministrativeUnitId: number | null;
+  mainImage: File | null;
 };
 
 export { type ParkRegisterData };

@@ -1,13 +1,14 @@
 "use client";
 
 import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
+import { MapContext } from "@/app/admin/map/mapProvider";
 import { _fetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { CircularProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconPlus } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { IconLocationPin, IconPlus } from "@tabler/icons-react";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 import PermissionGuard from "../../../components/auth/permissionGuard";
 import CButton from "../../../components/ui/cButton";
@@ -17,6 +18,8 @@ import RegisterMenu from "./register/registerMenu";
 import Sidebar from "./sidebar/sidebar";
 
 const PolygonsAndClientContainer = () => {
+  const map = useContext(MapContext);
+  const view = map?.getView();
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
@@ -107,7 +110,31 @@ const PolygonsAndClientContainer = () => {
           </div>
         )}
       </div>
-
+      <div className="absolute right-56 top-4 z-50 h-fit w-fit pr-4">
+        <CButton
+          square
+          tooltip="Centralizar no seu local"
+          onClick={() => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                view?.animate({
+                  center: [pos.coords.longitude, pos.coords.latitude],
+                  zoom: 17,
+                  duration: 1000,
+                });
+              },
+              null,
+              {
+                enableHighAccuracy: false,
+                maximumAge: Infinity,
+                timeout: 60000,
+              },
+            );
+          }}
+        >
+          <IconLocationPin />
+        </CButton>
+      </div>
       {loadingLocations && (
         <div className="absolute bottom-4 right-4 z-50 h-fit w-fit pr-4">
           <CircularProgress color="secondary" size={64} />

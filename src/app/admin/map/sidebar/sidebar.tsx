@@ -1,6 +1,7 @@
 "use client";
 
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import CImage from "@components/ui/CImage";
 import { LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconFilter, IconTree } from "@tabler/icons-react";
@@ -139,18 +140,18 @@ const Sidebar = ({
                 selectLocation(location.id);
               }}
             >
-              {location.image ?
-                <Image
-                  src={location.image}
-                  alt="Praça"
-                  width={60}
-                  height={60}
-                  className="aspect-square rounded-full"
-                />
-              : <div className="aspect-square rounded-full bg-gray-200 outline outline-1 outline-gray-300">
-                  <IconTree size={60} />
-                </div>
-              }
+              <CImage
+                src={location.mainImage}
+                alt="Praça"
+                width={60}
+                height={60}
+                fallback={
+                  <div className="aspect-square rounded-full bg-gray-200 outline outline-1 outline-gray-300">
+                    <IconTree size={60} />
+                  </div>
+                }
+                className="aspect-square rounded-full"
+              />
               <div className="ml-2 flex flex-col">
                 <div className="font-semibold">{location.name}</div>
                 <div className="text-sm text-gray-500">

@@ -3,6 +3,7 @@
 import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressStep";
 import DeleteLocationCateogryOrTypeDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteLocationCateogoryOrTypeDialog";
 import LocationCategoryOrTypeSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/locationCategoryOrTypeSaveDialog";
+import CImageInput from "@/components/ui/CImageInput";
 import { _fetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
@@ -189,6 +190,17 @@ const BasicInfoStep = ({
           }
         }}
       />
+      <div className="w-fit">
+        <CImageInput
+          label="Imagem"
+          files={parkData.mainImage}
+          previewWidth={300}
+          previewHeight={200}
+          emitFiles={(f) => {
+            setParkData((prev) => ({ ...prev, mainImage: f[0] ?? null }));
+          }}
+        />
+      </div>
     </div>
   );
 };
