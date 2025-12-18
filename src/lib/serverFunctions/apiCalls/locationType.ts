@@ -1,17 +1,14 @@
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import { fetchAPI } from "../../utils/apiCall";
-
-export const _fetchLocationTypes = async () => {
+export const useFetchLocationTypes = () => {
   const url = "/api/admin/locationTypes";
 
-  const response = await fetchAPI<FetchLocationTypesResponse>({
+  return useFetchAPI<FetchLocationTypesResponse>({
     url,
     options: {
       method: "GET",
       next: { tags: ["locationCategory", "database"] },
     },
   });
-
-  return response;
 };

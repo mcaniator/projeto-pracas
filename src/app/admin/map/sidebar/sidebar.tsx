@@ -1,12 +1,14 @@
 "use client";
 
+import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
+import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import CImage from "@components/ui/CImage";
-import { LinearProgress } from "@mui/material";
+import { Chip, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconFilter, IconTree } from "@tabler/icons-react";
-import Image from "next/image";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
@@ -15,46 +17,61 @@ import CAutocomplete from "../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../components/ui/cTextField";
 import { FetchCitiesResponse } from "../../../../lib/serverFunctions/queries/city";
 
-type UnitType =
-  FetchCitiesResponse["cities"][number]["narrowAdministrativeUnit"];
-
 const Sidebar = ({
   loadingLocations,
+  loadingCities,
+  loadingCategories,
+  loadingTypes,
   locations,
   citiesOptions,
-  cityId,
+  locationCategories,
+  locationTypes,
+  selectedCity,
+  numberOfActiveFilters,
   state,
+  filter,
   selectLocation,
   setState,
-  setCityId,
+  setCity,
+  setFilter,
 }: {
   loadingLocations: boolean;
+  loadingCities: boolean;
+  loadingCategories: boolean;
+  loadingTypes: boolean;
   locations: FetchLocationsResponse["locations"];
-  cityId: number | null;
+  locationCategories: FetchLocationCategoriesResponse["categories"];
+  locationTypes: FetchLocationTypesResponse["types"];
+  selectedCity: FetchCitiesResponse["cities"][number] | null;
   citiesOptions: FetchCitiesResponse["cities"] | null;
+  numberOfActiveFilters: number;
   state: BrazilianStates;
+  filter: LocationsMapClientFilter;
   selectLocation: (locationId: number) => void;
   setState: Dispatch<SetStateAction<BrazilianStates>>;
-  setCityId: Dispatch<SetStateAction<number | null>>;
+  setCity: Dispatch<
+    SetStateAction<FetchCitiesResponse["cities"][number] | null>
+  >;
+  setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
 }) => {
-  const [cityAdmUnits, setCityAdmUnits] = useState<{
-    narrowUnits: UnitType;
-    intermediateUnits: UnitType;
-    broadUnits: UnitType;
-  }>({
-    narrowUnits: [],
-    intermediateUnits: [],
-    broadUnits: [],
-  });
-
-  useEffect(() => {
-    const cityOption = citiesOptions?.find((c) => c.id === cityId);
-    setCityAdmUnits({
-      broadUnits: cityOption?.broadAdministrativeUnit ?? [],
-      intermediateUnits: cityOption?.intermediateAdministrativeUnit ?? [],
-      narrowUnits: cityOption?.narrowAdministrativeUnit ?? [],
-    });
-  }, [citiesOptions, cityId]);
+  const broadUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.broadAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.broadAdministrativeUnit]);
+  const intermediateUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.intermediateAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.intermediateAdministrativeUnit]);
+  const narrowUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.narrowAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.narrowAdministrativeUnit]);
   return (
     <div
       className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
@@ -73,17 +90,24 @@ const Sidebar = ({
           <CAutocomplete
             className="w-full"
             label="Cidade"
+            loading={loadingCities}
             value={
-              citiesOptions?.find((c) => c.id === cityId) ?? {
+              citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
                 id: -1,
                 name: "Nenhuma cidade selecionada",
+                state: state,
+                broadAdministrativeUnit: [],
+                intermediateAdministrativeUnit: [],
+                narrowAdministrativeUnit: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
               }
             }
             disableClearable
             options={citiesOptions ?? []}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             getOptionLabel={(o) => o.name}
-            onChange={(_, v) => setCityId(v.id)}
+            onChange={(_, v) => setCity(v)}
           />
         </div>
 
@@ -95,36 +119,117 @@ const Sidebar = ({
           }}
         >
           <CAccordionSummary>
-            <div className="flex flex-row">
+            <div className="flex flex-row items-center">
               <IconFilter /> Filtros
+              {numberOfActiveFilters > 0 && (
+                <Chip
+                  color="error"
+                  label={numberOfActiveFilters}
+                  sx={{ fontSize: "0.7rem", ml: "4px", height: "28px" }}
+                />
+              )}
             </div>
           </CAccordionSummary>
           <CAccordionDetails>
             <div className="flex flex-col gap-1">
-              <CTextField label="Nome" />
               <CAutocomplete
                 label="Região administrativa ampla"
-                options={cityAdmUnits.broadUnits ?? []}
+                options={broadUnits}
                 getOptionLabel={(o) => o.name}
                 isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  broadUnits.find(
+                    (b) => b.id === filter.broadAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    broadAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
               />
               <CAutocomplete
                 label="Região administrativa intermendiária"
-                options={cityAdmUnits.intermediateUnits ?? []}
+                options={intermediateUnits}
                 getOptionLabel={(o) => o.name}
                 isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  intermediateUnits.find(
+                    (b) => b.id === filter.intermediateAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    intermediateAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
               />
               <CAutocomplete
                 label="Região administrativa estreita"
-                options={cityAdmUnits.narrowUnits ?? []}
+                options={narrowUnits}
                 getOptionLabel={(o) => o.name}
                 isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  narrowUnits.find(
+                    (b) => b.id === filter.narrowAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    narrowAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
               />
-              <CAutocomplete label="Categoria" options={[]} />
-              <CAutocomplete label="Tipo" options={[]} />
+              <CAutocomplete
+                label="Categoria"
+                options={[...locationCategories, { id: -1, name: "NENHUMA" }]}
+                loading={loadingCategories}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                getOptionLabel={(o) => o.name}
+                value={
+                  locationCategories?.find((b) => b.id === filter.categoryId) ??
+                  null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    categoryId: v?.id ?? null,
+                  })
+                }
+              />
+              <CAutocomplete
+                label="Tipo"
+                options={[...locationTypes, { id: -1, name: "NENHUM" }]}
+                loading={loadingTypes}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                getOptionLabel={(o) => o.name}
+                value={
+                  locationTypes?.find((b) => b.id === filter.typeId) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    typeId: v?.id ?? null,
+                  })
+                }
+              />
             </div>
           </CAccordionDetails>
         </CAccordion>
+        <CTextField
+          label="Nome"
+          value={filter.name}
+          debounce={500}
+          onChange={(e) => {
+            setFilter((prev) => ({ ...prev, name: e.target.value }));
+          }}
+        />
         {loadingLocations && (
           <div className="flex w-full flex-col justify-center text-lg">
             <LinearProgress />

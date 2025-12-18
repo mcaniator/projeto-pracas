@@ -1,5 +1,6 @@
 "use client";
 
+import { useHelperCard } from "@/components/context/helperCardContext";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
@@ -25,6 +26,7 @@ const MapProvider = ({
   initialGeometries: ResponseGeometry[] | undefined;
 }) => {
   useGeographic();
+  const { setHelperCard } = useHelperCard();
   const vectorSource = useRef<VectorSource>(new VectorSource());
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,13 @@ const MapProvider = ({
           duration: 0,
         });
       },
-      null,
+      () => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao obter sua localização!</>,
+        });
+      },
       {
         enableHighAccuracy: false,
         maximumAge: Infinity,
@@ -91,7 +99,7 @@ const MapProvider = ({
     return () => {
       map.setTarget(undefined);
     };
-  }, [map, view]);
+  }, [map, view, setHelperCard]);
 
   useEffect(() => {
     if (initialGeometries) {

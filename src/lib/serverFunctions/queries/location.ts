@@ -148,14 +148,17 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.incline as "incline",
     l.is_park as "isPark",
     l.inactive_not_found as "inactiveNotFound",
+    l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
+    l.intermediate_administrative_unit_id as "intermediateAdministrativeUnitId",
+    l.broad_administrative_unit_id as "broadAdministrativeUnitId",
     nau.name AS "narrowAdministrativeUnitName",
     iau.name AS "intermediateAdministrativeUnitName",
     bau.name AS "broadAdministrativeUnitName",
     lc.name AS "categoryName",
     lt.name AS "typeName",
+    ST_AsGeoJSON(l.polygon)::text AS st_asgeojson,
     COUNT(DISTINCT a.id) AS "assessmentCount",
-    COUNT(DISTINCT t.id) AS "tallyCount",
-    ST_AsGeoJSON(l.polygon)::text AS st_asgeojson
+    COUNT(DISTINCT t.id) AS "tallyCount"
   FROM location l
   LEFT JOIN assessment a ON a.location_id = l.id
   LEFT JOIN tally t      ON t.location_id = l.id
@@ -166,7 +169,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_type lt ON lt.id = l.type_id
   WHERE l.city_id = ${params.cityId}
   GROUP BY 
-    l.id, l.name, l.main_image, l.type_id, l.category_id, l.st_asgeojson, nau.name, iau.name, bau.name, lc.name, lt.name
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,

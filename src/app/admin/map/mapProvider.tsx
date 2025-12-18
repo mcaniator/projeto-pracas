@@ -1,5 +1,6 @@
 "use client";
 
+import { useHelperCard } from "@/components/context/helperCardContext";
 import Map from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
@@ -12,6 +13,7 @@ const MapContext = createContext<null | Map>(null);
 
 const MapProvider = ({ children }: { children: ReactNode }) => {
   useGeographic();
+  const { setHelperCard } = useHelperCard();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -37,14 +39,20 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
           duration: 0,
         });
       },
-      null,
+      () => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao obter sua localização!</>,
+        });
+      },
       {
         enableHighAccuracy: false,
         maximumAge: Infinity,
         timeout: 60000,
       },
     );
-  }, [map, view]);
+  }, [map, view, setHelperCard]);
 
   return (
     <div

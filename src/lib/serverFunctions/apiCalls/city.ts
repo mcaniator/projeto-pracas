@@ -1,11 +1,12 @@
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+
 import { FetchCitiesParams } from "../../../app/api/admin/cities/route";
-import { fetchAPI } from "../../utils/apiCall";
 import { FetchCitiesResponse } from "../queries/city";
 
-export const _fetchCities = async (params: FetchCitiesParams) => {
+export const useFetchCities = (params: FetchCitiesParams) => {
   const url = "/api/admin/cities";
 
-  const response = await fetchAPI<FetchCitiesResponse>({
+  return useFetchAPI<FetchCitiesResponse>({
     url,
     params,
     options: {
@@ -13,6 +14,4 @@ export const _fetchCities = async (params: FetchCitiesParams) => {
       next: { tags: ["assessment", "database"] },
     },
   });
-
-  return response;
 };

@@ -26,12 +26,11 @@ const _searchLocationsForMap = async () => {
   return locations;
 };
 
-export const useFetchLocations = (params: FetchLocationsParams) => {
+export const useFetchLocations = () => {
   const url = `/api/admin/locations`;
 
-  return useFetchAPI<FetchLocationsResponse>({
+  return useFetchAPI<FetchLocationsResponse, FetchLocationsParams>({
     url,
-    params,
     options: {
       method: "GET",
       next: { tags: ["location", "database"] },

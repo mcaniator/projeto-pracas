@@ -4,14 +4,14 @@ import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressSt
 import DeleteLocationCateogryOrTypeDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteLocationCateogoryOrTypeDialog";
 import LocationCategoryOrTypeSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/locationCategoryOrTypeSaveDialog";
 import CImageInput from "@/components/ui/CImageInput";
-import { _fetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
+import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
+import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../components/ui/cTextField";
-import { _fetchLocationCategories } from "../../../../../lib/serverFunctions/apiCalls/locationCategory";
 import { FetchLocationCategoriesResponse } from "../../../../../lib/serverFunctions/queries/locationCategory";
 import { ParkRegisterData } from "../../../../../lib/types/parks/parkRegister";
 
@@ -34,9 +34,6 @@ const BasicInfoStep = ({
     FetchLocationTypesResponse["types"]
   >([]);
 
-  const [loadingCategories, setLoadingCateogries] = useState(false);
-  const [loadingTypes, setLoadingTypes] = useState(false);
-
   const [selectedItemToEdit, setSelectedItemToEdit] = useState<{
     id: number;
     name: string;
@@ -51,19 +48,19 @@ const BasicInfoStep = ({
     setEnableNextStep(requiredFieldsFilled.name);
   }, [requiredFieldsFilled, setEnableNextStep]);
 
+  const [_fetchLocationCategories, loadingCategories] =
+    useFetchLocationCategories();
+  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
+
   const loadLocationCategories = useCallback(async () => {
-    setLoadingCateogries(true);
-    const locationCategoriesResponse = await _fetchLocationCategories();
+    const locationCategoriesResponse = await _fetchLocationCategories({});
     setLocationCategories(locationCategoriesResponse.data?.categories ?? []);
-    setLoadingCateogries(false);
-  }, []);
+  }, [_fetchLocationCategories]);
 
   const loadLocationTypes = useCallback(async () => {
-    setLoadingTypes(true);
-    const locationTypesResponse = await _fetchLocationTypes();
+    const locationTypesResponse = await _fetchLocationTypes({});
     setLocationTypes(locationTypesResponse.data?.types ?? []);
-    setLoadingTypes(false);
-  }, []);
+  }, [_fetchLocationTypes]);
 
   useEffect(() => {
     void loadLocationTypes();

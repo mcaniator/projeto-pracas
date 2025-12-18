@@ -2,13 +2,13 @@ import SaveCityDialog from "@/app/admin/map/register/registerSteps/parametersDia
 import AdministrativeUnitSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/administrativeUnitSaveDialog";
 import DeleteAdministrativeUnitDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteAdministrativeUnitDialog";
 import DeleteCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteCityDialog";
+import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { BrazilianStates } from "@prisma/client";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../components/ui/cTextField";
-import { _fetchCities } from "../../../../../lib/serverFunctions/apiCalls/city";
 import { FetchCitiesResponse } from "../../../../../lib/serverFunctions/queries/city";
 import { ParkRegisterData } from "../../../../../lib/types/parks/parkRegister";
 
@@ -39,7 +39,6 @@ const AddressStep = ({
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
   >(null);
-  const [isLoadingCity, setIsLoadingCity] = useState(false);
 
   const [selectedItemToEdit, setSelectedItemToEdit] = useState<{
     id: number;
@@ -47,14 +46,14 @@ const AddressStep = ({
   } | null>(null);
   const [unitLevel, setUnitLevel] = useState<AdministrativeUnitLevel>("BROAD");
 
+  const [_fetchCities, isLoadingCity] = useFetchCities();
+
   const loadCitiesOptions = useCallback(async () => {
-    setIsLoadingCity(true);
     const response = await _fetchCities({
       state: parkData.state,
       includeAdminstrativeRegions: true,
     });
     setCitiesOptions(response.data?.cities ?? []);
-    setIsLoadingCity(false);
   }, [parkData.state]);
   const [cityAdmUnits, setCityAdmUnits] = useState<{
     narrowUnits: UnitType;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useHelperCard } from "@/components/context/helperCardContext";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionGeometryTypes } from "@prisma/client";
 import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
@@ -85,6 +86,7 @@ const MapProvider = forwardRef(
     ref,
   ) => {
     useGeographic();
+    const { setHelperCard } = useHelperCard();
     const [geometryTypeOptions] = useState(
       geometryType.map((g) => ({
         id: geometryTypeFormatter.get(g)!,
@@ -153,7 +155,13 @@ const MapProvider = forwardRef(
             duration: 0,
           });
         },
-        null,
+        () => {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao obter sua localização!</>,
+          });
+        },
         {
           enableHighAccuracy: false,
           maximumAge: Infinity,
@@ -195,7 +203,14 @@ const MapProvider = forwardRef(
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, view, currentGeometryType, finalized, handleChangeIsInSelectMode]);
+    }, [
+      map,
+      view,
+      currentGeometryType,
+      finalized,
+      handleChangeIsInSelectMode,
+      setHelperCard,
+    ]);
 
     useEffect(() => {
       if (initialGeometries) {

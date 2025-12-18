@@ -2,13 +2,19 @@
 
 import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
 import { MapContext } from "@/app/admin/map/mapProvider";
-import { _fetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import { useHelperCard } from "@/components/context/helperCardContext";
+import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
+import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
+import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
+import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { CircularProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconLocationPin, IconPlus } from "@tabler/icons-react";
-import { useCallback, useContext, useEffect, useState } from "react";
+import Fuse from "fuse.js";
+import { useContext, useEffect, useMemo, useState } from "react";
 
 import PermissionGuard from "../../../components/auth/permissionGuard";
 import CButton from "../../../components/ui/cButton";
@@ -17,13 +23,26 @@ import PolygonProvider from "./polygonProvider";
 import RegisterMenu from "./register/registerMenu";
 import Sidebar from "./sidebar/sidebar";
 
+export type LocationsMapClientFilter = {
+  broadAdministrativeUnitId: number | null;
+  intermediateAdministrativeUnitId: number | null;
+  narrowAdministrativeUnitId: number | null;
+  categoryId: number | null;
+  typeId: number | null;
+  name: string | null;
+};
+
 const PolygonsAndClientContainer = () => {
+  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
   const view = map?.getView();
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
   >([]);
+
+  const [filteredLocationsWithPolygon, setFilteredLocationsWithPolygon] =
+    useState<FetchLocationsResponse["locations"]>([]);
 
   const [selectedLocation, setSelectedLocation] = useState<
     FetchLocationsResponse["locations"][number] | null
@@ -33,18 +52,104 @@ const PolygonsAndClientContainer = () => {
     FetchCitiesResponse["cities"] | null
   >(null);
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [state, setState] = useState<BrazilianStates>("MG");
-  const [cityId, setCityId] = useState<number | null>(null);
+  const [locationCategories, setLocationCategories] = useState<
+    FetchLocationCategoriesResponse["categories"]
+  >([]);
 
-  const [fetchLocationsAPI, loadingLocations] = useFetchLocations({
-    cityId: cityId ?? -1,
+  const [locationTypes, setLocationTypes] = useState<
+    FetchLocationTypesResponse["types"]
+  >([]);
+
+  const [filter, setFilter] = useState<LocationsMapClientFilter>({
+    broadAdministrativeUnitId: null,
+    intermediateAdministrativeUnitId: null,
+    narrowAdministrativeUnitId: null,
+    categoryId: null,
+    typeId: null,
+    name: null,
   });
 
-  const fetchLocations = useCallback(async () => {
-    const locationsResponse = await fetchLocationsAPI();
+  const numberOfActiveFilters = useMemo(() => {
+    let count = 0;
+    if (filter.broadAdministrativeUnitId !== null) count++;
+    if (filter.intermediateAdministrativeUnitId !== null) count++;
+    if (filter.narrowAdministrativeUnitId !== null) count++;
+    if (filter.categoryId !== null) count++;
+    if (filter.typeId !== null) count++;
+    return count;
+  }, [filter]);
+
+  const [isCreating, setIsCreating] = useState(false);
+  const [state, setState] = useState<BrazilianStates>("MG");
+  const [selectedCity, setSelectedCity] = useState<
+    FetchCitiesResponse["cities"][number] | null
+  >(null);
+
+  const [_fetchLocations, loadingLocations] = useFetchLocations();
+  const [_fetchCities, loadingCities] = useFetchCities();
+  const [_fetchLocationCategories, loadingCategories] =
+    useFetchLocationCategories();
+  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
+
+  const fuseHaystack = new Fuse(locationsWithPolygon, {
+    keys: ["name", "popularName"],
+  });
+  const applyFilter = () => {
+    const result: FetchLocationsResponse["locations"] = [];
+    locationsWithPolygon.forEach((location) => {
+      if (
+        filter.broadAdministrativeUnitId &&
+        location.broadAdministrativeUnitId !== filter.broadAdministrativeUnitId
+      ) {
+        if (filter.broadAdministrativeUnitId !== -1) return;
+        if (location.broadAdministrativeUnitId !== null) return;
+      }
+
+      if (
+        filter.intermediateAdministrativeUnitId &&
+        location.intermediateAdministrativeUnitId !==
+          filter.intermediateAdministrativeUnitId
+      ) {
+        if (filter.intermediateAdministrativeUnitId !== -1) return;
+        if (location.intermediateAdministrativeUnitId !== null) return;
+      }
+      if (
+        filter.narrowAdministrativeUnitId &&
+        location.narrowAdministrativeUnitId !==
+          filter.narrowAdministrativeUnitId
+      ) {
+        if (filter.narrowAdministrativeUnitId !== -1) return;
+        if (location.narrowAdministrativeUnitId !== null) return;
+      }
+
+      if (filter.categoryId && location.categoryId !== filter.categoryId) {
+        if (filter.categoryId !== -1) return;
+        if (location.categoryId !== null) return;
+      }
+
+      if (filter.typeId && location.typeId !== filter.typeId) {
+        if (filter.typeId !== -1) return;
+        if (location.typeId !== null) return;
+      }
+
+      result.push(location);
+    });
+
+    if (filter.name) {
+      const resultFilteredByName = fuseHaystack.search(filter.name);
+      setFilteredLocationsWithPolygon(
+        resultFilteredByName.map((result) => result.item),
+      );
+    } else {
+      setFilteredLocationsWithPolygon(result);
+    }
+  };
+  const loadLocations = async () => {
+    const locationsResponse = await _fetchLocations({
+      cityId: selectedCity?.id ?? -1,
+    });
     setLocationsWithPolygon(locationsResponse.data?.locations ?? []);
-  }, [fetchLocationsAPI]);
+  };
 
   const loadCitiesOptions = async () => {
     const citiesResponse = await _fetchCities({
@@ -52,17 +157,36 @@ const PolygonsAndClientContainer = () => {
       includeAdminstrativeRegions: true,
     });
     setCitiesOptions(citiesResponse.data?.cities ?? []);
-    const initialCityId = citiesResponse.data?.cities[0]?.id ?? null;
-    setCityId(initialCityId);
+    const initialCity = citiesResponse.data?.cities[0] ?? null;
+    setSelectedCity(initialCity);
   };
+
+  const loadCategories = async () => {
+    const categoriesResponse = await _fetchLocationCategories({});
+    setLocationCategories(categoriesResponse.data?.categories ?? []);
+  };
+
+  const loadTypes = async () => {
+    const typesResponse = await _fetchLocationTypes({});
+    setLocationTypes(typesResponse.data?.types ?? []);
+  };
+
+  useEffect(() => {
+    void loadCategories();
+    void loadTypes();
+  }, []);
 
   useEffect(() => {
     void loadCitiesOptions();
   }, [state]);
 
   useEffect(() => {
-    void fetchLocations();
-  }, [fetchLocations, cityId]);
+    void loadLocations();
+  }, [selectedCity]);
+
+  useEffect(() => {
+    applyFilter();
+  }, [locationsWithPolygon, filter]);
 
   const selectLocation = (locationId: number | null) => {
     if (locationId === null || locationId === selectedLocation?.id) {
@@ -70,14 +194,14 @@ const PolygonsAndClientContainer = () => {
       return;
     }
     const location =
-      locationsWithPolygon.find((loc) => loc.id === locationId) || null;
+      filteredLocationsWithPolygon.find((loc) => loc.id === locationId) || null;
     if (!location) return;
     setSelectedLocation(location);
   };
 
   return (
     <PolygonProvider
-      fullLocations={locationsWithPolygon}
+      fullLocations={filteredLocationsWithPolygon}
       handleSelectLocation={selectLocation}
       selectedLocation={selectedLocation}
     >
@@ -87,13 +211,21 @@ const PolygonsAndClientContainer = () => {
         <div className="flex max-h-full w-fit justify-between overflow-auto p-4">
           <Sidebar
             loadingLocations={loadingLocations}
-            locations={locationsWithPolygon}
+            loadingCities={loadingCities}
+            loadingCategories={loadingCategories}
+            loadingTypes={loadingTypes}
+            locations={filteredLocationsWithPolygon}
+            locationCategories={locationCategories}
+            locationTypes={locationTypes}
             citiesOptions={citiesOptions}
-            cityId={cityId}
-            setCityId={setCityId}
+            selectedCity={selectedCity}
+            setCity={setSelectedCity}
             setState={setState}
             selectLocation={selectLocation}
             state={state}
+            filter={filter}
+            numberOfActiveFilters={numberOfActiveFilters}
+            setFilter={setFilter}
           />
         </div>
         {selectedLocation && (
@@ -104,7 +236,7 @@ const PolygonsAndClientContainer = () => {
                 setSelectedLocation(null);
               }}
               reloadLocations={() => {
-                void fetchLocations();
+                void loadLocations();
               }}
             />
           </div>
@@ -113,7 +245,7 @@ const PolygonsAndClientContainer = () => {
       <div className="absolute right-56 top-4 z-50 h-fit w-fit pr-4">
         <CButton
           square
-          tooltip="Centralizar no seu local"
+          tooltip="Centralizar na sua localização"
           onClick={() => {
             navigator.geolocation.getCurrentPosition(
               (pos) => {
@@ -123,7 +255,13 @@ const PolygonsAndClientContainer = () => {
                   duration: 1000,
                 });
               },
-              null,
+              () => {
+                setHelperCard({
+                  show: true,
+                  helperCardType: "ERROR",
+                  content: <>Erro ao obter sua localização!</>,
+                });
+              },
               {
                 enableHighAccuracy: false,
                 maximumAge: Infinity,
@@ -166,7 +304,7 @@ const PolygonsAndClientContainer = () => {
                 setIsCreating(false);
               }}
               reloadLocations={() => {
-                void fetchLocations();
+                void loadLocations();
               }}
             />
           </div>

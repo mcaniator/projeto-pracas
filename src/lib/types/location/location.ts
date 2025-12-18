@@ -27,6 +27,9 @@ export type LocationForMap = {
   narrowAdministrativeUnitName: string | null;
   intermediateAdministrativeUnitName: string | null;
   broadAdministrativeUnitName: string | null;
+  narrowAdministrativeUnitId: number | null;
+  intermediateAdministrativeUnitId: number | null;
+  broadAdministrativeUnitId: number | null;
   creationYear: number | null;
   lastMaintenanceYear: number | null;
   overseeingMayor: string | null;

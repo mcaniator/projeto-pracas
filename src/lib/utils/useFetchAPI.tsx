@@ -7,27 +7,25 @@ import {
 import { generateQueryString } from "@/lib/utils/apiCall";
 import { useState } from "react";
 
-export function useFetchAPI<T>({
+export function useFetchAPI<T, P = Record<string, unknown>>({
   url,
-  params,
   options,
 }: {
   url: string;
-  params?: Record<string, unknown>;
   options?: RequestInit & {
     next?: { tags?: string[] };
     loadingMessage?: string;
     showLoadingOverlay?: boolean;
   };
 }): [
-  () => Promise<{ responseInfo: APIResponseInfo; data: T | null }>,
+  (params: P) => Promise<{ responseInfo: APIResponseInfo; data: T | null }>,
   boolean,
 ] {
   const { helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchFunction = async () => {
+  const fetchFunction = async (params: P) => {
     setIsLoading(true);
     if (options?.loadingMessage || options?.showLoadingOverlay) {
       setLoadingOverlay({

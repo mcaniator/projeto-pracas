@@ -1,16 +1,15 @@
-import { fetchAPI } from "../../utils/apiCall";
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+
 import { FetchLocationCategoriesResponse } from "../queries/locationCategory";
 
-export const _fetchLocationCategories = async () => {
+export const useFetchLocationCategories = () => {
   const url = "/api/admin/locationCategories";
 
-  const response = await fetchAPI<FetchLocationCategoriesResponse>({
+  return useFetchAPI<FetchLocationCategoriesResponse>({
     url,
     options: {
       method: "GET",
       next: { tags: ["locationCategory", "database"] },
     },
   });
-
-  return response;
 };
