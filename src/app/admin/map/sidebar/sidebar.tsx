@@ -1,14 +1,16 @@
 "use client";
 
 import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
+import CButton from "@/components/ui/cButton";
+import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import CImage from "@components/ui/CImage";
 import { Chip, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconFilter, IconTree } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { IconFilter, IconListDetails, IconTree } from "@tabler/icons-react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
@@ -30,6 +32,7 @@ const Sidebar = ({
   numberOfActiveFilters,
   state,
   filter,
+  isMobileView,
   selectLocation,
   setState,
   setCity,
@@ -53,7 +56,9 @@ const Sidebar = ({
     SetStateAction<FetchCitiesResponse["cities"][number] | null>
   >;
   setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
+  isMobileView: boolean;
 }) => {
+  const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
   const broadUnits = useMemo(() => {
     return [
       ...(selectedCity?.broadAdministrativeUnit ?? []),
@@ -72,203 +77,232 @@ const Sidebar = ({
       { id: -1, name: "NENHUMA" },
     ];
   }, [selectedCity?.narrowAdministrativeUnit]);
-  return (
-    <div
-      className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
-      style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
-    >
-      <div className="flex max-h-full flex-col gap-1 overflow-auto">
-        <div className="flex">
-          <CAutocomplete
-            className="w-32"
-            label="Estado"
-            disableClearable
-            options={Object.values(BrazilianStates)}
-            value={state}
-            onChange={(_, v) => setState(v)}
-          />
-          <CAutocomplete
-            className="w-full"
-            label="Cidade"
-            loading={loadingCities}
-            value={
-              citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
-                id: -1,
-                name: "Nenhuma cidade selecionada",
-                state: state,
-                broadAdministrativeUnit: [],
-                intermediateAdministrativeUnit: [],
-                narrowAdministrativeUnit: [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              }
-            }
-            disableClearable
-            options={citiesOptions ?? []}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            getOptionLabel={(o) => o.name}
-            onChange={(_, v) => setCity(v)}
-          />
-        </div>
-
-        <CAccordion
-          sx={{
-            "&.Mui-expanded": {
-              margin: 0,
-            },
-          }}
-        >
-          <CAccordionSummary>
-            <div className="flex flex-row items-center">
-              <IconFilter /> Filtros
-              {numberOfActiveFilters > 0 && (
-                <Chip
-                  color="error"
-                  label={numberOfActiveFilters}
-                  sx={{ fontSize: "0.7rem", ml: "4px", height: "28px" }}
-                />
-              )}
-            </div>
-          </CAccordionSummary>
-          <CAccordionDetails>
-            <div className="flex flex-col gap-1">
-              <CAutocomplete
-                label="Região administrativa ampla"
-                options={broadUnits}
-                getOptionLabel={(o) => o.name}
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                loading={loadingCities}
-                value={
-                  broadUnits.find(
-                    (b) => b.id === filter.broadAdministrativeUnitId,
-                  ) ?? null
-                }
-                onChange={(_, v) =>
-                  setFilter({
-                    ...filter,
-                    broadAdministrativeUnitId: v?.id ?? null,
-                  })
-                }
-              />
-              <CAutocomplete
-                label="Região administrativa intermendiária"
-                options={intermediateUnits}
-                getOptionLabel={(o) => o.name}
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                loading={loadingCities}
-                value={
-                  intermediateUnits.find(
-                    (b) => b.id === filter.intermediateAdministrativeUnitId,
-                  ) ?? null
-                }
-                onChange={(_, v) =>
-                  setFilter({
-                    ...filter,
-                    intermediateAdministrativeUnitId: v?.id ?? null,
-                  })
-                }
-              />
-              <CAutocomplete
-                label="Região administrativa estreita"
-                options={narrowUnits}
-                getOptionLabel={(o) => o.name}
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                loading={loadingCities}
-                value={
-                  narrowUnits.find(
-                    (b) => b.id === filter.narrowAdministrativeUnitId,
-                  ) ?? null
-                }
-                onChange={(_, v) =>
-                  setFilter({
-                    ...filter,
-                    narrowAdministrativeUnitId: v?.id ?? null,
-                  })
-                }
-              />
-              <CAutocomplete
-                label="Categoria"
-                options={[...locationCategories, { id: -1, name: "NENHUMA" }]}
-                loading={loadingCategories}
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                getOptionLabel={(o) => o.name}
-                value={
-                  locationCategories?.find((b) => b.id === filter.categoryId) ??
-                  null
-                }
-                onChange={(_, v) =>
-                  setFilter({
-                    ...filter,
-                    categoryId: v?.id ?? null,
-                  })
-                }
-              />
-              <CAutocomplete
-                label="Tipo"
-                options={[...locationTypes, { id: -1, name: "NENHUM" }]}
-                loading={loadingTypes}
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                getOptionLabel={(o) => o.name}
-                value={
-                  locationTypes?.find((b) => b.id === filter.typeId) ?? null
-                }
-                onChange={(_, v) =>
-                  setFilter({
-                    ...filter,
-                    typeId: v?.id ?? null,
-                  })
-                }
-              />
-            </div>
-          </CAccordionDetails>
-        </CAccordion>
-        <CTextField
-          label="Nome"
-          value={filter.name}
-          debounce={500}
-          onChange={(e) => {
-            setFilter((prev) => ({ ...prev, name: e.target.value }));
-          }}
+  const inner = (
+    <div className="flex max-h-full flex-col gap-1 overflow-auto">
+      <div className="flex">
+        <CAutocomplete
+          className="w-32"
+          label="Estado"
+          disableClearable
+          options={Object.values(BrazilianStates)}
+          value={state}
+          onChange={(_, v) => setState(v)}
         />
-        {loadingLocations && (
-          <div className="flex w-full flex-col justify-center text-lg">
-            <LinearProgress />
-            Carregando praças...
-          </div>
-        )}
-        {locations.map((location) => {
-          return (
-            <div
-              key={location.id}
-              className="flex cursor-pointer border-b border-gray-300 p-2 hover:bg-gray-200"
-              onClick={() => {
-                selectLocation(location.id);
-              }}
-            >
-              <CImage
-                src={location.mainImage}
-                alt="Praça"
-                width={60}
-                height={60}
-                fallback={
-                  <div className="aspect-square rounded-full bg-gray-200 outline outline-1 outline-gray-300">
-                    <IconTree size={60} />
-                  </div>
-                }
-                className="aspect-square rounded-full"
+        <CAutocomplete
+          className="w-full"
+          label="Cidade"
+          loading={loadingCities}
+          value={
+            citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
+              id: -1,
+              name: "Nenhuma cidade selecionada",
+              state: state,
+              broadAdministrativeUnit: [],
+              intermediateAdministrativeUnit: [],
+              narrowAdministrativeUnit: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          }
+          disableClearable
+          options={citiesOptions ?? []}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          getOptionLabel={(o) => o.name}
+          onChange={(_, v) => setCity(v)}
+        />
+      </div>
+
+      <CAccordion
+        sx={{
+          "&.Mui-expanded": {
+            margin: 0,
+          },
+        }}
+      >
+        <CAccordionSummary>
+          <div className="flex flex-row items-center">
+            <IconFilter /> Filtros
+            {numberOfActiveFilters > 0 && (
+              <Chip
+                color="error"
+                label={numberOfActiveFilters}
+                sx={{ fontSize: "0.7rem", ml: "4px", height: "28px" }}
               />
-              <div className="ml-2 flex flex-col">
-                <div className="font-semibold">{location.name}</div>
-                <div className="text-sm text-gray-500">
-                  {location.popularName}
+            )}
+          </div>
+        </CAccordionSummary>
+        <CAccordionDetails>
+          <div className="flex flex-col gap-1">
+            <CAutocomplete
+              label="Região administrativa ampla"
+              options={broadUnits}
+              getOptionLabel={(o) => o.name}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              loading={loadingCities}
+              value={
+                broadUnits.find(
+                  (b) => b.id === filter.broadAdministrativeUnitId,
+                ) ?? null
+              }
+              onChange={(_, v) =>
+                setFilter({
+                  ...filter,
+                  broadAdministrativeUnitId: v?.id ?? null,
+                })
+              }
+            />
+            <CAutocomplete
+              label="Região administrativa intermendiária"
+              options={intermediateUnits}
+              getOptionLabel={(o) => o.name}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              loading={loadingCities}
+              value={
+                intermediateUnits.find(
+                  (b) => b.id === filter.intermediateAdministrativeUnitId,
+                ) ?? null
+              }
+              onChange={(_, v) =>
+                setFilter({
+                  ...filter,
+                  intermediateAdministrativeUnitId: v?.id ?? null,
+                })
+              }
+            />
+            <CAutocomplete
+              label="Região administrativa estreita"
+              options={narrowUnits}
+              getOptionLabel={(o) => o.name}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              loading={loadingCities}
+              value={
+                narrowUnits.find(
+                  (b) => b.id === filter.narrowAdministrativeUnitId,
+                ) ?? null
+              }
+              onChange={(_, v) =>
+                setFilter({
+                  ...filter,
+                  narrowAdministrativeUnitId: v?.id ?? null,
+                })
+              }
+            />
+            <CAutocomplete
+              label="Categoria"
+              options={[...locationCategories, { id: -1, name: "NENHUMA" }]}
+              loading={loadingCategories}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              getOptionLabel={(o) => o.name}
+              value={
+                locationCategories?.find((b) => b.id === filter.categoryId) ??
+                null
+              }
+              onChange={(_, v) =>
+                setFilter({
+                  ...filter,
+                  categoryId: v?.id ?? null,
+                })
+              }
+            />
+            <CAutocomplete
+              label="Tipo"
+              options={[...locationTypes, { id: -1, name: "NENHUM" }]}
+              loading={loadingTypes}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              getOptionLabel={(o) => o.name}
+              value={locationTypes?.find((b) => b.id === filter.typeId) ?? null}
+              onChange={(_, v) =>
+                setFilter({
+                  ...filter,
+                  typeId: v?.id ?? null,
+                })
+              }
+            />
+          </div>
+        </CAccordionDetails>
+      </CAccordion>
+      <CTextField
+        label="Nome"
+        value={filter.name}
+        debounce={500}
+        onChange={(e) => {
+          setFilter((prev) => ({ ...prev, name: e.target.value }));
+        }}
+      />
+      {loadingLocations && (
+        <div className="flex w-full flex-col justify-center text-lg">
+          <LinearProgress />
+          Carregando praças...
+        </div>
+      )}
+      {locations.map((location) => {
+        return (
+          <div
+            key={location.id}
+            className="flex cursor-pointer border-b border-gray-300 p-2 hover:bg-gray-200"
+            onClick={() => {
+              selectLocation(location.id);
+            }}
+          >
+            <CImage
+              src={location.mainImage}
+              alt="Praça"
+              width={60}
+              height={60}
+              fallback={
+                <div className="aspect-square rounded-full bg-gray-200 outline outline-1 outline-gray-300">
+                  <IconTree size={60} />
                 </div>
+              }
+              className="aspect-square rounded-full"
+            />
+            <div className="ml-2 flex flex-col">
+              <div className="font-semibold">{location.name}</div>
+              <div className="text-sm text-gray-500">
+                {location.popularName}
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
+
+  if (isMobileView) {
+    return (
+      <>
+        <CDialog
+          fullScreen
+          title="Praças"
+          open={mobileDialogOpen}
+          onClose={() => {
+            setMobileDialogOpen(false);
+          }}
+        >
+          {inner}
+        </CDialog>
+        <CButton
+          square={true}
+          enableTopLeftChip
+          topLeftChipLabel={locations.length}
+          onClick={() => {
+            setMobileDialogOpen(true);
+          }}
+        >
+          <IconListDetails />
+        </CButton>
+      </>
+    );
+  } else {
+    return (
+      <div
+        className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
+        style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
+      >
+        {inner}
+      </div>
+    );
+  }
 };
 
 export default Sidebar;

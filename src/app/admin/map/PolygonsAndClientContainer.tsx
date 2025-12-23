@@ -199,6 +199,20 @@ const PolygonsAndClientContainer = () => {
     setSelectedLocation(location);
   };
 
+  //Detecção de largura da tela
+  const [isMobileView, setIsMobileView] = useState<boolean>(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 1000);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
     <PolygonProvider
       fullLocations={filteredLocationsWithPolygon}
@@ -208,7 +222,7 @@ const PolygonsAndClientContainer = () => {
       <div
         className={`absolute bottom-0 top-0 z-50 flex max-h-full w-fit overflow-auto pr-4 transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} `}
       >
-        <div className="flex max-h-full w-fit justify-between overflow-auto p-4">
+        <div className="flex h-fit max-h-full w-fit justify-between overflow-auto p-4">
           <Sidebar
             loadingLocations={loadingLocations}
             loadingCities={loadingCities}
@@ -224,6 +238,7 @@ const PolygonsAndClientContainer = () => {
             selectLocation={selectLocation}
             state={state}
             filter={filter}
+            isMobileView={isMobileView}
             numberOfActiveFilters={numberOfActiveFilters}
             setFilter={setFilter}
           />
@@ -232,6 +247,7 @@ const PolygonsAndClientContainer = () => {
           <div className="flex max-h-full w-fit justify-between overflow-auto py-4">
             <LocationDetails
               location={selectedLocation}
+              isMobileView={isMobileView}
               closeLocationDetails={() => {
                 setSelectedLocation(null);
               }}
@@ -242,53 +258,52 @@ const PolygonsAndClientContainer = () => {
           </div>
         )}
       </div>
-      <div className="absolute right-56 top-4 z-50 h-fit w-fit pr-4">
-        <CButton
-          square
-          tooltip="Centralizar na sua localização"
-          onClick={() => {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                view?.animate({
-                  center: [pos.coords.longitude, pos.coords.latitude],
-                  zoom: 17,
-                  duration: 1000,
-                });
-              },
-              () => {
-                setHelperCard({
-                  show: true,
-                  helperCardType: "ERROR",
-                  content: <>Erro ao obter sua localização!</>,
-                });
-              },
-              {
-                enableHighAccuracy: false,
-                maximumAge: Infinity,
-                timeout: 60000,
-              },
-            );
-          }}
-        >
-          <IconLocationPin />
-        </CButton>
-      </div>
       {loadingLocations && (
-        <div className="absolute bottom-4 right-4 z-50 h-fit w-fit pr-4">
+        <div className="absolute bottom-4 right-4 z-50 h-fit w-fit">
           <CircularProgress color="secondary" size={64} />
         </div>
       )}
 
       <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
         {!isCreating && (
-          <div className="absolute bottom-4 right-4 top-4 z-50 h-fit w-fit overflow-auto pr-4">
+          <div className="absolute bottom-4 right-4 top-4 z-50 flex h-fit w-fit flex-row gap-2 overflow-auto">
+            <CButton
+              square
+              tooltip="Centralizar na sua localização"
+              onClick={() => {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    view?.animate({
+                      center: [pos.coords.longitude, pos.coords.latitude],
+                      zoom: 17,
+                      duration: 1000,
+                    });
+                  },
+                  () => {
+                    setHelperCard({
+                      show: true,
+                      helperCardType: "ERROR",
+                      content: <>Erro ao obter sua localização!</>,
+                    });
+                  },
+                  {
+                    enableHighAccuracy: false,
+                    maximumAge: Infinity,
+                    timeout: 60000,
+                  },
+                );
+              }}
+            >
+              <IconLocationPin />
+            </CButton>
             <div>
               <CButton
+                square={isMobileView}
                 onClick={() => {
                   setIsCreating((prev) => !prev);
                 }}
               >
-                <IconPlus /> Cadastrar praça
+                <IconPlus /> {!isMobileView && "Cadastrar praça"}
               </CButton>
             </div>
           </div>

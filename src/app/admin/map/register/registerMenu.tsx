@@ -24,7 +24,7 @@ const RegisterMenu = ({
   };
   return (
     <div
-      className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
+      className="flex max-h-full w-64 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
       style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
     >
       <div className="flex h-full flex-col gap-1 overflow-auto">
@@ -44,11 +44,11 @@ const RegisterMenu = ({
               }}
             >
               <IconPencil />
-              Cadastrar com desenho
+              com desenho
             </CButton>
             <CButton>
               <IconMapOff />
-              Cadastrar sem desenho
+              sem desenho
             </CButton>
           </>
         )}

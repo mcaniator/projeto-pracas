@@ -2,6 +2,7 @@ import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
+import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { Breadcrumbs, Divider } from "@mui/material";
 import {
@@ -18,29 +19,33 @@ import { useState } from "react";
 
 const LocationDetails = ({
   location,
+  isMobileView,
   closeLocationDetails,
   reloadLocations,
 }: {
   location: FetchLocationsResponse["locations"][number];
   closeLocationDetails: () => void;
   reloadLocations: () => void;
+  isMobileView: boolean;
 }) => {
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
-  return (
-    <div
-      className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white px-2 py-1 text-black"
-      style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
-    >
+  const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
+  const inner = (
+    <div className="flex flex-col gap-1">
       <div className="flex justify-between">
-        <div className="flex flex-col">
-          <h3 className="text-xl font-semibold">{location.name}</h3>
-          <h3 className="text-xl text-gray-500">{location.popularName}</h3>
-        </div>
+        {!isMobileView && (
+          <div className="flex flex-col">
+            <h3 className="text-xl font-semibold">{location.name}</h3>
+            <h3 className="text-xl text-gray-500">{location.popularName}</h3>
+          </div>
+        )}
 
-        <CButton square variant="text" onClick={closeLocationDetails}>
-          <IconX />
-        </CButton>
+        {!isMobileView && (
+          <CButton square variant="text" onClick={closeLocationDetails}>
+            <IconX />
+          </CButton>
+        )}
       </div>
       <CImage
         src={location.mainImage}
@@ -147,6 +152,34 @@ const LocationDetails = ({
       />
     </div>
   );
+  if (isMobileView) {
+    return (
+      <CDialog
+        fullScreen
+        open={openMobileDialog}
+        title={location.name}
+        subtitle={location.popularName ?? undefined}
+        onClose={() => {
+          setOpenMobileDialog(false);
+
+          setTimeout(() => {
+            closeLocationDetails();
+          }, 150);
+        }}
+      >
+        {inner}
+      </CDialog>
+    );
+  } else {
+    return (
+      <div
+        className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white px-2 py-1 text-black"
+        style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
+      >
+        {inner}
+      </div>
+    );
+  }
 };
 
 export default LocationDetails;
