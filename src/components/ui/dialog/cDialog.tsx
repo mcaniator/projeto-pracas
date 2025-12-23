@@ -30,6 +30,7 @@ type CDialogProps = DialogProps & {
   disableDialogActions?: boolean;
   isForm?: boolean;
   disableContentPadding?: boolean;
+  disableBackdropClose?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
@@ -64,6 +65,7 @@ const CDialog = ({
   fullScreen,
   isForm,
   disableContentPadding,
+  disableBackdropClose,
   action,
   onCancel,
   onConfirm,
@@ -82,6 +84,17 @@ const CDialog = ({
     );
   }
 
+  const handleEventClose = (
+    event: object,
+    reason: "backdropClick" | "escapeKeyDown",
+  ) => {
+    if (disableBackdropClose && reason === "backdropClick") {
+      return;
+    }
+
+    onClose?.();
+  };
+
   const contentSx =
     disableContentPadding ?
       { px: "0px", py: "0px" }
@@ -90,7 +103,7 @@ const CDialog = ({
   if (isForm) {
     return (
       <Dialog
-        onClose={onClose}
+        onClose={handleEventClose}
         slots={{
           transition: Transition,
         }}
@@ -149,7 +162,7 @@ const CDialog = ({
   }
   return (
     <Dialog
-      onClose={onClose}
+      onClose={handleEventClose}
       slots={{
         transition: Transition,
       }}

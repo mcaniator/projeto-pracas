@@ -91,9 +91,6 @@ const PolygonsAndClientContainer = () => {
     useFetchLocationCategories();
   const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
 
-  const fuseHaystack = new Fuse(locationsWithPolygon, {
-    keys: ["name", "popularName"],
-  });
   const applyFilter = () => {
     const result: FetchLocationsResponse["locations"] = [];
     locationsWithPolygon.forEach((location) => {
@@ -133,6 +130,10 @@ const PolygonsAndClientContainer = () => {
       }
 
       result.push(location);
+    });
+
+    const fuseHaystack = new Fuse(result, {
+      keys: ["name", "popularName"],
     });
 
     if (filter.name) {
@@ -218,11 +219,14 @@ const PolygonsAndClientContainer = () => {
       fullLocations={filteredLocationsWithPolygon}
       handleSelectLocation={selectLocation}
       selectedLocation={selectedLocation}
+      isMobileView={isMobileView}
     >
       <div
-        className={`absolute bottom-0 top-0 z-50 flex max-h-full w-fit overflow-auto pr-4 transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} `}
+        className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} ${isMobileView ? "w-full" : "w-fit"}`}
       >
-        <div className="flex h-fit max-h-full w-fit justify-between overflow-auto p-4">
+        <div
+          className={`pointer-events-auto flex h-fit max-h-full justify-between overflow-auto ${isMobileView ? "w-full p-3" : "w-fit p-4"}`}
+        >
           <Sidebar
             loadingLocations={loadingLocations}
             loadingCities={loadingCities}
@@ -244,7 +248,7 @@ const PolygonsAndClientContainer = () => {
           />
         </div>
         {selectedLocation && (
-          <div className="flex max-h-full w-fit justify-between overflow-auto py-4">
+          <div className="pointer-events-auto flex max-h-full w-fit justify-between overflow-auto py-4">
             <LocationDetails
               location={selectedLocation}
               isMobileView={isMobileView}
@@ -259,43 +263,18 @@ const PolygonsAndClientContainer = () => {
         )}
       </div>
       {loadingLocations && (
-        <div className="absolute bottom-4 right-4 z-50 h-fit w-fit">
+        <div
+          className={`absolute bottom-4 z-50 h-fit w-fit ${isMobileView ? "left-4" : "right-4"}`}
+        >
           <CircularProgress color="secondary" size={64} />
         </div>
       )}
 
-      <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
-        {!isCreating && (
-          <div className="absolute bottom-4 right-4 top-4 z-50 flex h-fit w-fit flex-row gap-2 overflow-auto">
-            <CButton
-              square
-              tooltip="Centralizar na sua localização"
-              onClick={() => {
-                navigator.geolocation.getCurrentPosition(
-                  (pos) => {
-                    view?.animate({
-                      center: [pos.coords.longitude, pos.coords.latitude],
-                      zoom: 17,
-                      duration: 1000,
-                    });
-                  },
-                  () => {
-                    setHelperCard({
-                      show: true,
-                      helperCardType: "ERROR",
-                      content: <>Erro ao obter sua localização!</>,
-                    });
-                  },
-                  {
-                    enableHighAccuracy: false,
-                    maximumAge: Infinity,
-                    timeout: 60000,
-                  },
-                );
-              }}
-            >
-              <IconLocationPin />
-            </CButton>
+      {!isCreating && (
+        <div
+          className={`pointer-events-auto absolute right-2 z-50 flex h-fit w-fit flex-row gap-2 overflow-auto ${isMobileView ? "bottom-2" : "top-4"}`}
+        >
+          <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
             <div>
               <CButton
                 square={isMobileView}
@@ -306,9 +285,38 @@ const PolygonsAndClientContainer = () => {
                 <IconPlus /> {!isMobileView && "Cadastrar praça"}
               </CButton>
             </div>
-          </div>
-        )}
-      </PermissionGuard>
+          </PermissionGuard>
+          <CButton
+            square
+            tooltip="Centralizar na sua localização"
+            onClick={() => {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  view?.animate({
+                    center: [pos.coords.longitude, pos.coords.latitude],
+                    zoom: 17,
+                    duration: 1000,
+                  });
+                },
+                () => {
+                  setHelperCard({
+                    show: true,
+                    helperCardType: "ERROR",
+                    content: <>Erro ao obter sua localização!</>,
+                  });
+                },
+                {
+                  enableHighAccuracy: false,
+                  maximumAge: Infinity,
+                  timeout: 60000,
+                },
+              );
+            }}
+          >
+            <IconLocationPin />
+          </CButton>
+        </div>
+      )}
       <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
         <div
           className={`absolute bottom-0 right-0 top-0 z-50 h-fit max-h-full w-fit overflow-auto transition-all duration-300 ease-in-out ${isCreating ? "translate-x-0" : `pointer-events-none translate-x-full`} `}

@@ -78,6 +78,12 @@ const muiTheme = createTheme({
           "& .MuiInputAdornment-outlined": {
             zIndex: 1,
           },
+          "&.MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
+            paddingBottom: "0px",
+          },
+          "& .MuiAutocomplete-input": {
+            paddingBottom: 0,
+          },
         }),
         input: ({ theme }) => ({
           fontSize: 16,
@@ -98,6 +104,26 @@ const muiTheme = createTheme({
     MuiTextField: {
       defaultProps: {
         InputLabelProps: { shrink: true },
+      },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        input: {
+          paddingBottom: 0,
+        },
+        inputRoot: {
+          "&.MuiInputBase-sizeSmall .MuiAutocomplete-input": {
+            paddingBottom: 0,
+          },
+          "&.MuiOutlinedInput-root.MuiInputBase-sizeSmall": {
+            paddingBottom: 0,
+          },
+        },
+        option: {
+          minHeight: 0,
+          paddingTop: 4,
+          paddingBottom: 4,
+        },
       },
     },
     MuiPopper: {

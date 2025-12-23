@@ -124,17 +124,39 @@ function CAutocomplete<
 
   if (loading) {
     return (
-      <Skeleton height={53} variant="rectangular" sx={{ width: "100%" }} />
+      <Skeleton
+        variant="rectangular"
+        sx={{
+          width: "100%",
+          height: {
+            xs: 39.5,
+            sm: 45.25,
+          },
+        }}
+      />
     );
   } else if (suffixButtonChildren) {
     return (
-      <div className="flex w-full gap-1">
+      <div className="flex w-full items-center justify-center gap-1">
         {!!name && name.length > 0 && (
           <input type="hidden" name={name} value={value ? String(value) : ""} />
         )}
 
         {innerComponent}
-        <CButton square onClick={handleSuffixButtonClick}>
+        <CButton
+          square
+          onClick={handleSuffixButtonClick}
+          sx={{
+            height: {
+              xs: 32.5,
+              sm: 39.5,
+            },
+            width: {
+              xs: 32.5,
+              sm: 39.5,
+            },
+          }}
+        >
           {suffixButtonChildren}
         </CButton>
       </div>

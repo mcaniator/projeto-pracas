@@ -30,11 +30,13 @@ const PolygonProvider = ({
   fullLocations,
   selectedLocation,
   children,
+  isMobileView,
   handleSelectLocation,
 }: {
   fullLocations: FetchLocationsResponse["locations"];
   selectedLocation: FetchLocationsResponse["locations"][number] | null;
   children: ReactNode;
+  isMobileView: boolean;
   handleSelectLocation: (id: number | null) => void;
 }) => {
   const map = useContext(MapContext);
@@ -138,15 +140,14 @@ const PolygonProvider = ({
       hitTolerance: 10,
       style: selectStyleFunction,
     });
-    selectInteraction.on("select", (event) => {
-      const selected = event.selected[0];
-      if (selected) {
-        handleSelectLocation(Number(selected.getId()));
-      } else {
-        handleSelectLocation(null);
-      }
-    });
+
     map?.addInteraction(selectInteraction);
+
+    map?.on("singleclick", (evt) => {
+      map?.forEachFeatureAtPixel(evt.pixel, (feature) => {
+        handleSelectLocation(Number(feature.getId()));
+      });
+    });
 
     map?.on("pointermove", (evt) => {
       const hit = map?.hasFeatureAtPixel(evt.pixel);
@@ -157,16 +158,16 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, fullLocations, polygonsVectorSource]);
+  }, [map, fullLocations, polygonsVectorSource, handleSelectLocation]);
 
   useEffect(() => {
     //Foco no local selecionado
-    const features = polygonsVectorSource.getFeatures();
-    const selectedFeature = features.find(
-      (feature) => feature.getId() === selectedLocation?.id,
-    );
     for (const interaction of map?.getInteractions().getArray() ?? []) {
       if (interaction instanceof Select) {
+        const features = polygonsVectorSource.getFeatures();
+        const selectedFeature = features.find(
+          (feature) => feature.getId() === selectedLocation?.id,
+        );
         interaction.getFeatures().clear();
         if (!selectedFeature) return;
         interaction.getFeatures().push(selectedFeature);
@@ -175,13 +176,13 @@ const PolygonProvider = ({
           const view = map?.getView();
           view?.fit(geometry, {
             duration: 1000,
-            padding: [100, 100, 100, 800],
+            padding: [100, 100, 100, isMobileView ? 100 : 800],
           });
         }
         break;
       }
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, isMobileView, map, polygonsVectorSource]);
 
   return (
     <PolygonProviderVectorSourceContext.Provider value={polygonsVectorSource}>

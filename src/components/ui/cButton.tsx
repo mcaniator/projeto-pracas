@@ -85,7 +85,11 @@ function CButton(props: CButtonProps) {
     </Box>
   );
 
-  return tooltip ? <Tooltip title={tooltip}>{component}</Tooltip> : component;
+  return tooltip ?
+      <Tooltip title={tooltip} enterTouchDelay={1}>
+        {component}
+      </Tooltip>
+    : component;
 }
 
 export default CButton;

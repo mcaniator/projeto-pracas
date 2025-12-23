@@ -157,11 +157,11 @@ const LocationDetails = ({
       <CDialog
         fullScreen
         open={openMobileDialog}
+        disableBackdropClose //This is needed because if a polygon is selected in a touchscreen, the dialog will detect the touch as a brackdrop touch, closing the dialog immediately
         title={location.name}
         subtitle={location.popularName ?? undefined}
         onClose={() => {
           setOpenMobileDialog(false);
-
           setTimeout(() => {
             closeLocationDetails();
           }, 150);
