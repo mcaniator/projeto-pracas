@@ -1,20 +1,92 @@
 "use client";
 
+import { MapContext } from "@/app/admin/map/mapProvider";
+import { PolygonProviderContext } from "@/app/admin/map/polygonProvider";
+import { useHelperCard } from "@/components/context/helperCardContext";
+import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import { sleep } from "@/lib/utils/sleep";
+import { LinearProgress } from "@mui/material";
 import { IconCheck, IconTrashX, IconUpload } from "@tabler/icons-react";
 import Feature from "ol/Feature";
+import { createEmpty, extend } from "ol/extent";
+import GeoJSON from "ol/format/GeoJSON";
 import { Geometry } from "ol/geom";
 import { VectorSourceEvent } from "ol/source/Vector";
 import { useContext, useEffect, useState } from "react";
+import shp from "shpjs";
 
 import CButton from "../../../../components/ui/cButton";
 import { DrawingProviderVectorSourceContext } from "../drawingProvider";
 import LocationRegisterDialog from "./locationRegisterDialog";
 
 const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
+  const { setHelperCard } = useHelperCard();
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
+  const map = useContext(MapContext);
+  const view = map?.getView();
+  const polygonProvider = useContext(PolygonProviderContext);
   const [openLocationRegisterFormDialog, setOpenLocationRegisterFormDialog] =
     useState(false);
+  const [uploadedShapeFile, setUploadedShapeFile] = useState(false);
+  const [importingShapeFile, setImportingShapeFile] = useState(false);
+
+  const handleShapefileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setImportingShapeFile(true);
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+
+      const geojson = await shp(arrayBuffer);
+
+      const geojsonFormat = new GeoJSON();
+
+      const importedFeatures = geojsonFormat.readFeatures(geojson);
+
+      for (const feature of importedFeatures) {
+        drawingProviderContext.addFeature(feature);
+        await sleep(500); //This is needed because inserting features too fast causes then to be considered a single feature
+      }
+      if (importedFeatures.length > 0) {
+        if (view) {
+          const extent = createEmpty();
+
+          importedFeatures.forEach((feature) => {
+            const geometry = feature.getGeometry();
+            if (geometry) {
+              extend(extent, geometry.getExtent());
+            }
+          });
+
+          view.fit(extent, {
+            padding: [50, 50, 50, 50],
+            duration: 500,
+            maxZoom: 18,
+          });
+        }
+      } else {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Shapefile vazio!</>,
+        });
+      }
+
+      setUploadedShapeFile(true);
+    } catch (error) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro ao importar shapefile!</>,
+      });
+    } finally {
+      setImportingShapeFile(false);
+    }
+  };
 
   useEffect(() => {
     drawingProviderContext.addFeatures(features);
@@ -80,6 +152,9 @@ const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
           newFeaturesArr.push(f);
         }
         setFeatures(newFeaturesArr);
+        if (newFeaturesArr.length === 0) {
+          setUploadedShapeFile(false);
+        }
       }
     };
     drawingProviderContext.on("removefeature", removeFeature);
@@ -92,19 +167,42 @@ const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
       drawingProviderContext.removeFeatures(features);
     };
   }, [drawingProviderContext, features]);
+
+  useEffect(() => {
+    polygonProvider?.setVisible(false);
+
+    return () => {
+      polygonProvider?.setVisible(true);
+    };
+  }, [polygonProvider]);
   return (
     <div className="flex h-full flex-col gap-2 overflow-auto">
       {features.length === 0 && (
         <div className="text-md flex w-full items-center justify-center">
-          Selecione o perímetro da praça clicando no mapa, ou importe um arquivo
-          shapefile.
+          Selecione o perímetro da praça clicando no mapa, ou importe um
+          shapefile em formato .zip.
         </div>
       )}
       {features.length === 0 && (
-        <CButton toDo>
+        <CButtonFilePicker
+          onFileInput={(e) => {
+            void handleShapefileUpload(e);
+          }}
+        >
           <IconUpload />
           Importar shapefile
-        </CButton>
+        </CButtonFilePicker>
+      )}
+      {importingShapeFile && (
+        <div className="flex w-full flex-col justify-center text-lg">
+          <LinearProgress />
+          Importando...
+        </div>
+      )}
+      {features.length > 0 && uploadedShapeFile && (
+        <div className="text-md flex w-full items-center justify-center">
+          Shapefile importado com sucesso! Edite ou adicione mais polígonos.
+        </div>
       )}
 
       {features.map((feature, index) => {

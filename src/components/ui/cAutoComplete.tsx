@@ -100,7 +100,7 @@ function CAutocomplete<
                   <InputAdornment position="end">
                     <IconButton
                       sx={{
-                        padding: "0px 8px",
+                        padding: "0px 8px 6px 8px",
                         color: disableAppendIconButton ? "gray" : "inherit",
                         ...appendIconButtonSx,
                       }}

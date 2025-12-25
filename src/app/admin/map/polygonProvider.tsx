@@ -14,6 +14,7 @@ import Text from "ol/style/Text";
 import {
   ReactNode,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -22,9 +23,13 @@ import {
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
 import { MapContext } from "./mapProvider";
 
-const PolygonProviderVectorSourceContext = createContext<
-  VectorSource<Feature<Geometry>>
->(new VectorSource());
+type PolygonProviderContextType = {
+  vectorSource: VectorSource<Feature<Geometry>>;
+  setVisible: (visible: boolean) => void;
+};
+const PolygonProviderContext = createContext<PolygonProviderContextType | null>(
+  null,
+);
 
 const PolygonProvider = ({
   fullLocations,
@@ -46,26 +51,8 @@ const PolygonProvider = ({
     [],
   );
 
-  useEffect(() => {
-    //Definição do estilo e comportamento dos polígonos
-    const reader = new GeoJSON();
-    const featureArray = fullLocations
-      .filter((location) => location.st_asgeojson)
-      .map((location) => {
-        const geometry = reader.readGeometry(location.st_asgeojson);
-
-        const polygonName = location.name;
-        geometry.set("name", polygonName ?? "");
-
-        geometry.set("id", location.id);
-
-        const feature = new Feature(geometry);
-        feature.setId(location.id);
-
-        return feature;
-      });
-
-    const styleFunction = (feature: FeatureLike) => {
+  const styleFunction = useCallback(
+    (feature: FeatureLike) => {
       const style = new Style({
         fill: new Fill({
           color: "#1B28DE4D",
@@ -93,7 +80,41 @@ const PolygonProvider = ({
       });
 
       return style;
-    };
+    },
+    [map],
+  );
+
+  const polygonsLayer = useMemo(
+    () =>
+      new VectorLayer({
+        source: polygonsVectorSource,
+        style: styleFunction,
+      }),
+    [styleFunction, polygonsVectorSource],
+  );
+
+  const setVisible = (visible: boolean) => {
+    polygonsLayer.setVisible(visible);
+  };
+
+  useEffect(() => {
+    //Definição do estilo e comportamento dos polígonos
+    const reader = new GeoJSON();
+    const featureArray = fullLocations
+      .filter((location) => location.st_asgeojson)
+      .map((location) => {
+        const geometry = reader.readGeometry(location.st_asgeojson);
+
+        const polygonName = location.name;
+        geometry.set("name", polygonName ?? "");
+
+        geometry.set("id", location.id);
+
+        const feature = new Feature(geometry);
+        feature.setId(location.id);
+
+        return feature;
+      });
 
     const selectStyleFunction = (feature: FeatureLike) => {
       const style = new Style({
@@ -127,11 +148,6 @@ const PolygonProvider = ({
       return style;
     };
 
-    const polygonsLayer = new VectorLayer({
-      source: polygonsVectorSource,
-      style: styleFunction,
-    });
-
     polygonsVectorSource.addFeatures(featureArray);
     map?.addLayer(polygonsLayer);
 
@@ -158,7 +174,13 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, fullLocations, polygonsVectorSource, handleSelectLocation]);
+  }, [
+    map,
+    fullLocations,
+    polygonsVectorSource,
+    polygonsLayer,
+    handleSelectLocation,
+  ]);
 
   useEffect(() => {
     //Foco no local selecionado
@@ -185,11 +207,13 @@ const PolygonProvider = ({
   }, [selectedLocation, isMobileView, map, polygonsVectorSource]);
 
   return (
-    <PolygonProviderVectorSourceContext.Provider value={polygonsVectorSource}>
+    <PolygonProviderContext.Provider
+      value={{ vectorSource: polygonsVectorSource, setVisible }}
+    >
       {children}
-    </PolygonProviderVectorSourceContext.Provider>
+    </PolygonProviderContext.Provider>
   );
 };
 
-export { PolygonProviderVectorSourceContext };
+export { PolygonProviderContext };
 export default PolygonProvider;
