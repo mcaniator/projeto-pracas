@@ -203,10 +203,12 @@ const PolygonProvider = ({
             extend(extent, feature.getGeometry()?.getExtent() ?? []);
             return extent;
           }, createEmpty());
-          map?.getView().fit(extent, {
-            duration: 500,
-            padding: [50, 50, 50, 50],
-          });
+          if (!isEmpty(extent)) {
+            view?.fit(extent, {
+              padding: [50, 50, 50, 50],
+              duration: 500,
+            });
+          }
           return;
         }
         interaction.getFeatures().push(selectedFeature);
