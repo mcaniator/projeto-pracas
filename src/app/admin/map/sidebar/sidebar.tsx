@@ -224,6 +224,7 @@ const Sidebar = ({
       <CTextField
         label="Nome"
         value={filter.name}
+        clearable
         debounce={500}
         onChange={(e) => {
           setFilter((prev) => ({ ...prev, name: e.target.value }));

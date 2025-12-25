@@ -133,6 +133,12 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
 
     const handleClear = () => {
       setLocalValue("");
+      if (onChange) {
+        const event = {
+          target: { value: "" },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+      }
     };
 
     const handleAppendIconButtonClick = () => {
@@ -200,7 +206,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
           {clearable ?
             localValue.length > 0 ?
               <IconButton edge="end" onClick={handleClear}>
-                <IconX />
+                <IconX size={20} />
               </IconButton>
             : <div style={{ width: 28, height: 24 }} />
           : null}

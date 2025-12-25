@@ -2,6 +2,7 @@
 
 import Feature, { FeatureLike } from "ol/Feature";
 import { click } from "ol/events/condition";
+import { createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Geometry, SimpleGeometry } from "ol/geom";
 import { Select } from "ol/interaction";
@@ -45,7 +46,7 @@ const PolygonProvider = ({
   handleSelectLocation: (id: number | null) => void;
 }) => {
   const map = useContext(MapContext);
-
+  const view = map?.getView();
   const polygonsVectorSource = useMemo(
     () => new VectorSource({ wrapX: true }),
     [],
@@ -100,10 +101,15 @@ const PolygonProvider = ({
   useEffect(() => {
     //Definição do estilo e comportamento dos polígonos
     const reader = new GeoJSON();
+    const extent = createEmpty();
     const featureArray = fullLocations
       .filter((location) => location.st_asgeojson)
       .map((location) => {
         const geometry = reader.readGeometry(location.st_asgeojson);
+
+        if (geometry) {
+          extend(extent, geometry.getExtent());
+        }
 
         const polygonName = location.name;
         geometry.set("name", polygonName ?? "");
@@ -115,6 +121,12 @@ const PolygonProvider = ({
 
         return feature;
       });
+    if (!isEmpty(extent)) {
+      view?.fit(extent, {
+        padding: [50, 50, 50, 50],
+        duration: 500,
+      });
+    }
 
     const selectStyleFunction = (feature: FeatureLike) => {
       const style = new Style({
@@ -174,13 +186,7 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [
-    map,
-    fullLocations,
-    polygonsVectorSource,
-    polygonsLayer,
-    handleSelectLocation,
-  ]);
+  }, [map, fullLocations, polygonsVectorSource, polygonsLayer, view]); //Do not pass handleSelectLocation in the dependency array. It will trigger this useEffect after every location selection.
 
   useEffect(() => {
     //Foco no local selecionado
@@ -191,7 +197,18 @@ const PolygonProvider = ({
           (feature) => feature.getId() === selectedLocation?.id,
         );
         interaction.getFeatures().clear();
-        if (!selectedFeature) return;
+        if (!selectedFeature) {
+          //If the feature is not found, focus on the bounding box containing all features.
+          const extent = features.reduce((extent, feature) => {
+            extend(extent, feature.getGeometry()?.getExtent() ?? []);
+            return extent;
+          }, createEmpty());
+          map?.getView().fit(extent, {
+            duration: 500,
+            padding: [50, 50, 50, 50],
+          });
+          return;
+        }
         interaction.getFeatures().push(selectedFeature);
         const geometry = selectedFeature.getGeometry();
         if (geometry !== undefined && geometry instanceof SimpleGeometry) {
