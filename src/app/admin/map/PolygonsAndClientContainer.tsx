@@ -226,7 +226,7 @@ const PolygonsAndClientContainer = () => {
         className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} ${isMobileView ? "w-full" : "w-fit"}`}
       >
         <div
-          className={`pointer-events-auto flex h-fit max-h-full justify-between overflow-auto ${isMobileView ? "w-full p-3" : "w-fit p-4"}`}
+          className={`pointer-events-auto flex max-h-full justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
         >
           <Sidebar
             loadingLocations={loadingLocations}

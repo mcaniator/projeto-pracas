@@ -20,6 +20,7 @@ import {
 import { createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
@@ -112,7 +113,7 @@ const Sidebar = ({
   };
 
   const inner = (
-    <div className="flex max-h-full flex-col gap-1 overflow-y-auto overflow-x-hidden">
+    <div className="flex h-full max-h-full flex-col gap-1 overflow-y-auto overflow-x-hidden">
       <div className="flex">
         <CAutocomplete
           className="w-32"
@@ -270,64 +271,70 @@ const Sidebar = ({
           Carregando praças...
         </div>
       )}
-      {locations.map((location) => {
-        const isSelected = selectedLocationId === location.id;
-        return (
-          <div
-            key={location.id}
-            onClick={() => selectLocation(location.id)}
-            className={`relative mb-3 flex h-24 shrink-0 cursor-pointer items-end overflow-hidden rounded-xl border shadow-sm transition hover:scale-[1.02] hover:shadow-md`}
-          >
-            {location.mainImage ?
-              <CImage
-                src={location.mainImage}
-                alt={location.name}
-                fill
-                className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
-              />
-            : <div className="absolute inset-0 bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  <IconTree size={48} />
+      <Virtuoso
+        data={locations}
+        style={{ height: "100%", overflowX: "hidden" }}
+        itemContent={(_, location) => {
+          const isSelected = selectedLocationId === location.id;
+          return (
+            <div className="pb-2">
+              {/*pb is required for Virtuoso to work properly with spacing between items*/}
+              <div
+                onClick={() => selectLocation(location.id)}
+                className={`relative flex h-24 shrink-0 cursor-pointer items-end overflow-hidden rounded-xl border shadow-sm transition hover:scale-[1.02] hover:shadow-md`}
+              >
+                {location.mainImage ?
+                  <CImage
+                    src={location.mainImage}
+                    alt={location.name}
+                    fill
+                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
+                  />
+                : <div className="absolute inset-0 bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400">
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                      <IconTree size={48} />
+                    </div>
+                  </div>
+                }
+                {isSelected && (
+                  <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
+                    <IconSquareRoundedCheck />
+                  </div>
+                )}
+                {isMobileView && (
+                  <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
+                    <CButton
+                      square
+                      tooltip="Mostrar no mapa"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowLocationOnMap(location.id);
+                      }}
+                    >
+                      <IconMap />
+                    </CButton>
+                  </div>
+                )}
+
+                <div
+                  className={`absolute inset-0 ${
+                    isSelected ? "bg-black/30" : "bg-black/50"
+                  }`}
+                />
+
+                <div className="relative z-10 p-3 text-white">
+                  <div className="text-sm font-semibold leading-tight">
+                    {location.name}
+                  </div>
+                  <div className="text-xs text-white/80">
+                    {location.popularName}
+                  </div>
                 </div>
               </div>
-            }
-            {isSelected && (
-              <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
-                <IconSquareRoundedCheck />
-              </div>
-            )}
-            {isMobileView && (
-              <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
-                <CButton
-                  square
-                  tooltip="Mostrar no mapa"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleShowLocationOnMap(location.id);
-                  }}
-                >
-                  <IconMap />
-                </CButton>
-              </div>
-            )}
-
-            <div
-              className={`absolute inset-0 ${
-                isSelected ? "bg-black/30" : "bg-black/50"
-              }`}
-            />
-
-            <div className="relative z-10 p-3 text-white">
-              <div className="text-sm font-semibold leading-tight">
-                {location.name}
-              </div>
-              <div className="text-xs text-white/80">
-                {location.popularName}
-              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        }}
+      />
     </div>
   );
 
