@@ -1,6 +1,7 @@
 "use client";
 
 import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
+import { MapContext } from "@/app/admin/map/mapProvider";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
@@ -9,8 +10,16 @@ import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locati
 import CImage from "@components/ui/CImage";
 import { Chip, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconFilter, IconListDetails, IconTree } from "@tabler/icons-react";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import {
+  IconFilter,
+  IconListDetails,
+  IconMap,
+  IconSquareRoundedCheck,
+  IconTree,
+} from "@tabler/icons-react";
+import { createEmpty, extend, isEmpty } from "ol/extent";
+import GeoJSON from "ol/format/GeoJSON";
+import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
 
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
 import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
@@ -33,6 +42,7 @@ const Sidebar = ({
   state,
   filter,
   isMobileView,
+  selectedLocationId,
   selectLocation,
   setState,
   setCity,
@@ -50,6 +60,7 @@ const Sidebar = ({
   numberOfActiveFilters: number;
   state: BrazilianStates;
   filter: LocationsMapClientFilter;
+  selectedLocationId: number | null;
   selectLocation: (locationId: number) => void;
   setState: Dispatch<SetStateAction<BrazilianStates>>;
   setCity: Dispatch<
@@ -58,6 +69,8 @@ const Sidebar = ({
   setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
   isMobileView: boolean;
 }) => {
+  const map = useContext(MapContext);
+  const view = map?.getView();
   const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
   const broadUnits = useMemo(() => {
     return [
@@ -77,8 +90,29 @@ const Sidebar = ({
       { id: -1, name: "NENHUMA" },
     ];
   }, [selectedCity?.narrowAdministrativeUnit]);
+
+  const handleShowLocationOnMap = (locationId: number) => {
+    //This is used to show the location on the map after selecting it in the list on mobile.
+    const location = locations.find((loc) => loc.id === locationId);
+    if (location) {
+      const st = location.st_asgeojson;
+      const reader = new GeoJSON();
+      const geometry = reader.readGeometry(st);
+      if (geometry) {
+        const extent = createEmpty();
+        extend(extent, geometry.getExtent());
+        if (!isEmpty(extent)) {
+          view?.fit(extent, {
+            padding: [100, 100, 100, 100],
+          });
+        }
+        setMobileDialogOpen(false);
+      }
+    }
+  };
+
   const inner = (
-    <div className="flex max-h-full flex-col gap-1 overflow-auto">
+    <div className="flex max-h-full flex-col gap-1 overflow-y-auto overflow-x-hidden">
       <div className="flex">
         <CAutocomplete
           className="w-32"
@@ -237,29 +271,57 @@ const Sidebar = ({
         </div>
       )}
       {locations.map((location) => {
+        const isSelected = selectedLocationId === location.id;
         return (
           <div
             key={location.id}
-            className="flex cursor-pointer border-b border-gray-300 p-2 hover:bg-gray-200"
-            onClick={() => {
-              selectLocation(location.id);
-            }}
+            onClick={() => selectLocation(location.id)}
+            className={`relative mb-3 flex h-24 shrink-0 cursor-pointer items-end overflow-hidden rounded-xl border shadow-sm transition hover:scale-[1.02] hover:shadow-md`}
           >
-            <CImage
-              src={location.mainImage}
-              alt="Praça"
-              width={60}
-              height={60}
-              fallback={
-                <div className="aspect-square rounded-full bg-gray-200 outline outline-1 outline-gray-300">
-                  <IconTree size={60} />
+            {location.mainImage ?
+              <CImage
+                src={location.mainImage}
+                alt={location.name}
+                fill
+                className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
+              />
+            : <div className="absolute inset-0 bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                  <IconTree size={48} />
                 </div>
-              }
-              className="aspect-square rounded-full"
+              </div>
+            }
+            {isSelected && (
+              <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
+                <IconSquareRoundedCheck />
+              </div>
+            )}
+            {isMobileView && (
+              <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
+                <CButton
+                  square
+                  tooltip="Mostrar no mapa"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShowLocationOnMap(location.id);
+                  }}
+                >
+                  <IconMap />
+                </CButton>
+              </div>
+            )}
+
+            <div
+              className={`absolute inset-0 ${
+                isSelected ? "bg-black/30" : "bg-black/50"
+              }`}
             />
-            <div className="ml-2 flex flex-col">
-              <div className="font-semibold">{location.name}</div>
-              <div className="text-sm text-gray-500">
+
+            <div className="relative z-10 p-3 text-white">
+              <div className="text-sm font-semibold leading-tight">
+                {location.name}
+              </div>
+              <div className="text-xs text-white/80">
                 {location.popularName}
               </div>
             </div>

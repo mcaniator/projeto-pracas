@@ -198,6 +198,9 @@ const PolygonProvider = ({
         );
         interaction.getFeatures().clear();
         if (!selectedFeature) {
+          if (isMobileView) {
+            return;
+          }
           //If the feature is not found, focus on the bounding box containing all features.
           const extent = features.reduce((extent, feature) => {
             extend(extent, feature.getGeometry()?.getExtent() ?? []);

@@ -238,6 +238,7 @@ const PolygonsAndClientContainer = () => {
             locationTypes={locationTypes}
             citiesOptions={citiesOptions}
             selectedCity={selectedCity}
+            selectedLocationId={selectedLocation?.id ?? null}
             setCity={setSelectedCity}
             setState={setState}
             selectLocation={selectLocation}
