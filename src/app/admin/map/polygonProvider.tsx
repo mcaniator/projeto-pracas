@@ -123,7 +123,7 @@ const PolygonProvider = ({
       });
     if (!isEmpty(extent)) {
       view?.fit(extent, {
-        padding: [50, 50, 50, 50],
+        padding: [100, 100, 100, isMobileView ? 100 : 600],
         duration: 500,
       });
     }
@@ -205,7 +205,7 @@ const PolygonProvider = ({
           }, createEmpty());
           if (!isEmpty(extent)) {
             view?.fit(extent, {
-              padding: [50, 50, 50, 50],
+              padding: [100, 100, 100, isMobileView ? 100 : 800],
               duration: 500,
             });
           }
@@ -216,7 +216,7 @@ const PolygonProvider = ({
         if (geometry !== undefined && geometry instanceof SimpleGeometry) {
           const view = map?.getView();
           view?.fit(geometry, {
-            duration: 1000,
+            duration: 500,
             padding: [100, 100, 100, isMobileView ? 100 : 800],
           });
         }

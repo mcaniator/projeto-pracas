@@ -19,7 +19,17 @@ import CButton from "../../../../components/ui/cButton";
 import { DrawingProviderVectorSourceContext } from "../drawingProvider";
 import LocationRegisterDialog from "./locationRegisterDialog";
 
-const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
+const FeatureList = ({
+  reloadLocations,
+  reloadLocationCategories,
+  reloadLocationTypes,
+  reloadCities,
+}: {
+  reloadLocations: () => void;
+  reloadLocationCategories: () => void;
+  reloadLocationTypes: () => void;
+  reloadCities: () => void;
+}) => {
   const { setHelperCard } = useHelperCard();
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
@@ -240,6 +250,9 @@ const FeatureList = ({ reloadLocations }: { reloadLocations: () => void }) => {
           setOpenLocationRegisterFormDialog(false);
         }}
         reloadLocations={reloadLocations}
+        reloadLocationCategories={reloadLocationCategories}
+        reloadLocationTypes={reloadLocationTypes}
+        reloadCities={reloadCities}
       />
     </div>
   );

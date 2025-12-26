@@ -31,6 +31,8 @@ type CDialogProps = DialogProps & {
   isForm?: boolean;
   disableContentPadding?: boolean;
   disableBackdropClose?: boolean;
+  confirmLoading?: boolean;
+  cancelLoading?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
@@ -66,6 +68,8 @@ const CDialog = ({
   isForm,
   disableContentPadding,
   disableBackdropClose,
+  confirmLoading,
+  cancelLoading,
   action,
   onCancel,
   onConfirm,
@@ -151,6 +155,8 @@ const CDialog = ({
                 confirmColor={confirmColor}
                 cancelColor={cancelColor}
                 isForm={isForm}
+                confirmLoading={confirmLoading}
+                cancelLoading={cancelLoading}
                 onCancel={onCancel}
                 onConfirm={onConfirm}
               />
@@ -206,6 +212,8 @@ const CDialog = ({
             cancelSx={cancelSx}
             confirmColor={confirmColor}
             cancelColor={cancelColor}
+            confirmLoading={confirmLoading}
+            cancelLoading={cancelLoading}
             onCancel={onCancel}
             onConfirm={onConfirm}
           />

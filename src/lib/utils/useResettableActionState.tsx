@@ -5,14 +5,20 @@ import { startTransition, useActionState, useEffect, useMemo } from "react";
 
 export function useResettableActionState<State, Payload>(
   action: (state: Awaited<State>, payload: Payload) => State | Promise<State>,
+  callbacks?: {
+    onSuccess?: (state: Awaited<State>) => void;
+    onError?: (state: Awaited<State>) => void;
+    onCallFailed?: () => void;
+    onReset?: () => void;
+  },
   options?: { loadingMessage?: string },
   initialState?: Awaited<State>,
   permalink?: string,
 ): [
   dispatch: (payload: Payload | null) => void,
+  isPending: boolean,
   state: Awaited<State>,
   reset: () => void,
-  isPending: boolean,
 ] {
   const calculatedInitialState = useMemo(() => {
     if (initialState) {
@@ -34,10 +40,20 @@ export function useResettableActionState<State, Payload>(
       try {
         const data = await action(state, payload);
         // @ts-expect-error TODO: fix typing without breaking the hook usage
-        if (data.responseInfo) {
+        const responseInfo = data.responseInfo as
+          | APIResponseInfo
+          | undefined
+          | null;
+        if (responseInfo) {
           // @ts-expect-error TODO: fix typing without breaking the hook usage
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           helperCardProcessResponse(data.responseInfo);
+          const statusCode = responseInfo.statusCode;
+          if (statusCode >= 200 && statusCode < 300) {
+            callbacks?.onSuccess?.(data);
+          } else {
+            callbacks?.onError?.(data);
+          }
         }
         return data;
       } catch (e) {
@@ -46,6 +62,7 @@ export function useResettableActionState<State, Payload>(
           helperCardType: "ERROR",
           content: <>Erro ao executar operação!</>,
         });
+        callbacks?.onCallFailed?.();
         return calculatedInitialState;
       }
     },
@@ -57,6 +74,7 @@ export function useResettableActionState<State, Payload>(
     startTransition(() => {
       submit(null);
     });
+    callbacks?.onReset?.();
   };
 
   useEffect(() => {
@@ -67,5 +85,5 @@ export function useResettableActionState<State, Payload>(
     setLoadingOverlay({ show: isPending, message: options?.loadingMessage });
   }, [isPending]);
 
-  return [submit, state, reset, isPending] as const;
+  return [submit, isPending, state, reset] as const;
 }

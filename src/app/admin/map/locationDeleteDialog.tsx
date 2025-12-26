@@ -4,7 +4,6 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { _deleteLocation } from "@/lib/serverFunctions/serverActions/locationUtil";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect } from "react";
 
 const LocationDeleteDialog = ({
   open,
@@ -17,14 +16,17 @@ const LocationDeleteDialog = ({
   onDeletionSuccess: () => void;
   location: { id: number; name: string };
 }) => {
-  const [formAction, state] = useResettableActionState(_deleteLocation, {
-    loadingMessage: "Excluindo praça...",
-  });
-  useEffect(() => {
-    if (state?.responseInfo.statusCode === 200) {
-      onDeletionSuccess();
-    }
-  }, [state, onDeletionSuccess]);
+  const [formAction] = useResettableActionState(
+    _deleteLocation,
+    {
+      onSuccess() {
+        onDeletionSuccess();
+      },
+    },
+    {
+      loadingMessage: "Excluindo praça...",
+    },
+  );
   return (
     <CDialog
       isForm

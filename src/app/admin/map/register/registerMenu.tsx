@@ -11,9 +11,15 @@ import FeatureList from "./featureList";
 const RegisterMenu = ({
   close,
   reloadLocations,
+  reloadLocationCategories,
+  reloadLocationTypes,
+  reloadCities,
 }: {
   close: () => void;
   reloadLocations: () => void;
+  reloadLocationCategories: () => void;
+  reloadLocationTypes: () => void;
+  reloadCities: () => void;
 }) => {
   const [isDrawingCreation, setIsDrawingCreation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -59,6 +65,9 @@ const RegisterMenu = ({
                 setIsCreating(false);
                 reloadLocations();
               }}
+              reloadLocationCategories={reloadLocationCategories}
+              reloadLocationTypes={reloadLocationTypes}
+              reloadCities={reloadCities}
             />
           </DrawingProvider>
         )}

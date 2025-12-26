@@ -5,7 +5,6 @@ import { _saveLocationCategory } from "@/lib/serverFunctions/serverActions/locat
 import { _saveLocationType } from "@/lib/serverFunctions/serverActions/locationType";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect } from "react";
 
 import CTextField from "../../../../../../components/ui/cTextField";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
@@ -28,14 +27,15 @@ const LocationCategoryOrTypeSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, state] = useResettableActionState(
+  const [formAction, isPending] = useResettableActionState(
     itemType === "CATEGORY" ? _saveLocationCategory : _saveLocationType,
+    {
+      onSuccess() {
+        reloadItems();
+        onClose();
+      },
+    },
   );
-  useEffect(() => {
-    if (state.responseInfo.statusCode === 201) {
-      reloadItems();
-    }
-  }, [state, reloadItems]);
 
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
 
@@ -44,6 +44,7 @@ const LocationCategoryOrTypeSaveDialog = ({
       isForm
       action={formAction}
       open={open}
+      confirmLoading={isPending}
       onClose={onClose}
       onCancel={openDeleteDialog}
       title={selectedItem ? `Editar ${typeName}` : `Criar ${typeName}`}

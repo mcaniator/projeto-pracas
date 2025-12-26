@@ -136,6 +136,7 @@ const PolygonsAndClientContainer = () => {
       keys: ["name", "popularName"],
     });
 
+    setSelectedLocation(null);
     if (filter.name) {
       const resultFilteredByName = fuseHaystack.search(filter.name);
       setFilteredLocationsWithPolygon(
@@ -307,7 +308,7 @@ const PolygonsAndClientContainer = () => {
                 },
                 {
                   enableHighAccuracy: false,
-                  maximumAge: Infinity,
+                  maximumAge: 0,
                   timeout: 60000,
                 },
               );
@@ -328,6 +329,15 @@ const PolygonsAndClientContainer = () => {
               }}
               reloadLocations={() => {
                 void loadLocations();
+              }}
+              reloadLocationTypes={() => {
+                void loadTypes();
+              }}
+              reloadLocationCategories={() => {
+                void loadCategories();
+              }}
+              reloadCities={() => {
+                void loadCitiesOptions();
               }}
             />
           </div>

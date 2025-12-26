@@ -6,7 +6,7 @@ import { _deleteAdministrativeUnit } from "@/lib/serverFunctions/serverActions/a
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const DeleteAdministrativeUnitDialog = ({
   open,
@@ -26,8 +26,20 @@ const DeleteAdministrativeUnitDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const [formAction, state] = useResettableActionState(
+  const [formAction] = useResettableActionState(
     _deleteAdministrativeUnit,
+    {
+      onSuccess() {
+        reloadItems();
+        setConflictingLocations([]);
+        onClose();
+      },
+      onError(state) {
+        if (state.data?.conflictingItems) {
+          setConflictingLocations(state.data?.conflictingItems ?? []);
+        }
+      },
+    },
     {
       loadingMessage: "Excluindo região administrativa...",
     },
@@ -43,19 +55,7 @@ const DeleteAdministrativeUnitDialog = ({
       locations: { name: string }[];
     }[]
   >([]);
-  useEffect(() => {
-    if (state?.responseInfo.statusCode === 200) {
-      reloadItems();
-      setConflictingLocations([]);
-      onClose();
-    } else if (
-      state?.responseInfo.statusCode === 403 &&
-      state.data?.conflictingItems &&
-      state.data?.conflictingItems.length > 0
-    ) {
-      setConflictingLocations(state.data?.conflictingItems ?? []);
-    }
-  }, [state, reloadItems, onClose]);
+
   return (
     <CDialog
       isForm

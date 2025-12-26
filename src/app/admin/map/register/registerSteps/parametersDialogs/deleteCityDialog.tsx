@@ -5,7 +5,7 @@ import { _deleteCity } from "@/lib/serverFunctions/serverActions/city";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const DeleteCityDialog = ({
   open,
@@ -23,23 +23,25 @@ const DeleteCityDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const [formAction, state] = useResettableActionState(_deleteCity, {
-    loadingMessage: "Excluindo cidade...",
-  });
+  const [formAction] = useResettableActionState(
+    _deleteCity,
+    {
+      onSuccess() {
+        reloadItems();
+        setNumberOfLocations(0);
+        onClose();
+      },
+      onError(state) {
+        if (state.data?.numberOfLocations) {
+          setNumberOfLocations(state.data?.numberOfLocations);
+        }
+      },
+    },
+    {
+      loadingMessage: "Excluindo cidade...",
+    },
+  );
   const [numberOfLocations, setNumberOfLocations] = useState(0);
-  useEffect(() => {
-    if (state?.responseInfo.statusCode === 200) {
-      reloadItems();
-      setNumberOfLocations(0);
-      onClose();
-    } else if (
-      state?.responseInfo.statusCode === 403 &&
-      state.data?.numberOfLocations &&
-      state.data?.numberOfLocations > 0
-    ) {
-      setNumberOfLocations(state.data?.numberOfLocations);
-    }
-  }, [state, reloadItems, onClose]);
   return (
     <CDialog
       isForm

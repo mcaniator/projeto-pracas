@@ -30,6 +30,9 @@ const LocationRegisterDialog = ({
   locationId,
   features,
   reloadLocations,
+  reloadLocationCategories,
+  reloadLocationTypes,
+  reloadCities,
   onClose,
 }: {
   open: boolean;
@@ -37,6 +40,9 @@ const LocationRegisterDialog = ({
   locationId?: number;
   features: Feature<Geometry>[];
   reloadLocations: () => void;
+  reloadLocationCategories: () => void;
+  reloadLocationTypes: () => void;
+  reloadCities: () => void;
   onClose: () => void;
 }) => {
   const [parkData, setParkData] = useState<ParkRegisterData>(
@@ -70,6 +76,28 @@ const LocationRegisterDialog = ({
     ),
   );
   const [featuresGeoJson, setFeaturesGeoJson] = useState("");
+  const [shouldReloadLocationCategories, setShouldReloadLocationCategories] =
+    useState(false);
+  const [shouldReloadLocationTypes, setShouldReloadLocationTypes] =
+    useState(false);
+  const [shouldReloadCities, setShouldReloadCities] = useState(false);
+
+  const handleClose = () => {
+    if (shouldReloadCities) {
+      reloadCities();
+      setShouldReloadCities(false);
+    }
+    if (shouldReloadLocationCategories) {
+      reloadLocationCategories();
+      setShouldReloadLocationCategories(false);
+    }
+    if (shouldReloadLocationTypes) {
+      reloadLocationTypes();
+      setShouldReloadLocationTypes(false);
+    }
+
+    onClose();
+  };
   useEffect(() => {
     if (open) {
       const coordinates: number[][][][] = [];
@@ -96,8 +124,14 @@ const LocationRegisterDialog = ({
   const [enableNextStep, setEnableNextStep] = useState(false);
 
   const action = !location ? _createLocation : _updateLocation;
-  const [formAction, state, resetState] = useResettableActionState(
+  const [formAction] = useResettableActionState(
     _createLocation,
+    {
+      onSuccess() {
+        reloadLocations();
+        handleClose();
+      },
+    },
     {
       loadingMessage: "Salvando...",
     },
@@ -135,19 +169,11 @@ const LocationRegisterDialog = ({
     setStep((prev) => prev - 1);
   };
 
-  useEffect(() => {
-    if (state.responseInfo.statusCode === 201) {
-      reloadLocations();
-      onClose();
-    }
-    resetState();
-  }, [state.responseInfo.statusCode, reloadLocations, onClose, resetState]);
-
   return (
     <CDialog
       title="Cadastro de praça"
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       disableConfirmButton={!enableNextStep}
       confirmChildren={
         step === steps.length ? <IconCheck /> : <IconArrowForwardUp />
@@ -171,6 +197,12 @@ const LocationRegisterDialog = ({
             parkData={parkData}
             setParkData={setParkData}
             setEnableNextStep={setEnableNextStep}
+            activateReloadLocationCategoriesOnClose={() => {
+              setShouldReloadLocationCategories(true);
+            }}
+            activateReloadLocationTypesOnClose={() => {
+              setShouldReloadLocationTypes(true);
+            }}
           />
         )}
         {step === 2 && (
@@ -178,6 +210,9 @@ const LocationRegisterDialog = ({
             parkData={parkData}
             setParkData={setParkData}
             setEnableNextStep={setEnableNextStep}
+            activateReloadCitiesOnClose={() => {
+              setShouldReloadCities(true);
+            }}
           />
         )}
         {step === 3 && (

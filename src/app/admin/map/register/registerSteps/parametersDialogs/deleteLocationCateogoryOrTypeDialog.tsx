@@ -5,7 +5,7 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { _deleteLocationCategoryOrType } from "@/lib/serverFunctions/serverActions/locationCategory";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const DeleteLocationCateogryOrTypeDialog = ({
   open,
@@ -24,8 +24,20 @@ const DeleteLocationCateogryOrTypeDialog = ({
   itemType: CategoryOrType;
 }) => {
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
-  const [formAction, state] = useResettableActionState(
+  const [formAction] = useResettableActionState(
     _deleteLocationCategoryOrType,
+    {
+      onSuccess() {
+        reloadItems();
+        setConflictingLocations([]);
+        onClose();
+      },
+      onError(state) {
+        if (state?.data?.conflictingItems) {
+          setConflictingLocations(state.data?.conflictingItems ?? []);
+        }
+      },
+    },
     {
       loadingMessage: "Excluindo...",
     },
@@ -37,25 +49,18 @@ const DeleteLocationCateogryOrTypeDialog = ({
       locations: { name: string }[];
     }[]
   >([]);
-  useEffect(() => {
-    if (state?.responseInfo.statusCode === 200) {
-      reloadItems();
-      setConflictingLocations([]);
-      onClose();
-    } else if (
-      state?.responseInfo.statusCode === 403 &&
-      state.data?.conflictingItems &&
-      state.data?.conflictingItems.length > 0
-    ) {
-      setConflictingLocations(state.data?.conflictingItems ?? []);
-    }
-  }, [state, reloadItems, onClose]);
+
+  const handleClose = () => {
+    setConflictingLocations([]);
+    onClose();
+  };
+
   return (
     <CDialog
       isForm
       action={formAction}
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title={itemType === "CATEGORY" ? "Excluir categoria" : "Excluir tipo"}
       subtitle={selectedItem?.name}
       confirmChildren={<IconTrash />}
@@ -72,13 +77,19 @@ const DeleteLocationCateogryOrTypeDialog = ({
                 "Categoria usadas nas seguintes praças:"
               : "Tipo usados nas seguintes praças!"}
             </div>
-            <ul className="list-inside list-disc space-y-2">
+            <ul className="list-inside space-y-2">
               {conflictingLocations.map((cl, index) => (
-                <li key={index} className="list-disc px-2 py-3 font-bold">
-                  {cl.cityName}
+                <li
+                  key={index}
+                  className="px-2 py-3 font-bold outline outline-1"
+                >
+                  {cl.cityName}:
                   <ul className="list-inside list-disc space-y-2">
-                    {cl.locations.map((l) => (
-                      <li key={index} className="list-disc px-2 py-3 font-bold">
+                    {cl.locations.map((l, index2) => (
+                      <li
+                        key={index2}
+                        className="list-disc px-2 py-3 font-bold"
+                      >
                         {l.name}
                       </li>
                     ))}

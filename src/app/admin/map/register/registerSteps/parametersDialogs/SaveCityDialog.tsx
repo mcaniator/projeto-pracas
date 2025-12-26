@@ -25,12 +25,12 @@ const SaveCityDialog = ({
   reloadCities: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, state] = useResettableActionState(_saveCity);
-  useEffect(() => {
-    if (state.responseInfo.statusCode === 201) {
+  const [formAction, isPending] = useResettableActionState(_saveCity, {
+    onSuccess() {
       reloadCities();
-    }
-  }, [state, reloadCities]);
+      onClose();
+    },
+  });
 
   const [cityState, setCityState] = useState(previouslySelectedState);
 
@@ -44,6 +44,7 @@ const SaveCityDialog = ({
       open={open}
       onClose={onClose}
       onCancel={openDeleteDialog}
+      confirmLoading={isPending}
       title={selectedCity ? "Editar cidade" : "Cadastrar cidade"}
       confirmChildren={selectedCity ? "Editar" : "Criar"}
       cancelChildren={selectedCity ? <IconTrash /> : undefined}

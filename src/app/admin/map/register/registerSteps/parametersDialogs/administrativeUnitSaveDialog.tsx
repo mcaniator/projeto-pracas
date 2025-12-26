@@ -7,7 +7,6 @@ import { _saveAdministrativeUnit } from "@/lib/serverFunctions/serverActions/adm
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect } from "react";
 
 const AdministrativeUnitSaveDialog = ({
   open,
@@ -26,10 +25,12 @@ const AdministrativeUnitSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, state] = useResettableActionState(
+  const [formAction, isPending] = useResettableActionState(
     _saveAdministrativeUnit,
     {
-      loadingMessage: "Salvando...",
+      onSuccess() {
+        reloadItems();
+      },
     },
   );
   const levelName =
@@ -37,17 +38,13 @@ const AdministrativeUnitSaveDialog = ({
     : level === "INTERMEDIATE" ? "intermediária"
     : "ampla";
 
-  useEffect(() => {
-    if (state.responseInfo.statusCode === 201) {
-      reloadItems();
-    }
-  }, [state, reloadItems]);
   return (
     <CDialog
       isForm
       action={formAction}
       open={open}
       onClose={onClose}
+      confirmLoading={isPending}
       title={`${selectedUnit ? "Editar" : "Cadastrar"} região administrativa ${levelName}`}
       subtitle={`${city?.name} - ${city?.state}`}
       confirmChildren={selectedUnit ? "Editar" : "Cadastrar"}

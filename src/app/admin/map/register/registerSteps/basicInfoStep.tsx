@@ -19,10 +19,14 @@ const BasicInfoStep = ({
   parkData,
   setEnableNextStep,
   setParkData,
+  activateReloadLocationCategoriesOnClose,
+  activateReloadLocationTypesOnClose,
 }: {
   parkData: ParkRegisterData;
   setEnableNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
+  activateReloadLocationCategoriesOnClose: () => void;
+  activateReloadLocationTypesOnClose: () => void;
 }) => {
   const [requiredFieldsFilled, setRequiredFieldsFilled] = useState({
     name: false,
@@ -156,8 +160,10 @@ const BasicInfoStep = ({
       <LocationCategoryOrTypeSaveDialog
         reloadItems={() => {
           if (itemType === "CATEGORY") {
+            activateReloadLocationCategoriesOnClose();
             void loadLocationCategories();
           } else {
+            activateReloadLocationTypesOnClose();
             void loadLocationTypes();
           }
         }}
@@ -181,8 +187,10 @@ const BasicInfoStep = ({
         }}
         reloadItems={() => {
           if (itemType === "CATEGORY") {
+            activateReloadLocationCategoriesOnClose();
             void loadLocationCategories();
           } else {
+            activateReloadLocationTypesOnClose();
             void loadLocationTypes();
           }
         }}
