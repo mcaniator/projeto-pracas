@@ -10,9 +10,13 @@ import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationTy
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
-import { CircularProgress } from "@mui/material";
+import { Chip, CircularProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconLocationPin, IconPlus } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconLocationPin,
+  IconPlus,
+} from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -238,10 +242,10 @@ const PolygonsAndClientContainer = () => {
       isMobileView={isMobileView}
     >
       <div
-        className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`} ${isMobileView ? "w-full" : "w-fit"}`}
+        className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full w-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`}`}
       >
         <div
-          className={`pointer-events-auto flex max-h-full justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
+          className={`flex max-h-full shrink-0 justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
         >
           <Sidebar
             loadingLocations={loadingLocations}
@@ -265,17 +269,29 @@ const PolygonsAndClientContainer = () => {
           />
         </div>
         {selectedLocation && (
-          <div className="pointer-events-auto flex max-h-full w-fit justify-between overflow-auto py-4">
-            <LocationDetails
-              location={selectedLocation}
-              isMobileView={isMobileView}
-              closeLocationDetails={() => {
-                setSelectedLocation(null);
-              }}
-              reloadLocations={() => {
-                void loadLocations();
-              }}
-            />
+          <div className="flex max-h-full w-full py-4">
+            <div className="pointer-events-auto h-full shrink-0">
+              <LocationDetails
+                location={selectedLocation}
+                isMobileView={isMobileView}
+                closeLocationDetails={() => {
+                  setSelectedLocation(null);
+                }}
+                reloadLocations={() => {
+                  void loadLocations();
+                }}
+              />
+            </div>
+
+            {!selectedLocation.st_asgeojson && (
+              <div className="ml-1 flex flex-1 items-center justify-center">
+                <Chip
+                  icon={<IconAlertTriangle />}
+                  label="Praça sem demarcação registrada!"
+                  color="error"
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

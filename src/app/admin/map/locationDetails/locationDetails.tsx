@@ -173,7 +173,7 @@ const LocationDetails = ({
   } else {
     return (
       <div
-        className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white px-2 py-1 text-black"
+        className="flex h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white px-2 py-1 text-black"
         style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
       >
         {inner}

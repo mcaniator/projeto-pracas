@@ -1,5 +1,6 @@
 "use client";
 
+import { checkIfValidLocationFeature } from "@/lib/utils/map";
 import Feature, { FeatureLike } from "ol/Feature";
 import { click } from "ol/events/condition";
 import { createEmpty, extend, isEmpty } from "ol/extent";
@@ -197,7 +198,7 @@ const PolygonProvider = ({
           (feature) => feature.getId() === selectedLocation?.id,
         );
         interaction.getFeatures().clear();
-        if (!selectedFeature) {
+        if (!selectedFeature || !checkIfValidLocationFeature(selectedFeature)) {
           if (isMobileView) {
             return;
           }

@@ -1,10 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import {
-  APIResponse,
-  APIResponseInfo,
-} from "@/lib/types/backendCalls/APIResponse";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { uploadImage } from "@/lib/utils/image";
 import { locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Location } from "@prisma/client";
@@ -397,7 +394,6 @@ const _createLocation = async (
       .parse(formData.get("locationId"));
 
     const image = formData.get("mainImage") as File | null;
-    console.log(formData);
     let imageUrl: string | null = null;
     try {
       if (image) {
@@ -464,7 +460,6 @@ const _createLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
-      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,

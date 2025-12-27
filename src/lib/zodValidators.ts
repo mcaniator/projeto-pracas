@@ -1,6 +1,5 @@
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
-  BrazilianStates,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -263,6 +262,11 @@ const locationSchema = z.object({
   polygonArea: z.coerce.number().finite().nonnegative().nullish(),
 });
 
+const featuresGeoJsonSchema = z.object({
+  type: z.union([z.literal("Polygon"), z.literal("MultiPolygon")]),
+  coordinates: z.array(z.array(z.array(z.number()))),
+});
+
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
 });
@@ -306,15 +310,22 @@ const administrativeUnitsSchema = z.object({
 type locationType = z.infer<typeof locationSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
+type featuresGeoJsonType = z.infer<typeof featuresGeoJsonSchema>;
 type BrazilianStatesEnum = z.infer<typeof BrazilianStatesEnum>;
 
 export {
   administrativeUnitsSchema,
   citySchema,
   locationSchema,
+  featuresGeoJsonSchema,
   BrazilianStatesEnum,
 };
-export type { administrativeUnitsType, cityType, locationType };
+export type {
+  administrativeUnitsType,
+  cityType,
+  featuresGeoJsonType,
+  locationType,
+};
 // #endregion
 
 // #region Informações das Avaliações

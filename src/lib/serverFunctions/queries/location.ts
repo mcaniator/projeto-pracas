@@ -156,7 +156,10 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     bau.name AS "broadAdministrativeUnitName",
     lc.name AS "categoryName",
     lt.name AS "typeName",
-    ST_AsGeoJSON(l.polygon)::text AS st_asgeojson,
+    CASE
+      WHEN ST_IsEmpty(l.polygon) THEN NULL
+      ELSE ST_AsGeoJSON(l.polygon)::text
+    END AS st_asgeojson,
     COUNT(DISTINCT a.id) AS "assessmentCount",
     COUNT(DISTINCT t.id) AS "tallyCount"
   FROM location l
@@ -184,7 +187,6 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       },
     };
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 500,

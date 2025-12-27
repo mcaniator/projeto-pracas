@@ -273,7 +273,7 @@ const Sidebar = ({
       )}
       <Virtuoso
         data={locations}
-        style={{ height: "100%", overflowX: "hidden" }}
+        style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, location) => {
           const isSelected = selectedLocationId === location.id;
           return (
@@ -398,7 +398,7 @@ const Sidebar = ({
   } else {
     return (
       <div
-        className="flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
+        className="pointer-events-auto flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
         style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
       >
         {inner}

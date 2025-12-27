@@ -12,32 +12,32 @@ import { createEmpty, extend } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Geometry } from "ol/geom";
 import { VectorSourceEvent } from "ol/source/Vector";
-import { useContext, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import shp from "shpjs";
 
 import CButton from "../../../../components/ui/cButton";
 import { DrawingProviderVectorSourceContext } from "../drawingProvider";
-import LocationRegisterDialog from "./locationRegisterDialog";
 
 const FeatureList = ({
-  reloadLocations,
-  reloadLocationCategories,
-  reloadLocationTypes,
-  reloadCities,
+  features,
+  setFeatures,
+  setOpenLocationRegisterFormDialog,
 }: {
-  reloadLocations: () => void;
-  reloadLocationCategories: () => void;
-  reloadLocationTypes: () => void;
-  reloadCities: () => void;
+  features: Feature<Geometry>[];
+  setFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
+  setOpenLocationRegisterFormDialog: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const map = useContext(MapContext);
   const view = map?.getView();
   const polygonProvider = useContext(PolygonProviderContext);
-  const [openLocationRegisterFormDialog, setOpenLocationRegisterFormDialog] =
-    useState(false);
   const [uploadedShapeFile, setUploadedShapeFile] = useState(false);
   const [importingShapeFile, setImportingShapeFile] = useState(false);
 
@@ -176,7 +176,7 @@ const FeatureList = ({
 
       drawingProviderContext.removeFeatures(features);
     };
-  }, [drawingProviderContext, features]);
+  }, [drawingProviderContext, features, setFeatures]);
 
   useEffect(() => {
     polygonProvider?.setVisible(false);
@@ -243,17 +243,6 @@ const FeatureList = ({
           Confirmar
         </CButton>
       )}
-      <LocationRegisterDialog
-        features={features}
-        open={openLocationRegisterFormDialog}
-        onClose={() => {
-          setOpenLocationRegisterFormDialog(false);
-        }}
-        reloadLocations={reloadLocations}
-        reloadLocationCategories={reloadLocationCategories}
-        reloadLocationTypes={reloadLocationTypes}
-        reloadCities={reloadCities}
-      />
     </div>
   );
 };

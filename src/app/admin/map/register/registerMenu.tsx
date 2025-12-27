@@ -1,7 +1,10 @@
 "use client";
 
+import LocationRegisterDialog from "@/app/admin/map/register/locationRegisterDialog";
 import { Divider } from "@mui/material";
 import { IconMapOff, IconPencil, IconX } from "@tabler/icons-react";
+import Feature from "ol/Feature";
+import { Geometry } from "ol/geom";
 import { useState } from "react";
 
 import CButton from "../../../../components/ui/cButton";
@@ -23,10 +26,19 @@ const RegisterMenu = ({
 }) => {
   const [isDrawingCreation, setIsDrawingCreation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
+  const [openLocationRegisterFormDialog, setOpenLocationRegisterFormDialog] =
+    useState(false);
   const handleClose = () => {
     setIsDrawingCreation(false);
     setIsCreating(false);
     close();
+  };
+  const resetData = () => {
+    setIsDrawingCreation(false);
+    setIsCreating(false);
+    setFeatures([]);
+    setOpenLocationRegisterFormDialog(false);
   };
   return (
     <div
@@ -52,7 +64,14 @@ const RegisterMenu = ({
               <IconPencil />
               com desenho
             </CButton>
-            <CButton>
+            <CButton
+              onClick={() => {
+                setIsCreating(true);
+                setIsDrawingCreation(false);
+                setFeatures([]);
+                setOpenLocationRegisterFormDialog(true);
+              }}
+            >
               <IconMapOff />
               sem desenho
             </CButton>
@@ -61,15 +80,26 @@ const RegisterMenu = ({
         {isCreating && isDrawingCreation && (
           <DrawingProvider>
             <FeatureList
-              reloadLocations={() => {
-                setIsCreating(false);
-                reloadLocations();
-              }}
-              reloadLocationCategories={reloadLocationCategories}
-              reloadLocationTypes={reloadLocationTypes}
-              reloadCities={reloadCities}
+              features={features}
+              setFeatures={setFeatures}
+              setOpenLocationRegisterFormDialog={
+                setOpenLocationRegisterFormDialog
+              }
             />
           </DrawingProvider>
+        )}
+        {isCreating && (
+          <LocationRegisterDialog
+            features={features}
+            open={openLocationRegisterFormDialog}
+            onClose={() => {
+              resetData();
+            }}
+            reloadLocations={reloadLocations}
+            reloadLocationCategories={reloadLocationCategories}
+            reloadLocationTypes={reloadLocationTypes}
+            reloadCities={reloadCities}
+          />
         )}
       </div>
     </div>
