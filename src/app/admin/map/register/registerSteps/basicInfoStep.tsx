@@ -53,23 +53,36 @@ const BasicInfoStep = ({
   }, [requiredFieldsFilled, setEnableNextStep]);
 
   const [_fetchLocationCategories, loadingCategories] =
-    useFetchLocationCategories();
-  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
+    useFetchLocationCategories({
+      callbacks: {
+        onSuccess: (response) => {
+          setLocationCategories(response.data?.categories ?? []);
+        },
+      },
+    });
+  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes({
+    callbacks: {
+      onSuccess: (response) => {
+        setLocationTypes(response.data?.types ?? []);
+      },
+    },
+  });
 
   const loadLocationCategories = useCallback(async () => {
-    const locationCategoriesResponse = await _fetchLocationCategories({});
-    setLocationCategories(locationCategoriesResponse.data?.categories ?? []);
+    await _fetchLocationCategories({});
   }, [_fetchLocationCategories]);
 
   const loadLocationTypes = useCallback(async () => {
-    const locationTypesResponse = await _fetchLocationTypes({});
-    setLocationTypes(locationTypesResponse.data?.types ?? []);
+    await _fetchLocationTypes({});
   }, [_fetchLocationTypes]);
 
   useEffect(() => {
-    void loadLocationTypes();
     void loadLocationCategories();
-  }, [loadLocationCategories, loadLocationTypes]);
+  }, [loadLocationCategories]);
+
+  useEffect(() => {
+    void loadLocationTypes();
+  }, [loadLocationTypes]);
 
   return (
     <div className="flex flex-col gap-1">

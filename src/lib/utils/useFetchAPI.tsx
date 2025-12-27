@@ -27,11 +27,6 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
   (params: P) => Promise<{ responseInfo: APIResponseInfo; data: T | null }>,
   boolean,
 ] {
-  /*const callbacksRef = useRef(callbacks);
-  useEffect(() => {
-    callbacksRef.current = callbacks;
-  }, [callbacks]); //Using ref to avoid fetch function changing on each render*/
-
   const { helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isLoading, setIsLoading] = useState(false);

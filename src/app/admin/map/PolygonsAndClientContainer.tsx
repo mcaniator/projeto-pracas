@@ -96,10 +96,19 @@ const PolygonsAndClientContainer = () => {
     },
   });
   const [_fetchLocationCategories, loadingCategories] =
-    useFetchLocationCategories();
-  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
+    useFetchLocationCategories({
+      callbacks: {
+        onSuccess: (response) =>
+          setLocationCategories(response.data?.categories ?? []),
+      },
+    });
+  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes({
+    callbacks: {
+      onSuccess: (response) => setLocationTypes(response.data?.types ?? []),
+    },
+  });
 
-  const applyFilter = () => {
+  const applyFilter = useCallback(() => {
     const result: FetchLocationsResponse["locations"] = [];
     locationsWithPolygon.forEach((location) => {
       if (
@@ -153,13 +162,13 @@ const PolygonsAndClientContainer = () => {
     } else {
       setFilteredLocationsWithPolygon(result);
     }
-  };
-  const loadLocations = async () => {
+  }, [filter, locationsWithPolygon]);
+  const loadLocations = useCallback(async () => {
     const locationsResponse = await _fetchLocations({
       cityId: selectedCity?.id ?? -1,
     });
     setLocationsWithPolygon(locationsResponse.data?.locations ?? []);
-  };
+  }, [_fetchLocations, selectedCity]);
 
   const loadCitiesOptions = useCallback(async () => {
     await _fetchCities({
@@ -168,20 +177,21 @@ const PolygonsAndClientContainer = () => {
     });
   }, [state, _fetchCities]);
 
-  const loadCategories = async () => {
-    const categoriesResponse = await _fetchLocationCategories({});
-    setLocationCategories(categoriesResponse.data?.categories ?? []);
-  };
+  const loadCategories = useCallback(async () => {
+    await _fetchLocationCategories({});
+  }, [_fetchLocationCategories]);
 
-  const loadTypes = async () => {
-    const typesResponse = await _fetchLocationTypes({});
-    setLocationTypes(typesResponse.data?.types ?? []);
-  };
+  const loadTypes = useCallback(async () => {
+    await _fetchLocationTypes({});
+  }, [_fetchLocationTypes]);
 
   useEffect(() => {
     void loadCategories();
+  }, [loadCategories]);
+
+  useEffect(() => {
     void loadTypes();
-  }, []);
+  }, [loadTypes]);
 
   useEffect(() => {
     void loadCitiesOptions();
@@ -189,11 +199,11 @@ const PolygonsAndClientContainer = () => {
 
   useEffect(() => {
     void loadLocations();
-  }, [selectedCity]);
+  }, [loadLocations]);
 
   useEffect(() => {
     applyFilter();
-  }, [locationsWithPolygon, filter]);
+  }, [applyFilter]);
 
   const selectLocation = (locationId: number | null) => {
     if (locationId === null || locationId === selectedLocation?.id) {
