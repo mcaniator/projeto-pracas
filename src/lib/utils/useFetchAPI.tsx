@@ -5,13 +5,19 @@ import {
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
 import { generateQueryString } from "@/lib/utils/apiCall";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function useFetchAPI<T, P = Record<string, unknown>>({
   url,
+  callbacks,
   options,
 }: {
   url: string;
+  callbacks?: {
+    onSuccess?: (response: APIResponse<T>) => void;
+    onError?: (response: APIResponse<T>) => void;
+    onCallFailed?: (response: APIResponse<T>) => void;
+  };
   options?: RequestInit & {
     next?: { tags?: string[] };
     loadingMessage?: string;
@@ -21,45 +27,65 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
   (params: P) => Promise<{ responseInfo: APIResponseInfo; data: T | null }>,
   boolean,
 ] {
+  /*const callbacksRef = useRef(callbacks);
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  }, [callbacks]); //Using ref to avoid fetch function changing on each render*/
+
   const { helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchFunction = async (params: P) => {
-    setIsLoading(true);
-    if (options?.loadingMessage || options?.showLoadingOverlay) {
-      setLoadingOverlay({
-        show: true,
-        message: options?.loadingMessage ?? "",
-      });
-    }
-    const queryString = params ? generateQueryString(params) : "";
-    const fullUrl = queryString ? `${url}?${queryString}` : url;
-    const response = await fetch(fullUrl, options);
+  const fetchFunction = useCallback(
+    async (params: P) => {
+      setIsLoading(true);
+      if (options?.loadingMessage || options?.showLoadingOverlay) {
+        setLoadingOverlay({
+          show: true,
+          message: options?.loadingMessage ?? "",
+        });
+      }
+      const queryString = params ? generateQueryString(params) : "";
+      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      const response = await fetch(fullUrl, options);
 
-    if (!response.ok) {
-      const message = await response.text();
-      const errorResponseInfo: APIResponseInfo = {
-        statusCode: response.status,
-        message: message ?? `Erro na requisição ao servidor!`,
-      };
-      helperCardProcessResponse(errorResponseInfo);
+      if (!response.ok) {
+        const message = await response.text();
+        const errorResponseInfo: APIResponseInfo = {
+          statusCode: response.status,
+          message: message ?? `Erro na requisição ao servidor!`,
+        };
+        callbacks?.onCallFailed?.({
+          responseInfo: errorResponseInfo,
+          data: null,
+        });
+        helperCardProcessResponse(errorResponseInfo);
+        setIsLoading(false);
+        return {
+          responseInfo: errorResponseInfo,
+          data: null,
+        };
+      }
+
+      const json = (await response.json()) as APIResponse<T>;
+      if (
+        json.responseInfo.statusCode >= 200 &&
+        json.responseInfo.statusCode < 300
+      ) {
+        callbacks?.onSuccess?.(json);
+      } else {
+        callbacks?.onError?.(json);
+      }
+      helperCardProcessResponse(json.responseInfo);
+      setLoadingOverlay({ show: false });
       setIsLoading(false);
       return {
-        responseInfo: errorResponseInfo,
-        data: null,
+        responseInfo: json.responseInfo,
+        data: json.data,
       };
-    }
-
-    const json = (await response.json()) as APIResponse<T>;
-    helperCardProcessResponse(json.responseInfo);
-    setLoadingOverlay({ show: false });
-    setIsLoading(false);
-    return {
-      responseInfo: json.responseInfo,
-      data: json.data,
-    };
-  };
+    },
+    [url, options, callbacks, helperCardProcessResponse, setLoadingOverlay],
+  );
 
   return [fetchFunction, isLoading];
 }

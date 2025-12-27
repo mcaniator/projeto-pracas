@@ -14,7 +14,7 @@ import { CircularProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconLocationPin, IconPlus } from "@tabler/icons-react";
 import Fuse from "fuse.js";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import PermissionGuard from "../../../components/auth/permissionGuard";
 import CButton from "../../../components/ui/cButton";
@@ -86,7 +86,15 @@ const PolygonsAndClientContainer = () => {
   >(null);
 
   const [_fetchLocations, loadingLocations] = useFetchLocations();
-  const [_fetchCities, loadingCities] = useFetchCities();
+  const [_fetchCities, loadingCities] = useFetchCities({
+    callbacks: {
+      onSuccess: (response) => {
+        setCitiesOptions(response.data?.cities ?? []);
+        const initialCity = response.data?.cities[0] ?? null;
+        setSelectedCity(initialCity);
+      },
+    },
+  });
   const [_fetchLocationCategories, loadingCategories] =
     useFetchLocationCategories();
   const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes();
@@ -153,15 +161,12 @@ const PolygonsAndClientContainer = () => {
     setLocationsWithPolygon(locationsResponse.data?.locations ?? []);
   };
 
-  const loadCitiesOptions = async () => {
-    const citiesResponse = await _fetchCities({
+  const loadCitiesOptions = useCallback(async () => {
+    await _fetchCities({
       state: state,
       includeAdminstrativeRegions: true,
     });
-    setCitiesOptions(citiesResponse.data?.cities ?? []);
-    const initialCity = citiesResponse.data?.cities[0] ?? null;
-    setSelectedCity(initialCity);
-  };
+  }, [state, _fetchCities]);
 
   const loadCategories = async () => {
     const categoriesResponse = await _fetchLocationCategories({});
@@ -180,7 +185,7 @@ const PolygonsAndClientContainer = () => {
 
   useEffect(() => {
     void loadCitiesOptions();
-  }, [state]);
+  }, [loadCitiesOptions]);
 
   useEffect(() => {
     void loadLocations();

@@ -80,9 +80,7 @@ const muiTheme = createTheme({
           },
           "&.MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
             paddingBottom: "0px",
-          },
-          "& .MuiAutocomplete-input": {
-            paddingBottom: 0,
+            paddingTop: "12px",
           },
         }),
         input: ({ theme }) => ({
@@ -114,9 +112,11 @@ const muiTheme = createTheme({
         inputRoot: {
           "&.MuiInputBase-sizeSmall .MuiAutocomplete-input": {
             paddingBottom: 0,
+            paddingTop: "5px",
           },
           "&.MuiOutlinedInput-root.MuiInputBase-sizeSmall": {
             paddingBottom: 0,
+            paddingTop: "7px",
           },
         },
         option: {

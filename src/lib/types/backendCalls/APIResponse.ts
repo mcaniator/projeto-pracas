@@ -10,4 +10,18 @@ type APIResponse<T> = {
   data: T | null;
 };
 
-export type { APIResponseInfo, APIResponse };
+type FetchCallbacks<T> =
+  | {
+      onSuccess?: (response: APIResponse<T>) => void;
+      onError?: (response: APIResponse<T>) => void;
+      onCallFailed?: (response: APIResponse<T>) => void;
+    }
+  | undefined;
+
+type UseFetchAPIParams<T> =
+  | {
+      callbacks?: FetchCallbacks<T>;
+    }
+  | undefined;
+
+export type { APIResponseInfo, APIResponse, FetchCallbacks, UseFetchAPIParams };

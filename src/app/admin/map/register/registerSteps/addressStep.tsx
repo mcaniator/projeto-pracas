@@ -48,15 +48,20 @@ const AddressStep = ({
   } | null>(null);
   const [unitLevel, setUnitLevel] = useState<AdministrativeUnitLevel>("BROAD");
 
-  const [_fetchCities, isLoadingCities] = useFetchCities();
+  const [_fetchCities, isLoadingCities] = useFetchCities({
+    callbacks: {
+      onSuccess(response) {
+        setCitiesOptions(response.data?.cities ?? []);
+      },
+    },
+  });
 
   const loadCitiesOptions = useCallback(async () => {
-    const response = await _fetchCities({
+    await _fetchCities({
       state: parkData.state,
       includeAdminstrativeRegions: true,
     });
-    setCitiesOptions(response.data?.cities ?? []);
-  }, [parkData.state]);
+  }, [parkData.state, _fetchCities]);
   const [cityAdmUnits, setCityAdmUnits] = useState<{
     narrowUnits: UnitType;
     intermediateUnits: UnitType;

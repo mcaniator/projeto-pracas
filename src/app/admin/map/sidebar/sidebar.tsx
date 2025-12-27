@@ -302,7 +302,7 @@ const Sidebar = ({
                   </div>
                 )}
                 {isMobileView && (
-                  <div className="absolute right-2 top-2 z-20 rounded-md bg-green-600 text-white shadow">
+                  <div className="absolute right-2 top-2 z-20">
                     <CButton
                       square
                       tooltip="Mostrar no mapa"
