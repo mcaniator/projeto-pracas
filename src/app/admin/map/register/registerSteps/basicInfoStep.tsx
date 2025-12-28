@@ -214,6 +214,7 @@ const BasicInfoStep = ({
           files={parkData.mainImage}
           previewWidth={300}
           previewHeight={200}
+          targetCompressionSize={1}
           emitFiles={(f) => {
             setParkData((prev) => ({ ...prev, mainImage: f[0] ?? null }));
           }}

@@ -1,8 +1,9 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
-import { Box } from "@mui/material";
+import { Box, LinearProgress } from "@mui/material";
 import { IconUpload, IconX } from "@tabler/icons-react";
+import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ type CImageInputProps = {
   previewHeight?: number;
   files?: File | File[] | null;
   multiple?: boolean;
+  targetCompressionSize?: number;
   handleFileInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   emitFiles?: (files: File[]) => void;
 };
@@ -20,11 +22,15 @@ const CImageInput = ({
   buttonChildren = <IconUpload />,
   files = null,
   multiple = false,
+  targetCompressionSize = 0.5,
   ...props
 }: CImageInputProps) => {
   const [preview, setPreview] = useState<string[]>([]);
+  const [isCompressingImages, setIsCompressingImages] = useState(false);
+  const [imagesCompressionProgress, setImagesCompressionProgress] = useState(0);
   const { setHelperCard } = useHelperCard();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsCompressingImages(true);
     if (!e.target.files) return;
     if (e.target.files?.length > 1 && !multiple) {
       setHelperCard({
@@ -34,11 +40,11 @@ const CImageInput = ({
       });
       return;
     }
+    const compressedFiles: File[] = [];
     for (let i = 0; i < e.target.files.length; i++) {
       const selectedFile = e.target.files?.[i] ?? null;
       if (!selectedFile) return;
 
-      // validação simples
       if (!selectedFile.type.startsWith("image/")) {
         setHelperCard({
           show: true,
@@ -47,13 +53,34 @@ const CImageInput = ({
         });
         return;
       }
+
+      try {
+        const compressedFile = await imageCompression(selectedFile, {
+          maxSizeMB: targetCompressionSize,
+          maxIteration: 100,
+          onProgress(progress) {
+            setImagesCompressionProgress(progress / e.target.files!.length);
+          },
+        });
+        compressedFiles.push(compressedFile);
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: "Erro ao comprimir imagem!",
+        });
+        setIsCompressingImages(false);
+        return;
+      }
     }
 
+    setIsCompressingImages(false);
+
     props.handleFileInput?.(e);
-    props.emitFiles?.(Array.from(e.target.files ?? []));
+    props.emitFiles?.(compressedFiles);
   };
 
-  // cria URL de preview
+  // creates a preview of the files
   useEffect(() => {
     if (!files) {
       setPreview([]);
@@ -68,7 +95,7 @@ const CImageInput = ({
     );
     setPreview(urlsArray);
 
-    // limpa memória
+    // free memory whenever this component is unmounted
     return () => {
       urlsArray.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
@@ -87,7 +114,9 @@ const CImageInput = ({
       <div>{props.label}</div>
       <CButtonFilePicker
         fileAccept="image/*"
-        onFileInput={handleChange}
+        onFileInput={(e) => {
+          void handleChange(e);
+        }}
         className="pb-2"
         multiple={multiple}
       >
@@ -97,6 +126,12 @@ const CImageInput = ({
         <CButton variant="text" tooltip="Remover todas as imagens">
           <IconX />
         </CButton>
+      )}
+      {isCompressingImages && (
+        <div className="flex w-full flex-col">
+          <LinearProgress />
+          <div>{`Processando image${multiple ? "ns" : "m"}... ${imagesCompressionProgress}%`}</div>
+        </div>
       )}
       {preview.map((url, index) => (
         <div key={index} className="relative inline-block">
