@@ -408,7 +408,6 @@ model Location {
   notes               String? @db.Text
   cityId              Int     @map("city_id")
   city                City    @relation(fields: [cityId], references: [id])
-  mainImage           String? @map("main_image")
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")
   overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
@@ -427,6 +426,9 @@ model Location {
 
   polygon Unsupported("Geometry(MultiPolygon, 4326)")?
 
+  mainImageId Int?   @unique @map("main_image_id")
+  mainImage   Image? @relation(name: "location_main_image_relation", fields: [mainImageId], references: [imageId])
+
   narrowAdministrativeUnitId       Int?                            @map("narrow_administrative_unit_id")
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
   intermediateAdministrativeUnitId Int?                            @map("intermediate_administrative_unit_id")
@@ -440,6 +442,7 @@ model Location {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([cityId])
   @@map("location")
 }
 
@@ -590,6 +593,24 @@ model Tally {
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("tally")
+}
+
+// #endregion
+
+// #region Imagens
+//  ------------------------------------------------------------------------------------------------------------
+//  Imagens
+//  ------------------------------------------------------------------------------------------------------------
+model Image {
+  imageId      Int    @id @default(autoincrement()) @map("image_id")
+  fileUid      String @unique() @map("file_uid")
+  relativePath String @map("relative_path")
+  size         Int
+
+  mainOfLocation Location? @relation("location_main_image_relation")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("image")
 }
 
 // #endregion

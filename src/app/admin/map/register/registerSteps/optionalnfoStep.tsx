@@ -19,6 +19,7 @@ const OptionalInfoStep = ({
   useEffect(() => {
     setEnableNextStep(true);
   });
+  console.log(parkData.notes);
   return (
     <div className="flex flex-col gap-1">
       <Divider />

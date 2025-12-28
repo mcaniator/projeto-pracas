@@ -2,9 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import { uploadImage } from "@/lib/utils/image";
+import { deleteImage, uploadImage } from "@/lib/utils/image";
 import { locationSchema } from "@/lib/zodValidators";
-import { BrazilianStates, Location } from "@prisma/client";
+import { BrazilianStates, Image, Location } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   addPolygon,
@@ -73,6 +73,11 @@ const _deleteLocation = async (
         },
         select: {
           name: true,
+          mainImage: {
+            select: {
+              fileUid: true,
+            },
+          },
           _count: {
             select: { tally: true, assessment: true },
           },
@@ -95,6 +100,11 @@ const _deleteLocation = async (
           } as APIResponseInfo,
         };
       }
+
+      if (location.mainImage) {
+        await deleteImage(location.mainImage.fileUid);
+      }
+
       const deletedLocation = await prisma.location.delete({
         where: {
           id,
@@ -393,17 +403,16 @@ const _createLocation = async (
       .nullish()
       .parse(formData.get("locationId"));
 
-    const image = formData.get("mainImage") as File | null;
-    let imageUrl: string | null = null;
+    const formImage = formData.get("mainImage") as File | null;
+    let image: Image | null = null;
     try {
-      if (image) {
-        imageUrl = await uploadImage(image);
+      if (formImage) {
+        image = await uploadImage(formImage);
       }
       if (locationId) {
         const location = await prisma.location.update({
           data: {
             ...locationData,
-            mainImage: imageUrl,
           },
           where: {
             id: locationId,
@@ -422,7 +431,7 @@ const _createLocation = async (
         const location = await prisma.location.create({
           data: {
             ...locationData,
-            mainImage: imageUrl,
+            mainImageId: image?.imageId,
           },
           select: {
             id: true,
@@ -439,19 +448,11 @@ const _createLocation = async (
             await addPolygon(featuresGeoJson, location.id, prisma);
           }
           locationName = location.name;
-          /*if (formData.get("file")) {
-          const wkt = await getPolygonsFromShp(formData.get("file") as File);
-          if (wkt) {
-            await addPolygonFromWKT(wkt, result.id, prisma);
-          }
-        }*/
         } catch (err) {
           throw new Error("Error inserting polygon into database");
         }
       });
-
       revalidateTag("location");
-
       return {
         responseInfo: {
           statusCode: 201,
@@ -468,6 +469,7 @@ const _createLocation = async (
       };
     }
   } catch (err) {
+    console.log(err);
     return {
       responseInfo: {
         statusCode: 401,

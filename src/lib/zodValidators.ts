@@ -263,8 +263,8 @@ const locationSchema = z.object({
 });
 
 const featuresGeoJsonSchema = z.object({
-  type: z.union([z.literal("Polygon"), z.literal("MultiPolygon")]),
-  coordinates: z.array(z.array(z.array(z.number()))),
+  type: z.literal("MultiPolygon"),
+  coordinates: z.array(z.array(z.array(z.array(z.number())))),
 });
 
 const citySchema = z.object({

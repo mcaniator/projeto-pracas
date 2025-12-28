@@ -1,4 +1,24 @@
-export const uploadImage: (file: File) => Promise<string> = async (
+import { prisma } from "@/lib/prisma";
+import { Image } from "@prisma/client";
+import { z } from "zod";
+
+const uploadResponseSchema = z.object({
+  fileId: z.string(),
+  name: z.string(),
+  size: z.number(),
+  versionInfo: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+  filePath: z.string(),
+  url: z.string(),
+  fileType: z.string(),
+  height: z.number(),
+  width: z.number(),
+  thumbnailUrl: z.string(),
+});
+
+export const uploadImage: (file: File) => Promise<Image> = async (
   file: File,
 ) => {
   const arrayBuffer = await file.arrayBuffer();
@@ -17,9 +37,10 @@ export const uploadImage: (file: File) => Promise<string> = async (
     "base64",
   );
 
-  const response = await fetch(process.env.IMAGE_CDN_URL!, {
+  const response = await fetch(process.env.IMAGE_UPLOAD_ENDPOINT!, {
     method: "POST",
     headers: {
+      Accept: "application/json",
       Authorization: `Basic ${auth}`,
     },
     body: imageKitForm,
@@ -30,8 +51,41 @@ export const uploadImage: (file: File) => Promise<string> = async (
     throw new Error(error);
   }
 
-  const json = (await response.json()) as { url: string; filePath: string };
-  return json.filePath;
+  const json = (await response.json()) as unknown;
+  const parsedJson = uploadResponseSchema.parse(json);
+
+  const image = await prisma.image.create({
+    data: {
+      fileUid: parsedJson.fileId,
+      relativePath: parsedJson.filePath,
+      size: parsedJson.size,
+    },
+  });
+
+  return image;
+};
+
+export const deleteImage = async (fileUid: string) => {
+  const auth = Buffer.from(`${process.env.IMAGE_CDN_PRIVATE_KEY}:`).toString(
+    "base64",
+  );
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`DELETE FROM image WHERE file_uid = ${fileUid}`;
+    const response = await fetch(
+      `${process.env.IMAGE_DELETE_ENDPOINT}/${fileUid}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Basic ${auth}`,
+        },
+      },
+    );
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error);
+    }
+  });
 };
 
 export const buildImageUrl = (path: string | null) => {

@@ -123,8 +123,8 @@ const addPolygon = async (
   if (!featuresGeoJson || !id) {
     throw new Error("featuresGeoJson and id are mandatory");
   }
-
-  const parsed = featuresGeoJsonSchema.safeParse(featuresGeoJson);
+  const json = JSON.parse(featuresGeoJson) as unknown;
+  const parsed = featuresGeoJsonSchema.safeParse(json);
   if (!parsed.success) {
     return;
   }

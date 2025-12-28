@@ -26,7 +26,7 @@ function CButtonFilePicker(props: CButtonFilePickerProps) {
         ref={fileInputRef}
         style={{ display: "none" }}
         onChange={onFileInput}
-        multiple
+        multiple={props.multiple}
       />
     </>
   );

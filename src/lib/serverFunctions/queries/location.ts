@@ -130,7 +130,6 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   SELECT
     l.id,
     l.name,
-    l.main_image AS "mainImage",
     l.type_id      AS "typeId",
     l.category_id  AS "categoryId",
     l.popular_name AS "popularName",
@@ -156,6 +155,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     bau.name AS "broadAdministrativeUnitName",
     lc.name AS "categoryName",
     lt.name AS "typeName",
+    i.relative_path AS "mainImage",
     CASE
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
@@ -170,6 +170,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN broad_administrative_unit bau ON bau.id = l.broad_administrative_unit_id
   LEFT JOIN location_category lc ON lc.id = l.category_id
   LEFT JOIN location_type lt ON lt.id = l.type_id
+  LEFT JOIN image i ON i.image_id = l.main_image_id
   WHERE l.city_id = ${params.cityId}
   GROUP BY 
     1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29

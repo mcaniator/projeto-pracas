@@ -99,25 +99,23 @@ const LocationRegisterDialog = ({
     onClose();
   };
   useEffect(() => {
-    if (open) {
-      const coordinates: number[][][][] = [];
+    const coordinates: number[][][][] = [];
 
-      for (const feature of features) {
-        const geometry = feature.getGeometry();
+    for (const feature of features) {
+      const geometry = feature.getGeometry();
 
-        if (geometry instanceof SimpleGeometry) {
-          coordinates.push(geometry.getCoordinates() as number[][][]);
-        }
+      if (geometry instanceof SimpleGeometry) {
+        coordinates.push(geometry.getCoordinates() as number[][][]);
       }
-
-      const multiPolygon = new MultiPolygon(coordinates);
-      const multiPolygonFeature = new Feature(multiPolygon);
-
-      const writer = new GeoJSON();
-      const featuresGeoJsonObject =
-        writer.writeFeatureObject(multiPolygonFeature);
-      setFeaturesGeoJson(JSON.stringify(featuresGeoJsonObject.geometry));
     }
+
+    const multiPolygon = new MultiPolygon(coordinates);
+    const multiPolygonFeature = new Feature(multiPolygon);
+
+    const writer = new GeoJSON();
+    const featuresGeoJsonObject =
+      writer.writeFeatureObject(multiPolygonFeature);
+    setFeaturesGeoJson(JSON.stringify(featuresGeoJsonObject.geometry));
   }, [features, open]);
 
   const [step, setStep] = useState(1);
@@ -140,7 +138,7 @@ const LocationRegisterDialog = ({
   const handleSubmit = () => {
     const formData = new FormData();
     Object.entries(parkData).forEach(([key, value]) => {
-      if (value !== null) {
+      if (value !== null && value !== "") {
         formData.append(key, value as string);
       }
     });

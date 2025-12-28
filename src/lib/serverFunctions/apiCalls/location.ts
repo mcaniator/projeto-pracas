@@ -1,3 +1,4 @@
+import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { LocationWithPolygon } from "@customTypes/location/location";
 
@@ -26,11 +27,14 @@ const _searchLocationsForMap = async () => {
   return locations;
 };
 
-export const useFetchLocations = () => {
+export const useFetchLocations = (
+  params?: UseFetchAPIParams<FetchLocationsResponse>,
+) => {
   const url = `/api/admin/locations`;
 
   return useFetchAPI<FetchLocationsResponse, FetchLocationsParams>({
     url,
+    callbacks: params?.callbacks,
     options: {
       method: "GET",
       next: { tags: ["location", "database"] },
