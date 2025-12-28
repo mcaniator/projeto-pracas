@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogProps,
   DialogTitle,
-  Slide,
+  Fade,
 } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import React, { ReactNode } from "react";
@@ -46,7 +46,7 @@ const Transition = React.forwardRef(function Transition(
   },
   ref: React.Ref<unknown>,
 ) {
-  return <Slide direction="up" ref={ref} {...props} />;
+  return <Fade ref={ref} {...props} />;
 });
 
 const CDialog = ({
@@ -114,7 +114,7 @@ const CDialog = ({
         fullScreen={fullScreen}
         slotProps={{
           backdrop: {
-            className: "bg-black/25 backdrop-blur",
+            className: "bg-black/25",
           },
           paper: {
             sx: {

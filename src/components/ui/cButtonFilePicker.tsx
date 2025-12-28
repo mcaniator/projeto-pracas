@@ -6,6 +6,7 @@ type CButtonFilePickerProps = CButtonProps & {
   fileAccept?: InputHTMLAttributes<HTMLInputElement>["accept"];
   onFileInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   multiple?: boolean;
+  capture?: boolean | "user" | "environment";
 };
 
 function CButtonFilePicker(props: CButtonFilePickerProps) {
@@ -27,6 +28,7 @@ function CButtonFilePicker(props: CButtonFilePickerProps) {
         style={{ display: "none" }}
         onChange={onFileInput}
         multiple={props.multiple}
+        capture={props.capture}
       />
     </>
   );

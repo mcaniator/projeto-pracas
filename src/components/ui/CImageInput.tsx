@@ -2,7 +2,7 @@ import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import { Box, LinearProgress } from "@mui/material";
-import { IconUpload, IconX } from "@tabler/icons-react";
+import { IconCamera, IconUpload, IconX } from "@tabler/icons-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ type CImageInputProps = {
   files?: File | File[] | null;
   multiple?: boolean;
   targetCompressionSize?: number;
+  disableCameraButton?: boolean;
   handleFileInput?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   emitFiles?: (files: File[]) => void;
 };
@@ -28,11 +29,14 @@ const CImageInput = ({
   const [preview, setPreview] = useState<string[]>([]);
   const [isCompressingImages, setIsCompressingImages] = useState(false);
   const [imagesCompressionProgress, setImagesCompressionProgress] = useState(0);
+
   const { setHelperCard } = useHelperCard();
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsCompressingImages(true);
     if (!e.target.files) return;
-    if (e.target.files?.length > 1 && !multiple) {
+    const inputFiles = Array.from(e.target.files);
+    const percentagePerFile = 100 / inputFiles.length;
+    if (inputFiles.length > 1 && !multiple) {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
@@ -41,8 +45,8 @@ const CImageInput = ({
       return;
     }
     const compressedFiles: File[] = [];
-    for (let i = 0; i < e.target.files.length; i++) {
-      const selectedFile = e.target.files?.[i] ?? null;
+    for (let i = 0; i < inputFiles.length; i++) {
+      const selectedFile = inputFiles[i] ?? null;
       if (!selectedFile) return;
 
       if (!selectedFile.type.startsWith("image/")) {
@@ -59,7 +63,11 @@ const CImageInput = ({
           maxSizeMB: targetCompressionSize,
           maxIteration: 100,
           onProgress(progress) {
-            setImagesCompressionProgress(progress / e.target.files!.length);
+            setImagesCompressionProgress(
+              Math.floor(
+                i * percentagePerFile + (progress * percentagePerFile) / 100,
+              ),
+            );
           },
         });
         compressedFiles.push(compressedFile);
@@ -77,7 +85,11 @@ const CImageInput = ({
     setIsCompressingImages(false);
 
     props.handleFileInput?.(e);
-    props.emitFiles?.(compressedFiles);
+    if (multiple && Array.isArray(files)) {
+      props.emitFiles?.([...files, ...compressedFiles]);
+    } else if (!multiple) {
+      props.emitFiles?.(compressedFiles);
+    }
   };
 
   // creates a preview of the files
@@ -112,18 +124,38 @@ const CImageInput = ({
   return (
     <Box sx={borderSx} className="flex flex-col items-start rounded-lg">
       <div>{props.label}</div>
-      <CButtonFilePicker
-        fileAccept="image/*"
-        onFileInput={(e) => {
-          void handleChange(e);
-        }}
-        className="pb-2"
-        multiple={multiple}
-      >
-        {buttonChildren}
-      </CButtonFilePicker>
+      <div className="flex w-full justify-between gap-1">
+        <CButtonFilePicker
+          fileAccept="image/*"
+          onFileInput={(e) => {
+            void handleChange(e);
+          }}
+          className="pb-2"
+          multiple={multiple}
+        >
+          {buttonChildren}
+        </CButtonFilePicker>
+        {!props.disableCameraButton && (
+          <CButtonFilePicker
+            fileAccept="image/*"
+            onFileInput={(e) => {
+              void handleChange(e);
+            }}
+            className="pb-2"
+            multiple={false}
+            capture="environment"
+          >
+            <IconCamera />
+          </CButtonFilePicker>
+        )}
+      </div>
+
       {Array.isArray(files) && files?.length > 1 && (
-        <CButton variant="text" tooltip="Remover todas as imagens">
+        <CButton
+          onClick={() => props.emitFiles?.([])}
+          variant="text"
+          tooltip="Remover todas as imagens"
+        >
           <IconX />
         </CButton>
       )}
@@ -134,7 +166,7 @@ const CImageInput = ({
         </div>
       )}
       {preview.map((url, index) => (
-        <div key={index} className="relative inline-block">
+        <div key={index} className="relative inline-block pb-2">
           <button
             onClick={() => {
               if (!multiple) {

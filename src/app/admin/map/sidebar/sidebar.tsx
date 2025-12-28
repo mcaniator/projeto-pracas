@@ -351,47 +351,49 @@ const Sidebar = ({
         >
           {inner}
         </CDialog>
-        <CButton
-          square={true}
-          enableTopLeftChip
-          topLeftChipLabel={locations.length}
-          onClick={() => {
-            setMobileDialogOpen(true);
-          }}
-        >
-          <IconListDetails />
-        </CButton>
-        <div className="ml-1 flex w-full gap-1">
-          <CAutocomplete
-            className="w-32"
-            label="Estado"
-            disableClearable
-            options={Object.values(BrazilianStates)}
-            value={state}
-            onChange={(_, v) => setState(v)}
-          />
-          <CAutocomplete
-            className="w-full"
-            label="Cidade"
-            loading={loadingCities}
-            value={
-              citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
-                id: -1,
-                name: "Nenhuma cidade selecionada",
-                state: state,
-                broadAdministrativeUnit: [],
-                intermediateAdministrativeUnit: [],
-                narrowAdministrativeUnit: [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
+        <div className="pointer-events-auto flex w-full justify-between">
+          <CButton
+            square={true}
+            enableTopLeftChip
+            topLeftChipLabel={locations.length}
+            onClick={() => {
+              setMobileDialogOpen(true);
+            }}
+          >
+            <IconListDetails />
+          </CButton>
+          <div className="ml-1 flex w-full gap-1">
+            <CAutocomplete
+              className="w-32"
+              label="Estado"
+              disableClearable
+              options={Object.values(BrazilianStates)}
+              value={state}
+              onChange={(_, v) => setState(v)}
+            />
+            <CAutocomplete
+              className="w-full"
+              label="Cidade"
+              loading={loadingCities}
+              value={
+                citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
+                  id: -1,
+                  name: "Nenhuma cidade selecionada",
+                  state: state,
+                  broadAdministrativeUnit: [],
+                  intermediateAdministrativeUnit: [],
+                  narrowAdministrativeUnit: [],
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                }
               }
-            }
-            disableClearable
-            options={citiesOptions ?? []}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            getOptionLabel={(o) => o.name}
-            onChange={(_, v) => setCity(v)}
-          />
+              disableClearable
+              options={citiesOptions ?? []}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              getOptionLabel={(o) => o.name}
+              onChange={(_, v) => setCity(v)}
+            />
+          </div>
         </div>
       </>
     );
