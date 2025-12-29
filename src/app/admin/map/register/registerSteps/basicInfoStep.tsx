@@ -8,7 +8,7 @@ import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locat
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../components/ui/cTextField";
@@ -84,6 +84,16 @@ const BasicInfoStep = ({
     void loadLocationTypes();
   }, [loadLocationTypes]);
 
+  // #region memos
+  const autocompleteCategoryValue = useMemo(() => {
+    return locationCategories.find((o) => o.id === parkData.categoryId);
+  }, [locationCategories, parkData.categoryId]);
+
+  const autocompleteTypeValue = useMemo(() => {
+    return locationTypes.find((o) => o.id === parkData.typeId);
+  }, [locationTypes, parkData.typeId]);
+
+  // #endregion
   return (
     <div className="flex flex-col gap-1">
       <CTextField
@@ -128,7 +138,7 @@ const BasicInfoStep = ({
               setOpenSaveDialog(true);
             }
           }}
-          value={locationCategories.find((o) => o.id === parkData.categoryId)}
+          value={autocompleteCategoryValue}
           label="Categoria"
           appendIconButton={<IconPencil />}
           className="w-full"
@@ -159,7 +169,7 @@ const BasicInfoStep = ({
               setOpenSaveDialog(true);
             }
           }}
-          value={locationTypes.find((o) => o.id === parkData.typeId)}
+          value={autocompleteTypeValue}
           label="Tipo"
           appendIconButton={<IconPencil />}
           className="w-full"

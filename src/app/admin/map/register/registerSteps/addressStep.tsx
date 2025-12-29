@@ -5,7 +5,7 @@ import DeleteCityDialog from "@/app/admin/map/register/registerSteps/parametersD
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { BrazilianStates } from "@prisma/client";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../components/ui/cTextField";
@@ -55,7 +55,6 @@ const AddressStep = ({
       },
     },
   });
-
   const loadCitiesOptions = useCallback(async () => {
     await _fetchCities({
       state: parkData.state,
@@ -97,6 +96,49 @@ const AddressStep = ({
     });
   }, [parkData.cityId, parkData.firstStreet]);
 
+  // #region memos
+
+  const autocompleteCityValue = useMemo(() => {
+    return citiesOptions?.find((c) => c.id === parkData.cityId);
+  }, [citiesOptions, parkData.cityId]);
+
+  const autocompleteBroadUnitValue = useMemo(() => {
+    return (
+      cityAdmUnits.broadUnits?.find(
+        (b) => b.id === parkData.broadAdministrativeUnitId,
+      ) ?? null
+    );
+  }, [cityAdmUnits.broadUnits, parkData.broadAdministrativeUnitId]);
+
+  const autocompleteIntermediateUnitValue = useMemo(() => {
+    return (
+      cityAdmUnits.intermediateUnits?.find(
+        (b) => b.id === parkData.intermediateAdministrativeUnitId,
+      ) ?? null
+    );
+  }, [
+    cityAdmUnits.intermediateUnits,
+    parkData.intermediateAdministrativeUnitId,
+  ]);
+
+  const autocompleteNarrowUnitValue = useMemo(() => {
+    return (
+      cityAdmUnits.narrowUnits?.find(
+        (b) => b.id === parkData.narrowAdministrativeUnitId,
+      ) ?? null
+    );
+  }, [cityAdmUnits.narrowUnits, parkData.narrowAdministrativeUnitId]);
+
+  const parkCity = useMemo(() => {
+    return citiesOptions?.find((c) => c.id === parkData.cityId);
+  }, [citiesOptions, parkData.cityId]);
+
+  const selectedItemToEditState = useMemo(() => {
+    return citiesOptions?.find((c) => c.id === selectedItemToEdit?.id)?.state;
+  }, [citiesOptions, selectedItemToEdit]);
+
+  // #endregion
+
   return (
     <div className="flex flex-col gap-1">
       <CAutocomplete
@@ -117,7 +159,7 @@ const AddressStep = ({
       />
 
       <CAutocomplete
-        value={citiesOptions?.find((c) => parkData.cityId === c.id) ?? null}
+        value={autocompleteCityValue}
         className="w-full"
         label="Cidade"
         error={!requiredFieldsFilled.cityId}
@@ -129,8 +171,7 @@ const AddressStep = ({
         onAppendIconButtonClick={() => {
           setSelectedItemToEdit({
             id: parkData.cityId!,
-            name:
-              citiesOptions?.find((c) => c.id === parkData.cityId)?.name ?? "",
+            name: parkCity?.name ?? "",
           });
           setOpenCitySaveDialog(true);
         }}
@@ -153,11 +194,7 @@ const AddressStep = ({
       <CAutocomplete
         className="w-full"
         label="Região administrativa ampla"
-        value={
-          cityAdmUnits.broadUnits?.find(
-            (b) => b.id === parkData.broadAdministrativeUnitId,
-          ) ?? null
-        }
+        value={autocompleteBroadUnitValue}
         options={cityAdmUnits.broadUnits ?? []}
         loading={isLoadingCities}
         suffixButtonChildren={<IconPlus />}
@@ -191,11 +228,7 @@ const AddressStep = ({
       <CAutocomplete
         className="w-full"
         label="Região administrativa intermendiária"
-        value={
-          cityAdmUnits.intermediateUnits?.find(
-            (b) => b.id === parkData.intermediateAdministrativeUnitId,
-          ) ?? null
-        }
+        value={autocompleteIntermediateUnitValue}
         options={cityAdmUnits.intermediateUnits ?? []}
         loading={isLoadingCities}
         suffixButtonChildren={<IconPlus />}
@@ -229,11 +262,7 @@ const AddressStep = ({
       <CAutocomplete
         className="w-full"
         label="Região administrativa estreita"
-        value={
-          cityAdmUnits.narrowUnits?.find(
-            (b) => b.id === parkData.narrowAdministrativeUnitId,
-          ) ?? null
-        }
+        value={autocompleteNarrowUnitValue}
         options={cityAdmUnits.narrowUnits ?? []}
         loading={isLoadingCities}
         suffixButtonChildren={<IconPlus />}
@@ -311,8 +340,7 @@ const AddressStep = ({
         openDeleteDialog={() => {
           setSelectedItemToEdit({
             id: parkData.cityId!,
-            name:
-              citiesOptions?.find((c) => c.id === parkData.cityId)?.name ?? "",
+            name: parkCity?.name ?? "",
           });
           setOpenCitySaveDialog(false);
           setOpenCityDeleteDialog(true);
@@ -321,9 +349,7 @@ const AddressStep = ({
       <DeleteCityDialog
         selectedItem={selectedItemToEdit}
         open={openCityDeleDialog}
-        cityState={
-          citiesOptions?.find((c) => c.id === selectedItemToEdit?.id)?.state
-        }
+        cityState={selectedItemToEditState}
         reloadItems={() => {
           setParkData((prev) => ({
             ...prev,
@@ -354,7 +380,7 @@ const AddressStep = ({
           setOpenUnitDeleteDialog(true);
         }}
         selectedUnit={selectedItemToEdit}
-        city={citiesOptions?.find((c) => c.id === parkData.cityId)}
+        city={parkCity}
         level={unitLevel}
       />
       <DeleteAdministrativeUnitDialog
@@ -388,7 +414,7 @@ const AddressStep = ({
           void loadCitiesOptions();
         }}
         selectedItem={selectedItemToEdit}
-        city={citiesOptions?.find((c) => c.id === parkData.cityId)}
+        city={parkCity}
         level={unitLevel}
       />
     </div>
