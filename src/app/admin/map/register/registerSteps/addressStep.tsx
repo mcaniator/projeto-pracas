@@ -99,7 +99,7 @@ const AddressStep = ({
   // #region memos
 
   const autocompleteCityValue = useMemo(() => {
-    return citiesOptions?.find((c) => c.id === parkData.cityId);
+    return citiesOptions?.find((c) => c.id === parkData.cityId) ?? null;
   }, [citiesOptions, parkData.cityId]);
 
   const autocompleteBroadUnitValue = useMemo(() => {
@@ -296,6 +296,10 @@ const AddressStep = ({
       <CTextField
         maxCharacters={255}
         required
+        debounce={500}
+        onDebounceInit={() => {
+          setRequiredFieldsFilled((prev) => ({ ...prev, firstStreet: false }));
+        }}
         label="Primeira rua"
         value={parkData.firstStreet}
         onChange={(e) => {
@@ -304,6 +308,7 @@ const AddressStep = ({
       />
       <CTextField
         maxCharacters={255}
+        debounce={500}
         label="Segunda rua"
         value={parkData.secondStreet}
         onChange={(e) => {
@@ -312,6 +317,7 @@ const AddressStep = ({
       />
       <CTextField
         maxCharacters={255}
+        debounce={500}
         label="Terceira rua"
         value={parkData.thirdStreet}
         onChange={(e) => {
@@ -320,6 +326,7 @@ const AddressStep = ({
       />
       <CTextField
         maxCharacters={255}
+        debounce={500}
         label="Quarta rua"
         value={parkData.fourthStreet}
         onChange={(e) => {
