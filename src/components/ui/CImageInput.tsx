@@ -1,8 +1,14 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import { formatFileSize } from "@/lib/utils/file";
 import { Box, LinearProgress } from "@mui/material";
-import { IconCamera, IconUpload, IconX } from "@tabler/icons-react";
+import {
+  IconCamera,
+  IconDownload,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 import imageCompression from "browser-image-compression";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -92,6 +98,13 @@ const CImageInput = ({
     }
   };
 
+  const handleDownload = (url: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "image.png";
+    link.click();
+  };
+
   // creates a preview of the files
   useEffect(() => {
     if (!files) {
@@ -165,33 +178,47 @@ const CImageInput = ({
           <div>{`Processando image${multiple ? "ns" : "m"}... ${imagesCompressionProgress}%`}</div>
         </div>
       )}
-      {preview.map((url, index) => (
-        <div key={index} className="relative inline-block pb-2">
-          <button
-            onClick={() => {
-              if (!multiple) {
-                props.emitFiles?.([]);
-              } else {
-                const filteredFiles =
-                  Array.isArray(files) ?
-                    files.filter((_, i) => i !== index)
-                  : [];
-                props.emitFiles?.(filteredFiles);
-              }
-            }}
-            className="absolute right-2 top-2 z-10 w-fit rounded-full bg-black/60 p-1 text-white hover:bg-black"
-          >
-            <IconX />
-          </button>
-          <Image
-            src={url}
-            alt="Pré-visualização da imagem"
-            width={props.previewWidth ?? 300}
-            height={props.previewHeight ?? 200}
-            className="rounded"
-          />
-        </div>
-      ))}
+      {preview.map((url, index) => {
+        const file = Array.isArray(files) ? files[index] : files;
+        return (
+          <div key={index} className="relative inline-block pb-2">
+            <button
+              onClick={() => {
+                if (!multiple) {
+                  props.emitFiles?.([]);
+                } else {
+                  const filteredFiles =
+                    Array.isArray(files) ?
+                      files.filter((_, i) => i !== index)
+                    : [];
+                  props.emitFiles?.(filteredFiles);
+                }
+              }}
+              className="absolute right-2 top-2 z-10 w-fit rounded-full bg-black/60 p-1 text-white hover:bg-black"
+            >
+              <IconX />
+            </button>
+            <button
+              onClick={() => {
+                handleDownload(url);
+              }}
+              className="absolute bottom-4 right-2 z-10 w-fit rounded-full bg-black/60 p-1 text-white hover:bg-black"
+            >
+              <IconDownload />
+            </button>
+            <span className="absolute bottom-4 left-2 z-10 w-fit rounded-full bg-black/60 p-1 text-white">
+              {formatFileSize(file?.size)}
+            </span>
+            <Image
+              src={url}
+              alt="Pré-visualização da imagem"
+              width={props.previewWidth ?? 300}
+              height={props.previewHeight ?? 200}
+              className="rounded"
+            />
+          </div>
+        );
+      })}
     </Box>
   );
 };

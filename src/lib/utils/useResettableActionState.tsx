@@ -11,7 +11,7 @@ export function useResettableActionState<State, Payload>(
     onCallFailed?: () => void;
     onReset?: () => void;
   },
-  options?: { loadingMessage?: string },
+  options?: { loadingMessage?: string; timeUntilShowTimoutMessage?: number },
   initialState?: Awaited<State>,
   permalink?: string,
 ): [
@@ -83,6 +83,18 @@ export function useResettableActionState<State, Payload>(
     }
 
     setLoadingOverlay({ show: isPending, message: options?.loadingMessage });
+    if (!isPending) return;
+
+    const timeout = setTimeout(() => {
+      setLoadingOverlay({ show: false });
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Tempo de espera excedido!</>,
+        customTimeout: 60000,
+      });
+    }, options?.timeUntilShowTimoutMessage || 30000);
+    return () => clearTimeout(timeout);
   }, [isPending]);
 
   return [submit, isPending, state, reset] as const;

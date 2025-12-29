@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     reactCompiler: true,
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
   },
   typescript: {
     ignoreBuildErrors: true,
