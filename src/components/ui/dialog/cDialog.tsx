@@ -50,6 +50,14 @@ const Transition = React.forwardRef(function Transition(
   return <Fade ref={ref} {...props} />;
 });
 
+/**
+ * A Dialog component that can be used to display a modal
+ * window for various purposes, such as displaying information,
+ * requesting user input, or confirming an action. It can also be used as a form.
+ *
+ * It integrates with the browser history so that pressing the navigation buttons
+ * closes the most recent dialog instead of navigating away.
+ */
 const CDialog = ({
   title,
   subtitle,
