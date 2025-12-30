@@ -1,3 +1,4 @@
+import { useOpenedDialogsCounterContext } from "@/components/context/openedDialogsCounterContext";
 import {
   ButtonProps,
   Dialog,
@@ -8,7 +9,7 @@ import {
   Fade,
 } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useRef } from "react";
 
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
@@ -75,7 +76,7 @@ const CDialog = ({
   onConfirm,
   onClose,
   onSubmit,
-  ...rest
+  ...props
 }: CDialogProps) => {
   if (action && !isForm) {
     throw new Error(
@@ -87,6 +88,20 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
+  const onCloseRef = useRef(onClose);
+  const openDialogCounterContext = useOpenedDialogsCounterContext();
+  const dialogIndexRef = useRef(0);
+  const handlePopRef = useRef(() => {
+    if (
+      openDialogCounterContext.openedDialogsCounterRef.current ===
+      dialogIndexRef.current
+    ) {
+      window.removeEventListener("popstate", handlePopRef.current);
+      openDialogCounterContext.closeDialog();
+      dialogIndexRef.current = 0;
+      onCloseRef.current();
+    }
+  });
 
   const handleEventClose = (
     event: object,
@@ -96,8 +111,22 @@ const CDialog = ({
       return;
     }
 
-    onClose?.();
+    handlePopRef.current();
   };
+
+  useEffect(() => {
+    if (!props.open || dialogIndexRef.current !== 0) return;
+
+    dialogIndexRef.current = openDialogCounterContext.openDialog();
+
+    window.history.pushState({ dialogIndex: dialogIndexRef.current - 1 }, "");
+
+    window.addEventListener("popstate", handlePopRef.current);
+  }, [props.open]);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const contentSx =
     disableContentPadding ?
@@ -123,7 +152,7 @@ const CDialog = ({
             },
           },
         }}
-        {...rest}
+        {...props}
       >
         <form action={action} onSubmit={onSubmit}>
           <DialogTitle
@@ -132,7 +161,13 @@ const CDialog = ({
               py: "0px",
             }}
           >
-            <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
+            <CDialogHeader
+              close={() => {
+                handlePopRef.current();
+              }}
+              title={title}
+              subtitle={subtitle}
+            />
           </DialogTitle>
 
           <DialogContent sx={contentSx} dividers>
@@ -184,7 +219,7 @@ const CDialog = ({
           },
         },
       }}
-      {...rest}
+      {...props}
     >
       <DialogTitle
         sx={{
@@ -192,7 +227,13 @@ const CDialog = ({
           py: "0px",
         }}
       >
-        <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
+        <CDialogHeader
+          close={() => {
+            handlePopRef.current();
+          }}
+          title={title}
+          subtitle={subtitle}
+        />
       </DialogTitle>
 
       <DialogContent sx={contentSx} dividers>

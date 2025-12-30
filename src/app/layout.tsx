@@ -1,9 +1,7 @@
 import { josefin_sans } from "@/lib/fonts";
-import MuiThemeProvider from "@components/theme/MuiThemeProvider";
 import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 
-import { LoadingOverlayProvider } from "../components/context/loadingContext";
 import AppProviders from "./appProviders";
 import "./globals.css";
 
@@ -20,11 +18,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
       <body className={josefin_sans.className}>
-        <MuiThemeProvider>
-          <AppProviders>
-            <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
-          </AppProviders>
-        </MuiThemeProvider>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
