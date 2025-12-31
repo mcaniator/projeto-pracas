@@ -25,14 +25,14 @@ const AdministrativeUnitSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState(
-    _saveAdministrativeUnit,
-    {
+  const [formAction, isPending] = useResettableActionState({
+    action: _saveAdministrativeUnit,
+    callbacks: {
       onSuccess() {
         reloadItems();
       },
     },
-  );
+  });
   const levelName =
     level === "NARROW" ? "estreita"
     : level === "INTERMEDIATE" ? "intermediária"

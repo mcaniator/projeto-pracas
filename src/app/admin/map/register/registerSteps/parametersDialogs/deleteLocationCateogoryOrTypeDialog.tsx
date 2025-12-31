@@ -24,9 +24,9 @@ const DeleteLocationCateogryOrTypeDialog = ({
   itemType: CategoryOrType;
 }) => {
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
-  const [formAction] = useResettableActionState(
-    _deleteLocationCategoryOrType,
-    {
+  const [formAction] = useResettableActionState({
+    action: _deleteLocationCategoryOrType,
+    callbacks: {
       onSuccess() {
         reloadItems();
         setConflictingLocations([]);
@@ -38,10 +38,10 @@ const DeleteLocationCateogryOrTypeDialog = ({
         }
       },
     },
-    {
+    options: {
       loadingMessage: "Excluindo...",
     },
-  );
+  });
   const [conflictingLocations, setConflictingLocations] = useState<
     {
       cityId: number;

@@ -89,7 +89,13 @@ const PolygonsAndClientContainer = () => {
     FetchCitiesResponse["cities"][number] | null
   >(null);
 
-  const [_fetchLocations, loadingLocations] = useFetchLocations();
+  const [_fetchLocations, loadingLocations] = useFetchLocations({
+    callbacks: {
+      onSuccess: (response) => {
+        setLocationsWithPolygon(response.data?.locations ?? []);
+      },
+    },
+  });
   const [_fetchCities, loadingCities] = useFetchCities({
     callbacks: {
       onSuccess: (response) => {
@@ -168,10 +174,10 @@ const PolygonsAndClientContainer = () => {
     }
   }, [filter, locationsWithPolygon]);
   const loadLocations = useCallback(async () => {
-    const locationsResponse = await _fetchLocations({
-      cityId: selectedCity?.id ?? -1,
+    if (!selectedCity) return;
+    await _fetchLocations({
+      cityId: selectedCity?.id,
     });
-    setLocationsWithPolygon(locationsResponse.data?.locations ?? []);
   }, [_fetchLocations, selectedCity]);
 
   const loadCitiesOptions = useCallback(async () => {

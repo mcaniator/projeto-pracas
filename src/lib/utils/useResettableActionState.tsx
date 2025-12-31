@@ -3,18 +3,24 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { startTransition, useActionState, useEffect, useMemo } from "react";
 
-export function useResettableActionState<State, Payload>(
-  action: (state: Awaited<State>, payload: Payload) => State | Promise<State>,
+export function useResettableActionState<State, Payload>({
+  action,
+  callbacks,
+  options,
+  initialState,
+  permalink,
+}: {
+  action: (state: Awaited<State>, payload: Payload) => State | Promise<State>;
   callbacks?: {
     onSuccess?: (state: Awaited<State>) => void;
     onError?: (state: Awaited<State>) => void;
     onCallFailed?: () => void;
     onReset?: () => void;
-  },
-  options?: { loadingMessage?: string; timeUntilShowTimoutMessage?: number },
-  initialState?: Awaited<State>,
-  permalink?: string,
-): [
+  };
+  options?: { loadingMessage?: string; timeUntilShowTimoutMessage?: number };
+  initialState?: Awaited<State>;
+  permalink?: string;
+}): [
   dispatch: (payload: Payload | null) => void,
   isPending: boolean,
   state: Awaited<State>,

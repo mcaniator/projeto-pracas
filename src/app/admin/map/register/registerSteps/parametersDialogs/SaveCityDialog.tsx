@@ -25,10 +25,13 @@ const SaveCityDialog = ({
   reloadCities: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState(_saveCity, {
-    onSuccess() {
-      reloadCities();
-      onClose();
+  const [formAction, isPending] = useResettableActionState({
+    action: _saveCity,
+    callbacks: {
+      onSuccess() {
+        reloadCities();
+        onClose();
+      },
     },
   });
 

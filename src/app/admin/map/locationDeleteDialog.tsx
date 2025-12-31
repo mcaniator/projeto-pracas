@@ -16,17 +16,17 @@ const LocationDeleteDialog = ({
   onDeletionSuccess: () => void;
   location: { id: number; name: string };
 }) => {
-  const [formAction] = useResettableActionState(
-    _deleteLocation,
-    {
+  const [formAction] = useResettableActionState({
+    action: _deleteLocation,
+    callbacks: {
       onSuccess() {
         onDeletionSuccess();
       },
     },
-    {
+    options: {
       loadingMessage: "Excluindo praça...",
     },
-  );
+  });
   return (
     <CDialog
       isForm

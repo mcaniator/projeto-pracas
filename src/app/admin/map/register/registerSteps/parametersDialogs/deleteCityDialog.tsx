@@ -23,9 +23,9 @@ const DeleteCityDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const [formAction] = useResettableActionState(
-    _deleteCity,
-    {
+  const [formAction] = useResettableActionState({
+    action: _deleteCity,
+    callbacks: {
       onSuccess() {
         reloadItems();
         setNumberOfLocations(0);
@@ -37,10 +37,10 @@ const DeleteCityDialog = ({
         }
       },
     },
-    {
+    options: {
       loadingMessage: "Excluindo cidade...",
     },
-  );
+  });
   const [numberOfLocations, setNumberOfLocations] = useState(0);
   return (
     <CDialog

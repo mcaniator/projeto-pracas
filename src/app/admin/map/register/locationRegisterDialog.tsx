@@ -122,18 +122,18 @@ const LocationRegisterDialog = ({
   const [enableNextStep, setEnableNextStep] = useState(false);
 
   const action = !location ? _createLocation : _updateLocation;
-  const [formAction] = useResettableActionState(
-    _createLocation,
-    {
+  const [formAction] = useResettableActionState({
+    action: _createLocation,
+    callbacks: {
       onSuccess() {
         reloadLocations();
         handleClose();
       },
     },
-    {
+    options: {
       loadingMessage: "Salvando...",
     },
-  );
+  });
 
   const handleSubmit = () => {
     const formData = new FormData();

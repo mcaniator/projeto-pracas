@@ -27,15 +27,15 @@ const LocationCategoryOrTypeSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState(
-    itemType === "CATEGORY" ? _saveLocationCategory : _saveLocationType,
-    {
+  const [formAction, isPending] = useResettableActionState({
+    action: itemType === "CATEGORY" ? _saveLocationCategory : _saveLocationType,
+    callbacks: {
       onSuccess() {
         reloadItems();
         onClose();
       },
     },
-  );
+  });
 
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
 

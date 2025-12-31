@@ -26,9 +26,9 @@ const DeleteAdministrativeUnitDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const [formAction] = useResettableActionState(
-    _deleteAdministrativeUnit,
-    {
+  const [formAction] = useResettableActionState({
+    action: _deleteAdministrativeUnit,
+    callbacks: {
       onSuccess() {
         reloadItems();
         setConflictingLocations([]);
@@ -40,10 +40,10 @@ const DeleteAdministrativeUnitDialog = ({
         }
       },
     },
-    {
+    options: {
       loadingMessage: "Excluindo região administrativa...",
     },
-  );
+  });
   const levelName =
     level === "NARROW" ? "estreita"
     : level === "INTERMEDIATE" ? "intermediária"
