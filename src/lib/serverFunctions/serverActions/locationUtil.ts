@@ -469,7 +469,6 @@ const _createLocation = async (
       };
     }
   } catch (err) {
-    console.log(err);
     return {
       responseInfo: {
         statusCode: 401,

@@ -3,6 +3,7 @@ import AdministrativeUnitSaveDialog from "@/app/admin/map/register/registerSteps
 import DeleteAdministrativeUnitDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteAdministrativeUnitDialog";
 import DeleteCityDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteCityDialog";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import { Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -141,6 +142,8 @@ const AddressStep = ({
 
   return (
     <div className="flex flex-col gap-1">
+      <Divider />
+      <h3>Localização</h3>
       <CAutocomplete
         label="Estado"
         disableClearable

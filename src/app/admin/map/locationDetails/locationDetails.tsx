@@ -1,6 +1,7 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
+import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
@@ -85,6 +86,13 @@ const LocationDetails = ({
         </div>
       </div>
       <Divider />
+      <h4 className="font-semibold">Situação cadastral</h4>
+      <CCheckbox checked={location.isPark} label="É praça" />
+      <CCheckbox
+        checked={location.inactiveNotFound}
+        label="Inativo ou não encontrado"
+      />
+      <Divider />
       <h4 className="font-semibold">Localização</h4>
       <div className="flex items-center">
         <CIconChip
@@ -130,6 +138,8 @@ const LocationDetails = ({
       <span>{`Área na prefeitura: ${location.legalArea ?? "-"} m²`}</span>
 
       <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
+
+      <span>{`Inclinação: ${location.incline ?? "-"} %`}</span>
       <Divider />
       <h4 className="font-semibold">Histórico</h4>
       <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>

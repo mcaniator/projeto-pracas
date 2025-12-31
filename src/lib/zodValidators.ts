@@ -15,6 +15,14 @@ type zodErrorType<Type extends ZodType> = {
 
 export type { zodErrorType };
 
+const booleanFromString = z.preprocess((val) => {
+  if (typeof val === "string") {
+    if (val.toLowerCase() === "true") return true;
+    if (val.toLowerCase() === "false") return false;
+  }
+  return val;
+}, z.boolean());
+
 // #region Auth
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
@@ -228,8 +236,8 @@ const locationSchema = z.object({
   secondStreet: z.string().trim().min(1).max(255).nullish(),
   thirdStreet: z.string().trim().min(1).max(255).nullish(),
   fourthStreet: z.string().trim().min(1).max(255).nullish(),
-  isPark: z.coerce.boolean(),
-  inactiveNotFound: z.coerce.boolean(),
+  isPark: booleanFromString,
+  inactiveNotFound: booleanFromString,
   creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
   cityId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().min(1).max(1024).nullish(),
