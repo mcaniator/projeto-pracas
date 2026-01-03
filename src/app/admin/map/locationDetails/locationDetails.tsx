@@ -23,11 +23,13 @@ const LocationDetails = ({
   isMobileView,
   closeLocationDetails,
   reloadLocations,
+  enableLocationEdition,
 }: {
   location: FetchLocationsResponse["locations"][number];
   closeLocationDetails: () => void;
   reloadLocations: () => void;
   isMobileView: boolean;
+  enableLocationEdition: () => void;
 }) => {
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
@@ -70,7 +72,7 @@ const LocationDetails = ({
           </div>
         </div>
         <div className="flex gap-1">
-          <CButton square dense>
+          <CButton onClick={enableLocationEdition} square dense>
             <IconPencil />
           </CButton>
           <CButton

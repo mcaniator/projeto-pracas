@@ -1,6 +1,7 @@
 import { BrazilianStates } from "@prisma/client";
 
 type ParkRegisterData = {
+  locationId: number | null;
   name: string | null;
   popularName: string | null;
   firstStreet: string | null;

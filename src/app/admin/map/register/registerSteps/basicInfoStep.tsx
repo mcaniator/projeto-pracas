@@ -23,12 +23,14 @@ const BasicInfoStep = ({
   setParkData,
   activateReloadLocationCategoriesOnClose,
   activateReloadLocationTypesOnClose,
+  onImageChange,
 }: {
   parkData: ParkRegisterData;
   setEnableNextStep: React.Dispatch<React.SetStateAction<boolean>>;
   setParkData: React.Dispatch<React.SetStateAction<ParkRegisterData>>;
   activateReloadLocationCategoriesOnClose: () => void;
   activateReloadLocationTypesOnClose: () => void;
+  onImageChange: () => void;
 }) => {
   const [requiredFieldsFilled, setRequiredFieldsFilled] = useState({
     name: false,
@@ -251,6 +253,7 @@ const BasicInfoStep = ({
           targetCompressionSize={1}
           emitFiles={(f) => {
             setParkData((prev) => ({ ...prev, mainImage: f[0] ?? null }));
+            onImageChange();
           }}
         />
       </div>

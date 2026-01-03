@@ -90,7 +90,7 @@ const _register = async (
     await signIn("credentials", {
       email: newUser.email,
       password: newUser.password,
-      redirectTo: "/admin/home",
+      redirectTo: "/admin/map",
     });
 
     return { statusCode: 201, errors: null };

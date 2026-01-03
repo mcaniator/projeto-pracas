@@ -1,3 +1,5 @@
+import { BrazilianStates } from "@prisma/client";
+
 type LocationWithPolygon = {
   id: number;
   name: string;
@@ -36,6 +38,8 @@ export type LocationForMap = {
   legislation: string | null;
   usableArea: number | null;
   legalArea: number | null;
+  cityId: number;
+  state: BrazilianStates;
   assessmentCount: number;
   tallyCount: number;
   categoryName: string | null;

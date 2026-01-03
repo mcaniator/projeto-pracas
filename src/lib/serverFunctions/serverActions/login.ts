@@ -33,7 +33,7 @@ const _login = async (
     await signIn("credentials", {
       email: loginUser.email,
       password: loginUser.password,
-      redirectTo: "/admin/home",
+      redirectTo: "/admin/map",
     });
     return { statusCode: 200 };
   } catch (e) {

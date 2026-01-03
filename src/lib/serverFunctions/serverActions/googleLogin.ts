@@ -14,7 +14,7 @@ const _googleAuthenticate = async () => {
     if (session) {
       await signOut({ redirect: false });
     }
-    await signIn("google", { redirect: true, redirectTo: "/admin/home" });
+    await signIn("google", { redirect: true, redirectTo: "/admin/map" });
   } catch (e) {
     if (isRedirectError(e)) {
       throw e;
@@ -44,7 +44,7 @@ const _googleRegister = async (inviteToken: string) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
-    await signIn("google", { redirect: true, redirectTo: "/admin/home" });
+    await signIn("google", { redirect: true, redirectTo: "/admin/map" });
   } catch (e) {
     if (isRedirectError(e)) {
       throw e;

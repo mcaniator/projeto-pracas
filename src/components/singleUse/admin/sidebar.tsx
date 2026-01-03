@@ -5,8 +5,6 @@ import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {
   IconBug,
-  IconFountain,
-  IconHome,
   IconInfoSquareRounded,
   IconListCheck,
   IconLogs,
@@ -49,18 +47,6 @@ const Sidebar = () => {
     path: string;
     show?: boolean;
   }[] = [
-    {
-      icon: <IconHome size={34} />,
-      name: "Início",
-      path: "/admin/home",
-      show: true,
-    },
-    {
-      icon: <IconFountain size={34} />,
-      name: "Praças",
-      path: "/admin/parks",
-      show: true,
-    },
     {
       icon: <IconMapSearch size={34} />,
       name: "Mapa",

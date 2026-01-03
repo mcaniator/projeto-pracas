@@ -11,7 +11,7 @@ export default auth((req) => {
   const search = req.nextUrl.search;
 
   if (pathname === "/admin") {
-    const url = new URL("/admin/home", req.url);
+    const url = new URL("/admin/map", req.url);
     url.search = search;
     return Response.redirect(url);
   }

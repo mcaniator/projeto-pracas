@@ -94,3 +94,12 @@ export const buildImageUrl = (path: string | null) => {
   }
   return `${process.env.IMAGE_CDN_IMAGE_BASE_URL}/${path}`;
 };
+
+export async function getImageFromUrl(url: string, fileName?: string) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  return new File([blob], fileName ?? "image", {
+    type: blob.type,
+  });
+}

@@ -156,6 +156,8 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     lc.name AS "categoryName",
     lt.name AS "typeName",
     i.relative_path AS "mainImage",
+    l.city_id as "cityId",
+    c.state as "state",
     CASE
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
@@ -171,9 +173,10 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_category lc ON lc.id = l.category_id
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
+  LEFT JOIN city c ON c.id = l.city_id
   WHERE l.city_id = ${params.cityId}
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
@@ -188,6 +191,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       },
     };
   } catch (e) {
+    console.error(e);
     return {
       responseInfo: {
         statusCode: 500,

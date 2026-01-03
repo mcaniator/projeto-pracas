@@ -3,14 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { deleteImage, uploadImage } from "@/lib/utils/image";
-import { locationSchema } from "@/lib/zodValidators";
+import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { BrazilianStates, Image, Location } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import {
-  addPolygon,
-  addPolygonFromWKT,
-  getPolygonsFromShp,
-} from "@serverOnly/geometries";
+import { addPolygon } from "@serverOnly/geometries";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -140,48 +136,30 @@ const _deleteLocation = async (
 };
 
 const _updateLocation = async (
-  //TODO: REMOVE! Creation and update should be in the same function
-  prevState: { statusCode: number; message: string },
+  prevState: { responseInfo: APIResponseInfo },
   formData: FormData,
 ) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
-    return { statusCode: 401, message: "Invalid permission" };
-  }
-  let parseId;
-  try {
-    parseId = z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .parse(formData.get("locationId"));
-  } catch (e) {
     return {
-      statusCode: 400,
-      message: "Invalid id",
+      responseInfo: {
+        statusCode: 401,
+        message: "Invalid permission",
+      } as APIResponseInfo,
     };
   }
 
-  let locationToUpdate;
-  const narrowAdministrativeUnitName = formData.get("narrowAdministrativeUnit");
-  const intermediateAdministrativeUnitName = formData.get(
-    "intermediateAdministrativeUnit",
-  );
-  const broadAdministrativeUnitName = formData.get("broadAdministrativeUnit");
-
-  const cityName = formData.get("city");
-  const stateName = formData.get("state") as string;
-  if (cityName && stateName === "NONE") {
-    return { statusCode: 400, message: "City sent without state" };
-  }
   try {
-    locationToUpdate = locationSchema.parse({
+    const locationData = locationSchema.parse({
       name: formData.get("name"),
       popularName: formData.get("popularName"),
       firstStreet: formData.get("firstStreet"),
       secondStreet: formData.get("secondStreet"),
+      thirdStreet: formData.get("thirdStreet"),
+      fourthStreet: formData.get("fourthStreet"),
+      cityId: formData.get("cityId"),
+      notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
       overseeingMayor: formData.get("overseeingMayor"),
@@ -189,161 +167,99 @@ const _updateLocation = async (
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
       incline: formData.get("incline"),
-      notes: formData.get("notes"),
-      isPark: formData.get("isPark") === "true",
-      inactiveNotFound: formData.get("inactiveNotFound") === "true",
+      isPark: formData.get("isPark"),
+      inactiveNotFound: formData.get("inactiveNotFound"),
+      categoryId: formData.get("categoryId"),
+      typeId: formData.get("typeId"),
+      narrowAdministrativeUnitId: formData.get("narrowAdministrativeUnitId"),
+      intermediateAdministrativeUnitId: formData.get(
+        "intermediateAdministrativeUnitId",
+      ),
+      broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
     });
-  } catch (e) {
-    return {
-      statusCode: 400,
-      message: "Invalid data",
-    };
-  }
-  try {
-    await prisma.$transaction(async (prisma) => {
-      const city = await prisma.city.upsert({
-        where: {
-          name_state: {
-            name: cityName as string,
-            state: stateName as BrazilianStates,
-          },
-        },
-        update: {},
-        create: {
-          name: cityName as string,
-          state: stateName as BrazilianStates,
-        },
-      });
-      let narrowAdministrativeUnitId: number | null = null;
-      let intermediateAdministrativeUnitId: number | null = null;
-      let broadAdministrativeUnitId: number | null = null;
-      if (narrowAdministrativeUnitName) {
-        const narrowAdministrativeUnit =
-          await prisma.narrowAdministrativeUnit.upsert({
-            where: {
-              cityId_narrowUnitName: {
-                cityId: city.id,
-                name: narrowAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: narrowAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        narrowAdministrativeUnitId = narrowAdministrativeUnit.id;
-      }
-      if (intermediateAdministrativeUnitName) {
-        const intermediateAdministrativeUnit =
-          await prisma.intermediateAdministrativeUnit.upsert({
-            where: {
-              cityId_intermediateUnitName: {
-                cityId: city.id,
-                name: intermediateAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: intermediateAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        intermediateAdministrativeUnitId = intermediateAdministrativeUnit.id;
-      }
-      if (broadAdministrativeUnitName) {
-        const broadAdministrativeUnit =
-          await prisma.broadAdministrativeUnit.upsert({
-            where: {
-              cityId_broadUnitName: {
-                cityId: city.id,
-                name: broadAdministrativeUnitName as string,
-              },
-            },
-            update: {},
-            create: {
-              name: broadAdministrativeUnitName as string,
-              city: {
-                connect: { id: city.id },
-              },
-            },
-          });
-        broadAdministrativeUnitId = broadAdministrativeUnit.id;
-      }
-      if (
-        !narrowAdministrativeUnitId &&
-        !intermediateAdministrativeUnitId &&
-        !broadAdministrativeUnitId
-      ) {
-        throw new Error("No administrative unit created or connect");
-      }
-
-      const category = formData.get("category");
-      const categoryValue =
-        category === "" || category === null ? null : String(category);
-      const type = formData.get("type");
-      const typeValue = category === "" || type === null ? null : String(type);
-      let locationTypeId: number | null = null;
-      if (typeValue) {
-        const locationType = await prisma.locationType.upsert({
-          where: {
-            name: typeValue,
-          },
-          update: {},
-          create: {
-            name: typeValue,
-          },
-        });
-        locationTypeId = locationType.id;
-      }
-      let locationCategoryId: number | null = null;
-      if (categoryValue) {
-        const locationCategory = await prisma.locationCategory.upsert({
-          where: {
-            name: categoryValue,
-          },
-          update: {},
-          create: {
-            name: categoryValue,
-          },
-        });
-        locationCategoryId = locationCategory.id;
-      }
-
-      await prisma.location.update({
-        where: {
-          id: parseId,
-        },
-        data: {
-          ...locationToUpdate,
-          narrowAdministrativeUnitId,
-          intermediateAdministrativeUnitId,
-          broadAdministrativeUnitId,
-          typeId: locationTypeId,
-          categoryId: locationCategoryId,
-        },
-      });
-    });
-
-    const shpFile = formData.get("file");
-    if (!shpFile) {
-      revalidateTag("location");
-      return { statusCode: 200, message: "Location updated" };
+    const locationId = z.coerce.number().parse(formData.get("locationId"));
+    if (!locationId) {
+      throw new Error("Invalid id");
     }
+    const hasEditedImage = booleanFromString.parse(
+      formData.get("hasEditedImage"),
+    );
     try {
-      const WKT = await getPolygonsFromShp(formData.get("file") as File);
-      WKT && (await addPolygonFromWKT(WKT, parseId, prisma));
+      let image: Image | null = null;
+      if (hasEditedImage) {
+        const dbLocation = await prisma.location.findUnique({
+          where: {
+            id: locationId,
+          },
+          select: {
+            mainImage: {
+              select: {
+                fileUid: true,
+              },
+            },
+          },
+        });
+        if (dbLocation?.mainImage) {
+          await deleteImage(dbLocation.mainImage.fileUid);
+        }
+        const formImage = formData.get("mainImage") as File | null;
+        if (formImage) {
+          image = await uploadImage(formImage);
+        }
+      }
+      let locationName = locationData.name;
+      await prisma.$transaction(async (prisma) => {
+        const location = await prisma.location.update({
+          data: {
+            ...locationData,
+            cityId: locationData.cityId,
+            mainImageId: image?.imageId,
+          },
+          where: {
+            id: locationId,
+          },
+          select: {
+            id: true,
+            name: true,
+          },
+        });
+        const featuresGeoJson = z
+          .string()
+          .nullish()
+          .parse(formData.get("featuresGeoJson"));
+        try {
+          if (featuresGeoJson) {
+            await addPolygon(featuresGeoJson, location.id, prisma);
+          }
+        } catch (err) {
+          throw new Error("Error inserting polygon into database");
+        }
+        locationName = location.name;
+      });
       revalidateTag("location");
-      return { statusCode: 200, message: "Location updated" };
-    } catch (e) {
-      return { statusCode: 400, message: "Error during polygon save" };
+      return {
+        responseInfo: {
+          statusCode: 200,
+          showSuccessCard: true,
+          message: `Praça  ${locationName} atualizada!`,
+        } as APIResponseInfo,
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao atualizar praça!",
+        } as APIResponseInfo,
+      };
     }
-  } catch (e) {
-    return { statusCode: 400, message: "Database error" };
+  } catch (err) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
   }
 };
 
@@ -395,37 +311,13 @@ const _createLocation = async (
       broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
     });
 
-    const locationId = z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .nullish()
-      .parse(formData.get("locationId"));
-
     const formImage = formData.get("mainImage") as File | null;
     let image: Image | null = null;
     try {
       if (formImage) {
         image = await uploadImage(formImage);
       }
-      if (locationId) {
-        const location = await prisma.location.update({
-          data: {
-            ...locationData,
-          },
-          where: {
-            id: locationId,
-          },
-        });
-        return {
-          responseInfo: {
-            statusCode: 201,
-            showSuccessCard: true,
-            message: `Praça ${location.name} atualizada!`,
-          } as APIResponseInfo,
-        };
-      }
+
       let locationName = "";
       await prisma.$transaction(async (prisma) => {
         const location = await prisma.location.create({
@@ -439,18 +331,18 @@ const _createLocation = async (
           },
         });
         // Após a criação da localização, adicionar os polígonos
+        const featuresGeoJson = z
+          .string()
+          .nullish()
+          .parse(formData.get("featuresGeoJson"));
         try {
-          if (formData.get("featuresGeoJson")) {
-            const featuresGeoJson = z
-              .string()
-              .parse(formData.get("featuresGeoJson"));
-
+          if (featuresGeoJson) {
             await addPolygon(featuresGeoJson, location.id, prisma);
           }
-          locationName = location.name;
         } catch (err) {
           throw new Error("Error inserting polygon into database");
         }
+        locationName = location.name;
       });
       revalidateTag("location");
       return {
@@ -461,6 +353,7 @@ const _createLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
+      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
@@ -469,6 +362,7 @@ const _createLocation = async (
       };
     }
   } catch (err) {
+    console.log(err);
     return {
       responseInfo: {
         statusCode: 401,

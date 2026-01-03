@@ -6,7 +6,13 @@ import { useHelperCard } from "@/components/context/helperCardContext";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import { sleep } from "@/lib/utils/sleep";
 import { LinearProgress } from "@mui/material";
-import { IconCheck, IconTrashX, IconUpload } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconDeviceFloppy,
+  IconPencil,
+  IconTrashX,
+  IconUpload,
+} from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import { createEmpty, extend } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
@@ -26,12 +32,14 @@ import { DrawingProviderVectorSourceContext } from "../drawingProvider";
 
 const FeatureList = ({
   features,
+  isEdition,
   setFeatures,
-  setOpenLocationRegisterFormDialog,
+  openRegisterFormDialog,
 }: {
   features: Feature<Geometry>[];
+  isEdition: boolean;
   setFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
-  setOpenLocationRegisterFormDialog: Dispatch<SetStateAction<boolean>>;
+  openRegisterFormDialog: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
@@ -97,7 +105,7 @@ const FeatureList = ({
       setImportingShapeFile(false);
     }
   };
-
+  console.log("FEATURE 0 ID: ", features[0]?.getId());
   useEffect(() => {
     drawingProviderContext.addFeatures(features);
 
@@ -236,11 +244,28 @@ const FeatureList = ({
       {features.length > 0 && (
         <CButton
           onClick={() => {
-            setOpenLocationRegisterFormDialog(true);
+            if (isEdition) {
+              return;
+            } else {
+              openRegisterFormDialog();
+            }
           }}
         >
-          <IconCheck />
-          Confirmar
+          {isEdition ?
+            <IconDeviceFloppy />
+          : <IconCheck />}
+
+          {isEdition ? "Salvar e fechar" : "Confirmar"}
+        </CButton>
+      )}
+      {features.length > 0 && isEdition && (
+        <CButton
+          onClick={() => {
+            openRegisterFormDialog();
+          }}
+        >
+          <IconPencil />
+          Editar detalhes
         </CButton>
       )}
     </div>

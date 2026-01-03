@@ -15,7 +15,7 @@ type zodErrorType<Type extends ZodType> = {
 
 export type { zodErrorType };
 
-const booleanFromString = z.preprocess((val) => {
+export const booleanFromString = z.preprocess((val) => {
   if (typeof val === "string") {
     if (val.toLowerCase() === "true") return true;
     if (val.toLowerCase() === "false") return false;

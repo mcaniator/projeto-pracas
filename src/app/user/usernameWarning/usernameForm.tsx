@@ -85,7 +85,7 @@ const UsernameForm = () => {
               {state.username}
             </span>
             <p>É possível alterá-lo na página de configurações de usuário</p>
-            <Link href={"/admin/home"}>
+            <Link href={"/admin/map"}>
               <Button>
                 <IconHome className="mb-1" /> Página inicial
               </Button>

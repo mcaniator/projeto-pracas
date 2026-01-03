@@ -38,12 +38,14 @@ const PolygonProvider = ({
   selectedLocation,
   children,
   isMobileView,
+  disableAutoFitAfterLocationsLoad,
   handleSelectLocation,
 }: {
   fullLocations: FetchLocationsResponse["locations"];
   selectedLocation: FetchLocationsResponse["locations"][number] | null;
   children: ReactNode;
   isMobileView: boolean;
+  disableAutoFitAfterLocationsLoad?: boolean;
   handleSelectLocation: (id: number | null) => void;
 }) => {
   const map = useContext(MapContext);
@@ -122,7 +124,7 @@ const PolygonProvider = ({
 
         return feature;
       });
-    if (!isEmpty(extent)) {
+    if (!disableAutoFitAfterLocationsLoad && !isEmpty(extent)) {
       view?.fit(extent, {
         padding: [100, 100, 100, isMobileView ? 100 : 600],
         duration: 500,
@@ -191,6 +193,7 @@ const PolygonProvider = ({
 
   useEffect(() => {
     //Foco no local selecionado
+    if (!selectedLocation) return;
     for (const interaction of map?.getInteractions().getArray() ?? []) {
       if (interaction instanceof Select) {
         const features = polygonsVectorSource.getFeatures();

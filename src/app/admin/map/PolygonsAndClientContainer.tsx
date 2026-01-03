@@ -73,6 +73,12 @@ const PolygonsAndClientContainer = () => {
     name: null,
   });
 
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+  const [
+    disableAutoFitAfterLocationsLoad,
+    setDisableAutoFitAfterLocationsLoad,
+  ] = useState(false);
+
   const numberOfActiveFilters = useMemo(() => {
     let count = 0;
     if (filter.broadAdministrativeUnitId !== null) count++;
@@ -164,6 +170,7 @@ const PolygonsAndClientContainer = () => {
     });
 
     setSelectedLocation(null);
+
     if (filter.name) {
       const resultFilteredByName = fuseHaystack.search(filter.name);
       setFilteredLocationsWithPolygon(
@@ -172,6 +179,8 @@ const PolygonsAndClientContainer = () => {
     } else {
       setFilteredLocationsWithPolygon(result);
     }
+
+    setTimeout(() => setDisableAutoFitAfterLocationsLoad(false), 500);
   }, [filter, locationsWithPolygon]);
   const loadLocations = useCallback(async () => {
     if (!selectedCity) return;
@@ -245,10 +254,11 @@ const PolygonsAndClientContainer = () => {
       fullLocations={filteredLocationsWithPolygon}
       handleSelectLocation={selectLocation}
       selectedLocation={selectedLocation}
+      disableAutoFitAfterLocationsLoad={disableAutoFitAfterLocationsLoad}
       isMobileView={isMobileView}
     >
       <div
-        className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full w-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating ? "translate-x-0" : `pointer-events-none -translate-x-full`}`}
+        className={`pointer-events-none absolute bottom-0 top-0 z-50 flex max-h-full w-full overflow-auto transition-all duration-300 ease-in-out ${!isCreating && !isEditingLocation ? "translate-x-0" : `pointer-events-none -translate-x-full`}`}
       >
         <div
           className={`flex max-h-full shrink-0 justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
@@ -283,6 +293,9 @@ const PolygonsAndClientContainer = () => {
                 closeLocationDetails={() => {
                   setSelectedLocation(null);
                 }}
+                enableLocationEdition={() => {
+                  setIsEditingLocation(true);
+                }}
                 reloadLocations={() => {
                   void loadLocations();
                 }}
@@ -309,7 +322,7 @@ const PolygonsAndClientContainer = () => {
         </div>
       )}
 
-      {!isCreating && (
+      {!isCreating && !isEditingLocation && (
         <div
           className={`pointer-events-auto absolute right-2 z-50 flex h-fit w-fit flex-row gap-2 overflow-auto ${isMobileView ? "bottom-2" : "top-4"}`}
         >
@@ -358,14 +371,18 @@ const PolygonsAndClientContainer = () => {
       )}
       <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
         <div
-          className={`absolute bottom-0 right-0 top-0 z-50 h-fit max-h-full w-fit overflow-auto transition-all duration-300 ease-in-out ${isCreating ? "translate-x-0" : `pointer-events-none translate-x-full`} `}
+          className={`absolute bottom-0 right-0 top-0 z-50 h-fit max-h-full w-fit overflow-auto transition-all duration-300 ease-in-out ${isCreating || isEditingLocation ? "translate-x-0" : `pointer-events-none translate-x-full`} `}
         >
           <div className="flex max-h-full w-fit justify-between overflow-auto p-4">
             <RegisterMenu
+              isEdition={isEditingLocation}
+              locationToEdit={selectedLocation}
               close={() => {
                 setIsCreating(false);
+                setIsEditingLocation(false);
               }}
               reloadLocations={() => {
+                setDisableAutoFitAfterLocationsLoad(true);
                 void loadLocations();
               }}
               reloadLocationTypes={() => {
