@@ -16,6 +16,8 @@ import {
   IconAlertTriangle,
   IconLocationPin,
   IconPlus,
+  IconZoomIn,
+  IconZoomOut,
 } from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
@@ -321,10 +323,41 @@ const PolygonsAndClientContainer = () => {
           <CircularProgress color="secondary" size={64} />
         </div>
       )}
+      {
+        <div
+          className={`pointer-events-auto absolute bottom-2 right-2 z-50 flex h-fit w-fit flex-col gap-2 overflow-auto`}
+        >
+          <CButton
+            square
+            onClick={() => {
+              const zoom = view?.getZoom();
 
+              view?.animate({
+                zoom: zoom !== undefined ? zoom + 1 : 0,
+                duration: 50,
+              });
+            }}
+          >
+            <IconZoomIn />
+          </CButton>
+          <CButton
+            square
+            onClick={() => {
+              const zoom = view?.getZoom();
+
+              view?.animate({
+                zoom: zoom !== undefined ? zoom - 1 : 0,
+                duration: 50,
+              });
+            }}
+          >
+            <IconZoomOut />
+          </CButton>
+        </div>
+      }
       {!isCreating && !isEditingLocation && (
         <div
-          className={`pointer-events-auto absolute right-2 z-50 flex h-fit w-fit flex-row gap-2 overflow-auto ${isMobileView ? "bottom-2" : "top-4"}`}
+          className={`pointer-events-auto absolute z-50 flex h-fit w-fit flex-row gap-2 overflow-auto ${isMobileView ? "bottom-2 left-2" : "right-2 top-4"}`}
         >
           <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
             <div>
