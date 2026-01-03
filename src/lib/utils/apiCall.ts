@@ -87,7 +87,7 @@ export async function fetchAPI<T>({
   url: string;
   params?: Record<string, unknown>;
   options?: RequestInit & { next?: { tags?: string[] } };
-}): Promise<{ responseInfo: APIResponseInfo; data: T | null }> {
+}): Promise<{ responseInfo: APIResponseInfo; data: T | null | undefined }> {
   const queryString = params ? generateQueryString(params) : "";
   const fullUrl = queryString ? `${url}?${queryString}` : url;
   const response = await fetch(fullUrl, options);
