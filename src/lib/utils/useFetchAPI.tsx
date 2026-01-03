@@ -24,7 +24,7 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
     showLoadingOverlay?: boolean;
   };
 }): [
-  (params: P) => Promise<{ responseInfo: APIResponseInfo; data: T | null }>,
+  (params: P) => Promise<{ responseInfo: APIResponseInfo; data?: T | null }>,
   boolean,
 ] {
   const { helperCardProcessResponse } = useHelperCard();

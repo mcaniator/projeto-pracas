@@ -273,7 +273,7 @@ const _createLocation = async (
     return {
       responseInfo: {
         statusCode: 401,
-        message: "Invalid permission",
+        message: "Permissão inválida!",
       } as APIResponseInfo,
     };
   }
@@ -372,18 +372,40 @@ const _createLocation = async (
   }
 };
 
-const _editLocationPolygon = async (id: number, featuresGeoJson: string) => {
+const _editLocationPolygon = async ({
+  id,
+  featuresGeoJson,
+}: {
+  id: number;
+  featuresGeoJson: string;
+}) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
-    return { statusCode: 401 };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
   }
   try {
     await addPolygon(featuresGeoJson, id);
     revalidateTag("location");
-    return { statusCode: 201 };
+    return {
+      responseInfo: {
+        statusCode: 201,
+        showSuccessCard: true,
+        message: `Praça atualizada!`,
+      } as APIResponseInfo,
+    };
   } catch (e) {
-    return { statusCode: 500 };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao editar praça!",
+      } as APIResponseInfo,
+    };
   }
 };
 

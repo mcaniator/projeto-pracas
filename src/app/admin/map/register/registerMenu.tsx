@@ -2,6 +2,8 @@
 
 import LocationRegisterDialog from "@/app/admin/map/register/locationRegisterDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { _editLocationPolygon } from "@/lib/serverFunctions/serverActions/locationUtil";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
 import {
   IconMapOff,
@@ -11,7 +13,7 @@ import {
 } from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import GeoJSON from "ol/format/GeoJSON";
-import { Geometry, MultiPolygon, Polygon } from "ol/geom";
+import { Geometry, MultiPolygon, Polygon, SimpleGeometry } from "ol/geom";
 import { useEffect, useState } from "react";
 
 import CButton from "../../../../components/ui/cButton";
@@ -35,17 +37,66 @@ const RegisterMenu = ({
   reloadLocationTypes: () => void;
   reloadCities: () => void;
 }) => {
+  const [_updateLocationPolygon] = useServerAction({
+    action: _editLocationPolygon,
+    callbacks: {
+      onSuccess: () => {
+        reloadLocations();
+        handleClose();
+      },
+    },
+    options: {
+      showLoadingOverlay: true,
+      loadingMessage: "Salvando delimitação...",
+    },
+  });
+
   const [isDrawingCreation, setIsDrawingCreation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
   const [openLocationRegisterFormDialog, setOpenLocationRegisterFormDialog] =
     useState(false);
+  const [featuresGeoJson, setFeaturesGeoJson] = useState("");
+
   const handleClose = () => {
     setIsDrawingCreation(false);
     setIsCreating(false);
     setFeatures([]);
     setOpenLocationRegisterFormDialog(false);
     close();
+  };
+  const convertFeaturesToGeoJson = () => {
+    const coordinates: number[][][][] = [];
+
+    for (const feature of features) {
+      const geometry = feature.getGeometry();
+
+      if (geometry instanceof SimpleGeometry) {
+        coordinates.push(geometry.getCoordinates() as number[][][]);
+      }
+    }
+
+    const multiPolygon = new MultiPolygon(coordinates);
+    const multiPolygonFeature = new Feature(multiPolygon);
+
+    const writer = new GeoJSON();
+    const featuresGeoJsonObject =
+      writer.writeFeatureObject(multiPolygonFeature);
+    const stringFeatures = JSON.stringify(featuresGeoJsonObject.geometry);
+    setFeaturesGeoJson(stringFeatures);
+    return stringFeatures;
+  };
+  const handleUpdateLocationPolygon = async () => {
+    //Called when user saves the polygon from an existing location, without opening the details dialog.
+    if (!locationToEdit) {
+      return;
+    }
+    const featuresGeoJson = convertFeaturesToGeoJson();
+    await _updateLocationPolygon({ id: locationToEdit?.id, featuresGeoJson });
+  };
+  const handleOpenLocationRegisterFormDialog = () => {
+    convertFeaturesToGeoJson(); //Converted features are used in register dialog.
+    setOpenLocationRegisterFormDialog(true);
   };
   useEffect(() => {
     if (isEdition && locationToEdit) {
@@ -111,7 +162,7 @@ const RegisterMenu = ({
                 setIsCreating(true);
                 setIsDrawingCreation(false);
                 setFeatures([]);
-                setOpenLocationRegisterFormDialog(true);
+                handleOpenLocationRegisterFormDialog();
               }}
             >
               <IconMapOff />
@@ -132,7 +183,7 @@ const RegisterMenu = ({
             </CButton>
             <CButton
               onClick={() => {
-                setOpenLocationRegisterFormDialog(true);
+                handleOpenLocationRegisterFormDialog();
               }}
             >
               <IconPencil />
@@ -147,14 +198,17 @@ const RegisterMenu = ({
               isEdition={isEdition}
               setFeatures={setFeatures}
               openRegisterFormDialog={() => {
-                setOpenLocationRegisterFormDialog(true);
+                handleOpenLocationRegisterFormDialog();
+              }}
+              handleUpdateLocationPolygon={() => {
+                void handleUpdateLocationPolygon();
               }}
             />
           </DrawingProvider>
         )}
 
         <LocationRegisterDialog
-          features={features}
+          featuresGeoJson={featuresGeoJson}
           location={isEdition ? locationToEdit : undefined}
           open={openLocationRegisterFormDialog}
           onFullCreationClose={() => {

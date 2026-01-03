@@ -10,9 +10,6 @@ import {
   IconArrowForwardUp,
   IconCheck,
 } from "@tabler/icons-react";
-import Feature from "ol/Feature";
-import GeoJSON from "ol/format/GeoJSON";
-import { Geometry, MultiPolygon, SimpleGeometry } from "ol/geom";
 import { startTransition, useEffect, useState } from "react";
 
 import CDialog from "../../../../components/ui/dialog/cDialog";
@@ -58,7 +55,7 @@ const LocationRegisterDialog = ({
   open,
   location,
   locationId,
-  features,
+  featuresGeoJson,
   reloadLocations,
   reloadLocationCategories,
   reloadLocationTypes,
@@ -69,7 +66,7 @@ const LocationRegisterDialog = ({
   open: boolean;
   location?: FetchLocationsResponse["locations"][number] | null;
   locationId?: number;
-  features: Feature<Geometry>[];
+  featuresGeoJson: string;
   reloadLocations: () => void;
   reloadLocationCategories: () => void;
   reloadLocationTypes: () => void;
@@ -81,7 +78,6 @@ const LocationRegisterDialog = ({
   const [hasLoadedLocation, setHasLoadedLocation] = useState(false);
   const [hasEditedImage, setHasEditedImage] = useState(false);
   const [parkData, setParkData] = useState<ParkRegisterData>(defaultParkData);
-  const [featuresGeoJson, setFeaturesGeoJson] = useState("");
   const [shouldReloadLocationCategories, setShouldReloadLocationCategories] =
     useState(false);
   const [shouldReloadLocationTypes, setShouldReloadLocationTypes] =
@@ -121,26 +117,6 @@ const LocationRegisterDialog = ({
       onCloseDialogOnly();
     }
   };
-
-  useEffect(() => {
-    const coordinates: number[][][][] = [];
-
-    for (const feature of features) {
-      const geometry = feature.getGeometry();
-
-      if (geometry instanceof SimpleGeometry) {
-        coordinates.push(geometry.getCoordinates() as number[][][]);
-      }
-    }
-
-    const multiPolygon = new MultiPolygon(coordinates);
-    const multiPolygonFeature = new Feature(multiPolygon);
-
-    const writer = new GeoJSON();
-    const featuresGeoJsonObject =
-      writer.writeFeatureObject(multiPolygonFeature);
-    setFeaturesGeoJson(JSON.stringify(featuresGeoJsonObject.geometry));
-  }, [features, open]);
 
   useEffect(() => {
     //Load location data

@@ -35,11 +35,13 @@ const FeatureList = ({
   isEdition,
   setFeatures,
   openRegisterFormDialog,
+  handleUpdateLocationPolygon,
 }: {
   features: Feature<Geometry>[];
   isEdition: boolean;
   setFeatures: Dispatch<SetStateAction<Feature<Geometry>[]>>;
   openRegisterFormDialog: () => void;
+  handleUpdateLocationPolygon: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
@@ -105,7 +107,6 @@ const FeatureList = ({
       setImportingShapeFile(false);
     }
   };
-  console.log("FEATURE 0 ID: ", features[0]?.getId());
   useEffect(() => {
     drawingProviderContext.addFeatures(features);
 
@@ -245,7 +246,7 @@ const FeatureList = ({
         <CButton
           onClick={() => {
             if (isEdition) {
-              return;
+              handleUpdateLocationPolygon();
             } else {
               openRegisterFormDialog();
             }

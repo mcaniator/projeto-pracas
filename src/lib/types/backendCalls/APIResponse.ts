@@ -7,7 +7,7 @@ type APIResponseInfo = {
 
 type APIResponse<T> = {
   responseInfo: APIResponseInfo;
-  data: T | null;
+  data?: T | null;
 };
 
 type FetchCallbacks<T> =
