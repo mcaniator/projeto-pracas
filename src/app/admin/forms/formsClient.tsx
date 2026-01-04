@@ -35,9 +35,12 @@ const FormsClient = () => {
 
   const [forms, setForms] = useState<FetchFormsResponse["forms"]>([]);
   const [openFormCreationDialog, setOpenFormCreationDialog] = useState(false);
+  const [cloneForm, setCloneForm] = useState<{ id: number; name: string }>();
 
-  const handleClone = () => {
-    console.log("Clone form");
+  const handleClone = (cloneForm: { id: number; name: string }) => {
+    console.log(cloneForm);
+    setCloneForm(cloneForm);
+    setOpenFormCreationDialog(true);
   };
 
   const columns: GridColDef<FormRow>[] = [
@@ -78,7 +81,12 @@ const FormsClient = () => {
         <CMenu
           options={[
             { label: "Ver", href: `/admin/forms/${params.row.id}/edit` },
-            { label: "Clonar", onClick: () => handleClone() },
+            {
+              label: "Clonar",
+              onClick: () => {
+                handleClone({ id: params.row.id, name: params.row.name });
+              },
+            },
           ]}
         />
       ),
@@ -95,7 +103,12 @@ const FormsClient = () => {
         titleIcon={<IconClipboard />}
         title="Formulários"
         append={
-          <CButton onClick={() => setOpenFormCreationDialog(true)}>
+          <CButton
+            onClick={() => {
+              setCloneForm(undefined);
+              setOpenFormCreationDialog(true);
+            }}
+          >
             <IconPlus /> Criar
           </CButton>
         }
@@ -110,6 +123,7 @@ const FormsClient = () => {
 
       <FormCreationDialog
         open={openFormCreationDialog}
+        cloneForm={cloneForm}
         reloadForms={loadForms}
         onClose={() => setOpenFormCreationDialog(false)}
       />

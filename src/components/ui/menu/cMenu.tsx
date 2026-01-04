@@ -50,7 +50,7 @@ const CMenu = ({ options, icon }: CMenuProps) => {
             href={opt.href}
             onClick={() => {
               handleCloseMenu();
-              opt.onClick;
+              opt.onClick?.();
             }}
           ></CMenuItem>
         ))}

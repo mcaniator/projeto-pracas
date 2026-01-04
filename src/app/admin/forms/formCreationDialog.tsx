@@ -6,10 +6,12 @@ import { IconCheck } from "@tabler/icons-react";
 
 const FormCreationDialog = ({
   open,
+  cloneForm,
   onClose,
   reloadForms,
 }: {
   open: boolean;
+  cloneForm?: { id: number; name: string };
   onClose: () => void;
   reloadForms: () => void;
 }) => {
@@ -27,12 +29,14 @@ const FormCreationDialog = ({
       isForm
       action={formAction}
       confirmLoading={isPending}
-      title="Criar formulário"
+      title={cloneForm ? "Clonar formulário" : "Criar formulário"}
+      subtitle={cloneForm?.name}
       confirmChildren={<IconCheck />}
       open={open}
       onClose={onClose}
     >
       <div className="flex flex-col gap-1">
+        <input type="hidden" name="cloneFormId" value={cloneForm?.id} />
         <CTextField
           type="text"
           name="name"

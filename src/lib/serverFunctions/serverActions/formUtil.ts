@@ -35,27 +35,73 @@ export const _createForm = async (
       cloneFormId: formData.get("cloneFormId"),
     });
     try {
-      await prisma.form.create({
-        data: {
-          name: newFormData.name,
-        },
-      });
+      if (newFormData.cloneFormId) {
+        //CLONE FORM
+        const formToBeCloned = await prisma.form.findUniqueOrThrow({
+          where: {
+            id: newFormData.cloneFormId,
+          },
+          include: {
+            formItems: true,
+            calculations: true,
+          },
+        });
+        await prisma.$transaction(async (tx) => {
+          const form = await tx.form.create({
+            data: {
+              name: newFormData.name,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          const formAttributesTransactions: Array<
+            Prisma.PrismaPromise<number>
+          > = [];
+
+          const formItemsSQLValues = formToBeCloned.formItems.map(
+            (item) =>
+              Prisma.sql`(${form.id}, ${item.position}, ${item.categoryId}, ${item.subcategoryId}, ${item.questionId})`,
+          );
+
+          if (formItemsSQLValues.length > 0) {
+            const formItemsQuery = Prisma.sql`INSERT INTO "form_item" ("form_id", "position", "category_id", "subcategory_id", "question_id")
+            VALUES ${Prisma.join(formItemsSQLValues, ",")}`;
+            formAttributesTransactions.push(tx.$queryRaw(formItemsQuery));
+          }
+
+          const calculationsSQLValues = formToBeCloned.calculations.map(
+            (calculation) =>
+              Prisma.sql`(${form.id}, ${calculation.expression}, ${calculation.targetQuestionId})`,
+          );
+
+          if (calculationsSQLValues.length > 0) {
+            const calculationsQuery = Prisma.sql`INSERT INTO "calculation" ("form_id", "expression", "target_question_id")
+            VALUES ${Prisma.join(calculationsSQLValues, ",")}`;
+            formAttributesTransactions.push(tx.$queryRaw(calculationsQuery));
+          }
+
+          await Promise.all(formAttributesTransactions);
+        });
+      } else {
+        //CREATE EMPTY FORM
+        await prisma.form.create({
+          data: {
+            name: newFormData.name,
+          },
+        });
+      }
+
       revalidateTag("form");
       return {
         responseInfo: {
           statusCode: 200,
+          showSuccessCard: true,
           message: "Formulário criado com sucesso!",
         } as APIResponseInfo,
       };
     } catch (e) {
-      if (e instanceof PrismaClientKnownRequestError)
-        if (e.code === "P2002")
-          return {
-            responseInfo: {
-              statusCode: 409,
-              message: "Já existe um formulário com este nome!",
-            } as APIResponseInfo,
-          };
       return {
         responseInfo: {
           statusCode: 500,
