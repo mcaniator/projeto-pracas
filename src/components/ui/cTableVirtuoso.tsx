@@ -11,7 +11,7 @@ import { TableVirtuoso, TableVirtuosoProps } from "react-virtuoso";
 
 export type CTableHeader = {
   index: number;
-  content: ReactNode;
+  content?: ReactNode;
   width?: number | string;
   headerSx?: SxProps<Theme>;
   cellSx?: SxProps<Theme>;
@@ -19,7 +19,7 @@ export type CTableHeader = {
 
 export type CTableCell = {
   index: number;
-  content: ReactNode;
+  content?: ReactNode;
 };
 
 export type CTableRow = CTableCell[];
