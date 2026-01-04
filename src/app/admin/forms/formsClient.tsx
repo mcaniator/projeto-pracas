@@ -3,17 +3,16 @@
 import FormCreationDialog from "@/app/admin/forms/formCreationDialog";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
-import CTableVirtuoso, {
-  CTableHeader,
-  CTableRow,
-} from "@/components/ui/cTableVirtuoso";
 import CMenu from "@/components/ui/menu/cMenu";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Chip } from "@mui/material";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { IconClipboard, IconPlus } from "@tabler/icons-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+type FormRow = FetchFormsResponse["forms"][number];
 
 const FormsClient = () => {
   const [_fetchForms, loading] = useFetchForms({
@@ -41,71 +40,49 @@ const FormsClient = () => {
     console.log("Clone form");
   };
 
-  const headers: CTableHeader[] = useMemo(
-    () => [
-      {
-        index: 0,
-        content: "Nome",
-        width: "50%",
-        cellSx: {
-          whiteSpace: "nowrap",
-        },
-      },
-      {
-        index: 1,
-        content: "Status",
-        width: "20%",
-      },
-      {
-        index: 2,
-        content: "Ultima edição",
-        width: "30%",
-        cellSx: {
-          whiteSpace: "nowrap",
-        },
-      },
-      {
-        index: 3,
-        width: "1px",
-      },
-    ],
-    [],
-  );
-
-  const data: CTableRow[] = forms.map((form) => [
+  const columns: GridColDef<FormRow>[] = [
     {
-      index: 0,
-      content: form.name,
+      field: "name",
+      headerName: "Nome",
+      flex: 1,
+      minWidth: 150,
     },
     {
-      index: 1,
-      content: (
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      valueGetter: (value, row) => (row.finalized ? 1 : 0),
+      renderCell: (params: GridRenderCellParams<FormRow>) => (
         <Chip
           sx={{ width: "120px" }}
-          color={form.finalized ? "primary" : "error"}
-          label={form.finalized ? "Finalizado" : "Em construção"}
+          color={params.row.finalized ? "primary" : "error"}
+          label={params.row.finalized ? "Finalizado" : "Em construção"}
         />
       ),
     },
     {
-      index: 2,
-      content: dateTimeWithoutSecondsFormater.format(new Date(form.updatedAt)),
+      field: "updatedAt",
+      headerName: "Última edição",
+      width: 180,
+      renderCell: (params: GridRenderCellParams<FormRow>) =>
+        dateTimeWithoutSecondsFormater.format(new Date(params.row.updatedAt)),
     },
     {
-      index: 3,
-      content: (
+      field: "Ações",
+      headerName: "",
+      width: 80,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams<FormRow>) => (
         <CMenu
           options={[
-            {
-              label: "Ver",
-              href: `/admin/forms/${form.id}/edit`,
-            },
-            { label: "Clonar", onClick: handleClone },
+            { label: "Ver", href: `/admin/forms/${params.row.id}/edit` },
+            { label: "Clonar", onClick: () => handleClone() },
           ]}
         />
       ),
     },
-  ]);
+  ];
+
   return (
     <div
       className={
@@ -122,11 +99,11 @@ const FormsClient = () => {
         }
       />
 
-      <CTableVirtuoso
+      <DataGrid
         loading={loading}
-        fixedLastColumn
-        headers={headers}
-        data={data}
+        rows={forms}
+        columns={columns}
+        autoHeight={false}
       />
 
       <FormCreationDialog
