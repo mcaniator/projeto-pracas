@@ -284,7 +284,7 @@ const Question = ({
       className="flex flex-col justify-between px-4 py-2"
     >
       <div className="flex flex-row items-center gap-1">
-        {question.name + ` {Id: ${question.questionId}}`}
+        {`${question.categoryName} >${question.subcategoryName ? " " + question.subcategoryName + " " : ""}> ${question.name}`}
       </div>
       {question.questionType === "WRITTEN" && (
         <CNumberField

@@ -17,6 +17,7 @@ import {
 import { CategoriesWithQuestions } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 
@@ -46,6 +47,8 @@ export type QuestionItem = {
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
   optionType?: OptionTypes | null;
+  categoryName: string;
+  subcategoryName: string | null;
   options?: {
     text: string;
   }[];
@@ -79,6 +82,7 @@ const ClientV2 = ({
   dbCalculations: CalculationParams[];
   formId: number;
 }) => {
+  const router = useRouter();
   const { setHelperCard, helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(form.formTree.finalized);
@@ -178,6 +182,8 @@ const ClientV2 = ({
               optionType: question.optionType,
               options: question.options,
               geometryTypes: question.geometryTypes,
+              categoryName: category.name,
+              subcategoryName: subItem.name,
             },
           ],
         };
@@ -207,6 +213,8 @@ const ClientV2 = ({
           options: question.options,
           geometryTypes: question.geometryTypes,
           position: newCategory.categoryChildren.length + 1,
+          categoryName: category.name,
+          subcategoryName: null,
         };
 
         newCategory = {
@@ -283,6 +291,9 @@ const ClientV2 = ({
           helperCardType: "CONFIRM",
           content: <>Formulário salvo!</>,
         });
+        if (saveAsDone) {
+          void router.push("/admin/forms");
+        }
       }
     } catch (e) {
       setHelperCard({
@@ -304,7 +315,7 @@ const ClientV2 = ({
           } overflow-auto`}
         >
           <div className="ml-1 mr-2 flex flex-col gap-1">
-            <div className="flex flex-row items-center justify-between gap-2">
+            <div className="mt-1 flex flex-row items-center justify-between gap-2">
               <CTextField
                 label="Nome"
                 value={formName}

@@ -90,13 +90,13 @@ const ResponseFormV2 = ({
           ch.questions.forEach((q) => {
             questions.push({
               id: String(q.questionId),
-              display: `${q.name} {id:${q.questionId}}`,
+              display: `${q.categoryName} >${q.subcategoryName ? " " + q.subcategoryName + " " : ""}> ${q.name}`,
             });
           });
         } else if (FormItemUtils.isQuestionType(ch)) {
           questions.push({
             id: String(ch.questionId),
-            display: `${ch.name} {id:${ch.questionId}}`,
+            display: `${ch.categoryName} >${ch.subcategoryName ? " " + ch.subcategoryName + " " : ""}> ${ch.name}`,
           });
         }
       });

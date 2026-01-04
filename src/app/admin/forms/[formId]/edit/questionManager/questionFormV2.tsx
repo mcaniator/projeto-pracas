@@ -110,11 +110,7 @@ const QuestionFormV2 = ({
   }, [searchedName, setHelperCard]);
 
   const searchByCategoryAndSubcateogory = useCallback(() => {
-    if (
-      categories.length === 0 ||
-      isLoadingCategories ||
-      !selectedCategoryAndSubcategoryId.categoryId
-    )
+    if (isLoadingCategories || !selectedCategoryAndSubcategoryId.categoryId)
       return;
     setQuestionsListState("LOADING");
     _searchQuestionsByCategoryAndSubcategory({
@@ -164,10 +160,10 @@ const QuestionFormV2 = ({
       setShowAllQuestions(false);
       searchByCategoryAndSubcateogory();
     } else if (currentSearchMethod === 2) {
-      setSelectedCategoryAndSubcategoryId((prev) => ({
+      /*setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
         verifySubcategoryNullness: true,
-      }));
+      }));*/
       searchByCategoryAndSubcateogory();
       setShowAllQuestions(true);
     }
@@ -204,7 +200,10 @@ const QuestionFormV2 = ({
   ]);
 
   useEffect(() => {
-    if (categories.length > 0)
+    if (
+      categories.length > 0 &&
+      selectedCategoryAndSubcategoryId.categoryId === undefined
+    )
       setSelectedCategoryAndSubcategoryId({
         categoryId: categories[0]?.id,
         subcategoryId: -1,

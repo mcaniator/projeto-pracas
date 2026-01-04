@@ -465,7 +465,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
-
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -478,6 +477,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           options: dbQuestion.options,
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
+          categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found
+          subcategoryName: null, //It is also a placeholder. The reason we can set as null is because the type allows it
         };
         const category = categories.find(
           (c) => c.categoryId === dbQuestion.categoryId,
@@ -485,6 +486,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         if (!category) {
           throw new Error("Question's category not found");
         }
+        question.categoryName = category.name;
         if (dbQuestion.subcategoryId) {
           // question is inserted in a subcategory
           const subcategory = category.categoryChildren.find(
@@ -493,6 +495,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
               c.subcategoryId === dbQuestion.subcategoryId,
           );
           if (subcategory) {
+            question.subcategoryName = subcategory.name;
             subcategory.questions.push(question);
           }
         } else {

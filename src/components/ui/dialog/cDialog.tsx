@@ -99,12 +99,17 @@ const CDialog = ({
   const onCloseRef = useRef(onClose);
   const openDialogCounterContext = useOpenedDialogsCounterContext();
   const dialogIndexRef = useRef(0);
-  const handlePopRef = useRef(() => {
+  const handlePopRef = useRef((forceBackNavigation?: boolean) => {
     if (
       openDialogCounterContext.openedDialogsCounterRef.current ===
       dialogIndexRef.current
     ) {
-      window.removeEventListener("popstate", handlePopRef.current);
+      if (forceBackNavigation) {
+        window.history.back();
+      }
+      window.removeEventListener("popstate", () => {
+        handlePopRef.current();
+      });
       openDialogCounterContext.closeDialog();
       dialogIndexRef.current = 0;
       onCloseRef.current();
@@ -118,8 +123,7 @@ const CDialog = ({
     if (disableBackdropClose && reason === "backdropClick") {
       return;
     }
-
-    handlePopRef.current();
+    handlePopRef.current(true);
   };
 
   useEffect(() => {
@@ -129,7 +133,9 @@ const CDialog = ({
 
     window.history.pushState({ dialogIndex: dialogIndexRef.current - 1 }, "");
 
-    window.addEventListener("popstate", handlePopRef.current);
+    window.addEventListener("popstate", () => {
+      handlePopRef.current();
+    });
   }, [props.open]);
 
   useEffect(() => {
@@ -171,7 +177,7 @@ const CDialog = ({
           >
             <CDialogHeader
               close={() => {
-                handlePopRef.current();
+                handlePopRef.current(true);
               }}
               title={title}
               subtitle={subtitle}
@@ -237,7 +243,7 @@ const CDialog = ({
       >
         <CDialogHeader
           close={() => {
-            handlePopRef.current();
+            handlePopRef.current(true);
           }}
           title={title}
           subtitle={subtitle}
