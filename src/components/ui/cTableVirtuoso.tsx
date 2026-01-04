@@ -1,3 +1,4 @@
+import CSkeletonGroup from "@/components/ui/cSkeletonGroup";
 import { SxProps, Theme } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
@@ -28,6 +29,7 @@ export type CTableVirtuosoProps = {
   headers: CTableHeader[];
   data: CTableRow[];
   fixedLastColumn?: boolean;
+  loading?: boolean;
 };
 
 const TableComponents: TableVirtuosoProps<CTableRow, unknown>["components"] = {
@@ -50,6 +52,7 @@ const CTableVirtuoso = ({
   headers,
   data,
   fixedLastColumn,
+  loading,
 }: CTableVirtuosoProps) => {
   const sortedHeaders = useMemo(
     () => [...headers].sort((a, b) => a.index - b.index),
@@ -57,7 +60,10 @@ const CTableVirtuoso = ({
   );
 
   const lastIndex = useMemo(() => sortedHeaders.length - 1, [sortedHeaders]);
-
+  if (loading) {
+    return <CSkeletonGroup quantity={5} />;
+  }
+  if (data.length === 0) return <div className="text-2xl">Sem dados!</div>;
   return (
     <TableVirtuoso
       components={TableComponents}

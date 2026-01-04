@@ -1,3 +1,4 @@
+import { Divider } from "@mui/material";
 import { ReactNode } from "react";
 
 const CAdminHeader = ({
@@ -22,6 +23,7 @@ const CAdminHeader = ({
       </div>
 
       <h4 className="text-md">{subtitle}</h4>
+      <Divider className="pt-2" />
     </div>
   );
 };

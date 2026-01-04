@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { formSchema } from "@/lib/zodValidators";
 import { FormCalculation } from "@customTypes/forms/formCreation";
 import { Prisma } from "@prisma/client";
@@ -13,6 +14,64 @@ import { z } from "zod";
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
+
+export const _createForm = async (
+  prevState: { responseInfo: APIResponseInfo },
+  formData: FormData,
+) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    const newFormData = formSchema.parse({
+      name: formData.get("name"),
+      cloneFormId: formData.get("cloneFormId"),
+    });
+    try {
+      await prisma.form.create({
+        data: {
+          name: newFormData.name,
+        },
+      });
+      revalidateTag("form");
+      return {
+        responseInfo: {
+          statusCode: 200,
+          message: "Formulário criado com sucesso!",
+        } as APIResponseInfo,
+      };
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError)
+        if (e.code === "P2002")
+          return {
+            responseInfo: {
+              statusCode: 409,
+              message: "Já existe um formulário com este nome!",
+            } as APIResponseInfo,
+          };
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao criar formulário!",
+        } as APIResponseInfo,
+      };
+    }
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+};
 
 const _formSubmit = async (
   prevState: { statusCode: number; formName: string | null } | null,

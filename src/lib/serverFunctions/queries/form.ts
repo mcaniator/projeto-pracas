@@ -1,3 +1,6 @@
+import { FetchFormParams } from "@/app/api/admin/forms/route";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import { sleep } from "@/lib/utils/sleep";
 import { prisma } from "@lib/prisma";
 
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
@@ -9,11 +12,16 @@ import {
 import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
+export type FetchFormsLatestResponse = Awaited<
+  ReturnType<typeof fetchFormsLatest>
+>["data"];
+
 const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
   const whereStatement: Record<string, boolean | number | string> = {};
   if (params?.finalizedOnly) {
     whereStatement.finalized = true;
   }
+  await sleep(10000);
   try {
     const forms = await prisma.form.findMany({
       where: whereStatement,
@@ -29,9 +37,45 @@ const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
         },
       ],
     });
-    return { statusCode: 200, forms };
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { forms },
+    };
   } catch (e) {
-    return { statusCode: 500, forms: [] };
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        forms: [],
+      },
+    };
+  }
+};
+
+export type FetchFormsResponse = Awaited<ReturnType<typeof fetchForms>>["data"];
+export const fetchForms = async (params: FetchFormParams) => {
+  try {
+    const forms = await prisma.form.findMany({
+      where: params?.finalizedOnly ? { finalized: true } : {},
+      orderBy: [
+        {
+          updatedAt: "desc",
+        },
+      ],
+    });
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { forms },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar formulário!",
+      } as APIResponseInfo,
+      data: {
+        forms: [],
+      },
+    };
   }
 };
 
