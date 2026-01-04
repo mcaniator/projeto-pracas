@@ -72,6 +72,8 @@ const FormsClient = () => {
       headerName: "",
       width: 80,
       sortable: false,
+      filterable: false,
+      hideable: false,
       renderCell: (params: GridRenderCellParams<FormRow>) => (
         <CMenu
           options={[
