@@ -2,7 +2,7 @@
 
 import { TallyDataFetchedToTallyList } from "@customTypes/tallys/tallyList";
 import {
-  dateTimeWithoutSecondsFormmater,
+  dateTimeWithoutSecondsFormater,
   weekdayFormatter,
 } from "@formatters/dateFormatters";
 
@@ -44,7 +44,7 @@ const TallyComponent = ({
           }}
           checked={checked}
         />
-        {`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateTimeWithoutSecondsFormmater.format(startDate)}`}
+        {`${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${dateTimeWithoutSecondsFormater.format(startDate)}`}
       </span>
       <span className="ml-auto">{observer}</span>
     </div>
