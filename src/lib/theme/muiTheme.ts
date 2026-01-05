@@ -2,6 +2,7 @@ import { josefin_sans } from "@/lib/fonts";
 import { ptBR as ptBRCore } from "@mui/material/locale";
 import { createTheme } from "@mui/material/styles";
 import { ptBR as dataGridptBR } from "@mui/x-data-grid/locales";
+import { ptBR as datePickerptBR } from "@mui/x-date-pickers/locales";
 
 declare module "@mui/material/styles" {
   interface PaletteColor {
@@ -140,6 +141,7 @@ const muiTheme = createTheme(
   },
   ptBRCore,
   dataGridptBR,
+  datePickerptBR,
 );
 
 export default muiTheme;

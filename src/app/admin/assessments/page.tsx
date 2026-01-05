@@ -25,6 +25,10 @@ const Assessments = () => {
     },
   }) as Prisma.PrismaPromise<{ id: string; username: string }[]>; // Assertion for defining username as not null
   const formsPromise = prisma.form.findMany({
+    where: {
+      finalized: true,
+      archived: false,
+    },
     select: {
       id: true,
       name: true,

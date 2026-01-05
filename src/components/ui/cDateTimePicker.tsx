@@ -96,8 +96,11 @@ const CDateTimePicker = React.forwardRef<
             mt: "8px",
             "& .MuiPickersOutlinedInput-root": {
               borderRadius: 6,
-              fontSize: 20,
               "& fieldset": fieldsetSx,
+              fontSize: 16,
+              "@media (min-width:680px)": {
+                fontSize: 20,
+              },
             },
             "& .MuiInputLabel-root.Mui-focused": {
               color: "primary.main",
@@ -111,7 +114,8 @@ const CDateTimePicker = React.forwardRef<
             },
             "& .MuiPickersSectionList-root": {
               zIndex: 1,
-              py: "8.5px",
+              pt: "12px",
+              pb: "0px",
             },
             "& .MuiInputAdornment-root": {
               zIndex: 1,

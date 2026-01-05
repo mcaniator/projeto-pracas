@@ -159,12 +159,12 @@ const AssessmentsClient = ({
     void fetch();
   }, [fetchAssessments]);
   return (
-    <div className="flex h-full flex-col overflow-auto p-2">
+    <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader
         titleIcon={<IconClipboard />}
         title="Avaliações"
         append={
-          <CButton color="secondary">
+          <CButton>
             <IconPlus /> Criar
           </CButton>
         }
