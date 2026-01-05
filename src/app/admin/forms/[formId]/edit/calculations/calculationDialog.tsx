@@ -73,7 +73,7 @@ const CalculationDialog = ({
               if (q.characterType === "NUMBER") {
                 newMentions.push({
                   id: String(q.questionId),
-                  display: `${q.categoryName} >${q.subcategoryName ? " " + q.subcategoryName + " " : ""}> ${q.name}`,
+                  display: `${q.categoryName} ➤${q.subcategoryName ? " " + q.subcategoryName + " " : ""}➤ ${q.name}`,
                   questionType: q.questionType,
                 });
               }
@@ -93,7 +93,7 @@ const CalculationDialog = ({
               if (q.characterType === "NUMBER") {
                 newMentions.push({
                   id: String(q.questionId),
-                  display: `${q.categoryName} >${q.subcategoryName ? " " + q.subcategoryName + " " : ""}> ${q.name}`,
+                  display: `${q.categoryName} ➤${q.subcategoryName ? " " + q.subcategoryName + " " : ""}➤ ${q.name}`,
                   questionType: q.questionType,
                 });
               }

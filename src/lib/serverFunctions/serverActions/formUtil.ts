@@ -438,7 +438,6 @@ const _updateFormArchiveStatus = async (
       } as APIResponseInfo,
     };
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 500,

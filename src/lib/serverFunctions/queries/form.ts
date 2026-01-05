@@ -117,6 +117,16 @@ const getFormTree = async (params: { formId: number }) => {
                 categoryId: true,
                 subcategoryId: true,
                 geometryTypes: true,
+                category: {
+                  select: {
+                    name: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },
@@ -202,6 +212,8 @@ const getFormTree = async (params: { formId: number }) => {
           optionType: dbQuestion.optionType,
           options: dbQuestion.options,
           geometryTypes: dbQuestion.geometryTypes,
+          categoryName: dbQuestion.category.name,
+          subcategoryName: dbQuestion.subcategory?.name ?? null,
         };
         const category = categories.find(
           (c) => c.categoryId === dbQuestion.categoryId,

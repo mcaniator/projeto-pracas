@@ -20,7 +20,7 @@ const CMenuItem = ({ label, href, sx, onClick }: CMenuItemType) => {
       sx={{ ...(href ? linkMenuItemSx : defaultMenuItemSx), ...sx }}
     >
       {href ?
-        <Link href={href} className="px-2 py-1">
+        <Link href={href} className="w-full px-2 py-1">
           {label}
         </Link>
       : <>{label}</>}
