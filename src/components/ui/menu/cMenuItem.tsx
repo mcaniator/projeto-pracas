@@ -1,19 +1,24 @@
 "use client";
 
-import { MenuItem } from "@mui/material";
+import { MenuItem, MenuItemOwnProps } from "@mui/material";
 import Link from "next/link";
+import { ReactNode } from "react";
 
 type CMenuItemType = {
-  label: string;
+  label: ReactNode;
   href?: string;
+  sx?: MenuItemOwnProps["sx"];
   onClick?: () => void;
 };
 
-const CMenuItem = ({ label, href, onClick }: CMenuItemType) => {
+const CMenuItem = ({ label, href, sx, onClick }: CMenuItemType) => {
   const defaultMenuItemSx = { px: "8px", py: "4px" };
   const linkMenuItemSx = { px: "0px", py: "0px" };
   return (
-    <MenuItem onClick={onClick} sx={href ? linkMenuItemSx : defaultMenuItemSx}>
+    <MenuItem
+      onClick={onClick}
+      sx={{ ...(href ? linkMenuItemSx : defaultMenuItemSx), ...sx }}
+    >
       {href ?
         <Link href={href} className="px-2 py-1">
           {label}

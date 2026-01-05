@@ -1,14 +1,15 @@
 "use client";
 
-import { IconButton, Menu } from "@mui/material";
+import { IconButton, Menu, MenuItemOwnProps } from "@mui/material";
 import { IconDotsVertical } from "@tabler/icons-react";
 import { ReactNode, useState } from "react";
 
 import CMenuItem from "./cMenuItem";
 
 type CMenuOption = {
-  label: string;
+  label: ReactNode;
   onClick?: () => void;
+  sx?: MenuItemOwnProps["sx"];
   href?: string;
 };
 
@@ -48,6 +49,7 @@ const CMenu = ({ options, icon }: CMenuProps) => {
             key={index}
             label={opt.label}
             href={opt.href}
+            sx={opt.sx}
             onClick={() => {
               handleCloseMenu();
               opt.onClick?.();

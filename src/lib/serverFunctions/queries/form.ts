@@ -55,7 +55,10 @@ export type FetchFormsResponse = Awaited<ReturnType<typeof fetchForms>>["data"];
 export const fetchForms = async (params: FetchFormParams) => {
   try {
     const forms = await prisma.form.findMany({
-      where: params?.finalizedOnly ? { finalized: true } : {},
+      where: {
+        ...(params?.finalizedOnly && { finalized: true }),
+        ...(!params?.includeArchived && { archived: false }),
+      },
       orderBy: [
         {
           updatedAt: "desc",
