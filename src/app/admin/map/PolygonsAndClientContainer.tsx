@@ -185,7 +185,11 @@ const PolygonsAndClientContainer = () => {
     setTimeout(() => setDisableAutoFitAfterLocationsLoad(false), 500);
   }, [filter, locationsWithPolygon]);
   const loadLocations = useCallback(async () => {
-    if (!selectedCity) return;
+    if (!selectedCity)
+      if (!selectedCity) {
+        setLocationsWithPolygon([]);
+        return;
+      }
     await _fetchLocations({
       cityId: selectedCity?.id,
     });

@@ -1,5 +1,7 @@
 "use client";
 
+import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
+import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconClipboard, IconPlus } from "@tabler/icons-react";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
@@ -26,11 +28,11 @@ export type AssessmentsFilterType =
 
 const AssessmentsClient = ({
   locationsPromise,
-  formsPromise,
+  forms,
   usersPromise,
 }: {
   locationsPromise: Promise<{ id: number; name: string }[]>;
-  formsPromise: Promise<{ id: number; name: string }[]>;
+  forms: FetchFormsResponse["forms"];
   usersPromise: Promise<{ id: string; username: string }[]>;
 }) => {
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
@@ -40,6 +42,8 @@ const AssessmentsClient = ({
   const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>(
     generatePaginationResponseInfo({}),
   );
+  const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
+    useState(false);
 
   //Filters
   const [isLoading, setIsLoading] = useState(false);
@@ -164,7 +168,7 @@ const AssessmentsClient = ({
         titleIcon={<IconClipboard />}
         title="Avaliações"
         append={
-          <CButton>
+          <CButton onClick={() => setOpenAssessmentCreationDialog(true)}>
             <IconPlus /> Criar
           </CButton>
         }
@@ -179,7 +183,7 @@ const AssessmentsClient = ({
           <Suspense fallback={<CSkeletonGroup quantity={5} />}>
             <AssessmentsFilterSidebar
               locationsPromise={locationsPromise}
-              formsPromise={formsPromise}
+              forms={forms}
               usersPromise={usersPromise}
               paginationInfo={paginationInfo}
               currentPage={pageNumber}
@@ -188,6 +192,15 @@ const AssessmentsClient = ({
           </Suspense>
         </div>
       </div>
+      <AssessmentCreationDialog
+        open={openAssessmentCreationDialog}
+        onClose={() => {
+          setOpenAssessmentCreationDialog(false);
+        }}
+        reloadAssessments={() => {
+          void fetchAssessments();
+        }}
+      />
     </div>
   );
 };

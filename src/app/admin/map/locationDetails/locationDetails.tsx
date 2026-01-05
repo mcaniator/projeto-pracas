@@ -16,7 +16,9 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
+import { Link } from "react-aria-components";
 
 const LocationDetails = ({
   location,
@@ -31,6 +33,7 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
+  const router = useRouter();
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
@@ -60,12 +63,14 @@ const LocationDetails = ({
         <div className="flex gap-1">
           <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
             {location.assessmentCount} avaliações{" "}
-            <CButton square dense variant="text">
-              <IconExternalLink />
-            </CButton>
+            <Link href={`/admin/assessments?locationId=${location.id}`}>
+              <CButton square dense variant="text">
+                <IconExternalLink />
+              </CButton>
+            </Link>
           </div>
           <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-            {location.assessmentCount} contagens{" "}
+            {location.tallyCount} contagens{" "}
             <CButton square dense variant="text">
               <IconExternalLink />
             </CButton>

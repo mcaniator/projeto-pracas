@@ -1,9 +1,10 @@
+import { fetchForms } from "@/lib/serverFunctions/queries/form";
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "../../../lib/prisma";
 import AssessmentsClient from "./assessmentsClient";
 
-const Assessments = () => {
+const Assessments = async () => {
   const locationsPromise = prisma.location.findMany({
     select: {
       id: true,
@@ -24,21 +25,12 @@ const Assessments = () => {
       username: true,
     },
   }) as Prisma.PrismaPromise<{ id: string; username: string }[]>; // Assertion for defining username as not null
-  const formsPromise = prisma.form.findMany({
-    where: {
-      finalized: true,
-      archived: false,
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const forms = (await fetchForms({ finalizedOnly: true })).data.forms;
   return (
     <AssessmentsClient
       locationsPromise={locationsPromise}
       usersPromise={usersPromise}
-      formsPromise={formsPromise}
+      forms={forms}
     />
   );
 };
