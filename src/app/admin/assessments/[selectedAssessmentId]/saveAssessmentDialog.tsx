@@ -55,7 +55,7 @@ const SaveAssessmentDialog = ({
       if (response.responseInfo.statusCode !== 201) {
         setEnableJsonSaving(true);
       } else {
-        if (finalized) {
+        if (response.data?.savedAsFinalized) {
           router.refresh();
         }
       }

@@ -10,11 +10,13 @@ const AssessmentsFilter = ({
   forms,
   users,
   selectedLocationId,
+  defaultLocationId,
   handleFilterChange,
 }: {
   forms: { id: number; name: string }[];
   users: { id: string; username: string }[];
   selectedLocationId: number | undefined;
+  defaultLocationId: number | undefined;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
@@ -40,9 +42,31 @@ const AssessmentsFilter = ({
     <div className="flex flex-col gap-1">
       <h4>Localização</h4>
       <LocationSelector
+        defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
+        }}
+        onSelectedCityChange={(v) => {
+          handleFilterChange({ type: "CITY_ID", newValue: v?.id ?? null });
+        }}
+        onSelectedBroadUnitChange={(v) => {
+          handleFilterChange({
+            type: "BROAD_UNIT_ID",
+            newValue: v?.broadUnitId ?? null,
+          });
+        }}
+        onSelectedIntermediateUnitChange={(v) => {
+          handleFilterChange({
+            type: "INTERMEDIATE_UNIT_ID",
+            newValue: v?.intermediateUnitId ?? null,
+          });
+        }}
+        onSelectedNarrowUnitChange={(v) => {
+          handleFilterChange({
+            type: "NARROW_UNIT_ID",
+            newValue: v?.narrowUnitId ?? null,
+          });
         }}
       />
       <Divider />

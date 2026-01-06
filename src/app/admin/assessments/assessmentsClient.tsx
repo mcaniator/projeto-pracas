@@ -4,7 +4,7 @@ import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation
 import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconClipboard, IconPlus } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
@@ -34,6 +34,7 @@ const AssessmentsClient = ({
   usersPromise: Promise<{ id: string; username: string }[]>;
 }) => {
   const params = useSearchParams();
+  const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [assessments, setAssessments] = useState<
     FetchAssessmentsResponse["assessments"]
@@ -41,7 +42,6 @@ const AssessmentsClient = ({
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
-  console.log(Number(params.get("locationId")));
   //Filters
   const [isLoading, setIsLoading] = useState(false);
   const [locationId, setLocationId] = useState<number | undefined>(
@@ -51,6 +51,10 @@ const AssessmentsClient = ({
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [userId, setUserId] = useState<string>();
+  const [cityId, setCityId] = useState<number>();
+  const [broadUnitId, setBroadUnitId] = useState<number>();
+  const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
+  const [narrowUnitId, setNarrowUnitId] = useState<number>();
 
   const handleFilterChange = ({
     type,
@@ -76,6 +80,18 @@ const AssessmentsClient = ({
         case "END_DATE":
           setEndDate(undefined);
           break;
+        case "CITY_ID":
+          setCityId(undefined);
+          break;
+        case "BROAD_UNIT_ID":
+          setBroadUnitId(undefined);
+          break;
+        case "INTERMEDIATE_UNIT_ID":
+          setIntermediateUnitId(undefined);
+          break;
+        case "NARROW_UNIT_ID":
+          setNarrowUnitId(undefined);
+          break;
       }
     } else if (typeof newValue === "string") {
       switch (type) {
@@ -91,6 +107,18 @@ const AssessmentsClient = ({
         case "FORM_ID":
           setFormId(newValue);
           break;
+        case "CITY_ID":
+          setCityId(newValue);
+          break;
+        case "BROAD_UNIT_ID":
+          setBroadUnitId(newValue);
+          break;
+        case "INTERMEDIATE_UNIT_ID":
+          setIntermediateUnitId(newValue);
+          break;
+        case "NARROW_UNIT_ID":
+          setNarrowUnitId(newValue);
+          break;
       }
     } else if (newValue instanceof Date) {
       switch (type) {
@@ -104,46 +132,66 @@ const AssessmentsClient = ({
     }
   };
 
-  const fetchAssessments = useCallback(async () => {
-    if (startDate) {
-      if (isNaN(startDate.getTime())) {
-        return;
-      }
-    }
-    if (endDate) {
-      if (isNaN(endDate.getTime())) {
-        return;
-      }
-    }
-    setIsLoading(true);
-    try {
-      const response = await _fetchAssessments({
-        locationId,
-        formId,
-        startDate,
-        endDate,
-        userId,
-      });
-      helperCardProcessResponse(response.responseInfo);
-      setAssessments(response.data?.assessments ?? []);
-    } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>{"Erro ao consultar avaliações!"}</>,
-      });
-    }
+  const fetchAssessments = useCallback(
+    async (params?: { forceFetch: boolean }) => {
+      if (!params?.forceFetch) {
+        lastFetchedLocationId.current === locationId;
 
-    setIsLoading(false);
-  }, [
-    helperCardProcessResponse,
-    setHelperCard,
-    locationId,
-    formId,
-    startDate,
-    endDate,
-    userId,
-  ]);
+        if (!!locationId && lastFetchedLocationId.current === locationId) {
+          return; //LocationId has maximum priority in the filters. If it has a value and it hasn't changed, no need to refetch.
+        }
+      }
+
+      if (startDate) {
+        if (isNaN(startDate.getTime())) {
+          return;
+        }
+      }
+      if (endDate) {
+        if (isNaN(endDate.getTime())) {
+          return;
+        }
+      }
+      setIsLoading(true);
+      try {
+        lastFetchedLocationId.current = locationId;
+        const response = await _fetchAssessments({
+          locationId,
+          formId,
+          startDate,
+          endDate,
+          userId,
+          cityId,
+          broadUnitId,
+          intermediateUnitId,
+          narrowUnitId,
+        });
+        helperCardProcessResponse(response.responseInfo);
+        setAssessments(response.data?.assessments ?? []);
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>{"Erro ao consultar avaliações!"}</>,
+        });
+      }
+
+      setIsLoading(false);
+    },
+    [
+      helperCardProcessResponse,
+      setHelperCard,
+      locationId,
+      formId,
+      startDate,
+      endDate,
+      userId,
+      cityId,
+      broadUnitId,
+      intermediateUnitId,
+      narrowUnitId,
+    ],
+  );
 
   useEffect(() => {
     const fetch = async () => {
@@ -171,6 +219,11 @@ const AssessmentsClient = ({
         <div className="mx-0.5 my-0.5 basis-2/5">
           <Suspense fallback={<CSkeletonGroup quantity={5} />}>
             <AssessmentsFilterSidebar
+              defaultLocationId={
+                params.get("locationId") ?
+                  Number(params.get("locationId"))
+                : undefined
+              }
               selectedLocationId={locationId}
               forms={forms}
               usersPromise={usersPromise}
@@ -185,7 +238,7 @@ const AssessmentsClient = ({
           setOpenAssessmentCreationDialog(false);
         }}
         reloadAssessments={() => {
-          void fetchAssessments();
+          void fetchAssessments({ forceFetch: true });
         }}
       />
     </div>

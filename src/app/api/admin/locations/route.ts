@@ -7,7 +7,8 @@ import { fetchLocations } from "../../../../lib/serverFunctions/queries/location
 import { parseQueryParams } from "../../../../lib/utils/apiCall";
 
 const paramsSchema = z.object({
-  cityId: z.coerce.number(),
+  cityId: z.coerce.number().nullish(),
+  locationId: z.coerce.number().nullish(),
 });
 
 export type FetchLocationsParams = z.infer<typeof paramsSchema>;

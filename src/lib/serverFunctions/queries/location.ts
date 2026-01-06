@@ -174,7 +174,8 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
   LEFT JOIN city c ON c.id = l.city_id
-  WHERE l.city_id = ${params.cityId}
+  WHERE l.id = COALESCE(${params.locationId}, l.id) 
+  AND l.city_id = COALESCE(${params.cityId}, l.city_id)
   GROUP BY 
     1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 `;

@@ -623,6 +623,7 @@ type FetchAssessmentsResponse = NonNullable<
 >;
 
 const fetchAssessments = async (params: FetchAssessmentsParams) => {
+  console.log("Fetching assessments with params:", params);
   try {
     const assessments = await prisma.assessment.findMany({
       where: {

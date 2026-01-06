@@ -1,5 +1,9 @@
 "use server";
 
+import {
+  FormValues,
+  ResponseFormGeometry,
+} from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
@@ -8,10 +12,6 @@ import { DefaultArgs } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
 
-import {
-  FormValues,
-  ResponseFormGeometry,
-} from "../../../app/admin/parks/[locationId]/evaluation/[selectedFormId]/[selectedAssessmentId]/responseFormV2";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 interface ResponseToAdd {
@@ -316,7 +316,6 @@ const _addResponsesV2 = async ({
       value: string | number | null;
     }[] = [];
     const optionsResponses: { questionId: number; value: number[] }[] = [];
-    console.log(responses);
     questions.forEach((q) => {
       if (!Object.keys(responses).includes(String(q.id))) {
         throw new Error("Resposta não enviada para uma ou mais questões!");
@@ -488,13 +487,21 @@ const _addResponsesV2 = async ({
       transactions.push(prisma.$executeRaw(geometryQuery));
     }
     await prisma.$transaction(transactions);
-
+    await prisma.assessment.findUnique({
+      where: { id: assessmentId },
+      select: {
+        endDate: true,
+      },
+    });
     return {
       responseInfo: {
         statusCode: 201,
         message: "Avaliação salva!",
         showSuccessCard: true,
       } as APIResponseInfo,
+      data: {
+        savedAsFinalized: finalizationDate !== null,
+      },
     };
   } catch (e) {
     console.log(e);

@@ -8,11 +8,13 @@ const AssessmentsFilterSidebar = ({
   forms,
   usersPromise,
   selectedLocationId,
+  defaultLocationId,
   handleFilterChange,
 }: {
   forms: FetchFormsResponse["forms"];
   usersPromise: Promise<{ id: string; username: string }[]>;
   selectedLocationId: number | undefined;
+  defaultLocationId: number | undefined;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
@@ -22,6 +24,7 @@ const AssessmentsFilterSidebar = ({
   return (
     <div className="h-full w-full overflow-auto">
       <AssessmentsFilter
+        defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
         forms={forms}
         users={users}
