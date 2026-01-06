@@ -43,7 +43,7 @@ const AssessmentsClient = ({
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
   //Filters
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [locationId, setLocationId] = useState<number | undefined>(
     params.get("locationId") ? Number(params.get("locationId")) : undefined,
   );

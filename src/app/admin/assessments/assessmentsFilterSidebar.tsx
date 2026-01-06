@@ -22,7 +22,7 @@ const AssessmentsFilterSidebar = ({
 }) => {
   const users = use(usersPromise);
   return (
-    <div className="h-full w-full overflow-auto">
+    <div className="h-full w-full overflow-auto border-l border-gray-200 px-1">
       <AssessmentsFilter
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}

@@ -64,6 +64,7 @@ const AssessmentCreationDialog = ({
       <div className="flex flex-col gap-1">
         <h4>Seleção de praça</h4>
         <LocationSelector
+          useAccordion
           selectedLocation={selectedLocation}
           onSelectedLocationChange={(v) => {
             setSelectedLocation(v);

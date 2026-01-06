@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {
   IconBug,
+  IconClipboard,
   IconInfoSquareRounded,
   IconListCheck,
   IconLogs,
@@ -52,6 +53,14 @@ const Sidebar = () => {
       name: "Mapa",
       path: "/admin/map",
       show: true,
+    },
+    {
+      icon: <IconClipboard size={34} />,
+      name: "Avaliações",
+      path: "/admin/assessments",
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["ASSESSMENT"],
+      }),
     },
     {
       icon: <IconListCheck size={34} />,

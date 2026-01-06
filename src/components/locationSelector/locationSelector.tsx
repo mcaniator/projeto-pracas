@@ -1,10 +1,15 @@
 import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
+import CAccordion from "@/components/ui/accordion/CAccordion";
+import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { Chip } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
+import { IconFilter } from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -12,6 +17,7 @@ const LocationSelector = ({
   selectedLocation,
   selectedLocationId,
   defaultLocationId,
+  useAccordion,
   onSelectedLocationChange,
   onSelectedCityChange,
   onSelectedBroadUnitChange,
@@ -21,6 +27,7 @@ const LocationSelector = ({
   selectedLocation?: FetchLocationsResponse["locations"][number] | null;
   selectedLocationId?: number | null;
   defaultLocationId?: number | null;
+  useAccordion?: boolean;
   onSelectedLocationChange: (
     location: FetchLocationsResponse["locations"][number] | null,
   ) => void;
@@ -234,45 +241,15 @@ const LocationSelector = ({
     );
   }, [filteredLocations, selectedLocation, selectedLocationId]);
 
-  return (
+  const numberOfActiveFilters = useMemo(() => {
+    let count = 0;
+    if (filter.broadAdministrativeUnitId) count++;
+    if (filter.intermediateAdministrativeUnitId) count++;
+    if (filter.narrowAdministrativeUnitId) count++;
+    return count;
+  }, [filter]);
+  const UnitsFilter = (
     <>
-      <div className="flex gap-1">
-        <CAutocomplete
-          className="w-32"
-          label="Estado"
-          disableClearable
-          loading={loadingDefaultLocation}
-          options={Object.values(BrazilianStates)}
-          value={state}
-          onChange={(_, v) => setState(v)}
-        />
-        <CAutocomplete
-          className="w-full"
-          label="Cidade"
-          loading={loadingCities || loadingDefaultLocation}
-          value={
-            citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
-              id: -1,
-              name: "Nenhuma cidade selecionada",
-              state: state,
-              broadAdministrativeUnit: [],
-              intermediateAdministrativeUnit: [],
-              narrowAdministrativeUnit: [],
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }
-          }
-          disableClearable
-          options={citiesOptions ?? []}
-          isOptionEqualToValue={(option, value) => option.id === value.id}
-          getOptionLabel={(o) => o.name}
-          onChange={(_, v) => {
-            hasMadeFirstChange.current = true;
-            setSelectedCity(v);
-            onSelectedCityChange?.(v ?? null);
-          }}
-        />
-      </div>
       <CAutocomplete
         label="Região administrativa ampla"
         options={broadUnits}
@@ -333,6 +310,64 @@ const LocationSelector = ({
           onSelectedNarrowUnitChange?.(v ? { narrowUnitId: v.id } : null);
         }}
       />
+    </>
+  );
+  return (
+    <>
+      <div className="flex gap-1">
+        <CAutocomplete
+          className="w-32"
+          label="Estado"
+          disableClearable
+          loading={loadingDefaultLocation}
+          options={Object.values(BrazilianStates)}
+          value={state}
+          onChange={(_, v) => setState(v)}
+        />
+        <CAutocomplete
+          className="w-full"
+          label="Cidade"
+          loading={loadingCities || loadingDefaultLocation}
+          value={
+            citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
+              id: -1,
+              name: "Nenhuma cidade selecionada",
+              state: state,
+              broadAdministrativeUnit: [],
+              intermediateAdministrativeUnit: [],
+              narrowAdministrativeUnit: [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          }
+          disableClearable
+          options={citiesOptions ?? []}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          getOptionLabel={(o) => o.name}
+          onChange={(_, v) => {
+            hasMadeFirstChange.current = true;
+            setSelectedCity(v);
+            onSelectedCityChange?.(v ?? null);
+          }}
+        />
+      </div>
+      {useAccordion ?
+        <CAccordion>
+          <CAccordionSummary>
+            <div className="flex flex-row items-center">
+              <IconFilter /> Filtros
+              {numberOfActiveFilters > 0 && (
+                <Chip
+                  color="error"
+                  label={numberOfActiveFilters}
+                  sx={{ fontSize: "0.7rem", ml: "4px", height: "28px" }}
+                />
+              )}
+            </div>
+          </CAccordionSummary>
+          <CAccordionDetails>{UnitsFilter}</CAccordionDetails>
+        </CAccordion>
+      : <>{UnitsFilter}</>}
       <CAutocomplete
         label="Praça"
         loading={loadingLocations || loadingDefaultLocation}

@@ -1,5 +1,7 @@
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { Divider } from "@mui/material";
+import { IconExternalLink } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
 import { useMemo } from "react";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
@@ -22,6 +24,7 @@ const AssessmentsFilter = ({
     newValue: string | number | Date | null;
   }) => void;
 }) => {
+  const router = useRouter();
   const statusOptions = useMemo(() => {
     return [
       {
@@ -73,12 +76,17 @@ const AssessmentsFilter = ({
       <h4>Formulário</h4>
       <CAutocomplete
         label="Formulário"
+        className="w-full"
         options={forms}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         getOptionLabel={(i) => i.name}
         onChange={(_, a) =>
           handleFilterChange({ type: "FORM_ID", newValue: a?.id ?? null })
         }
+        suffixButtonChildren={<IconExternalLink />}
+        onSuffixButtonClick={() => {
+          router.push("/admin/forms");
+        }}
       />
       <Divider />
       <h4>Data inicial</h4>
