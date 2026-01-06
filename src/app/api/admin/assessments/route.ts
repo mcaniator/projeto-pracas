@@ -11,8 +11,10 @@ const paramsSchema = z.object({
   formId: z.coerce.number().optional(),
   userId: z.string().optional(),
   locationId: z.coerce.number().optional(),
-  pageSize: z.coerce.number().optional(),
-  pageNumber: z.coerce.number().optional(),
+  narrowUnitId: z.coerce.number().optional(),
+  intermediateUnitId: z.coerce.number().optional(),
+  broadUnitId: z.coerce.number().optional(),
+  cityId: z.coerce.number().optional(),
 });
 
 export type FetchAssessmentsParams = z.infer<typeof paramsSchema>;

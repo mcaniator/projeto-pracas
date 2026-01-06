@@ -1,10 +1,9 @@
+import { useHelperCard } from "@/components/context/helperCardContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
+import CDialog from "@/components/ui/dialog/cDialog";
+import { _deleteAssessment } from "@/lib/serverFunctions/serverActions/assessmentUtil";
 import { IconAlertSquareRounded } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
-
-import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../../components/context/loadingContext";
-import CDialog from "../../../../../../../components/ui/dialog/cDialog";
-import { _deleteAssessment } from "../../../../../../../lib/serverFunctions/serverActions/assessmentUtil";
 
 const DeleteAssessmentDialog = ({
   open,

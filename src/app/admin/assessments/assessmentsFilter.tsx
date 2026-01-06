@@ -1,38 +1,52 @@
+import LocationSelector from "@/components/locationSelector/locationSelector";
+import { Divider } from "@mui/material";
+import { useMemo } from "react";
+
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
-import CPagination from "../../../components/ui/cPagination";
-import { PaginationInfo } from "../../../lib/utils/apiCall";
 import { AssessmentsFilterType } from "./assessmentsClient";
 
 const AssessmentsFilter = ({
-  locations,
   forms,
   users,
-  paginationInfo,
-  currentPage,
+  selectedLocationId,
   handleFilterChange,
 }: {
-  locations: { id: number; name: string }[];
   forms: { id: number; name: string }[];
   users: { id: string; username: string }[];
-  paginationInfo: PaginationInfo;
-  currentPage: number;
+  selectedLocationId: number | undefined;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
   }) => void;
 }) => {
+  const statusOptions = useMemo(() => {
+    return [
+      {
+        id: 0,
+        label: "Todos",
+      },
+      {
+        id: 1,
+        label: "Em progresso",
+      },
+      {
+        id: 2,
+        label: "Finalizado",
+      },
+    ];
+  }, []);
   return (
     <div className="flex flex-col gap-1">
-      <CAutocomplete
-        label="Praça"
-        options={locations}
-        isOptionEqualToValue={(option, value) => option.id === value.id}
-        getOptionLabel={(i) => i.name}
-        onChange={(_, a) =>
-          handleFilterChange({ type: "LOCATION_ID", newValue: a?.id ?? null })
-        }
+      <h4>Localização</h4>
+      <LocationSelector
+        selectedLocationId={selectedLocationId}
+        onSelectedLocationChange={(v) => {
+          handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
+        }}
       />
+      <Divider />
+      <h4>Formulário</h4>
       <CAutocomplete
         label="Formulário"
         options={forms}
@@ -42,6 +56,8 @@ const AssessmentsFilter = ({
           handleFilterChange({ type: "FORM_ID", newValue: a?.id ?? null })
         }
       />
+      <Divider />
+      <h4>Data inicial</h4>
       <CDateTimePicker
         label="Início - Data inicial"
         debounce={600}
@@ -64,6 +80,8 @@ const AssessmentsFilter = ({
           });
         }}
       />
+      <Divider />
+      <h4>Responsável</h4>
       <CAutocomplete
         label="Responsável"
         options={users}
@@ -73,21 +91,17 @@ const AssessmentsFilter = ({
           handleFilterChange({ type: "USER_ID", newValue: a?.id ?? null })
         }
       />
-      <CPagination
-        paginationInfo={paginationInfo}
-        buttonColor="secondary"
-        onBackwards={() => {
-          handleFilterChange({
-            type: "PAGE_NUMBER",
-            newValue: currentPage - 1,
-          });
-        }}
-        onForward={() => {
-          handleFilterChange({
-            type: "PAGE_NUMBER",
-            newValue: currentPage + 1,
-          });
-        }}
+      <Divider />
+      <h4>Status</h4>
+      <CAutocomplete
+        label="Status"
+        options={statusOptions}
+        defaultValue={statusOptions[0]}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        getOptionLabel={(i) => i.label}
+        onChange={(_, a) =>
+          handleFilterChange({ type: "USER_ID", newValue: a?.id ?? null })
+        }
       />
     </div>
   );

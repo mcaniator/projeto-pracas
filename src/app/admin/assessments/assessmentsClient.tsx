@@ -3,6 +3,7 @@
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconClipboard, IconPlus } from "@tabler/icons-react";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
@@ -11,10 +12,6 @@ import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
 import { _fetchAssessments } from "../../../lib/serverFunctions/apiCalls/assessment";
 import { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
-import {
-  PaginationInfo,
-  generatePaginationResponseInfo,
-} from "../../../lib/utils/apiCall";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
 
@@ -24,35 +21,36 @@ export type AssessmentsFilterType =
   | "START_DATE"
   | "END_DATE"
   | "USER_ID"
-  | "PAGE_NUMBER";
+  | "BROAD_UNIT_ID"
+  | "INTERMEDIATE_UNIT_ID"
+  | "NARROW_UNIT_ID"
+  | "CITY_ID";
 
 const AssessmentsClient = ({
-  locationsPromise,
   forms,
   usersPromise,
 }: {
-  locationsPromise: Promise<{ id: number; name: string }[]>;
   forms: FetchFormsResponse["forms"];
   usersPromise: Promise<{ id: string; username: string }[]>;
 }) => {
+  const params = useSearchParams();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [assessments, setAssessments] = useState<
     FetchAssessmentsResponse["assessments"]
   >([]);
-  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>(
-    generatePaginationResponseInfo({}),
-  );
+
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
-
+  console.log(Number(params.get("locationId")));
   //Filters
   const [isLoading, setIsLoading] = useState(false);
-  const [locationId, setLocationId] = useState<number>();
+  const [locationId, setLocationId] = useState<number | undefined>(
+    params.get("locationId") ? Number(params.get("locationId")) : undefined,
+  );
   const [formId, setFormId] = useState<number>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [userId, setUserId] = useState<string>();
-  const [pageNumber, setPageNumber] = useState(1);
 
   const handleFilterChange = ({
     type,
@@ -93,9 +91,6 @@ const AssessmentsClient = ({
         case "FORM_ID":
           setFormId(newValue);
           break;
-        case "PAGE_NUMBER":
-          setPageNumber(newValue);
-          break;
       }
     } else if (newValue instanceof Date) {
       switch (type) {
@@ -128,14 +123,9 @@ const AssessmentsClient = ({
         startDate,
         endDate,
         userId,
-        pageNumber,
-        pageSize: 15,
       });
       helperCardProcessResponse(response.responseInfo);
       setAssessments(response.data?.assessments ?? []);
-      setPaginationInfo(
-        response.data?.paginationInfo ?? generatePaginationResponseInfo({}),
-      );
     } catch (e) {
       setHelperCard({
         show: true,
@@ -153,7 +143,6 @@ const AssessmentsClient = ({
     startDate,
     endDate,
     userId,
-    pageNumber,
   ]);
 
   useEffect(() => {
@@ -182,11 +171,9 @@ const AssessmentsClient = ({
         <div className="mx-0.5 my-0.5 basis-2/5">
           <Suspense fallback={<CSkeletonGroup quantity={5} />}>
             <AssessmentsFilterSidebar
-              locationsPromise={locationsPromise}
+              selectedLocationId={locationId}
               forms={forms}
               usersPromise={usersPromise}
-              paginationInfo={paginationInfo}
-              currentPage={pageNumber}
               handleFilterChange={handleFilterChange}
             />
           </Suspense>

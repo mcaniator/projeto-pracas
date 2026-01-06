@@ -1,9 +1,34 @@
 "use client";
 
+import { useHelperCard } from "@/components/context/helperCardContext";
+import CAccordion from "@/components/ui/accordion/CAccordion";
+import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
+import CButton from "@/components/ui/cButton";
+import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import CCheckboxGroup from "@/components/ui/cCheckboxGroup";
+import CHelpChip from "@/components/ui/cHelpChip";
+import CNumberField from "@/components/ui/cNumberField";
+import CRadioGroup from "@/components/ui/cRadioGroup";
+import CTextField from "@/components/ui/cTextField";
+import CCalculationChip from "@/components/ui/question/cCalculationChip";
+import CNotesChip from "@/components/ui/question/cNotesChip";
+import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
+import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
+import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
+import {
+  AssessmentCategoryItem,
+  AssessmentQuestionItem,
+  AssessmentSubcategoryItem,
+} from "@/lib/serverFunctions/queries/assessment";
+import { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import { Calculation } from "@/lib/utils/calculationUtils";
+import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { Box, Typography } from "@mui/material";
 import {
   IconDeviceFloppy,
   IconMap,
+  IconPencil,
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
@@ -11,30 +36,6 @@ import dayjs, { Dayjs } from "dayjs";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
-import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
-import CAccordion from "../../../../../../../components/ui/accordion/CAccordion";
-import CAccordionDetails from "../../../../../../../components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "../../../../../../../components/ui/accordion/CAccordionSummary";
-import CButton from "../../../../../../../components/ui/cButton";
-import CButtonFilePicker from "../../../../../../../components/ui/cButtonFilePicker";
-import CCheckboxGroup from "../../../../../../../components/ui/cCheckboxGroup";
-import CHelpChip from "../../../../../../../components/ui/cHelpChip";
-import CNumberField from "../../../../../../../components/ui/cNumberField";
-import CRadioGroup from "../../../../../../../components/ui/cRadioGroup";
-import CTextField from "../../../../../../../components/ui/cTextField";
-import CCalculationChip from "../../../../../../../components/ui/question/cCalculationChip";
-import CNotesChip from "../../../../../../../components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "../../../../../../../components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "../../../../../../../components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "../../../../../../../components/ui/question/cQuestionTypeChip";
-import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-} from "../../../../../../../lib/serverFunctions/queries/assessment";
-import { ResponseGeometry } from "../../../../../../../lib/types/assessments/geometry";
-import { Calculation } from "../../../../../../../lib/utils/calculationUtils";
-import { FormItemUtils } from "../../../../../../../lib/utils/formTreeUtils";
 import MapDialog from "./MapDialog";
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
@@ -58,6 +59,7 @@ const ResponseFormV2 = ({
   locationId,
   assessmentTree,
   finalized,
+  userCanEdit,
 }: {
   locationName: string;
   locationId: number;
@@ -72,6 +74,7 @@ const ResponseFormV2 = ({
     categories: AssessmentCategoryItem[];
   };
   finalized: boolean;
+  userCanEdit: boolean;
 }) => {
   const { setHelperCard } = useHelperCard();
   const { control, handleSubmit, reset } = useForm<FormValues>({
@@ -81,7 +84,11 @@ const ResponseFormV2 = ({
   const [numericResponses, setNumericResponses] = useState(
     new Map<number, number>(),
   );
-
+  const [isFilling, setIsFilling] = useState(
+    finalized ? false
+    : userCanEdit ? true
+    : false,
+  );
   const [questionsForMention] = useState(() => {
     const questions: SimpleMention[] = [];
     assessmentTree.categories.forEach((c) => {
@@ -105,7 +112,9 @@ const ResponseFormV2 = ({
   });
 
   const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(null);
+    useState<Dayjs | null>(
+      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+    );
 
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     assessmentTree.geometries,
@@ -117,7 +126,6 @@ const ResponseFormV2 = ({
   const [filledCount, setFilledCount] = useState(0);
 
   const allValues = useWatch({ control });
-  console.log(allValues);
 
   const totalQuestions = assessmentTree.totalQuestions;
 
@@ -241,9 +249,9 @@ const ResponseFormV2 = ({
       }}
       className="flex w-full flex-col gap-4"
     >
-      {!finalized && (
+      {isFilling && (
         <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
             <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
             <CButtonFilePicker
               fileAccept="application/json"
@@ -268,6 +276,21 @@ const ResponseFormV2 = ({
           </CButton>
         </div>
       )}
+      {!isFilling && userCanEdit && (
+        <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
+          <div className="flex items-center gap-1">
+            <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+            <CButton
+              square
+              onClick={() => {
+                setIsFilling(true);
+              }}
+            >
+              <IconPencil />
+            </CButton>
+          </div>
+        </div>
+      )}
 
       {assessmentTree.categories.map((cat, index) => (
         <Category
@@ -276,7 +299,7 @@ const ResponseFormV2 = ({
           numericResponses={numericResponses}
           geometries={geometries}
           questionsForMention={questionsForMention}
-          finalized={finalized}
+          finalized={!isFilling}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           control={control}
         />
@@ -285,12 +308,14 @@ const ResponseFormV2 = ({
       <Typography mt={2} className="text-black">
         Campos preenchidos: {filledCount} / {totalQuestions}
       </Typography>
-      <div className="flew-row flex justify-center gap-1">
-        <CButton type="submit">
-          <IconDeviceFloppy />
-          Salvar
-        </CButton>
-      </div>
+      {isFilling && (
+        <div className="flew-row flex justify-center gap-1">
+          <CButton type="submit">
+            <IconDeviceFloppy />
+            Salvar
+          </CButton>
+        </div>
+      )}
 
       <SaveAssessmentDialog
         locationName={locationName}

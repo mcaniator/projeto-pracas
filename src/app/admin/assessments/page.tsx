@@ -5,12 +5,6 @@ import { prisma } from "../../../lib/prisma";
 import AssessmentsClient from "./assessmentsClient";
 
 const Assessments = async () => {
-  const locationsPromise = prisma.location.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-  });
   const usersPromise = prisma.user.findMany({
     where: {
       username: {
@@ -26,13 +20,7 @@ const Assessments = async () => {
     },
   }) as Prisma.PrismaPromise<{ id: string; username: string }[]>; // Assertion for defining username as not null
   const forms = (await fetchForms({ finalizedOnly: true })).data.forms;
-  return (
-    <AssessmentsClient
-      locationsPromise={locationsPromise}
-      usersPromise={usersPromise}
-      forms={forms}
-    />
-  );
+  return <AssessmentsClient usersPromise={usersPromise} forms={forms} />;
 };
 
 export default Assessments;

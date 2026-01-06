@@ -1,6 +1,7 @@
 "use client";
 
 import { useHelperCard } from "@/components/context/helperCardContext";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionGeometryTypes } from "@prisma/client";
 import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
@@ -28,8 +29,6 @@ import {
   useRef,
   useState,
 } from "react";
-
-import CToggleButtonGroup from "../../../../../../../components/ui/cToggleButtonGroup";
 
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 

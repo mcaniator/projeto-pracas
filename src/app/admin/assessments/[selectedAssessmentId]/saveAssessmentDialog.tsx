@@ -1,15 +1,15 @@
 "use client";
 
+import { useHelperCard } from "@/components/context/helperCardContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
+import CSwitch from "@/components/ui/cSwtich";
+import CDialog from "@/components/ui/dialog/cDialog";
+import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
 import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
 
-import { useHelperCard } from "../../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../../components/context/loadingContext";
-import CDateTimePicker from "../../../../../../../components/ui/cDateTimePicker";
-import CSwitch from "../../../../../../../components/ui/cSwtich";
-import CDialog from "../../../../../../../components/ui/dialog/cDialog";
-import { _addResponsesV2 } from "../../../../../../../lib/serverFunctions/serverActions/responseUtil";
 import { FormValues, ResponseFormGeometry } from "./responseFormV2";
 
 const SaveAssessmentDialog = ({

@@ -298,6 +298,18 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         id: true,
         endDate: true,
         startDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         form: {
           select: {
             id: true,
@@ -582,6 +594,14 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         startDate: assessment.startDate,
         endDate: assessment.endDate,
         formName: assessment.form.name,
+        location: {
+          id: assessment.location.id,
+          name: assessment.location.name,
+        },
+        user: {
+          id: assessment.user.id,
+          username: assessment.user.username,
+        },
         totalQuestions: totalQuestions,
         responsesFormValues: responsesFormValues,
         geometries: geometries,
@@ -604,67 +624,50 @@ type FetchAssessmentsResponse = NonNullable<
 
 const fetchAssessments = async (params: FetchAssessmentsParams) => {
   try {
-    const pagination = generatePrismaPaginationObject({
-      pageNumber: params.pageNumber,
-      pageSize: params.pageSize,
-    });
-
-    const where = {
-      startDate: {
-        gte: params.startDate,
-        lte: params.endDate,
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        startDate: {
+          gte: params.startDate,
+          lte: params.endDate,
+        },
+        formId: params.formId,
+        userId: params.userId,
+        location: {
+          id: params.locationId,
+          cityId: params.cityId,
+          narrowAdministrativeUnitId: params.narrowUnitId,
+          intermediateAdministrativeUnitId: params.intermediateUnitId,
+          broadAdministrativeUnitId: params.broadUnitId,
+        },
       },
-      formId: params.formId,
-      userId: params.userId,
-      locationId: params.locationId,
-    };
-    const [assessments, totalItems] = await Promise.all([
-      prisma.assessment.findMany({
-        where: where,
-        ...pagination,
-        orderBy: {
-          startDate: "desc",
-        },
-        select: {
-          id: true,
-          startDate: true,
-          endDate: true,
-          user: {
-            select: {
-              username: true,
-            },
-          },
-          form: {
-            select: {
-              name: true,
-            },
-          },
-          location: {
-            select: {
-              name: true,
-            },
+      orderBy: {
+        startDate: "desc",
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        user: {
+          select: {
+            username: true,
           },
         },
-      }),
-      prisma.assessment.count({ where }),
-    ]);
-    console.log(
-      "generated",
-      generatePaginationResponseInfo({
-        totalItems,
-        pageNumber: params.pageNumber,
-        pageSize: params.pageSize,
-      }),
-    );
+        form: {
+          select: {
+            name: true,
+          },
+        },
+        location: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
         assessments,
-        paginationInfo: generatePaginationResponseInfo({
-          totalItems,
-          pageNumber: params.pageNumber,
-          pageSize: params.pageSize,
-        }),
       },
     };
   } catch (e) {
@@ -675,7 +678,6 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
       } as APIResponseInfo,
       data: {
         assessments: [],
-        paginationInfo: generatePaginationResponseInfo({}),
       },
     };
   }
