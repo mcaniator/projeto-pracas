@@ -19,6 +19,7 @@ import {
 } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import { GrGroup } from "react-icons/gr";
 
 import { checkIfRolesArrayContainsAny } from "../../../lib/auth/rolesUtil";
 import { useUserContext } from "../../context/UserContext";
@@ -61,6 +62,12 @@ const Sidebar = () => {
       show: checkIfRolesArrayContainsAny(user.roles, {
         roleGroups: ["ASSESSMENT"],
       }),
+    },
+    {
+      icon: <GrGroup size={34} />,
+      name: "Contagens",
+      path: "/admin/tallys",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
     },
     {
       icon: <IconListCheck size={34} />,

@@ -41,13 +41,47 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
     }
     const queryString = params ? generateQueryString(params) : "";
     const fullUrl = queryString ? `${url}?${queryString}` : url;
-    const response = await fetch(fullUrl, options);
+    try {
+      const response = await fetch(fullUrl, options);
 
-    if (!response.ok) {
-      const message = await response.text();
+      if (!response.ok) {
+        const message = await response.text();
+        const errorResponseInfo: APIResponseInfo = {
+          statusCode: response.status,
+          message: message ?? `Erro na requisição ao servidor!`,
+        };
+        callbacks?.onCallFailed?.({
+          responseInfo: errorResponseInfo,
+          data: null,
+        });
+        helperCardProcessResponse(errorResponseInfo);
+        setIsLoading(false);
+        return {
+          responseInfo: errorResponseInfo,
+          data: null,
+        };
+      }
+
+      const json = (await response.json()) as APIResponse<T>;
+      if (
+        json.responseInfo.statusCode >= 200 &&
+        json.responseInfo.statusCode < 300
+      ) {
+        callbacks?.onSuccess?.(json);
+      } else {
+        callbacks?.onError?.(json);
+      }
+      helperCardProcessResponse(json.responseInfo);
+      setLoadingOverlay({ show: false });
+      setIsLoading(false);
+      return {
+        responseInfo: json.responseInfo,
+        data: json.data,
+      };
+    } catch (e) {
       const errorResponseInfo: APIResponseInfo = {
-        statusCode: response.status,
-        message: message ?? `Erro na requisição ao servidor!`,
+        statusCode: 500,
+        message: `Erro na requisição ao servidor!`,
       };
       callbacks?.onCallFailed?.({
         responseInfo: errorResponseInfo,
@@ -60,23 +94,6 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
         data: null,
       };
     }
-
-    const json = (await response.json()) as APIResponse<T>;
-    if (
-      json.responseInfo.statusCode >= 200 &&
-      json.responseInfo.statusCode < 300
-    ) {
-      callbacks?.onSuccess?.(json);
-    } else {
-      callbacks?.onError?.(json);
-    }
-    helperCardProcessResponse(json.responseInfo);
-    setLoadingOverlay({ show: false });
-    setIsLoading(false);
-    return {
-      responseInfo: json.responseInfo,
-      data: json.data,
-    };
   }, []);
 
   return [fetchFunction, isLoading];

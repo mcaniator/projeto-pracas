@@ -1,5 +1,67 @@
+import { FetchTallysParams } from "@/app/api/admin/tallys/route";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
+
+export type FetchTallysResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchTallys>>["data"]
+>;
+export const fetchTallys = async (params: FetchTallysParams) => {
+  try {
+    const tallys = await prisma.tally.findMany({
+      where: {
+        startDate: {
+          gte: params.startDate,
+          lte: params.endDate,
+        },
+        userId: params.userId,
+        location: {
+          id: params.locationId,
+          cityId: params.cityId,
+          narrowAdministrativeUnitId: params.narrowUnitId,
+          intermediateAdministrativeUnitId: params.intermediateUnitId,
+          broadAdministrativeUnitId: params.broadUnitId,
+        },
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+        location: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+    });
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        tallys,
+      },
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar contagens!",
+      } as APIResponseInfo,
+      data: {
+        tallys: [],
+      },
+    };
+  }
+};
 
 const fetchTallysByLocationId = async (locationId: number) => {
   try {

@@ -1,7 +1,9 @@
 "use server";
 
 import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUserId } from "@auth/userUtil";
 import {
   ActivityType,
@@ -17,8 +19,9 @@ import {
   commercialActivitySchema,
   tallyPersonArraySchema,
 } from "@zodValidators";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 interface WeatherStats {
   temperature: number | null;
@@ -45,6 +48,70 @@ const _fetchTallysByLocationId = async (locationId: number) => {
   }
   const response = await fetchTallysByLocationId(locationId);
   return response;
+};
+
+export const _createTallyV2 = async (
+  prevState: { responseInfo: APIResponseInfo },
+  formData: FormData,
+) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+    });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
+  }
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Não foi possível obter os dados do usuário logado!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    const locationId = z.coerce.number().parse(formData.get("locationId"));
+    const userId = z.string().parse(session.user.id);
+    const startDate = z.coerce.date().parse(formData.get("startDate"));
+    try {
+      await prisma.tally.create({
+        data: {
+          startDate: new Date(startDate),
+          user: { connect: { id: userId } },
+          location: { connect: { id: Number(locationId) } },
+        },
+      });
+      revalidateTag("tally");
+      return {
+        responseInfo: {
+          statusCode: 201,
+          showSuccessCard: true,
+          message: `Contagem criada!`,
+        } as APIResponseInfo,
+      };
+    } catch (error) {
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao criar contagem!",
+        } as APIResponseInfo,
+      };
+    }
+  } catch (e) {
+    console.log(e);
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
 };
 
 const _createTally = async (

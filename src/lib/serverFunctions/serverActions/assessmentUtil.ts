@@ -136,7 +136,7 @@ const _createAssessmentV2 = async (
       return {
         responseInfo: {
           statusCode: 500,
-          message: "Erro ao editar praça!",
+          message: "Erro ao criar avaliação!",
         } as APIResponseInfo,
       };
     }
