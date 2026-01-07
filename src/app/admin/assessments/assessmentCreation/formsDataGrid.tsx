@@ -23,7 +23,7 @@ const FormsDataGrid = ({
     },
   });
   const loadForms = useCallback(() => {
-    void _fetchForms({});
+    void _fetchForms({ finalizedOnly: true });
   }, [_fetchForms]);
   useEffect(() => {
     void loadForms();

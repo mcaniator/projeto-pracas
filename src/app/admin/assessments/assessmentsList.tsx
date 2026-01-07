@@ -1,8 +1,8 @@
-import { Chip } from "@mui/material";
+import { Chip, Divider } from "@mui/material";
 import {
   IconCalendar,
   IconClipboard,
-  IconFountain,
+  IconFilePencil,
   IconUser,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -33,35 +33,36 @@ const AssessmentsList = ({
               <div className="pb-4">
                 <div
                   key={a.id}
-                  className="flex flex-row justify-between rounded-3xl bg-gray-200 p-2 px-6 shadow-xl hover:scale-[1.02]"
+                  className="flex flex-row justify-between bg-gray-200 p-2 px-2 shadow-xl hover:scale-[1.02]"
                 >
                   <div className="flex h-auto w-full flex-col gap-1">
-                    <span className="flex break-all text-2xl font-semibold">
-                      <CIconChip icon={<IconFountain />} tooltip="Praça" />
-                      {a.location.name}
-                    </span>
-                    <div className="flex w-full flex-wrap text-xl font-semibold">
-                      <div>Avaliação #{a.id} </div>
-
+                    <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
+                      <CIconChip
+                        icon={<IconFilePencil />}
+                        tooltip="Praça - Avaliação"
+                      />
+                      {`${a.location.name} - ${a.id} `}
                       <Chip
+                        sx={{ ml: 2 }}
                         color={a.endDate ? "secondary" : "error"}
                         label={a.endDate ? "Finalizado" : "Em progresso"}
                       />
-                    </div>
-                    <span className="flex text-xl">
+                    </span>
+                    <Divider />
+                    <span className="flex items-center text-base sm:text-xl">
                       <CIconChip icon={<IconClipboard />} tooltip="Fomulário" />
                       {a.form.name}
                     </span>
-                    <span className="flex text-xl">
+                    <Divider />
+                    <span className="flex items-center text-base sm:text-xl">
                       <CIconChip
                         icon={<IconCalendar />}
-                        tooltip={
-                          a.endDate ? "Data de início" : "Data de finalização"
-                        }
+                        tooltip={a.endDate ? "Início - Fim" : "Início"}
                       />
                       {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
                     </span>
-                    <span className="flex text-xl">
+                    <Divider />
+                    <span className="flex items-center text-base sm:text-xl">
                       <CIconChip icon={<IconUser />} tooltip="Responsável" />
                       {a.user.username}
                     </span>

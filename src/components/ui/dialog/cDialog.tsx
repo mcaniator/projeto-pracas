@@ -104,7 +104,19 @@ const CDialog = ({
       openDialogCounterContext.openedDialogsCounterRef.current ===
       dialogIndexRef.current
     ) {
-      if (forceBackNavigation) {
+      if (
+        !forceBackNavigation &&
+        !!openDialogCounterContext.timeoutRef.current
+      ) {
+        window.history.pushState(
+          { dialogIndex: dialogIndexRef.current - 1 },
+          "",
+        );
+      }
+      if (
+        forceBackNavigation &&
+        !!openDialogCounterContext.timeoutRef.current
+      ) {
         window.history.back();
       }
       window.removeEventListener("popstate", () => {

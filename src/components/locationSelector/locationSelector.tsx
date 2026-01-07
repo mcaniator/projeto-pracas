@@ -90,6 +90,34 @@ const LocationSelector = ({
             name: null,
           });
           onSelectedLocationChange(defaultLocation);
+          onSelectedCityChange?.({
+            id: defaultLocation.cityId,
+            name: "",
+            state: defaultLocation.state,
+            broadAdministrativeUnit: [],
+            intermediateAdministrativeUnit: [],
+            narrowAdministrativeUnit: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          onSelectedBroadUnitChange?.(
+            defaultLocation.broadAdministrativeUnitId ?
+              { broadUnitId: defaultLocation.broadAdministrativeUnitId }
+            : null,
+          );
+          onSelectedIntermediateUnitChange?.(
+            defaultLocation.intermediateAdministrativeUnitId ?
+              {
+                intermediateUnitId:
+                  defaultLocation.intermediateAdministrativeUnitId,
+              }
+            : null,
+          );
+          onSelectedNarrowUnitChange?.(
+            defaultLocation.narrowAdministrativeUnitId ?
+              { narrowUnitId: defaultLocation.narrowAdministrativeUnitId }
+            : null,
+          );
           setHasLoadedDefaultLocation(true);
         }
       },
@@ -111,6 +139,8 @@ const LocationSelector = ({
 
         const initialCity = response.data?.cities[0] ?? null;
         setSelectedCity(initialCity);
+        if (defaultLocationId && !hasMadeFirstChange.current) return;
+        onSelectedCityChange?.(initialCity);
       },
     },
   });
@@ -322,7 +352,21 @@ const LocationSelector = ({
           loading={loadingDefaultLocation}
           options={Object.values(BrazilianStates)}
           value={state}
-          onChange={(_, v) => setState(v)}
+          onChange={(_, v) => {
+            setFilter({
+              broadAdministrativeUnitId: null,
+              intermediateAdministrativeUnitId: null,
+              narrowAdministrativeUnitId: null,
+              categoryId: null,
+              typeId: null,
+              name: null,
+            });
+            onSelectedCityChange?.(null);
+            onSelectedBroadUnitChange?.(null);
+            onSelectedIntermediateUnitChange?.(null);
+            onSelectedNarrowUnitChange?.(null);
+            setState(v);
+          }}
         />
         <CAutocomplete
           className="w-full"
@@ -347,7 +391,18 @@ const LocationSelector = ({
           onChange={(_, v) => {
             hasMadeFirstChange.current = true;
             setSelectedCity(v);
+            setFilter({
+              broadAdministrativeUnitId: null,
+              intermediateAdministrativeUnitId: null,
+              narrowAdministrativeUnitId: null,
+              categoryId: null,
+              typeId: null,
+              name: null,
+            });
             onSelectedCityChange?.(v ?? null);
+            onSelectedBroadUnitChange?.(null);
+            onSelectedIntermediateUnitChange?.(null);
+            onSelectedNarrowUnitChange?.(null);
           }}
         />
       </div>

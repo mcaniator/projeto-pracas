@@ -56,7 +56,7 @@ const SaveAssessmentDialog = ({
         setEnableJsonSaving(true);
       } else {
         if (response.data?.savedAsFinalized) {
-          router.refresh();
+          router.push(`/admin/assessments`);
         }
       }
     } catch (e) {

@@ -2,9 +2,16 @@
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
-import { IconClipboard, IconPlus } from "@tabler/icons-react";
+import { IconClipboard, IconFilter, IconPlus } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
@@ -35,6 +42,7 @@ const AssessmentsClient = ({
 }) => {
   const params = useSearchParams();
   const lastFetchedLocationId = useRef<number | undefined>(undefined);
+  const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [assessments, setAssessments] = useState<
     FetchAssessmentsResponse["assessments"]
@@ -42,11 +50,10 @@ const AssessmentsClient = ({
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
+  const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
   //Filters
   const [isLoading, setIsLoading] = useState(true);
-  const [locationId, setLocationId] = useState<number | undefined>(
-    params.get("locationId") ? Number(params.get("locationId")) : undefined,
-  );
+  const [locationId, setLocationId] = useState<number | undefined>(undefined);
   const [formId, setFormId] = useState<number>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -137,9 +144,32 @@ const AssessmentsClient = ({
       if (!params?.forceFetch) {
         lastFetchedLocationId.current === locationId;
 
-        if (!!locationId && lastFetchedLocationId.current === locationId) {
-          return; //LocationId has maximum priority in the filters. If it has a value and it hasn't changed, no need to refetch.
-        }
+        /*if (
+          !!locationId &&
+          lastFetchedLocationId.current === locationId &&
+          !formId &&
+          !userId &&
+          !startDate &&
+          !endDate
+        ) {
+          return; //Prevents loading a second time the data filtered by location in params.
+        }*/
+      }
+
+      if (
+        !locationId &&
+        !formId &&
+        !userId &&
+        !startDate &&
+        !endDate &&
+        !cityId &&
+        !broadUnitId &&
+        !intermediateUnitId &&
+        !narrowUnitId
+      ) {
+        // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
+        setAssessments([]);
+        return;
       }
 
       if (startDate) {
@@ -199,38 +229,96 @@ const AssessmentsClient = ({
     };
     void fetch();
   }, [fetchAssessments]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobileView = window.innerWidth < 1000;
+      if (!isMobileView) setOpenFiltersDialog(false);
+      setIsMobileView(isMobileView);
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const totalFilters = useMemo(() => {
+    let total = 0;
+    if (locationId) total++;
+    if (formId) total++;
+    if (startDate) total++;
+    if (endDate) total++;
+    if (userId) total++;
+    if (cityId) total++;
+    if (broadUnitId) total++;
+    if (intermediateUnitId) total++;
+    if (narrowUnitId) total++;
+    return total + 1; // +1 for the state filter always being shown
+  }, [
+    locationId,
+    formId,
+    startDate,
+    endDate,
+    userId,
+    cityId,
+    broadUnitId,
+    intermediateUnitId,
+    narrowUnitId,
+  ]);
   return (
     <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader
         titleIcon={<IconClipboard />}
         title="Avaliações"
         append={
-          <CButton onClick={() => setOpenAssessmentCreationDialog(true)}>
-            <IconPlus /> Criar
-          </CButton>
+          <div className="flex items-center gap-1">
+            {isMobileView && (
+              <CButton
+                square={isMobileView}
+                enableTopLeftChip
+                topLeftChipLabel={totalFilters}
+                onClick={() => setOpenFiltersDialog(true)}
+              >
+                <IconFilter />
+              </CButton>
+            )}
+            <CButton
+              square={isMobileView}
+              onClick={() => setOpenAssessmentCreationDialog(true)}
+            >
+              <IconPlus />
+              {isMobileView ? "" : "Criar"}
+            </CButton>
+          </div>
         }
       />
       <div className="flex h-full overflow-auto">
-        <div className="basis-3/5 overflow-auto">
+        <div
+          className={`${isMobileView ? "basis-full" : "basis-3/5"} overflow-auto`}
+        >
           {isLoading ?
             <CSkeletonGroup quantity={5} height={120} />
           : <AssessmentsList assessments={assessments} />}
         </div>
-        <div className="mx-0.5 my-0.5 basis-2/5">
-          <Suspense fallback={<CSkeletonGroup quantity={5} />}>
-            <AssessmentsFilterSidebar
-              defaultLocationId={
-                params.get("locationId") ?
-                  Number(params.get("locationId"))
-                : undefined
-              }
-              selectedLocationId={locationId}
-              forms={forms}
-              usersPromise={usersPromise}
-              handleFilterChange={handleFilterChange}
-            />
-          </Suspense>
-        </div>
+
+        <Suspense fallback={<CSkeletonGroup quantity={5} />}>
+          <AssessmentsFilterSidebar
+            openDialog={openFiltersDialog}
+            isDialog={isMobileView}
+            onCloseDialog={() => setOpenFiltersDialog(false)}
+            defaultLocationId={
+              params.get("locationId") ?
+                Number(params.get("locationId"))
+              : undefined
+            }
+            selectedLocationId={locationId}
+            forms={forms}
+            usersPromise={usersPromise}
+            handleFilterChange={handleFilterChange}
+          />
+        </Suspense>
       </div>
       <AssessmentCreationDialog
         open={openAssessmentCreationDialog}

@@ -2,6 +2,7 @@ import { ReactNode, RefObject, createContext, useContext, useRef } from "react";
 
 type OpenedDialogsCounterContextType = {
   openedDialogsCounterRef: RefObject<number>;
+  timeoutRef: RefObject<NodeJS.Timeout | null>;
   openDialog: () => number;
   closeDialog: () => number;
 };
@@ -15,6 +16,7 @@ export const OpenedDialogsCounterProvider = ({
   children: ReactNode;
 }) => {
   const openedDialogsCounterRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const openDialog = () => {
     openedDialogsCounterRef.current += 1;
     return openedDialogsCounterRef.current;
@@ -22,11 +24,14 @@ export const OpenedDialogsCounterProvider = ({
   const closeDialog = () => {
     if (openedDialogsCounterRef.current <= 0) return 0;
     openedDialogsCounterRef.current -= 1;
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
+    }, 100);
     return openedDialogsCounterRef.current;
   };
   return (
     <OpenedDialogsCounterContext.Provider
-      value={{ openedDialogsCounterRef, openDialog, closeDialog }}
+      value={{ openedDialogsCounterRef, timeoutRef, openDialog, closeDialog }}
     >
       {children}
     </OpenedDialogsCounterContext.Provider>
