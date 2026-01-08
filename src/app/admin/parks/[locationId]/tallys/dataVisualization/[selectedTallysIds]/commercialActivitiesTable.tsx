@@ -70,7 +70,8 @@ const CommercialActivitiesTable = ({
         <thead>
           <tr>
             <th
-              style={{ border: "1px solid white", padding: "0.5rem" }}
+              className="border border-gray-500"
+              style={{ padding: "0.5rem" }}
               colSpan={
                 sortedCommercialActivitiesNames.length ?
                   sortedCommercialActivitiesNames.length + 1
@@ -83,12 +84,15 @@ const CommercialActivitiesTable = ({
         </thead>
         <tbody>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+            <td
+              className="border border-gray-500"
+              style={{ padding: "0.5rem" }}
+            >
               Total
             </td>
             <td
+              className="border border-gray-500"
               style={{
-                border: "1px solid white",
                 padding: "0.5rem",
                 textAlign: "center",
               }}
@@ -98,7 +102,10 @@ const CommercialActivitiesTable = ({
             </td>
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+            <td
+              className="border border-gray-500"
+              style={{ padding: "0.5rem" }}
+            >
               Tipos
             </td>
             {sortedCommercialActivitiesNames.length ?
@@ -106,8 +113,8 @@ const CommercialActivitiesTable = ({
                 return (
                   <td
                     key={key}
+                    className="border border-gray-500"
                     style={{
-                      border: "1px solid white",
                       padding: "0.5rem",
                       textAlign: "center",
                     }}
@@ -117,8 +124,8 @@ const CommercialActivitiesTable = ({
                 );
               })
             : <td
+                className="border border-gray-500"
                 style={{
-                  border: "1px solid white",
                   padding: "0.5rem",
                   textAlign: "center",
                 }}
@@ -128,7 +135,10 @@ const CommercialActivitiesTable = ({
             }
           </tr>
           <tr>
-            <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+            <td
+              className="border border-gray-500"
+              style={{ padding: "0.5rem" }}
+            >
               Total por tipo
             </td>
             {sortedOccurrences.length ?
@@ -136,8 +146,8 @@ const CommercialActivitiesTable = ({
                 return (
                   <td
                     key={key}
+                    className="border border-gray-500"
                     style={{
-                      border: "1px solid white",
                       padding: "0.5rem",
                       textAlign: "center",
                     }}
@@ -147,8 +157,8 @@ const CommercialActivitiesTable = ({
                 );
               })
             : <td
+                className="border border-gray-500"
                 style={{
-                  border: "1px solid white",
                   padding: "0.5rem",
                   textAlign: "center",
                 }}
@@ -161,7 +171,10 @@ const CommercialActivitiesTable = ({
             ([tallyId, commercialActivitiesObject]) => {
               return (
                 <tr key={tallyId}>
-                  <td style={{ border: "1px solid white", padding: "0.5rem" }}>
+                  <td
+                    className="border border-gray-500"
+                    style={{ padding: "0.5rem" }}
+                  >
                     {`${commercialActivitiesObject.tallyInfo.startDate} - ${commercialActivitiesObject.tallyInfo.observer}`}
                   </td>
                   {sortedCommercialActivitiesNames.length ?
@@ -170,8 +183,8 @@ const CommercialActivitiesTable = ({
                         return (
                           <td
                             key={key}
+                            className="border border-gray-500"
                             style={{
-                              border: "1px solid white",
                               padding: "0.5rem",
                               textAlign: "center",
                             }}
@@ -192,8 +205,8 @@ const CommercialActivitiesTable = ({
                       },
                     )
                   : <td
+                      className="border border-gray-500"
                       style={{
-                        border: "1px solid white",
                         padding: "0.5rem",
                         textAlign: "center",
                       }}

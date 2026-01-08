@@ -1,20 +1,18 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
+import CCheckbox from "@/components/ui/cCheckbox";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import React, { useState } from "react";
 
 const DataFilter = ({
   setBooleanConditionsFilter,
   booleanConditionsFilter,
-  blackCheckboxBorder,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
 
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
-  blackCheckboxBorder?: boolean;
 }) => {
   const [checkedNonDefaultCheckboxes, setCheckedNonDefaultCheckboxes] =
     useState<(BooleanPersonProperties | "DEFAULT")[]>([]);
@@ -42,7 +40,7 @@ const DataFilter = ({
     !booleanConditionsFilter.includes("DEFAULT");
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-5 overflow-auto">
+      <div className="flex flex-col gap-5 overflow-auto outline outline-1 outline-gray-300">
         <div className="flex basis-1/5 flex-col">
           <h3 className="text-xl font-semibold">Pessoas</h3>
           <div className="flex flex-row gap-1">
@@ -54,10 +52,7 @@ const DataFilter = ({
                   </label>
                 </span>
                 <span className="ml-auto">
-                  <Checkbox
-                    className={
-                      blackCheckboxBorder ? "border-black" : "border-white"
-                    }
+                  <CCheckbox
                     id="default"
                     value={"DEFAULT"}
                     onChange={handleFilterChange}
@@ -81,10 +76,7 @@ const DataFilter = ({
                     opacity: enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
-                    className={
-                      blackCheckboxBorder ? "border-black" : "border-white"
-                    }
+                  <CCheckbox
                     id="isTraversing"
                     value={"isTraversing"}
                     onChange={handleFilterChange}
@@ -109,10 +101,7 @@ const DataFilter = ({
                     opacity: enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
-                    className={
-                      blackCheckboxBorder ? "border-black" : "border-white"
-                    }
+                  <CCheckbox
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
                     onChange={handleFilterChange}
@@ -140,10 +129,7 @@ const DataFilter = ({
                     opacity: enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
-                    className={
-                      blackCheckboxBorder ? "border-black" : "border-white"
-                    }
+                  <CCheckbox
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
                     onChange={handleFilterChange}
@@ -170,10 +156,7 @@ const DataFilter = ({
                     opacity: enableNonDefaultCheckboxes ? 1 : 0,
                   }}
                 >
-                  <Checkbox
-                    className={
-                      blackCheckboxBorder ? "border-black" : "border-white"
-                    }
+                  <CCheckbox
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
                     onChange={handleFilterChange}

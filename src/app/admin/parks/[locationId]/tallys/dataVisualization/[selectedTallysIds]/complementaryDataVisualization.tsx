@@ -57,7 +57,10 @@ const ComplementaryDataVisualization = ({
         <table>
           <thead>
             <tr>
-              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+              <th
+                className="border border-gray-500"
+                style={{ padding: "0.5rem" }}
+              >
                 Pets
               </th>
             </tr>
@@ -65,8 +68,8 @@ const ComplementaryDataVisualization = ({
           <tbody>
             <tr>
               <td
+                className="border border-gray-500"
                 style={{
-                  border: "1px solid white",
                   padding: "0.5rem",
                   textAlign: "center",
                 }}
@@ -79,7 +82,10 @@ const ComplementaryDataVisualization = ({
         <table>
           <thead>
             <tr>
-              <th style={{ border: "1px solid white", padding: "0.5rem" }}>
+              <th
+                className="border border-gray-500"
+                style={{ padding: "0.5rem" }}
+              >
                 Grupos com 2 ou mais pessoas
               </th>
             </tr>
@@ -87,8 +93,8 @@ const ComplementaryDataVisualization = ({
           <tbody>
             <tr>
               <td
+                className="border border-gray-500"
                 style={{
-                  border: "1px solid white",
                   padding: "0.5rem",
                   textAlign: "center",
                 }}
