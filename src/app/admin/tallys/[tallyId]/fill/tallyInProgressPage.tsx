@@ -2,6 +2,8 @@
 
 import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/commercialActivityCreationDialog";
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
+import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
+import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
 import { Button } from "@/components/button";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
@@ -9,6 +11,7 @@ import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CNumberField from "@/components/ui/cNumberField";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
@@ -23,7 +26,9 @@ import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
 import { Paper } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
+  IconChartBar,
   IconClipboardData,
+  IconDeviceFloppy,
   IconMoodDollar,
   IconPlus,
   IconTrashX,
@@ -38,8 +43,6 @@ import { GrGroup } from "react-icons/gr";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 
 import TallyInProgressReview from "./tallyInProgressReview";
-import { TallyInProgressReviewModal } from "./tallyInProgressReviewModal";
-import TallyInProgressSaveModal from "./tallyInProgressSaveModal";
 
 interface SubmittingObj {
   submitting: boolean;
@@ -100,6 +103,8 @@ const TallyInProgressPage = ({
     openCommercialActivityCreationDialog,
     setOpenCommercialActivityCreationDialog,
   ] = useState(false);
+  const [openReviewDialog, setOpenReviewDialog] = useState(false);
+  const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [submittingObj, setSubmittingObj] = useState<SubmittingObj>({
     submitting: false,
     finishing: false,
@@ -229,28 +234,27 @@ const TallyInProgressPage = ({
           <CAdminHeader
             titleIcon={<GrGroup size={28} />}
             title={`Contagem em ${tally?.location.name}`}
+            below={
+              <div className="flex items-center gap-1 xl:hidden">
+                <CButton
+                  square
+                  onClick={() => {
+                    setOpenReviewDialog(true);
+                  }}
+                >
+                  <IconChartBar />
+                </CButton>
+                <CButton
+                  square
+                  onClick={() => {
+                    setOpenSaveDialog(true);
+                  }}
+                >
+                  <IconDeviceFloppy />
+                </CButton>
+              </div>
+            }
           />
-          <div className="flex flex-wrap">
-            <div className="ml-auto flex flex-wrap gap-1 xl:hidden">
-              <TallyInProgressReviewModal
-                tally={tally}
-                weatherStats={weatherStats}
-                complementaryData={complementaryData}
-                commercialActivities={commercialActivities}
-                tallyMap={tallyMap}
-              />
-              <TallyInProgressSaveModal
-                submittingObj={submittingObj}
-                tallyId={tallyId}
-                locationId={locationId}
-                weatherStats={weatherStats}
-                complementaryData={complementaryData}
-                commercialActivities={commercialActivities}
-                tallyMap={tallyMap}
-                setSubmittingObj={setSubmittingObj}
-              />
-            </div>
-          </div>
 
           <div className="flex flex-col gap-2 overflow-auto">
             <div className="flex flex-col gap-1">
@@ -267,6 +271,7 @@ const TallyInProgressPage = ({
                       label="Temperatura"
                       tooltip="Temperatura"
                       alignEndAdornmentWithText
+                      defaultValue={tally.temperature}
                       endAdornment={<span className="mt-4">°C</span>}
                       sx={{
                         width: "11rem",
@@ -885,6 +890,27 @@ const TallyInProgressPage = ({
             });
           }
         }}
+      />
+      <TallyInProgressReviewDialog
+        open={openReviewDialog}
+        onClose={() => setOpenReviewDialog(false)}
+        tally={tally}
+        weatherStats={weatherStats}
+        complementaryData={complementaryData}
+        commercialActivities={commercialActivities}
+        tallyMap={tallyMap}
+      />
+      <TallyInProgressSaveDialog
+        open={openSaveDialog}
+        onClose={() => setOpenSaveDialog(false)}
+        submittingObj={submittingObj}
+        tallyId={tallyId}
+        locationId={locationId}
+        weatherStats={weatherStats}
+        complementaryData={complementaryData}
+        commercialActivities={commercialActivities}
+        tallyMap={tallyMap}
+        setSubmittingObj={setSubmittingObj}
       />
     </div>
   );

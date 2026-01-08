@@ -36,6 +36,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       endAdornment,
       tooltip,
       alignEndAdornmentWithText,
+      defaultValue,
       debounce = 0,
       sx,
       onRequiredCheck,
@@ -135,11 +136,18 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       }
     }, [value, readOnly, onChange]);
 
+    useEffect(() => {
+      if (defaultValue) {
+        setLocalValue(String(defaultValue));
+      }
+    }, [defaultValue]);
+
     return (
       <Tooltip title={tooltip} enterTouchDelay={0}>
         <TextField
           ref={ref}
           label={label}
+          defaultValue={undefined}
           inputRef={inputRef}
           variant={variant}
           margin={margin}

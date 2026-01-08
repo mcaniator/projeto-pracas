@@ -297,7 +297,7 @@ const _deleteTallys = async (tallysIds: number[]) => {
 };
 
 const _redirectToTallysList = (locationId: number) => {
-  redirect(`/admin/parks/${locationId}/tallys`);
+  redirect(`/admin/tallys`);
 };
 
 export {

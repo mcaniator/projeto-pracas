@@ -6,11 +6,13 @@ const CAdminHeader = ({
   subtitle,
   titleIcon,
   append,
+  below,
 }: {
   title: string;
   subtitle?: string;
   titleIcon?: ReactNode;
   append?: ReactNode;
+  below?: ReactNode;
 }) => {
   return (
     <div className="mb-2 flex flex-col">
@@ -23,6 +25,7 @@ const CAdminHeader = ({
       </div>
 
       <h4 className="text-md">{subtitle}</h4>
+      {below}
       <Divider className="pt-2" />
     </div>
   );
