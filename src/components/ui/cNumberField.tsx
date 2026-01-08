@@ -1,7 +1,7 @@
 import { IconButton, InputAdornment } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import { createDebouncedFunction } from "../../lib/utils/ui";
@@ -10,6 +10,9 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   errorMessage?: string;
   readOnly?: boolean;
   debounce?: number;
+  startAdornment?: ReactNode;
+  endAdornment?: ReactNode;
+  alignEndAdornmentWithText?: boolean;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
 };
@@ -28,6 +31,9 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       disabled,
       readOnly,
       label,
+      startAdornment,
+      endAdornment,
+      alignEndAdornmentWithText,
       debounce = 0,
       sx,
       onRequiredCheck,
@@ -158,6 +164,10 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           "& input[type=number]": {
             MozAppearance: "textfield",
           },
+          "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
+            paddingBottom: "0px",
+            paddingTop: label ? "12px" : "0px",
+          },
         }}
         slotProps={{
           htmlInput: {
@@ -166,26 +176,37 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           input: {
             endAdornment: !disabled && !readOnly && (
               <InputAdornment position="end">
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 0 }}
-                >
-                  <IconButton
-                    size="small"
-                    style={{ padding: 0 }}
-                    onClick={handleIncrement}
+                <div className="flex items-center gap-1">
+                  <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
+                    {endAdornment}
+                  </div>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 0 }}
                   >
-                    <IconChevronUp fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    style={{ padding: 0 }}
-                    onClick={handleDecrement}
-                  >
-                    <IconChevronDown fontSize="small" />
-                  </IconButton>
+                    <IconButton
+                      size="small"
+                      style={{ padding: 0 }}
+                      onClick={handleIncrement}
+                    >
+                      <IconChevronUp fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      style={{ padding: 0 }}
+                      onClick={handleDecrement}
+                    >
+                      <IconChevronDown fontSize="small" />
+                    </IconButton>
+                  </div>
                 </div>
               </InputAdornment>
             ),
+            startAdornment:
+              startAdornment ?
+                <InputAdornment position="start">
+                  {startAdornment}
+                </InputAdornment>
+              : undefined,
           },
         }}
         {...rest}

@@ -20,7 +20,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, a) => {
           return (
-            <Link key={a.id} href={`/admin/tallys/${a.id}`}>
+            <Link key={a.id} href={`/admin/tallys/${a.id}/fill`}>
               <div className="pb-4">
                 <div
                   key={a.id}

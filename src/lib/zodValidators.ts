@@ -383,6 +383,7 @@ const ongoingTallySchema = z.object({
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
   groups: z.coerce.number().int().finite().nonnegative().nullable(),
+  locationId: z.coerce.number(),
   user: z.object({
     username: z.coerce.string().nullable(),
     id: z.string(),

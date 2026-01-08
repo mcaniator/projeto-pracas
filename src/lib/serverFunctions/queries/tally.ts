@@ -147,6 +147,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
       },
       select: {
         tallyPerson: true,
+        locationId: true,
         location: {
           select: {
             name: true,
