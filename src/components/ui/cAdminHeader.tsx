@@ -17,7 +17,7 @@ const CAdminHeader = ({
   return (
     <div className="mb-2 flex flex-col">
       <div className="flex justify-between">
-        <h3 className="flex">
+        <h3 className="flex items-center">
           {titleIcon}
           <span className="ml-2 text-2xl font-semibold">{title}</span>
         </h3>

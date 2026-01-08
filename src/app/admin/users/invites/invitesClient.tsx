@@ -1,5 +1,7 @@
 "use client";
 
+import CAdminHeader from "@/components/ui/cAdminHeader";
+import CButton from "@/components/ui/cButton";
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
@@ -8,7 +10,7 @@ import CustomModal from "@components/modal/customModal";
 import { Input } from "@components/ui/input";
 import { Role } from "@prisma/client";
 import { _deleteInvite, _getInvites } from "@serverActions/inviteUtil";
-import { IconSearch, IconUserPlus } from "@tabler/icons-react";
+import { IconMail, IconSearch, IconUserPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import InviteCRUDModal from "./inviteCRUDModal";
@@ -140,7 +142,23 @@ const InvitesClient = () => {
   }, [search]);
   return (
     <div className="flex h-full w-full flex-col gap-2">
-      <h3 className="text-2xl font-semibold">Convites de usuário</h3>
+      <div className="text-black">
+        <CAdminHeader
+          titleIcon={<IconMail />}
+          title="Convites de usuário"
+          append={
+            <CButton
+              onClick={() => {
+                setSelectedInvite(null);
+                setIsInviteModalOpen(true);
+              }}
+            >
+              <IconUserPlus size={28} />
+            </CButton>
+          }
+        />
+      </div>
+
       <div className="flex w-full justify-between gap-1">
         <div className="flex w-fit max-w-[90vw] gap-0.5">
           <Input
@@ -161,15 +179,6 @@ const InvitesClient = () => {
             <IconSearch />
           </Button>
         </div>
-        <Button
-          className="h-full"
-          onPress={() => {
-            setSelectedInvite(null);
-            setIsInviteModalOpen(true);
-          }}
-        >
-          <IconUserPlus className="h-6 w-6" />
-        </Button>
       </div>
       {isLoading && (
         <div className="flex justify-center">

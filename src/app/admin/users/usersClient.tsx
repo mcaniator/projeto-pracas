@@ -1,14 +1,16 @@
 "use client";
 
+import CAdminHeader from "@/components/ui/cAdminHeader";
+import CButton from "@/components/ui/cButton";
 import { _getUsers } from "@apiCalls/user";
 import LoadingIcon from "@components/LoadingIcon";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
-import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
 import { TableUser } from "@customTypes/users/usersTable";
-import { IconSearch } from "@tabler/icons-react";
+import { IconSearch, IconUser } from "@tabler/icons-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 
@@ -103,7 +105,22 @@ const UsersClient = () => {
   }, [search]);
   return (
     <div className="flex h-full w-full flex-col gap-2">
-      <h3 className="text-2xl font-semibold">Administrar usuarios</h3>
+      <div className="text-black">
+        <CAdminHeader
+          titleIcon={<IconUser />}
+          title="Admininstrar Usuários"
+          append={
+            <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
+              <Link href="/admin/users/invites">
+                <CButton>
+                  <AiOutlineUsergroupAdd size={26} />
+                </CButton>
+              </Link>
+            </PermissionGuard>
+          }
+        />
+      </div>
+
       <div className="flex w-full justify-between gap-1">
         <div className="flex w-fit max-w-[90vw] gap-0.5">
           <Input
@@ -123,13 +140,6 @@ const UsersClient = () => {
           >
             <IconSearch />
           </Button>
-        </div>
-        <div>
-          <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
-            <ButtonLink href="/admin/users/invites" className="h-full">
-              <AiOutlineUsergroupAdd className="h-6 w-6" />
-            </ButtonLink>
-          </PermissionGuard>
         </div>
       </div>
       {isLoading && (

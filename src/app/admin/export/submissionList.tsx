@@ -43,11 +43,9 @@ const SubmissionComponent = ({
           minute: "2-digit",
         }) +
           ", " +
-          assessment.form.name +
-          ", Versão: " +
-          assessment.form.version +
+          assessment.formName +
           ", " +
-          assessment.user.username}
+          assessment.username}
       </span>
     </div>
   );

@@ -883,6 +883,7 @@ const _exportDailyTallys = async (
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   } catch (e) {
+    console.log(e);
     return { statusCode: 401, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
   }
 
@@ -1141,12 +1142,14 @@ const _exportDailyTallys = async (
 
       CSVstringWeekendDays.push(CSVstring);
     }
+    console.log({ CSVstringWeekdays, CSVstringWeekendDays });
     return {
       statusCode: 200,
       CSVstringWeekdays,
       CSVstringWeekendDays,
     };
   } catch (e) {
+    console.log(e);
     return { statusCode: 500, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
   }
 };
