@@ -1,4 +1,4 @@
-import { IconButton, InputAdornment } from "@mui/material";
+import { IconButton, InputAdornment, Tooltip } from "@mui/material";
 import TextField, { TextFieldProps } from "@mui/material/TextField";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +13,7 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
   alignEndAdornmentWithText?: boolean;
+  tooltip?: string;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
 };
@@ -33,6 +34,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       label,
       startAdornment,
       endAdornment,
+      tooltip,
       alignEndAdornmentWithText,
       debounce = 0,
       sx,
@@ -134,83 +136,94 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     }, [value, readOnly, onChange]);
 
     return (
-      <TextField
-        ref={ref}
-        label={label}
-        inputRef={inputRef}
-        variant={variant}
-        margin={margin}
-        size={size}
-        value={localValue}
-        disabled={disabled || readOnly}
-        type="text"
-        error={(required && !isValid) || error}
-        helperText={(required && !isValid) || error ? errorMessage : helperText}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        sx={{
-          mb: 0,
-          mt: label ? "8px" : "0px",
-          ...sx,
-          ...readOnlySx,
-          "& input[type=number]::-webkit-inner-spin-button": {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-          "& input[type=number]::-webkit-outer-spin-button": {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-          "& input[type=number]": {
-            MozAppearance: "textfield",
-          },
-          "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
-            paddingBottom: "0px",
-            paddingTop: label ? "12px" : "0px",
-          },
-        }}
-        slotProps={{
-          htmlInput: {
-            inputMode: "decimal",
-          },
-          input: {
-            endAdornment: !disabled && !readOnly && (
-              <InputAdornment position="end">
-                <div className="flex items-center gap-1">
-                  <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
-                    {endAdornment}
-                  </div>
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 0 }}
-                  >
-                    <IconButton
-                      size="small"
-                      style={{ padding: 0 }}
-                      onClick={handleIncrement}
+      <Tooltip title={tooltip} enterTouchDelay={0}>
+        <TextField
+          ref={ref}
+          label={label}
+          inputRef={inputRef}
+          variant={variant}
+          margin={margin}
+          size={size}
+          value={localValue}
+          disabled={disabled || readOnly}
+          type="text"
+          error={(required && !isValid) || error}
+          helperText={
+            (required && !isValid) || error ? errorMessage : helperText
+          }
+          onChange={handleChange}
+          onBlur={handleBlur}
+          sx={{
+            mb: 0,
+            mt: label ? "8px" : "0px",
+            ...sx,
+            ...readOnlySx,
+            "& input[type=number]::-webkit-inner-spin-button": {
+              WebkitAppearance: "none",
+              margin: 0,
+            },
+            "& input[type=number]::-webkit-outer-spin-button": {
+              WebkitAppearance: "none",
+              margin: 0,
+            },
+            "& input[type=number]": {
+              MozAppearance: "textfield",
+            },
+            "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
+              paddingBottom: "0px",
+              paddingTop: label ? "12px" : "0px",
+            },
+            "& .MuiInputLabel-root": {
+              pr: "32px",
+            },
+          }}
+          slotProps={{
+            htmlInput: {
+              inputMode: "decimal",
+            },
+            input: {
+              endAdornment: !disabled && !readOnly && (
+                <InputAdornment position="end">
+                  <div className="flex items-center gap-1">
+                    <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
+                      {endAdornment}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0,
+                      }}
                     >
-                      <IconChevronUp fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      style={{ padding: 0 }}
-                      onClick={handleDecrement}
-                    >
-                      <IconChevronDown fontSize="small" />
-                    </IconButton>
+                      <IconButton
+                        size="small"
+                        style={{ padding: 0 }}
+                        onClick={handleIncrement}
+                      >
+                        <IconChevronUp fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        style={{ padding: 0 }}
+                        onClick={handleDecrement}
+                      >
+                        <IconChevronDown fontSize="small" />
+                      </IconButton>
+                    </div>
                   </div>
-                </div>
-              </InputAdornment>
-            ),
-            startAdornment:
-              startAdornment ?
-                <InputAdornment position="start">
-                  {startAdornment}
                 </InputAdornment>
-              : undefined,
-          },
-        }}
-        {...rest}
-      />
+              ),
+              startAdornment:
+                startAdornment ?
+                  <InputAdornment position="start">
+                    {startAdornment}
+                  </InputAdornment>
+                : undefined,
+            },
+          }}
+          {...rest}
+        />
+      </Tooltip>
     );
   },
 );

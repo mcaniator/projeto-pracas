@@ -1,15 +1,17 @@
 "use client";
 
+import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/commercialActivityCreationDialog";
+import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
 import { Button } from "@/components/button";
+import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import CCheckbox from "@/components/ui/cCheckbox";
 import CNumberField from "@/components/ui/cNumberField";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import {
   ActivityType,
   AgeGroupType,
@@ -18,16 +20,17 @@ import {
 import { useUserContext } from "@components/context/UserContext";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
-import { Box, Divider, Paper } from "@mui/material";
+import { Paper } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
-  IconCirclePlus,
   IconClipboardData,
   IconMoodDollar,
+  IconPlus,
+  IconTrashX,
 } from "@tabler/icons-react";
 import { CommercialActivity, OngoingTally } from "@zodValidators";
 import { redirect } from "next/navigation";
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import React from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
@@ -61,6 +64,20 @@ type PersonCharacteristics = {
   };
 };
 
+const defaultCommercialActivitiesOptions = [
+  { value: "Alimentos", label: "Alimentos" },
+  { value: "Produtos", label: "Produtos" },
+  {
+    value: "Pula-pula (ou outra ativ. infantil)",
+    label: "Pula-pula (ou outra ativ. infantil)",
+  },
+  {
+    value: "Mesas de bares do entorno",
+    label: "Mesas de bares do entorno",
+  },
+  { value: "Outros", label: "Outros" },
+];
+
 const TallyInProgressPage = ({
   tallyId,
   locationId,
@@ -78,6 +95,11 @@ const TallyInProgressPage = ({
       redirect("/error");
     }
   }
+  const { setHelperCard } = useHelperCard();
+  const [
+    openCommercialActivityCreationDialog,
+    setOpenCommercialActivityCreationDialog,
+  ] = useState(false);
   const [submittingObj, setSubmittingObj] = useState<SubmittingObj>({
     submitting: false,
     finishing: false,
@@ -115,20 +137,8 @@ const TallyInProgressPage = ({
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
     useState(() => {
-      const defaultOptions = [
-        { value: "Alimentos", label: "Alimentos" },
-        { value: "Produtos", label: "Produtos" },
-        {
-          value: "Pula-pula (ou outra ativ. infantil)",
-          label: "Pula-pula (ou outra ativ. infantil)",
-        },
-        {
-          value: "Mesas de bares do entorno",
-          label: "Mesas de bares do entorno",
-        },
-        { value: "Outros", label: "Outros" },
-      ];
-      if (!tally.commercialActivities) return defaultOptions;
+      if (!tally.commercialActivities)
+        return defaultCommercialActivitiesOptions;
 
       const customOptions = Object.keys(tally.commercialActivities)
         .filter(
@@ -142,14 +152,9 @@ const TallyInProgressPage = ({
         )
         .map((activity) => ({ value: activity, label: activity }));
 
-      return [...defaultOptions, ...customOptions];
+      return [...defaultCommercialActivitiesOptions, ...customOptions];
     });
 
-  const [newCommercialActivityInput, setNewCommercialActivityInput] =
-    useState("");
-  const deferredNewCommercialActivityInput = useDeferredValue(
-    newCommercialActivityInput,
-  );
   const [weatherStats, setWeatherStats] = useState<WeatherStats>({
     temperature: tally.temperature ? tally.temperature : null,
     weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
@@ -198,6 +203,7 @@ const TallyInProgressPage = ({
       return newMap;
     });
   };
+
   const countPeople = (
     gender: GenderType,
     ageGroup: AgeGroupType,
@@ -259,6 +265,7 @@ const TallyInProgressPage = ({
                   <div className="flex w-full flex-row items-center gap-1">
                     <CNumberField
                       label="Temperatura"
+                      tooltip="Temperatura"
                       alignEndAdornmentWithText
                       endAdornment={<span className="mt-4">°C</span>}
                       sx={{
@@ -284,6 +291,9 @@ const TallyInProgressPage = ({
                       disableClearable
                       value={weatherStats.weather}
                       options={Object.values(WeatherConditions)}
+                      getOptionLabel={(option) =>
+                        weatherNameMap.get(option) || option
+                      }
                       onChange={(_, v) =>
                         setWeatherStats((prev) => ({
                           ...prev,
@@ -353,7 +363,8 @@ const TallyInProgressPage = ({
                       </div>
 
                       <div className="flex flex-wrap justify-center gap-2 py-1">
-                        <Checkbox
+                        <CCheckbox
+                          label="Passando"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -363,11 +374,10 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Passando
-                        </Checkbox>
-                        <Checkbox
+                        />
+
+                        <CCheckbox
+                          label="Deficiente"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -377,11 +387,9 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Deficiente
-                        </Checkbox>
-                        <Checkbox
+                        />
+                        <CCheckbox
+                          label="Atividade ilícita"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -391,11 +399,9 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Atividade ilícita
-                        </Checkbox>
-                        <Checkbox
+                        />
+                        <CCheckbox
+                          label="Situação de rua"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -405,164 +411,88 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Situação de rua
-                        </Checkbox>
+                        />
                       </div>
                       <div className="flex flex-wrap justify-center gap-5">
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Criança</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("MALE", "CHILD")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "MALE",
-                                "CHILD",
-                                personCharacteristics.MALE.activity,
-                                personCharacteristics.MALE.isTraversing,
-                                personCharacteristics.MALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.MALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.MALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("MALE", "CHILD")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Jovem</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("MALE", "TEEN")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "MALE",
-                                "TEEN",
-                                personCharacteristics.MALE.activity,
-                                personCharacteristics.MALE.isTraversing,
-                                personCharacteristics.MALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.MALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.MALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("MALE", "TEEN")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Adulto</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("MALE", "ADULT")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "MALE",
-                                "ADULT",
-                                personCharacteristics.MALE.activity,
-                                personCharacteristics.MALE.isTraversing,
-                                personCharacteristics.MALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.MALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.MALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("MALE", "ADULT")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Idoso</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("MALE", "ELDERLY")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "MALE",
-                                "ELDERLY",
-                                personCharacteristics.MALE.activity,
-                                personCharacteristics.MALE.isTraversing,
-                                personCharacteristics.MALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.MALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.MALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("MALE", "ELDERLY")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
+                        <CounterButtonGroup
+                          label="Criança"
+                          count={countPeople(
+                            "MALE",
+                            "CHILD",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
+                          )}
+                          onIncrement={() => {
+                            handlePersonAdd("MALE", "CHILD");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("MALE", "CHILD");
+                          }}
+                        />
+
+                        <CounterButtonGroup
+                          label="Jovem"
+                          count={countPeople(
+                            "MALE",
+                            "TEEN",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
+                          )}
+                          onIncrement={() => {
+                            handlePersonAdd("MALE", "TEEN");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("MALE", "TEEN");
+                          }}
+                        />
+
+                        <CounterButtonGroup
+                          label="Adulto"
+                          count={countPeople(
+                            "MALE",
+                            "ADULT",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
+                          )}
+                          onIncrement={() => {
+                            handlePersonAdd("MALE", "ADULT");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("MALE", "ADULT");
+                          }}
+                        />
+
+                        <CounterButtonGroup
+                          label="Idoso"
+                          count={countPeople(
+                            "MALE",
+                            "ELDERLY",
+                            personCharacteristics.MALE.activity,
+                            personCharacteristics.MALE.isTraversing,
+                            personCharacteristics.MALE.isPersonWithImpairment,
+                            personCharacteristics.MALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.MALE.isPersonWithoutHousing,
+                          )}
+                          onIncrement={() => {
+                            handlePersonAdd("MALE", "ELDERLY");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("MALE", "ELDERLY");
+                          }}
+                        />
                       </div>
                     </div>
                   </Paper>
@@ -620,7 +550,8 @@ const TallyInProgressPage = ({
                       </div>
 
                       <div className="flex flex-wrap justify-center gap-2 py-1">
-                        <Checkbox
+                        <CCheckbox
+                          label="Passando"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -630,11 +561,9 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Passando
-                        </Checkbox>
-                        <Checkbox
+                        />
+                        <CCheckbox
+                          label="Deficiente"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -644,11 +573,10 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Deficiente
-                        </Checkbox>
-                        <Checkbox
+                        />
+
+                        <CCheckbox
+                          label=" Atividade ilícita"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -658,11 +586,9 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Atividade ilícita
-                        </Checkbox>
-                        <Checkbox
+                        />
+                        <CCheckbox
+                          label="Situação de rua"
                           onChange={(e) =>
                             setPersonCharacteristics((prev) => ({
                               ...prev,
@@ -672,166 +598,86 @@ const TallyInProgressPage = ({
                               },
                             }))
                           }
-                          variant={"admin"}
-                        >
-                          Situação de rua
-                        </Checkbox>
+                        />
                       </div>
                       <div className="flex flex-wrap justify-center gap-5">
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Criança</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("FEMALE", "CHILD")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "FEMALE",
-                                "CHILD",
-                                personCharacteristics.FEMALE.activity,
-                                personCharacteristics.FEMALE.isTraversing,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.FEMALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("FEMALE", "CHILD")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Jovem</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("FEMALE", "TEEN")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "FEMALE",
-                                "TEEN",
-                                personCharacteristics.FEMALE.activity,
-                                personCharacteristics.FEMALE.isTraversing,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.FEMALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("FEMALE", "TEEN")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Adulta</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("FEMALE", "ADULT")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "FEMALE",
-                                "ADULT",
-                                personCharacteristics.FEMALE.activity,
-                                personCharacteristics.FEMALE.isTraversing,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.FEMALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() => handlePersonAdd("FEMALE", "ADULT")}
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <h6 className="text-xl font-semibold">Idosa</h6>
-                          <div className="flex flex-row items-center gap-1">
-                            <Button
-                              onPress={() =>
-                                handlePersonRemoval("FEMALE", "ELDERLY")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              -
-                            </Button>
-                            <p
-                              style={{ minWidth: "1.8rem" }}
-                              className="text-center"
-                            >
-                              {countPeople(
-                                "FEMALE",
-                                "ELDERLY",
-                                personCharacteristics.FEMALE.activity,
-                                personCharacteristics.FEMALE.isTraversing,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithImpairment,
-                                personCharacteristics.FEMALE
-                                  .isInApparentIllicitActivity,
-                                personCharacteristics.FEMALE
-                                  .isPersonWithoutHousing,
-                              )}
-                            </p>
-                            <Button
-                              onPress={() =>
-                                handlePersonAdd("FEMALE", "ELDERLY")
-                              }
-                              className="h-8 w-8 text-3xl"
-                              variant={"admin"}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
+                        <CounterButtonGroup
+                          label="Criança"
+                          onIncrement={() => {
+                            handlePersonAdd("FEMALE", "CHILD");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("FEMALE", "CHILD");
+                          }}
+                          count={countPeople(
+                            "FEMALE",
+                            "CHILD",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
+                          )}
+                        />
+
+                        <CounterButtonGroup
+                          label="Jovem"
+                          onIncrement={() => {
+                            handlePersonAdd("FEMALE", "TEEN");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("FEMALE", "TEEN");
+                          }}
+                          count={countPeople(
+                            "FEMALE",
+                            "TEEN",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
+                          )}
+                        />
+                        <CounterButtonGroup
+                          label="Adulta"
+                          onIncrement={() => {
+                            handlePersonAdd("FEMALE", "ADULT");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("FEMALE", "ADULT");
+                          }}
+                          count={countPeople(
+                            "FEMALE",
+                            "ADULT",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
+                          )}
+                        />
+                        <CounterButtonGroup
+                          label="Idosa"
+                          onIncrement={() => {
+                            handlePersonAdd("FEMALE", "ELDERLY");
+                          }}
+                          onDecrement={() => {
+                            handlePersonRemoval("FEMALE", "ELDERLY");
+                          }}
+                          count={countPeople(
+                            "FEMALE",
+                            "ELDERLY",
+                            personCharacteristics.FEMALE.activity,
+                            personCharacteristics.FEMALE.isTraversing,
+                            personCharacteristics.FEMALE.isPersonWithImpairment,
+                            personCharacteristics.FEMALE
+                              .isInApparentIllicitActivity,
+                            personCharacteristics.FEMALE.isPersonWithoutHousing,
+                          )}
+                        />
                       </div>
                     </div>
                   </Paper>
@@ -848,72 +694,40 @@ const TallyInProgressPage = ({
               </CAccordionSummary>
               <CAccordionDetails>
                 <div className="flex flex-wrap justify-center gap-5">
-                  <div className="flex flex-col items-center">
-                    <h6 className="text-xl font-semibold">Pets</h6>
-                    <div className="flex flex-row items-center gap-1">
-                      <Button
-                        onPress={() => {
-                          if (complementaryData.animalsAmount !== 0)
-                            setComplementaryData((prev) => ({
-                              ...prev,
-                              animalsAmount: prev.animalsAmount - 1,
-                            }));
-                        }}
-                        className="h-8 w-8 text-3xl"
-                        variant={"admin"}
-                      >
-                        -
-                      </Button>
-                      <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {complementaryData.animalsAmount}
-                      </p>
-                      <Button
-                        onPress={() =>
-                          setComplementaryData((prev) => ({
-                            ...prev,
-                            animalsAmount: prev.animalsAmount + 1,
-                          }))
-                        }
-                        className="h-8 w-8 text-3xl"
-                        variant={"admin"}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <h6 className="text-xl font-semibold">Grupos</h6>
-                    <div className="flex flex-row items-center gap-1">
-                      <Button
-                        onPress={() => {
-                          if (complementaryData.groupsAmount !== 0)
-                            setComplementaryData((prev) => ({
-                              ...prev,
-                              groupsAmount: prev.groupsAmount - 1,
-                            }));
-                        }}
-                        className="h-8 w-8 text-3xl"
-                        variant={"admin"}
-                      >
-                        -
-                      </Button>
-                      <p style={{ minWidth: "1.8rem" }} className="text-center">
-                        {complementaryData.groupsAmount}
-                      </p>
-                      <Button
-                        onPress={() =>
-                          setComplementaryData((prev) => ({
-                            ...prev,
-                            groupsAmount: prev.groupsAmount + 1,
-                          }))
-                        }
-                        className="h-8 w-8 text-3xl"
-                        variant={"admin"}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
+                  <CounterButtonGroup
+                    label="Pets"
+                    count={complementaryData.animalsAmount}
+                    onIncrement={() => {
+                      setComplementaryData((prev) => ({
+                        ...prev,
+                        animalsAmount: prev.animalsAmount + 1,
+                      }));
+                    }}
+                    onDecrement={() => {
+                      if (complementaryData.animalsAmount !== 0)
+                        setComplementaryData((prev) => ({
+                          ...prev,
+                          animalsAmount: prev.animalsAmount - 1,
+                        }));
+                    }}
+                  />
+                  <CounterButtonGroup
+                    label="Grupos"
+                    count={complementaryData.groupsAmount}
+                    onIncrement={() => {
+                      setComplementaryData((prev) => ({
+                        ...prev,
+                        groupsAmount: prev.groupsAmount + 1,
+                      }));
+                    }}
+                    onDecrement={() => {
+                      if (complementaryData.groupsAmount !== 0)
+                        setComplementaryData((prev) => ({
+                          ...prev,
+                          groupsAmount: prev.groupsAmount - 1,
+                        }));
+                    }}
+                  />
                 </div>
               </CAccordionDetails>
             </CAccordion>
@@ -926,149 +740,97 @@ const TallyInProgressPage = ({
               </CAccordionSummary>
               <CAccordionDetails>
                 <div className="flex flex-col gap-1">
-                  <div className="flex flex-row items-center justify-center gap-3">
-                    <div>
-                      <Select
-                        onChange={(e) =>
-                          setSelectedCommercialActivity(e.target.value)
-                        }
-                        name="commercial-activities"
-                        id="commercial-activities"
-                      >
-                        {commercialActivitiesOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                        <option value={"createNewCommercialActivity"}>
-                          Criar nova atividade
-                        </option>
-                      </Select>
-                    </div>
-                    {selectedCommercialActivity !==
-                      "createNewCommercialActivity" && (
-                      <div
-                        className="flex flex-row items-center"
-                        style={{
-                          opacity:
-                            (
-                              selectedCommercialActivity !==
-                              "createNewCommercialActivity"
-                            ) ?
-                              1
-                            : 0,
-                        }}
-                      >
-                        <Button
-                          variant={"admin"}
-                          className="h-8 w-8 text-3xl"
-                          isDisabled={
-                            selectedCommercialActivity ===
-                            "createNewCommercialActivity"
-                          }
-                          onPress={() => {
-                            const key = selectedCommercialActivity;
-                            if (key === "createNewCommercialActivity") return;
-                            setCommercialActivities((prev) => {
-                              const newObject = { ...prev };
-                              if (newObject[selectedCommercialActivity]) {
-                                newObject[selectedCommercialActivity] -= 1;
-                              }
-                              return newObject;
-                            });
-                          }}
-                        >
-                          -
-                        </Button>
-                        <p
-                          style={{ minWidth: "1.8rem" }}
-                          className="text-center"
-                        >
-                          {commercialActivities[selectedCommercialActivity] ?
-                            commercialActivities[selectedCommercialActivity]
-                          : 0}
-                        </p>
-                        <Button
-                          variant={"admin"}
-                          className="h-8 w-8 text-3xl"
-                          isDisabled={
-                            selectedCommercialActivity ===
-                            "createNewCommercialActivity"
-                          }
-                          onPress={() => {
-                            const key = selectedCommercialActivity;
-                            if (key === "createNewCommercialActivity") return;
-                            setCommercialActivities((prev) => {
-                              const newObject = { ...prev };
-                              if (newObject[selectedCommercialActivity]) {
-                                newObject[selectedCommercialActivity] += 1;
-                              } else {
-                                newObject[selectedCommercialActivity] = 1;
-                              }
-                              return newObject;
-                            });
-                          }}
-                        >
-                          +
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  {(
-                    selectedCommercialActivity === "createNewCommercialActivity"
-                  ) ?
-                    <>
-                      <p>Nova atividade comercial itinerante: </p>
-                      <form
-                        action={(formdata: FormData) => {
-                          let activity = formdata.get("activity") as string;
-                          activity =
-                            activity.trim().charAt(0).toUpperCase() +
-                            activity.trim().slice(1);
-                          if (
-                            !activity ||
-                            activity === "" ||
-                            commercialActivitiesOptions.some(
-                              (option) => option.value === activity,
-                            )
-                          )
-                            return;
-                          else
-                            setCommercialActivitiesOptions((prev) => [
-                              ...prev,
-                              { value: activity, label: activity },
-                            ]);
-                        }}
-                        className="flex flex-row items-center justify-center gap-1"
-                      >
-                        <div className="flex max-w-full items-center gap-1">
-                          <Input
-                            name="activity"
-                            placeholder="Descrição da atividade itinerante"
-                            className="max-w-[60vw]"
-                            onChange={(e) =>
-                              setNewCommercialActivityInput(
-                                e.target.value.trim().charAt(0).toUpperCase() +
-                                  e.target.value.trim().slice(1),
-                              )
+                  <CAutocomplete
+                    label="Atividade"
+                    className="w-full"
+                    defaultValue={commercialActivitiesOptions[0]}
+                    options={commercialActivitiesOptions}
+                    disableClearable
+                    getOptionLabel={(o) => o.label}
+                    isOptionEqualToValue={(a, b) => a.value === b.value}
+                    showAppendButtonWhenClear
+                    onChange={(_, v) => {
+                      setSelectedCommercialActivity(v.value);
+                    }}
+                    suffixButtonChildren={<IconPlus />}
+                    onSuffixButtonClick={() => {
+                      setOpenCommercialActivityCreationDialog(true);
+                    }}
+                    appendIconButtonSx={{ color: "red" }}
+                    appendIconButton={
+                      (
+                        !defaultCommercialActivitiesOptions.some(
+                          (d) => d.value === selectedCommercialActivity,
+                        )
+                      ) ?
+                        <IconTrashX />
+                      : undefined
+                    }
+                    onAppendIconButtonClick={() => {
+                      const currentActivityCount =
+                        commercialActivities[selectedCommercialActivity] || 0;
+
+                      if (!currentActivityCount || currentActivityCount === 0) {
+                        setCommercialActivitiesOptions((prev) => {
+                          const newArray: { label: string; value: string }[] =
+                            [];
+                          for (const option of prev) {
+                            if (option.value !== selectedCommercialActivity) {
+                              newArray.push(option);
                             }
-                          />
-                          {(
-                            commercialActivitiesOptions.some(
-                              (option) =>
-                                option.value ===
-                                deferredNewCommercialActivityInput.trim(),
-                            )
-                          ) ?
-                            <p>Adicionado!</p>
-                          : <Button className="px-2" type="submit">
-                              <IconCirclePlus />
-                            </Button>
                           }
-                        </div>
-                      </form>
-                    </>
-                  : ""}
+                          return newArray;
+                        });
+                        setSelectedCommercialActivity(
+                          () => defaultCommercialActivitiesOptions[0]!.value,
+                        );
+                        setHelperCard({
+                          show: true,
+                          helperCardType: "CONFIRM",
+                          content: (
+                            <>Atividade comercial itinerante removida!</>
+                          ),
+                        });
+                      } else {
+                        setHelperCard({
+                          show: true,
+                          helperCardType: "ERROR",
+                          content: (
+                            <>
+                              Não é possível remover uma atividade comercial com
+                              quantidade maior que 0!
+                            </>
+                          ),
+                        });
+                      }
+                    }}
+                  />
+                  <CounterButtonGroup
+                    label={selectedCommercialActivity}
+                    count={
+                      commercialActivities[selectedCommercialActivity] || 0
+                    }
+                    onDecrement={() => {
+                      setCommercialActivities((prev) => {
+                        const newObject = { ...prev };
+                        if (newObject[selectedCommercialActivity]) {
+                          newObject[selectedCommercialActivity] -= 1;
+                        }
+                        return newObject;
+                      });
+                    }}
+                    onIncrement={() => {
+                      setCommercialActivities((prev) => {
+                        const newObject = { ...prev };
+                        if (newObject[selectedCommercialActivity]) {
+                          newObject[selectedCommercialActivity] += 1;
+                        } else {
+                          newObject[selectedCommercialActivity] = 1;
+                        }
+                        return newObject;
+                      });
+                    }}
+                  />
                 </div>
               </CAccordionDetails>
             </CAccordion>
@@ -1088,6 +850,42 @@ const TallyInProgressPage = ({
           />
         </div>
       </div>
+      <CommercialActivityCreationDialog
+        open={openCommercialActivityCreationDialog}
+        onClose={() => setOpenCommercialActivityCreationDialog(false)}
+        create={(activity: string) => {
+          activity =
+            activity.trim().charAt(0).toUpperCase() + activity.trim().slice(1);
+          if (
+            !activity ||
+            activity === "" ||
+            commercialActivitiesOptions.some(
+              (option) => option.value === activity,
+            )
+          ) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: (
+                <>Atividade comercial itinerante já existente ou inválida!</>
+              ),
+            });
+            return;
+          } else {
+            setCommercialActivitiesOptions((prev) => [
+              ...prev,
+              { value: activity, label: activity },
+            ]);
+            setHelperCard({
+              show: true,
+              helperCardType: "CONFIRM",
+              content: (
+                <>{`Atividade comercial itinerante "${activity} registrada"!`}</>
+              ),
+            });
+          }
+        }}
+      />
     </div>
   );
 };
