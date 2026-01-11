@@ -1,3 +1,6 @@
+import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
+import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { OrdersObj } from "@app/admin/users/usersTable";
 import { TableUser } from "@customTypes/users/usersTable";
 import { z } from "zod";
@@ -76,6 +79,20 @@ const _getUserContentAmount = async ({ userId }: { userId: string }) => {
   } catch (e) {
     return { statusCode: 500, assessments: null, tallys: null };
   }
+};
+
+export const useFetchUsers = (
+  params?: UseFetchAPIParams<FetchUsersResponse>,
+) => {
+  const url = "/api/admin/users/usersTable";
+  return useFetchAPI<FetchUsersResponse>({
+    url,
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["user", "database"] },
+    },
+  });
 };
 
 export { _getUsers, _getUserContentAmount };

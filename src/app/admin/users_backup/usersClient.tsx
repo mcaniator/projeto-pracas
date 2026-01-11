@@ -1,0 +1,168 @@
+"use client";
+
+import CAdminHeader from "@/components/ui/cAdminHeader";
+import CButton from "@/components/ui/cButton";
+import { _getUsers } from "@apiCalls/user";
+import LoadingIcon from "@components/LoadingIcon";
+import PermissionGuard from "@components/auth/permissionGuard";
+import { Button } from "@components/button";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { Input } from "@components/ui/input";
+import { TableUser } from "@customTypes/users/usersTable";
+import { IconSearch, IconUser } from "@tabler/icons-react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AiOutlineUsergroupAdd } from "react-icons/ai";
+
+import UsersTable, { OrdersObj } from "./usersTable";
+
+const UsersClient = () => {
+  const { setHelperCard } = useHelperCard();
+  const [search, setSearch] = useState<string>("");
+  const searchRef = useRef("");
+  const [users, setUsers] = useState<TableUser[]>([]);
+  const [totalUsers, setTotalUsers] = useState<number | null>(null);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    pageSize: number;
+  }>({
+    page: 1,
+    pageSize: 10,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [orders, setOrders] = useState<OrdersObj>({
+    email: "none",
+    name: "none",
+    username: "none",
+    createdAt: "desc",
+  });
+  const [activeUsersFilter, setActiveUsersFilter] = useState(true);
+
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const users = await _getUsers(
+        pagination.page,
+        pagination.pageSize,
+        searchRef.current,
+        orders,
+        activeUsersFilter,
+      );
+      if (users.statusCode === 200) {
+        setUsers(users.users ?? []);
+        setTotalUsers(users.totalUsers);
+      } else {
+        setUsers([]);
+        if (users.statusCode === 401) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Sem permissão para acessar usuários!</>,
+          });
+        } else if (users.statusCode === 500) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao buscar usuários!</>,
+          });
+        }
+      }
+    } catch (e) {
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination, orders, activeUsersFilter, setHelperCard]);
+
+  const handlePageChange = (newPage: number) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handlePaginationChange = (newPagination: {
+    page: number;
+    pageSize: number;
+  }) => {
+    setPagination({ ...newPagination });
+  };
+
+  const handleOrdersObjChange = (newOrders: OrdersObj) => {
+    setOrders(newOrders);
+  };
+
+  const handleActiveUsersFilterChange = () => {
+    setActiveUsersFilter((prev) => !prev);
+  };
+
+  const updateTable = () => {
+    void fetchUsers();
+  };
+
+  useEffect(() => {
+    void fetchUsers();
+  }, [fetchUsers]);
+  useEffect(() => {
+    searchRef.current = search;
+  }, [search]);
+  return (
+    <div className="flex h-full w-full flex-col gap-2">
+      <div className="text-black">
+        <CAdminHeader
+          titleIcon={<IconUser />}
+          title="Admininstrar Usuários"
+          append={
+            <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
+              <Link href="/admin/users/invites">
+                <CButton>
+                  <AiOutlineUsergroupAdd size={26} />
+                </CButton>
+              </Link>
+            </PermissionGuard>
+          }
+        />
+      </div>
+
+      <div className="flex w-full justify-between gap-1">
+        <div className="flex w-fit max-w-[90vw] gap-0.5">
+          <Input
+            className="w-full"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+            placeholder="Buscar...."
+          />
+          <Button
+            onPress={() => {
+              setPagination((prev) => ({ page: 1, pageSize: prev.pageSize }));
+            }}
+            className="h-full"
+            variant="secondary"
+          >
+            <IconSearch />
+          </Button>
+        </div>
+      </div>
+      {isLoading && (
+        <div className="flex justify-center">
+          <LoadingIcon className="h-32 w-32" />
+        </div>
+      )}
+      <div className={`${isLoading ? "hidden" : ""} max-h-full overflow-auto`}>
+        <UsersTable
+          users={users}
+          pagination={pagination}
+          totalUsers={totalUsers}
+          orders={orders}
+          activeUsersFilter={activeUsersFilter}
+          handlePageChange={handlePageChange}
+          handlePaginationChange={handlePaginationChange}
+          handleOrdersObjChange={handleOrdersObjChange}
+          handleActiveUsersFilterChange={handleActiveUsersFilterChange}
+          updateTable={updateTable}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default UsersClient;

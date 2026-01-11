@@ -14,7 +14,7 @@ import React, { ReactNode, useEffect, useRef } from "react";
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
 
-type CDialogProps = DialogProps & {
+export type CDialogProps = DialogProps & {
   title?: string;
   subtitle?: string;
   children?: ReactNode;

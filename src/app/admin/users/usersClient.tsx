@@ -1,166 +1,209 @@
 "use client";
 
+import ArchiveUserDialog from "@/app/admin/users/archiveUserDialog";
+import PermissionsDialog from "@/app/admin/users/permissionsDialog";
+import CImage from "@/components/ui/CImage";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
-import { _getUsers } from "@apiCalls/user";
-import LoadingIcon from "@components/LoadingIcon";
+import CCheckbox from "@/components/ui/cCheckbox";
+import CMenu from "@/components/ui/menu/cMenu";
+import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import { useFetchUsers } from "@/lib/serverFunctions/apiCalls/user";
+import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
 import PermissionGuard from "@components/auth/permissionGuard";
-import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
-import { Input } from "@components/ui/input";
-import { TableUser } from "@customTypes/users/usersTable";
-import { IconSearch, IconUser } from "@tabler/icons-react";
+import { Stack } from "@mui/material";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { IconPencil, IconTrashX, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
+import { FaTrashRestore } from "react-icons/fa";
 
-import UsersTable, { OrdersObj } from "./usersTable";
+type FormRow = FetchUsersResponse["users"][number];
 
 const UsersClient = () => {
-  const { setHelperCard } = useHelperCard();
-  const [search, setSearch] = useState<string>("");
-  const searchRef = useRef("");
-  const [users, setUsers] = useState<TableUser[]>([]);
-  const [totalUsers, setTotalUsers] = useState<number | null>(null);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-  }>({
-    page: 1,
-    pageSize: 10,
+  const [openPermissionsDialog, setOpenPermissionsDialog] = useState(false);
+  const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
+  const [users, setUsers] = useState<FormRow[]>([]);
+  const [selectedUser, setSelectedUser] = useState<FormRow | null>(null);
+  const [_fetchUsers, loading] = useFetchUsers({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        setUsers(data?.users ?? []);
+      },
+    },
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [orders, setOrders] = useState<OrdersObj>({
-    email: "none",
-    name: "none",
-    username: "none",
-    createdAt: "desc",
-  });
-  const [activeUsersFilter, setActiveUsersFilter] = useState(true);
-
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const users = await _getUsers(
-        pagination.page,
-        pagination.pageSize,
-        searchRef.current,
-        orders,
-        activeUsersFilter,
-      );
-      if (users.statusCode === 200) {
-        setUsers(users.users ?? []);
-        setTotalUsers(users.totalUsers);
-      } else {
-        setUsers([]);
-        if (users.statusCode === 401) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Sem permissão para acessar usuários!</>,
-          });
-        } else if (users.statusCode === 500) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Erro ao buscar usuários!</>,
-          });
-        }
-      }
-    } catch (e) {
-      setUsers([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagination, orders, activeUsersFilter, setHelperCard]);
-
-  const handlePageChange = (newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-  };
-
-  const handlePaginationChange = (newPagination: {
-    page: number;
-    pageSize: number;
-  }) => {
-    setPagination({ ...newPagination });
-  };
-
-  const handleOrdersObjChange = (newOrders: OrdersObj) => {
-    setOrders(newOrders);
-  };
-
-  const handleActiveUsersFilterChange = () => {
-    setActiveUsersFilter((prev) => !prev);
-  };
-
-  const updateTable = () => {
-    void fetchUsers();
-  };
-
   useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
-  useEffect(() => {
-    searchRef.current = search;
-  }, [search]);
-  return (
-    <div className="flex h-full w-full flex-col gap-2">
-      <div className="text-black">
-        <CAdminHeader
-          titleIcon={<IconUser />}
-          title="Admininstrar Usuários"
-          append={
-            <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
-              <Link href="/admin/users/invites">
-                <CButton>
-                  <AiOutlineUsergroupAdd size={26} />
-                </CButton>
-              </Link>
-            </PermissionGuard>
+    void _fetchUsers({});
+  }, []);
+  console.log(selectedUser);
+  // Datagrid config
+  const columns: GridColDef<FormRow>[] = [
+    {
+      field: "image",
+      headerName: "",
+      width: 50,
+      sortable: false,
+      hideable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams<FormRow>) => (
+        <CImage
+          height={80}
+          width={80}
+          src={params.row.image}
+          alt=""
+          fallback={
+            <div className="mt-4 flex items-center justify-start">
+              <IconUser />
+            </div>
           }
         />
-      </div>
-
-      <div className="flex w-full justify-between gap-1">
-        <div className="flex w-fit max-w-[90vw] gap-0.5">
-          <Input
-            className="w-full"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-            placeholder="Buscar...."
-          />
-          <Button
-            onPress={() => {
-              setPagination((prev) => ({ page: 1, pageSize: prev.pageSize }));
-            }}
-            className="h-full"
-            variant="secondary"
+      ),
+    },
+    {
+      field: "name",
+      headerName: "Nome",
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      field: "username",
+      headerName: "Nome de usuário",
+      width: 180,
+    },
+    {
+      field: "email",
+      headerName: "E-mail",
+      width: 180,
+    },
+    {
+      field: "active",
+      headerName: "Ativo",
+      width: 60,
+      align: "center",
+      renderCell(params: GridRenderCellParams<FormRow>) {
+        return <CCheckbox checked={params.row.active} readOnly />;
+      },
+    },
+    {
+      field: "updatedAt",
+      headerName: "Atualizado em",
+      width: 180,
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return dateTimeFormatter.format(new Date(params.row.updatedAt));
+      },
+    },
+    {
+      field: "createdAt",
+      headerName: "Registrado em",
+      width: 180,
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return dateTimeFormatter.format(new Date(params.row.createdAt));
+      },
+    },
+    {
+      field: "Ações",
+      headerName: "",
+      filterable: false,
+      sortable: false,
+      align: "center",
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems={"center"}
+            height={"100%"}
           >
-            <IconSearch />
-          </Button>
-        </div>
-      </div>
-      {isLoading && (
-        <div className="flex justify-center">
-          <LoadingIcon className="h-32 w-32" />
-        </div>
+            <CMenu
+              options={[
+                {
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <IconPencil /> Editar
+                    </div>
+                  ),
+                  onClick: () => {
+                    setSelectedUser(params.row);
+                    setOpenPermissionsDialog(true);
+                  },
+                },
+                {
+                  label: (
+                    <div className="flex items-center">
+                      {params.row.active ?
+                        <>
+                          <IconTrashX />
+                          Arquivar
+                        </>
+                      : <>
+                          <FaTrashRestore /> Restaurar
+                        </>
+                      }
+                    </div>
+                  ),
+                  onClick: () => {
+                    setSelectedUser(params.row);
+                    setOpenArchiveDialog(true);
+                  },
+                  sx: {
+                    color: "red",
+                  },
+                },
+              ]}
+            />
+          </Stack>
+        );
+      },
+    },
+  ];
+  return (
+    <div className="flex h-full w-full flex-col bg-white p-2 text-black">
+      <CAdminHeader
+        titleIcon={<IconUser />}
+        title="Admininstrar Usuários"
+        append={
+          <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
+            <Link href="/admin/users/invites">
+              <CButton>
+                <AiOutlineUsergroupAdd size={26} />
+              </CButton>
+            </Link>
+          </PermissionGuard>
+        }
+      />
+      <DataGrid
+        columns={columns}
+        rows={users}
+        rowSelection={false}
+        loading={loading}
+      />
+      {selectedUser && (
+        <>
+          <PermissionsDialog
+            open={openPermissionsDialog}
+            onClose={() => {
+              setOpenPermissionsDialog(false);
+              setSelectedUser(null);
+            }}
+            user={selectedUser}
+            updateTable={() => {
+              void _fetchUsers({});
+            }}
+          />
+          <ArchiveUserDialog
+            open={openArchiveDialog}
+            onClose={() => {
+              setOpenArchiveDialog(false);
+              setSelectedUser(null);
+            }}
+            user={selectedUser}
+            updateTable={() => {
+              void _fetchUsers({});
+            }}
+          />
+        </>
       )}
-      <div className={`${isLoading ? "hidden" : ""} max-h-full overflow-auto`}>
-        <UsersTable
-          users={users}
-          pagination={pagination}
-          totalUsers={totalUsers}
-          orders={orders}
-          activeUsersFilter={activeUsersFilter}
-          handlePageChange={handlePageChange}
-          handlePaginationChange={handlePaginationChange}
-          handleOrdersObjChange={handleOrdersObjChange}
-          handleActiveUsersFilterChange={handleActiveUsersFilterChange}
-          updateTable={updateTable}
-        />
-      </div>
     </div>
   );
 };
