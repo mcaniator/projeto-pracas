@@ -6,6 +6,7 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import {
   _exportDailyTallys,
   _exportEvaluation,
+  _exportIndividualTallysToCSV,
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
@@ -209,6 +210,57 @@ const SelectedParks = ({
     });
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
+
+  const handleIndividualTallysToExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
+    const locationsToExportTallys = selectedLocationsObjs.filter(
+      (location) => location.tallysIds.length > 0,
+    );
+    const tallysIds: number[] = [];
+    locationsToExportTallys.forEach((location) =>
+      tallysIds.push(...location.tallysIds),
+    );
+    if (!tallysIds || tallysIds.length === 0) return;
+    setLoadingExport((prev) => ({ ...prev, tallys: true }));
+    const response = await _exportIndividualTallysToCSV(tallysIds);
+    if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para exportar avaliações!</>,
+      });
+      return;
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro exportar avaliações!</>,
+      });
+      return;
+    }
+
+    const csvString = response.CSVstring;
+    if (csvString) {
+      const blob = new Blob([csvString]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Contagens individuais.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    setHelperCard({
+      show: true,
+      helperCardType: "CONFIRM",
+      content: <>Contagens exportadas!</>,
+    });
+    setLoadingExport((prev) => ({ ...prev, tallys: false }));
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col overflow-auto rounded-md">
@@ -305,13 +357,40 @@ const SelectedParks = ({
                   .length === 0
               ) {
                 setMissingInfoSaveWarning(false);
-                handleTallysExport().catch(() => ({ statusCode: 1 }));
+                handleIndividualTallysToExport().catch(() => ({
+                  statusCode: 1,
+                }));
               } else {
                 setMissingInfoSaveWarning(true);
               }
             }}
           >
-            {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
+            {loadingExport.tallys ?
+              "Exportando..."
+            : "Exportar contagens individuais"}
+          </Button>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.tallys}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleTallysExport().catch(() => ({
+                  statusCode: 1,
+                }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
+            }}
+          >
+            {loadingExport.tallys ?
+              "Exportando..."
+            : "Exportar contagens por dia"}
           </Button>
         </PermissionGuard>
       </div>
