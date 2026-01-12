@@ -910,6 +910,7 @@ const _exportDailyTallys = async (
                 username: true,
               },
             },
+            location: true,
           },
         },
       },
@@ -1142,14 +1143,12 @@ const _exportDailyTallys = async (
 
       CSVstringWeekendDays.push(CSVstring);
     }
-    console.log({ CSVstringWeekdays, CSVstringWeekendDays });
     return {
       statusCode: 200,
       CSVstringWeekdays,
       CSVstringWeekendDays,
     };
   } catch (e) {
-    console.log(e);
     return { statusCode: 500, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
   }
 };
