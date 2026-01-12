@@ -7,9 +7,11 @@ import {
   DialogProps,
   DialogTitle,
   Fade,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
-import React, { ReactNode, useEffect, useRef } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef } from "react";
 
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
@@ -34,6 +36,7 @@ export type CDialogProps = DialogProps & {
   disableBackdropClose?: boolean;
   confirmLoading?: boolean;
   cancelLoading?: boolean;
+  mobileFullScreen?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose: () => void;
@@ -74,6 +77,7 @@ const CDialog = ({
   cancelColor,
   disableDialogActions = false,
   fullScreen,
+  mobileFullScreen,
   isForm,
   disableContentPadding,
   disableBackdropClose,
@@ -154,6 +158,13 @@ const CDialog = ({
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const theme = useTheme();
+  const isMobileView = useMediaQuery(theme.breakpoints.down("sm"));
+  const memoFullScreen = useMemo(
+    () => fullScreen || (isMobileView && mobileFullScreen),
+    [fullScreen, isMobileView, mobileFullScreen],
+  );
+
   const contentSx =
     disableContentPadding ?
       { px: "0px", py: "0px" }
@@ -166,14 +177,14 @@ const CDialog = ({
         slots={{
           transition: Transition,
         }}
-        fullScreen={fullScreen}
+        fullScreen={memoFullScreen}
         slotProps={{
           backdrop: {
             className: "bg-black/25",
           },
           paper: {
             sx: {
-              borderRadius: fullScreen ? "0px" : "12px",
+              borderRadius: memoFullScreen ? "0px" : "12px",
               py: { xs: "4px", sm: "16px" },
             },
           },
@@ -233,14 +244,14 @@ const CDialog = ({
       slots={{
         transition: Transition,
       }}
-      fullScreen={fullScreen}
+      fullScreen={memoFullScreen}
       slotProps={{
         backdrop: {
           className: "bg-black/25 backdrop-blur",
         },
         paper: {
           sx: {
-            borderRadius: fullScreen ? "0px" : "12px",
+            borderRadius: memoFullScreen ? "0px" : "12px",
             py: { xs: "4px", sm: "16px" },
           },
         },

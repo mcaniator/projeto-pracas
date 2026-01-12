@@ -1,31 +1,34 @@
 import RolesHelpDialogTrigger from "@/app/admin/users/rolesHelpDialogTrigger";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
-import { _updateUserRolesV2 } from "@/lib/serverFunctions/serverActions/userUtil";
+import { getRoleForGroup } from "@/lib/auth/rolesUtil";
+import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
+import { _createInviteV2 } from "@/lib/serverFunctions/serverActions/inviteUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
 import { Role } from "@prisma/client";
 import { IconCheck } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import { SystemSection, roles, rows } from "./consts";
+import { SystemSection, roles, rows } from "../consts";
 
-const PermissionsDialog = ({
+const CreateInviteDialog = ({
   open,
+  invite,
   onClose,
-  user,
   updateTable,
 }: {
   open: boolean;
+  invite?: FetchInvitesResponse["invites"][number];
   onClose: () => void;
-  user: FetchUsersResponse["users"][number];
   updateTable: () => void;
 }) => {
-  const [update, loading] = useServerAction({
-    action: _updateUserRolesV2,
+  const [action, loading] = useServerAction({
+    action: _createInviteV2,
     callbacks: {
       onSuccess() {
         updateTable();
+        reset();
         onClose();
       },
       onError(response) {
@@ -35,69 +38,134 @@ const PermissionsDialog = ({
       },
     },
   });
+  const [email, setEmail] = useState(invite?.email ?? "");
   const [parkRoleWarning, setParkRoleWarning] = useState(false);
-  const [userRoles, setUserRoles] =
-    useState<{ section: SystemSection; role: Role | null }[]>();
-  useEffect(() => {
+  const [userRoles, setUserRoles] = useState<
+    { section: SystemSection; role: Role | null }[]
+  >(
+    invite ?
+      [
+        {
+          section: "PARK",
+          role: getRoleForGroup(invite.roles, "PARK"),
+        },
+        {
+          section: "FORM",
+          role: getRoleForGroup(invite.roles, "FORM"),
+        },
+        {
+          section: "TALLY",
+          role: getRoleForGroup(invite.roles, "TALLY"),
+        },
+        {
+          section: "ASSESSMENT",
+          role: getRoleForGroup(invite.roles, "ASSESSMENT"),
+        },
+        {
+          section: "USER",
+          role: getRoleForGroup(invite.roles, "USER"),
+        },
+      ]
+    : [
+        {
+          section: "PARK",
+          role: null,
+        },
+        {
+          section: "FORM",
+          role: null,
+        },
+        {
+          section: "TALLY",
+          role: null,
+        },
+        {
+          section: "ASSESSMENT",
+          role: null,
+        },
+        {
+          section: "USER",
+          role: null,
+        },
+      ],
+  );
+
+  const reset = () => {
+    setEmail("");
     setUserRoles([
       {
-        section: "ASSESSMENT",
-        role:
-          user.roles.find(
-            (r) =>
-              r === "ASSESSMENT_MANAGER" ||
-              r === "ASSESSMENT_EDITOR" ||
-              r === "ASSESSMENT_VIEWER",
-          ) ?? null,
+        section: "PARK",
+        role: null,
       },
       {
         section: "FORM",
-        role:
-          user.roles.find((r) => r === "FORM_MANAGER" || r === "FORM_VIEWER") ??
-          null,
-      },
-      {
-        section: "PARK",
-        role:
-          user.roles.find((r) => r === "PARK_MANAGER" || r === "PARK_VIEWER") ??
-          null,
+        role: null,
       },
       {
         section: "TALLY",
-        role:
-          user.roles.find(
-            (r) =>
-              r === "TALLY_MANAGER" ||
-              r === "TALLY_EDITOR" ||
-              r === "TALLY_VIEWER",
-          ) ?? null,
+        role: null,
+      },
+      {
+        section: "ASSESSMENT",
+        role: null,
       },
       {
         section: "USER",
-        role:
-          user.roles.find((r) => r === "USER_MANAGER" || r === "USER_VIEWER") ??
-          null,
+        role: null,
       },
     ]);
-  }, [user]);
-  if (!userRoles) return null;
+  };
+
+  useEffect(() => {
+    setEmail(invite?.email ?? "");
+    setUserRoles([
+      {
+        section: "PARK",
+        role: getRoleForGroup(invite?.roles, "PARK"),
+      },
+      {
+        section: "FORM",
+        role: getRoleForGroup(invite?.roles, "FORM"),
+      },
+      {
+        section: "TALLY",
+        role: getRoleForGroup(invite?.roles, "TALLY"),
+      },
+      {
+        section: "ASSESSMENT",
+        role: getRoleForGroup(invite?.roles, "ASSESSMENT"),
+      },
+      {
+        section: "USER",
+        role: getRoleForGroup(invite?.roles, "USER"),
+      },
+    ]);
+  }, [invite]);
   return (
     <CDialog
-      title="Permissões"
       mobileFullScreen
-      subtitle={user.username ?? user.email}
       open={open}
       onClose={onClose}
-      confirmChildren={<IconCheck />}
-      confirmLoading={loading}
+      title="Criar convite"
       onConfirm={() => {
-        void update({
-          userId: user.id,
+        void action({
+          email,
           roles: userRoles.map((ur) => ur.role).filter((r) => r !== null),
+          inviteId: invite?.id,
         });
       }}
+      confirmChildren={<IconCheck />}
+      confirmLoading={loading}
     >
       <div className="flex flex-col gap-1">
+        <CTextField
+          required
+          label="Email"
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+          value={email}
+        />
         <div className="flex items-center">
           Permissões
           <RolesHelpDialogTrigger />
@@ -148,4 +216,4 @@ const PermissionsDialog = ({
   );
 };
 
-export default PermissionsDialog;
+export default CreateInviteDialog;

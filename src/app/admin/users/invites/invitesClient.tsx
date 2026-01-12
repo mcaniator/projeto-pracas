@@ -1,20 +1,23 @@
 "use client";
 
+import CreateInviteDialog from "@/app/admin/users/invites/createInviteDialog";
+import DeleteInviteDialog from "@/app/admin/users/invites/deleteInviteDialog";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
-import LoadingIcon from "@components/LoadingIcon";
-import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
-import { useLoadingOverlay } from "@components/context/loadingContext";
-import CustomModal from "@components/modal/customModal";
-import { Input } from "@components/ui/input";
+import CMenu from "@/components/ui/menu/cMenu";
+import { useFetchInvites } from "@/lib/serverFunctions/apiCalls/invite";
+import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
+import { Stack } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Role } from "@prisma/client";
-import { _deleteInvite, _getInvites } from "@serverActions/inviteUtil";
-import { IconMail, IconSearch, IconUserPlus } from "@tabler/icons-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import InviteCRUDModal from "./inviteCRUDModal";
-import InvitesTable, { InviteOrdersObj } from "./invitesTable";
+import {
+  IconMail,
+  IconPencil,
+  IconTrashX,
+  IconUserPlus,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 type Invite = {
   email: string;
@@ -23,206 +26,137 @@ type Invite = {
   createdAt: Date;
   expiresAt: Date;
 };
-
+type FormRow = FetchInvitesResponse["invites"][number];
 const InvitesClient = () => {
-  const { setLoadingOverlayVisible } = useLoadingOverlay();
-  const { setHelperCard } = useHelperCard();
-  const [search, setSearch] = useState<string>("");
-  const searchRef = useRef("");
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [selectedInvite, setSelectedInvite] = useState<Invite | null>(null);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    pageSize: number;
-  }>({
-    page: 1,
-    pageSize: 10,
+  const [openCreateInviteDialog, setOpenCreateInviteDialog] = useState(false);
+  const [openDeleteInviteDialog, setOpenDeleteInviteDialog] = useState(false);
+  const [invites, setInvites] = useState<FormRow[]>([]);
+  const [selectedInvite, setSelectedInvite] = useState<FormRow | null>(null);
+
+  const [_fetchInvites, loading] = useFetchInvites({
+    callbacks: {
+      onSuccess(response) {
+        setInvites(response.data?.invites ?? []);
+      },
+    },
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [invites, setInvites] = useState<Invite[]>([]);
-  const [totalInvites, setTotalInvites] = useState<number | null>(null);
-  const [orders, setOrders] = useState<InviteOrdersObj>({
-    email: "none",
-    createdAt: "desc",
-  });
-  const [isDeletionInviteModalOpen, setIsDeletionInviteModalOpen] =
-    useState(false);
-
-  const fetchInvites = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const invites = await _getInvites(
-        pagination.page,
-        pagination.pageSize,
-        searchRef.current,
-        orders,
-      );
-      if (invites.statusCode === 200) {
-        setInvites(invites.invites ?? []);
-        setTotalInvites(invites.totalInvites);
-      } else {
-        setInvites([]);
-      }
-    } catch (e) {
-      setInvites([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagination, orders]);
-
-  const handlePageChange = (newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-  };
-
-  const handlePaginationChange = (newPagination: {
-    page: number;
-    pageSize: number;
-  }) => {
-    setPagination({ ...newPagination });
-  };
-
-  const handleOrdersObjChange = (newOrders: InviteOrdersObj) => {
-    setOrders(newOrders);
-  };
-
-  const handleDeleteInvite = async () => {
-    try {
-      setLoadingOverlayVisible(true);
-      if (!selectedInvite) {
-        return;
-      }
-      const response = await _deleteInvite(selectedInvite.token);
-      if (response.statusCode === 200) {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Convite excluído!</>,
-        });
-        updateTable();
-        setIsDeletionInviteModalOpen(false);
-      } else if (response.statusCode === 401) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Sem permissão para excluir convites!</>,
-        });
-      } else {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao excluir convite!</>,
-        });
-      }
-    } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao excluir convite!</>,
-      });
-    } finally {
-      setLoadingOverlayVisible(false);
-    }
-  };
-
-  const openInviteModal = (invite: Invite) => {
-    setSelectedInvite(invite);
-    setIsInviteModalOpen(true);
-  };
-
-  const updateTable = () => {
-    void fetchInvites();
-  };
 
   useEffect(() => {
-    void fetchInvites();
-  }, [fetchInvites]);
+    void _fetchInvites({});
+  }, []);
 
-  useEffect(() => {
-    searchRef.current = search;
-  }, [search]);
-  return (
-    <div className="flex h-full w-full flex-col gap-2">
-      <div className="text-black">
-        <CAdminHeader
-          titleIcon={<IconMail />}
-          title="Convites de usuário"
-          append={
-            <CButton
-              onClick={() => {
-                setSelectedInvite(null);
-                setIsInviteModalOpen(true);
-              }}
-            >
-              <IconUserPlus size={28} />
-            </CButton>
-          }
-        />
-      </div>
-
-      <div className="flex w-full justify-between gap-1">
-        <div className="flex w-fit max-w-[90vw] gap-0.5">
-          <Input
-            className="w-full"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-            }}
-            placeholder="Buscar...."
-          />
-          <Button
-            onPress={() => {
-              setPagination((prev) => ({ page: 1, pageSize: prev.pageSize }));
-            }}
-            className="h-full"
-            variant="secondary"
+  //Datagrid config
+  const columns: GridColDef<FormRow>[] = [
+    {
+      field: "email",
+      headerName: "Email",
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      field: "expiresAt",
+      headerName: "Expira em",
+      width: 180,
+    },
+    {
+      field: "updatedAt",
+      headerName: "Atualizado em",
+      width: 180,
+    },
+    {
+      field: "Ações",
+      headerName: "",
+      filterable: false,
+      sortable: false,
+      align: "center",
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems={"center"}
+            height={"100%"}
           >
-            <IconSearch />
-          </Button>
-        </div>
-      </div>
-      {isLoading && (
-        <div className="flex justify-center">
-          <LoadingIcon className="h-32 w-32" />
-        </div>
-      )}
-      <div className={`${isLoading ? "hidden" : ""} max-h-full overflow-auto`}>
-        <InvitesTable
-          invites={invites}
-          pagination={pagination}
-          totalInvites={totalInvites}
-          orders={orders}
-          handlePageChange={handlePageChange}
-          handleOrdersObjChange={handleOrdersObjChange}
-          handlePaginationChange={handlePaginationChange}
-          openInviteModal={openInviteModal}
+            <CMenu
+              options={[
+                {
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <IconPencil /> Editar
+                    </div>
+                  ),
+                  onClick: () => {
+                    setSelectedInvite(params.row);
+                    setOpenCreateInviteDialog(true);
+                  },
+                },
+                {
+                  label: (
+                    <div className="flex items-center gap-2">
+                      <IconTrashX />
+                      Excluir
+                    </div>
+                  ),
+                  onClick: () => {
+                    setSelectedInvite(params.row);
+                    setOpenDeleteInviteDialog(true);
+                  },
+                  sx: {
+                    color: "red",
+                  },
+                },
+              ]}
+            />
+          </Stack>
+        );
+      },
+    },
+  ];
+  return (
+    <div className="flex h-full w-full flex-col gap-2 bg-white p-2 text-black">
+      <CAdminHeader
+        titleIcon={<IconMail />}
+        title="Convites de usuário"
+        append={
+          <CButton
+            onClick={() => {
+              setOpenCreateInviteDialog(true);
+              setSelectedInvite(null);
+            }}
+          >
+            <IconUserPlus size={28} />
+          </CButton>
+        }
+      />
+      <DataGrid
+        columns={columns}
+        rows={invites}
+        rowSelection={false}
+        loading={loading}
+      />
+      <CreateInviteDialog
+        open={openCreateInviteDialog}
+        onClose={() => {
+          setOpenCreateInviteDialog(false);
+        }}
+        updateTable={() => {
+          void _fetchInvites({});
+        }}
+        invite={selectedInvite ?? undefined}
+      />
+      {selectedInvite && (
+        <DeleteInviteDialog
+          open={openDeleteInviteDialog}
+          onClose={() => {
+            setOpenDeleteInviteDialog(false);
+            setSelectedInvite(null);
+          }}
+          invite={selectedInvite ?? undefined}
+          updateTable={() => {
+            void _fetchInvites({});
+          }}
         />
-      </div>
-
-      <InviteCRUDModal
-        isOpen={isInviteModalOpen}
-        inviteProp={selectedInvite}
-        onOpenChange={() => {
-          setIsInviteModalOpen(false);
-        }}
-        openInviteDeletionModal={() => {
-          setIsInviteModalOpen(false);
-          setIsDeletionInviteModalOpen(true);
-        }}
-        updateTable={updateTable}
-      />
-      <CustomModal
-        isOpen={isDeletionInviteModalOpen}
-        title={"Excluir convite"}
-        subtitle={selectedInvite?.email}
-        confirmVariant="destructive"
-        confirmLabel="Excluir"
-        onConfirm={() => {
-          void handleDeleteInvite();
-        }}
-        onOpenChange={(e) => {
-          setIsDeletionInviteModalOpen(e);
-        }}
-      />
+      )}
     </div>
   );
 };
