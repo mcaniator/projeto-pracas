@@ -5,6 +5,7 @@ import DeleteInviteDialog from "@/app/admin/users/invites/deleteInviteDialog";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CMenu from "@/components/ui/menu/cMenu";
+import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchInvites } from "@/lib/serverFunctions/apiCalls/invite";
 import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
 import { Stack } from "@mui/material";
@@ -57,11 +58,17 @@ const InvitesClient = () => {
       field: "expiresAt",
       headerName: "Expira em",
       width: 180,
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return dateTimeFormatter.format(new Date(params.row.expiresAt));
+      },
     },
     {
       field: "updatedAt",
       headerName: "Atualizado em",
       width: 180,
+      renderCell: (params: GridRenderCellParams<FormRow>) => {
+        return dateTimeFormatter.format(new Date(params.row.updatedAt));
+      },
     },
     {
       field: "Ações",
