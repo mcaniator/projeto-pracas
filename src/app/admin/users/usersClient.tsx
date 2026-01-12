@@ -36,7 +36,7 @@ const UsersClient = () => {
   useEffect(() => {
     void _fetchUsers({});
   }, []);
-  console.log(selectedUser);
+
   // Datagrid config
   const columns: GridColDef<FormRow>[] = [
     {
