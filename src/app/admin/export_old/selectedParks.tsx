@@ -1,12 +1,8 @@
 "use client";
 
-import LocationParamsDialog from "@/app/admin/export/locationParamsDialog";
-import CButton from "@/components/ui/cButton";
-import CIconChip from "@/components/ui/cIconChip";
-import CSwitch from "@/components/ui/cSwtich";
 import PermissionGuard from "@components/auth/permissionGuard";
+import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { Breadcrumbs, Divider } from "@mui/material";
 import {
   _exportDailyTallys,
   _exportEvaluation,
@@ -14,37 +10,43 @@ import {
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
-  IconBuildingCommunity,
-  IconMapPin,
-  IconMinus,
-  IconPencil,
-  IconTree,
+  IconCheck,
+  IconCircleMinus,
+  IconEdit,
+  IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
-import { Virtuoso } from "react-virtuoso";
 
-import { SelectedLocationObj } from "./client";
+import {
+  ExportPageModes,
+  SelectedLocationObj,
+  SelectedLocationSavedObj,
+} from "./client";
 
 const SelectedParks = ({
+  locations,
   selectedLocationsObjs,
+  selectedLocationsSaved,
   handleSelectedLocationsRemoval,
-  handleSelectedLocationObjChange,
+  handlePageStateChange,
 }: {
+  locations: { id: number; name: string }[];
   selectedLocationsObjs: SelectedLocationObj[];
+  selectedLocationsSaved: SelectedLocationSavedObj[];
   handleSelectedLocationsRemoval: (id: number) => void;
-  handleSelectedLocationObjChange: (locationObj: SelectedLocationObj) => void;
+  handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const [openLocationParamsDialog, setOpenLocationParamsDialog] =
-    useState(false);
-  const [selectedLocation, setSelectedLocation] =
-    useState<SelectedLocationObj | null>(null);
+  const [missingInfoSaveWarning, setMissingInfoSaveWarning] = useState(false);
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
     evaluations: false,
     tallys: false,
   });
   const handleRegistrationDataExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
     const locationsToExport = selectedLocationsObjs.filter(
       (location) => location.exportRegistrationInfo,
@@ -85,6 +87,9 @@ const SelectedParks = ({
     setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessments.length > 0,
@@ -133,6 +138,9 @@ const SelectedParks = ({
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
     const locationsToExportTallys = selectedLocationsObjs.filter(
       (location) => location.tallysIds.length > 0,
     );
@@ -204,6 +212,9 @@ const SelectedParks = ({
   };
 
   const handleIndividualTallysToExport = async () => {
+    if (selectedLocationsSaved.find((location) => !location.saved)) {
+      return;
+    }
     const locationsToExportTallys = selectedLocationsObjs.filter(
       (location) => location.tallysIds.length > 0,
     );
@@ -251,147 +262,138 @@ const SelectedParks = ({
   };
 
   return (
-    <div className="flex h-full flex-col gap-2">
-      <Virtuoso
-        data={selectedLocationsObjs}
-        components={{
-          EmptyPlaceholder: () => <div>Nenhuma praça selecionada!</div>,
-        }}
-        style={{ height: "100%" }}
-        itemContent={(_, l) => {
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col overflow-auto rounded-md">
+        {selectedLocationsSaved.map((locationObj, index) => {
+          const locationObject = locations.find(
+            (item) => item.id === locationObj.id,
+          );
           return (
-            <div key={l.id} className="pb-4">
-              <div className="flex flex-row justify-between bg-gray-200 p-2 px-2 shadow-xl">
-                <div className="flex h-auto w-full flex-col gap-1">
-                  <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
-                    <CIconChip icon={<IconTree />} tooltip="Praça" />
-                    {`${l.name}`}
-                  </span>
-                  <Divider />
-                  <div className="flex items-center">
-                    <CIconChip
-                      tooltip="Cidade - Estado"
-                      icon={<IconMapPin />}
-                    />
-                    {`${l.cityName} - ${l.state}`}
-                  </div>
-
-                  <Divider />
-                  <div className="flex items-center">
-                    <CIconChip
-                      icon={<IconBuildingCommunity />}
-                      tooltip="Unidades Administrativas"
-                    />
-                    <Breadcrumbs separator="›" aria-label="breadcrumb">
-                      {l.narrowAdministrativeUnitName ?
-                        <div>{l.narrowAdministrativeUnitName}</div>
-                      : <span className="ml-1">-</span>}
-                      {l.intermediateAdministrativeUnitName ?
-                        <div>{l.intermediateAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                      {l.broadAdministrativeUnitName ?
-                        <div>{l.broadAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                    </Breadcrumbs>
-                  </div>
-                  <Divider />
-                  <div className="flex items-center">
-                    <span>
-                      {`Exportar dados de cadastro:`}{" "}
-                      <CSwitch disabled checked={l.exportRegistrationInfo} />
-                    </span>
-                  </div>
-                  <Divider />
-                  <div className="flex items-center">
-                    <span>{`Avaliações selecionadas: ${l.assessments.length}/${l.assessmentCount}`}</span>
-                  </div>
-                  <Divider />
-                  <div className="flex items-center">
-                    <span>{`Contagens Selecionadas: ${l.tallysIds.length}/${l.tallyCount}`}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <CButton
-                    variant="text"
-                    onClick={() => {
-                      setSelectedLocation(l);
-                      setOpenLocationParamsDialog(true);
-                    }}
-                  >
-                    <IconPencil />
-                  </CButton>
-                  <CButton
-                    variant="text"
-                    onClick={() => {
-                      handleSelectedLocationsRemoval(l.id);
-                    }}
-                  >
-                    <IconMinus />
-                  </CButton>
-                </div>
+            <div
+              className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black"
+              key={index}
+            >
+              {locationObject?.name}
+              <div className="flex items-center">
+                {locationObj.saved ?
+                  <IconCheck color="green" />
+                : <IconX color="red" />}
+                <Button
+                  className="text-black"
+                  onPress={() => {
+                    handlePageStateChange(locationObj.id, "EDIT");
+                  }}
+                  variant={"ghost"}
+                >
+                  <IconEdit size={24} />
+                </Button>
+                <Button
+                  className="text-red-500"
+                  onPress={() => {
+                    handleSelectedLocationsRemoval(locationObj.id);
+                  }}
+                  variant={"ghost"}
+                >
+                  <IconCircleMinus size={24} />
+                </Button>
               </div>
             </div>
           );
-        }}
-      />
-      <Divider />
-      <div className="flex w-fit max-w-full flex-col gap-1">
-        <CButton
-          sx={{ width: "100%" }}
-          disabled={loadingExport.registrationsData}
-          loading={loadingExport.registrationsData}
-          onClick={() => {
-            handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
+        })}
+      </div>
+      <div className="flex flex-col gap-1">
+        {missingInfoSaveWarning &&
+          selectedLocationsSaved.filter((location) => !location.saved)
+            .length !== 0 && (
+            <span className="text-redwood">{`${selectedLocationsSaved.filter((location) => !location.saved).length} ${selectedLocationsSaved.filter((location) => !location.saved).length === 1 ? "praça" : "praças"}  sem parâmetros salvos!`}</span>
+          )}
+        <Button
+          isDisabled={loadingExport.registrationsData}
+          className="h-fit"
+          onPress={() => {
+            if (
+              selectedLocationsSaved.filter((location) => !location.saved)
+                .length === 0
+            ) {
+              setMissingInfoSaveWarning(false);
+              handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
+            } else {
+              setMissingInfoSaveWarning(true);
+            }
           }}
         >
-          {"Exportar dados de cadastro"}
-        </CButton>
+          {loadingExport.registrationsData ?
+            "Exportando..."
+          : "Exportar dados de cadastro"}
+        </Button>
         <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
-          <CButton
-            sx={{ width: "100%" }}
-            disabled={loadingExport.evaluations}
-            onClick={() => {
-              handleEvaluationExport().catch(() => ({ statusCode: 1 }));
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.evaluations}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleEvaluationExport().catch(() => ({ statusCode: 1 }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
             }}
           >
-            {"Exportar avaliações físicas"}
-          </CButton>
+            {loadingExport.evaluations ?
+              "Exportando..."
+            : "Exportar avaliações físicas"}
+          </Button>
         </PermissionGuard>
         <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
-          <CButton
-            sx={{ width: "100%" }}
-            disabled={loadingExport.tallys}
-            onClick={() => {
-              handleIndividualTallysToExport().catch(() => ({
-                statusCode: 1,
-              }));
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.tallys}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleIndividualTallysToExport().catch(() => ({
+                  statusCode: 1,
+                }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
             }}
           >
-            {"Exportar contagens individuais"}
-          </CButton>
+            {loadingExport.tallys ?
+              "Exportando..."
+            : "Exportar contagens individuais"}
+          </Button>
         </PermissionGuard>
         <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
-          <CButton
-            sx={{ width: "100%" }}
-            disabled={loadingExport.tallys}
-            onClick={() => {
-              handleTallysExport().catch(() => ({
-                statusCode: 1,
-              }));
+          <Button
+            className="h-fit"
+            isDisabled={loadingExport.tallys}
+            onPress={() => {
+              if (
+                selectedLocationsSaved.filter((location) => !location.saved)
+                  .length === 0
+              ) {
+                setMissingInfoSaveWarning(false);
+                handleTallysExport().catch(() => ({
+                  statusCode: 1,
+                }));
+              } else {
+                setMissingInfoSaveWarning(true);
+              }
             }}
           >
-            {"Exportar contagens por dia"}
-          </CButton>
+            {loadingExport.tallys ?
+              "Exportando..."
+            : "Exportar contagens por dia"}
+          </Button>
         </PermissionGuard>
       </div>
-      <LocationParamsDialog
-        open={openLocationParamsDialog}
-        onClose={() => {
-          setOpenLocationParamsDialog(false);
-        }}
-        location={selectedLocation}
-        handleSelectedLocationObjChange={handleSelectedLocationObjChange}
-      />
     </div>
   );
 };

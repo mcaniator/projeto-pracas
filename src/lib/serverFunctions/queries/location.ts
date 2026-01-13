@@ -158,6 +158,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     i.relative_path AS "mainImage",
     l.city_id as "cityId",
     c.state as "state",
+    c.name as "cityName",
     CASE
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text

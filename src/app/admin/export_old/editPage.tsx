@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/button";
-import CSkeletonGroup from "@/components/ui/cSkeletonGroup";
 import { Checkbox } from "@/components/ui/checkbox";
 import LoadingIcon from "@components/LoadingIcon";
 import PermissionGuard from "@components/auth/permissionGuard";
@@ -35,14 +34,16 @@ import { TallyList } from "./tallyList";
 type FetchedDataStatus = "LOADING" | "LOADED" | "ERROR";
 
 const EditPage = ({
-  location,
+  locationId,
+  locations,
   selectedLocationsObjs,
   selectedLocationsSaved,
   handlePageStateChange,
   handleSelectedLocationsSaveChange,
   handleSelectedLocationObjChange,
 }: {
-  location: { id: number; name: string };
+  locationId: number | undefined;
+  locations: { id: number; name: string }[];
   selectedLocationsObjs: SelectedLocationObj[];
   selectedLocationsSaved: SelectedLocationSavedObj[];
   handlePageStateChange: (
@@ -73,7 +74,9 @@ const EditPage = ({
   const [fetchedAssessments, setFetchedAssessments] = useState<
     LocationAssessment[]
   >([]);
-
+  useEffect(() => {
+    setCurrentLocationId(locationId);
+  }, [locationId]);
   useEffect(() => {
     if (currentLocationId) {
       const fetchTallys = async () => {
@@ -249,10 +252,16 @@ const EditPage = ({
       );
     }
   }, [currentLocationId, selectedLocationsObjs, fetchedAssessments]);
+  if (!locationId) {
+    return <h4 className="text-xl font-semibold">Erro!</h4>;
+  }
+  const locationName =
+    locations.find((location) => location.id === currentLocationId)?.name ||
+    "Erro!";
 
   return (
     <div className="flex h-full flex-col gap-1">
-      <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${location.name}`}</h4>
+      <h4 className="text-xl font-semibold">{`Selecione os parâmetros para ${locationName}`}</h4>
       <div className="flex flex-row items-center gap-1">
         <Checkbox
           id="registration-info"
@@ -263,9 +272,7 @@ const EditPage = ({
       </div>
       <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
         <h5>Avaliações físicas</h5>
-        {fetchedAssessmentsStatus === "LOADING" && (
-          <CSkeletonGroup quantity={3} />
-        )}
+        {fetchedAssessmentsStatus === "LOADING" && <LoadingIcon size={48} />}
         {fetchedAssessmentsStatus === "ERROR" && <span>Erro!</span>}
         {fetchedAssessmentsStatus === "LOADED" &&
           fetchedAssessments?.length === 0 && (
@@ -281,7 +288,7 @@ const EditPage = ({
       </PermissionGuard>
       <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
         <h5>Contagens</h5>
-        {fetchedTallysStatus === "LOADING" && <CSkeletonGroup quantity={3} />}
+        {fetchedTallysStatus === "LOADING" && <LoadingIcon size={48} />}
         {fetchedTallysStatus === "ERROR" && <span>Erro!</span>}
         {fetchedTallysStatus === "LOADED" && fetchedTallys?.length === 0 && (
           <span>Nenhuma contagem encontrada!</span>

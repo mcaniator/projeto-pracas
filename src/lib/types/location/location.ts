@@ -39,6 +39,7 @@ export type LocationForMap = {
   usableArea: number | null;
   legalArea: number | null;
   cityId: number;
+  cityName: string;
   state: BrazilianStates;
   assessmentCount: number;
   tallyCount: number;

@@ -1,59 +1,70 @@
 "use client";
 
-import {
-  ExportPageModes,
-  SelectedLocationObj,
-  SelectedLocationSavedObj,
-} from "./client";
-import { ParkSearch } from "./parkSearch";
-import { ParkSearchModal } from "./parkSearchModal";
+import LocationSelector from "@/app/admin/export/locationSelector";
+import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { Paper } from "@mui/material";
+import { useState } from "react";
+
+import { SelectedLocationObj } from "./client";
 import SelectedParks from "./selectedParks";
 
-const ExportHome = ({
-  locations,
-  selectedLocationsObjs,
-  selectedLocationsSaved,
-  handleSelectedLocationsAddition,
-  handleSelectedLocationsRemoval,
-  handlePageStateChange,
-}: {
-  locations: { id: number; name: string }[];
-  selectedLocationsObjs: SelectedLocationObj[];
-  selectedLocationsSaved: SelectedLocationSavedObj[];
-  handleSelectedLocationsAddition: (locationObj: SelectedLocationObj) => void;
-  handleSelectedLocationsRemoval: (id: number) => void;
-  handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
-}) => {
+const ExportHome = () => {
+  const [selectedLocationsObjs, setSelectedLocationsObjs] = useState<
+    SelectedLocationObj[]
+  >([]);
+
+  const handleSelectedLocationsAddition = (
+    locationObj: FetchLocationsResponse["locations"][number],
+  ) => {
+    setSelectedLocationsObjs((prev) => [
+      ...prev,
+      {
+        ...locationObj,
+        tallysIds: [],
+        assessments: [],
+        exportRegistrationInfo: false,
+      },
+    ]);
+  };
+  const handleSelectedLocationsRemoval = (id: number) => {
+    if (selectedLocationsObjs.some((location) => location.id === id)) {
+      setSelectedLocationsObjs((prev) => prev.filter((item) => item.id !== id));
+    }
+  };
+
+  const handleSelectedLocationObjChange = (
+    locationObj: SelectedLocationObj,
+  ) => {
+    setSelectedLocationsObjs((prev) =>
+      prev.map((item) => (item.id === locationObj.id ? locationObj : item)),
+    );
+  };
   return (
-    <div className="flex flex-row justify-center gap-5 overflow-auto">
+    <div className="flex h-full flex-row justify-center gap-5 overflow-auto">
       <div className="hidden basis-3/5 flex-col gap-1 overflow-auto md:flex">
         <h4 className="text-xl font-semibold">
           Selecione as praças as quais deseja exportar dados
         </h4>
-        <ParkSearch
-          location={locations}
+        <LocationSelector
+          onSelecion={(v) => {
+            handleSelectedLocationsAddition(v);
+          }}
           selectedLocations={selectedLocationsObjs}
-          handleSelectedLocationsAddition={handleSelectedLocationsAddition}
         />
       </div>
 
-      <div className="flex w-full flex-col gap-2 overflow-auto p-0 sm:bg-gray-400/20 md:w-fit md:basis-2/5 md:rounded-3xl md:p-3 md:shadow-inner">
+      <Paper
+        elevation={5}
+        className="flex w-full flex-col gap-2 overflow-auto p-2 md:w-fit md:basis-2/5"
+      >
         <h4 className="text-xl font-semibold">Praças selecionadas</h4>
-        <div className="inline md:hidden">
-          <ParkSearchModal
-            locations={locations}
-            selectedLocationsObjs={selectedLocationsObjs}
-            handleSelectedLocationsAddition={handleSelectedLocationsAddition}
-          />
-        </div>
+
         <SelectedParks
-          locations={locations}
           selectedLocationsObjs={selectedLocationsObjs}
-          selectedLocationsSaved={selectedLocationsSaved}
           handleSelectedLocationsRemoval={handleSelectedLocationsRemoval}
-          handlePageStateChange={handlePageStateChange}
+          handleSelectedLocationObjChange={handleSelectedLocationObjChange}
         />
-      </div>
+      </Paper>
     </div>
   );
 };
