@@ -87,23 +87,10 @@ const fetchTallysByLocationId = async (locationId: number) => {
     return { statusCode: 500, tallys: [] };
   }
 };
-
+export type FetchRecentlyCompletedTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchRecentlyCompletedTallys>>["data"]
+>;
 const fetchRecentlyCompletedTallys = async () => {
-  const returnObj: {
-    statusCode: number;
-    tallys: {
-      id: number;
-      startDate: Date;
-      endDate: Date | null;
-      location: {
-        name: string;
-        id: number;
-      };
-      user: {
-        username: string | null;
-      };
-    }[];
-  } = { statusCode: 500, tallys: [] };
   try {
     const tallys = await prisma.tally.findMany({
       where: {
@@ -131,12 +118,25 @@ const fetchRecentlyCompletedTallys = async () => {
         },
       },
     });
-    returnObj.statusCode = 200;
-    returnObj.tallys = tallys;
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        tallys,
+      },
+    };
   } catch (e) {
-    return returnObj;
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar contagens!",
+      } as APIResponseInfo,
+      data: {
+        tallys: [],
+      },
+    };
   }
-  return returnObj;
 };
 
 const fetchOngoingTallyById = async (tallyId: number) => {

@@ -250,6 +250,9 @@ const fetchAssessmentWithResponses = async (assessmentId: number) => {
   }
 };
 
+export type FetchRecentlyCompletedAssessmentsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchRecentlyCompletedAssessments>>["data"]
+>;
 const fetchRecentlyCompletedAssessments = async () => {
   try {
     const assessments = await prisma.assessment.findMany({
@@ -264,6 +267,7 @@ const fetchRecentlyCompletedAssessments = async () => {
       select: {
         id: true,
         endDate: true,
+        startDate: true,
         location: {
           select: {
             id: true,
@@ -284,9 +288,24 @@ const fetchRecentlyCompletedAssessments = async () => {
       },
       take: 10,
     });
-    return { statusCode: 200, assessments };
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        assessments,
+      },
+    };
   } catch (e) {
-    return { statusCode: 500, assessments: [] };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliações!",
+      } as APIResponseInfo,
+      data: {
+        assessments: [],
+      },
+    };
   }
 };
 
