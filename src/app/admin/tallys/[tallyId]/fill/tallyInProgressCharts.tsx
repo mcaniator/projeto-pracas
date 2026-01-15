@@ -126,13 +126,13 @@ const TallyInProgressCharts = ({
       legend: {
         position: "top" as const,
         labels: {
-          color: `${isOnModal ? "black" : "white"}`,
+          color: `${"black"}`,
         },
       },
       title: {
         display: true,
         text: "Título",
-        color: `${isOnModal ? "black" : "white"}`,
+        color: `${"black"}`,
         font: {
           size: 14,
         },
@@ -140,7 +140,7 @@ const TallyInProgressCharts = ({
       datalabels: {
         anchor: "end" as const,
         align: "left" as const,
-        color: `${isOnModal ? "black" : "white"}`,
+        color: `${"black"}`,
         font: {
           size: 14,
         },
@@ -150,23 +150,23 @@ const TallyInProgressCharts = ({
       x: {
         beginAtZero: true,
         ticks: {
-          color: `${isOnModal ? "black" : "white"}`,
+          color: `${"black"}`,
           precision: 0,
         },
         grid: {
-          color: `${isOnModal ? "black" : "white"}`,
+          color: `${"black"}`,
         },
       },
       y: {
         stacked: false,
         ticks: {
-          color: `${isOnModal ? "black" : "white"}`,
+          color: `${"black"}`,
           font: {
             size: 14,
           },
         },
         grid: {
-          color: `${isOnModal ? "black" : "white"}`,
+          color: `${"black"}`,
         },
       },
     },

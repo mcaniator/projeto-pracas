@@ -19,7 +19,9 @@ const CAdminHeader = ({
       <div className="flex justify-between">
         <h3 className="flex items-center">
           {titleIcon}
-          <span className="ml-2 text-2xl font-semibold">{title}</span>
+          <span className="ml-2 text-xl font-semibold sm:text-2xl">
+            {title}
+          </span>
         </h3>
         {append}
       </div>

@@ -9,6 +9,7 @@ import React, { useCallback } from "react";
 
 type CDateTimePickerProps = DateTimePickerProps & {
   error?: boolean;
+  helperText?: string;
   debounce?: number;
   clearable?: boolean;
 };
@@ -21,6 +22,7 @@ const CDateTimePicker = React.forwardRef<
     ampm = false,
     debounce,
     clearable,
+    helperText,
     onAccept,
     onChange,
     ...rest
@@ -91,6 +93,7 @@ const CDateTimePicker = React.forwardRef<
           clearable: clearable,
         },
         textField: {
+          helperText: helperText,
           InputLabelProps: { shrink: true },
           sx: {
             mt: "8px",
