@@ -4,6 +4,7 @@ import LocationParamsDialog from "@/app/admin/export/locationParamsDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
+import CDialog from "@/components/ui/dialog/cDialog";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Breadcrumbs, Divider } from "@mui/material";
@@ -27,12 +28,18 @@ import { SelectedLocationObj } from "./client";
 
 const SelectedParks = ({
   selectedLocationsObjs,
+  isMobileView,
+  openDialog,
   handleSelectedLocationsRemoval,
   handleSelectedLocationObjChange,
+  handleDialogClose,
 }: {
   selectedLocationsObjs: SelectedLocationObj[];
+  isMobileView: boolean;
+  openDialog: boolean;
   handleSelectedLocationsRemoval: (id: number) => void;
   handleSelectedLocationObjChange: (locationObj: SelectedLocationObj) => void;
+  handleDialogClose: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const [openLocationParamsDialog, setOpenLocationParamsDialog] =
@@ -43,6 +50,7 @@ const SelectedParks = ({
     registrationsData: false,
     evaluations: false,
     tallys: false,
+    dailyTallys: false,
   });
   const handleRegistrationDataExport = async () => {
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
@@ -57,6 +65,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar dados de praças!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -64,6 +73,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar dados de praças!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     }
     const csvString = response.CSVstring;
@@ -102,6 +112,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -109,6 +120,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     }
     const csvObjs = response.csvObjs;
@@ -141,7 +153,7 @@ const SelectedParks = ({
       tallysIds.push(...location.tallysIds),
     );
     if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport((prev) => ({ ...prev, tallys: true }));
+    setLoadingExport((prev) => ({ ...prev, dailyTallys: true }));
     const response = await _exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
@@ -152,6 +164,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -159,6 +172,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     }
     const csvObj = {
@@ -200,7 +214,7 @@ const SelectedParks = ({
       helperCardType: "CONFIRM",
       content: <>Contagens exportadas!</>,
     });
-    setLoadingExport((prev) => ({ ...prev, tallys: false }));
+    setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
   };
 
   const handleIndividualTallysToExport = async () => {
@@ -220,6 +234,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -227,6 +242,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
     }
 
@@ -250,7 +266,7 @@ const SelectedParks = ({
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
 
-  return (
+  const innerComponent = (
     <div className="flex h-full flex-col gap-2">
       <Virtuoso
         data={selectedLocationsObjs}
@@ -338,7 +354,6 @@ const SelectedParks = ({
       <div className="flex w-fit max-w-full flex-col gap-1">
         <CButton
           sx={{ width: "100%" }}
-          disabled={loadingExport.registrationsData}
           loading={loadingExport.registrationsData}
           onClick={() => {
             handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
@@ -349,7 +364,7 @@ const SelectedParks = ({
         <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
           <CButton
             sx={{ width: "100%" }}
-            disabled={loadingExport.evaluations}
+            loading={loadingExport.evaluations}
             onClick={() => {
               handleEvaluationExport().catch(() => ({ statusCode: 1 }));
             }}
@@ -360,7 +375,7 @@ const SelectedParks = ({
         <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
           <CButton
             sx={{ width: "100%" }}
-            disabled={loadingExport.tallys}
+            loading={loadingExport.tallys}
             onClick={() => {
               handleIndividualTallysToExport().catch(() => ({
                 statusCode: 1,
@@ -373,7 +388,7 @@ const SelectedParks = ({
         <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
           <CButton
             sx={{ width: "100%" }}
-            disabled={loadingExport.tallys}
+            loading={loadingExport.dailyTallys}
             onClick={() => {
               handleTallysExport().catch(() => ({
                 statusCode: 1,
@@ -394,6 +409,21 @@ const SelectedParks = ({
       />
     </div>
   );
+
+  if (isMobileView) {
+    return (
+      <CDialog
+        fullScreen
+        title="Menu de exportação"
+        open={openDialog}
+        onClose={handleDialogClose}
+      >
+        {innerComponent}
+      </CDialog>
+    );
+  } else {
+    return innerComponent;
+  }
 };
 
 export default SelectedParks;

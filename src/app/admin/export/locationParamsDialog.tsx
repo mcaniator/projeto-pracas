@@ -1,4 +1,5 @@
 import { SelectedLocationObj } from "@/app/admin/export/client";
+import { useUserContext } from "@/components/context/UserContext";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CSwitch from "@/components/ui/cSwtich";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
@@ -14,16 +15,7 @@ import { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 type ListType = "ASSESSMENT" | "TALLY";
-const listTypeOptions = [
-  {
-    value: "ASSESSMENT",
-    label: "Avaliações",
-  },
-  {
-    value: "TALLY",
-    label: "Contagens",
-  },
-] as { value: ListType; label: string }[];
+
 const LocationParamsDialog = ({
   open,
   onClose,
@@ -35,6 +27,7 @@ const LocationParamsDialog = ({
   location: SelectedLocationObj | null;
   handleSelectedLocationObjChange: (locationObj: SelectedLocationObj) => void;
 }) => {
+  const userContext = useUserContext();
   const [fetchAssessments, loadingAssessments] = useFetchAssessments({
     callbacks: {
       onSuccess: (response) => {
@@ -57,13 +50,42 @@ const LocationParamsDialog = ({
   const [listType, setListType] = useState<ListType>("ASSESSMENT");
   useEffect(() => {
     if (!open || !location) return;
-    void fetchAssessments({ locationId: location.id });
-    void fetchTallys({ locationId: location.id });
+    if (
+      userContext.checkIfLoggedInUserHasAccess({
+        requiredAnyRoleGroups: ["ASSESSMENT"],
+      })
+    ) {
+      void fetchAssessments({ locationId: location.id });
+    }
+    if (
+      userContext.checkIfLoggedInUserHasAccess({
+        requiredAnyRoleGroups: ["TALLY"],
+      })
+    ) {
+      void fetchTallys({ locationId: location.id });
+    }
+
     setLocalLocation(location);
   }, [location, open]);
 
+  const listTypeOptions = [
+    {
+      value: "ASSESSMENT",
+      label: "Avaliações",
+      show: userContext.checkIfLoggedInUserHasAccess({
+        requiredAnyRoleGroups: ["ASSESSMENT"],
+      }),
+    },
+    {
+      value: "TALLY",
+      label: "Contagens",
+      show: userContext.checkIfLoggedInUserHasAccess({
+        requiredAnyRoleGroups: ["TALLY"],
+      }),
+    },
+  ] as { value: ListType; label: string; show: boolean }[];
+
   if (!location || !localLocation) return null;
-  console.log(localLocation);
   return (
     <CDialog
       open={open}
@@ -93,7 +115,7 @@ const LocationParamsDialog = ({
           value={listType}
           getLabel={(o) => o.label}
           getValue={(o) => o.value}
-          options={listTypeOptions}
+          options={listTypeOptions.filter((o) => o.show)}
           onChange={(_, v) => setListType(v.value)}
         />
         {(loadingAssessments || loadingTallys) && (

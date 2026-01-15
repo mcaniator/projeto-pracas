@@ -17,7 +17,6 @@ import {
   IconBuildingCommunity,
   IconFilter,
   IconMapPin,
-  IconPin,
   IconPlus,
   IconTree,
 } from "@tabler/icons-react";
@@ -77,7 +76,7 @@ const LocationSelector = ({
       },
     },
   });
-  console.log("selectedLocations", selectedLocations);
+
   const applyFilter = useCallback(() => {
     const result: FetchLocationsResponse["locations"] = [];
     locations.forEach((location) => {
