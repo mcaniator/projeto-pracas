@@ -1,11 +1,14 @@
 "use client";
 
 import { Button } from "@/components/button";
+import CAdminHeader from "@/components/ui/cAdminHeader";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
+import { Divider, Paper } from "@mui/material";
 import { FinalizedTally } from "@zodValidators";
 import { useEffect, useState } from "react";
 import React from "react";
+import { GrGroup } from "react-icons/gr";
 import { z } from "zod";
 
 import { ComplementaryDataVisualization } from "./complementaryDataVisualization";
@@ -246,9 +249,12 @@ const TallysDataPage = ({
   }, [booleanConditionsFilter, tallys]);
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
-    <div className="flex max-h-full min-h-0 max-w-full gap-5">
-      <div className="flex w-full flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
-        <h3 className="text-2xl font-semibold">{`Contagens realizadas em ${locationName}`}</h3>
+    <div className="flex max-h-full min-h-0 max-w-full gap-5 text-black">
+      <div className="flex w-full flex-col gap-1 overflow-auto bg-white p-3 shadow-md">
+        <CAdminHeader
+          titleIcon={<GrGroup size={25} />}
+          title={`Contagens realizadas em ${locationName}`}
+        />
         <div className="flex w-full flex-row gap-5 overflow-auto">
           <div
             className={
@@ -317,17 +323,21 @@ const TallysDataPage = ({
               />
             }
           </div>
-          <div className="hidden h-full max-h-full flex-col gap-5 overflow-auto rounded-xl bg-gray-400/20 p-2 shadow-inner xl:flex xl:basis-2/5">
+          <Paper
+            elevation={5}
+            className="hidden h-full max-h-full flex-col gap-2 overflow-auto p-2 xl:flex xl:basis-2/5"
+          >
             <TallysDataPageActions
               setBooleanConditionsFilter={setBooleanConditionsFilter}
               tallyIds={tallysIds}
               locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
-            <div className="flex h-full min-h-56 flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+            <Divider />
+            <div className="0 flex h-full min-h-56 flex-col gap-1 overflow-auto shadow-md">
               <IndividualDataTable tallys={tallys} />
             </div>
-          </div>
+          </Paper>
         </div>
       </div>
     </div>

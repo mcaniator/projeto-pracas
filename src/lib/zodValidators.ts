@@ -15,6 +15,14 @@ type zodErrorType<Type extends ZodType> = {
 
 export type { zodErrorType };
 
+export const booleanFromString = z.preprocess((val) => {
+  if (typeof val === "string") {
+    if (val.toLowerCase() === "true") return true;
+    if (val.toLowerCase() === "false") return false;
+  }
+  return val;
+}, z.boolean());
+
 // #region Auth
 //  ------------------------------------------------------------------------------------------------------------
 //  Auth
@@ -116,12 +124,14 @@ export type { userRegisterType, userUpdateUsernameType, userLoginType };
 const categoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   notes: z.string().trim().optional().nullish(),
+  categoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
 const subcategoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   categoryId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().optional().nullish(),
+  subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
 const questionSchema = z.object({
@@ -129,14 +139,22 @@ const questionSchema = z.object({
   notes: z.string().trim().optional().nullish(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),
-  type: z.nativeEnum(QuestionTypes),
+  questionType: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   optionType: z.nativeEnum(OptionTypes).optional(),
-  maximumSelections: z.coerce.number().int().finite().nonnegative().optional(),
   geometryTypes: z.array(z.nativeEnum(QuestionGeometryTypes)).optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
   subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
+});
+
+const questionEditDataSchema = z.object({
+  questionId: z.coerce.number(),
+  questionName: z.string().trim().min(1).max(255),
+  notes: z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return null;
+    return val;
+  }, z.string().trim().max(255).nullable()),
 });
 
 const questionsOnFormsSchema = z.object({
@@ -187,6 +205,7 @@ const optionSchema = z
 
 const formSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  cloneFormId: z.coerce.number(),
 });
 
 type questionType = z.infer<typeof questionSchema>;
@@ -200,6 +219,7 @@ export {
   optionSchema,
   optionsQuestionSchema,
   questionSchema,
+  questionEditDataSchema,
   // textQuestionSchema,
 };
 export type { formType, questionType };
@@ -209,34 +229,51 @@ export type { formType, questionType };
 //  ------------------------------------------------------------------------------------------------------------
 //  Informações da Praça
 //  ------------------------------------------------------------------------------------------------------------
-const locationSchema = z
-  .object({
-    name: z.string().trim().min(1).max(255),
-    popularName: z.string().trim().nullish(),
-    firstStreet: z.string().trim().min(1).max(255),
-    secondStreet: z.string().trim().min(1).max(255).nullish(),
-    isPark: z.boolean(),
-    notes: z.string().trim().min(1).nullish(),
-    creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
-    lastMaintenanceYear: z.coerce
-      .number()
-      .int()
-      .finite()
-      .nonnegative()
-      .nullish(),
-    overseeingMayor: z.string().trim().min(1).max(255).nullish(),
-    legislation: z.string().trim().min(1).max(255).nullish(),
-    usableArea: z.coerce.number().finite().nonnegative().nullish(),
-    legalArea: z.coerce.number().finite().nonnegative().nullish(),
-    incline: z.coerce.number().finite().nonnegative().nullish(),
-    inactiveNotFound: z.boolean(),
-    polygonArea: z.coerce.number().finite().nonnegative().nullish(),
-  })
-  .refine((value) => {
-    if (value.creationYear && value.lastMaintenanceYear)
-      return value.lastMaintenanceYear >= value.creationYear;
-    return true;
-  });
+const locationSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  popularName: z.string().trim().nullish(),
+  firstStreet: z.string().trim().min(1).max(255),
+  secondStreet: z.string().trim().min(1).max(255).nullish(),
+  thirdStreet: z.string().trim().min(1).max(255).nullish(),
+  fourthStreet: z.string().trim().min(1).max(255).nullish(),
+  isPark: booleanFromString,
+  inactiveNotFound: booleanFromString,
+  creationYear: z.coerce.number().int().finite().nonnegative().nullish(),
+  cityId: z.coerce.number().int().finite().nonnegative(),
+  notes: z.string().trim().min(1).max(1024).nullish(),
+  lastMaintenanceYear: z.coerce.number().int().finite().nonnegative().nullish(),
+  overseeingMayor: z.string().trim().min(1).max(255).nullish(),
+  legislation: z.string().trim().min(1).max(255).nullish(),
+  usableArea: z.coerce.number().finite().nonnegative().nullish(),
+  legalArea: z.coerce.number().finite().nonnegative().nullish(),
+  incline: z.coerce.number().finite().nonnegative().nullish(),
+  categoryId: z.coerce.number().int().finite().nonnegative().nullish(),
+  typeId: z.coerce.number().int().finite().nonnegative().nullish(),
+  narrowAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  intermediateAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  broadAdministrativeUnitId: z.coerce
+    .number()
+    .int()
+    .finite()
+    .nonnegative()
+    .nullish(),
+  polygonArea: z.coerce.number().finite().nonnegative().nullish(),
+});
+
+const featuresGeoJsonSchema = z.object({
+  type: z.literal("MultiPolygon"),
+  coordinates: z.array(z.array(z.array(z.array(z.number())))),
+});
 
 const citySchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -281,15 +318,22 @@ const administrativeUnitsSchema = z.object({
 type locationType = z.infer<typeof locationSchema>;
 type cityType = z.infer<typeof citySchema>;
 type administrativeUnitsType = z.infer<typeof administrativeUnitsSchema>;
+type featuresGeoJsonType = z.infer<typeof featuresGeoJsonSchema>;
 type BrazilianStatesEnum = z.infer<typeof BrazilianStatesEnum>;
 
 export {
   administrativeUnitsSchema,
   citySchema,
   locationSchema,
+  featuresGeoJsonSchema,
   BrazilianStatesEnum,
 };
-export type { administrativeUnitsType, cityType, locationType };
+export type {
+  administrativeUnitsType,
+  cityType,
+  featuresGeoJsonType,
+  locationType,
+};
 // #endregion
 
 // #region Informações das Avaliações
@@ -339,6 +383,7 @@ const ongoingTallySchema = z.object({
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
   groups: z.coerce.number().int().finite().nonnegative().nullable(),
+  locationId: z.coerce.number(),
   user: z.object({
     username: z.coerce.string().nullable(),
     id: z.string(),

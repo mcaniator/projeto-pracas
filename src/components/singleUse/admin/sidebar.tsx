@@ -5,8 +5,7 @@ import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {
   IconBug,
-  IconFountain,
-  IconHome,
+  IconClipboard,
   IconInfoSquareRounded,
   IconListCheck,
   IconLogs,
@@ -20,6 +19,7 @@ import {
 } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import { GrGroup } from "react-icons/gr";
 
 import { checkIfRolesArrayContainsAny } from "../../../lib/auth/rolesUtil";
 import { useUserContext } from "../../context/UserContext";
@@ -50,27 +50,29 @@ const Sidebar = () => {
     show?: boolean;
   }[] = [
     {
-      icon: <IconHome size={34} />,
-      name: "Início",
-      path: "/admin/home",
-      show: true,
-    },
-    {
-      icon: <IconFountain size={34} />,
-      name: "Praças",
-      path: "/admin/parks",
-      show: true,
-    },
-    {
       icon: <IconMapSearch size={34} />,
       name: "Mapa",
       path: "/admin/map",
       show: true,
     },
     {
+      icon: <IconClipboard size={34} />,
+      name: "Avaliações",
+      path: "/admin/assessments",
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["ASSESSMENT"],
+      }),
+    },
+    {
+      icon: <GrGroup size={34} />,
+      name: "Contagens",
+      path: "/admin/tallys",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
+    },
+    {
       icon: <IconListCheck size={34} />,
       name: "Formulários",
-      path: "/admin/registration/questions",
+      path: "/admin/forms",
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
     },
     {
@@ -113,7 +115,7 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-[51] flex h-full w-64 flex-col bg-gray-800 p-5 text-xl shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-[51] flex h-full w-64 flex-col bg-main p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}

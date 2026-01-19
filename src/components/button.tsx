@@ -23,7 +23,7 @@ const buttonVariants = cva(
         admin:
           "bg-purpureus text-white data-[hovered]:bg-eminence disabled:bg-eminence",
         constructive:
-          "bg-green-500/90 text-white data-[hovered]:bg-green-700/90 disabled:bg-green-700/90",
+          "bg-praca-green-lime rounded-full text-white data-[hovered]:bg-praca-green-lime/90 disabled:bg-green-700/90",
         destructive:
           "bg-redwood text-white data-[hovered]:bg-cordovan disabled:bg-cordovan",
         outline:

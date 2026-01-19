@@ -1,3 +1,4 @@
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { OrdersObj } from "@app/admin/users/usersTable";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
@@ -138,6 +139,33 @@ const getUserContentAmount = async (userId: string) => {
     return { statusCode: 200, assessments, tallys };
   } catch (e) {
     return { statusCode: 500, assessments: null, tallys: null };
+  }
+};
+
+export type FetchUsersResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchUsers>>["data"]
+>;
+export const fetchUsers = async () => {
+  try {
+    const users = await prisma.user.findMany();
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        users,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar usuários!",
+      } as APIResponseInfo,
+      data: {
+        users: [],
+      },
+    };
   }
 };
 

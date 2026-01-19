@@ -43,7 +43,7 @@ export const LoadingOverlayProvider = ({
       value={{ setLoadingOverlayVisible, setLoadingOverlay }}
     >
       {visible && (
-        <div className="fixed z-[30] flex h-screen w-screen flex-col items-center justify-center bg-black/50">
+        <div className="fixed z-[9999] flex h-screen w-screen flex-col items-center justify-center bg-black/50">
           <LoadingIcon className="text-white" size={72} />
           <div className="text-md font-semibold text-white">{message}</div>
         </div>

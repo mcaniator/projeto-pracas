@@ -39,7 +39,7 @@ const CommercialActivitiesChart = ({
       title: {
         display: true,
         text: "Título",
-        color: "white",
+        color: "black",
         font: {
           size: 14,
         },
@@ -47,29 +47,29 @@ const CommercialActivitiesChart = ({
       datalabels: {
         anchor: "center" as const,
         align: "center" as const,
-        color: "white",
+        color: "black",
       },
     },
     scales: {
       x: {
         beginAtZero: true,
         ticks: {
-          color: "white",
+          color: "black",
         },
         grid: {
-          color: "white",
+          color: "black",
         },
       },
       y: {
         ticks: {
-          color: "white",
+          color: "black",
           font: {
             size: 14,
           },
           precision: 0,
         },
         grid: {
-          color: "white",
+          color: "black",
         },
       },
     },

@@ -1,10 +1,12 @@
 "use client";
 
+import CButton from "@/components/ui/cButton";
+import CTextField from "@/components/ui/cTextField";
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { Input } from "@components/ui/input";
 import { _updateUserUsername } from "@serverActions/userUtil";
-import { IconCheck, IconHome } from "@tabler/icons-react";
+import { IconCheck, IconDeviceFloppy, IconHome } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -50,8 +52,8 @@ const UsernameForm = () => {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-1 overflow-auto rounded-3xl bg-gray-300/30 p-3 shadow-md">
+    <div className="flex h-full flex-col bg-white">
+      <div className="flex flex-col gap-1 overflow-auto p-3">
         <h1 className="text-2xl font-bold">Configurar nome de usuário</h1>
         <p>
           É necessário inserir um nome de usuário. Este será seu identificador
@@ -61,20 +63,20 @@ const UsernameForm = () => {
         <p>Exemplo: joao.silva</p>
         {state?.statusCode !== 200 ?
           <>
-            <label htmlFor="username">Inserir seu nome de usuário:</label>
             <form action={formAction} className="flex flex-col gap-2">
-              <Input
-                className={`w-full ${usernameError && "outline outline-2 outline-red-500"}`}
+              <CTextField
                 id="username"
                 name="username"
+                label="Nome de usuário"
+                error={!!usernameError?.message}
+                errorMessage={usernameError?.message ?? undefined}
               />
-              {usernameError && (
-                <p className="text-red-500">{usernameError.message}</p>
-              )}
               <input type="hidden" id="userId" name="userId" value={user?.id} />
-              <Button type="submit" className="w-fit" variant={"constructive"}>
-                Salvar
-              </Button>
+              <div className="w-fit">
+                <CButton type="submit">
+                  <IconDeviceFloppy />
+                </CButton>
+              </div>
             </form>
           </>
         : <>
@@ -85,7 +87,7 @@ const UsernameForm = () => {
               {state.username}
             </span>
             <p>É possível alterá-lo na página de configurações de usuário</p>
-            <Link href={"/admin/home"}>
+            <Link href={"/admin/map"}>
               <Button>
                 <IconHome className="mb-1" /> Página inicial
               </Button>

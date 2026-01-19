@@ -146,7 +146,7 @@ const UserInfo = ({
         </div>
       </div>
       <div className="my-3 flex gap-4">
-        <Link href={"/admin/home"}>
+        <Link href={"/admin/map"}>
           <Button
             type={"button"}
             className="w-full text-white"

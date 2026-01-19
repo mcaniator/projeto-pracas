@@ -44,7 +44,7 @@ const TallyInProgressReviewModal = ({
       {
         <ModalOverlay
           className={({ isEntering, isExiting }) =>
-            `fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
+            `fixed inset-0 z-[999] flex min-h-full items-center justify-center overflow-y-auto bg-black/25 p-4 text-center backdrop-blur ${
               isEntering ? "duration-300 ease-out animate-in fade-in" : ""
             } ${isExiting ? "duration-200 ease-in animate-out fade-out" : ""}`
           }

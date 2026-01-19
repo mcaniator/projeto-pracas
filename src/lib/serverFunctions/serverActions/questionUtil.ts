@@ -1,11 +1,18 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { optionSchema, questionSchema } from "@/lib/zodValidators";
+import {
+  optionSchema,
+  questionEditDataSchema,
+  questionSchema,
+} from "@/lib/zodValidators";
 import { FormQuestion } from "@customTypes/forms/formCreation";
 import { Question } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { ZodError, z } from "zod";
+
+import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 interface QuestionSearchedByStatement {
   id: number;
@@ -49,6 +56,7 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
+  console.log("FORM DATA", formData);
   switch (questionType) {
     case "WRITTEN": {
       let writtenQuestionParsed;
@@ -58,7 +66,7 @@ const _questionSubmit = async (
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
             notes: notes.length > 0 ? notes : null,
-            type: questionType,
+            questionType: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
             subcategoryId:
@@ -77,7 +85,7 @@ const _questionSubmit = async (
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
             notes: notes.length > 0 ? notes : null,
-            type: questionType,
+            questionType: questionType,
             characterType: questionCharacterType,
             categoryId: formData.get("categoryId"),
             subcategoryId:
@@ -94,6 +102,7 @@ const _questionSubmit = async (
           });
         }
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
 
@@ -104,13 +113,13 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
 
     case "OPTIONS": {
       const optionType = formData.get("optionType");
-      const maximumSelections = formData.get("maximumSelection");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
       const subcategoryId =
@@ -118,17 +127,14 @@ const _questionSubmit = async (
           formData.get("subcategoryId")
         : undefined;
 
-      const optionsQuestionObject =
-        optionType === "CHECKBOX" ?
-          { optionType, maximumSelections }
-        : { optionType };
+      const optionsQuestionObject = { optionType };
 
       let optionsQuestionParsed;
       try {
         optionsQuestionParsed = questionSchema.parse({
           name,
           notes: notes.length > 0 ? notes : null,
-          type: questionType,
+          questionType: questionType,
           characterType: questionCharacterType,
           categoryId,
           subcategoryId,
@@ -145,12 +151,7 @@ const _questionSubmit = async (
       } catch (err) {
         return { statusCode: 400, questionName: null };
       }
-      if (
-        optionsQuestionParsed.optionType === "CHECKBOX" &&
-        optionsQuestionParsed.maximumSelections === undefined
-      ) {
-        return { statusCode: 1, questionName: null };
-      }
+
       try {
         let questionName: string | null = null;
         await prisma.$transaction(async (prisma) => {
@@ -158,12 +159,11 @@ const _questionSubmit = async (
             data: {
               name: optionsQuestionParsed.name,
               notes: optionsQuestionParsed.notes,
-              type: questionType,
+              questionType: questionType,
               characterType: optionsQuestionParsed.characterType,
               categoryId: optionsQuestionParsed.categoryId,
               subcategoryId: optionsQuestionParsed.subcategoryId,
               optionType: optionsQuestionParsed.optionType,
-              maximumSelections: optionsQuestionParsed.maximumSelections,
               geometryTypes: optionsQuestionParsed.geometryTypes,
             },
           });
@@ -183,12 +183,64 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: questionName };
       } catch (err) {
+        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
   }
 
   return { statusCode: 400, questionName: null };
+};
+
+const _questionUpdate = async (
+  prevState: { responseInfo: { statusCode: number } },
+  formData: FormData,
+): Promise<{ responseInfo: APIResponseInfo }> => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para editar questões!",
+      },
+    };
+  }
+
+  try {
+    const parse = questionEditDataSchema.parse({
+      questionId: formData.get("questionId"),
+      questionName: formData.get("questionName"),
+      notes: formData.get("notes"),
+    });
+    const question = await prisma.question.update({
+      where: {
+        id: parse.questionId,
+      },
+      data: {
+        name: parse.questionName,
+        notes: parse.notes,
+      },
+      select: {
+        name: true,
+      },
+    });
+    revalidateTag("question");
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: `Questão \"${question.name}\" editada!`,
+        showSuccessCard: true,
+      },
+    };
+  } catch (e) {
+    if (e instanceof ZodError) {
+      return { responseInfo: { statusCode: 400, message: "Dados inválidos!" } };
+    }
+    return {
+      responseInfo: { statusCode: 500, message: "Erro ao editar questão!" },
+    };
+  }
 };
 
 const _deleteQuestion = async (
@@ -285,7 +337,7 @@ const _searchQuestionsByStatement = async (statement: string) => {
             name: true,
             characterType: true,
             notes: true,
-            type: true,
+            questionType: true,
             options: true,
             optionType: true,
             category: {
@@ -320,6 +372,11 @@ const _searchQuestionsByStatement = async (statement: string) => {
   }
 };
 
-export { _questionSubmit, _deleteQuestion, _searchQuestionsByStatement };
+export {
+  _questionSubmit,
+  _deleteQuestion,
+  _questionUpdate,
+  _searchQuestionsByStatement,
+};
 
 export type { QuestionSearchedByStatement, QuestionWithCategories };

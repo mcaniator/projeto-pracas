@@ -1,51 +1,58 @@
 "use client";
 
+import LocationParamsDialog from "@/app/admin/export/locationParamsDialog";
+import CButton from "@/components/ui/cButton";
+import CIconChip from "@/components/ui/cIconChip";
+import CSwitch from "@/components/ui/cSwtich";
+import CDialog from "@/components/ui/dialog/cDialog";
 import PermissionGuard from "@components/auth/permissionGuard";
-import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
+import { Breadcrumbs, Divider } from "@mui/material";
 import {
   _exportDailyTallys,
   _exportEvaluation,
+  _exportIndividualTallysToCSV,
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
-  IconCheck,
-  IconCircleMinus,
-  IconEdit,
-  IconX,
+  IconBuildingCommunity,
+  IconMapPin,
+  IconMinus,
+  IconPencil,
+  IconTree,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 
-import {
-  ExportPageModes,
-  SelectedLocationObj,
-  SelectedLocationSavedObj,
-} from "./client";
+import { SelectedLocationObj } from "./client";
 
 const SelectedParks = ({
-  locations,
   selectedLocationsObjs,
-  selectedLocationsSaved,
+  isMobileView,
+  openDialog,
   handleSelectedLocationsRemoval,
-  handlePageStateChange,
+  handleSelectedLocationObjChange,
+  handleDialogClose,
 }: {
-  locations: { id: number; name: string }[];
   selectedLocationsObjs: SelectedLocationObj[];
-  selectedLocationsSaved: SelectedLocationSavedObj[];
+  isMobileView: boolean;
+  openDialog: boolean;
   handleSelectedLocationsRemoval: (id: number) => void;
-  handlePageStateChange: (id: number, pageMode: ExportPageModes) => void;
+  handleSelectedLocationObjChange: (locationObj: SelectedLocationObj) => void;
+  handleDialogClose: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const [missingInfoSaveWarning, setMissingInfoSaveWarning] = useState(false);
+  const [openLocationParamsDialog, setOpenLocationParamsDialog] =
+    useState(false);
+  const [selectedLocation, setSelectedLocation] =
+    useState<SelectedLocationObj | null>(null);
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
     evaluations: false,
     tallys: false,
+    dailyTallys: false,
   });
   const handleRegistrationDataExport = async () => {
-    if (selectedLocationsSaved.find((location) => !location.saved)) {
-      return;
-    }
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
     const locationsToExport = selectedLocationsObjs.filter(
       (location) => location.exportRegistrationInfo,
@@ -58,6 +65,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar dados de praças!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -65,6 +73,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar dados de praças!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     }
     const csvString = response.CSVstring;
@@ -86,9 +95,6 @@ const SelectedParks = ({
     setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
-    if (selectedLocationsSaved.find((location) => !location.saved)) {
-      return;
-    }
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessments.length > 0,
@@ -106,6 +112,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -113,6 +120,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     }
     const csvObjs = response.csvObjs;
@@ -137,9 +145,6 @@ const SelectedParks = ({
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
-    if (selectedLocationsSaved.find((location) => !location.saved)) {
-      return;
-    }
     const locationsToExportTallys = selectedLocationsObjs.filter(
       (location) => location.tallysIds.length > 0,
     );
@@ -148,7 +153,7 @@ const SelectedParks = ({
       tallysIds.push(...location.tallysIds),
     );
     if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport((prev) => ({ ...prev, tallys: true }));
+    setLoadingExport((prev) => ({ ...prev, dailyTallys: true }));
     const response = await _exportDailyTallys(
       locationsToExportTallys.map((location) => location.id),
       tallysIds,
@@ -159,6 +164,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Sem permissão para exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     } else if (response.statusCode === 500) {
       setHelperCard({
@@ -166,6 +172,7 @@ const SelectedParks = ({
         helperCardType: "ERROR",
         content: <>Erro exportar avaliações!</>,
       });
+      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     }
     const csvObj = {
@@ -207,116 +214,216 @@ const SelectedParks = ({
       helperCardType: "CONFIRM",
       content: <>Contagens exportadas!</>,
     });
+    setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
+  };
+
+  const handleIndividualTallysToExport = async () => {
+    const locationsToExportTallys = selectedLocationsObjs.filter(
+      (location) => location.tallysIds.length > 0,
+    );
+    const tallysIds: number[] = [];
+    locationsToExportTallys.forEach((location) =>
+      tallysIds.push(...location.tallysIds),
+    );
+    if (!tallysIds || tallysIds.length === 0) return;
+    setLoadingExport((prev) => ({ ...prev, tallys: true }));
+    const response = await _exportIndividualTallysToCSV(tallysIds);
+    if (response.statusCode === 401) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Sem permissão para exportar avaliações!</>,
+      });
+      setLoadingExport((prev) => ({ ...prev, tallys: false }));
+      return;
+    } else if (response.statusCode === 500) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Erro exportar avaliações!</>,
+      });
+      setLoadingExport((prev) => ({ ...prev, tallys: false }));
+      return;
+    }
+
+    const csvString = response.CSVstring;
+    if (csvString) {
+      const blob = new Blob([csvString]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Contagens individuais.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    setHelperCard({
+      show: true,
+      helperCardType: "CONFIRM",
+      content: <>Contagens exportadas!</>,
+    });
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col overflow-auto rounded-md">
-        {selectedLocationsSaved.map((locationObj, index) => {
-          const locationObject = locations.find(
-            (item) => item.id === locationObj.id,
-          );
+
+  const innerComponent = (
+    <div className="flex h-full flex-col gap-2">
+      <Virtuoso
+        data={selectedLocationsObjs}
+        components={{
+          EmptyPlaceholder: () => <div>Nenhuma praça selecionada!</div>,
+        }}
+        style={{ height: "100%" }}
+        itemContent={(_, l) => {
           return (
-            <div
-              className="mb-2 flex items-center justify-between rounded bg-white p-2 text-black"
-              key={index}
-            >
-              {locationObject?.name}
-              <div className="flex items-center">
-                {locationObj.saved ?
-                  <IconCheck color="green" />
-                : <IconX color="red" />}
-                <Button
-                  className="text-black"
-                  onPress={() => {
-                    handlePageStateChange(locationObj.id, "EDIT");
-                  }}
-                  variant={"ghost"}
-                >
-                  <IconEdit size={24} />
-                </Button>
-                <Button
-                  className="text-red-500"
-                  onPress={() => {
-                    handleSelectedLocationsRemoval(locationObj.id);
-                  }}
-                  variant={"ghost"}
-                >
-                  <IconCircleMinus size={24} />
-                </Button>
+            <div key={l.id} className="pb-4">
+              <div className="flex flex-row justify-between bg-gray-200 p-2 px-2 shadow-xl">
+                <div className="flex h-auto w-full flex-col gap-1">
+                  <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
+                    <CIconChip icon={<IconTree />} tooltip="Praça" />
+                    {`${l.name}`}
+                  </span>
+                  <Divider />
+                  <div className="flex items-center">
+                    <CIconChip
+                      tooltip="Cidade - Estado"
+                      icon={<IconMapPin />}
+                    />
+                    {`${l.cityName} - ${l.state}`}
+                  </div>
+
+                  <Divider />
+                  <div className="flex items-center">
+                    <CIconChip
+                      icon={<IconBuildingCommunity />}
+                      tooltip="Unidades Administrativas"
+                    />
+                    <Breadcrumbs separator="›" aria-label="breadcrumb">
+                      {l.narrowAdministrativeUnitName ?
+                        <div>{l.narrowAdministrativeUnitName}</div>
+                      : <span className="ml-1">-</span>}
+                      {l.intermediateAdministrativeUnitName ?
+                        <div>{l.intermediateAdministrativeUnitName}</div>
+                      : <span>-</span>}
+                      {l.broadAdministrativeUnitName ?
+                        <div>{l.broadAdministrativeUnitName}</div>
+                      : <span>-</span>}
+                    </Breadcrumbs>
+                  </div>
+                  <Divider />
+                  <div className="flex items-center">
+                    <span>
+                      {`Exportar dados de cadastro:`}{" "}
+                      <CSwitch disabled checked={l.exportRegistrationInfo} />
+                    </span>
+                  </div>
+                  <Divider />
+                  <div className="flex items-center">
+                    <span>{`Avaliações selecionadas: ${l.assessments.length}/${l.assessmentCount}`}</span>
+                  </div>
+                  <Divider />
+                  <div className="flex items-center">
+                    <span>{`Contagens Selecionadas: ${l.tallysIds.length}/${l.tallyCount}`}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <CButton
+                    variant="text"
+                    onClick={() => {
+                      setSelectedLocation(l);
+                      setOpenLocationParamsDialog(true);
+                    }}
+                  >
+                    <IconPencil />
+                  </CButton>
+                  <CButton
+                    variant="text"
+                    onClick={() => {
+                      handleSelectedLocationsRemoval(l.id);
+                    }}
+                  >
+                    <IconMinus />
+                  </CButton>
+                </div>
               </div>
             </div>
           );
-        })}
-      </div>
-      <div className="flex flex-col gap-1">
-        {missingInfoSaveWarning &&
-          selectedLocationsSaved.filter((location) => !location.saved)
-            .length !== 0 && (
-            <span className="text-redwood">{`${selectedLocationsSaved.filter((location) => !location.saved).length} ${selectedLocationsSaved.filter((location) => !location.saved).length === 1 ? "praça" : "praças"}  sem parâmetros salvos!`}</span>
-          )}
-        <Button
-          isDisabled={loadingExport.registrationsData}
-          className="h-fit"
-          onPress={() => {
-            if (
-              selectedLocationsSaved.filter((location) => !location.saved)
-                .length === 0
-            ) {
-              setMissingInfoSaveWarning(false);
-              handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
-            } else {
-              setMissingInfoSaveWarning(true);
-            }
+        }}
+      />
+      <Divider />
+      <div className="flex w-fit max-w-full flex-col gap-1">
+        <CButton
+          sx={{ width: "100%" }}
+          loading={loadingExport.registrationsData}
+          onClick={() => {
+            handleRegistrationDataExport().catch(() => ({ statusCode: 1 }));
           }}
         >
-          {loadingExport.registrationsData ?
-            "Exportando..."
-          : "Exportar dados de cadastro"}
-        </Button>
+          {"Exportar dados de cadastro"}
+        </CButton>
         <PermissionGuard requiresAnyRoleGroups={["ASSESSMENT"]}>
-          <Button
-            className="h-fit"
-            isDisabled={loadingExport.evaluations}
-            onPress={() => {
-              if (
-                selectedLocationsSaved.filter((location) => !location.saved)
-                  .length === 0
-              ) {
-                setMissingInfoSaveWarning(false);
-                handleEvaluationExport().catch(() => ({ statusCode: 1 }));
-              } else {
-                setMissingInfoSaveWarning(true);
-              }
+          <CButton
+            sx={{ width: "100%" }}
+            loading={loadingExport.evaluations}
+            onClick={() => {
+              handleEvaluationExport().catch(() => ({ statusCode: 1 }));
             }}
           >
-            {loadingExport.evaluations ?
-              "Exportando..."
-            : "Exportar avaliações físicas"}
-          </Button>
+            {"Exportar avaliações físicas"}
+          </CButton>
         </PermissionGuard>
         <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
-          <Button
-            className="h-fit"
-            isDisabled={loadingExport.tallys}
-            onPress={() => {
-              if (
-                selectedLocationsSaved.filter((location) => !location.saved)
-                  .length === 0
-              ) {
-                setMissingInfoSaveWarning(false);
-                handleTallysExport().catch(() => ({ statusCode: 1 }));
-              } else {
-                setMissingInfoSaveWarning(true);
-              }
+          <CButton
+            sx={{ width: "100%" }}
+            loading={loadingExport.tallys}
+            onClick={() => {
+              handleIndividualTallysToExport().catch(() => ({
+                statusCode: 1,
+              }));
             }}
           >
-            {loadingExport.tallys ? "Exportando..." : "Exportar contagens"}
-          </Button>
+            {"Exportar contagens individuais"}
+          </CButton>
+        </PermissionGuard>
+        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
+          <CButton
+            sx={{ width: "100%" }}
+            loading={loadingExport.dailyTallys}
+            onClick={() => {
+              handleTallysExport().catch(() => ({
+                statusCode: 1,
+              }));
+            }}
+          >
+            {"Exportar contagens por dia"}
+          </CButton>
         </PermissionGuard>
       </div>
+      <LocationParamsDialog
+        open={openLocationParamsDialog}
+        onClose={() => {
+          setOpenLocationParamsDialog(false);
+        }}
+        location={selectedLocation}
+        handleSelectedLocationObjChange={handleSelectedLocationObjChange}
+      />
     </div>
   );
+
+  if (isMobileView) {
+    return (
+      <CDialog
+        fullScreen
+        title="Menu de exportação"
+        open={openDialog}
+        onClose={handleDialogClose}
+      >
+        {innerComponent}
+      </CDialog>
+    );
+  } else {
+    return innerComponent;
+  }
 };
 
 export default SelectedParks;

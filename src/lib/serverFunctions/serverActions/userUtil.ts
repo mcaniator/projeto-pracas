@@ -1,11 +1,14 @@
 "use server";
 
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
 import { Prisma, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { userUpdateUsernameSchema } from "@zodValidators";
+import { re } from "mathjs";
+import { act } from "react";
 import { ZodError } from "zod";
 
 type UserPropertyToSearch = "username" | "email" | "name";
@@ -115,6 +118,63 @@ const _updateUserRoles = async (userId: string, roles: Role[]) => {
   }
 };
 
+export const _updateUserRolesV2 = async ({
+  userId,
+  roles,
+}: {
+  userId: string;
+  roles: Role[];
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para atualizar o perfil de usuários!",
+      } as APIResponseInfo,
+    };
+  }
+
+  if (
+    roles.filter((role) => role).length > 0 &&
+    !roles.some((role) => role === "PARK_VIEWER" || role === "PARK_MANAGER")
+  ) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message:
+          "Usuário com qualquer permissão deve ter também alguma permissão de praças!",
+      } as APIResponseInfo,
+    };
+  }
+
+  try {
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        roles: roles,
+      },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Permissões atualizadas com sucesso!",
+        showSuccessCard: true,
+      } as APIResponseInfo,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Um erro desconhecido ocorreu!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
 const _deleteUser = async (userId: string) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
@@ -170,6 +230,52 @@ const _getUserContentAmount = async (userId: string) => {
     return { statusCode: 200, assessments, tallys };
   } catch (e) {
     return { statusCode: 500, assessments: null, tallys: null };
+  }
+};
+
+export const _userArchiveUpdate = async (params: {
+  userId: string;
+  active: boolean;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para atualizar o perfil de usuários!",
+      },
+    };
+  }
+  try {
+    await prisma.user.update({
+      where: {
+        id: params.userId,
+      },
+      data: {
+        active: params.active,
+      },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message:
+          params.active ?
+            "Usuário ativado com sucesso!"
+          : "Usuário desativado com sucesso!",
+        showSuccessCard: true,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message:
+          params.active ?
+            "Erro ao ativar usuário!"
+          : "Erro ao desativar usuário!",
+      },
+    };
   }
 };
 

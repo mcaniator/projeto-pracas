@@ -5,14 +5,15 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions", "relationJoins"]
+  //previewFeatures = ["postgresqlExtensions", "relationJoins"] moved extensions management to custom migration
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
-  extensions = [postgis]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //directUrl  = env("DIRECT_URL")
+  //extensions = [postgis]
 }
 
 // #endregion
@@ -52,14 +53,6 @@ enum BrazilianStates {
   TO
 
   @@map("brazilian_states")
-}
-
-enum CalculationTypes {
-  SUM
-  AVERAGE
-  PERCENTAGE
-
-  @@map("calculation_types")
 }
 
 enum QuestionTypes {
@@ -216,19 +209,16 @@ model PasswordReset {
 model Category {
   id Int @id @default(autoincrement())
 
-  name        String        @unique @db.VarChar(255)
-  optional    Boolean       @default(false)
-  active      Boolean       @default(true)
-  notes       String?       @db.Text
-  question    Question[]
-  calculation Calculation[]
+  name     String     @unique @db.VarChar(255)
+  optional Boolean    @default(false)
+  active   Boolean    @default(true)
+  notes    String?    @db.Text
+  question Question[]
 
   subcategory Subcategory[]
-
-  formCategories FormCategory[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  formItems   FormItem[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
   @@map("category")
 }
@@ -236,13 +226,12 @@ model Category {
 model Subcategory {
   id Int @id @default(autoincrement())
 
-  name              String            @db.VarChar(255)
-  optional          Boolean           @default(false)
-  active            Boolean           @default(true)
-  notes             String?           @db.Text
-  question          Question[]
-  calculation       Calculation[]
-  formSubcategories FormSubcategory[]
+  name      String     @db.VarChar(255)
+  optional  Boolean    @default(false)
+  active    Boolean    @default(true)
+  notes     String?    @db.Text
+  question  Question[]
+  formItems FormItem[]
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -254,37 +243,34 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name              String                         @db.VarChar(255)
-  notes             String?                        @db.Text
-  type              QuestionTypes
-  characterType     QuestionResponseCharacterTypes @map("character_type")
-  forms             Form[]
-  response          Response[]
-  optionType        OptionTypes?                   @map("option_type")
-  // Should only have a value if optionType == CHECKBOX
-  maximumSelections Int?                           @map("maximum_selections")
-  version           Int                            @default(1)
-  geometryTypes     QuestionGeometryTypes[]        @map("geometryTypes")
+  name          String                         @db.VarChar(255)
+  notes         String?                        @db.Text
+  questionType  QuestionTypes                  @map("question_type")
+  characterType QuestionResponseCharacterTypes @map("character_type")
+  response      Response[]
+  optionType    OptionTypes?                   @map("option_type")
+  geometryTypes QuestionGeometryTypes[]        @map("geometryTypes")
 
   assessment Assessment[]
 
-  categoryId    Int           @map("category_id")
-  category      Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  subcategoryId Int?          @map("subcategory_id")
-  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  options       Option[]
-  calculation   Calculation[]
+  categoryId         Int           @map("category_id")
+  category           Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategoryId      Int?          @map("subcategory_id")
+  subcategory        Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  options            Option[]
+  sourceCalculations Calculation[] @relation("calculation_target_question")
 
   ResponseOption ResponseOption[]
 
   geometries QuestionGeometry[]
 
-  formQuestions FormQuestion[]
+  formItems FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([name, categoryId, subcategoryId, version])
+  @@unique([name, categoryId, subcategoryId])
+  @@index([name])
   @@map("question")
 }
 
@@ -304,22 +290,18 @@ model QuestionGeometry {
 model Calculation {
   id Int @id @default(autoincrement())
 
-  type          CalculationTypes
-  name          String           @db.VarChar(255)
-  questions     Question[]
-  categoryId    Int              @map("category_id")
-  category      Category         @relation(fields: [categoryId], references: [id])
-  subcategoryId Int?             @map("subcategory_id")
-  subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
-  formId        Int              @map("form_id")
-  form          Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  expression       String
+  formId           Int      @map("form_id")
+  form             Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  targetQuestionId Int      @map("target_question_id")
+  targetQuestion   Question @relation("calculation_target_question", fields: [targetQuestionId], references: [id])
 
+  @@unique([targetQuestionId, formId], name: "targetQuestionId_formId")
   @@map("calculation")
 }
 
 model Response {
-  id   Int           @id @default(autoincrement())
-  type QuestionTypes
+  id Int @id @default(autoincrement())
 
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
@@ -375,16 +357,13 @@ model ResponseOption {
 }
 
 model Form {
-  id                Int               @id @default(autoincrement())
-  name              String            @db.VarChar(255)
-  archived          Boolean           @default(true)
-  finalized         Boolean           @default(false)
-  questions         Question[]
-  assessment        Assessment[]
-  calculations      Calculation[]
-  formCategories    FormCategory[]
-  formSubcategories FormSubcategory[]
-  formQuestion      FormQuestion[]
+  id           Int           @id @default(autoincrement())
+  name         String        @db.VarChar(255)
+  archived     Boolean       @default(false)
+  finalized    Boolean       @default(false)
+  assessment   Assessment[]
+  calculations Calculation[]
+  formItems    FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -392,37 +371,22 @@ model Form {
   @@map("form")
 }
 
-model FormCategory {
-  categoryId Int
-  category   Category @relation(fields: [categoryId], references: [id])
-  formId     Int
-  form       Form     @relation(fields: [formId], references: [id])
-
+model FormItem {
+  id       Int @id @default(autoincrement())
+  formId   Int @map("form_id")
   position Int
 
-  @@unique([categoryId, formId])
-}
+  categoryId    Int  @map("category_id")
+  subcategoryId Int? @map("subcategory_id")
+  questionId    Int? @map("question_id")
 
-model FormSubcategory {
-  subcategoryId Int
-  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
-  formId        Int
-  form          Form        @relation(fields: [formId], references: [id])
+  category    Category     @relation(fields: [categoryId], references: [id])
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
+  question    Question?    @relation(fields: [questionId], references: [id])
+  form        Form         @relation(fields: [formId], references: [id])
 
-  position Int
-
-  @@unique([subcategoryId, formId])
-}
-
-model FormQuestion {
-  questionId  Int
-  subcategory Question @relation(fields: [questionId], references: [id])
-  formId      Int
-  form        Form     @relation(fields: [formId], references: [id])
-
-  position Int
-
-  @@unique([questionId, formId])
+  @@unique([formId, categoryId, subcategoryId, questionId])
+  @@map("form_item")
 }
 
 // #endregion
@@ -436,12 +400,14 @@ model Location {
   id Int @id @default(autoincrement())
 
   name                String  @db.VarChar(255)
-  popularName         String? @db.VarChar(255)
-  firstStreet         String  @db.VarChar(255)
-  secondStreet        String? @db.VarChar(255)
-  thirdStreet         String? @db.VarChar(255)
-  fourthStreet        String? @db.VarChar(255)
+  popularName         String? @map("popular_name") @db.VarChar(255)
+  firstStreet         String  @map("first_street") @db.VarChar(255)
+  secondStreet        String? @map("second_street") @db.VarChar(255)
+  thirdStreet         String? @map("third_street") @db.VarChar(255)
+  fourthStreet        String? @map("fourth_street") @db.VarChar(255)
   notes               String? @db.Text
+  cityId              Int     @map("city_id")
+  city                City    @relation(fields: [cityId], references: [id])
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")
   overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
@@ -460,11 +426,14 @@ model Location {
 
   polygon Unsupported("Geometry(MultiPolygon, 4326)")?
 
-  narrowAdministrativeUnitId       Int?
+  mainImageId Int?   @unique @map("main_image_id")
+  mainImage   Image? @relation(name: "location_main_image_relation", fields: [mainImageId], references: [imageId])
+
+  narrowAdministrativeUnitId       Int?                            @map("narrow_administrative_unit_id")
   narrowAdministrativeUnit         NarrowAdministrativeUnit?       @relation(fields: [narrowAdministrativeUnitId], references: [id])
-  intermediateAdministrativeUnitId Int?
+  intermediateAdministrativeUnitId Int?                            @map("intermediate_administrative_unit_id")
   intermediateAdministrativeUnit   IntermediateAdministrativeUnit? @relation(fields: [intermediateAdministrativeUnitId], references: [id])
-  broadAdministrativeUnitId        Int?
+  broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   assessment Assessment[]
@@ -473,6 +442,7 @@ model Location {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([cityId])
   @@map("location")
 }
 
@@ -480,12 +450,16 @@ model LocationType {
   id        Int        @id @default(autoincrement())
   name      String     @unique() @db.VarChar(255)
   locations Location[]
+
+  @@map("location_type")
 }
 
 model LocationCategory {
   id        Int        @id @default(autoincrement())
   name      String     @unique() @db.VarChar(255)
   locations Location[]
+
+  @@map("location_category")
 }
 
 model City {
@@ -497,9 +471,9 @@ model City {
   narrowAdministrativeUnit       NarrowAdministrativeUnit[]
   intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
   broadAdministrativeUnit        BroadAdministrativeUnit[]
-
-  createdAt DateTime? @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  locations                      Location[]
+  createdAt                      DateTime?                        @default(now()) @map("created_at")
+  updatedAt                      DateTime?                        @updatedAt @map("updated_at")
 
   @@unique([name, state])
   @@map("city")
@@ -619,6 +593,24 @@ model Tally {
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("tally")
+}
+
+// #endregion
+
+// #region Imagens
+//  ------------------------------------------------------------------------------------------------------------
+//  Imagens
+//  ------------------------------------------------------------------------------------------------------------
+model Image {
+  imageId      Int    @id @default(autoincrement()) @map("image_id")
+  fileUid      String @unique() @map("file_uid")
+  relativePath String @map("relative_path")
+  size         Int
+
+  mainOfLocation Location? @relation("location_main_image_relation")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@map("image")
 }
 
 // #endregion

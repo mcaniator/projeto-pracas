@@ -73,4 +73,28 @@ const checkIfRolesArrayContainsAll = (
   return rolesResult && roleGroupsResult;
 };
 
-export { checkIfRolesArrayContainsAny, checkIfRolesArrayContainsAll };
+const getRoleForGroup = (
+  userRoles: Role[] | null | undefined,
+  roleGroup: RoleGroup,
+) => {
+  if (!userRoles) return null;
+  const groupRoles = roleGroupMap[roleGroup];
+
+  for (let i = groupRoles.length - 1; i >= 0; i--) {
+    const role = groupRoles[i];
+    if (!role) {
+      continue;
+    }
+    if (userRoles.includes(role)) {
+      return role;
+    }
+  }
+
+  return null;
+};
+
+export {
+  checkIfRolesArrayContainsAny,
+  checkIfRolesArrayContainsAll,
+  getRoleForGroup,
+};

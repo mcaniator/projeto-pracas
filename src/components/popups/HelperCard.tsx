@@ -34,7 +34,7 @@ const HelperCard = ({
   const SelectedIcon = helperIconMap.get(helperCardType);
   return (
     <div
-      className={`${helperBackgroundColorMap.get(helperCardType)} z-50 flex -translate-x-1/2 items-start justify-between rounded-md p-1 text-center text-white shadow-[0_0_10px_rgba(0,0,0,0)] shadow-black`}
+      className={`${helperBackgroundColorMap.get(helperCardType)} z-[10000] flex items-start justify-between rounded-md p-1 text-center text-white shadow-[0_0_10px_rgba(0,0,0,0)] shadow-black`}
     >
       <div className="mb-1 p-2">
         {SelectedIcon ?

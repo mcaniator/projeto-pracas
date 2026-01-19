@@ -1,12 +1,15 @@
+import { BrazilianStates } from "@prisma/client";
+
 type ParkRegisterData = {
+  locationId: number | null;
   name: string | null;
   popularName: string | null;
   firstStreet: string | null;
   secondStreet: string | null;
   thirdStreet: string | null;
   fourthStreet: string | null;
-  city: string | null;
-  state: string | null;
+  cityId: number | null;
+  state: BrazilianStates;
   notes: string | null;
   isPark: boolean;
   inactiveNotFound: boolean;
@@ -14,15 +17,15 @@ type ParkRegisterData = {
   lastMaintenanceYear: number | null;
   overseeingMayor: string | null;
   legislation: string | null;
-  usableArea: string | null;
-  legalArea: string | null;
-  incline: string | null;
-  category: string | null;
-  type: string | null;
-  hasGeometry: boolean;
-  narrowAdministrativeUnit: string | null;
-  intermediateAdministrativeUnit: string | null;
-  broadAdministrativeUnit: string | null;
+  usableArea: number | null;
+  legalArea: number | null;
+  incline: number | null;
+  categoryId: number | null;
+  typeId: number | null;
+  narrowAdministrativeUnitId: number | null;
+  intermediateAdministrativeUnitId: number | null;
+  broadAdministrativeUnitId: number | null;
+  mainImage: File | null;
 };
 
 export { type ParkRegisterData };

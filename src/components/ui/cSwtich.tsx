@@ -1,3 +1,4 @@
+import { FormControlLabel } from "@mui/material";
 import Switch, { SwitchProps } from "@mui/material/Switch";
 import React from "react";
 
@@ -10,10 +11,10 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
     const { label, ...rest } = props;
 
     return (
-      <div className="flex items-center">
-        <Switch ref={ref} {...rest} />
-        {label && <span className="ml-1">{label}</span>}
-      </div>
+      <FormControlLabel
+        control={<Switch {...rest} ref={ref} />}
+        label={label}
+      />
     );
   },
 );

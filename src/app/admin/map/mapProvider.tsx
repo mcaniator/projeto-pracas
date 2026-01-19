@@ -18,38 +18,25 @@ const MapProvider = ({ children }: { children: ReactNode }) => {
   const map = useMemo(
     () =>
       new Map({
-        target: "map",
         layers: [new TileLayer({ source: new OSM() })],
         view: new View({ center: [0, 0], zoom: 2 }),
         controls: [],
       }),
     [],
   );
-  const view = map?.getView();
 
   useEffect(() => {
     if (ref.current !== null) map?.setTarget(ref.current);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        view?.animate({
-          center: [pos.coords.longitude, pos.coords.latitude],
-          zoom: 16,
-          duration: 0,
-        });
-      },
-      null,
-      {
-        enableHighAccuracy: false,
-        maximumAge: Infinity,
-        timeout: 60000,
-      },
-    );
-  }, [map, view]);
+    return () => {
+      map.setTarget(undefined);
+    };
+  }, [map]);
 
   return (
     <div
-      id="map"
-      className={"h-full w-full overflow-clip rounded-3xl"}
+      className={
+        "animate-map-bg-pulse relative h-full w-full max-w-[100vw] overflow-hidden"
+      }
       ref={ref}
     >
       <MapContext.Provider value={map}>{children}</MapContext.Provider>

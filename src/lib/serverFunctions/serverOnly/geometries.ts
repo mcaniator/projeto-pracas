@@ -1,3 +1,4 @@
+import { featuresGeoJsonSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { MultiPolygon, Polygon } from "geojson";
 import "server-only";
@@ -122,6 +123,15 @@ const addPolygon = async (
   if (!featuresGeoJson || !id) {
     throw new Error("featuresGeoJson and id are mandatory");
   }
+  const json = JSON.parse(featuresGeoJson) as unknown;
+  const parsed = featuresGeoJsonSchema.safeParse(json);
+  if (!parsed.success) {
+    return;
+  }
+  if (parsed.data.coordinates.length === 0) {
+    return;
+  }
+
   const transaction = tx ?? prisma;
   try {
     await transaction.$executeRaw`
