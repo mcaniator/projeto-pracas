@@ -249,7 +249,7 @@ model Question {
   characterType QuestionResponseCharacterTypes @map("character_type")
   response      Response[]
   optionType    OptionTypes?                   @map("option_type")
-  geometryTypes QuestionGeometryTypes[]        @map("geometryTypes")
+  geometryTypes QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 

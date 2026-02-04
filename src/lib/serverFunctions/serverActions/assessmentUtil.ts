@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-type LocationAssessment = NonNullable<
+export type LocationAssessment = NonNullable<
   Awaited<ReturnType<typeof _fetchAssessmentsByLocation>>
 >["assessments"][number];
 
@@ -266,5 +266,3 @@ export {
   _deleteAssessment,
   _fetchAssessmentsByLocation,
 };
-
-export { type LocationAssessment };
