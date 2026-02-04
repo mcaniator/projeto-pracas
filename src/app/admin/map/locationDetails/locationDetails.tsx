@@ -16,7 +16,6 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
 import { Link } from "react-aria-components";
 
@@ -143,7 +142,7 @@ const LocationDetails = ({
       </span>
       <Divider />
       <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área na prefeitura: ${location.legalArea ?? "-"} m²`}</span>
+      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
 
       <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
 
