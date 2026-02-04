@@ -58,10 +58,10 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
         else return 0;
       }
     });
-    let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,,\n";
-    CSVstring += ",,,,,,,,,,,\n";
+    let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,\n";
+    CSVstring += ",,,,,,,,,,\n";
     CSVstring +=
-      "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Prefeito,Legislação\n";
+      "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Legislação\n";
     CSVstring += locations
       .map((location) => {
         const locationString = [
@@ -74,7 +74,6 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
           `${location.firstStreet}${location.secondStreet ? " / " + location.secondStreet : ""}${location.thirdStreet ? " / " + location.thirdStreet : ""}${location.fourthStreet ? " / " + location.fourthStreet : ""}`,
           location.creationYear,
           location.lastMaintenanceYear,
-          location.overseeingMayor,
           location.legislation,
         ].join(",");
 

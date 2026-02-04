@@ -10,42 +10,6 @@ import { addPolygon } from "@serverOnly/geometries";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-interface LocationWithCity extends Location {
-  hasGeometry: boolean;
-  type: {
-    id: number;
-    name: string;
-  } | null;
-  category: {
-    id: number;
-    name: string;
-  } | null;
-  narrowAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-  intermediateAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-  broadAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-}
-
 const _deleteLocation = async (
   prevState: { responseInfo: APIResponseInfo },
   formData: FormData,
@@ -162,7 +126,6 @@ const _updateLocation = async (
       notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
@@ -295,7 +258,6 @@ const _createLocation = async (
       notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
@@ -415,5 +377,3 @@ export {
   _createLocation,
   _editLocationPolygon,
 };
-
-export type { LocationWithCity };

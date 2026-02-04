@@ -33,7 +33,6 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
-  const router = useRouter();
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
@@ -153,7 +152,6 @@ const LocationDetails = ({
       <h4 className="font-semibold">Histórico</h4>
       <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
       <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Prefeito fundador: ${location.overseeingMayor ?? "-"}`}</span>
       <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
       <Divider />
       <h4 className="font-semibold">Observações gerais</h4>

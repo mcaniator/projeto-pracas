@@ -140,7 +140,6 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.notes as "notes",
     l.creation_year as "creationYear",
     l.last_maintenance_year as "lastMaintenanceYear",
-    l.overseeing_mayor as "overseeingMayor",
     l.legislation as "legislation",
     l.usable_area as "usableArea",
     l.legal_area as "legalArea",

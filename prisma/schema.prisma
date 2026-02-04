@@ -410,7 +410,6 @@ model Location {
   city                City    @relation(fields: [cityId], references: [id])
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")
-  overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
   legislation         String? @db.VarChar(255)
   usableArea          Float?  @map("usable_area")
   legalArea           Float?  @map("legal_area")

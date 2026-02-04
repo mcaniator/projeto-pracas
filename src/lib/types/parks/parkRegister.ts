@@ -15,7 +15,6 @@ type ParkRegisterData = {
   inactiveNotFound: boolean;
   creationYear: number | null;
   lastMaintenanceYear: number | null;
-  overseeingMayor: string | null;
   legislation: string | null;
   usableArea: number | null;
   legalArea: number | null;

@@ -54,19 +54,11 @@ const OptionalInfoStep = ({
       />
 
       <CNumberField
-        label="Ano da última manutenção"
+        label="Ano reforma"
         value={parkData.lastMaintenanceYear}
         onChange={(v) => {
           setParkData((prev) => ({ ...prev, lastMaintenanceYear: v }));
         }}
-      />
-      <CTextField
-        label="Nome do prefeito inagurador"
-        value={parkData.overseeingMayor}
-        onChange={(e) => {
-          setParkData((prev) => ({ ...prev, overseeingMayor: e.target.value }));
-        }}
-        maxCharacters={255}
       />
       <CTextField
         label="Legislação"
