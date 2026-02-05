@@ -1,4 +1,4 @@
-import { Tooltip } from "@mui/material";
+import { SxProps, Theme, Tooltip } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup, {
   ToggleButtonGroupProps,
@@ -12,6 +12,8 @@ type CToggleButtonGroupProps<T> = Omit<
   options: T[];
   value: number | string | null | undefined;
   mapValues?: boolean;
+  toggleButtonSx?: SxProps<Theme>;
+  toggleButtonColor?: string;
   getLabel?: (option: T) => React.ReactNode;
   getValue?: (option: T) => string | number;
   getTooltip?: (option: T) => string;
@@ -21,6 +23,8 @@ type CToggleButtonGroupProps<T> = Omit<
 function CToggleButtonGroup<T>({
   options,
   mapValues = true,
+  toggleButtonSx,
+  toggleButtonColor,
   getLabel,
   getValue,
   onChange,
@@ -35,15 +39,15 @@ function CToggleButtonGroup<T>({
     boxShadow: "inset 0 0 4px rgba(0,0,0,0.3)",
   };
 
-  const toggleButtonSx = {
+  const computedToggleButtonSx = {
     color: "black",
     borderTop: "none",
     borderBottom: "none",
     "&.Mui-selected": {
-      bgcolor: "primary.main",
+      bgcolor: toggleButtonColor ?? "gray",
       color: "white",
       "&:hover": {
-        bgcolor: "primary.main",
+        bgcolor: toggleButtonColor ?? "gray",
       },
     },
     "&:hover": {
@@ -51,6 +55,7 @@ function CToggleButtonGroup<T>({
     },
 
     padding: { xs: "4px", sm: "8px" },
+    ...toggleButtonSx,
   };
 
   if (!mapValues) {
@@ -68,14 +73,17 @@ function CToggleButtonGroup<T>({
           <>
             {getTooltip ?
               <Tooltip key={index} title={getTooltip(option)}>
-                <ToggleButton value={String(option)} sx={toggleButtonSx}>
+                <ToggleButton
+                  value={String(option)}
+                  sx={computedToggleButtonSx}
+                >
                   {String(option)}
                 </ToggleButton>
               </Tooltip>
             : <ToggleButton
                 key={index}
                 value={String(option)}
-                sx={toggleButtonSx}
+                sx={computedToggleButtonSx}
               >
                 {String(option)}
               </ToggleButton>
@@ -106,7 +114,7 @@ function CToggleButtonGroup<T>({
               <ToggleButton
                 key={String(getValue(option))}
                 value={getValue(option)}
-                sx={toggleButtonSx}
+                sx={computedToggleButtonSx}
               >
                 {getLabel(option)}
               </ToggleButton>
@@ -114,7 +122,7 @@ function CToggleButtonGroup<T>({
           : <ToggleButton
               key={index}
               value={getValue(option)}
-              sx={toggleButtonSx}
+              sx={computedToggleButtonSx}
             >
               {getLabel(option)}
             </ToggleButton>,
