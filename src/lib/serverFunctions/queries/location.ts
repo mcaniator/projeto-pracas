@@ -158,6 +158,9 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.city_id as "cityId",
     c.state as "state",
     c.name as "cityName",
+    c.broad_administrative_unit_title as "broadAdministrativeUnitTitle",
+    c.intermediate_administrative_unit_title as "intermediateAdministrativeUnitTitle",
+    c.narrow_administrative_unit_title as "narrowAdministrativeUnitTitle",
     CASE
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
@@ -177,7 +180,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   WHERE l.id = COALESCE(${params.locationId}, l.id) 
   AND l.city_id = COALESCE(${params.cityId}, l.city_id)
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,

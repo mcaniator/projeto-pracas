@@ -24,10 +24,29 @@ export const _saveCity = async (
   }
 
   try {
+    console.log(formData);
     const parse = {
       name: z.string().trim().max(255).min(1).parse(formData.get("name")),
       state: z.nativeEnum(BrazilianStates).parse(formData.get("state")),
       cityId: z.coerce.number().nullish().parse(formData.get("cityId")),
+      broadAdministrativeUnitTitle: z
+        .string()
+        .trim()
+        .max(255)
+        .transform((val) => (val === "" ? null : val))
+        .parse(formData.get("broadAdminUnitTitle")),
+      intermediateAdministrativeUnitTitle: z
+        .string()
+        .trim()
+        .max(255)
+        .transform((val) => (val === "" ? null : val))
+        .parse(formData.get("intermediateAdminUnitTitle")),
+      narrowAdministrativeUnitTitle: z
+        .string()
+        .trim()
+        .max(255)
+        .transform((val) => (val === "" ? null : val))
+        .parse(formData.get("narrowAdminUnitTitle")),
     };
     if (parse.cityId) {
       try {
@@ -38,6 +57,10 @@ export const _saveCity = async (
           data: {
             name: parse.name,
             state: parse.state,
+            narrowAdministrativeUnitTitle: parse.narrowAdministrativeUnitTitle,
+            intermediateAdministrativeUnitTitle:
+              parse.intermediateAdministrativeUnitTitle,
+            broadAdministrativeUnitTitle: parse.broadAdministrativeUnitTitle,
           },
         });
         return {
@@ -70,6 +93,10 @@ export const _saveCity = async (
         data: {
           name: parse.name,
           state: parse.state,
+          narrowAdministrativeUnitTitle: parse.narrowAdministrativeUnitTitle,
+          intermediateAdministrativeUnitTitle:
+            parse.intermediateAdministrativeUnitTitle,
+          broadAdministrativeUnitTitle: parse.broadAdministrativeUnitTitle,
         },
       });
       return {

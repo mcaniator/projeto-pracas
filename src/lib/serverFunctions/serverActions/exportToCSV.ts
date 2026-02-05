@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { CalculationTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
@@ -14,21 +13,24 @@ import {
   tallyArraySchema,
 } from "@zodValidators";
 
-type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
-interface FetchedSubmission {
-  id: number;
-  createdAt: Date;
-  formVersion: number;
-  form: {
-    id: number;
-    name: string;
-  };
-  user: {
-    id: string;
-    username: string;
-  };
-  type: AnswerType;
-}
+// Function to format a field for CSV
+const formatCSVField = (val?: string | null) => {
+  if (val === null || val === undefined) return "";
+
+  let str = String(val);
+
+  // If the field contains a comma, quotation marks, or a line break, we need to escape it
+  if (
+    str.includes(",") ||
+    str.includes('"') ||
+    str.includes("\n") ||
+    str.includes("\r")
+  ) {
+    // Duplicate the existing quotation marks and wrap the entire field in quotation marks
+    str = `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+};
 
 const _exportRegistrationData = async (locationsIds: number[]) => {
   try {
@@ -49,6 +51,27 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
       include: {
         category: true,
         type: true,
+        city: {
+          select: {
+            name: true,
+            state: true,
+          },
+        },
+        narrowAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
+        intermediateAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
+        broadAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
     locations.sort((a, b) => {
@@ -66,12 +89,14 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
       .map((location) => {
         const locationString = [
           location.id,
-          location.name,
-          location.popularName ? location.popularName : "",
-          location.category?.name ?? "",
-          location?.type?.name ?? "",
-          location.notes ?? "",
-          `${location.firstStreet}${location.secondStreet ? " / " + location.secondStreet : ""}${location.thirdStreet ? " / " + location.thirdStreet : ""}${location.fourthStreet ? " / " + location.fourthStreet : ""}`,
+          formatCSVField(location.name),
+          formatCSVField(location.popularName),
+          formatCSVField(location.category?.name),
+          formatCSVField(location?.type?.name),
+          formatCSVField(location.notes),
+          formatCSVField(
+            `${location.firstStreet}${location.secondStreet ? " / " + location.secondStreet : ""}${location.thirdStreet ? " / " + location.thirdStreet : ""}${location.fourthStreet ? " / " + location.fourthStreet : ""}${location.broadAdministrativeUnit ? " - " + location.broadAdministrativeUnit.name : ""}${location.intermediateAdministrativeUnit ? " - " + location.intermediateAdministrativeUnit.name : ""}${location.narrowAdministrativeUnit ? " - " + location.narrowAdministrativeUnit.name : ""} - ${location.city.name} - ${location.city.state}`,
+          ),
           location.creationYear,
           location.lastMaintenanceYear,
           location.legislation,
@@ -1305,5 +1330,3 @@ export {
   _exportRegistrationData,
   _exportEvaluation,
 };
-
-export { type FetchedSubmission };

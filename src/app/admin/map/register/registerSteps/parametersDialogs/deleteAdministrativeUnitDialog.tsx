@@ -2,9 +2,9 @@
 
 import { AdministrativeUnitLevel } from "@/app/admin/map/register/registerSteps/addressStep";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { _deleteAdministrativeUnit } from "@/lib/serverFunctions/serverActions/administrativeUnit";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
-import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -21,11 +21,15 @@ const DeleteAdministrativeUnitDialog = ({
     id: number;
     name: string;
   } | null;
-  city?: { id: number; name: string; state: BrazilianStates };
+  city?: FetchCitiesResponse["cities"][number];
   level: AdministrativeUnitLevel;
   onClose: () => void;
   reloadItems: () => void;
 }) => {
+  const levelName =
+    level === "NARROW" ? city?.narrowAdministrativeUnitTitle
+    : level === "INTERMEDIATE" ? city?.intermediateAdministrativeUnitTitle
+    : city?.broadAdministrativeUnitTitle;
   const [formAction] = useResettableActionState({
     action: _deleteAdministrativeUnit,
     callbacks: {
@@ -41,13 +45,10 @@ const DeleteAdministrativeUnitDialog = ({
       },
     },
     options: {
-      loadingMessage: "Excluindo região administrativa...",
+      loadingMessage: `Excluindo ${levelName}...`,
     },
   });
-  const levelName =
-    level === "NARROW" ? "estreita"
-    : level === "INTERMEDIATE" ? "intermediária"
-    : "ampla";
+
   const [conflictingLocations, setConflictingLocations] = useState<
     {
       cityId: number;
@@ -62,7 +63,7 @@ const DeleteAdministrativeUnitDialog = ({
       action={formAction}
       open={open}
       onClose={onClose}
-      title={"Excluir região administrativa " + levelName}
+      title={"Excluir " + levelName}
       subtitle={`${selectedItem?.name} - ${city?.name} - ${city?.state}`}
       confirmChildren={<IconTrash />}
       confirmColor="error"
@@ -72,8 +73,8 @@ const DeleteAdministrativeUnitDialog = ({
         <input type="hidden" name="unitType" value={level} />
         {conflictingLocations.length > 0 && (
           <>
-            <div className="text-red-500">{`Erro ao excluir região administrativa ${levelName}!`}</div>
-            <div>{"Esta região administrativa possui praças associadas:"}</div>
+            <div className="text-red-500">{`Erro ao excluir ${levelName}!`}</div>
+            <div>{`Este(a) ${levelName} possui praças associadas:`}</div>
             <ul className="list-inside list-disc space-y-2">
               {conflictingLocations.map((cl, index) => (
                 <li key={index} className="list-disc px-2 py-3 font-bold">

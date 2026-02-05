@@ -5,9 +5,10 @@ import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { Breadcrumbs, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
   _exportDailyTallys,
   _exportEvaluation,
@@ -15,7 +16,6 @@ import {
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
-  IconBuildingCommunity,
   IconMapPin,
   IconMinus,
   IconPencil,
@@ -293,23 +293,7 @@ const SelectedParks = ({
                   </div>
 
                   <Divider />
-                  <div className="flex items-center">
-                    <CIconChip
-                      icon={<IconBuildingCommunity />}
-                      tooltip="Unidades Administrativas"
-                    />
-                    <Breadcrumbs separator="›" aria-label="breadcrumb">
-                      {l.narrowAdministrativeUnitName ?
-                        <div>{l.narrowAdministrativeUnitName}</div>
-                      : <span className="ml-1">-</span>}
-                      {l.intermediateAdministrativeUnitName ?
-                        <div>{l.intermediateAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                      {l.broadAdministrativeUnitName ?
-                        <div>{l.broadAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                    </Breadcrumbs>
-                  </div>
+                  <CLocationAdministrativeUnits location={l} />
                   <Divider />
                   <div className="flex items-center">
                     <span>

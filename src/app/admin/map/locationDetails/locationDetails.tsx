@@ -4,10 +4,10 @@ import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { Breadcrumbs, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
-  IconBuildingCommunity,
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
   IconExternalLink,
@@ -101,23 +101,7 @@ const LocationDetails = ({
       />
       <Divider />
       <h4 className="font-semibold">Localização</h4>
-      <div className="flex items-center">
-        <CIconChip
-          icon={<IconBuildingCommunity />}
-          tooltip="Unidades Administrativas"
-        />
-        <Breadcrumbs separator="›" aria-label="breadcrumb">
-          {location.narrowAdministrativeUnitName ?
-            <div>{location.narrowAdministrativeUnitName}</div>
-          : <span className="ml-1">-</span>}
-          {location.intermediateAdministrativeUnitName ?
-            <div>{location.intermediateAdministrativeUnitName}</div>
-          : <span>-</span>}
-          {location.broadAdministrativeUnitName ?
-            <div>{location.broadAdministrativeUnitName}</div>
-          : <span>-</span>}
-        </Breadcrumbs>
-      </div>
+      <CLocationAdministrativeUnits location={location} />
 
       <div className="flex items-center">
         <CIconChip icon={<IconRoad />} tooltip="Ruas" />

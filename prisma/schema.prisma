@@ -467,12 +467,15 @@ model City {
   name  String          @db.VarChar(255)
   state BrazilianStates
 
-  narrowAdministrativeUnit       NarrowAdministrativeUnit[]
-  intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
-  broadAdministrativeUnit        BroadAdministrativeUnit[]
-  locations                      Location[]
-  createdAt                      DateTime?                        @default(now()) @map("created_at")
-  updatedAt                      DateTime?                        @updatedAt @map("updated_at")
+  narrowAdministrativeUnit            NarrowAdministrativeUnit[]
+  intermediateAdministrativeUnit      IntermediateAdministrativeUnit[]
+  broadAdministrativeUnit             BroadAdministrativeUnit[]
+  narrowAdministrativeUnitTitle       String?                          @map("narrow_administrative_unit_title")
+  intermediateAdministrativeUnitTitle String?                          @map("intermediate_administrative_unit_title")
+  broadAdministrativeUnitTitle        String?                          @map("broad_administrative_unit_title")
+  locations                           Location[]
+  createdAt                           DateTime?                        @default(now()) @map("created_at")
+  updatedAt                           DateTime?                        @updatedAt @map("updated_at")
 
   @@unique([name, state])
   @@map("city")

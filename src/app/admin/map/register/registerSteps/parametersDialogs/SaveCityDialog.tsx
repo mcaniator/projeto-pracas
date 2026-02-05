@@ -2,6 +2,7 @@
 
 import { _saveCity } from "@/lib/serverFunctions/serverActions/city";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -14,13 +15,25 @@ const SaveCityDialog = ({
   open,
   previouslySelectedState,
   selectedCity,
+  adminUnitsSugestions,
   onClose,
   reloadCities,
   openDeleteDialog,
 }: {
   open: boolean;
   previouslySelectedState: string;
-  selectedCity: { id: number; name: string } | null;
+  selectedCity: {
+    id: number;
+    name: string;
+    narrowAdministrativeUnitTitle?: string | null;
+    intermediateAdministrativeUnitTitle?: string | null;
+    broadAdministrativeUnitTitle?: string | null;
+  } | null;
+  adminUnitsSugestions: {
+    narrow: string[];
+    intermediate: string[];
+    broad: string[];
+  };
   onClose: () => void;
   reloadCities: () => void;
   openDeleteDialog: () => void;
@@ -75,6 +88,32 @@ const SaveCityDialog = ({
         maxCharacters={255}
         label="Nome"
         name="name"
+      />
+      <Divider />
+      <h5>Nomenclatura de regiões administrativas</h5>
+      <CAutocomplete
+        defaultValue={selectedCity?.broadAdministrativeUnitTitle}
+        textFieldName="broadAdminUnitTitle"
+        label="Região administrativa ampla"
+        placeholder="Digite ou escolha..."
+        options={adminUnitsSugestions.broad}
+        freeSolo
+      />
+      <CAutocomplete
+        defaultValue={selectedCity?.intermediateAdministrativeUnitTitle}
+        textFieldName="intermediateAdminUnitTitle"
+        label="Região administrativa intermediária"
+        placeholder="Digite ou escolha..."
+        options={adminUnitsSugestions.intermediate}
+        freeSolo
+      />
+      <CAutocomplete
+        defaultValue={selectedCity?.narrowAdministrativeUnitTitle}
+        textFieldName="narrowAdminUnitTitle"
+        label="Região administrativa estreita"
+        placeholder="Digite ou escolha..."
+        options={adminUnitsSugestions.narrow}
+        freeSolo
       />
     </CDialog>
   );

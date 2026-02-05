@@ -9,6 +9,7 @@ import { parseQueryParams } from "../../../../lib/utils/apiCall";
 const paramsSchema = z.object({
   state: z.nativeEnum(BrazilianStates),
   includeAdminstrativeRegions: z.coerce.boolean().optional(),
+  includeUniqueAdminstrativeUnitsTitles: z.coerce.boolean().optional(),
 });
 
 export type FetchCitiesParams = z.infer<typeof paramsSchema>;

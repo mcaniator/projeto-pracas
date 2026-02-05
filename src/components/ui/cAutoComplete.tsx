@@ -28,6 +28,7 @@ type CAutocompleteProps<
   disableAppendIconButton?: boolean;
   placeholder?: string;
   name?: string;
+  textFieldName?: string;
   suffixButtonChildren?: React.ReactNode;
   showAppendButtonWhenClear?: boolean;
   error?: boolean;
@@ -51,6 +52,7 @@ function CAutocomplete<
     appendIconButtonSx,
     placeholder,
     name,
+    textFieldName,
     error,
     loading,
     suffixButtonChildren,
@@ -89,6 +91,7 @@ function CAutocomplete<
           error={error}
           isAutocompleteInput
           placeholder={placeholder}
+          name={textFieldName}
           InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
           InputProps={{
             ...params.InputProps,

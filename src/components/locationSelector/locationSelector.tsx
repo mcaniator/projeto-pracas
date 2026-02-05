@@ -97,6 +97,9 @@ const LocationSelector = ({
             broadAdministrativeUnit: [],
             intermediateAdministrativeUnit: [],
             narrowAdministrativeUnit: [],
+            narrowAdministrativeUnitTitle: null,
+            intermediateAdministrativeUnitTitle: null,
+            broadAdministrativeUnitTitle: null,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
@@ -280,66 +283,73 @@ const LocationSelector = ({
   }, [filter]);
   const UnitsFilter = (
     <>
-      <CAutocomplete
-        label="Região administrativa ampla"
-        options={broadUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities || loadingDefaultLocation}
-        value={
-          broadUnits.find((b) => b.id === filter.broadAdministrativeUnitId) ??
-          null
-        }
-        onChange={(_, v) => {
-          hasMadeFirstChange.current = true;
-          setFilter({
-            ...filter,
-            broadAdministrativeUnitId: v?.id ?? null,
-          });
-          onSelectedBroadUnitChange?.(v ? { broadUnitId: v.id } : null);
-        }}
-      />
-      <CAutocomplete
-        label="Região administrativa intermendiária"
-        options={intermediateUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities || loadingDefaultLocation}
-        value={
-          intermediateUnits.find(
-            (b) => b.id === filter.intermediateAdministrativeUnitId,
-          ) ?? null
-        }
-        onChange={(_, v) => {
-          hasMadeFirstChange.current = true;
-          setFilter({
-            ...filter,
-            intermediateAdministrativeUnitId: v?.id ?? null,
-          });
-          onSelectedIntermediateUnitChange?.(
-            v ? { intermediateUnitId: v.id } : null,
-          );
-        }}
-      />
-      <CAutocomplete
-        label="Região administrativa estreita"
-        options={narrowUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities || loadingDefaultLocation}
-        value={
-          narrowUnits.find((b) => b.id === filter.narrowAdministrativeUnitId) ??
-          null
-        }
-        onChange={(_, v) => {
-          hasMadeFirstChange.current = true;
-          setFilter({
-            ...filter,
-            narrowAdministrativeUnitId: v?.id ?? null,
-          });
-          onSelectedNarrowUnitChange?.(v ? { narrowUnitId: v.id } : null);
-        }}
-      />
+      {selectedCity?.broadAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity?.broadAdministrativeUnitTitle}
+          options={broadUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities || loadingDefaultLocation}
+          value={
+            broadUnits.find((b) => b.id === filter.broadAdministrativeUnitId) ??
+            null
+          }
+          onChange={(_, v) => {
+            hasMadeFirstChange.current = true;
+            setFilter({
+              ...filter,
+              broadAdministrativeUnitId: v?.id ?? null,
+            });
+            onSelectedBroadUnitChange?.(v ? { broadUnitId: v.id } : null);
+          }}
+        />
+      )}
+      {selectedCity?.intermediateAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity?.intermediateAdministrativeUnitTitle}
+          options={intermediateUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities || loadingDefaultLocation}
+          value={
+            intermediateUnits.find(
+              (b) => b.id === filter.intermediateAdministrativeUnitId,
+            ) ?? null
+          }
+          onChange={(_, v) => {
+            hasMadeFirstChange.current = true;
+            setFilter({
+              ...filter,
+              intermediateAdministrativeUnitId: v?.id ?? null,
+            });
+            onSelectedIntermediateUnitChange?.(
+              v ? { intermediateUnitId: v.id } : null,
+            );
+          }}
+        />
+      )}
+      {selectedCity?.narrowAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity?.narrowAdministrativeUnitTitle}
+          options={narrowUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities || loadingDefaultLocation}
+          value={
+            narrowUnits.find(
+              (b) => b.id === filter.narrowAdministrativeUnitId,
+            ) ?? null
+          }
+          onChange={(_, v) => {
+            hasMadeFirstChange.current = true;
+            setFilter({
+              ...filter,
+              narrowAdministrativeUnitId: v?.id ?? null,
+            });
+            onSelectedNarrowUnitChange?.(v ? { narrowUnitId: v.id } : null);
+          }}
+        />
+      )}
     </>
   );
   return (
@@ -380,6 +390,9 @@ const LocationSelector = ({
               broadAdministrativeUnit: [],
               intermediateAdministrativeUnit: [],
               narrowAdministrativeUnit: [],
+              narrowAdministrativeUnitTitle: null,
+              intermediateAdministrativeUnitTitle: null,
+              broadAdministrativeUnitTitle: null,
               createdAt: new Date(),
               updatedAt: new Date(),
             }
