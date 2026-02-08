@@ -7,7 +7,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
-import { Prisma, QuestionTypes } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
@@ -17,14 +17,6 @@ import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 interface ResponseToAdd {
   questionId: number;
   response: string[];
-}
-interface ResponseToUpdate {
-  responseId: number[];
-  locationId: number;
-  formId: number;
-  questionId: number;
-  type: QuestionTypes;
-  value: string[];
 }
 
 const _addResponses = async (
@@ -515,5 +507,3 @@ const _addResponsesV2 = async ({
 };
 
 export { _addResponses, _addResponsesV2 };
-
-export { type ResponseToUpdate };

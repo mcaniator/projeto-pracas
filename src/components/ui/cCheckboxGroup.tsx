@@ -106,6 +106,9 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
           const optionLabel = getOptionLabel(option);
           return (
             <FormControlLabel
+              sx={{
+                marginLeft: "0px",
+              }}
               key={index}
               control={
                 <CCheckbox

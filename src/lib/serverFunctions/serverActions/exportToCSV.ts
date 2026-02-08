@@ -1,6 +1,13 @@
 "use server";
 
+import {
+  dateFormatter,
+  hourFormatter,
+  weekdayFormatter,
+} from "@/lib/formatters/dateFormatters";
 import { prisma } from "@/lib/prisma";
+import { FormItemUtils } from "@/lib/utils/formTreeUtils";
+import { QuestionTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
@@ -12,6 +19,32 @@ import {
   locationArrayExportDailyTallysSchema,
   tallyArraySchema,
 } from "@zodValidators";
+
+type AssessmentExportSubcategoryItem = {
+  id: number;
+  subcategoryId: number;
+  name: string;
+  position: number;
+  questions: AssessmentExportQuestionItem[];
+};
+type AssessmentExportQuestionItem = {
+  id: number;
+  questionId: number;
+  name: string;
+  position: number;
+  questionType: QuestionTypes;
+};
+
+type AssessmentExportCategoryItem = {
+  id: number;
+  categoryId: number;
+  name: string;
+  position: number;
+  categoryChildren: (
+    | AssessmentExportQuestionItem
+    | AssessmentExportSubcategoryItem
+  )[];
+};
 
 // Function to format a field for CSV
 const formatCSVField = (val?: string | null) => {
@@ -896,6 +929,327 @@ const _exportEvaluation = async (assessmentsIds: number[]) => {
 
     return { statusCode: 200, csvObjs };
   } catch (e) {
+    return { statusCode: 500, csvObjs: [] };
+  }
+};
+
+export const _exportAssessments = async (assessmentIds: number[]) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+  } catch (e) {
+    return { statusCode: 401, csvObjs: [] };
+  }
+  console.log("ASSESSMENTS_IDS", assessmentIds);
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        id: {
+          in: assessmentIds,
+        },
+      },
+      select: {
+        id: true,
+        endDate: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
+            calculations: {
+              select: {
+                expression: true,
+                targetQuestionId: true,
+              },
+            },
+            formItems: {
+              orderBy: { position: "asc" },
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                    categoryId: true,
+                  },
+                },
+                question: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                    questionType: true,
+                    characterType: true,
+                    optionType: true,
+                    options: { select: { text: true, id: true } },
+                    categoryId: true,
+                    subcategoryId: true,
+                    geometryTypes: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const responses = await prisma.response.findMany({
+      where: {
+        assessmentId: { in: assessmentIds },
+      },
+      select: {
+        id: true,
+        questionId: true,
+        assessmentId: true,
+        response: true,
+      },
+    });
+
+    const responsesOptions = await prisma.responseOption.findMany({
+      where: {
+        assessmentId: { in: assessmentIds },
+      },
+      select: {
+        id: true,
+        questionId: true,
+        assessmentId: true,
+        option: {
+          select: {
+            id: true,
+            text: true,
+          },
+        },
+      },
+    });
+
+    //TODO: CHANGE TO EXPORT MULTIPLE TABLES, ONE FOR EACH FORM MODEL
+    const categories: AssessmentExportCategoryItem[] = [];
+
+    for (const assessment of assessments) {
+      const form = assessment.form;
+
+      const sortedFormItems = form.formItems.sort((a, b) => {
+        const rankDiff =
+          FormItemUtils.getItemRankForSorting(a) -
+          FormItemUtils.getItemRankForSorting(b);
+        if (rankDiff !== 0) return rankDiff;
+
+        return a.position - b.position;
+      });
+
+      for (const item of sortedFormItems) {
+        // CATEGORY
+        if (FormItemUtils.isCategoryType(item)) {
+          if (!categories.find((c) => c.categoryId === item.categoryId)) {
+            categories.push({
+              id: item.id,
+              categoryId: item.categoryId,
+              name: item.category.name,
+              position: item.position,
+              categoryChildren: [],
+            });
+          }
+          continue;
+        }
+
+        // SUBCATEGORY
+        else if (FormItemUtils.isSubcategoryType(item)) {
+          const dbSubcategory = item.subcategory;
+          if (!dbSubcategory) {
+            throw new Error("Subcategory form item without subcategory data");
+          }
+          const category = categories.find(
+            (c) => c.categoryId === dbSubcategory.categoryId,
+          );
+          if (!category) {
+            throw new Error("Subcategory's category not found");
+          }
+
+          let subcategory = category.categoryChildren.find(
+            (c): c is AssessmentExportSubcategoryItem =>
+              FormItemUtils.isSubcategoryType(c) &&
+              c.subcategoryId === item.subcategoryId,
+          );
+
+          if (!subcategory) {
+            subcategory = {
+              id: item.id,
+              position: item.position,
+              subcategoryId: item.subcategoryId,
+              name: dbSubcategory.name,
+              questions: [],
+            };
+            category.categoryChildren.push(subcategory);
+          }
+          continue;
+        }
+
+        // QUESTION
+        else if (FormItemUtils.isQuestionType(item)) {
+          const dbQuestion = item.question;
+          if (!dbQuestion) {
+            throw new Error("Question form item without question data");
+          }
+
+          const question: AssessmentExportQuestionItem = {
+            id: item.id,
+            position: item.position,
+            questionId: item.questionId,
+            name: dbQuestion.name,
+            questionType: dbQuestion.questionType,
+          };
+          const category = categories.find(
+            (c) => c.categoryId === dbQuestion.categoryId,
+          );
+          if (!category) {
+            throw new Error("Question's category not found");
+          }
+
+          if (dbQuestion.subcategoryId) {
+            // question is inserted in a subcategory
+            const subcategory = category.categoryChildren.find(
+              (c): c is AssessmentExportSubcategoryItem =>
+                FormItemUtils.isSubcategoryType(c) &&
+                c.subcategoryId === dbQuestion.subcategoryId,
+            );
+            if (subcategory) {
+              subcategory.questions.push(question);
+            }
+          } else {
+            // question inserted directly in category
+            category.categoryChildren.push(question);
+          }
+          continue;
+        }
+      }
+
+      // Sorting by position
+      categories.sort((a, b) => a.position - b.position);
+      categories.forEach((cat) => {
+        cat.categoryChildren.sort((a, b) => a.position - b.position);
+        cat.categoryChildren.forEach((child) => {
+          if (FormItemUtils.isSubcategoryType(child))
+            child.questions.sort((a, b) => a.position - b.position);
+        });
+      });
+    }
+
+    let CSVHeader =
+      "Identificador da praça,Nome da praça,Identificador da avaliação,Avaliador,Dia,Data,Horário,Duração (minutos)";
+    console.log("ASSESSMENTS", assessments);
+    console.log("CATEGORIES", categories);
+    for (const category of categories) {
+      // Here we create the first line of the CSV: categories
+      for (const child of category.categoryChildren) {
+        if (FormItemUtils.isSubcategoryType(child)) {
+          for (const question of child.questions) {
+            CSVHeader += `,${category.name}`;
+          }
+        } else {
+          CSVHeader += `,${category.name}`;
+        }
+      }
+    }
+    CSVHeader += "\n,,,,,,,";
+    for (const category of categories) {
+      // Here we create the second line of the CSV: subcategories
+      for (const child of category.categoryChildren) {
+        if (FormItemUtils.isSubcategoryType(child)) {
+          for (const question of child.questions) {
+            CSVHeader += `,${child.name}`;
+          }
+        } else {
+          CSVHeader += `,`;
+        }
+      }
+    }
+    CSVHeader += "\n,,,,,,,";
+    for (const category of categories) {
+      // Here we create the third line of the CSV: questions
+      for (const child of category.categoryChildren) {
+        if (FormItemUtils.isSubcategoryType(child)) {
+          for (const question of child.questions) {
+            CSVHeader += `,${question.name}`;
+          }
+        } else {
+          CSVHeader += `,${child.name}`;
+        }
+      }
+    }
+
+    let CSVAssessments = "";
+    for (const assessment of assessments) {
+      // General data of the assessment
+      CSVAssessments += `\n${assessment.location.id},${assessment.location.name},${assessment.id},${assessment.user.username},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
+      // Responses of the assessment
+      for (const category of categories) {
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            for (const question of child.questions) {
+              let responseValue = "";
+              if (question.questionType === "WRITTEN") {
+                responseValue =
+                  responses.find((r) => r.questionId === question.questionId)
+                    ?.response || "";
+              } else if (question.questionType === "OPTIONS") {
+                responseValue =
+                  responsesOptions
+                    .filter((r) => r.questionId === question.questionId)
+                    .map((r) => r.option?.text)
+                    .join(" / ") || "";
+              }
+              CSVAssessments += `,${responseValue}`;
+            }
+          } else if (FormItemUtils.isQuestionType(child)) {
+            let responseValue = "";
+            if (child.questionType === "WRITTEN") {
+              responseValue =
+                responses.find((r) => r.questionId === child.questionId)
+                  ?.response || "";
+            } else if (child.questionType === "OPTIONS") {
+              responseValue =
+                responsesOptions.find((r) => r.questionId === child.questionId)
+                  ?.option?.text || "";
+            }
+            CSVAssessments += `,${formatCSVField(responseValue)}`;
+          }
+        }
+      }
+    }
+
+    const CSVresult = CSVHeader + CSVAssessments;
+
+    return {
+      statusCode: 200,
+      csvObjs: [
+        {
+          formName: "test",
+          formVersion: 1,
+          csvString: CSVresult,
+        },
+      ],
+    };
+  } catch (e) {
+    console.log(e);
     return { statusCode: 500, csvObjs: [] };
   }
 };

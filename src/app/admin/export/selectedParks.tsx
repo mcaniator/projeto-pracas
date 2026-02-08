@@ -10,8 +10,8 @@ import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Divider } from "@mui/material";
 import {
+  _exportAssessments,
   _exportDailyTallys,
-  _exportEvaluation,
   _exportIndividualTallysToCSV,
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
@@ -97,13 +97,11 @@ const SelectedParks = ({
   const handleEvaluationExport = async () => {
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
-      (location) => location.assessments.length > 0,
+      (location) => location.assessmentsIds.length > 0,
     );
-    const response = await _exportEvaluation(
+    const response = await _exportAssessments(
       locationsToExportEvaluations
-        .map((location) =>
-          location.assessments.map((assessment) => assessment.id),
-        )
+        .map((location) => location.assessmentsIds)
         .flat(),
     );
     if (response.statusCode === 401) {
@@ -303,7 +301,7 @@ const SelectedParks = ({
                   </div>
                   <Divider />
                   <div className="flex items-center">
-                    <span>{`Avaliações selecionadas: ${l.assessments.length}/${l.assessmentCount}`}</span>
+                    <span>{`Avaliações selecionadas: ${l.assessmentsIds.length}/${l.assessmentCount}`}</span>
                   </div>
                   <Divider />
                   <div className="flex items-center">

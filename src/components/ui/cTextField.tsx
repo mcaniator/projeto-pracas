@@ -216,7 +216,14 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       }
     }, [localValue, required, maxCharacters, validate]);
 
-    const defaultSx = { mt: "0px", mb: "0px" };
+    const defaultSx = {
+      mt: "0px",
+      mb: "0px",
+      "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
+        paddingTop: label ? "12px" : "6px",
+        paddingBottom: label ? "0px" : "6px",
+      },
+    };
 
     const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
 

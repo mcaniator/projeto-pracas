@@ -8,7 +8,7 @@ import { ExportHome } from "./exportHome";
 
 export type SelectedLocationObj =
   FetchLocationsResponse["locations"][number] & {
-    assessments: LocationAssessment[];
+    assessmentsIds: number[];
     exportRegistrationInfo: boolean;
     tallysIds: number[];
   };
