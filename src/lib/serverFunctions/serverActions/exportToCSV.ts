@@ -548,7 +548,6 @@ const _exportEvaluation = async (assessmentsIds: number[]) => {
 
     const csvObjs: {
       formName: string;
-      formVersion: number;
       csvString: string;
     }[] = [];
     for (const key in groupedByFormAndFormVersion) {
@@ -921,7 +920,6 @@ const _exportEvaluation = async (assessmentsIds: number[]) => {
 
         csvObjs.push({
           formName: currentGroupform.name,
-          formVersion: currentGroupform.version,
           csvString: csvContent,
         });
       }
@@ -1041,11 +1039,25 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       },
     });
 
+    const forms = new Map<number, string>();
+
+    assessments.forEach((assessment) =>
+      forms.set(assessment.form.id, assessment.form.name),
+    );
+
+    const categoriesByFormId = new Map<
+      number,
+      AssessmentExportCategoryItem[]
+    >();
+
     //TODO: CHANGE TO EXPORT MULTIPLE TABLES, ONE FOR EACH FORM MODEL
-    const categories: AssessmentExportCategoryItem[] = [];
 
     for (const assessment of assessments) {
       const form = assessment.form;
+      if (categoriesByFormId.has(form.id)) {
+        continue;
+      }
+      const categories: AssessmentExportCategoryItem[] = [];
 
       const sortedFormItems = form.formItems.sort((a, b) => {
         const rankDiff =
@@ -1151,102 +1163,132 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
             child.questions.sort((a, b) => a.position - b.position);
         });
       });
+
+      categoriesByFormId.set(form.id, categories);
     }
 
-    let CSVHeader =
-      "Identificador da praça,Nome da praça,Identificador da avaliação,Avaliador,Dia,Data,Horário,Duração (minutos)";
-    console.log("ASSESSMENTS", assessments);
-    console.log("CATEGORIES", categories);
-    for (const category of categories) {
-      // Here we create the first line of the CSV: categories
-      for (const child of category.categoryChildren) {
-        if (FormItemUtils.isSubcategoryType(child)) {
-          for (const question of child.questions) {
-            CSVHeader += `,${category.name}`;
-          }
-        } else {
-          CSVHeader += `,${category.name}`;
-        }
+    const csvObjs: {
+      formName: string;
+      formVersion: number;
+      csvString: string;
+    }[] = [];
+    // Here we create the one CSV per form, with all the assessments that were made with that form, and the same structure of categories, subcategories and questions as defined in the form model
+    for (const formId of forms.keys()) {
+      const categories = categoriesByFormId.get(formId);
+      if (!categories) {
+        throw new Error("Form structure not found for form id " + formId);
       }
-    }
-    CSVHeader += "\n,,,,,,,";
-    for (const category of categories) {
-      // Here we create the second line of the CSV: subcategories
-      for (const child of category.categoryChildren) {
-        if (FormItemUtils.isSubcategoryType(child)) {
-          for (const question of child.questions) {
-            CSVHeader += `,${child.name}`;
-          }
-        } else {
-          CSVHeader += `,`;
-        }
-      }
-    }
-    CSVHeader += "\n,,,,,,,";
-    for (const category of categories) {
-      // Here we create the third line of the CSV: questions
-      for (const child of category.categoryChildren) {
-        if (FormItemUtils.isSubcategoryType(child)) {
-          for (const question of child.questions) {
-            CSVHeader += `,${question.name}`;
-          }
-        } else {
-          CSVHeader += `,${child.name}`;
-        }
-      }
-    }
 
-    let CSVAssessments = "";
-    for (const assessment of assessments) {
-      // General data of the assessment
-      CSVAssessments += `\n${assessment.location.id},${assessment.location.name},${assessment.id},${assessment.user.username},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
-      // Responses of the assessment
+      let CSVHeader =
+        "Identificador da praça,Nome da praça,Identificador da avaliação,Avaliador,Dia,Data,Horário,Duração (minutos)";
+
       for (const category of categories) {
+        // Here we create the first line of the CSV: categories
         for (const child of category.categoryChildren) {
           if (FormItemUtils.isSubcategoryType(child)) {
             for (const question of child.questions) {
-              let responseValue = "";
-              if (question.questionType === "WRITTEN") {
-                responseValue =
-                  responses.find((r) => r.questionId === question.questionId)
-                    ?.response || "";
-              } else if (question.questionType === "OPTIONS") {
-                responseValue =
-                  responsesOptions
-                    .filter((r) => r.questionId === question.questionId)
-                    .map((r) => r.option?.text)
-                    .join(" / ") || "";
-              }
-              CSVAssessments += `,${responseValue}`;
+              CSVHeader += `,${category.name}`;
             }
-          } else if (FormItemUtils.isQuestionType(child)) {
-            let responseValue = "";
-            if (child.questionType === "WRITTEN") {
-              responseValue =
-                responses.find((r) => r.questionId === child.questionId)
-                  ?.response || "";
-            } else if (child.questionType === "OPTIONS") {
-              responseValue =
-                responsesOptions.find((r) => r.questionId === child.questionId)
-                  ?.option?.text || "";
-            }
-            CSVAssessments += `,${formatCSVField(responseValue)}`;
+          } else {
+            CSVHeader += `,${category.name}`;
           }
         }
       }
-    }
+      CSVHeader += "\n,,,,,,,";
+      for (const category of categories) {
+        // Here we create the second line of the CSV: subcategories
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            for (const question of child.questions) {
+              CSVHeader += `,${child.name}`;
+            }
+          } else {
+            CSVHeader += `,`;
+          }
+        }
+      }
+      CSVHeader += "\n,,,,,,,";
+      for (const category of categories) {
+        // Here we create the third line of the CSV: questions
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            for (const question of child.questions) {
+              CSVHeader += `,${question.name}`;
+            }
+          } else {
+            CSVHeader += `,${child.name}`;
+          }
+        }
+      }
 
-    const CSVresult = CSVHeader + CSVAssessments;
+      let CSVAssessments = "";
+      for (const assessment of assessments) {
+        if (assessment.form.id !== formId) {
+          continue;
+        }
+        // General data of the assessment
+        CSVAssessments += `\n${assessment.location.id},${assessment.location.name},${assessment.id},${assessment.user.username},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
+        // Responses of the assessment
+        for (const category of categories) {
+          for (const child of category.categoryChildren) {
+            if (FormItemUtils.isSubcategoryType(child)) {
+              for (const question of child.questions) {
+                let responseValue = "";
+                if (question.questionType === "WRITTEN") {
+                  responseValue =
+                    responses.find(
+                      (r) =>
+                        r.assessmentId === assessment.id &&
+                        r.questionId === question.questionId,
+                    )?.response || "";
+                } else if (question.questionType === "OPTIONS") {
+                  responseValue =
+                    responsesOptions
+                      .filter(
+                        (r) =>
+                          r.assessmentId === assessment.id &&
+                          r.questionId === question.questionId,
+                      )
+                      .map((r) => r.option?.text)
+                      .join(" / ") || "";
+                }
+                CSVAssessments += `,${formatCSVField(responseValue)}`;
+              }
+            } else if (FormItemUtils.isQuestionType(child)) {
+              let responseValue = "";
+              if (child.questionType === "WRITTEN") {
+                responseValue =
+                  responses.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === child.questionId,
+                  )?.response || "";
+              } else if (child.questionType === "OPTIONS") {
+                responseValue =
+                  responsesOptions.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === child.questionId,
+                  )?.option?.text || "";
+              }
+              CSVAssessments += `,${formatCSVField(responseValue)}`;
+            }
+          }
+        }
+      }
+
+      const CSVresult = CSVHeader + CSVAssessments;
+
+      csvObjs.push({
+        formName: forms.get(formId) || "Formulário sem nome",
+        formVersion: 1,
+        csvString: CSVresult,
+      });
+    }
 
     return {
       statusCode: 200,
-      csvObjs: [
-        {
-          formName: "test",
-          formVersion: 1,
-          csvString: CSVresult,
-        },
-      ],
+      csvObjs: csvObjs,
     };
   } catch (e) {
     console.log(e);

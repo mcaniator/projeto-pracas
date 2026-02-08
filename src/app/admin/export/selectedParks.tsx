@@ -127,10 +127,7 @@ const SelectedParks = ({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `Avaliações - ${csvObj.formName}, v.${csvObj.formVersion}.csv`,
-      );
+      link.setAttribute("download", `Avaliações - ${csvObj.formName}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
