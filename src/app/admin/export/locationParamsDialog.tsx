@@ -173,6 +173,7 @@ const LocationParamsDialog = ({
                   className="flex flex-row items-center bg-gray-200 p-2 px-2 shadow-xl"
                 >
                   <CCheckbox
+                    checked={localLocation.assessmentsIds.includes(a.id)}
                     onChange={(e) => {
                       setLocalLocation((prev) => {
                         if (!prev) return null;
