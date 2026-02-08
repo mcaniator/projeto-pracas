@@ -1,6 +1,5 @@
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { hourFormatter } from "@formatters/dateFormatters";
-import { prisma } from "@lib/prisma";
 
 import { Tally } from "../../zodValidators";
 
@@ -30,91 +29,23 @@ const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithoutHousing",
 ];
 
-const fetchAssessmentsForEvaluationExport = async (
-  assessmentsIds: number[],
-) => {
-  const assessments = await prisma.assessment.findMany({
-    where: {
-      id: {
-        in: assessmentsIds,
-      },
-    },
-    include: {
-      location: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-        },
-      },
-      form: {
-        select: {
-          id: true,
-          name: true,
-          version: true,
-          calculations: {
-            include: {
-              category: true,
-              questions: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              subcategory: {
-                include: {
-                  category: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      response: {
-        include: {
-          question: {
-            include: {
-              category: true,
-              subcategory: {
-                include: {
-                  category: true,
-                },
-              },
-            },
-          },
-          user: {
-            select: {
-              username: true,
-              id: true,
-            },
-          },
-        },
-      },
-      responseOption: {
-        include: {
-          question: {
-            include: {
-              category: true,
-              subcategory: {
-                include: {
-                  category: true,
-                },
-              },
-            },
-          },
-          option: true,
-          user: {
-            select: {
-              username: true,
-              id: true,
-            },
-          },
-        },
-      },
-    },
-  });
+// Function to format a field for CSV
+export const formatCSVField = (val?: string | null) => {
+  if (val === null || val === undefined) return "";
 
-  return assessments;
+  let str = String(val);
+
+  // If the field contains a comma, quotation marks, or a line break, we need to escape it
+  if (
+    str.includes(",") ||
+    str.includes('"') ||
+    str.includes("\n") ||
+    str.includes("\r")
+  ) {
+    // Duplicate the existing quotation marks and wrap the entire field in quotation marks
+    str = `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
 };
 
 //Functions below are used to process  and format tally content and are called by server actions
@@ -399,7 +330,7 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
         weatherCondition = weatherNameMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId},${tally.location.name},${tally.user.username},${date},${startDateTime},${duration},${tally.temperature ? tally.temperature : "-"},${weatherCondition},` +
+        `${tally.locationId},${formatCSVField(tally.location.name)},${formatCSVField(tally.user.username)},${formatCSVField(date)},${formatCSVField(startDateTime)},${formatCSVField(duration)},${tally.temperature ? tally.temperature : "-"},${formatCSVField(weatherCondition)},` +
         tallyString
       );
     })
@@ -408,7 +339,6 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
 };
 
 export {
-  fetchAssessmentsForEvaluationExport,
   processAndFormatTallyDataLineWithAddedContent,
   createTallyStringWithoutAddedData,
 };

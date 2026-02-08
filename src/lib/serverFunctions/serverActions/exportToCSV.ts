@@ -11,6 +11,7 @@ import { QuestionTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
+  formatCSVField,
   processAndFormatTallyDataLineWithAddedContent,
 } from "@serverOnly/exportToCSV";
 import {
@@ -43,25 +44,6 @@ type AssessmentExportCategoryItem = {
     | AssessmentExportQuestionItem
     | AssessmentExportSubcategoryItem
   )[];
-};
-
-// Function to format a field for CSV
-const formatCSVField = (val?: string | null) => {
-  if (val === null || val === undefined) return "";
-
-  let str = String(val);
-
-  // If the field contains a comma, quotation marks, or a line break, we need to escape it
-  if (
-    str.includes(",") ||
-    str.includes('"') ||
-    str.includes("\n") ||
-    str.includes("\r")
-  ) {
-    // Duplicate the existing quotation marks and wrap the entire field in quotation marks
-    str = `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
 };
 
 const _exportRegistrationData = async (locationsIds: number[]) => {
@@ -127,7 +109,7 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
           formatCSVField(location?.type?.name),
           formatCSVField(location.notes),
           formatCSVField(
-            `${location.firstStreet}${location.secondStreet ? " / " + location.secondStreet : ""}${location.thirdStreet ? " / " + location.thirdStreet : ""}${location.fourthStreet ? " / " + location.fourthStreet : ""}${location.broadAdministrativeUnit ? " - " + location.broadAdministrativeUnit.name : ""}${location.intermediateAdministrativeUnit ? " - " + location.intermediateAdministrativeUnit.name : ""}${location.narrowAdministrativeUnit ? " - " + location.narrowAdministrativeUnit.name : ""} - ${location.city.name} - ${location.city.state}`,
+            `${formatCSVField(location.firstStreet)}${formatCSVField(location.secondStreet ? " / " + location.secondStreet : "")}${formatCSVField(location.thirdStreet ? " / " + location.thirdStreet : "")}${formatCSVField(location.fourthStreet ? " / " + location.fourthStreet : "")}${formatCSVField(location.broadAdministrativeUnit ? " - " + location.broadAdministrativeUnit.name : "")}${formatCSVField(location.intermediateAdministrativeUnit ? " - " + location.intermediateAdministrativeUnit.name : "")}${formatCSVField(location.narrowAdministrativeUnit ? " - " + location.narrowAdministrativeUnit.name : "")} - ${formatCSVField(location.city.name)} - ${formatCSVField(location.city.state)}`,
           ),
           location.creationYear,
           location.lastMaintenanceYear,
@@ -400,10 +382,10 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         for (const child of category.categoryChildren) {
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
-              CSVHeader += `,${category.name}`;
+              CSVHeader += `,${formatCSVField(category.name)}`;
             });
           } else {
-            CSVHeader += `,${category.name}`;
+            CSVHeader += `,${formatCSVField(category.name)}`;
           }
         }
       }
@@ -413,7 +395,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         for (const child of category.categoryChildren) {
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
-              CSVHeader += `,${child.name}`;
+              CSVHeader += `,${formatCSVField(child.name)}`;
             });
           } else {
             CSVHeader += `,`;
@@ -426,10 +408,10 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         for (const child of category.categoryChildren) {
           if (FormItemUtils.isSubcategoryType(child)) {
             for (const question of child.questions) {
-              CSVHeader += `,${question.name}`;
+              CSVHeader += `,${formatCSVField(question.name)}`;
             }
           } else {
-            CSVHeader += `,${child.name}`;
+            CSVHeader += `,${formatCSVField(child.name)}`;
           }
         }
       }
@@ -440,7 +422,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
           continue;
         }
         // General data of the assessment
-        CSVAssessments += `\n${assessment.location.id},${assessment.location.name},${assessment.id},${assessment.user.username},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
+        CSVAssessments += `\n${assessment.location.id},${formatCSVField(assessment.location.name)},${assessment.id},${formatCSVField(assessment.user.username)},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
         // Responses of the assessment
         for (const category of categories) {
           for (const child of category.categoryChildren) {
@@ -686,7 +668,7 @@ const _exportDailyTallys = async (
           locationObj.tallyGroupsByDateAndDayClassication.weekdays.shift();
           let day = "";
           let date = "";
-          let tallysInAday = "";
+          let tallysInAday = 0;
           if (tallyWithKey) {
             const key = Object.keys(tallyWithKey)[0];
             if (key) {
@@ -709,14 +691,14 @@ const _exportDailyTallys = async (
                     month: "2-digit",
                     year: "2-digit",
                   }) || "";
-                tallysInAday = tallysToPush.length.toString();
+                tallysInAday = tallysToPush.length;
               }
             }
           }
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
         })
         .join("\n");
 
@@ -737,7 +719,7 @@ const _exportDailyTallys = async (
           locationObj.tallyGroupsByDateAndDayClassication.weekendDays.shift();
           let day = "";
           let date = "";
-          let tallysInAday = "";
+          let tallysInAday = 0;
           if (tallyWithKey) {
             const key = Object.keys(tallyWithKey)[0];
             if (key) {
@@ -760,14 +742,14 @@ const _exportDailyTallys = async (
                     month: "2-digit",
                     year: "2-digit",
                   }) || "";
-                tallysInAday = tallysToPush.length.toString();
+                tallysInAday = tallysToPush.length;
               }
             }
           }
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
         })
         .join("\n");
 
@@ -881,7 +863,7 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
             processAndFormatTallyDataLineWithAddedContent(
               tallyGroup,
             ).tallyString;
-          return `${locationId},${tallyGroup[0]?.location.name},${observers},${tallyGroup[0]?.startDate.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })},${tallyGroup.length},${dataLine}`;
+          return `${locationId},${formatCSVField(tallyGroup[0]?.location.name)},${formatCSVField(observers)},${dateFormatter.format(tallyGroup[0]?.startDate)},${tallyGroup.length},${dataLine}`;
         })
         .join("\n");
     })
