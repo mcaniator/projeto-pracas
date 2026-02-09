@@ -195,8 +195,14 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
             username: true,
           },
         },
+        location: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
+    const locationName = tallys[0]?.location.name ?? "ERRO";
     const parsedTallys = finalizedTallyArraySchema.safeParse(tallys);
     if (!parsedTallys.success) {
       return { statusCode: 400, tallys: null };
@@ -207,9 +213,9 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
     filteredParsedTallys.sort(
       (a, b) => b.startDate.getTime() - a.startDate.getTime(),
     );
-    return { statusCode: 200, tallys: filteredParsedTallys };
+    return { statusCode: 200, tallys: filteredParsedTallys, locationName };
   } catch (error) {
-    return { statusCode: 500, tallys: null };
+    return { statusCode: 500, tallys: null, locationName: null };
   }
 };
 

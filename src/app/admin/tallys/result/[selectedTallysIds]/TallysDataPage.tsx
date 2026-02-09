@@ -224,15 +224,13 @@ const processTallyData = (
 };
 
 const TallysDataPage = ({
-  locationName,
-  locationId,
   tallys,
   tallysIds,
+  locationName,
 }: {
-  locationName: string;
-  locationId: number;
   tallys: FinalizedTally[];
   tallysIds: number[];
+  locationName: string;
 }) => {
   const [dataVisualizationMode, setDataVisualizationMode] =
     useState<TallyDataVisualizationModes>("TABLE");
@@ -253,7 +251,7 @@ const TallysDataPage = ({
       <div className="flex w-full flex-col gap-1 overflow-auto bg-white p-3 shadow-md">
         <CAdminHeader
           titleIcon={<GrGroup size={25} />}
-          title={`Contagens realizadas em ${locationName}`}
+          title={`Resultado de ${tallys.length > 1 ? ` (${tallys.length} contagens)` : "contagem"} em ${locationName}`}
         />
         <div className="flex w-full flex-row gap-5 overflow-auto">
           <div
@@ -302,10 +300,7 @@ const TallysDataPage = ({
                   booleanConditionsFilter={booleanConditionsFilter}
                 />
                 <IndividualDataTableModal tallys={tallys} />
-                <TallyDeletionModal
-                  tallyIds={tallysIds}
-                  locationId={locationId}
-                />
+                <TallyDeletionModal tallyIds={tallysIds} />
               </div>
             </div>
 
@@ -330,7 +325,6 @@ const TallysDataPage = ({
             <TallysDataPageActions
               setBooleanConditionsFilter={setBooleanConditionsFilter}
               tallyIds={tallysIds}
-              locationId={locationId}
               booleanConditionsFilter={booleanConditionsFilter}
             />
             <Divider />

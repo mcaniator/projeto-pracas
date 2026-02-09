@@ -24,7 +24,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
               key={a.id}
               href={
                 a.endDate ?
-                  `/admin/parks/${a.location.id}/tallys/dataVisualization/${a.id}`
+                  `/admin/tallys/result/${a.id}`
                 : `/admin/tallys/${a.id}/fill`
               }
             >

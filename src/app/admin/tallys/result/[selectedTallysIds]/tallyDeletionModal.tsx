@@ -1,6 +1,7 @@
+"use client";
+
 import { Button } from "@/components/button";
-import { WeatherStats } from "@customTypes/tallys/ongoingTally";
-import { IconDeviceFloppy, IconX } from "@tabler/icons-react";
+import { IconTrash, IconX } from "@tabler/icons-react";
 import {
   Dialog,
   DialogTrigger,
@@ -8,43 +9,16 @@ import {
   ModalOverlay,
 } from "react-aria-components";
 
-import { CommercialActivity } from "../../../../../../../lib/zodValidators";
-import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
-import { SubmittingObj } from "./tallyInProgressPage";
+import { DeleteTallySection } from "./deleteTallySection";
 
-const TallyInProgressSaveModal = ({
-  submittingObj,
-  tallyId,
-  locationId,
-  weatherStats,
-  complementaryData,
-  commercialActivities,
-  tallyMap,
-  setSubmittingObj,
-}: {
-  submittingObj: {
-    submitting: boolean;
-    finishing: boolean;
-    deleting: boolean;
-  };
-  tallyId: number;
-  locationId: number;
-  weatherStats: WeatherStats;
-  complementaryData: {
-    animalsAmount: number;
-    groupsAmount: number;
-  };
-  commercialActivities: CommercialActivity;
-  tallyMap: Map<string, number>;
-  setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
-}) => {
+const TallyDeletionModal = ({ tallyIds }: { tallyIds: number[] }) => {
   return (
     <DialogTrigger>
       <Button
-        variant={"constructive"}
+        variant="destructive"
         className="items-center p-2 text-sm sm:text-xl"
       >
-        <IconDeviceFloppy />
+        <IconTrash />
       </Button>
       {
         <ModalOverlay
@@ -67,10 +41,10 @@ const TallyInProgressSaveModal = ({
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center">
                     <h4 className="text-xl font-semibold sm:text-4xl">
-                      Salvar
+                      Excluir contagens
                     </h4>
                     <Button
-                      className="ml-auto text-black"
+                      className="ml-auto"
                       variant={"ghost"}
                       size={"icon"}
                       onPress={() => {
@@ -80,17 +54,9 @@ const TallyInProgressSaveModal = ({
                       <IconX />
                     </Button>
                   </div>
-
-                  <TallyInProgressDatabaseOptions
-                    tallyId={tallyId}
-                    locationId={locationId}
-                    tallyMap={tallyMap}
-                    weatherStats={weatherStats}
-                    commercialActivities={commercialActivities}
-                    complementaryData={complementaryData}
-                    submittingObj={submittingObj}
-                    setSubmittingObj={setSubmittingObj}
-                  />
+                  <div className="flex justify-center">
+                    <DeleteTallySection tallyIds={tallyIds} />
+                  </div>
                 </div>
               )}
             </Dialog>
@@ -101,4 +67,4 @@ const TallyInProgressSaveModal = ({
   );
 };
 
-export default TallyInProgressSaveModal;
+export default TallyDeletionModal;

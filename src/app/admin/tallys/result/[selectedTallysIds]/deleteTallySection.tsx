@@ -6,13 +6,7 @@ import { _deleteTallys, _redirectToTallysList } from "@serverActions/tallyUtil";
 import { useState } from "react";
 import React from "react";
 
-const DeleteTallySection = ({
-  tallyIds,
-  locationId,
-}: {
-  tallyIds: number[];
-  locationId: number;
-}) => {
+const DeleteTallySection = ({ tallyIds }: { tallyIds: number[] }) => {
   const { setHelperCard } = useHelperCard();
   const [showDeletionConfirmation, setShowDeletionConfirmation] =
     useState(false);
@@ -57,7 +51,6 @@ const DeleteTallySection = ({
       setDeleting(false);
       return;
     }
-    _redirectToTallysList(locationId);
   };
   return (
     <div className="flex flex-col gap-2">
