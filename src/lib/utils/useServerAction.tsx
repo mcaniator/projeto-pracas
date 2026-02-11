@@ -63,7 +63,7 @@ export function useServerAction<T, P>({
         setLoadingOverlay({ show: false });
       }
     },
-    [action],
+    [action, callbacks, options],
   );
 
   return [callAction, isLoading];
