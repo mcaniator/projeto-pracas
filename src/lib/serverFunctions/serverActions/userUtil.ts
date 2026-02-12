@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/lib/auth/auth";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
@@ -7,11 +8,7 @@ import { Prisma, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { userUpdateUsernameSchema } from "@zodValidators";
-import { re } from "mathjs";
-import { act } from "react";
 import { ZodError } from "zod";
-
-type UserPropertyToSearch = "username" | "email" | "name";
 
 const _updateUserUsername = async (
   prevState: {
@@ -149,6 +146,18 @@ export const _updateUserRolesV2 = async ({
     };
   }
 
+  const session = await auth();
+  const loggedInUserId = session?.user?.id;
+  if (loggedInUserId === userId) {
+    if (!roles.some((role) => role === "USER_MANAGER")) {
+      return {
+        responseInfo: {
+          statusCode: 400,
+          message: "Você não pode alterar sua permissão de usuários!",
+        } as APIResponseInfo,
+      };
+    }
+  }
   try {
     await prisma.user.update({
       where: {
@@ -285,5 +294,3 @@ export {
   _deleteUser,
   _getUserContentAmount,
 };
-
-export type { UserPropertyToSearch };
