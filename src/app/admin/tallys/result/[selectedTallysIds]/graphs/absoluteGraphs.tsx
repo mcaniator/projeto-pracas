@@ -1,6 +1,5 @@
 "use client";
 
-import { TallyDataArraysByGender } from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualization";
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
   BarElement,
@@ -23,6 +22,11 @@ ChartJS.register(
   Legend,
   ChartDataLabels,
 );
+
+interface TallyDataArraysByGender {
+  MALE: number[];
+  FEMALE: number[];
+}
 
 const booleanCharacteristicsInOrder = [
   "noBooleanCharacteristic",

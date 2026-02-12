@@ -1,7 +1,12 @@
 "use client";
 
-import { TallyComplementaryData } from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualizationTables";
-import { Button } from "@/components/button";
+import IndividualDataTableModal from "@/app/admin/tallys/result/[selectedTallysIds]/individualDataTableModal";
+import {
+  PersonsDatavisualizationTables,
+  TallyComplementaryData,
+} from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualizationTables";
+import TallyDeletionModal from "@/app/admin/tallys/result/[selectedTallysIds]/tallyDeletionModal";
+import TallysDataPageFilterModal from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterModal";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
@@ -12,13 +17,8 @@ import React from "react";
 import { GrGroup } from "react-icons/gr";
 import { z } from "zod";
 
-import { ComplementaryDataVisualization } from "./complementaryDataVisualization";
 import { IndividualDataTable } from "./individualDataTable";
-import IndividualDataTableModal from "./individualDataTableModal";
-import { PersonsDataVisualization } from "./personsDataVisualization";
-import TallyDeletionModal from "./tallyDeletionModal";
 import { TallysDataPageActions } from "./tallysDataPageActions";
-import TallysDataPageFilterModal from "./tallysDataPageFilterModal";
 
 type DataTypesInTallyVisualization = "PERSONS_DATA" | "COMPLEMENTARY_DATA";
 type TallyDataVisualizationModes = "CHART" | "TABLE";
@@ -229,14 +229,11 @@ const TallysDataPage = ({
   complementaryData: TallyComplementaryData;
   locationName: string;
 }) => {
-  const [dataVisualizationMode, setDataVisualizationMode] =
-    useState<TallyDataVisualizationModes>("TABLE");
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (BooleanPersonProperties | "DEFAULT")[]
   >([]);
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(new Map());
-  const [dataTypeToShow, setDataTypeToShow] =
-    useState<DataTypesInTallyVisualization>("PERSONS_DATA");
+
   useEffect(() => {
     setTallyMap(processTallyData(tallys, booleanConditionsFilter));
   }, [booleanConditionsFilter, tallys]);
@@ -247,75 +244,26 @@ const TallysDataPage = ({
         <CAdminHeader
           titleIcon={<GrGroup size={25} />}
           title={`Resultado de ${tallys.length > 1 ? ` (${tallys.length} contagens)` : "contagem"} em ${locationName}`}
+          append={
+            <div className="xl:hidden">
+              <TallysDataPageFilterModal
+                setBooleanConditionsFilter={setBooleanConditionsFilter}
+                booleanConditionsFilter={booleanConditionsFilter}
+              />
+              <IndividualDataTableModal tallys={tallys} />
+              <TallyDeletionModal tallyIds={tallysIds} />
+            </div>
+          }
         />
         <div className="flex w-full flex-row gap-5 overflow-auto">
-          <div
-            className={
-              dataVisualizationMode === "CHART" ?
-                "flex w-full flex-col overflow-auto xl:basis-3/5"
-              : "flex w-full flex-col gap-1 overflow-auto"
-            }
-          >
-            <div className="flex flex-wrap gap-x-5 gap-y-2">
-              <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-                <Button
-                  variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataVisualizationMode === "TABLE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                  onPress={() => setDataVisualizationMode("TABLE")}
-                >
-                  Tabelas
-                </Button>
-                <Button
-                  variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataVisualizationMode === "CHART" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                  onPress={() => setDataVisualizationMode("CHART")}
-                >
-                  Gráficos
-                </Button>
-              </div>
-              <div className="inline-flex w-fit gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-                <Button
-                  variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataTypeToShow === "PERSONS_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                  onPress={() => setDataTypeToShow("PERSONS_DATA")}
-                >
-                  Pessoas
-                </Button>
-                <Button
-                  variant={"ghost"}
-                  className={`rounded-xl px-4 py-1 text-sm xl:text-base ${dataTypeToShow === "COMPLEMENTARY_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                  onPress={() => setDataTypeToShow("COMPLEMENTARY_DATA")}
-                >
-                  Dados extras
-                </Button>
-              </div>
-              <div className="ml-auto flex gap-1 xl:hidden">
-                <TallysDataPageFilterModal
-                  setBooleanConditionsFilter={setBooleanConditionsFilter}
-                  booleanConditionsFilter={booleanConditionsFilter}
-                />
-                <IndividualDataTableModal tallys={tallys} />
-                <TallyDeletionModal tallyIds={tallysIds} />
-              </div>
-            </div>
-
-            {dataTypeToShow === "PERSONS_DATA" ?
-              <PersonsDataVisualization
-                dataVisualizationMode={dataVisualizationMode}
-                complementaryData={complementaryData}
-                tallyMap={tallyMap}
-                tallyWithCommercialActivities={
-                  immutableTallyMaps.commercialActivitiesMap
-                }
-              />
-            : <ComplementaryDataVisualization
-                dataVisualizationMode={dataVisualizationMode}
-                tallyWithCommercialActivities={
-                  immutableTallyMaps.commercialActivitiesMap
-                }
-                tallyMap={immutableTallyMaps.tallyMap}
-              />
-            }
+          <div className={"flex w-full flex-col gap-1 overflow-auto"}>
+            <PersonsDatavisualizationTables
+              tallyMap={tallyMap}
+              tallyComplementaryData={complementaryData}
+              tallyWithCommercialActivities={
+                immutableTallyMaps.commercialActivitiesMap
+              }
+            />
           </div>
           <Paper
             elevation={5}
