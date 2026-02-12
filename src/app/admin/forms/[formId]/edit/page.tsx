@@ -4,7 +4,7 @@ import Edit from "./protected";
 
 const EditFormProtected = (props: { params: Promise<{ formId: string }> }) => {
   return (
-    <PermissionGuard redirect requiresAnyRoles={["FORM_MANAGER"]}>
+    <PermissionGuard redirect requiresAnyRoleGroups={["FORM"]}>
       <Edit params={props.params} />
     </PermissionGuard>
   );

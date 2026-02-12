@@ -1,5 +1,6 @@
 "use client";
 
+import { TallyComplementaryData } from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualizationTables";
 import { Button } from "@/components/button";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
@@ -86,7 +87,7 @@ const processTallyData = (
     tallyMap.set(`Tot-${gender}`, 0);
     for (const property of booleanPersonPropertiesWithNoBooleanCharacteristic) {
       tallyMap.set(`${gender}-${property}`, 0);
-      tallyMap.set(`%${gender}-${property}`, "0.00%");
+      tallyMap.set(`%${gender}-${property}`, 0);
     }
   }
   for (const ageGroup of Object.keys(AgeGroup)) {
@@ -96,16 +97,16 @@ const processTallyData = (
     tallyMap.set(`Tot-${activity}`, 0);
   }
   tallyMap.set("Tot-H&M", 0);
-  tallyMap.set("%MALE", "0.00%");
-  tallyMap.set("%FEMALE", "0.00%");
+  tallyMap.set("%MALE", 0);
+  tallyMap.set("%FEMALE", 0);
   for (const ageGroup of Object.keys(AgeGroup)) {
-    tallyMap.set(`%${ageGroup}`, "0.00%");
+    tallyMap.set(`%${ageGroup}`, 0);
   }
   for (const activity of Object.keys(Activity)) {
-    tallyMap.set(`%${activity}`, "0.00%");
+    tallyMap.set(`%${activity}`, 0);
   }
   for (const booleanCharacteristic of booleanPersonPropertiesWithNoBooleanCharacteristic) {
-    tallyMap.set(`%${booleanCharacteristic}`, "0,00%");
+    tallyMap.set(`%${booleanCharacteristic}`, 0);
   }
   for (const tally of tallys) {
     if (!tally.tallyPerson) continue;
@@ -180,7 +181,7 @@ const processTallyData = (
     for (const gender of Object.keys(Gender)) {
       tallyMap.set(
         `%${gender}`,
-        ((tallyMap.get(`Tot-${gender}`) / totalPeople) * 100).toFixed(2) + "%",
+        (tallyMap.get(`Tot-${gender}`) / totalPeople) * 100,
       );
     }
     for (const ageGroup of Object.keys(AgeGroup)) {
@@ -191,10 +192,7 @@ const processTallyData = (
         }
       }
       tallyMap.set(`Tot-${ageGroup}`, totalAgeGroup);
-      tallyMap.set(
-        `%${ageGroup}`,
-        ((totalAgeGroup / totalPeople) * 100).toFixed(2) + "%",
-      );
+      tallyMap.set(`%${ageGroup}`, (totalAgeGroup / totalPeople) * 100);
     }
     for (const activity of Object.keys(Activity)) {
       let activityTotal = 0;
@@ -206,7 +204,7 @@ const processTallyData = (
       tallyMap.set(`Tot-${activity}`, activityTotal);
       tallyMap.set(
         `%${activity}`,
-        ((activityTotal / tallyMap.get(`Tot-H&M`)) * 100).toFixed(2) + "%",
+        (activityTotal / tallyMap.get(`Tot-H&M`)) * 100,
       );
     }
     for (const property of booleanPersonPropertiesWithNoBooleanCharacteristic) {
@@ -214,10 +212,7 @@ const processTallyData = (
       for (const gender of Object.keys(Gender)) {
         propertyTotal += tallyMap.get(`${gender}-${property}`);
       }
-      tallyMap.set(
-        `%${property}`,
-        ((propertyTotal / totalPeople) * 100).toFixed(2) + "%",
-      );
+      tallyMap.set(`%${property}`, (propertyTotal / totalPeople) * 100);
     }
   }
   return tallyMap;
@@ -226,10 +221,12 @@ const processTallyData = (
 const TallysDataPage = ({
   tallys,
   tallysIds,
+  complementaryData,
   locationName,
 }: {
   tallys: FinalizedTally[];
   tallysIds: number[];
+  complementaryData: TallyComplementaryData;
   locationName: string;
 }) => {
   const [dataVisualizationMode, setDataVisualizationMode] =
@@ -237,9 +234,7 @@ const TallysDataPage = ({
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (BooleanPersonProperties | "DEFAULT")[]
   >([]);
-  const [tallyMap, setTallyMap] = useState<Map<string, string | number>>(
-    new Map(),
-  );
+  const [tallyMap, setTallyMap] = useState<Map<string, number>>(new Map());
   const [dataTypeToShow, setDataTypeToShow] =
     useState<DataTypesInTallyVisualization>("PERSONS_DATA");
   useEffect(() => {
@@ -307,7 +302,11 @@ const TallysDataPage = ({
             {dataTypeToShow === "PERSONS_DATA" ?
               <PersonsDataVisualization
                 dataVisualizationMode={dataVisualizationMode}
+                complementaryData={complementaryData}
                 tallyMap={tallyMap}
+                tallyWithCommercialActivities={
+                  immutableTallyMaps.commercialActivitiesMap
+                }
               />
             : <ComplementaryDataVisualization
                 dataVisualizationMode={dataVisualizationMode}

@@ -1,11 +1,15 @@
 "use client";
 
+import { TallyInfoAndCommercialActivitiesObject } from "@/lib/types/tallys/tallyDataVisualization";
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import React from "react";
 
 import { TallyDataVisualizationModes } from "./TallysDataPage";
 import { PersonsDataVisualizationCharts } from "./personsDataVisualizationCharts";
-import { PersonsDatavisualizationTables } from "./personsDataVisualizationTables";
+import {
+  PersonsDatavisualizationTables,
+  TallyComplementaryData,
+} from "./personsDataVisualizationTables";
 
 interface TallyDataArraysByGender {
   MALE: number[];
@@ -88,10 +92,17 @@ const calculateBooleanCharacteristicsArrays = (
 
 const PersonsDataVisualization = ({
   tallyMap,
+  complementaryData,
   dataVisualizationMode,
+  tallyWithCommercialActivities,
 }: {
-  tallyMap: Map<string, string | number>;
+  tallyMap: Map<string, number>;
+  complementaryData: TallyComplementaryData;
   dataVisualizationMode: TallyDataVisualizationModes;
+  tallyWithCommercialActivities: Map<
+    number,
+    TallyInfoAndCommercialActivitiesObject
+  >;
 }) => {
   const activityArrays = calculateActivityArrays(tallyMap);
   const ageGroupArrays = calculateAgeGroupArrays(tallyMap);
@@ -100,7 +111,11 @@ const PersonsDataVisualization = ({
   return (
     <React.Fragment>
       {dataVisualizationMode === "TABLE" && (
-        <PersonsDatavisualizationTables tallyMap={tallyMap} />
+        <PersonsDatavisualizationTables
+          tallyMap={tallyMap}
+          tallyComplementaryData={complementaryData}
+          tallyWithCommercialActivities={tallyWithCommercialActivities}
+        />
       )}
       {dataVisualizationMode === "CHART" && (
         <PersonsDataVisualizationCharts

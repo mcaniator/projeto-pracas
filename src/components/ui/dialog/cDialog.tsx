@@ -213,7 +213,7 @@ const CDialog = ({
             <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
           </DialogTitle>
 
-          <DialogContent sx={contentSx} dividers>
+          <DialogContent sx={contentSx} dividers={!!children}>
             {children}
           </DialogContent>
 
@@ -273,7 +273,7 @@ const CDialog = ({
         <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
       </DialogTitle>
 
-      <DialogContent sx={contentSx} dividers>
+      <DialogContent sx={contentSx} dividers={!!children}>
         {children}
       </DialogContent>
 

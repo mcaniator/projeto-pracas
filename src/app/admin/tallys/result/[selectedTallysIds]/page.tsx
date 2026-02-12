@@ -18,10 +18,22 @@ const Page = async (props: {
   if (tallysIds.length === 0 || !tallys || tallys.length === 0) {
     notFound();
   } else {
+    const complementaryData = tallys.reduce(
+      (acc, val) => {
+        acc.groups += val.groups || 0;
+        acc.pets += val.animalsAmount || 0;
+        return acc;
+      },
+      {
+        groups: 0,
+        pets: 0,
+      },
+    );
     return (
       <TallysDataPage
         tallys={tallys}
         tallysIds={tallysIds}
+        complementaryData={complementaryData}
         locationName={locationName}
       />
     );

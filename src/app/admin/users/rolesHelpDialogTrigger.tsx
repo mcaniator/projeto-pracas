@@ -1,4 +1,5 @@
 import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
+import { Divider } from "@mui/material";
 import { IconHelp } from "@tabler/icons-react";
 
 const descriptions = [
@@ -57,7 +58,7 @@ const RolesHelpDialogTrigger = () => {
     >
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
-          {descriptions.map((description) => (
+          {descriptions.map((description, index, arr) => (
             <div key={description.section}>
               <h5 className="text-lg">{description.section}</h5>
               <ul className="list-disc pl-4">
@@ -69,6 +70,7 @@ const RolesHelpDialogTrigger = () => {
                   ),
                 )}
               </ul>
+              {index < arr.length - 1 && <Divider />}
             </div>
           ))}
         </div>

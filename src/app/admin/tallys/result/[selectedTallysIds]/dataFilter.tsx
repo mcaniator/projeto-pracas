@@ -1,7 +1,9 @@
 "use client";
 
 import CCheckbox from "@/components/ui/cCheckbox";
+import CIconChip from "@/components/ui/cIconChip";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
+import { IconHelp } from "@tabler/icons-react";
 import React, { useState } from "react";
 
 const DataFilter = ({
@@ -40,15 +42,22 @@ const DataFilter = ({
     !booleanConditionsFilter.includes("DEFAULT");
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-5 overflow-auto outline outline-1 outline-gray-300">
+      <div className="flex flex-col gap-5 overflow-auto pr-3 outline outline-1 outline-gray-300">
         <div className="flex basis-1/5 flex-col">
-          <h3 className="text-xl font-semibold">Pessoas</h3>
+          <div className="flex flex-wrap justify-between">
+            <h3 className="text-xl font-semibold">Pessoas</h3>
+            <CIconChip
+              icon={<IconHelp />}
+              tooltip="Filtros acumulativos. Se mais de um for selecionado, apenas pessoas que se encaixam em todas as características selecionadas serão mostradas. Se 'Nenhuma característica binária específica' for selecionada, apenas pessoas que não se encaixam em nenhuma das outras características serão mostradas."
+            />
+          </div>
+
           <div className="flex flex-row gap-1">
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
                 <span>
                   <label htmlFor="default" className="mr-1">
-                    Padrão
+                    Nenhuma característica binária específica
                   </label>
                 </span>
                 <span className="ml-auto">

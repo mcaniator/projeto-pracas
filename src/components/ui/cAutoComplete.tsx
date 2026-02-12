@@ -128,9 +128,11 @@ function CAutocomplete<
   if (loading) {
     return (
       <Skeleton
-        variant="rectangular"
+        variant="rounded"
         sx={{
           width: "100%",
+          borderRadius: 4,
+          mt: "4px",
           height: {
             xs: 39.5,
             sm: 45.25,

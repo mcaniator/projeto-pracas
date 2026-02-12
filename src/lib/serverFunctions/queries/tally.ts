@@ -174,7 +174,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
     }
     return {
       statusCode: 200,
-      tally: parsedTally.data.endDate ? null : parsedTally.data,
+      tally: parsedTally.data,
     };
   } catch (error) {
     return { statusCode: 500, tally: null };

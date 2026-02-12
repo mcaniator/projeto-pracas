@@ -1,6 +1,13 @@
 "use client";
 
 import { TallyInfoAndCommercialActivitiesObject } from "@customTypes/tallys/tallyDataVisualization";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@mui/material";
 
 const CommercialActivitiesTable = ({
   tallyWithCommercialActivities,
@@ -39,156 +46,53 @@ const CommercialActivitiesTable = ({
   }
   return (
     <div>
-      <div className="flex flex-col gap-2 p-1 xl:hidden">
-        <ul className="flex flex-col gap-2">
-          {sortedCommercialActivitiesNames.map((commercialActivity, key) => {
-            return (
-              <li
-                key={key}
-                className="flex flex-col gap-1 rounded-md p-2 outline outline-1 outline-white"
-              >
-                <strong>{commercialActivity}:</strong>
-                <div className="ml-2">
-                  <p>Total: {sortedOccurrences[key]}</p>
-                  {commercialActivitiesWithTallys[commercialActivity]?.map(
-                    (CAT, index) => {
-                      return (
-                        <p key={index}>{`${CAT.tally} - ${CAT.occurrences}`}</p>
-                      );
-                    },
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        <p>
-          <strong>Total de atividades:</strong> {totalCommercialActivities}
-        </p>
-      </div>
-      <table className="hidden text-sm sm:text-base xl:table">
+      <table className="w-full">
         <thead>
           <tr>
-            <th
-              className="border border-gray-500"
-              style={{ padding: "0.5rem" }}
-              colSpan={
-                sortedCommercialActivitiesNames.length ?
-                  sortedCommercialActivitiesNames.length + 1
-                : 2
-              }
-            >
-              Atividades comerciais itinerantes
-            </th>
+            <th className="broder-gray-500 border xl:p-1">Total</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td
-              className="border border-gray-500"
-              style={{ padding: "0.5rem" }}
-            >
-              Total
-            </td>
-            <td
-              className="border border-gray-500"
-              style={{
-                padding: "0.5rem",
-                textAlign: "center",
-              }}
-              colSpan={sortedCommercialActivitiesNames.length}
-            >
+            <td className="broder-gray-500 border text-center xl:p-1">
               {totalCommercialActivities}
             </td>
           </tr>
-          <tr>
-            <td
-              className="border border-gray-500"
-              style={{ padding: "0.5rem" }}
-            >
-              Tipos
-            </td>
+        </tbody>
+      </table>
+
+      <Table className="mt-2">
+        <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
+          <TableRow>
+            <TableCell>Tipos</TableCell>
             {sortedCommercialActivitiesNames.length ?
               sortedCommercialActivitiesNames.map((commercialActivity, key) => {
-                return (
-                  <td
-                    key={key}
-                    className="border border-gray-500"
-                    style={{
-                      padding: "0.5rem",
-                      textAlign: "center",
-                    }}
-                  >
-                    {commercialActivity}
-                  </td>
-                );
+                return <TableCell key={key}>{commercialActivity}</TableCell>;
               })
-            : <td
-                className="border border-gray-500"
-                style={{
-                  padding: "0.5rem",
-                  textAlign: "center",
-                }}
-              >
-                -
-              </td>
-            }
-          </tr>
-          <tr>
-            <td
-              className="border border-gray-500"
-              style={{ padding: "0.5rem" }}
-            >
-              Total por tipo
-            </td>
+            : <TableCell>-</TableCell>}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <TableCell>Total por tipo</TableCell>
             {sortedOccurrences.length ?
               sortedOccurrences.map((occurrences, key) => {
-                return (
-                  <td
-                    key={key}
-                    className="border border-gray-500"
-                    style={{
-                      padding: "0.5rem",
-                      textAlign: "center",
-                    }}
-                  >
-                    {occurrences}
-                  </td>
-                );
+                return <TableCell key={key}>{occurrences}</TableCell>;
               })
-            : <td
-                className="border border-gray-500"
-                style={{
-                  padding: "0.5rem",
-                  textAlign: "center",
-                }}
-              >
-                -
-              </td>
-            }
-          </tr>
+            : <TableCell>-</TableCell>}
+          </TableRow>
           {Array.from(tallyWithCommercialActivities).map(
             ([tallyId, commercialActivitiesObject]) => {
               return (
-                <tr key={tallyId}>
-                  <td
-                    className="border border-gray-500"
-                    style={{ padding: "0.5rem" }}
-                  >
+                <TableRow key={tallyId}>
+                  <TableCell>
                     {`${commercialActivitiesObject.tallyInfo.startDate} - ${commercialActivitiesObject.tallyInfo.observer}`}
-                  </td>
+                  </TableCell>
                   {sortedCommercialActivitiesNames.length ?
                     sortedCommercialActivitiesNames.map(
                       (commercialActivityName, key) => {
                         return (
-                          <td
-                            key={key}
-                            className="border border-gray-500"
-                            style={{
-                              padding: "0.5rem",
-                              textAlign: "center",
-                            }}
-                          >
+                          <TableCell key={key}>
                             {commercialActivitiesObject.commercialActivities ?
                               (
                                 commercialActivitiesObject.commercialActivities[
@@ -200,26 +104,17 @@ const CommercialActivitiesTable = ({
                                 ]
                               : ""
                             : ""}
-                          </td>
+                          </TableCell>
                         );
                       },
                     )
-                  : <td
-                      className="border border-gray-500"
-                      style={{
-                        padding: "0.5rem",
-                        textAlign: "center",
-                      }}
-                    >
-                      -
-                    </td>
-                  }
-                </tr>
+                  : <TableCell>-</TableCell>}
+                </TableRow>
               );
             },
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };

@@ -1,7 +1,10 @@
 "use client";
 
+import CButton from "@/components/ui/cButton";
 import { dateFormatter, hourFormatter } from "@formatters/dateFormatters";
+import { IconPencil } from "@tabler/icons-react";
 import { FinalizedTally } from "@zodValidators";
+import { useRouter } from "next-nprogress-bar";
 
 const formatName = (fullName: string) => {
   const parts = fullName.trim().split(/\s+/);
@@ -16,6 +19,10 @@ const weatherConditionsMap = new Map([
 ]);
 
 const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
+  const router = useRouter();
+  const navigateToTallyFillingPage = (tallyId: number) => {
+    router.push(`/admin/tallys/${tallyId}/fill`);
+  };
   return (
     <>
       <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
@@ -65,6 +72,20 @@ const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
                 weatherConditionsMap.get(tally.weatherCondition)
               : ""}
             </p>
+            <span className="flex flex-wrap items-center">
+              <span className="w-fit">
+                <strong>{"Editar contagem: "}</strong>
+              </span>
+              <CButton
+                square
+                className="ml-2 w-fit"
+                onClick={() => {
+                  navigateToTallyFillingPage(tally.id);
+                }}
+              >
+                <IconPencil />
+              </CButton>
+            </span>
           </div>
         ))}
       </div>
