@@ -25,8 +25,6 @@ const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
   };
   return (
     <>
-      <h3 className="text-2xl font-semibold">Dados sobre as contagens</h3>
-
       <div className="flex flex-col gap-5 overflow-auto rounded">
         {tallys.map((tally, key) => (
           <div

@@ -151,6 +151,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         location: {
           select: {
             name: true,
+            id: true,
           },
         },
         startDate: true,
@@ -198,11 +199,13 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
         location: {
           select: {
             name: true,
+            usableArea: true,
           },
         },
       },
     });
     const locationName = tallys[0]?.location.name ?? "ERRO";
+    const usableArea = tallys[0]?.location.usableArea ?? null;
     const parsedTallys = finalizedTallyArraySchema.safeParse(tallys);
     if (!parsedTallys.success) {
       return { statusCode: 400, tallys: null };
@@ -213,7 +216,12 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
     filteredParsedTallys.sort(
       (a, b) => b.startDate.getTime() - a.startDate.getTime(),
     );
-    return { statusCode: 200, tallys: filteredParsedTallys, locationName };
+    return {
+      statusCode: 200,
+      tallys: filteredParsedTallys,
+      locationName,
+      usableArea,
+    };
   } catch (error) {
     return { statusCode: 500, tallys: null, locationName: null };
   }

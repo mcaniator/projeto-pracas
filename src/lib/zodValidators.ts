@@ -388,6 +388,7 @@ const ongoingTallySchema = z.object({
     id: z.string(),
   }),
   location: z.object({
+    id: z.number(),
     name: z.coerce.string(),
   }),
   tallyPerson: tallyPersonArraySchema.nullable(),

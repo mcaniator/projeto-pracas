@@ -1,12 +1,11 @@
 "use client";
 
-import IndividualDataTableModal from "@/app/admin/tallys/result/[selectedTallysIds]/individualDataTableModal";
+import IndividualDataTableDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/individualDataTableDialogTrigger";
 import {
   PersonsDatavisualizationTables,
   TallyComplementaryData,
 } from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualizationTables";
-import TallyDeletionModal from "@/app/admin/tallys/result/[selectedTallysIds]/tallyDeletionModal";
-import TallysDataPageFilterModal from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterModal";
+import TallysDataPageFilterDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterDialogTrigger";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
@@ -220,14 +219,14 @@ const processTallyData = (
 
 const TallysDataPage = ({
   tallys,
-  tallysIds,
   complementaryData,
   locationName,
+  locationUsableArea,
 }: {
   tallys: FinalizedTally[];
-  tallysIds: number[];
   complementaryData: TallyComplementaryData;
   locationName: string;
+  locationUsableArea: number | null | undefined;
 }) => {
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (BooleanPersonProperties | "DEFAULT")[]
@@ -246,12 +245,11 @@ const TallysDataPage = ({
           title={`Resultado de ${tallys.length > 1 ? ` (${tallys.length} contagens)` : "contagem"} em ${locationName}`}
           append={
             <div className="xl:hidden">
-              <TallysDataPageFilterModal
+              <TallysDataPageFilterDialogTrigger
                 setBooleanConditionsFilter={setBooleanConditionsFilter}
                 booleanConditionsFilter={booleanConditionsFilter}
               />
-              <IndividualDataTableModal tallys={tallys} />
-              <TallyDeletionModal tallyIds={tallysIds} />
+              <IndividualDataTableDialogTrigger tallys={tallys} />
             </div>
           }
         />
@@ -263,6 +261,7 @@ const TallysDataPage = ({
               tallyWithCommercialActivities={
                 immutableTallyMaps.commercialActivitiesMap
               }
+              locationUsableArea={locationUsableArea}
             />
           </div>
           <Paper
@@ -271,11 +270,11 @@ const TallysDataPage = ({
           >
             <TallysDataPageActions
               setBooleanConditionsFilter={setBooleanConditionsFilter}
-              tallyIds={tallysIds}
               booleanConditionsFilter={booleanConditionsFilter}
             />
             <Divider />
             <div className="0 flex h-full min-h-56 flex-col gap-1 overflow-auto shadow-md">
+              <h3 className="text-2xl font-semibold">Dados das contagens</h3>
               <IndividualDataTable tallys={tallys} />
             </div>
           </Paper>

@@ -10,7 +10,7 @@ const Page = async (props: { params: Promise<{ tallyId: string }> }) => {
     return (
       <TallyInProgressPage
         tallyId={Number(params.tallyId)}
-        locationId={Number(response.tally.location)}
+        locationId={Number(response.tally.location.id)}
         tally={response.tally}
       />
     );

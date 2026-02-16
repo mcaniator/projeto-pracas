@@ -1,57 +1,37 @@
 "use client";
 
-import { Button } from "@/components/button";
+import CIconChip from "@/components/ui/cIconChip";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
-import { useState } from "react";
+import { IconHelp } from "@tabler/icons-react";
 
 import { DataFilter } from "./dataFilter";
-import { DeleteTallySection } from "./deleteTallySection";
 
 type TallysVisualizationActionsCategories = "FILTERS" | "DELETION";
+
 const TallysDataPageActions = ({
   setBooleanConditionsFilter,
-  tallyIds,
   booleanConditionsFilter,
 }: {
   setBooleanConditionsFilter: React.Dispatch<
     React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
   >;
 
-  tallyIds: number[];
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
 }) => {
-  const [actionsCategory, setActionsCategory] =
-    useState<TallysVisualizationActionsCategories>("FILTERS");
   return (
     <div className="flex min-h-72 flex-col gap-1 overflow-auto">
-      <h4 className="text-2xl font-semibold">Ações</h4>
-      <div>
-        <div className="inline-flex gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-          <Button
-            variant={"ghost"}
-            className={`rounded-xl px-4 py-1 ${actionsCategory === "FILTERS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-            onPress={() => setActionsCategory("FILTERS")}
-          >
-            Filtros
-          </Button>
-          <Button
-            variant={"ghost"}
-            className={`rounded-xl px-4 py-1 ${actionsCategory === "DELETION" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-            onPress={() => setActionsCategory("DELETION")}
-          >
-            Excluir
-          </Button>
-        </div>
-      </div>
-      {actionsCategory === "FILTERS" && (
-        <DataFilter
-          setBooleanConditionsFilter={setBooleanConditionsFilter}
-          booleanConditionsFilter={booleanConditionsFilter}
+      <div className="flex items-center justify-between">
+        <h4 className="text-2xl font-semibold">Filtros</h4>
+        <CIconChip
+          icon={<IconHelp />}
+          tooltip="Filtros acumulativos. Se mais de um for selecionado, apenas pessoas que se encaixam em todas as características selecionadas serão mostradas. Se 'Nenhuma característica binária específica' for selecionada, apenas pessoas que não se encaixam em nenhuma das outras características serão mostradas."
         />
-      )}
-      {actionsCategory === "DELETION" && (
-        <DeleteTallySection tallyIds={tallyIds} />
-      )}
+      </div>
+
+      <DataFilter
+        setBooleanConditionsFilter={setBooleanConditionsFilter}
+        booleanConditionsFilter={booleanConditionsFilter}
+      />
     </div>
   );
 };

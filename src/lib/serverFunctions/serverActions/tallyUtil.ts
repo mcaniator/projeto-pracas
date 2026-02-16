@@ -1,6 +1,5 @@
 "use server";
 
-import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
@@ -10,7 +9,6 @@ import {
   AgeGroupType,
   GenderType,
 } from "@customTypes/tallys/person";
-import PermissionError from "@errors/permissionError";
 import { WeatherConditions } from "@prisma/client";
 import { fetchTallysByLocationId } from "@queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -19,8 +17,7 @@ import {
   commercialActivitySchema,
   tallyPersonArraySchema,
 } from "@zodValidators";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { redirect } from "next/navigation";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 interface WeatherStats {
@@ -104,76 +101,11 @@ export const _createTallyV2 = async (
       };
     }
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 400,
         message: "Dados inválidos!",
       } as APIResponseInfo,
-    };
-  }
-};
-
-const _createTally = async (
-  prevState: TallyCreationFormType,
-  formData: FormData,
-) => {
-  const locationId = formData.get("locationId") as string;
-  const userId = formData.get("userId") as string;
-  const date = formData.get("date") as string;
-
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
-    if (!userId || !date) {
-      return {
-        locationId: locationId,
-        userId: userId,
-        date: date,
-        errors: {
-          userId: !userId,
-          date: !date,
-          permission: false,
-        },
-      };
-    }
-    await prisma.tally.create({
-      data: {
-        location: {
-          connect: {
-            id: Number(locationId),
-          },
-        },
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        startDate: new Date(date),
-      },
-    });
-    revalidatePath(`/admin/parks/${locationId}/tallys`);
-    return {
-      locationId: locationId,
-      userId: "",
-      date: date,
-      errors: {
-        userId: false,
-        date: false,
-        permission: false,
-      },
-    };
-  } catch (error) {
-    return {
-      locationId: locationId,
-      userId: userId,
-      date: date,
-      errors: {
-        userId: !userId,
-        date: !date,
-        permission: error instanceof PermissionError,
-      },
     };
   }
 };
@@ -296,14 +228,4 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
-const _redirectToTallysList = (locationId: number) => {
-  redirect(`/admin/tallys`);
-};
-
-export {
-  _fetchTallysByLocationId,
-  _createTally,
-  _saveOngoingTallyData,
-  _deleteTallys,
-  _redirectToTallysList,
-};
+export { _fetchTallysByLocationId, _saveOngoingTallyData, _deleteTallys };

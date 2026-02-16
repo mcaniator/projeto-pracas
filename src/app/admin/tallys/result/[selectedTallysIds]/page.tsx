@@ -13,7 +13,7 @@ const Page = async (props: {
   if (!tallysIds) {
     notFound();
   }
-  const { tallys, locationName } =
+  const { tallys, locationName, usableArea } =
     await fetchFinalizedTallysToDataVisualization(tallysIds);
   if (tallysIds.length === 0 || !tallys || tallys.length === 0) {
     notFound();
@@ -32,9 +32,9 @@ const Page = async (props: {
     return (
       <TallysDataPage
         tallys={tallys}
-        tallysIds={tallysIds}
         complementaryData={complementaryData}
         locationName={locationName}
+        locationUsableArea={usableArea}
       />
     );
   }

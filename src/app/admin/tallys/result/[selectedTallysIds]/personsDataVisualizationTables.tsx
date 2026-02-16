@@ -11,13 +11,15 @@ import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import { TallyInfoAndCommercialActivitiesObject } from "@/lib/types/tallys/tallyDataVisualization";
 import { Gender } from "@enums/personCharacteristics";
 import {
-  Divider,
+  Chip,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
 } from "@mui/material";
+import { IconChartBar, IconChartPie2, IconTable } from "@tabler/icons-react";
 import React from "react";
 
 export const ageGroupsNamesInTableMap = new Map([
@@ -61,6 +63,7 @@ const PersonsDatavisualizationTables = ({
   tallyMap,
   tallyComplementaryData,
   tallyWithCommercialActivities,
+  locationUsableArea,
 }: {
   tallyMap: Map<string, number>;
   tallyComplementaryData: TallyComplementaryData;
@@ -68,6 +71,7 @@ const PersonsDatavisualizationTables = ({
     number,
     TallyInfoAndCommercialActivitiesObject
   >;
+  locationUsableArea: number | null | undefined;
 }) => {
   const commercialActivitiesNames: string[] = [];
   let totalCommercialActivities = 0;
@@ -101,12 +105,17 @@ const PersonsDatavisualizationTables = ({
   const sorrtedOccurrences = commercialActivitiesArray.map(
     (activity) => activity[1],
   );
+  const totalPersons = tallyMap.get(`Tot-H&M`) || 0;
   return (
     <div className="flex w-full max-w-[85rem] flex-col gap-1 overflow-auto rounded">
       <table className="w-full">
         <thead>
           <tr>
             <th className="broder-gray-500 border xl:p-1">Total de pessoas</th>
+            <th className="broder-gray-500 border xl:p-1">
+              Área útil da praça
+            </th>
+            <th className="broder-gray-500 border xl:p-1">Vitalidade</th>
           </tr>
         </thead>
         <tbody>
@@ -114,132 +123,150 @@ const PersonsDatavisualizationTables = ({
             <td className="broder-gray-500 border text-center xl:p-1">
               {tallyMap.get(`Tot-H&M`)}
             </td>
+            <td className="broder-gray-500 border text-center xl:p-1">
+              {locationUsableArea ?? "-"}
+            </td>
+            <td className="broder-gray-500 border text-center xl:p-1">
+              {locationUsableArea ? totalPersons / locationUsableArea : "-"}
+            </td>
           </tr>
         </tbody>
       </table>
       <CAccordion defaultExpanded>
-        <CAccordionSummary>Tabelas de dados gerais</CAccordionSummary>
+        <CAccordionSummary>
+          {" "}
+          <IconTable />
+          Tabelas de dados gerais
+        </CAccordionSummary>
         <CAccordionDetails className="overflow-auto">
-          <h4>Faixa etária - Sexo - Atividade</h4>
-          <Table>
-            {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
-              return (
-                <React.Fragment key={ageGroupKey}>
-                  <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
-                    <TableRow>
-                      <TableCell>
-                        {ageGroupsNamesInTableMap.get(ageGroup)}
-                      </TableCell>
-                      {gendersInOrder.map((gender, genderKey) => {
-                        return (
-                          <TableCell key={genderKey}>
-                            {gendersNamesInTableMap.get(gender)}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {activitiesInOrder.map((activity, activityKey) => {
-                      return (
-                        <React.Fragment key={activityKey}>
-                          <TableRow>
-                            <TableCell>
-                              {activitiesNamesInTableMap.get(activity)}
+          <Paper elevation={1}>
+            <Chip label={`Faixa etária - Sexo - Atividade`} className="m-2" />
+            <Table>
+              {ageGroupsInOrder.map((ageGroup, ageGroupKey) => {
+                return (
+                  <React.Fragment key={ageGroupKey}>
+                    <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
+                      <TableRow>
+                        <TableCell>
+                          {ageGroupsNamesInTableMap.get(ageGroup)}
+                        </TableCell>
+                        {gendersInOrder.map((gender, genderKey) => {
+                          return (
+                            <TableCell key={genderKey}>
+                              {gendersNamesInTableMap.get(gender)}
                             </TableCell>
-                            {gendersInOrder.map((gender, genderKey) => {
-                              return (
-                                <TableCell key={genderKey}>
-                                  {tallyMap.get(
-                                    `${gender}-${ageGroup}-${activity}`,
-                                  )}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    })}
-                    <TableRow>
-                      <TableCell>Total</TableCell>
-                      {gendersInOrder.map((gender, genderKey) => {
+                          );
+                        })}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {activitiesInOrder.map((activity, activityKey) => {
                         return (
-                          <TableCell key={genderKey}>
-                            {tallyMap.get(`Tot-${gender}-${ageGroup}`)}
-                          </TableCell>
+                          <React.Fragment key={activityKey}>
+                            <TableRow>
+                              <TableCell>
+                                {activitiesNamesInTableMap.get(activity)}
+                              </TableCell>
+                              {gendersInOrder.map((gender, genderKey) => {
+                                return (
+                                  <TableCell key={genderKey}>
+                                    {tallyMap.get(
+                                      `${gender}-${ageGroup}-${activity}`,
+                                    )}
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
+                          </React.Fragment>
                         );
                       })}
-                    </TableRow>
-                  </TableBody>
-                </React.Fragment>
-              );
-            })}
-          </Table>
-          <Divider className="pt-4" />
-          <h4>Características binárias</h4>
-          <Table>
-            <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
-              <TableRow>
-                <TableCell></TableCell>
+                      <TableRow>
+                        <TableCell>Total</TableCell>
+                        {gendersInOrder.map((gender, genderKey) => {
+                          return (
+                            <TableCell key={genderKey}>
+                              {tallyMap.get(`Tot-${gender}-${ageGroup}`)}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    </TableBody>
+                  </React.Fragment>
+                );
+              })}
+            </Table>
+          </Paper>
 
-                {booleanCharacteristicsInOrder.map((characteristic, key) => {
-                  return (
-                    <TableCell key={key}>
-                      {booleanCharacteristicsNamesInTableMap
-                        .get(characteristic)
-                        ?.toUpperCase()}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>Total</TableCell>
-                {booleanCharacteristicsInOrder.map((characteristic, key) => {
-                  return (
-                    <TableCell key={key}>
-                      {Array.from(Object.keys(Gender))
-                        .map(
-                          (gender) =>
-                            tallyMap.get(`${gender}-${characteristic}`) || 0,
-                        )
-                        .reduce(
-                          (acc, value) =>
-                            (
-                              typeof acc === "number" &&
-                              typeof value === "number"
-                            ) ?
-                              acc + value
-                            : 0,
-                          0,
-                        )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-              <TableRow>
-                <TableCell>%</TableCell>
-                {booleanCharacteristicsInOrder.map((characteristic, key) => {
-                  return (
-                    <TableCell key={key}>
-                      {tallyMap.get(`%${characteristic}`)?.toFixed(2) || 0}%
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            </TableBody>
-          </Table>
+          <Paper elevation={1} className="mt-4">
+            <Chip label={`Características binárias`} className="m-2" />
+            <Table>
+              <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
+                <TableRow>
+                  <TableCell></TableCell>
+
+                  {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                    return (
+                      <TableCell key={key}>
+                        {booleanCharacteristicsNamesInTableMap
+                          .get(characteristic)
+                          ?.toUpperCase()}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Total</TableCell>
+                  {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                    return (
+                      <TableCell key={key}>
+                        {Array.from(Object.keys(Gender))
+                          .map(
+                            (gender) =>
+                              tallyMap.get(`${gender}-${characteristic}`) || 0,
+                          )
+                          .reduce(
+                            (acc, value) =>
+                              (
+                                typeof acc === "number" &&
+                                typeof value === "number"
+                              ) ?
+                                acc + value
+                              : 0,
+                            0,
+                          )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell>%</TableCell>
+                  {booleanCharacteristicsInOrder.map((characteristic, key) => {
+                    return (
+                      <TableCell key={key}>
+                        {tallyMap.get(`%${characteristic}`)?.toFixed(2) || 0}%
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Paper>
         </CAccordionDetails>
       </CAccordion>
       <CAccordion defaultExpanded>
-        <CAccordionSummary>Gráficos absolutos</CAccordionSummary>
+        <CAccordionSummary>
+          <IconChartBar /> Gráficos absolutos
+        </CAccordionSummary>
         <CAccordionDetails>
           <AbsoluteGraphs tallyMap={tallyMap} />
         </CAccordionDetails>
       </CAccordion>
       <CAccordion defaultExpanded>
-        <CAccordionSummary>Gráficos percentuais</CAccordionSummary>
+        <CAccordionSummary>
+          <IconChartPie2 /> Gráficos percentuais
+        </CAccordionSummary>
         <CAccordionDetails>
           <div className="flex flex-wrap gap-1">
             <GenderRelativeGraph tallyMap={tallyMap} />
@@ -248,9 +275,11 @@ const PersonsDatavisualizationTables = ({
           </div>
         </CAccordionDetails>
       </CAccordion>
-      <Divider className="pt-4" />
       <CAccordion defaultExpanded>
-        <CAccordionSummary>Grupos / Pets</CAccordionSummary>
+        <CAccordionSummary>
+          <IconTable />
+          Grupos / Pets
+        </CAccordionSummary>
         <CAccordionDetails>
           <Table>
             <TableHead sx={{ backgroundColor: "#f1f8e9" }}>
@@ -269,7 +298,10 @@ const PersonsDatavisualizationTables = ({
         </CAccordionDetails>
       </CAccordion>
       <CAccordion defaultExpanded>
-        <CAccordionSummary>Ativdades comerciais itinerantes</CAccordionSummary>
+        <CAccordionSummary>
+          <IconTable />
+          Ativdades comerciais itinerantes
+        </CAccordionSummary>
         <CAccordionDetails className="overflow-auto">
           <CommercialActivitiesTable
             tallyWithCommercialActivities={tallyWithCommercialActivities}

@@ -4,11 +4,7 @@ import CButton from "@/components/ui/cButton";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { WeatherConditions } from "@prisma/client";
-import {
-  _deleteTallys,
-  _redirectToTallysList,
-  _saveOngoingTallyData,
-} from "@serverActions/tallyUtil";
+import { _deleteTallys, _saveOngoingTallyData } from "@serverActions/tallyUtil";
 import {
   IconCancel,
   IconCheck,
@@ -17,6 +13,7 @@ import {
   IconTrashX,
 } from "@tabler/icons-react";
 import { CommercialActivity } from "@zodValidators";
+import { useRouter } from "next-nprogress-bar";
 import { useRef, useState } from "react";
 import React from "react";
 
@@ -53,6 +50,7 @@ const TallyInProgressDatabaseOptions = ({
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const { setHelperCard } = useHelperCard();
+  const router = useRouter();
   const endDate = useRef<Date | null>(null);
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
@@ -96,7 +94,7 @@ const TallyInProgressDatabaseOptions = ({
         });
       }
       if (endTally) {
-        _redirectToTallysList(locationId);
+        router.push(`/admin/tallys?locationId=${locationId}`);
       } else {
         setSubmittingObj({
           submitting: false,
@@ -170,7 +168,7 @@ const TallyInProgressDatabaseOptions = ({
       });
       return;
     }
-    _redirectToTallysList(locationId);
+    router.push(`/admin/tallys?locationId=${locationId}`);
   };
 
   return (

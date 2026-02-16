@@ -1,9 +1,7 @@
 "use client";
 
 import CCheckbox from "@/components/ui/cCheckbox";
-import CIconChip from "@/components/ui/cIconChip";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
-import { IconHelp } from "@tabler/icons-react";
 import React, { useState } from "react";
 
 const DataFilter = ({
@@ -42,16 +40,8 @@ const DataFilter = ({
     !booleanConditionsFilter.includes("DEFAULT");
   return (
     <React.Fragment>
-      <div className="flex flex-col gap-5 overflow-auto pr-3 outline outline-1 outline-gray-300">
+      <div className="flex flex-col gap-5 overflow-auto">
         <div className="flex basis-1/5 flex-col">
-          <div className="flex flex-wrap justify-between">
-            <h3 className="text-xl font-semibold">Pessoas</h3>
-            <CIconChip
-              icon={<IconHelp />}
-              tooltip="Filtros acumulativos. Se mais de um for selecionado, apenas pessoas que se encaixam em todas as características selecionadas serão mostradas. Se 'Nenhuma característica binária específica' for selecionada, apenas pessoas que não se encaixam em nenhuma das outras características serão mostradas."
-            />
-          </div>
-
           <div className="flex flex-row gap-1">
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
@@ -64,6 +54,7 @@ const DataFilter = ({
                   <CCheckbox
                     id="default"
                     value={"DEFAULT"}
+                    sx={{ py: 0 }}
                     onChange={handleFilterChange}
                     checked={booleanConditionsFilter.includes("DEFAULT")}
                   />
@@ -88,6 +79,7 @@ const DataFilter = ({
                   <CCheckbox
                     id="isTraversing"
                     value={"isTraversing"}
+                    sx={{ py: 0 }}
                     onChange={handleFilterChange}
                     disabled={!enableNonDefaultCheckboxes}
                     checked={booleanConditionsFilter.includes("isTraversing")}
@@ -113,6 +105,7 @@ const DataFilter = ({
                   <CCheckbox
                     id="isPersonWithImpairment"
                     value={"isPersonWithImpairment"}
+                    sx={{ py: 0 }}
                     onChange={handleFilterChange}
                     disabled={!enableNonDefaultCheckboxes}
                     checked={booleanConditionsFilter.includes(
@@ -141,6 +134,7 @@ const DataFilter = ({
                   <CCheckbox
                     id="isInApparentIllicitActivity"
                     value={"isInApparentIllicitActivity"}
+                    sx={{ py: 0 }}
                     onChange={handleFilterChange}
                     checked={booleanConditionsFilter.includes(
                       "isInApparentIllicitActivity",
@@ -168,6 +162,7 @@ const DataFilter = ({
                   <CCheckbox
                     id="isPersonWithoutHousing"
                     value={"isPersonWithoutHousing"}
+                    sx={{ py: 0 }}
                     onChange={handleFilterChange}
                     disabled={!enableNonDefaultCheckboxes}
                     checked={booleanConditionsFilter.includes(

@@ -4,7 +4,6 @@ import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
-import { Button } from "@/components/button";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -87,7 +86,7 @@ const activityOptionsMale: {
   },
   {
     value: "STRENUOUS",
-    label: <FaPersonWalking size={32} />,
+    label: <FaPersonRunning size={32} />,
     tooltip: "Vigoroso",
   },
 ];
@@ -109,7 +108,7 @@ const activityOptionsFemale: {
   },
   {
     value: "STRENUOUS",
-    label: <FaPersonWalking size={32} />,
+    label: <FaPersonRunning size={32} />,
     tooltip: "Vigorosa",
   },
 ];
