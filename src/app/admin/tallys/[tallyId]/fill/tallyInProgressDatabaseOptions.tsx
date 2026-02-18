@@ -13,8 +13,9 @@ import {
   IconTrashX,
 } from "@tabler/icons-react";
 import { CommercialActivity } from "@zodValidators";
+import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import React from "react";
 
 import { SubmittingObj } from "./tallyInProgressPage";
@@ -38,6 +39,11 @@ const TallyInProgressDatabaseOptions = ({
   commercialActivities,
   complementaryData,
   submittingObj,
+  startDate,
+  endDate,
+  finalizedTally,
+  setStartDate,
+  setEndDate,
   setSubmittingObj,
 }: {
   tallyId: number;
@@ -47,11 +53,15 @@ const TallyInProgressDatabaseOptions = ({
   commercialActivities: CommercialActivity;
   complementaryData: ComplementaryDataObject;
   submittingObj: SubmittingObj;
+  startDate: Dayjs;
+  endDate: Dayjs | null;
+  finalizedTally: boolean;
+  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const endDate = useRef<Date | null>(null);
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
     useState<SaveDeleteState>("DEFAULT");
@@ -62,14 +72,15 @@ const TallyInProgressDatabaseOptions = ({
       setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
     try {
-      const response = await _saveOngoingTallyData(
+      const response = await _saveOngoingTallyData({
         tallyId,
         weatherStats,
         tallyMap,
         commercialActivities,
         complementaryData,
-        endTally ? endDate.current : null,
-      );
+        endDate: endTally && endDate ? endDate.toDate() : null,
+        startDate: startDate.toDate(),
+      });
       if (response.statusCode === 401) {
         setHelperCard({
           show: true,
@@ -173,29 +184,41 @@ const TallyInProgressDatabaseOptions = ({
 
   return (
     <div className="flex flex-col gap-3 overflow-auto py-1">
-      <div>
-        <h5 className="text-xl font-semibold">Salvar dados</h5>
+      <CDateTimePicker
+        label="Início da contagem em:"
+        value={startDate}
+        onAccept={(e) => {
+          if (!e) return;
+          setStartDate(e);
+        }}
+      />
+      {!finalizedTally && (
+        <div>
+          <h5 className="text-xl font-semibold">Salvar dados</h5>
 
-        <CButton
-          className="w-fit"
-          loading={submittingObj.submitting}
-          onClick={() => {
-            handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
-          }}
-        >
-          <IconDeviceFloppy /> Salvar
-        </CButton>
-      </div>
+          <CButton
+            className="w-fit"
+            loading={submittingObj.submitting}
+            onClick={() => {
+              handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
+            }}
+          >
+            <IconDeviceFloppy /> Salvar
+          </CButton>
+        </div>
+      )}
+
       <div>
         <h5 className="text-xl font-semibold">Finalizar contagem</h5>
         <div className="flex flex-col gap-2">
           <CDateTimePicker
+            value={endDate}
             error={!validEndDate}
             disabled={saveDeleteState === "SAVE"}
             helperText={!validEndDate ? "Obrigatório!" : ""}
             label="Fim da contagem em:"
             onAccept={(e) => {
-              endDate.current = e?.toDate() ?? null;
+              setEndDate(e);
               setValidEndDate(true);
             }}
           />
@@ -203,7 +226,7 @@ const TallyInProgressDatabaseOptions = ({
             <CButton
               className="w-fit"
               onClick={() => {
-                if (!endDate.current || isNaN(endDate.current.getTime())) {
+                if (!endDate || !endDate.isValid()) {
                   setValidEndDate(false);
                   return;
                 } else {
@@ -217,17 +240,13 @@ const TallyInProgressDatabaseOptions = ({
 
           {saveDeleteState === "SAVE" && (
             <React.Fragment>
-              <p>
-                Salvar dados e finalizar contagem?
-                <br />
-                Dados não poderão ser modificados posteriormente!
-              </p>
+              <p>Salvar dados e finalizar contagem?</p>
 
               <CButton
                 className="w-fit"
                 loading={submittingObj.submitting}
                 onClick={() => {
-                  if (!endDate.current || isNaN(endDate.current.getTime())) {
+                  if (!endDate || !endDate.isValid()) {
                     setValidEndDate(false);
                     return;
                   } else {
@@ -239,6 +258,7 @@ const TallyInProgressDatabaseOptions = ({
               </CButton>
               <CButton
                 className="w-fit"
+                color="error"
                 disabled={submittingObj.submitting}
                 onClick={() => setSaveDeleteState("DEFAULT")}
               >

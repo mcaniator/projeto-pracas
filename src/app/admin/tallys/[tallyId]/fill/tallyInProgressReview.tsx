@@ -3,6 +3,7 @@ import { Button } from "@components/button";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { CommercialActivity, OngoingTally } from "@lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
+import { Dayjs } from "dayjs";
 import { useState } from "react";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
@@ -21,6 +22,11 @@ const TallyInProgressReview = ({
   complementaryData,
   commercialActivities,
   tallyMap,
+  startDate,
+  endDate,
+  finalizedTally,
+  setStartDate,
+  setEndDate,
   setSubmittingObj,
 }: {
   submittingObj: {
@@ -38,6 +44,11 @@ const TallyInProgressReview = ({
   };
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
+  startDate: Dayjs;
+  endDate: Dayjs | null;
+  finalizedTally: boolean;
+  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const [assistBarState, setAssistBarState] =
@@ -96,6 +107,11 @@ const TallyInProgressReview = ({
           commercialActivities={commercialActivities}
           complementaryData={complementaryData}
           submittingObj={submittingObj}
+          startDate={startDate}
+          endDate={endDate}
+          finalizedTally={finalizedTally}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
           setSubmittingObj={setSubmittingObj}
         />
       )}

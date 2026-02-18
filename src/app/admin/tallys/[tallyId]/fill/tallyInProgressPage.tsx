@@ -36,6 +36,7 @@ import {
   IconTrashX,
 } from "@tabler/icons-react";
 import { CommercialActivity, OngoingTally } from "@zodValidators";
+import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
 import { ReactNode, useState } from "react";
 import React from "react";
@@ -130,10 +131,12 @@ const TallyInProgressPage = ({
   tallyId,
   locationId,
   tally,
+  finalizedTally,
 }: {
   tallyId: number;
   locationId: number;
   tally: OngoingTally;
+  finalizedTally: boolean;
 }) => {
   const { user } = useUserContext();
   if (user.id !== tally.user.id) {
@@ -155,6 +158,10 @@ const TallyInProgressPage = ({
     finishing: false,
     deleting: false,
   });
+  const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
+  const [endDate, setEndDate] = useState<Dayjs | null>(
+    tally.endDate ? dayjs(tally.endDate) : null,
+  );
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
     if (tally.tallyPerson) {
@@ -918,6 +925,11 @@ const TallyInProgressPage = ({
             complementaryData={complementaryData}
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
+            startDate={startDate}
+            endDate={endDate}
+            finalizedTally={finalizedTally}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
             setSubmittingObj={setSubmittingObj}
           />
         </Paper>
@@ -977,6 +989,11 @@ const TallyInProgressPage = ({
         complementaryData={complementaryData}
         commercialActivities={commercialActivities}
         tallyMap={tallyMap}
+        startDate={startDate}
+        endDate={endDate}
+        finalizedTally={finalizedTally}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
         setSubmittingObj={setSubmittingObj}
       />
     </div>

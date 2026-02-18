@@ -110,14 +110,23 @@ export const _createTallyV2 = async (
   }
 };
 
-const _saveOngoingTallyData = async (
-  tallyId: number,
-  weatherStats: WeatherStats,
-  tallyMap: Map<string, number>,
-  commercialActivities: CommercialActivity,
-  complementaryData: { animalsAmount: number; groupsAmount: number },
-  endDate: Date | null,
-) => {
+const _saveOngoingTallyData = async ({
+  tallyId,
+  weatherStats,
+  tallyMap,
+  commercialActivities,
+  complementaryData,
+  startDate,
+  endDate,
+}: {
+  tallyId: number;
+  weatherStats: WeatherStats;
+  tallyMap: Map<string, number>;
+  commercialActivities: CommercialActivity;
+  complementaryData: { animalsAmount: number; groupsAmount: number };
+  startDate: Date;
+  endDate: Date | null;
+}) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
@@ -179,6 +188,7 @@ const _saveOngoingTallyData = async (
         groups: complementaryData.groupsAmount,
         commercialActivities: parsedCommercialActivities.data,
         tallyPerson: parsedTallyPersonArray.data,
+        startDate: startDate,
         endDate: endDate,
       },
     });
