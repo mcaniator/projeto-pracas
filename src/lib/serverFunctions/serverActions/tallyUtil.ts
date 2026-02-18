@@ -10,7 +10,6 @@ import {
   GenderType,
 } from "@customTypes/tallys/person";
 import { WeatherConditions } from "@prisma/client";
-import { fetchTallysByLocationId } from "@queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   CommercialActivity,
@@ -37,15 +36,6 @@ interface PersonWithQuantity {
   };
   quantity: number;
 }
-const _fetchTallysByLocationId = async (locationId: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, tallys: [] };
-  }
-  const response = await fetchTallysByLocationId(locationId);
-  return response;
-};
 
 export const _createTallyV2 = async (
   prevState: { responseInfo: APIResponseInfo },
@@ -264,4 +254,4 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
-export { _fetchTallysByLocationId, _saveOngoingTallyData, _deleteTallys };
+export { _saveOngoingTallyData, _deleteTallys };

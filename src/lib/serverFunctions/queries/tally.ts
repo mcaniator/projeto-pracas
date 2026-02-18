@@ -63,30 +63,6 @@ export const fetchTallys = async (params: FetchTallysParams) => {
   }
 };
 
-const fetchTallysByLocationId = async (locationId: number) => {
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        locationId: locationId,
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        user: {
-          select: {
-            username: true,
-            id: true,
-          },
-        },
-      },
-    });
-    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return { statusCode: 200, tallys };
-  } catch (error) {
-    return { statusCode: 500, tallys: [] };
-  }
-};
 export type FetchRecentlyCompletedTallyResponse = NonNullable<
   Awaited<ReturnType<typeof fetchRecentlyCompletedTallys>>["data"]
 >;
@@ -228,7 +204,6 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
 };
 
 export {
-  fetchTallysByLocationId,
   fetchRecentlyCompletedTallys,
   fetchOngoingTallyById,
   fetchFinalizedTallysToDataVisualization,
