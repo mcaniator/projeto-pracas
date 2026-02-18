@@ -55,6 +55,7 @@ const SaveAssessmentDialog = ({
       if (response.responseInfo.statusCode !== 201) {
         setEnableJsonSaving(true);
       } else {
+        setEnableJsonSaving(false);
         if (response.data?.savedAsFinalized) {
           router.push(`/admin/assessments`);
         }
@@ -99,6 +100,7 @@ const SaveAssessmentDialog = ({
       open={open}
       onClose={onClose}
       title={"Salvar avaliação"}
+      cancelChildren={enableJsonSaving ? <>Tentar novamente</> : undefined}
       confirmChildren={enableJsonSaving ? <>Salvar offline</> : <>Salvar</>}
       onConfirm={() => {
         if (enableJsonSaving) {
@@ -106,6 +108,9 @@ const SaveAssessmentDialog = ({
         } else {
           void save();
         }
+      }}
+      onCancel={() => {
+        void save();
       }}
     >
       <div className="flex w-full flex-col gap-1">
