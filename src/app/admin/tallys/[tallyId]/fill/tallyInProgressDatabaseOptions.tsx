@@ -2,6 +2,7 @@
 
 import CButton from "@/components/ui/cButton";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { WeatherConditions } from "@prisma/client";
 import { _deleteTallys, _saveOngoingTallyData } from "@serverActions/tallyUtil";
@@ -34,6 +35,7 @@ type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const TallyInProgressDatabaseOptions = ({
   tallyId,
   locationId,
+  locationName,
   tallyMap,
   weatherStats,
   commercialActivities,
@@ -48,6 +50,7 @@ const TallyInProgressDatabaseOptions = ({
 }: {
   tallyId: number;
   locationId: number;
+  locationName: string;
   tallyMap: Map<string, number>;
   weatherStats: WeatherStats;
   commercialActivities: CommercialActivity;
@@ -65,61 +68,59 @@ const TallyInProgressDatabaseOptions = ({
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
     useState<SaveDeleteState>("DEFAULT");
+  const [enableJsonSaving, setEnableJsonSaving] = useState(false);
+  const [submitData] = useServerAction({
+    action: _saveOngoingTallyData,
+    callbacks: {
+      onError: () => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao salvar contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        setEnableJsonSaving(true);
+      },
+      onCallFailed() {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao salvar contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        setEnableJsonSaving(true);
+      },
+      onSuccess() {
+        setEnableJsonSaving(false);
+        if (endDate && endDate.isValid()) {
+          router.push(`/admin/tallys?locationId=${locationId}`);
+        }
+      },
+    },
+  });
   const handleDataSubmit = async (endTally: boolean) => {
     if (endTally) {
       setSubmittingObj({ submitting: true, finishing: true, deleting: false });
     } else {
       setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
-    try {
-      const response = await _saveOngoingTallyData({
-        tallyId,
-        weatherStats,
-        tallyMap,
-        commercialActivities,
-        complementaryData,
-        endDate: endTally && endDate ? endDate.toDate() : null,
-        startDate: startDate.toDate(),
-      });
-      if (response.statusCode === 401) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Sem permissão para salvar contagem!</>,
-        });
-        return;
-      }
-      if (response.statusCode === 500) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao salvar contagem!</>,
-        });
-        return;
-      }
-      if (response.statusCode === 200) {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Contagem salva com sucesso!</>,
-        });
-      }
-      if (endTally) {
-        router.push(`/admin/tallys?locationId=${locationId}`);
-      } else {
-        setSubmittingObj({
-          submitting: false,
-          finishing: false,
-          deleting: false,
-        });
-      }
-    } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar contagem!</>,
-      });
-    }
+    await submitData({
+      tallyId,
+      weatherStats,
+      tallyMap,
+      commercialActivities,
+      complementaryData,
+      endDate: endTally && endDate ? endDate.toDate() : null,
+      startDate: startDate.toDate(),
+    });
   };
 
   const handleTallyDeletion = async () => {
@@ -180,6 +181,27 @@ const TallyInProgressDatabaseOptions = ({
       return;
     }
     router.push(`/admin/tallys?locationId=${locationId}`);
+  };
+
+  const generateExport = () => {
+    const data = {
+      weatherStats,
+      tallyMap: Object.fromEntries(tallyMap),
+      commercialActivities,
+      complementaryData,
+      startDate: startDate.toDate(),
+      endDate: endDate ? endDate.toDate() : null,
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contagem_${locationName}_${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -305,6 +327,15 @@ const TallyInProgressDatabaseOptions = ({
                 <IconCancel /> Cancelar exclusão
               </CButton>
             </React.Fragment>
+          )}
+          {enableJsonSaving && (
+            <div className="flex flex-col gap-1">
+              <p>
+                Falha ao salvar contagem. Tente novamente ou salve os dados
+                offline.
+              </p>
+              <CButton onClick={generateExport}>Salvar offline</CButton>
+            </div>
           )}
         </div>
       </div>

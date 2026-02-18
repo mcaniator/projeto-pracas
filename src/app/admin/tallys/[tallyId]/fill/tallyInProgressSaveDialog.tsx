@@ -11,6 +11,7 @@ const TallyInProgressSaveDialog = ({
   submittingObj,
   tallyId,
   locationId,
+  locationName,
   weatherStats,
   complementaryData,
   commercialActivities,
@@ -31,6 +32,7 @@ const TallyInProgressSaveDialog = ({
   };
   tallyId: number;
   locationId: number;
+  locationName: string;
   weatherStats: WeatherStats;
   complementaryData: {
     animalsAmount: number;
@@ -51,6 +53,7 @@ const TallyInProgressSaveDialog = ({
         <TallyInProgressDatabaseOptions
           tallyId={tallyId}
           locationId={locationId}
+          locationName={locationName}
           tallyMap={tallyMap}
           weatherStats={weatherStats}
           commercialActivities={commercialActivities}
