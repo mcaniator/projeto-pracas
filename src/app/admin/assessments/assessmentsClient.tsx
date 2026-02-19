@@ -31,7 +31,8 @@ export type AssessmentsFilterType =
   | "BROAD_UNIT_ID"
   | "INTERMEDIATE_UNIT_ID"
   | "NARROW_UNIT_ID"
-  | "CITY_ID";
+  | "CITY_ID"
+  | "FINALIZATION_STATUS";
 
 const AssessmentsClient = ({
   forms,
@@ -62,6 +63,11 @@ const AssessmentsClient = ({
   const [broadUnitId, setBroadUnitId] = useState<number>();
   const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
   const [narrowUnitId, setNarrowUnitId] = useState<number>();
+  const [finalizationStatus, setFinalizationStatus] = useState<number>();
+
+  const onNoCitiesFound = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   const handleFilterChange = ({
     type,
@@ -99,6 +105,9 @@ const AssessmentsClient = ({
         case "NARROW_UNIT_ID":
           setNarrowUnitId(undefined);
           break;
+        case "FINALIZATION_STATUS":
+          setFinalizationStatus(undefined);
+          break;
       }
     } else if (typeof newValue === "string") {
       switch (type) {
@@ -125,6 +134,9 @@ const AssessmentsClient = ({
           break;
         case "NARROW_UNIT_ID":
           setNarrowUnitId(newValue);
+          break;
+        case "FINALIZATION_STATUS":
+          setFinalizationStatus(newValue);
           break;
       }
     } else if (newValue instanceof Date) {
@@ -165,7 +177,8 @@ const AssessmentsClient = ({
         !cityId &&
         !broadUnitId &&
         !intermediateUnitId &&
-        !narrowUnitId
+        !narrowUnitId &&
+        !finalizationStatus
       ) {
         // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
         setAssessments([]);
@@ -195,6 +208,7 @@ const AssessmentsClient = ({
           broadUnitId,
           intermediateUnitId,
           narrowUnitId,
+          finalizationStatus: finalizationStatus,
         });
         helperCardProcessResponse(response.responseInfo);
         setAssessments(response.data?.assessments ?? []);
@@ -220,6 +234,7 @@ const AssessmentsClient = ({
       broadUnitId,
       intermediateUnitId,
       narrowUnitId,
+      finalizationStatus,
     ],
   );
 
@@ -307,6 +322,7 @@ const AssessmentsClient = ({
           <AssessmentsFilterSidebar
             openDialog={openFiltersDialog}
             isDialog={isMobileView}
+            onNoCitiesFound={onNoCitiesFound}
             onCloseDialog={() => setOpenFiltersDialog(false)}
             defaultLocationId={
               params.get("locationId") ?

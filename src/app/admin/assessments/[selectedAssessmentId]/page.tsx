@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth/auth";
-import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { getUserAuthInfo } from "@/lib/serverFunctions/queries/user";
 import { getAssessmentTree } from "@queries/assessment";
 import { IconClipboard, IconMapPin, IconUser } from "@tabler/icons-react";
@@ -45,14 +44,6 @@ const Responses = async (props: {
       <h3 className="flex text-2xl font-semibold">
         <IconUser /> {assessment.assessmentTree.user.username}
       </h3>
-      <div>
-        {`Início: ${dateTimeFormatter.format(assessment.assessmentTree.startDate)}`}
-      </div>
-      {assessment.assessmentTree.endDate !== null && (
-        <div>
-          {`Fim: ${dateTimeFormatter.format(assessment.assessmentTree.endDate)}`}
-        </div>
-      )}
 
       <ResponseFormV2
         locationId={location.id}

@@ -18,6 +18,7 @@ const LocationSelector = ({
   selectedLocationId,
   defaultLocationId,
   useAccordion,
+  onNoCitiesFound,
   onSelectedLocationChange,
   onSelectedCityChange,
   onSelectedBroadUnitChange,
@@ -28,6 +29,7 @@ const LocationSelector = ({
   selectedLocationId?: number | null;
   defaultLocationId?: number | null;
   useAccordion?: boolean;
+  onNoCitiesFound?: () => void;
   onSelectedLocationChange: (
     location: FetchLocationsResponse["locations"][number] | null,
   ) => void;
@@ -139,7 +141,7 @@ const LocationSelector = ({
     callbacks: {
       onSuccess: (response) => {
         setCitiesOptions(response.data?.cities ?? []);
-
+        if (response.data?.cities.length === 0) onNoCitiesFound?.();
         const initialCity = response.data?.cities[0] ?? null;
         setSelectedCity(initialCity);
         if (defaultLocationId && !hasMadeFirstChange.current) return;

@@ -19,6 +19,7 @@ const SaveAssessmentDialog = ({
   formValues,
   geometries,
   importedFinalizationDatetime,
+  startDate,
   onClose,
 }: {
   open: boolean;
@@ -27,6 +28,7 @@ const SaveAssessmentDialog = ({
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
   importedFinalizationDatetime: Dayjs | null;
+  startDate: Dayjs;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -49,6 +51,7 @@ const SaveAssessmentDialog = ({
         assessmentId,
         responses: formValues,
         geometries: geometries,
+        startDate: startDate.toDate(),
         finalizationDate: finalized ? (dateTime?.toDate() ?? null) : null,
       });
       helperCardProcessResponse(response.responseInfo);
@@ -74,6 +77,7 @@ const SaveAssessmentDialog = ({
 
   const generateExport = () => {
     const data = {
+      startDate: startDate,
       finalizationDateTime: finalized ? (dateTime ?? null) : null,
       assessmentId: assessmentId,
       responses: formValues,

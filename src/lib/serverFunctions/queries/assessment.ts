@@ -1,4 +1,5 @@
 import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { Coordinate } from "ol/coordinate";
@@ -437,12 +438,21 @@ type FetchAssessmentsResponse = NonNullable<
 
 const fetchAssessments = async (params: FetchAssessmentsParams) => {
   try {
+    let endDateFilter = undefined;
+    if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
+      endDateFilter = { not: null };
+    } else if (
+      params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED
+    ) {
+      endDateFilter = null;
+    }
     const assessments = await prisma.assessment.findMany({
       where: {
         startDate: {
           gte: params.startDate,
           lte: params.endDate,
         },
+        endDate: endDateFilter,
         formId: params.formId,
         userId: params.userId,
         location: {

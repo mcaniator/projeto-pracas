@@ -153,6 +153,9 @@ const QuestionFormV2 = ({
 
   const searchQuestions = useCallback(() => {
     setCategoriesList([]);
+    if (!selectedCategoryAndSubcategoryId.categoryId) {
+      setQuestionsListState("LOADED");
+    }
     if (currentSearchMethod === 1) {
       setShowAllQuestions(false);
       searchByName();

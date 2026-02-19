@@ -97,6 +97,8 @@ const PolygonsAndClientContainer = () => {
     FetchCitiesResponse["cities"][number] | null
   >(null);
 
+  const [sidebarDialogOpen, setSidebarDialogOpen] = useState(false);
+
   const [_fetchLocations, loadingLocations] = useFetchLocations({
     callbacks: {
       onSuccess: (response) => {
@@ -287,6 +289,8 @@ const PolygonsAndClientContainer = () => {
             isMobileView={isMobileView}
             numberOfActiveFilters={numberOfActiveFilters}
             setFilter={setFilter}
+            sidebarDialogOpen={sidebarDialogOpen}
+            setSidebarDialogOpen={setSidebarDialogOpen}
           />
         </div>
         {selectedLocation && (
@@ -296,10 +300,14 @@ const PolygonsAndClientContainer = () => {
                 location={selectedLocation}
                 isMobileView={isMobileView}
                 closeLocationDetails={() => {
+                  if (isEditingLocation) {
+                    return;
+                  }
                   setSelectedLocation(null);
                 }}
                 enableLocationEdition={() => {
                   setIsEditingLocation(true);
+                  setSidebarDialogOpen(false);
                 }}
                 reloadLocations={() => {
                   void loadLocations();
@@ -416,6 +424,7 @@ const PolygonsAndClientContainer = () => {
               close={() => {
                 setIsCreating(false);
                 setIsEditingLocation(false);
+                setSelectedLocation(null);
               }}
               reloadLocations={() => {
                 setDisableAutoFitAfterLocationsLoad(true);

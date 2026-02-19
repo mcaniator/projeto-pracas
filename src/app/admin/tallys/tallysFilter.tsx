@@ -1,47 +1,49 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { Divider } from "@mui/material";
-import { useMemo } from "react";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
+
+const statusOptions = [
+  {
+    id: FINALIZATION_STATUS.ALL,
+    label: "Todos",
+  },
+  {
+    id: FINALIZATION_STATUS.NOT_FINALIZED,
+    label: "Em progresso",
+  },
+  {
+    id: FINALIZATION_STATUS.FINALIZED,
+    label: "Finalizado",
+  },
+];
 
 const TallysFilter = ({
   users,
   selectedLocationId,
   defaultLocationId,
+  onNoCitiesFound,
   handleFilterChange,
 }: {
   users: { id: string; username: string }[];
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
+  onNoCitiesFound?: () => void;
   handleFilterChange: (params: {
     type: TallysFilterType;
     newValue: string | number | Date | null;
   }) => void;
 }) => {
-  const statusOptions = useMemo(() => {
-    return [
-      {
-        id: 0,
-        label: "Todos",
-      },
-      {
-        id: 1,
-        label: "Em progresso",
-      },
-      {
-        id: 2,
-        label: "Finalizado",
-      },
-    ];
-  }, []);
   return (
     <div className="flex flex-col gap-1">
       <h4>Localização</h4>
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        onNoCitiesFound={onNoCitiesFound}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
         }}
@@ -107,11 +109,12 @@ const TallysFilter = ({
       <CAutocomplete
         label="Status"
         options={statusOptions}
+        disableClearable
         defaultValue={statusOptions[0]}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         getOptionLabel={(i) => i.label}
         onChange={(_, a) =>
-          handleFilterChange({ type: "USER_ID", newValue: a?.id ?? null })
+          handleFilterChange({ type: "FINALIZATION_STATUS", newValue: a.id })
         }
       />
     </div>

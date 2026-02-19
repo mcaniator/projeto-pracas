@@ -1,4 +1,5 @@
 import { FetchTallysParams } from "@/app/api/admin/tallys/route";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
@@ -7,6 +8,12 @@ export type FetchTallysResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallys>>["data"]
 >;
 export const fetchTallys = async (params: FetchTallysParams) => {
+  let endDateFilter = undefined;
+  if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
+    endDateFilter = { not: null };
+  } else if (params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED) {
+    endDateFilter = null;
+  }
   try {
     const tallys = await prisma.tally.findMany({
       where: {
@@ -14,6 +21,7 @@ export const fetchTallys = async (params: FetchTallysParams) => {
           gte: params.startDate,
           lte: params.endDate,
         },
+        endDate: endDateFilter,
         userId: params.userId,
         location: {
           id: params.locationId,

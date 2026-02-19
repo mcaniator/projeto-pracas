@@ -40,15 +40,13 @@ const CategoriesListV2 = ({
     subcategoryName: string | null;
   }) => void;
 }) => {
-  const searchHasRemainingQuestions =
-    showAllQuestions ||
-    categories.some(
-      (cat) =>
-        cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
-        cat.subcategory.some((sub) =>
-          sub.question.some((q) => !formQuestionsIds.includes(q.id)),
-        ),
-    );
+  const searchHasRemainingQuestions = categories.some(
+    (cat) =>
+      cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
+      cat.subcategory.some((sub) =>
+        sub.question.some((q) => !formQuestionsIds.includes(q.id)),
+      ),
+  );
   if (!searchHasRemainingQuestions) {
     return (
       <div className="p-1">
@@ -58,6 +56,7 @@ const CategoriesListV2 = ({
       </div>
     );
   }
+
   return (
     <div className="p-1">
       {categories.map((cat, index) => {
