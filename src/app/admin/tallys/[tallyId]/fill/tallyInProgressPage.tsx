@@ -317,10 +317,8 @@ const TallyInProgressPage = ({
       setTallyMap(new Map(Object.entries(importedData.tallyMap)));
       setCommercialActivities(importedData.commercialActivities);
       setComplementaryData(importedData.complementaryData);
-      setStartDate(dayjs(new Date(importedData.startDate)));
-      setEndDate(
-        dayjs(importedData.endDate ? new Date(importedData.endDate) : null),
-      );
+      setStartDate(dayjs(importedData.startDate));
+      setEndDate(dayjs(importedData.endDate ? importedData.endDate : null));
 
       setHelperCard({
         show: true,

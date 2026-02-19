@@ -17,11 +17,13 @@ const _addResponsesV2 = async ({
   assessmentId,
   responses,
   geometries,
+  startDate,
   finalizationDate,
 }: {
   assessmentId: number;
   responses: FormValues;
   geometries: ResponseFormGeometry[];
+  startDate: Date;
   finalizationDate: Date | null;
 }) => {
   try {
@@ -122,6 +124,7 @@ const _addResponsesV2 = async ({
         id: assessmentId,
       },
       data: {
+        startDate,
         endDate: finalizationDate,
       },
     });

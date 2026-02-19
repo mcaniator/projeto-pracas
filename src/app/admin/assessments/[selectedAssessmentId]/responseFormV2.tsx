@@ -7,6 +7,7 @@ import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CCheckboxGroup from "@/components/ui/cCheckboxGroup";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import CNumberField from "@/components/ui/cNumberField";
 import CRadioGroup from "@/components/ui/cRadioGroup";
@@ -16,6 +17,7 @@ import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
+import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -115,6 +117,9 @@ const ResponseFormV2 = ({
     useState<Dayjs | null>(
       assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
     );
+  const [startDate, setStartDate] = useState<Dayjs>(
+    dayjs(assessmentTree.startDate),
+  );
 
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     assessmentTree.geometries,
@@ -174,6 +179,7 @@ const ResponseFormV2 = ({
         responses: FormValues;
         geometries?: ResponseFormGeometry[];
         finalizationDateTime: string | null;
+        startDate: string;
       };
 
       if (importedData.responses) {
@@ -182,6 +188,9 @@ const ResponseFormV2 = ({
 
       const incomingGeoms = importedData.geometries ?? [];
       setGeometries(incomingGeoms);
+
+      const startDate = dayjs(importedData.startDate);
+      setStartDate(startDate);
 
       const finalizationDateTime = dayjs(importedData.finalizationDateTime);
       setImportedFinalizationDatetime(
@@ -249,9 +258,29 @@ const ResponseFormV2 = ({
       }}
       className="flex w-full flex-col gap-4"
     >
+      {!isFilling && (
+        <div className="flex flex-col gap-1">
+          <div>
+            <div>
+              {`Início: ${dateTimeFormatter.format(assessmentTree.startDate)}`}
+            </div>
+            <div>
+              {`Fim: ${assessmentTree.endDate ? dateTimeFormatter.format(assessmentTree.endDate) : "Indefinido"}`}
+            </div>
+          </div>
+        </div>
+      )}
       {isFilling && (
-        <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
-          <div className="flex items-center gap-1">
+        <div className="flex flex-wrap content-center justify-between gap-4">
+          <CDateTimePicker
+            label="Início"
+            value={startDate}
+            onAccept={(e) => {
+              if (!e) return;
+              setStartDate(e);
+            }}
+          />
+          <div className="flex items-center justify-end gap-1">
             <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
             <CButtonFilePicker
               fileAccept="application/json"
@@ -263,17 +292,16 @@ const ResponseFormV2 = ({
               <IconUpload />
               Importar
             </CButtonFilePicker>
+            <CButton
+              square
+              color="error"
+              onClick={() => {
+                setOpenDeleteAssessmentDialog(true);
+              }}
+            >
+              <IconTrash />
+            </CButton>
           </div>
-
-          <CButton
-            square
-            color="error"
-            onClick={() => {
-              setOpenDeleteAssessmentDialog(true);
-            }}
-          >
-            <IconTrash />
-          </CButton>
         </div>
       )}
       {!isFilling && userCanEdit && (
@@ -324,6 +352,7 @@ const ResponseFormV2 = ({
         formValues={formValues}
         geometries={geometries}
         importedFinalizationDatetime={importedFinalizationDatetime}
+        startDate={startDate}
         onClose={() => {
           setOpenSaveDialog(false);
         }}
