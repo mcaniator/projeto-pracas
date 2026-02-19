@@ -4,12 +4,9 @@ import { Button } from "@/components/button";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import {
-  IconBug,
   IconClipboard,
-  IconInfoSquareRounded,
   IconListCheck,
   IconLogs,
-  IconMail,
   IconMapSearch,
   IconMenu2,
   IconTableExport,
