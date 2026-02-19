@@ -3,7 +3,6 @@
 import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
 import LoadingIcon from "@components/LoadingIcon";
-import { Button } from "@components/button";
 import { _updateUserUsername } from "@serverActions/userUtil";
 import { IconCheck, IconDeviceFloppy, IconHome } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
@@ -85,11 +84,10 @@ const UsernameForm = () => {
             <span className="w-fit rounded-lg bg-slate-400 px-4 text-2xl font-semibold">
               {state.username}
             </span>
-            <p>É possível alterá-lo na página de configurações de usuário</p>
-            <Link href={"/admin/map"}>
-              <Button>
+            <Link href={"/admin/map"} className="w-fit">
+              <CButton className="w-fit">
                 <IconHome className="mb-1" /> Página inicial
-              </Button>
+              </CButton>
             </Link>
           </>
         }

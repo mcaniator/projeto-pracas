@@ -16,7 +16,7 @@ export type FetchLocationsParams = z.infer<typeof paramsSchema>;
 export async function GET(request: NextRequest) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
     } catch (e) {
       return new Response("Sem permissão para consultar praças!", {
         status: 401,
