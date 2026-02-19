@@ -1,12 +1,27 @@
 import LocationSelector from "@/components/locationSelector/locationSelector";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { Divider } from "@mui/material";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
-import { useMemo } from "react";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
 import { AssessmentsFilterType } from "./assessmentsClient";
+
+const statusOptions = [
+  {
+    id: FINALIZATION_STATUS.ALL,
+    label: "Todos",
+  },
+  {
+    id: FINALIZATION_STATUS.NOT_FINALIZED,
+    label: "Em progresso",
+  },
+  {
+    id: FINALIZATION_STATUS.FINALIZED,
+    label: "Finalizado",
+  },
+];
 
 const AssessmentsFilter = ({
   forms,
@@ -27,22 +42,6 @@ const AssessmentsFilter = ({
   }) => void;
 }) => {
   const router = useRouter();
-  const statusOptions = useMemo(() => {
-    return [
-      {
-        id: 0,
-        label: "Todos",
-      },
-      {
-        id: 1,
-        label: "Em progresso",
-      },
-      {
-        id: 2,
-        label: "Finalizado",
-      },
-    ];
-  }, []);
   return (
     <div className="flex flex-col gap-1">
       <h4>Localização</h4>
@@ -132,10 +131,14 @@ const AssessmentsFilter = ({
         label="Status"
         options={statusOptions}
         defaultValue={statusOptions[0]}
+        disableClearable
         isOptionEqualToValue={(option, value) => option.id === value.id}
         getOptionLabel={(i) => i.label}
         onChange={(_, a) =>
-          handleFilterChange({ type: "USER_ID", newValue: a?.id ?? null })
+          handleFilterChange({
+            type: "FINALIZATION_STATUS",
+            newValue: a.id,
+          })
         }
       />
     </div>

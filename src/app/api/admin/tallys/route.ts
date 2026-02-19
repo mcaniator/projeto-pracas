@@ -13,6 +13,7 @@ const paramsSchema = z.object({
   intermediateUnitId: z.coerce.number().optional(),
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
+  finalizationStatus: z.coerce.number().optional(),
 });
 
 export type FetchTallysParams = z.infer<typeof paramsSchema>;

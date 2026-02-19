@@ -47,7 +47,7 @@ const CategoriesListV2 = ({
         sub.question.some((q) => !formQuestionsIds.includes(q.id)),
       ),
   );
-  if (!searchHasRemainingQuestions && !showAllQuestions) {
+  if (!searchHasRemainingQuestions) {
     return (
       <div className="p-1">
         <div>
@@ -56,13 +56,7 @@ const CategoriesListV2 = ({
       </div>
     );
   }
-  if (!searchHasRemainingQuestions && showAllQuestions) {
-    return (
-      <div className="p-1">
-        <div>Nenhuma questão encontrada!</div>
-      </div>
-    );
-  }
+
   return (
     <div className="p-1">
       {categories.map((cat, index) => {

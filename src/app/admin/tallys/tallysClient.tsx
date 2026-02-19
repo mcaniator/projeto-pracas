@@ -30,7 +30,8 @@ export type TallysFilterType =
   | "BROAD_UNIT_ID"
   | "INTERMEDIATE_UNIT_ID"
   | "NARROW_UNIT_ID"
-  | "CITY_ID";
+  | "CITY_ID"
+  | "FINALIZATION_STATUS";
 
 const TallysClient = ({
   usersPromise,
@@ -55,6 +56,7 @@ const TallysClient = ({
   const [broadUnitId, setBroadUnitId] = useState<number>();
   const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
   const [narrowUnitId, setNarrowUnitId] = useState<number>();
+  const [finalizationStatus, setFinalizationStatus] = useState<number>();
 
   const onNoCitiesFound = useCallback(() => {
     setIsLoading(false);
@@ -98,6 +100,9 @@ const TallysClient = ({
         case "NARROW_UNIT_ID":
           setNarrowUnitId(undefined);
           break;
+        case "FINALIZATION_STATUS":
+          setFinalizationStatus(undefined);
+          break;
       }
     } else if (typeof newValue === "string") {
       switch (type) {
@@ -124,6 +129,9 @@ const TallysClient = ({
           break;
         case "NARROW_UNIT_ID":
           setNarrowUnitId(newValue);
+          break;
+        case "FINALIZATION_STATUS":
+          setFinalizationStatus(newValue);
           break;
       }
     } else if (newValue instanceof Date) {
@@ -164,7 +172,8 @@ const TallysClient = ({
         !cityId &&
         !broadUnitId &&
         !intermediateUnitId &&
-        !narrowUnitId
+        !narrowUnitId &&
+        !finalizationStatus
       ) {
         // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
         setTallys([]);
@@ -193,6 +202,7 @@ const TallysClient = ({
         broadUnitId,
         intermediateUnitId,
         narrowUnitId,
+        finalizationStatus,
       });
       setTallys(response.data?.tallys ?? []);
 
@@ -209,6 +219,7 @@ const TallysClient = ({
       broadUnitId,
       intermediateUnitId,
       narrowUnitId,
+      finalizationStatus,
     ],
   );
 

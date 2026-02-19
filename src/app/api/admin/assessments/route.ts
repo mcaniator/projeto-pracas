@@ -15,6 +15,7 @@ const paramsSchema = z.object({
   intermediateUnitId: z.coerce.number().optional(),
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
+  finalizationStatus: z.coerce.number().optional(),
 });
 
 export type FetchAssessmentsParams = z.infer<typeof paramsSchema>;

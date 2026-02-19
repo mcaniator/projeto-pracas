@@ -1,0 +1,5 @@
+export const FINALIZATION_STATUS = {
+  ALL: 0,
+  NOT_FINALIZED: 1,
+  FINALIZED: 2,
+};
