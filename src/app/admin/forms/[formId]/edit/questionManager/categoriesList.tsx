@@ -40,21 +40,26 @@ const CategoriesListV2 = ({
     subcategoryName: string | null;
   }) => void;
 }) => {
-  const searchHasRemainingQuestions =
-    showAllQuestions ||
-    categories.some(
-      (cat) =>
-        cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
-        cat.subcategory.some((sub) =>
-          sub.question.some((q) => !formQuestionsIds.includes(q.id)),
-        ),
-    );
-  if (!searchHasRemainingQuestions) {
+  const searchHasRemainingQuestions = categories.some(
+    (cat) =>
+      cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
+      cat.subcategory.some((sub) =>
+        sub.question.some((q) => !formQuestionsIds.includes(q.id)),
+      ),
+  );
+  if (!searchHasRemainingQuestions && !showAllQuestions) {
     return (
       <div className="p-1">
         <div>
           Não há questões restantes para os parâmetros de busca selecionados!
         </div>
+      </div>
+    );
+  }
+  if (!searchHasRemainingQuestions && showAllQuestions) {
+    return (
+      <div className="p-1">
+        <div>Nenhuma questão encontrada!</div>
       </div>
     );
   }

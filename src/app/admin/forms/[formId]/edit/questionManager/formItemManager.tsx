@@ -237,7 +237,7 @@ const FormItemManager = ({
           reloadCategories={handleReloadCategories}
         />
 
-        {selectedCategoryAndSubcategoryId.categoryId && (
+        {!!selectedCategoryAndSubcategoryId.categoryId && (
           <>
             <SubcategoryCreationDialog
               categoryId={selectedCategoryAndSubcategoryId.categoryId}
@@ -272,7 +272,7 @@ const FormItemManager = ({
                 setOpenCategoryDeletionDialog(false);
               }}
             />
-            {selectedCategoryAndSubcategoryId.subcategoryId && (
+            {!!selectedCategoryAndSubcategoryId.subcategoryId && (
               <SubcategoryDeletionDialog
                 reloadCategories={() => {
                   handleReloadCategories({ resetSelectedCategory: true });
