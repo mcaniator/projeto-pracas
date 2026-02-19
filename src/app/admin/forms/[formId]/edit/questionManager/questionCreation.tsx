@@ -234,6 +234,9 @@ const QuestionCreation = ({
                 ]}
                 value={type}
                 onChange={(val) => {
+                  if (!val) {
+                    return;
+                  }
                   setType(val);
                 }}
                 getOptionValue={(i) => i.value}
@@ -252,7 +255,7 @@ const QuestionCreation = ({
                   onChange={(e) => {
                     setCharacterType(e as CharacterType);
                   }}
-                  getOptionValue={(i) => i.value}
+                  getOptionValue={(i) => i.value as CharacterType}
                   getOptionLabel={(i) => i.label}
                 />
               )}
@@ -281,6 +284,9 @@ const QuestionCreation = ({
                           label="Tipo de opções"
                           value={questionTemplate}
                           onChange={(e) => {
+                            if (!e) {
+                              return;
+                            }
                             handleQuestionTemplate(e);
                           }}
                           options={

@@ -217,31 +217,6 @@ const _deleteUser = async (userId: string) => {
   }
 };
 
-const _getUserContentAmount = async (userId: string) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["USER"] });
-  } catch (e) {
-    return { statusCode: 401, assessments: null, tallys: null };
-  }
-  try {
-    const [assessments, tallys] = await Promise.all([
-      prisma.assessment.count({
-        where: {
-          userId,
-        },
-      }),
-      prisma.tally.count({
-        where: {
-          userId,
-        },
-      }),
-    ]);
-    return { statusCode: 200, assessments, tallys };
-  } catch (e) {
-    return { statusCode: 500, assessments: null, tallys: null };
-  }
-};
-
 export const _userArchiveUpdate = async (params: {
   userId: string;
   active: boolean;
@@ -288,9 +263,4 @@ export const _userArchiveUpdate = async (params: {
   }
 };
 
-export {
-  _updateUserUsername,
-  _updateUserRoles,
-  _deleteUser,
-  _getUserContentAmount,
-};
+export { _updateUserUsername, _updateUserRoles, _deleteUser };

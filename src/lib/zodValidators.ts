@@ -4,7 +4,6 @@ import {
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
-  Role,
   WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
@@ -484,21 +483,4 @@ export type {
   CommercialActivity,
   FinalizedTally,
 };
-// #endregion
-// #region Users
-//  ------------------------------------------------------------------------------------------------------------
-//  Users
-//  ------------------------------------------------------------------------------------------------------------
-const tableUserSchema = z.object({
-  id: z.coerce.string(),
-  image: z.coerce.string().nullable(),
-  username: z.coerce.string().nullable(),
-  email: z.coerce.string(),
-  name: z.coerce.string().nullable(),
-  active: z.coerce.boolean(),
-  createdAt: z.coerce.date(),
-  roles: z.array(z.nativeEnum(Role)),
-});
-
-export { tableUserSchema };
 // #endregion

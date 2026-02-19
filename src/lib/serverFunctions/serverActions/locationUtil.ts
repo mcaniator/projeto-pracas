@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { deleteImage, uploadImage } from "@/lib/utils/image";
 import { booleanFromString, locationSchema } from "@/lib/zodValidators";
-import { BrazilianStates, Image, Location } from "@prisma/client";
+import { Image } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { addPolygon } from "@serverOnly/geometries";
 import { revalidateTag } from "next/cache";
@@ -208,7 +208,6 @@ const _updateLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
-      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
@@ -315,7 +314,6 @@ const _createLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
-      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
@@ -324,7 +322,6 @@ const _createLocation = async (
       };
     }
   } catch (err) {
-    console.log(err);
     return {
       responseInfo: {
         statusCode: 401,

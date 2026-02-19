@@ -1,5 +1,4 @@
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import { OrdersObj } from "@app/admin/users/usersTable";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
 import { Role } from "@prisma/client";
@@ -34,91 +33,6 @@ const getUserAuthInfo = async (
     return user;
   } catch (e) {
     return null;
-  }
-};
-
-const getUsers = async (
-  page: number,
-  take: number,
-  search: string | null | undefined,
-  orders: OrdersObj,
-  activeUsersFilter: boolean,
-) => {
-  try {
-    const pageToSkipCalc = page > 0 ? page : 1;
-    const skip = (pageToSkipCalc - 1) * take;
-    const [users, totalUsers] = await Promise.all([
-      prisma.user.findMany({
-        skip,
-        take,
-        orderBy: Object.keys(orders)
-          .filter((key) => orders[key as keyof OrdersObj] !== "none")
-          .map((key) => ({ [key]: orders[key as keyof OrdersObj] })),
-        where: {
-          active: activeUsersFilter,
-          ...(search ?
-            {
-              OR: [
-                {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  username: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              ],
-            }
-          : {}),
-        },
-      }),
-      prisma.user.count({
-        where: {
-          active: activeUsersFilter,
-          ...(search ?
-            {
-              OR: [
-                {
-                  email: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  username: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-                {
-                  name: {
-                    contains: search,
-                    mode: "insensitive",
-                  },
-                },
-              ],
-            }
-          : {}),
-        },
-      }),
-    ]);
-    return {
-      statusCode: 200,
-      users,
-      totalUsers,
-    };
-  } catch (e) {
-    return { statusCode: 500, users: null, totalUsers: null };
   }
 };
 
@@ -169,4 +83,4 @@ export const fetchUsers = async () => {
   }
 };
 
-export { getUserAuthInfo, getUsers, getUserContentAmount };
+export { getUserAuthInfo, getUserContentAmount };

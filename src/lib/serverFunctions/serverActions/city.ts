@@ -24,7 +24,6 @@ export const _saveCity = async (
   }
 
   try {
-    console.log(formData);
     const parse = {
       name: z.string().trim().max(255).min(1).parse(formData.get("name")),
       state: z.nativeEnum(BrazilianStates).parse(formData.get("state")),

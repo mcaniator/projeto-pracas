@@ -7,9 +7,6 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -29,7 +26,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  devIndicators: false,
 };
 
 module.exports = nextConfig;

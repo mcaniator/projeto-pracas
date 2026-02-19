@@ -2,7 +2,6 @@
 
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { LocationAssessment } from "@serverActions/assessmentUtil";
 
 import { ExportHome } from "./exportHome";
 

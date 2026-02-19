@@ -195,7 +195,6 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       },
     };
   } catch (e) {
-    console.error(e);
     return {
       responseInfo: {
         statusCode: 500,

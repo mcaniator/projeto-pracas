@@ -75,7 +75,6 @@ const _categorySubmit = async (
       categoryName: category.name,
     };
   } catch (e) {
-    console.log(e);
     if (e instanceof PrismaClientKnownRequestError)
       if (e.code === "P2002")
         return {

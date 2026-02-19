@@ -1,9 +1,6 @@
 import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 import { prisma } from "@lib/prisma";
-import {
-  fetchAssessmentGeometries,
-  fetchAssessmentsGeometries,
-} from "@serverOnly/geometries";
+import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { Coordinate } from "ol/coordinate";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
@@ -11,14 +8,6 @@ import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route
 import { ResponseGeometry } from "../../types/assessments/geometry";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
-
-type FinalizedAssessmentsList = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentByLocationAndForm>>
->;
-
-type AssessmentsWithResposes = NonNullable<
-  Awaited<ReturnType<typeof fetchMultipleAssessmentsWithResponses>>
->;
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
@@ -53,194 +42,6 @@ export type AssessmentCategoryItem = {
   notes: string | null;
   position: number;
   categoryChildren: (AssessmentQuestionItem | AssessmentSubcategoryItem)[];
-};
-
-const fetchAssessmentsInProgress = async (
-  locationId: number,
-  formId: number,
-): Promise<{
-  statusCode: number;
-  assessments: Array<{
-    id: number;
-    startDate: Date;
-    user: { username: string | null; id: string };
-  }>;
-}> => {
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        formId,
-        locationId,
-        endDate: null,
-      },
-      select: {
-        id: true,
-        startDate: true,
-        user: {
-          select: {
-            username: true,
-            id: true,
-          },
-        },
-      },
-    });
-    return { statusCode: 200, assessments: assessments };
-  } catch (e) {
-    return { statusCode: 500, assessments: [] };
-  }
-};
-
-const fetchAssessmentByLocationAndForm = async (
-  locationId: number,
-  formId: number,
-) => {
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        locationId,
-        formId,
-        endDate: {
-          not: null,
-        },
-      },
-      select: {
-        id: true,
-        startDate: true,
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-    return { statusCode: 200, assessments: assessments };
-  } catch (e) {
-    return { statusCode: 500, assessments: [] };
-  }
-};
-
-const fetchMultipleAssessmentsWithResponses = async (
-  assessmentsIds: number[],
-) => {
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        id: {
-          in: assessmentsIds,
-        },
-      },
-      include: {
-        form: {
-          include: {
-            questions: {
-              include: {
-                options: true,
-                category: true,
-                subcategory: {
-                  include: {
-                    category: true,
-                  },
-                },
-              },
-            },
-            calculations: {
-              include: {
-                questions: true,
-              },
-            },
-          },
-        },
-        response: true,
-        responseOption: {
-          include: {
-            option: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-    const geometriesGroups = await fetchAssessmentsGeometries(assessmentsIds);
-    const returnObj = assessments.map((assessment) => {
-      return {
-        ...assessment,
-        geometries: geometriesGroups.find(
-          (geometriesGroup) =>
-            geometriesGroup[0]?.assessmentId === assessment.id,
-        ),
-      };
-    });
-    return { statusCode: 200, assessments: returnObj };
-  } catch (e) {
-    return { statusCode: 500, assessments: [] };
-  }
-};
-
-const fetchAssessmentWithResponses = async (assessmentId: number) => {
-  // WARNING: Make sure to check if user has permission to see this assessemnt
-  try {
-    const assessment = await prisma.assessment.findUnique({
-      where: {
-        id: assessmentId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-          },
-        },
-        location: {
-          select: {
-            name: true,
-          },
-        },
-        response: true,
-        responseOption: {
-          include: {
-            option: true,
-          },
-        },
-        form: {
-          include: {
-            questions: {
-              include: {
-                options: true,
-
-                category: true,
-                subcategory: {
-                  include: {
-                    category: true,
-                  },
-                },
-              },
-            },
-            calculations: {
-              include: {
-                questions: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const geometries = await fetchAssessmentGeometries(assessmentId);
-    if (geometries && geometries.length > 0) {
-      const returnObj = {
-        statusCode: 200,
-        assessment: assessment,
-        geometries,
-      };
-      return returnObj;
-    }
-    return { statusCode: 200, assessment: assessment, geometries: [] };
-  } catch (e) {
-    return { statusCode: 500, assessment: null, geometries: [] };
-  }
 };
 
 export type FetchRecentlyCompletedAssessmentsResponse = NonNullable<
@@ -635,7 +436,6 @@ type FetchAssessmentsResponse = NonNullable<
 >;
 
 const fetchAssessments = async (params: FetchAssessmentsParams) => {
-  console.log("Fetching assessments with params:", params);
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -697,16 +497,8 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
 };
 
 export {
-  fetchAssessmentsInProgress,
-  fetchAssessmentByLocationAndForm,
-  fetchMultipleAssessmentsWithResponses,
-  fetchAssessmentWithResponses,
   fetchRecentlyCompletedAssessments,
   getAssessmentTree,
   fetchAssessments,
 };
-export {
-  type FinalizedAssessmentsList,
-  type AssessmentsWithResposes,
-  type FetchAssessmentsResponse,
-};
+export { type FetchAssessmentsResponse };

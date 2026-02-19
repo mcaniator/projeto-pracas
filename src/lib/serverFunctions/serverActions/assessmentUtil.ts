@@ -141,7 +141,6 @@ const _createAssessmentV2 = async (
       };
     }
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 400,

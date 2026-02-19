@@ -24,7 +24,7 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
-  console.log("FORM DATA", formData);
+
   switch (questionType) {
     case "WRITTEN": {
       let writtenQuestionParsed;
@@ -70,7 +70,6 @@ const _questionSubmit = async (
           });
         }
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
 
@@ -81,7 +80,6 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
@@ -151,7 +149,6 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: questionName };
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
@@ -197,7 +194,7 @@ const _questionUpdate = async (
     return {
       responseInfo: {
         statusCode: 200,
-        message: `Questão \"${question.name}\" editada!`,
+        message: `Questão "${question.name}" editada!`,
         showSuccessCard: true,
       },
     };
