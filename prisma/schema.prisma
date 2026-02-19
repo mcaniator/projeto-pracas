@@ -10,10 +10,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  //directUrl  = env("DIRECT_URL")
-  //extensions = [postgis]
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  //extensions = [postgis] moved extensions management to custom migration
 }
 
 // #endregion
