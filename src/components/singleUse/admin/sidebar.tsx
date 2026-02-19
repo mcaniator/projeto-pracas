@@ -157,33 +157,6 @@ const Sidebar = () => {
               </ButtonLink>
             ))}
         </div>
-
-        <div className="mt-auto flex flex-col gap-1">
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconBug size={34} />
-            <p className="-mb-1">Erros?</p>
-          </Button>
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconMail size={34} />
-            <p className="-mb-1">Contato</p>
-          </Button>
-          <Button
-            type="button"
-            variant={"ghost"}
-            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
-          >
-            <IconInfoSquareRounded size={34} />
-            <p className="-mb-1">Quem Somos!</p>
-          </Button>
-        </div>
       </nav>
     </div>
   );
