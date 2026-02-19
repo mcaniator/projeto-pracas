@@ -19,7 +19,7 @@ import {
 } from "@tabler/icons-react";
 import { createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
-import { Dispatch, SetStateAction, useContext, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useContext, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 import CAccordion from "../../../../components/ui/accordion/CAccordion";
@@ -44,10 +44,12 @@ const Sidebar = ({
   filter,
   isMobileView,
   selectedLocationId,
+  sidebarDialogOpen,
   selectLocation,
   setState,
   setCity,
   setFilter,
+  setSidebarDialogOpen,
 }: {
   loadingLocations: boolean;
   loadingCities: boolean;
@@ -62,17 +64,19 @@ const Sidebar = ({
   state: BrazilianStates;
   filter: LocationsMapClientFilter;
   selectedLocationId: number | null;
+  sidebarDialogOpen: boolean;
   selectLocation: (locationId: number) => void;
   setState: Dispatch<SetStateAction<BrazilianStates>>;
   setCity: Dispatch<
     SetStateAction<FetchCitiesResponse["cities"][number] | null>
   >;
   setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
+  setSidebarDialogOpen: Dispatch<SetStateAction<boolean>>;
   isMobileView: boolean;
 }) => {
   const map = useContext(MapContext);
   const view = map?.getView();
-  const [mobileDialogOpen, setMobileDialogOpen] = useState(false);
+
   const broadUnits = useMemo(() => {
     return [
       ...(selectedCity?.broadAdministrativeUnit ?? []),
@@ -107,7 +111,7 @@ const Sidebar = ({
             padding: [100, 100, 100, 100],
           });
         }
-        setMobileDialogOpen(false);
+        setSidebarDialogOpen(false);
       }
     }
   };
@@ -354,9 +358,9 @@ const Sidebar = ({
         <CDialog
           fullScreen
           title="Praças"
-          open={mobileDialogOpen}
+          open={sidebarDialogOpen}
           onClose={() => {
-            setMobileDialogOpen(false);
+            setSidebarDialogOpen(false);
           }}
         >
           {inner}
@@ -367,7 +371,7 @@ const Sidebar = ({
             enableTopLeftChip
             topLeftChipLabel={locations.length}
             onClick={() => {
-              setMobileDialogOpen(true);
+              setSidebarDialogOpen(true);
             }}
           >
             <IconListDetails />

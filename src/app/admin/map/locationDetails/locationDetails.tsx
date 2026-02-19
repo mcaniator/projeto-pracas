@@ -77,7 +77,14 @@ const LocationDetails = ({
           </div>
         </div>
         <div className="flex gap-1">
-          <CButton onClick={enableLocationEdition} square dense>
+          <CButton
+            onClick={() => {
+              enableLocationEdition();
+              setOpenMobileDialog(false);
+            }}
+            square
+            dense
+          >
             <IconPencil />
           </CButton>
           <CButton
