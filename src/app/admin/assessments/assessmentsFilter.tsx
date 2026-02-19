@@ -13,12 +13,14 @@ const AssessmentsFilter = ({
   users,
   selectedLocationId,
   defaultLocationId,
+  onNoCitiesFound,
   handleFilterChange,
 }: {
   forms: { id: number; name: string }[];
   users: { id: string; username: string }[];
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
+  onNoCitiesFound?: () => void;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
@@ -47,6 +49,7 @@ const AssessmentsFilter = ({
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        onNoCitiesFound={onNoCitiesFound}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
         }}

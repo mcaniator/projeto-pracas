@@ -10,11 +10,13 @@ const TallysFilter = ({
   users,
   selectedLocationId,
   defaultLocationId,
+  onNoCitiesFound,
   handleFilterChange,
 }: {
   users: { id: string; username: string }[];
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
+  onNoCitiesFound?: () => void;
   handleFilterChange: (params: {
     type: TallysFilterType;
     newValue: string | number | Date | null;
@@ -42,6 +44,7 @@ const TallysFilter = ({
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        onNoCitiesFound={onNoCitiesFound}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
         }}

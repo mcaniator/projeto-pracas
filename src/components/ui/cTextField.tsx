@@ -291,7 +291,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
           {...rest}
         />
         {maxCharacters && (
-          <Box sx={{ ml: "8px" }}>
+          <Box sx={{ ml: "8px", color: "text.secondary" }}>
             {characterCount}/{maxCharacters}
           </Box>
         )}

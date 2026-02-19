@@ -56,6 +56,10 @@ const TallysClient = ({
   const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
   const [narrowUnitId, setNarrowUnitId] = useState<number>();
 
+  const onNoCitiesFound = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   const [_fetchTallys] = useFetchTallys();
 
   const handleFilterChange = ({
@@ -292,6 +296,7 @@ const TallysClient = ({
           <TallysFilterSidebar
             openDialog={openFiltersDialog}
             isDialog={isMobileView}
+            onNoCitiesFound={onNoCitiesFound}
             onCloseDialog={() => setOpenFiltersDialog(false)}
             defaultLocationId={
               params.get("locationId") ?

@@ -63,6 +63,10 @@ const AssessmentsClient = ({
   const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
   const [narrowUnitId, setNarrowUnitId] = useState<number>();
 
+  const onNoCitiesFound = useCallback(() => {
+    setIsLoading(false);
+  }, []);
+
   const handleFilterChange = ({
     type,
     newValue,
@@ -307,6 +311,7 @@ const AssessmentsClient = ({
           <AssessmentsFilterSidebar
             openDialog={openFiltersDialog}
             isDialog={isMobileView}
+            onNoCitiesFound={onNoCitiesFound}
             onCloseDialog={() => setOpenFiltersDialog(false)}
             defaultLocationId={
               params.get("locationId") ?

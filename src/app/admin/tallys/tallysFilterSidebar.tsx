@@ -9,6 +9,7 @@ const TallysFilterSidebar = ({
   defaultLocationId,
   isDialog,
   openDialog,
+  onNoCitiesFound,
   onCloseDialog,
   handleFilterChange,
 }: {
@@ -17,6 +18,7 @@ const TallysFilterSidebar = ({
   defaultLocationId: number | undefined;
   isDialog?: boolean;
   openDialog?: boolean;
+  onNoCitiesFound?: () => void;
   onCloseDialog?: () => void;
   handleFilterChange: (params: {
     type: TallysFilterType;
@@ -30,6 +32,7 @@ const TallysFilterSidebar = ({
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
         users={users}
+        onNoCitiesFound={onNoCitiesFound}
         handleFilterChange={handleFilterChange}
       />
     </div>

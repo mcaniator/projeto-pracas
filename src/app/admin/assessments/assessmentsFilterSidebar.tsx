@@ -12,6 +12,7 @@ const AssessmentsFilterSidebar = ({
   defaultLocationId,
   isDialog,
   openDialog,
+  onNoCitiesFound,
   onCloseDialog,
   handleFilterChange,
 }: {
@@ -21,6 +22,7 @@ const AssessmentsFilterSidebar = ({
   defaultLocationId: number | undefined;
   isDialog?: boolean;
   openDialog?: boolean;
+  onNoCitiesFound?: () => void;
   onCloseDialog?: () => void;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
@@ -35,6 +37,7 @@ const AssessmentsFilterSidebar = ({
         selectedLocationId={selectedLocationId}
         forms={forms}
         users={users}
+        onNoCitiesFound={onNoCitiesFound}
         handleFilterChange={handleFilterChange}
       />
     </div>
