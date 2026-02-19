@@ -1,11 +1,17 @@
 "use server";
 
+import {
+  dateFormatter,
+  hourFormatter,
+  weekdayFormatter,
+} from "@/lib/formatters/dateFormatters";
 import { prisma } from "@/lib/prisma";
-import { CalculationTypes } from "@prisma/client";
+import { FormItemUtils } from "@/lib/utils/formTreeUtils";
+import { QuestionTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
-  fetchAssessmentsForEvaluationExport,
+  formatCSVField,
   processAndFormatTallyDataLineWithAddedContent,
 } from "@serverOnly/exportToCSV";
 import {
@@ -14,21 +20,31 @@ import {
   tallyArraySchema,
 } from "@zodValidators";
 
-type AnswerType = "RESPONSE" | "RESPONSE_OPTION";
-interface FetchedSubmission {
+type AssessmentExportSubcategoryItem = {
   id: number;
-  createdAt: Date;
-  formVersion: number;
-  form: {
-    id: number;
-    name: string;
-  };
-  user: {
-    id: string;
-    username: string;
-  };
-  type: AnswerType;
-}
+  subcategoryId: number;
+  name: string;
+  position: number;
+  questions: AssessmentExportQuestionItem[];
+};
+type AssessmentExportQuestionItem = {
+  id: number;
+  questionId: number;
+  name: string;
+  position: number;
+  questionType: QuestionTypes;
+};
+
+type AssessmentExportCategoryItem = {
+  id: number;
+  categoryId: number;
+  name: string;
+  position: number;
+  categoryChildren: (
+    | AssessmentExportQuestionItem
+    | AssessmentExportSubcategoryItem
+  )[];
+};
 
 const _exportRegistrationData = async (locationsIds: number[]) => {
   try {
@@ -49,6 +65,27 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
       include: {
         category: true,
         type: true,
+        city: {
+          select: {
+            name: true,
+            state: true,
+          },
+        },
+        narrowAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
+        intermediateAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
+        broadAdministrativeUnit: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
     locations.sort((a, b) => {
@@ -58,23 +95,24 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
         else return 0;
       }
     });
-    let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,,\n";
-    CSVstring += ",,,,,,,,,,,\n";
+    let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,\n";
+    CSVstring += ",,,,,,,,,,\n";
     CSVstring +=
-      "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Prefeito,Legislação\n";
+      "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Legislação\n";
     CSVstring += locations
       .map((location) => {
         const locationString = [
           location.id,
-          location.name,
-          location.popularName ? location.popularName : "",
-          location.category?.name ?? "",
-          location?.type?.name ?? "",
-          location.notes ?? "",
-          `${location.firstStreet}${location.secondStreet ? " / " + location.secondStreet : ""}${location.thirdStreet ? " / " + location.thirdStreet : ""}${location.fourthStreet ? " / " + location.fourthStreet : ""}`,
+          formatCSVField(location.name),
+          formatCSVField(location.popularName),
+          formatCSVField(location.category?.name),
+          formatCSVField(location?.type?.name),
+          formatCSVField(location.notes),
+          formatCSVField(
+            `${formatCSVField(location.firstStreet)}${formatCSVField(location.secondStreet ? " / " + location.secondStreet : "")}${formatCSVField(location.thirdStreet ? " / " + location.thirdStreet : "")}${formatCSVField(location.fourthStreet ? " / " + location.fourthStreet : "")}${formatCSVField(location.broadAdministrativeUnit ? " - " + location.broadAdministrativeUnit.name : "")}${formatCSVField(location.intermediateAdministrativeUnit ? " - " + location.intermediateAdministrativeUnit.name : "")}${formatCSVField(location.narrowAdministrativeUnit ? " - " + location.narrowAdministrativeUnit.name : "")} - ${formatCSVField(location.city.name)} - ${formatCSVField(location.city.state)}`,
+          ),
           location.creationYear,
           location.lastMaintenanceYear,
-          location.overseeingMayor,
           location.legislation,
         ].join(",");
 
@@ -88,7 +126,7 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
   }
 };
 
-const _exportEvaluation = async (assessmentsIds: number[]) => {
+export const _exportAssessments = async (assessmentIds: number[]) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
   } catch (e) {
@@ -96,781 +134,356 @@ const _exportEvaluation = async (assessmentsIds: number[]) => {
   }
 
   try {
-    const assessments =
-      await fetchAssessmentsForEvaluationExport(assessmentsIds);
-
-    // Grouping by form and formVersion. Each group will form a different table.
-
-    const groupedByFormAndFormVersion: {
-      [key: number]: {
-        form: { id: number; name: string; version: number };
-        categoriesWithCalculations: {
-          id: number;
-          name: string;
-          calculations: {
-            id: number;
-            name: string;
-            type: CalculationTypes;
-            questions: { id: number; name: string }[];
-          }[];
-          subcategories: {
-            id: number;
-            name: string;
-            calculations: {
-              id: number;
-              name: string;
-              type: CalculationTypes;
-              questions: { id: number; name: string }[];
-            }[];
-          }[];
-        }[];
-        assessments: {
-          id: number;
-          startDate: Date;
-          user: { id: string; username: string };
-          location: {
-            id: number;
-            name: string;
-          };
-          categories: {
-            id: number;
-            name: string;
-            questions: {
-              id: number;
-              name: string;
-              responses: (string | null | undefined)[];
-            }[];
-
-            subcategories: {
-              id: number;
-              name: string;
-              questions: {
-                id: number;
-                name: string;
-                responses: (string | null | undefined)[];
-              }[];
-            }[];
-          }[];
-        }[];
-      };
-    } = {};
-    for (const assessment of assessments) {
-      const key = assessment.form.id;
-      if (!groupedByFormAndFormVersion[key]) {
-        groupedByFormAndFormVersion[key] = {
-          form: assessment.form,
-          assessments: [],
-          categoriesWithCalculations: [],
-        };
-      }
-      const currentTable = groupedByFormAndFormVersion[assessment.formId];
-
-      if (!currentTable?.assessments.some((a) => a.id === assessment.id)) {
-        currentTable?.assessments.push({
-          id: assessment.id,
-          startDate: assessment.startDate,
-          user: {
-            id: assessment.user.id,
-            username: assessment.user.username ?? "Indefinido",
-          },
-          location: {
-            id: assessment.location.id,
-            name: assessment.location.name,
-          },
-          categories: [],
-        });
-      }
-
-      const currentTableAssessment = currentTable?.assessments.find(
-        (a) => a.id === assessment.id,
-      );
-      if (currentTableAssessment) {
-        assessment.response.forEach((response) => {
-          const questionCategory = response.question.category;
-          if (
-            !currentTableAssessment.categories.some(
-              (c) => c.id === questionCategory.id,
-            )
-          ) {
-            currentTableAssessment.categories.push({
-              id: questionCategory.id,
-              name: questionCategory.name,
-              questions: [],
-              subcategories: [],
-            });
-          }
-          const currentTableAssessmentCategory =
-            currentTableAssessment.categories.find(
-              (c) => c.id === questionCategory.id,
-            );
-          if (!response.question.subcategory) {
-            if (currentTableAssessmentCategory) {
-              if (
-                !currentTableAssessmentCategory.questions.some(
-                  (q) => q.id === response.question.id,
-                )
-              ) {
-                currentTableAssessmentCategory.questions.push({
-                  id: response.question.id,
-                  name: response.question.name,
-                  responses: [],
-                });
-              }
-              const currentTableAssessmentCategoryQuestion =
-                currentTableAssessmentCategory.questions.find(
-                  (q) => q.id === response.question.id,
-                );
-              currentTableAssessmentCategoryQuestion?.responses.push(
-                response.response,
-              );
-            }
-          } else {
-            if (currentTableAssessmentCategory) {
-              if (
-                !currentTableAssessmentCategory.subcategories.some(
-                  (s) => s.id === response.question.subcategoryId,
-                )
-              ) {
-                currentTableAssessmentCategory.subcategories.push({
-                  id: response.question.subcategory.id,
-                  name: response.question.subcategory.name,
-                  questions: [],
-                });
-              }
-              const currentTableAssessmentCategorySubcategory =
-                currentTableAssessmentCategory.subcategories.find(
-                  (s) => s.id === response.question.subcategoryId,
-                );
-              if (currentTableAssessmentCategorySubcategory) {
-                if (
-                  !currentTableAssessmentCategorySubcategory.questions.some(
-                    (q) => q.id === response.question.id,
-                  )
-                ) {
-                  currentTableAssessmentCategorySubcategory.questions.push({
-                    id: response.question.id,
-                    name: response.question.name,
-                    responses: [],
-                  });
-                }
-              }
-              const currentTableAssessmentCategorySubcategoryQuestion =
-                currentTableAssessmentCategorySubcategory?.questions.find(
-                  (q) => q.id === response.questionId,
-                );
-              currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
-                response.response,
-              );
-            }
-          }
-        });
-
-        assessment.responseOption.forEach((response) => {
-          const questionCategory = response.question.category;
-          if (
-            !currentTableAssessment.categories.some(
-              (c) => c.id === questionCategory.id,
-            )
-          ) {
-            currentTableAssessment.categories.push({
-              id: questionCategory.id,
-              name: questionCategory.name,
-              questions: [],
-              subcategories: [],
-            });
-          }
-          const currentTableAssessmentCategory =
-            currentTableAssessment.categories.find(
-              (c) => c.id === questionCategory.id,
-            );
-          if (!response.question.subcategory) {
-            if (currentTableAssessmentCategory) {
-              if (
-                !currentTableAssessmentCategory.questions.some(
-                  (q) => q.id === response.question.id,
-                )
-              ) {
-                currentTableAssessmentCategory.questions.push({
-                  id: response.question.id,
-                  name: response.question.name,
-                  responses: [],
-                });
-              }
-              const currentTableAssessmentCategoryQuestion =
-                currentTableAssessmentCategory.questions.find(
-                  (q) => q.id === response.question.id,
-                );
-              currentTableAssessmentCategoryQuestion?.responses.push(
-                response.option?.text,
-              );
-            }
-          } else {
-            if (currentTableAssessmentCategory) {
-              if (
-                !currentTableAssessmentCategory.subcategories.some(
-                  (s) => s.id === response.question.subcategoryId,
-                )
-              ) {
-                currentTableAssessmentCategory.subcategories.push({
-                  id: response.question.subcategory.id,
-                  name: response.question.subcategory.name,
-                  questions: [],
-                });
-              }
-              const currentTableAssessmentCategorySubcategory =
-                currentTableAssessmentCategory.subcategories.find(
-                  (s) => s.id === response.question.subcategoryId,
-                );
-              if (currentTableAssessmentCategorySubcategory) {
-                if (
-                  !currentTableAssessmentCategorySubcategory.questions.some(
-                    (q) => q.id === response.question.id,
-                  )
-                ) {
-                  currentTableAssessmentCategorySubcategory.questions.push({
-                    id: response.question.id,
-                    name: response.question.name,
-                    responses: [],
-                  });
-                }
-              }
-              const currentTableAssessmentCategorySubcategoryQuestion =
-                currentTableAssessmentCategorySubcategory?.questions.find(
-                  (q) => q.id === response.questionId,
-                );
-              currentTableAssessmentCategorySubcategoryQuestion?.responses.push(
-                response.option?.text,
-              );
-            }
-          }
-        });
-      }
-    }
-
-    const formsCalculations = assessments.reduce(
-      (acc, assessment) => {
-        const existingForm = acc.find((a) => a.formId === assessment.formId);
-        if (existingForm) {
-          return acc;
-        }
-
-        const newForm = { formId: assessment.formId, categories: [] } as {
-          formId: number;
-          categories: {
-            id: number;
-            name: string;
-            calculations: {
-              id: number;
-              name: string;
-              type: CalculationTypes;
-              questions: { id: number; name: string }[];
-            }[];
-
-            subcategories: {
-              id: number;
-              name: string;
-              calculations: {
-                id: number;
-                name: string;
-                type: CalculationTypes;
-                questions: { id: number; name: string }[];
-              }[];
-            }[];
-          }[];
-        };
-
-        for (const calculation of assessment.form.calculations) {
-          if (
-            !newForm.categories.some((cat) => cat.id === calculation.categoryId)
-          ) {
-            newForm.categories.push({
-              id: calculation.categoryId,
-              name: calculation.category.name,
-              calculations: [] as {
-                id: number;
-                name: string;
-                type: CalculationTypes;
-                questions: { id: number; name: string }[];
-              }[],
-              subcategories: [] as {
-                id: number;
-                name: string;
-                calculations: {
-                  id: number;
-                  name: string;
-                  type: CalculationTypes;
-                  questions: { id: number; name: string }[];
-                }[];
-              }[],
-            });
-          }
-          if (!calculation.subcategoryId) {
-            newForm.categories
-              .find((cat) => cat.id === calculation.categoryId)
-              ?.calculations.push({
-                id: calculation.id,
-                name: calculation.name,
-                type: calculation.type,
-                questions: calculation.questions.map((q) => ({
-                  id: q.id,
-                  name: q.name,
-                })),
-              });
-          } else {
-            const calculationCategory = newForm.categories.find(
-              (cat) => cat.id === calculation.categoryId,
-            );
-            if (
-              !calculationCategory?.subcategories.some(
-                (sub) => sub.id === calculation.subcategoryId,
-              )
-            ) {
-              calculationCategory?.subcategories.push({
-                id: calculation.subcategoryId,
-                name: calculation.subcategory!.name,
-                calculations: [] as {
-                  id: number;
-                  name: string;
-                  type: CalculationTypes;
-                  questions: { id: number; name: string }[];
-                }[],
-              });
-            }
-            calculationCategory?.subcategories
-              .find((sub) => sub.id === calculation.subcategoryId)
-              ?.calculations.push({
-                id: calculation.id,
-                name: calculation.name,
-                type: calculation.type,
-                questions: calculation.questions.map((q) => ({
-                  id: q.id,
-                  name: q.name,
-                })),
-              });
-          }
-        }
-
-        acc.push(newForm);
-        return acc;
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        id: {
+          in: assessmentIds,
+        },
       },
-      [] as {
-        formId: number;
-        categories: {
-          id: number;
-          name: string;
-          calculations: {
-            id: number;
-            name: string;
-            type: CalculationTypes;
-            questions: { id: number; name: string }[];
-          }[];
-
-          subcategories: {
-            id: number;
-            name: string;
+      orderBy: [{ id: "asc" }, { startDate: "asc" }],
+      select: {
+        id: true,
+        endDate: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
             calculations: {
-              id: number;
-              name: string;
-              type: CalculationTypes;
-              questions: { id: number; name: string }[];
-            }[];
-          }[];
-        }[];
-      }[],
+              select: {
+                expression: true,
+                targetQuestionId: true,
+              },
+            },
+            formItems: {
+              orderBy: { position: "asc" },
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                  },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                    categoryId: true,
+                  },
+                },
+                question: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                    questionType: true,
+                    characterType: true,
+                    optionType: true,
+                    options: { select: { text: true, id: true } },
+                    categoryId: true,
+                    subcategoryId: true,
+                    geometryTypes: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const responses = await prisma.response.findMany({
+      where: {
+        assessmentId: { in: assessmentIds },
+      },
+      select: {
+        id: true,
+        questionId: true,
+        assessmentId: true,
+        response: true,
+      },
+    });
+
+    const responsesOptions = await prisma.responseOption.findMany({
+      where: {
+        assessmentId: { in: assessmentIds },
+      },
+      select: {
+        id: true,
+        questionId: true,
+        assessmentId: true,
+        option: {
+          select: {
+            id: true,
+            text: true,
+          },
+        },
+      },
+    });
+
+    const forms = new Map<number, string>();
+
+    assessments.forEach((assessment) =>
+      forms.set(assessment.form.id, assessment.form.name),
     );
 
-    for (const key in groupedByFormAndFormVersion) {
-      const currentGroup = groupedByFormAndFormVersion[key];
-      const currentFormCalculation = formsCalculations.find(
-        (f) => f.formId === Number(key),
-      );
-      if (currentGroup && currentFormCalculation)
-        currentGroup.categoriesWithCalculations =
-          currentFormCalculation.categories;
+    const categoriesByFormId = new Map<
+      number,
+      AssessmentExportCategoryItem[]
+    >();
+
+    //TODO: CHANGE TO EXPORT MULTIPLE TABLES, ONE FOR EACH FORM MODEL
+
+    for (const assessment of assessments) {
+      const form = assessment.form;
+      if (categoriesByFormId.has(form.id)) {
+        continue;
+      }
+      const categories: AssessmentExportCategoryItem[] = [];
+
+      const sortedFormItems = form.formItems.sort((a, b) => {
+        const rankDiff =
+          FormItemUtils.getItemRankForSorting(a) -
+          FormItemUtils.getItemRankForSorting(b);
+        if (rankDiff !== 0) return rankDiff;
+
+        return a.position - b.position;
+      });
+
+      for (const item of sortedFormItems) {
+        // CATEGORY
+        if (FormItemUtils.isCategoryType(item)) {
+          if (!categories.find((c) => c.categoryId === item.categoryId)) {
+            categories.push({
+              id: item.id,
+              categoryId: item.categoryId,
+              name: item.category.name,
+              position: item.position,
+              categoryChildren: [],
+            });
+          }
+          continue;
+        }
+
+        // SUBCATEGORY
+        else if (FormItemUtils.isSubcategoryType(item)) {
+          const dbSubcategory = item.subcategory;
+          if (!dbSubcategory) {
+            throw new Error("Subcategory form item without subcategory data");
+          }
+          const category = categories.find(
+            (c) => c.categoryId === dbSubcategory.categoryId,
+          );
+          if (!category) {
+            throw new Error("Subcategory's category not found");
+          }
+
+          let subcategory = category.categoryChildren.find(
+            (c): c is AssessmentExportSubcategoryItem =>
+              FormItemUtils.isSubcategoryType(c) &&
+              c.subcategoryId === item.subcategoryId,
+          );
+
+          if (!subcategory) {
+            subcategory = {
+              id: item.id,
+              position: item.position,
+              subcategoryId: item.subcategoryId,
+              name: dbSubcategory.name,
+              questions: [],
+            };
+            category.categoryChildren.push(subcategory);
+          }
+          continue;
+        }
+
+        // QUESTION
+        else if (FormItemUtils.isQuestionType(item)) {
+          const dbQuestion = item.question;
+          if (!dbQuestion) {
+            throw new Error("Question form item without question data");
+          }
+
+          const question: AssessmentExportQuestionItem = {
+            id: item.id,
+            position: item.position,
+            questionId: item.questionId,
+            name: dbQuestion.name,
+            questionType: dbQuestion.questionType,
+          };
+          const category = categories.find(
+            (c) => c.categoryId === dbQuestion.categoryId,
+          );
+          if (!category) {
+            throw new Error("Question's category not found");
+          }
+
+          if (dbQuestion.subcategoryId) {
+            // question is inserted in a subcategory
+            const subcategory = category.categoryChildren.find(
+              (c): c is AssessmentExportSubcategoryItem =>
+                FormItemUtils.isSubcategoryType(c) &&
+                c.subcategoryId === dbQuestion.subcategoryId,
+            );
+            if (subcategory) {
+              subcategory.questions.push(question);
+            }
+          } else {
+            // question inserted directly in category
+            category.categoryChildren.push(question);
+          }
+          continue;
+        }
+      }
+
+      // Sorting by position
+      categories.sort((a, b) => a.position - b.position);
+      categories.forEach((cat) => {
+        cat.categoryChildren.sort((a, b) => a.position - b.position);
+        cat.categoryChildren.forEach((child) => {
+          if (FormItemUtils.isSubcategoryType(child))
+            child.questions.sort((a, b) => a.position - b.position);
+        });
+      });
+
+      categoriesByFormId.set(form.id, categories);
     }
 
     const csvObjs: {
       formName: string;
-      formVersion: number;
       csvString: string;
     }[] = [];
-    for (const key in groupedByFormAndFormVersion) {
-      const currentGroup = groupedByFormAndFormVersion[key];
-      if (currentGroup) {
-        const currentGroupAssessments = currentGroup.assessments;
-        const currentGroupform = currentGroup.form;
-        const currentGroupCategoriesWithCalculations =
-          currentGroup.categoriesWithCalculations;
-        const categoryLine = `IDENTIFICAÇÃO DA PRAÇA,,IDENTIFICAÇÃO DO LEVANTAMENTO,,,,${Object.values(
-          currentGroupAssessments[0]!.categories,
-        )
-          .map((category) => {
-            const currentCategoryCalculations =
-              currentGroupCategoriesWithCalculations.find(
-                (c) => c.id === category.id,
-              );
-            const fillCount =
-              category.questions.length +
-              (currentCategoryCalculations?.calculations.reduce((sum, calc) => {
-                if (calc.type === "PERCENTAGE") {
-                  return sum + calc.questions.length;
-                }
-                return (sum += 1);
-              }, 0) || 0);
-
-            return Array(
-              fillCount +
-                category.subcategories.reduce(
-                  (sum, subcategory) => {
-                    return sum + subcategory.questions.length;
-                  },
-
-                  0,
-                ) +
-                (currentCategoryCalculations?.subcategories.reduce(
-                  (sum, subcategory) => {
-                    return (
-                      sum +
-                      subcategory.calculations.reduce((sum, calc) => {
-                        if (calc.type === "PERCENTAGE") {
-                          return sum + calc.questions.length;
-                        }
-                        return (sum += 1);
-                      }, 0)
-                    );
-                  },
-                  0,
-                ) || 0),
-            )
-              .fill(category.name)
-              .join(",");
-          })
-          .join(",")}`;
-
-        const subcategoryLine = currentGroupAssessments[0]!.categories
-          .map((category) => {
-            const currentCategoryCalculations =
-              currentGroupCategoriesWithCalculations.find(
-                (c) => c.id === category.id,
-              );
-
-            const blankColumns = Array(
-              category.questions.length +
-                (currentCategoryCalculations?.calculations.reduce(
-                  (sum, calc) => {
-                    if (calc.type === "PERCENTAGE") {
-                      return sum + calc.questions.length;
-                    }
-                    return (sum += 1);
-                  },
-                  0,
-                ) || 0),
-            )
-              .fill("")
-              .join(",");
-
-            const subcategoryColumns = category.subcategories
-              .map((subcategory) => {
-                const currentSubcategoryCalculations =
-                  currentCategoryCalculations?.subcategories.find(
-                    (s) => s.id === subcategory.id,
-                  );
-
-                const fillCount =
-                  subcategory.questions.length +
-                  (currentSubcategoryCalculations?.calculations.reduce(
-                    (sum, calc) => {
-                      if (calc.type === "PERCENTAGE") {
-                        return sum + calc.questions.length;
-                      }
-                      return (sum += 1);
-                    },
-                    0,
-                  ) || 0);
-                return Array(fillCount).fill(subcategory.name).join(",");
-              })
-              .join(",");
-
-            return `${subcategoryColumns ? `${subcategoryColumns},${blankColumns}` : `${blankColumns}`}`;
-          })
-          .join(",");
-        const questionsStr = currentGroupAssessments[0]?.categories
-          .map((category) => {
-            const currentCategoryCalculations =
-              currentGroupCategoriesWithCalculations.find(
-                (c) => c.id === category.id,
-              );
-            const subcategoriesResponses = category.subcategories
-              .map((subcategory) => {
-                const questions = subcategory.questions
-                  .map((question) => {
-                    return question.name;
-                  })
-                  .join(",");
-                const currentSubcategoryCalculations =
-                  currentCategoryCalculations?.subcategories.find(
-                    (s) => s.id === subcategory.id,
-                  );
-                const subcategoryCalculations =
-                  currentSubcategoryCalculations?.calculations
-                    .map((calculation) => {
-                      if (calculation.type === "PERCENTAGE") {
-                        return `${calculation.questions.map((q) => `%${q.name}`).join(",")}`;
-                      }
-                      return calculation.name;
-                    })
-                    .join(",");
-                if (
-                  subcategoryCalculations &&
-                  subcategoryCalculations.length > 0
-                )
-                  return `${questions},${subcategoryCalculations}`;
-                return `${questions}`;
-              })
-              .join(",");
-            const categoryResponses = category.questions
-              .map((question) => {
-                return question.name;
-              })
-              .join(",");
-            const categoryCalculations =
-              currentCategoryCalculations?.calculations
-                .map((calculation) => {
-                  if (calculation.type === "PERCENTAGE") {
-                    return `${calculation.questions.map((q) => `%${q.name}`).join(",")}`;
-                  }
-                  return calculation.name;
-                })
-                .join(",");
-            let result = "";
-            result += subcategoriesResponses;
-            if (categoryResponses) {
-              if (result.length > 0) result += ",";
-              result += categoryResponses;
-            }
-            if (
-              currentCategoryCalculations &&
-              currentCategoryCalculations?.calculations.length > 0
-            ) {
-              if (result.length > 0) result += ",";
-              result += categoryCalculations;
-            }
-            return result;
-          })
-          .join(",");
-        const questionLine = `Identificador,Nome da praça,Avaliador,Dia,Data,Horário,${questionsStr}`;
-
-        let csvContent = `${categoryLine}\n,,,,,,${subcategoryLine}\n${questionLine}\n`;
-
-        for (const assessment of currentGroup.assessments) {
-          const responseValues = assessment.categories
-            .map((category) => {
-              const currentCategoryCalculations =
-                currentGroupCategoriesWithCalculations.find(
-                  (c) => c.id === category.id,
-                );
-              const subcategoriesResponses = category.subcategories
-                .map((subcategory) => {
-                  const responses = subcategory.questions
-                    .map((question) => {
-                      return question.responses
-                        .map((response) => (response ? response : ""))
-                        .join(",");
-                    })
-                    .join(",");
-
-                  const currentSubcategoryCalculations =
-                    currentCategoryCalculations?.subcategories.find(
-                      (sub) => sub.id === subcategory.id,
-                    );
-                  const subcategoryCalculations =
-                    currentSubcategoryCalculations?.calculations
-                      .map((calculation) => {
-                        const calculationQuestions = [
-                          ...category.questions.filter((q) =>
-                            calculation.questions.some((cq) => cq.id == q.id),
-                          ),
-                          ...category.subcategories.flatMap((s) =>
-                            s.questions.filter((q) =>
-                              calculation.questions.some((cq) => cq.id == q.id),
-                            ),
-                          ),
-                        ];
-                        if (calculation.type === "AVERAGE") {
-                          const sum = calculationQuestions.reduce((acc, q) => {
-                            return (
-                              acc +
-                              Number(
-                                q.responses.reduce((acc2, r) => {
-                                  const num =
-                                    r && !isNaN(Number(r)) ? Number(r) : 0;
-                                  return acc2 + num;
-                                }, 0),
-                              )
-                            );
-                          }, 0);
-
-                          const numberOfResponses = calculationQuestions.reduce(
-                            (acc, q) => {
-                              return acc + q.responses.length;
-                            },
-                            0,
-                          );
-                          return sum / numberOfResponses;
-                        } else if (calculation.type === "SUM") {
-                          return calculationQuestions.reduce((acc, q) => {
-                            return (
-                              acc +
-                              Number(
-                                q.responses.reduce((acc2, r) => {
-                                  const num =
-                                    r && !isNaN(Number(r)) ? Number(r) : 0;
-                                  return acc2 + num;
-                                }, 0),
-                              )
-                            );
-                          }, 0);
-                        } else {
-                          //PERCENTAGE
-                          return calculationQuestions
-                            .map((question, i, qes) => {
-                              return (
-                                (question.responses.reduce(
-                                  (sum, r) => sum + Number(r),
-                                  0,
-                                ) *
-                                  100) /
-                                qes.reduce((sum, q) => {
-                                  return (
-                                    sum +
-                                    q.responses.reduce(
-                                      (sum, r) => sum + Number(r),
-                                      0,
-                                    )
-                                  );
-                                }, 0)
-                              ).toFixed(2);
-                            })
-                            .join(",");
-                        }
-                      })
-                      .join(",");
-                  let result = "";
-                  result += responses;
-                  if (subcategoryCalculations) {
-                    if (result.length > 0) result += ",";
-                    result += subcategoryCalculations;
-                  }
-                  return result;
-                })
-                .join(",");
-              const categoryResponses = category.questions
-                .map((question) => {
-                  return question.responses
-                    .map((response) => (response ? response : ""))
-                    .join(",");
-                })
-                .join(",");
-
-              const categoryCalculations =
-                currentCategoryCalculations?.calculations
-                  .map((calculation) => {
-                    const calculationQuestions = [
-                      ...category.questions.filter((q) =>
-                        calculation.questions.some((cq) => cq.id == q.id),
-                      ),
-                      ...category.subcategories.flatMap((s) =>
-                        s.questions.filter((q) =>
-                          calculation.questions.some((cq) => cq.id == q.id),
-                        ),
-                      ),
-                    ];
-                    if (calculation.type === "AVERAGE") {
-                      const sum = calculationQuestions.reduce((acc, q) => {
-                        return (
-                          acc +
-                          Number(
-                            q.responses.reduce((acc2, r) => {
-                              const num =
-                                r && !isNaN(Number(r)) ? Number(r) : 0;
-                              return acc2 + num;
-                            }, 0),
-                          )
-                        );
-                      }, 0);
-
-                      const numberOfResponses = calculationQuestions.reduce(
-                        (acc, q) => {
-                          return acc + q.responses.length;
-                        },
-                        0,
-                      );
-                      return sum / numberOfResponses;
-                    } else if (calculation.type === "SUM") {
-                      return calculationQuestions.reduce((acc, q) => {
-                        return (
-                          acc +
-                          Number(
-                            q.responses.reduce((acc2, r) => {
-                              const num =
-                                r && !isNaN(Number(r)) ? Number(r) : 0;
-                              return acc2 + num;
-                            }, 0),
-                          )
-                        );
-                      }, 0);
-                    } else {
-                      //PERCENTAGE
-                      return calculationQuestions
-                        .map((question, i, qes) => {
-                          return (
-                            (question.responses.reduce(
-                              (sum, r) => sum + Number(r),
-                              0,
-                            ) *
-                              100) /
-                            qes.reduce((sum, q) => {
-                              return (
-                                sum +
-                                q.responses.reduce(
-                                  (sum, r) => sum + Number(r),
-                                  0,
-                                )
-                              );
-                            }, 0)
-                          ).toFixed(2);
-                        })
-                        .join(",");
-                    }
-
-                    return 0;
-                  })
-                  .join(",");
-              let result = "";
-              result += subcategoriesResponses;
-              if (categoryResponses) {
-                if (result.length > 0) result += ",";
-                result += categoryResponses;
-              }
-              if (categoryCalculations) {
-                if (result.length > 0) result += ",";
-                result += categoryCalculations;
-              }
-              return result;
-            })
-            .join(",");
-          csvContent += `${assessment.location.id},${assessment.location.name},${assessment.user.username},${assessment.startDate.toLocaleString("pt-BR", { weekday: "short" })},${assessment.startDate.toLocaleDateString()},${assessment.startDate.toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit" })},${responseValues}\n`;
-        }
-
-        csvObjs.push({
-          formName: currentGroupform.name,
-          formVersion: currentGroupform.version,
-          csvString: csvContent,
-        });
+    // Here we create the one CSV per form, with all the assessments that were made with that form, and the same structure of categories, subcategories and questions as defined in the form model
+    for (const formId of forms.keys()) {
+      const categories = categoriesByFormId.get(formId);
+      if (!categories) {
+        throw new Error("Form structure not found for form id " + formId);
       }
+
+      let CSVHeader =
+        "Identificador da praça,Nome da praça,Identificador da avaliação,Avaliador,Dia,Data,Horário,Duração (minutos)";
+
+      for (const category of categories) {
+        // Here we create the first line of the CSV: categories
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            child.questions.forEach(() => {
+              CSVHeader += `,${formatCSVField(category.name)}`;
+            });
+          } else {
+            CSVHeader += `,${formatCSVField(category.name)}`;
+          }
+        }
+      }
+      CSVHeader += "\n,,,,,,,";
+      for (const category of categories) {
+        // Here we create the second line of the CSV: subcategories
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            child.questions.forEach(() => {
+              CSVHeader += `,${formatCSVField(child.name)}`;
+            });
+          } else {
+            CSVHeader += `,`;
+          }
+        }
+      }
+      CSVHeader += "\n,,,,,,,";
+      for (const category of categories) {
+        // Here we create the third line of the CSV: questions
+        for (const child of category.categoryChildren) {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            for (const question of child.questions) {
+              CSVHeader += `,${formatCSVField(question.name)}`;
+            }
+          } else {
+            CSVHeader += `,${formatCSVField(child.name)}`;
+          }
+        }
+      }
+
+      let CSVAssessments = "";
+      for (const assessment of assessments) {
+        if (assessment.form.id !== formId) {
+          continue;
+        }
+        // General data of the assessment
+        CSVAssessments += `\n${assessment.location.id},${formatCSVField(assessment.location.name)},${assessment.id},${formatCSVField(assessment.user.username)},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
+        // Responses of the assessment
+        for (const category of categories) {
+          for (const child of category.categoryChildren) {
+            if (FormItemUtils.isSubcategoryType(child)) {
+              for (const question of child.questions) {
+                let responseValue = "";
+                if (question.questionType === "WRITTEN") {
+                  responseValue =
+                    responses.find(
+                      (r) =>
+                        r.assessmentId === assessment.id &&
+                        r.questionId === question.questionId,
+                    )?.response || "";
+                } else if (question.questionType === "OPTIONS") {
+                  responseValue =
+                    responsesOptions
+                      .filter(
+                        (r) =>
+                          r.assessmentId === assessment.id &&
+                          r.questionId === question.questionId,
+                      )
+                      .map((r) => r.option?.text)
+                      .join(" / ") || "";
+                }
+                CSVAssessments += `,${formatCSVField(responseValue)}`;
+              }
+            } else if (FormItemUtils.isQuestionType(child)) {
+              let responseValue = "";
+              if (child.questionType === "WRITTEN") {
+                responseValue =
+                  responses.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === child.questionId,
+                  )?.response || "";
+              } else if (child.questionType === "OPTIONS") {
+                responseValue =
+                  responsesOptions.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === child.questionId,
+                  )?.option?.text || "";
+              }
+              CSVAssessments += `,${formatCSVField(responseValue)}`;
+            }
+          }
+        }
+      }
+
+      const CSVresult = CSVHeader + CSVAssessments;
+
+      csvObjs.push({
+        formName: forms.get(formId) || "Formulário sem nome",
+        csvString: CSVresult,
+      });
     }
 
-    return { statusCode: 200, csvObjs };
+    return {
+      statusCode: 200,
+      csvObjs: csvObjs,
+    };
   } catch (e) {
     return { statusCode: 500, csvObjs: [] };
   }
@@ -883,7 +496,6 @@ const _exportDailyTallys = async (
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
   } catch (e) {
-    console.log(e);
     return { statusCode: 401, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
   }
 
@@ -1056,7 +668,7 @@ const _exportDailyTallys = async (
           locationObj.tallyGroupsByDateAndDayClassication.weekdays.shift();
           let day = "";
           let date = "";
-          let tallysInAday = "";
+          let tallysInAday = 0;
           if (tallyWithKey) {
             const key = Object.keys(tallyWithKey)[0];
             if (key) {
@@ -1079,14 +691,14 @@ const _exportDailyTallys = async (
                     month: "2-digit",
                     year: "2-digit",
                   }) || "";
-                tallysInAday = tallysToPush.length.toString();
+                tallysInAday = tallysToPush.length;
               }
             }
           }
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
         })
         .join("\n");
 
@@ -1107,7 +719,7 @@ const _exportDailyTallys = async (
           locationObj.tallyGroupsByDateAndDayClassication.weekendDays.shift();
           let day = "";
           let date = "";
-          let tallysInAday = "";
+          let tallysInAday = 0;
           if (tallyWithKey) {
             const key = Object.keys(tallyWithKey)[0];
             if (key) {
@@ -1130,14 +742,14 @@ const _exportDailyTallys = async (
                     month: "2-digit",
                     year: "2-digit",
                   }) || "";
-                tallysInAday = tallysToPush.length.toString();
+                tallysInAday = tallysToPush.length;
               }
             }
           }
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${locationObj.location.name},${observers},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
         })
         .join("\n");
 
@@ -1251,7 +863,7 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
             processAndFormatTallyDataLineWithAddedContent(
               tallyGroup,
             ).tallyString;
-          return `${locationId},${tallyGroup[0]?.location.name},${observers},${tallyGroup[0]?.startDate.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", year: "2-digit" })},${tallyGroup.length},${dataLine}`;
+          return `${locationId},${formatCSVField(tallyGroup[0]?.location.name)},${formatCSVField(observers)},${dateFormatter.format(tallyGroup[0]?.startDate)},${tallyGroup.length},${dataLine}`;
         })
         .join("\n");
     })
@@ -1304,7 +916,4 @@ export {
   _exportDailyTallys,
   _exportDailyTallysFromSingleLocation,
   _exportRegistrationData,
-  _exportEvaluation,
 };
-
-export { type FetchedSubmission };

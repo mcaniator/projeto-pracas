@@ -1,5 +1,8 @@
 "use client";
 
+import PermissionGuard from "@/components/auth/permissionGuard";
+import { useUserContext } from "@/components/context/UserContext";
+import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { _getCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
@@ -82,10 +85,16 @@ const ClientV2 = ({
   dbCalculations: CalculationParams[];
   formId: number;
 }) => {
+  const userContext = useUserContext();
   const router = useRouter();
   const { setHelperCard, helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
-  const [isFinalized] = useState(form.formTree.finalized);
+  const [isFinalized] = useState(
+    form.formTree.finalized ||
+      checkIfRolesArrayContainsAny(userContext.user?.roles, {
+        roles: ["FORM_VIEWER"],
+      }),
+  );
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
@@ -337,14 +346,16 @@ const ClientV2 = ({
                     <IconCalculator />
                   </CButton>
                   {!isFinalized && (
-                    <CButton
-                      className="w-fit"
-                      onClick={() => {
-                        setOpenSaveFormDialog(true);
-                      }}
-                    >
-                      Salvar
-                    </CButton>
+                    <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                      <CButton
+                        className="w-fit"
+                        onClick={() => {
+                          setOpenSaveFormDialog(true);
+                        }}
+                      >
+                        Salvar
+                      </CButton>
+                    </PermissionGuard>
                   )}
                 </div>
               )}
@@ -369,14 +380,16 @@ const ClientV2 = ({
                   <IconCalculator />
                 </CButton>
                 {!isFinalized && (
-                  <CButton
-                    className="w-fit"
-                    onClick={() => {
-                      setOpenSaveFormDialog(true);
-                    }}
-                  >
-                    Salvar
-                  </CButton>
+                  <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                    <CButton
+                      className="w-fit"
+                      onClick={() => {
+                        setOpenSaveFormDialog(true);
+                      }}
+                    >
+                      Salvar
+                    </CButton>
+                  </PermissionGuard>
                 )}
               </div>
             )}

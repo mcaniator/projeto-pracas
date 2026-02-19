@@ -135,6 +135,9 @@ const Sidebar = ({
               broadAdministrativeUnit: [],
               intermediateAdministrativeUnit: [],
               narrowAdministrativeUnit: [],
+              broadAdministrativeUnitTitle: null,
+              intermediateAdministrativeUnitTitle: null,
+              narrowAdministrativeUnitTitle: null,
               createdAt: new Date(),
               updatedAt: new Date(),
             }
@@ -168,60 +171,67 @@ const Sidebar = ({
         </CAccordionSummary>
         <CAccordionDetails>
           <div className="flex flex-col gap-1">
-            <CAutocomplete
-              label="Região administrativa ampla"
-              options={broadUnits}
-              getOptionLabel={(o) => o.name}
-              isOptionEqualToValue={(a, b) => a.id === b.id}
-              loading={loadingCities}
-              value={
-                broadUnits.find(
-                  (b) => b.id === filter.broadAdministrativeUnitId,
-                ) ?? null
-              }
-              onChange={(_, v) =>
-                setFilter({
-                  ...filter,
-                  broadAdministrativeUnitId: v?.id ?? null,
-                })
-              }
-            />
-            <CAutocomplete
-              label="Região administrativa intermendiária"
-              options={intermediateUnits}
-              getOptionLabel={(o) => o.name}
-              isOptionEqualToValue={(a, b) => a.id === b.id}
-              loading={loadingCities}
-              value={
-                intermediateUnits.find(
-                  (b) => b.id === filter.intermediateAdministrativeUnitId,
-                ) ?? null
-              }
-              onChange={(_, v) =>
-                setFilter({
-                  ...filter,
-                  intermediateAdministrativeUnitId: v?.id ?? null,
-                })
-              }
-            />
-            <CAutocomplete
-              label="Região administrativa estreita"
-              options={narrowUnits}
-              getOptionLabel={(o) => o.name}
-              isOptionEqualToValue={(a, b) => a.id === b.id}
-              loading={loadingCities}
-              value={
-                narrowUnits.find(
-                  (b) => b.id === filter.narrowAdministrativeUnitId,
-                ) ?? null
-              }
-              onChange={(_, v) =>
-                setFilter({
-                  ...filter,
-                  narrowAdministrativeUnitId: v?.id ?? null,
-                })
-              }
-            />
+            {!!selectedCity?.broadAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity?.broadAdministrativeUnitTitle}
+                options={broadUnits}
+                getOptionLabel={(o) => o.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  broadUnits.find(
+                    (b) => b.id === filter.broadAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    broadAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
+              />
+            )}
+            {!!selectedCity?.intermediateAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity?.intermediateAdministrativeUnitTitle}
+                options={intermediateUnits}
+                getOptionLabel={(o) => o.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  intermediateUnits.find(
+                    (b) => b.id === filter.intermediateAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    intermediateAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
+              />
+            )}
+            {!!selectedCity?.narrowAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity?.narrowAdministrativeUnitTitle}
+                options={narrowUnits}
+                getOptionLabel={(o) => o.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  narrowUnits.find(
+                    (b) => b.id === filter.narrowAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, v) =>
+                  setFilter({
+                    ...filter,
+                    narrowAdministrativeUnitId: v?.id ?? null,
+                  })
+                }
+              />
+            )}
+
             <CAutocomplete
               label="Categoria"
               options={[...locationCategories, { id: -1, name: "NENHUMA" }]}
@@ -383,6 +393,9 @@ const Sidebar = ({
                   broadAdministrativeUnit: [],
                   intermediateAdministrativeUnit: [],
                   narrowAdministrativeUnit: [],
+                  broadAdministrativeUnitTitle: null,
+                  intermediateAdministrativeUnitTitle: null,
+                  narrowAdministrativeUnitTitle: null,
                   createdAt: new Date(),
                   updatedAt: new Date(),
                 }

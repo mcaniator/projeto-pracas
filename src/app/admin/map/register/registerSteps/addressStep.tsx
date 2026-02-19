@@ -42,10 +42,22 @@ const AddressStep = ({
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
   >(null);
+  const [adminUnitsSugestions, setAdminUnitsSugestions] = useState<{
+    narrow: string[];
+    intermediate: string[];
+    broad: string[];
+  }>({
+    narrow: [],
+    intermediate: [],
+    broad: [],
+  });
 
   const [selectedItemToEdit, setSelectedItemToEdit] = useState<{
     id: number;
     name: string;
+    narrowAdministrativeUnitTitle?: string | null; //Only used in city
+    intermediateAdministrativeUnitTitle?: string | null; //Only used in city
+    broadAdministrativeUnitTitle?: string | null; //Only used in city
   } | null>(null);
   const [unitLevel, setUnitLevel] = useState<AdministrativeUnitLevel>("BROAD");
 
@@ -53,6 +65,13 @@ const AddressStep = ({
     callbacks: {
       onSuccess(response) {
         setCitiesOptions(response.data?.cities ?? []);
+        setAdminUnitsSugestions(
+          response.data?.uniqueAdminstrativeUnitsTitles ?? {
+            broad: [],
+            intermediate: [],
+            narrow: [],
+          },
+        );
       },
     },
   });
@@ -60,6 +79,7 @@ const AddressStep = ({
     await _fetchCities({
       state: parkData.state,
       includeAdminstrativeRegions: true,
+      includeUniqueAdminstrativeUnitsTitles: true,
     });
   }, [parkData.state, _fetchCities]);
   const [cityAdmUnits, setCityAdmUnits] = useState<{
@@ -172,9 +192,18 @@ const AddressStep = ({
         suffixButtonChildren={<IconPlus />}
         appendIconButton={<IconPencil />}
         onAppendIconButtonClick={() => {
+          const cityOption = citiesOptions?.find(
+            (c) => c.id === parkData.cityId,
+          );
           setSelectedItemToEdit({
             id: parkData.cityId!,
             name: parkCity?.name ?? "",
+            narrowAdministrativeUnitTitle:
+              cityOption?.narrowAdministrativeUnitTitle ?? null,
+            intermediateAdministrativeUnitTitle:
+              cityOption?.intermediateAdministrativeUnitTitle ?? null,
+            broadAdministrativeUnitTitle:
+              cityOption?.broadAdministrativeUnitTitle ?? null,
           });
           setOpenCitySaveDialog(true);
         }}
@@ -194,107 +223,113 @@ const AddressStep = ({
         }}
       />
 
-      <CAutocomplete
-        className="w-full"
-        label="Região administrativa ampla"
-        value={autocompleteBroadUnitValue}
-        options={cityAdmUnits.broadUnits ?? []}
-        loading={isLoadingCities}
-        suffixButtonChildren={<IconPlus />}
-        appendIconButton={<IconPencil />}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        onSuffixButtonClick={() => {
-          setSelectedItemToEdit(null);
-          setUnitLevel("BROAD");
-          setOpenUnitSaveDialog(true);
-        }}
-        onAppendIconButtonClick={() => {
-          setUnitLevel("BROAD");
-          setSelectedItemToEdit({
-            id: parkData.broadAdministrativeUnitId!,
-            name:
-              cityAdmUnits.broadUnits?.find(
-                (b) => b.id === parkData.broadAdministrativeUnitId!,
-              )?.name ?? "",
-          });
-          setOpenUnitSaveDialog(true);
-        }}
-        onChange={(_, v) => {
-          setParkData((prev) => ({
-            ...prev,
-            broadAdministrativeUnitId: v?.id ?? null,
-          }));
-        }}
-      />
+      {!!autocompleteCityValue?.broadAdministrativeUnitTitle && (
+        <CAutocomplete
+          className="w-full"
+          label={autocompleteCityValue?.broadAdministrativeUnitTitle}
+          value={autocompleteBroadUnitValue}
+          options={cityAdmUnits.broadUnits ?? []}
+          loading={isLoadingCities}
+          suffixButtonChildren={<IconPlus />}
+          appendIconButton={<IconPencil />}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          onSuffixButtonClick={() => {
+            setSelectedItemToEdit(null);
+            setUnitLevel("BROAD");
+            setOpenUnitSaveDialog(true);
+          }}
+          onAppendIconButtonClick={() => {
+            setUnitLevel("BROAD");
+            setSelectedItemToEdit({
+              id: parkData.broadAdministrativeUnitId!,
+              name:
+                cityAdmUnits.broadUnits?.find(
+                  (b) => b.id === parkData.broadAdministrativeUnitId!,
+                )?.name ?? "",
+            });
+            setOpenUnitSaveDialog(true);
+          }}
+          onChange={(_, v) => {
+            setParkData((prev) => ({
+              ...prev,
+              broadAdministrativeUnitId: v?.id ?? null,
+            }));
+          }}
+        />
+      )}
 
-      <CAutocomplete
-        className="w-full"
-        label="Região administrativa intermendiária"
-        value={autocompleteIntermediateUnitValue}
-        options={cityAdmUnits.intermediateUnits ?? []}
-        loading={isLoadingCities}
-        suffixButtonChildren={<IconPlus />}
-        appendIconButton={<IconPencil />}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        onSuffixButtonClick={() => {
-          setSelectedItemToEdit(null);
-          setUnitLevel("INTERMEDIATE");
-          setOpenUnitSaveDialog(true);
-        }}
-        onAppendIconButtonClick={() => {
-          setUnitLevel("INTERMEDIATE");
-          setSelectedItemToEdit({
-            id: parkData.intermediateAdministrativeUnitId!,
-            name:
-              cityAdmUnits.intermediateUnits?.find(
-                (b) => b.id === parkData.intermediateAdministrativeUnitId!,
-              )?.name ?? "",
-          });
-          setOpenUnitSaveDialog(true);
-        }}
-        onChange={(_, v) => {
-          setParkData((prev) => ({
-            ...prev,
-            intermediateAdministrativeUnitId: v?.id ?? null,
-          }));
-        }}
-      />
+      {!!autocompleteCityValue?.intermediateAdministrativeUnitTitle && (
+        <CAutocomplete
+          className="w-full"
+          label={autocompleteCityValue?.intermediateAdministrativeUnitTitle}
+          value={autocompleteIntermediateUnitValue}
+          options={cityAdmUnits.intermediateUnits ?? []}
+          loading={isLoadingCities}
+          suffixButtonChildren={<IconPlus />}
+          appendIconButton={<IconPencil />}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          onSuffixButtonClick={() => {
+            setSelectedItemToEdit(null);
+            setUnitLevel("INTERMEDIATE");
+            setOpenUnitSaveDialog(true);
+          }}
+          onAppendIconButtonClick={() => {
+            setUnitLevel("INTERMEDIATE");
+            setSelectedItemToEdit({
+              id: parkData.intermediateAdministrativeUnitId!,
+              name:
+                cityAdmUnits.intermediateUnits?.find(
+                  (b) => b.id === parkData.intermediateAdministrativeUnitId!,
+                )?.name ?? "",
+            });
+            setOpenUnitSaveDialog(true);
+          }}
+          onChange={(_, v) => {
+            setParkData((prev) => ({
+              ...prev,
+              intermediateAdministrativeUnitId: v?.id ?? null,
+            }));
+          }}
+        />
+      )}
 
-      <CAutocomplete
-        className="w-full"
-        label="Região administrativa estreita"
-        value={autocompleteNarrowUnitValue}
-        options={cityAdmUnits.narrowUnits ?? []}
-        loading={isLoadingCities}
-        suffixButtonChildren={<IconPlus />}
-        appendIconButton={<IconPencil />}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        onSuffixButtonClick={() => {
-          setSelectedItemToEdit(null);
-          setUnitLevel("NARROW");
-          setOpenUnitSaveDialog(true);
-        }}
-        onAppendIconButtonClick={() => {
-          setUnitLevel("NARROW");
-          setSelectedItemToEdit({
-            id: parkData.narrowAdministrativeUnitId!,
-            name:
-              cityAdmUnits.narrowUnits?.find(
-                (b) => b.id === parkData.narrowAdministrativeUnitId!,
-              )?.name ?? "",
-          });
-          setOpenUnitSaveDialog(true);
-        }}
-        onChange={(_, v) => {
-          setParkData((prev) => ({
-            ...prev,
-            narrowAdministrativeUnitId: v?.id ?? null,
-          }));
-        }}
-      />
+      {!!autocompleteCityValue?.narrowAdministrativeUnitTitle && (
+        <CAutocomplete
+          className="w-full"
+          label={autocompleteCityValue?.narrowAdministrativeUnitTitle}
+          value={autocompleteNarrowUnitValue}
+          options={cityAdmUnits.narrowUnits ?? []}
+          loading={isLoadingCities}
+          suffixButtonChildren={<IconPlus />}
+          appendIconButton={<IconPencil />}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          onSuffixButtonClick={() => {
+            setSelectedItemToEdit(null);
+            setUnitLevel("NARROW");
+            setOpenUnitSaveDialog(true);
+          }}
+          onAppendIconButtonClick={() => {
+            setUnitLevel("NARROW");
+            setSelectedItemToEdit({
+              id: parkData.narrowAdministrativeUnitId!,
+              name:
+                cityAdmUnits.narrowUnits?.find(
+                  (b) => b.id === parkData.narrowAdministrativeUnitId!,
+                )?.name ?? "",
+            });
+            setOpenUnitSaveDialog(true);
+          }}
+          onChange={(_, v) => {
+            setParkData((prev) => ({
+              ...prev,
+              narrowAdministrativeUnitId: v?.id ?? null,
+            }));
+          }}
+        />
+      )}
 
       <CTextField
         maxCharacters={255}
@@ -342,6 +377,7 @@ const AddressStep = ({
           setOpenCitySaveDialog(false);
         }}
         selectedCity={selectedItemToEdit}
+        adminUnitsSugestions={adminUnitsSugestions}
         previouslySelectedState={parkData.state}
         reloadCities={() => {
           activateReloadCitiesOnClose();

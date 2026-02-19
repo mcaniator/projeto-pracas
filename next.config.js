@@ -7,9 +7,6 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -25,6 +22,9 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 

@@ -1,6 +1,5 @@
 "use server";
 
-import { TallyCreationFormType } from "@/app/admin/parks/[locationId]/tallys/tallyCreation";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
@@ -10,17 +9,14 @@ import {
   AgeGroupType,
   GenderType,
 } from "@customTypes/tallys/person";
-import PermissionError from "@errors/permissionError";
 import { WeatherConditions } from "@prisma/client";
-import { fetchTallysByLocationId } from "@queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   CommercialActivity,
   commercialActivitySchema,
   tallyPersonArraySchema,
 } from "@zodValidators";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { redirect } from "next/navigation";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 interface WeatherStats {
@@ -40,15 +36,6 @@ interface PersonWithQuantity {
   };
   quantity: number;
 }
-const _fetchTallysByLocationId = async (locationId: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, tallys: [] };
-  }
-  const response = await fetchTallysByLocationId(locationId);
-  return response;
-};
 
 export const _createTallyV2 = async (
   prevState: { responseInfo: APIResponseInfo },
@@ -104,7 +91,6 @@ export const _createTallyV2 = async (
       };
     }
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 400,
@@ -114,84 +100,34 @@ export const _createTallyV2 = async (
   }
 };
 
-const _createTally = async (
-  prevState: TallyCreationFormType,
-  formData: FormData,
-) => {
-  const locationId = formData.get("locationId") as string;
-  const userId = formData.get("userId") as string;
-  const date = formData.get("date") as string;
-
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
-    if (!userId || !date) {
-      return {
-        locationId: locationId,
-        userId: userId,
-        date: date,
-        errors: {
-          userId: !userId,
-          date: !date,
-          permission: false,
-        },
-      };
-    }
-    await prisma.tally.create({
-      data: {
-        location: {
-          connect: {
-            id: Number(locationId),
-          },
-        },
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        startDate: new Date(date),
-      },
-    });
-    revalidatePath(`/admin/parks/${locationId}/tallys`);
-    return {
-      locationId: locationId,
-      userId: "",
-      date: date,
-      errors: {
-        userId: false,
-        date: false,
-        permission: false,
-      },
-    };
-  } catch (error) {
-    return {
-      locationId: locationId,
-      userId: userId,
-      date: date,
-      errors: {
-        userId: !userId,
-        date: !date,
-        permission: error instanceof PermissionError,
-      },
-    };
-  }
-};
-
-const _saveOngoingTallyData = async (
-  tallyId: number,
-  weatherStats: WeatherStats,
-  tallyMap: Map<string, number>,
-  commercialActivities: CommercialActivity,
-  complementaryData: { animalsAmount: number; groupsAmount: number },
-  endDate: Date | null,
-) => {
+const _saveOngoingTallyData = async ({
+  tallyId,
+  weatherStats,
+  tallyMap,
+  commercialActivities,
+  complementaryData,
+  startDate,
+  endDate,
+}: {
+  tallyId: number;
+  weatherStats: WeatherStats;
+  tallyMap: Map<string, number>;
+  commercialActivities: CommercialActivity;
+  complementaryData: { animalsAmount: number; groupsAmount: number };
+  startDate: Date;
+  endDate: Date | null;
+}) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
     });
   } catch (e) {
-    return { statusCode: 401 };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
   }
   const persons: PersonWithQuantity[] = [];
 
@@ -228,12 +164,22 @@ const _saveOngoingTallyData = async (
   });
   const parsedTallyPersonArray = tallyPersonArraySchema.safeParse(persons);
   if (!parsedTallyPersonArray.success) {
-    return { statusCode: 400 };
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
   }
   const parsedCommercialActivities =
     commercialActivitySchema.safeParse(commercialActivities);
   if (!parsedCommercialActivities.success) {
-    return { statusCode: 400 };
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
   }
   try {
     await prisma.tally.update({
@@ -247,12 +193,24 @@ const _saveOngoingTallyData = async (
         groups: complementaryData.groupsAmount,
         commercialActivities: parsedCommercialActivities.data,
         tallyPerson: parsedTallyPersonArray.data,
+        startDate: startDate,
         endDate: endDate,
       },
     });
-    return { statusCode: 200 };
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Contagem salva com sucesso!",
+        showSuccessCard: true,
+      } as APIResponseInfo,
+    };
   } catch (error) {
-    return { statusCode: 500 };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao salvar contagem!",
+      } as APIResponseInfo,
+    };
   }
 };
 
@@ -296,14 +254,4 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
-const _redirectToTallysList = (locationId: number) => {
-  redirect(`/admin/tallys`);
-};
-
-export {
-  _fetchTallysByLocationId,
-  _createTally,
-  _saveOngoingTallyData,
-  _deleteTallys,
-  _redirectToTallysList,
-};
+export { _saveOngoingTallyData, _deleteTallys };

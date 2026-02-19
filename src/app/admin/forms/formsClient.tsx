@@ -2,6 +2,7 @@
 
 import FormArchiveDialog from "@/app/admin/forms/formArchiveDialog";
 import FormCreationDialog from "@/app/admin/forms/formCreationDialog";
+import PermissionGuard from "@/components/auth/permissionGuard";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CMenu from "@/components/ui/menu/cMenu";
@@ -193,14 +194,16 @@ const FormsClient = () => {
         titleIcon={<IconClipboard />}
         title="Formulários"
         append={
-          <CButton
-            onClick={() => {
-              setSelectedForm(undefined);
-              setOpenFormCreationDialog(true);
-            }}
-          >
-            <IconPlus /> Criar
-          </CButton>
+          <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+            <CButton
+              onClick={() => {
+                setSelectedForm(undefined);
+                setOpenFormCreationDialog(true);
+              }}
+            >
+              <IconPlus /> Criar
+            </CButton>
+          </PermissionGuard>
         }
       />
 

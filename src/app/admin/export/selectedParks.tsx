@@ -5,17 +5,17 @@ import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
-import { Breadcrumbs, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
+  _exportAssessments,
   _exportDailyTallys,
-  _exportEvaluation,
   _exportIndividualTallysToCSV,
   _exportRegistrationData,
 } from "@serverActions/exportToCSV";
 import {
-  IconBuildingCommunity,
   IconMapPin,
   IconMinus,
   IconPencil,
@@ -97,13 +97,11 @@ const SelectedParks = ({
   const handleEvaluationExport = async () => {
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
-      (location) => location.assessments.length > 0,
+      (location) => location.assessmentsIds.length > 0,
     );
-    const response = await _exportEvaluation(
+    const response = await _exportAssessments(
       locationsToExportEvaluations
-        .map((location) =>
-          location.assessments.map((assessment) => assessment.id),
-        )
+        .map((location) => location.assessmentsIds)
         .flat(),
     );
     if (response.statusCode === 401) {
@@ -129,10 +127,7 @@ const SelectedParks = ({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `Avaliações - ${csvObj.formName}, v.${csvObj.formVersion}.csv`,
-      );
+      link.setAttribute("download", `Avaliações - ${csvObj.formName}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -293,23 +288,7 @@ const SelectedParks = ({
                   </div>
 
                   <Divider />
-                  <div className="flex items-center">
-                    <CIconChip
-                      icon={<IconBuildingCommunity />}
-                      tooltip="Unidades Administrativas"
-                    />
-                    <Breadcrumbs separator="›" aria-label="breadcrumb">
-                      {l.narrowAdministrativeUnitName ?
-                        <div>{l.narrowAdministrativeUnitName}</div>
-                      : <span className="ml-1">-</span>}
-                      {l.intermediateAdministrativeUnitName ?
-                        <div>{l.intermediateAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                      {l.broadAdministrativeUnitName ?
-                        <div>{l.broadAdministrativeUnitName}</div>
-                      : <span>-</span>}
-                    </Breadcrumbs>
-                  </div>
+                  <CLocationAdministrativeUnits location={l} />
                   <Divider />
                   <div className="flex items-center">
                     <span>
@@ -319,7 +298,7 @@ const SelectedParks = ({
                   </div>
                   <Divider />
                   <div className="flex items-center">
-                    <span>{`Avaliações selecionadas: ${l.assessments.length}/${l.assessmentCount}`}</span>
+                    <span>{`Avaliações selecionadas: ${l.assessmentsIds.length}/${l.assessmentCount}`}</span>
                   </div>
                   <Divider />
                   <div className="flex items-center">

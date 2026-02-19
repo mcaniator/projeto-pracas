@@ -7,14 +7,14 @@ import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { Breadcrumbs, Chip, Divider, LinearProgress } from "@mui/material";
+import { Chip, Divider, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import {
-  IconBuildingCommunity,
   IconFilter,
   IconMapPin,
   IconPlus,
@@ -188,58 +188,66 @@ const LocationSelector = ({
   }, [filter]);
   const AccordionFilter = (
     <>
-      <CAutocomplete
-        label="Região administrativa ampla"
-        options={broadUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities}
-        value={
-          broadUnits.find((b) => b.id === filter.broadAdministrativeUnitId) ??
-          null
-        }
-        onChange={(_, v) => {
-          setFilter({
-            ...filter,
-            broadAdministrativeUnitId: v?.id ?? null,
-          });
-        }}
-      />
-      <CAutocomplete
-        label="Região administrativa intermendiária"
-        options={intermediateUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities}
-        value={
-          intermediateUnits.find(
-            (b) => b.id === filter.intermediateAdministrativeUnitId,
-          ) ?? null
-        }
-        onChange={(_, v) => {
-          setFilter({
-            ...filter,
-            intermediateAdministrativeUnitId: v?.id ?? null,
-          });
-        }}
-      />
-      <CAutocomplete
-        label="Região administrativa estreita"
-        options={narrowUnits}
-        getOptionLabel={(o) => o.name}
-        isOptionEqualToValue={(a, b) => a.id === b.id}
-        loading={loadingCities}
-        value={
-          narrowUnits.find((b) => b.id === filter.narrowAdministrativeUnitId) ??
-          null
-        }
-        onChange={(_, v) => {
-          setFilter({
-            ...filter,
-            narrowAdministrativeUnitId: v?.id ?? null,
-          });
-        }}
-      />
+      {selectedCity?.broadAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity.broadAdministrativeUnitTitle}
+          options={broadUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities}
+          value={
+            broadUnits.find((b) => b.id === filter.broadAdministrativeUnitId) ??
+            null
+          }
+          onChange={(_, v) => {
+            setFilter({
+              ...filter,
+              broadAdministrativeUnitId: v?.id ?? null,
+            });
+          }}
+        />
+      )}
+      {selectedCity?.intermediateAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity.intermediateAdministrativeUnitTitle}
+          options={intermediateUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities}
+          value={
+            intermediateUnits.find(
+              (b) => b.id === filter.intermediateAdministrativeUnitId,
+            ) ?? null
+          }
+          onChange={(_, v) => {
+            setFilter({
+              ...filter,
+              intermediateAdministrativeUnitId: v?.id ?? null,
+            });
+          }}
+        />
+      )}
+      {selectedCity?.narrowAdministrativeUnitTitle && (
+        <CAutocomplete
+          label={selectedCity.narrowAdministrativeUnitTitle}
+          options={narrowUnits}
+          getOptionLabel={(o) => o.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          loading={loadingCities}
+          value={
+            narrowUnits.find(
+              (b) => b.id === filter.narrowAdministrativeUnitId,
+            ) ?? null
+          }
+          onChange={(_, v) => {
+            setFilter({
+              ...filter,
+              narrowAdministrativeUnitId: v?.id ?? null,
+            });
+          }}
+        />
+      )}
+
       <CTextField
         label="Nome"
         value={filter.name}
@@ -283,6 +291,9 @@ const LocationSelector = ({
               broadAdministrativeUnit: [],
               intermediateAdministrativeUnit: [],
               narrowAdministrativeUnit: [],
+              narrowAdministrativeUnitTitle: null,
+              intermediateAdministrativeUnitTitle: null,
+              broadAdministrativeUnitTitle: null,
               createdAt: new Date(),
               updatedAt: new Date(),
             }
@@ -349,23 +360,7 @@ const LocationSelector = ({
                   {`${l.cityName} - ${l.state}`}
                 </div>
                 <Divider />
-                <div className="flex items-center">
-                  <CIconChip
-                    icon={<IconBuildingCommunity />}
-                    tooltip="Unidades Administrativas"
-                  />
-                  <Breadcrumbs separator="›" aria-label="breadcrumb">
-                    {l.narrowAdministrativeUnitName ?
-                      <div>{l.narrowAdministrativeUnitName}</div>
-                    : <span className="ml-1">-</span>}
-                    {l.intermediateAdministrativeUnitName ?
-                      <div>{l.intermediateAdministrativeUnitName}</div>
-                    : <span>-</span>}
-                    {l.broadAdministrativeUnitName ?
-                      <div>{l.broadAdministrativeUnitName}</div>
-                    : <span>-</span>}
-                  </Breadcrumbs>
-                </div>
+                <CLocationAdministrativeUnits location={l} />
                 <Divider />
                 <div className="flex items-center">
                   <span>{`Avaliações: ${l.assessmentCount},  Contagens: ${l.tallyCount}`}</span>

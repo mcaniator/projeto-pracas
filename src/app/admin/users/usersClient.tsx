@@ -161,7 +161,7 @@ const UsersClient = () => {
     <div className="flex h-full w-full flex-col bg-white p-2 text-black">
       <CAdminHeader
         titleIcon={<IconUser />}
-        title="Admininstrar Usuários"
+        title="Administrar Usuários"
         append={
           <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
             <Link href="/admin/users/invites">

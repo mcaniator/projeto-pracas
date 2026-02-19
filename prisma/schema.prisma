@@ -10,10 +10,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  //directUrl  = env("DIRECT_URL")
-  //extensions = [postgis]
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  //extensions = [postgis] moved extensions management to custom migration
 }
 
 // #endregion
@@ -249,7 +249,7 @@ model Question {
   characterType QuestionResponseCharacterTypes @map("character_type")
   response      Response[]
   optionType    OptionTypes?                   @map("option_type")
-  geometryTypes QuestionGeometryTypes[]        @map("geometryTypes")
+  geometryTypes QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 
@@ -410,7 +410,6 @@ model Location {
   city                City    @relation(fields: [cityId], references: [id])
   creationYear        Int?    @map("creation_year")
   lastMaintenanceYear Int?    @map("last_maintenance_year")
-  overseeingMayor     String? @map("overseeing_mayor") @db.VarChar(255)
   legislation         String? @db.VarChar(255)
   usableArea          Float?  @map("usable_area")
   legalArea           Float?  @map("legal_area")
@@ -468,12 +467,15 @@ model City {
   name  String          @db.VarChar(255)
   state BrazilianStates
 
-  narrowAdministrativeUnit       NarrowAdministrativeUnit[]
-  intermediateAdministrativeUnit IntermediateAdministrativeUnit[]
-  broadAdministrativeUnit        BroadAdministrativeUnit[]
-  locations                      Location[]
-  createdAt                      DateTime?                        @default(now()) @map("created_at")
-  updatedAt                      DateTime?                        @updatedAt @map("updated_at")
+  narrowAdministrativeUnit            NarrowAdministrativeUnit[]
+  intermediateAdministrativeUnit      IntermediateAdministrativeUnit[]
+  broadAdministrativeUnit             BroadAdministrativeUnit[]
+  narrowAdministrativeUnitTitle       String?                          @map("narrow_administrative_unit_title")
+  intermediateAdministrativeUnitTitle String?                          @map("intermediate_administrative_unit_title")
+  broadAdministrativeUnitTitle        String?                          @map("broad_administrative_unit_title")
+  locations                           Location[]
+  createdAt                           DateTime?                        @default(now()) @map("created_at")
+  updatedAt                           DateTime?                        @updatedAt @map("updated_at")
 
   @@unique([name, state])
   @@map("city")

@@ -4,47 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { deleteImage, uploadImage } from "@/lib/utils/image";
 import { booleanFromString, locationSchema } from "@/lib/zodValidators";
-import { BrazilianStates, Image, Location } from "@prisma/client";
+import { Image } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { addPolygon } from "@serverOnly/geometries";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
-
-interface LocationWithCity extends Location {
-  hasGeometry: boolean;
-  type: {
-    id: number;
-    name: string;
-  } | null;
-  category: {
-    id: number;
-    name: string;
-  } | null;
-  narrowAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-  intermediateAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-  broadAdministrativeUnit: {
-    id: number;
-    name: string;
-    city: {
-      name: string;
-      state: BrazilianStates;
-    } | null;
-  } | null;
-}
 
 const _deleteLocation = async (
   prevState: { responseInfo: APIResponseInfo },
@@ -162,7 +126,6 @@ const _updateLocation = async (
       notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
@@ -245,7 +208,6 @@ const _updateLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
-      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
@@ -295,7 +257,6 @@ const _createLocation = async (
       notes: formData.get("notes"),
       creationYear: formData.get("creationYear"),
       lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      overseeingMayor: formData.get("overseeingMayor"),
       legislation: formData.get("legislation"),
       legalArea: formData.get("legalArea"),
       usableArea: formData.get("usableArea"),
@@ -353,7 +314,6 @@ const _createLocation = async (
         } as APIResponseInfo,
       };
     } catch (err) {
-      console.log(err);
       return {
         responseInfo: {
           statusCode: 500,
@@ -362,7 +322,6 @@ const _createLocation = async (
       };
     }
   } catch (err) {
-    console.log(err);
     return {
       responseInfo: {
         statusCode: 401,
@@ -415,5 +374,3 @@ export {
   _createLocation,
   _editLocationPolygon,
 };
-
-export type { LocationWithCity };

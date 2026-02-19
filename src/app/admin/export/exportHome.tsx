@@ -27,7 +27,7 @@ const ExportHome = () => {
       {
         ...locationObj,
         tallysIds: [],
-        assessments: [],
+        assessmentsIds: [],
         exportRegistrationInfo: false,
       },
     ]);

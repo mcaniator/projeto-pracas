@@ -185,11 +185,10 @@ const PolygonsAndClientContainer = () => {
     setTimeout(() => setDisableAutoFitAfterLocationsLoad(false), 500);
   }, [filter, locationsWithPolygon]);
   const loadLocations = useCallback(async () => {
-    if (!selectedCity)
-      if (!selectedCity) {
-        setLocationsWithPolygon([]);
-        return;
-      }
+    if (!selectedCity) {
+      setLocationsWithPolygon([]);
+      return;
+    }
     await _fetchLocations({
       cityId: selectedCity?.id,
     });
@@ -322,7 +321,7 @@ const PolygonsAndClientContainer = () => {
       </div>
       {loadingLocations && (
         <div
-          className={`absolute bottom-4 z-50 h-fit w-fit ${isMobileView ? "left-4" : "right-4"}`}
+          className={`absolute z-50 h-fit w-fit ${isMobileView ? "bottom-12 left-4" : "bottom-0 right-12"}`}
         >
           <CircularProgress color="secondary" size={64} />
         </div>

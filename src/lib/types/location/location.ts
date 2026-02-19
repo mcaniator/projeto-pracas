@@ -32,9 +32,11 @@ export type LocationForMap = {
   narrowAdministrativeUnitId: number | null;
   intermediateAdministrativeUnitId: number | null;
   broadAdministrativeUnitId: number | null;
+  narrowAdministrativeUnitTitle: string | null;
+  intermediateAdministrativeUnitTitle: string | null;
+  broadAdministrativeUnitTitle: string | null;
   creationYear: number | null;
   lastMaintenanceYear: number | null;
-  overseeingMayor: string | null;
   legislation: string | null;
   usableArea: number | null;
   legalArea: number | null;

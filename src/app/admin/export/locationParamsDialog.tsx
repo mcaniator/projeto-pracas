@@ -172,7 +172,21 @@ const LocationParamsDialog = ({
                   key={a.id}
                   className="flex flex-row items-center bg-gray-200 p-2 px-2 shadow-xl"
                 >
-                  <CCheckbox />
+                  <CCheckbox
+                    checked={localLocation.assessmentsIds.includes(a.id)}
+                    onChange={(e) => {
+                      setLocalLocation((prev) => {
+                        if (!prev) return null;
+                        return {
+                          ...prev,
+                          assessmentsIds:
+                            e.target.checked ?
+                              [...prev.assessmentsIds, a.id]
+                            : prev.assessmentsIds.filter((id) => id !== a.id),
+                        };
+                      });
+                    }}
+                  />
                   <div className="flex flex-col gap-1">
                     <span>{`${dateTimeFormatter.format(new Date(a.startDate))} - ${a.endDate ? dateTimeFormatter.format(new Date(a.endDate)) : "Sem data final!"}`}</span>
                     <span>

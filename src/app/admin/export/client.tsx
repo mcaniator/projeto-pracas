@@ -2,13 +2,12 @@
 
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { LocationAssessment } from "@serverActions/assessmentUtil";
 
 import { ExportHome } from "./exportHome";
 
 export type SelectedLocationObj =
   FetchLocationsResponse["locations"][number] & {
-    assessments: LocationAssessment[];
+    assessmentsIds: number[];
     exportRegistrationInfo: boolean;
     tallysIds: number[];
   };

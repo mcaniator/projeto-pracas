@@ -1,4 +1,3 @@
-import { useOpenedDialogsCounterContext } from "@/components/context/openedDialogsCounterContext";
 import {
   ButtonProps,
   Dialog,
@@ -11,7 +10,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
-import React, { ReactNode, useEffect, useMemo, useRef } from "react";
+import React, { ReactNode, useMemo } from "react";
 
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
@@ -100,7 +99,9 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
-  const onCloseRef = useRef(onClose);
+  // This code is used to close the dialog when the user presses the navigation buttons.
+  // It is commented out because it breaks if the dialog is closed from the 'open' prop.
+  /*const onCloseRef = useRef(onClose);
   const openDialogCounterContext = useOpenedDialogsCounterContext();
   const dialogIndexRef = useRef(0);
   const handlePopRef = useRef((forceBackNavigation?: boolean) => {
@@ -156,7 +157,18 @@ const CDialog = ({
 
   useEffect(() => {
     onCloseRef.current = onClose;
-  }, [onClose]);
+  }, [onClose]);*/
+
+  const handleEventClose = (
+    event: object,
+    reason: "backdropClick" | "escapeKeyDown",
+  ) => {
+    if (disableBackdropClose && reason === "backdropClick") {
+      return;
+    }
+
+    onClose?.();
+  };
 
   const theme = useTheme();
   const isMobileView = useMediaQuery(theme.breakpoints.down("sm"));
@@ -198,16 +210,10 @@ const CDialog = ({
               py: "0px",
             }}
           >
-            <CDialogHeader
-              close={() => {
-                handlePopRef.current(true);
-              }}
-              title={title}
-              subtitle={subtitle}
-            />
+            <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
           </DialogTitle>
 
-          <DialogContent sx={contentSx} dividers>
+          <DialogContent sx={contentSx} dividers={!!children}>
             {children}
           </DialogContent>
 
@@ -264,16 +270,10 @@ const CDialog = ({
           py: "0px",
         }}
       >
-        <CDialogHeader
-          close={() => {
-            handlePopRef.current(true);
-          }}
-          title={title}
-          subtitle={subtitle}
-        />
+        <CDialogHeader close={onClose} title={title} subtitle={subtitle} />
       </DialogTitle>
 
-      <DialogContent sx={contentSx} dividers>
+      <DialogContent sx={contentSx} dividers={!!children}>
         {children}
       </DialogContent>
 

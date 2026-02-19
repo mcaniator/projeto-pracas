@@ -1,7 +1,6 @@
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-import { SystemSection } from "../src/app/admin/users/permissionsModal";
 import { prisma } from "../src/lib/prisma";
 
 const seed = async () => {

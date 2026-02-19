@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-type LocationAssessment = NonNullable<
+export type LocationAssessment = NonNullable<
   Awaited<ReturnType<typeof _fetchAssessmentsByLocation>>
 >["assessments"][number];
 
@@ -141,7 +141,6 @@ const _createAssessmentV2 = async (
       };
     }
   } catch (e) {
-    console.log(e);
     return {
       responseInfo: {
         statusCode: 400,
@@ -266,5 +265,3 @@ export {
   _deleteAssessment,
   _fetchAssessmentsByLocation,
 };
-
-export { type LocationAssessment };

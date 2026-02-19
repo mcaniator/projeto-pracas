@@ -6,12 +6,15 @@ import { TallyInProgressPage } from "./tallyInProgressPage";
 const Page = async (props: { params: Promise<{ tallyId: string }> }) => {
   const params = await props.params;
   const response = await fetchOngoingTallyById(Number(params.tallyId));
+  const finalizedTally = !!response.tally?.endDate ?? false;
   if (response.tally) {
     return (
       <TallyInProgressPage
         tallyId={Number(params.tallyId)}
-        locationId={Number(response.tally.location)}
+        locationId={Number(response.tally.location.id)}
+        locationName={response.tally.location.name}
         tally={response.tally}
+        finalizedTally={finalizedTally}
       />
     );
   } else {

@@ -178,8 +178,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               MozAppearance: "textfield",
             },
             "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
-              paddingBottom: "0px",
-              paddingTop: label ? "12px" : "0px",
+              paddingTop: label ? "12px" : "6px",
+              paddingBottom: label ? "0px" : "6px",
             },
             "& .MuiInputLabel-root": {
               pr: "32px",

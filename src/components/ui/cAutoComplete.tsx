@@ -28,6 +28,7 @@ type CAutocompleteProps<
   disableAppendIconButton?: boolean;
   placeholder?: string;
   name?: string;
+  textFieldName?: string;
   suffixButtonChildren?: React.ReactNode;
   showAppendButtonWhenClear?: boolean;
   error?: boolean;
@@ -51,6 +52,7 @@ function CAutocomplete<
     appendIconButtonSx,
     placeholder,
     name,
+    textFieldName,
     error,
     loading,
     suffixButtonChildren,
@@ -89,6 +91,7 @@ function CAutocomplete<
           error={error}
           isAutocompleteInput
           placeholder={placeholder}
+          name={textFieldName}
           InputLabelProps={{ ...params.InputLabelProps, shrink: true }}
           InputProps={{
             ...params.InputProps,
@@ -125,9 +128,11 @@ function CAutocomplete<
   if (loading) {
     return (
       <Skeleton
-        variant="rectangular"
+        variant="rounded"
         sx={{
           width: "100%",
+          borderRadius: 4,
+          mt: "4px",
           height: {
             xs: 39.5,
             sm: 45.25,

@@ -3,6 +3,7 @@ import { SubmittingObj } from "@/app/admin/tallys/[tallyId]/fill/tallyInProgress
 import CDialog from "@/components/ui/dialog/cDialog";
 import { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import { CommercialActivity } from "@/lib/zodValidators";
+import { Dayjs } from "dayjs";
 
 const TallyInProgressSaveDialog = ({
   open,
@@ -10,10 +11,16 @@ const TallyInProgressSaveDialog = ({
   submittingObj,
   tallyId,
   locationId,
+  locationName,
   weatherStats,
   complementaryData,
   commercialActivities,
   tallyMap,
+  startDate,
+  endDate,
+  finalizedTally,
+  setStartDate,
+  setEndDate,
   setSubmittingObj,
 }: {
   open: boolean;
@@ -25,6 +32,7 @@ const TallyInProgressSaveDialog = ({
   };
   tallyId: number;
   locationId: number;
+  locationName: string;
   weatherStats: WeatherStats;
   complementaryData: {
     animalsAmount: number;
@@ -32,6 +40,11 @@ const TallyInProgressSaveDialog = ({
   };
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
+  startDate: Dayjs;
+  endDate: Dayjs | null;
+  finalizedTally: boolean;
+  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   return (
@@ -40,11 +53,17 @@ const TallyInProgressSaveDialog = ({
         <TallyInProgressDatabaseOptions
           tallyId={tallyId}
           locationId={locationId}
+          locationName={locationName}
           tallyMap={tallyMap}
           weatherStats={weatherStats}
           commercialActivities={commercialActivities}
           complementaryData={complementaryData}
           submittingObj={submittingObj}
+          startDate={startDate}
+          endDate={endDate}
+          finalizedTally={finalizedTally}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
           setSubmittingObj={setSubmittingObj}
         />
       </div>

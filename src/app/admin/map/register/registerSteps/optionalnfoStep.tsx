@@ -23,21 +23,21 @@ const OptionalInfoStep = ({
       <Divider />
       <h3>Características físicas</h3>
       <CNumberField
-        label="Área prefeitura(m²)"
+        label="Área oficial (prefeitura) (m²)"
         value={parkData.legalArea}
         onChange={(v) => {
           setParkData((prev) => ({ ...prev, legalArea: v }));
         }}
       />
       <CNumberField
-        label="Área útil(m²)"
+        label="Área útil (m²)"
         value={parkData.usableArea}
         onChange={(v) => {
           setParkData((prev) => ({ ...prev, usableArea: v }));
         }}
       />
       <CNumberField
-        label="Inclinação(%)"
+        label="Inclinação (%)"
         value={parkData.incline}
         onChange={(v) => {
           setParkData((prev) => ({ ...prev, incline: v }));
@@ -54,19 +54,11 @@ const OptionalInfoStep = ({
       />
 
       <CNumberField
-        label="Ano da última manutenção"
+        label="Ano reforma"
         value={parkData.lastMaintenanceYear}
         onChange={(v) => {
           setParkData((prev) => ({ ...prev, lastMaintenanceYear: v }));
         }}
-      />
-      <CTextField
-        label="Nome do prefeito inagurador"
-        value={parkData.overseeingMayor}
-        onChange={(e) => {
-          setParkData((prev) => ({ ...prev, overseeingMayor: e.target.value }));
-        }}
-        maxCharacters={255}
       />
       <CTextField
         label="Legislação"

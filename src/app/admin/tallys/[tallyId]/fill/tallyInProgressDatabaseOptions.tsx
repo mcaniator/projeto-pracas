@@ -2,13 +2,10 @@
 
 import CButton from "@/components/ui/cButton";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { WeatherConditions } from "@prisma/client";
-import {
-  _deleteTallys,
-  _redirectToTallysList,
-  _saveOngoingTallyData,
-} from "@serverActions/tallyUtil";
+import { _deleteTallys, _saveOngoingTallyData } from "@serverActions/tallyUtil";
 import {
   IconCancel,
   IconCheck,
@@ -17,7 +14,9 @@ import {
   IconTrashX,
 } from "@tabler/icons-react";
 import { CommercialActivity } from "@zodValidators";
-import { useRef, useState } from "react";
+import { Dayjs } from "dayjs";
+import { useRouter } from "next-nprogress-bar";
+import { useState } from "react";
 import React from "react";
 
 import { SubmittingObj } from "./tallyInProgressPage";
@@ -36,81 +35,92 @@ type SaveDeleteState = "DEFAULT" | "SAVE" | "DELETE";
 const TallyInProgressDatabaseOptions = ({
   tallyId,
   locationId,
+  locationName,
   tallyMap,
   weatherStats,
   commercialActivities,
   complementaryData,
   submittingObj,
+  startDate,
+  endDate,
+  finalizedTally,
+  setStartDate,
+  setEndDate,
   setSubmittingObj,
 }: {
   tallyId: number;
   locationId: number;
+  locationName: string;
   tallyMap: Map<string, number>;
   weatherStats: WeatherStats;
   commercialActivities: CommercialActivity;
   complementaryData: ComplementaryDataObject;
   submittingObj: SubmittingObj;
+  startDate: Dayjs;
+  endDate: Dayjs | null;
+  finalizedTally: boolean;
+  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const endDate = useRef<Date | null>(null);
+  const router = useRouter();
   const [validEndDate, setValidEndDate] = useState(true);
   const [saveDeleteState, setSaveDeleteState] =
     useState<SaveDeleteState>("DEFAULT");
+  const [enableJsonSaving, setEnableJsonSaving] = useState(false);
+  const [submitData] = useServerAction({
+    action: _saveOngoingTallyData,
+    callbacks: {
+      onError: () => {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao salvar contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        setEnableJsonSaving(true);
+      },
+      onCallFailed() {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Erro ao salvar contagem!</>,
+        });
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
+        setEnableJsonSaving(true);
+      },
+      onSuccess() {
+        setEnableJsonSaving(false);
+        if (endDate && endDate.isValid()) {
+          router.push(`/admin/tallys?locationId=${locationId}`);
+        }
+      },
+    },
+  });
   const handleDataSubmit = async (endTally: boolean) => {
     if (endTally) {
       setSubmittingObj({ submitting: true, finishing: true, deleting: false });
     } else {
       setSubmittingObj({ submitting: true, finishing: false, deleting: false });
     }
-    try {
-      const response = await _saveOngoingTallyData(
-        tallyId,
-        weatherStats,
-        tallyMap,
-        commercialActivities,
-        complementaryData,
-        endTally ? endDate.current : null,
-      );
-      if (response.statusCode === 401) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Sem permissão para salvar contagem!</>,
-        });
-        return;
-      }
-      if (response.statusCode === 500) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao salvar contagem!</>,
-        });
-        return;
-      }
-      if (response.statusCode === 200) {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Contagem salva com sucesso!</>,
-        });
-      }
-      if (endTally) {
-        _redirectToTallysList(locationId);
-      } else {
-        setSubmittingObj({
-          submitting: false,
-          finishing: false,
-          deleting: false,
-        });
-      }
-    } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar contagem!</>,
-      });
-    }
+    await submitData({
+      tallyId,
+      weatherStats,
+      tallyMap,
+      commercialActivities,
+      complementaryData,
+      endDate: endTally && endDate ? endDate.toDate() : null,
+      startDate: startDate.toDate(),
+    });
   };
 
   const handleTallyDeletion = async () => {
@@ -170,34 +180,67 @@ const TallyInProgressDatabaseOptions = ({
       });
       return;
     }
-    _redirectToTallysList(locationId);
+    router.push(`/admin/tallys?locationId=${locationId}`);
+  };
+
+  const generateExport = () => {
+    const data = {
+      weatherStats,
+      tallyMap: Object.fromEntries(tallyMap),
+      commercialActivities,
+      complementaryData,
+      startDate: startDate.toDate(),
+      endDate: endDate ? endDate.toDate() : null,
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `contagem_${locationName}_${new Date().toISOString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="flex flex-col gap-3 overflow-auto py-1">
-      <div>
-        <h5 className="text-xl font-semibold">Salvar dados</h5>
+      <CDateTimePicker
+        label="Início da contagem em:"
+        value={startDate}
+        onAccept={(e) => {
+          if (!e) return;
+          setStartDate(e);
+        }}
+      />
+      {!finalizedTally && (
+        <div>
+          <h5 className="text-xl font-semibold">Salvar dados</h5>
 
-        <CButton
-          className="w-fit"
-          loading={submittingObj.submitting}
-          onClick={() => {
-            handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
-          }}
-        >
-          <IconDeviceFloppy /> Salvar
-        </CButton>
-      </div>
+          <CButton
+            className="w-fit"
+            loading={submittingObj.submitting}
+            onClick={() => {
+              handleDataSubmit(false).catch(() => ({ statusCode: 1 }));
+            }}
+          >
+            <IconDeviceFloppy /> Salvar
+          </CButton>
+        </div>
+      )}
+
       <div>
         <h5 className="text-xl font-semibold">Finalizar contagem</h5>
         <div className="flex flex-col gap-2">
           <CDateTimePicker
+            value={endDate}
             error={!validEndDate}
             disabled={saveDeleteState === "SAVE"}
             helperText={!validEndDate ? "Obrigatório!" : ""}
             label="Fim da contagem em:"
             onAccept={(e) => {
-              endDate.current = e?.toDate() ?? null;
+              setEndDate(e);
               setValidEndDate(true);
             }}
           />
@@ -205,7 +248,7 @@ const TallyInProgressDatabaseOptions = ({
             <CButton
               className="w-fit"
               onClick={() => {
-                if (!endDate.current || isNaN(endDate.current.getTime())) {
+                if (!endDate || !endDate.isValid()) {
                   setValidEndDate(false);
                   return;
                 } else {
@@ -219,17 +262,13 @@ const TallyInProgressDatabaseOptions = ({
 
           {saveDeleteState === "SAVE" && (
             <React.Fragment>
-              <p>
-                Salvar dados e finalizar contagem?
-                <br />
-                Dados não poderão ser modificados posteriormente!
-              </p>
+              <p>Salvar dados e finalizar contagem?</p>
 
               <CButton
                 className="w-fit"
                 loading={submittingObj.submitting}
                 onClick={() => {
-                  if (!endDate.current || isNaN(endDate.current.getTime())) {
+                  if (!endDate || !endDate.isValid()) {
                     setValidEndDate(false);
                     return;
                   } else {
@@ -241,6 +280,7 @@ const TallyInProgressDatabaseOptions = ({
               </CButton>
               <CButton
                 className="w-fit"
+                color="error"
                 disabled={submittingObj.submitting}
                 onClick={() => setSaveDeleteState("DEFAULT")}
               >
@@ -287,6 +327,15 @@ const TallyInProgressDatabaseOptions = ({
                 <IconCancel /> Cancelar exclusão
               </CButton>
             </React.Fragment>
+          )}
+          {enableJsonSaving && (
+            <div className="flex flex-col gap-1">
+              <p>
+                Falha ao salvar contagem. Tente novamente ou salve os dados
+                offline.
+              </p>
+              <CButton onClick={generateExport}>Salvar offline</CButton>
+            </div>
           )}
         </div>
       </div>

@@ -29,6 +29,7 @@ export const _saveAdministrativeUnit = async (
     const unitType = z
       .enum(["NARROW", "INTERMEDIATE", "BROAD"])
       .parse(formData.get("unitType"));
+    const levelName = z.string().nullish().parse(formData.get("levelName"));
     const unitId = z.coerce.number().nullish().parse(formData.get("unitId"));
     const name = z
       .string()
@@ -37,10 +38,7 @@ export const _saveAdministrativeUnit = async (
       .min(1)
       .parse(formData.get("unitName"));
     const cityId = z.coerce.number().parse(formData.get("cityId"));
-    const unitTypeName =
-      unitType === "BROAD" ? "ampla"
-      : unitType === "INTERMEDIATE" ? "intermediária"
-      : "estreita";
+
     if (unitId) {
       try {
         switch (unitType) {
@@ -94,7 +92,7 @@ export const _saveAdministrativeUnit = async (
         return {
           responseInfo: {
             statusCode: 201,
-            message: `Região administrativa ${unitTypeName} atualizada!`,
+            message: `${levelName} atualizado(a)!`,
             showSuccessCard: true,
           } as APIResponseInfo,
           data: null,
@@ -105,7 +103,7 @@ export const _saveAdministrativeUnit = async (
             return {
               responseInfo: {
                 statusCode: 409,
-                message: `Já existe uma região administrativa ${unitTypeName} de nome ${name} para esta cidade!`,
+                message: `Já existe um(a) ${levelName} de nome ${name} para esta cidade!`,
               } as APIResponseInfo,
               data: null,
             };
@@ -113,7 +111,7 @@ export const _saveAdministrativeUnit = async (
         return {
           responseInfo: {
             statusCode: 500,
-            message: `Erro ao atualizar região administrativa ${unitTypeName}!`,
+            message: `Erro ao atualizar ${levelName}!`,
           } as APIResponseInfo,
           data: null,
         };
@@ -163,7 +161,7 @@ export const _saveAdministrativeUnit = async (
       return {
         responseInfo: {
           statusCode: 201,
-          message: `Região administrativa ${unitTypeName} criada!`,
+          message: `${levelName} criado(a)!`,
           showSuccessCard: true,
         } as APIResponseInfo,
         data: null,
@@ -174,7 +172,7 @@ export const _saveAdministrativeUnit = async (
           return {
             responseInfo: {
               statusCode: 409,
-              message: `Já existe uma região administrativa ${unitTypeName} de nome ${name} para esta cidade!`,
+              message: `Já existe um(a) ${levelName} de nome ${name} para esta cidade!`,
             } as APIResponseInfo,
             data: null,
           };
@@ -182,7 +180,7 @@ export const _saveAdministrativeUnit = async (
       return {
         responseInfo: {
           statusCode: 500,
-          message: `Erro ao atualizar região administrativa ${unitTypeName}!`,
+          message: `Erro ao atualizar ${levelName}!`,
         } as APIResponseInfo,
         data: null,
       };

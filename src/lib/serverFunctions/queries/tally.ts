@@ -63,30 +63,6 @@ export const fetchTallys = async (params: FetchTallysParams) => {
   }
 };
 
-const fetchTallysByLocationId = async (locationId: number) => {
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        locationId: locationId,
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        user: {
-          select: {
-            username: true,
-            id: true,
-          },
-        },
-      },
-    });
-    tallys.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-    return { statusCode: 200, tallys };
-  } catch (error) {
-    return { statusCode: 500, tallys: [] };
-  }
-};
 export type FetchRecentlyCompletedTallyResponse = NonNullable<
   Awaited<ReturnType<typeof fetchRecentlyCompletedTallys>>["data"]
 >;
@@ -151,6 +127,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         location: {
           select: {
             name: true,
+            id: true,
           },
         },
         startDate: true,
@@ -174,7 +151,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
     }
     return {
       statusCode: 200,
-      tally: parsedTally.data.endDate ? null : parsedTally.data,
+      tally: parsedTally.data,
     };
   } catch (error) {
     return { statusCode: 500, tally: null };
@@ -195,8 +172,16 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
             username: true,
           },
         },
+        location: {
+          select: {
+            name: true,
+            usableArea: true,
+          },
+        },
       },
     });
+    const locationName = tallys[0]?.location.name ?? "ERRO";
+    const usableArea = tallys[0]?.location.usableArea ?? null;
     const parsedTallys = finalizedTallyArraySchema.safeParse(tallys);
     if (!parsedTallys.success) {
       return { statusCode: 400, tallys: null };
@@ -207,14 +192,18 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
     filteredParsedTallys.sort(
       (a, b) => b.startDate.getTime() - a.startDate.getTime(),
     );
-    return { statusCode: 200, tallys: filteredParsedTallys };
+    return {
+      statusCode: 200,
+      tallys: filteredParsedTallys,
+      locationName,
+      usableArea,
+    };
   } catch (error) {
-    return { statusCode: 500, tallys: null };
+    return { statusCode: 500, tallys: null, locationName: null };
   }
 };
 
 export {
-  fetchTallysByLocationId,
   fetchRecentlyCompletedTallys,
   fetchOngoingTallyById,
   fetchFinalizedTallysToDataVisualization,

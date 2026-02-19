@@ -6,43 +6,11 @@ import {
   questionEditDataSchema,
   questionSchema,
 } from "@/lib/zodValidators";
-import { FormQuestion } from "@customTypes/forms/formCreation";
-import { Question } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag, unstable_cache } from "next/cache";
-import { ZodError, z } from "zod";
+import { revalidateTag } from "next/cache";
+import { ZodError } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-
-interface QuestionSearchedByStatement {
-  id: number;
-  name: string;
-  category: {
-    id: number;
-    name: string;
-  };
-
-  subcategory: {
-    id: number;
-    name: string;
-    categoryId: number;
-  } | null;
-}
-
-interface QuestionWithCategories extends Question {
-  options: {
-    text: string;
-  }[];
-  category: {
-    id: number;
-    name: string;
-  };
-  subcategory: {
-    id: number;
-    name: string;
-    categoryId: number;
-  } | null;
-}
 
 const _questionSubmit = async (
   prevState: { statusCode: number; questionName: string | null } | null,
@@ -56,7 +24,7 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
-  console.log("FORM DATA", formData);
+
   switch (questionType) {
     case "WRITTEN": {
       let writtenQuestionParsed;
@@ -102,7 +70,6 @@ const _questionSubmit = async (
           });
         }
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
 
@@ -113,7 +80,6 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
@@ -183,7 +149,6 @@ const _questionSubmit = async (
         revalidateTag("question");
         return { statusCode: 201, questionName: questionName };
       } catch (err) {
-        console.log(err);
         return { statusCode: 400, questionName: null };
       }
     }
@@ -229,7 +194,7 @@ const _questionUpdate = async (
     return {
       responseInfo: {
         statusCode: 200,
-        message: `Questão \"${question.name}\" editada!`,
+        message: `Questão "${question.name}" editada!`,
         showSuccessCard: true,
       },
     };
@@ -243,140 +208,4 @@ const _questionUpdate = async (
   }
 };
 
-const _deleteQuestion = async (
-  prevState: {
-    statusCode: number;
-    content: {
-      formsWithQuestion: {
-        id: number;
-        name: string;
-        version: number;
-      }[];
-      questionName: string | null;
-    } | null;
-  } | null,
-  formData: FormData,
-): Promise<{
-  statusCode: number;
-  content: {
-    formsWithQuestion: { name: string; id: number; version: number }[];
-    questionName: string | null;
-  } | null;
-}> => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      statusCode: 401,
-      content: { formsWithQuestion: [], questionName: null },
-    };
-  }
-  const questionId = parseInt(formData.get("questionId") as string);
-  try {
-    const formsWithQuestion = await prisma.form.findMany({
-      where: {
-        questions: {
-          some: {
-            id: questionId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        version: true,
-      },
-    });
-    if (formsWithQuestion.length > 0) {
-      return {
-        statusCode: 409,
-        content: { formsWithQuestion: formsWithQuestion, questionName: null },
-      };
-    }
-  } catch (e) {
-    return { statusCode: 500, content: null };
-  }
-  try {
-    const deletedQuestion = await prisma.question.delete({
-      where: {
-        id: questionId,
-      },
-    });
-    revalidateTag("question");
-    return {
-      statusCode: 200,
-      content: { formsWithQuestion: [], questionName: deletedQuestion.name },
-    };
-  } catch (err) {
-    return { statusCode: 500, content: null };
-  }
-};
-
-const _searchQuestionsByStatement = async (statement: string) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
-  } catch (e) {
-    return { statusCode: 401, questions: [] };
-  }
-  const cachedQuestions = unstable_cache(
-    async (statement: string): Promise<FormQuestion[]> => {
-      if (statement.length < 2) return [];
-
-      let foundQuestions: FormQuestion[] = [];
-
-      try {
-        foundQuestions = await prisma.question.findMany({
-          where: {
-            name: {
-              contains: statement,
-              mode: "insensitive",
-            },
-          },
-          select: {
-            id: true,
-            name: true,
-            characterType: true,
-            notes: true,
-            questionType: true,
-            options: true,
-            optionType: true,
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            subcategory: {
-              select: {
-                id: true,
-                name: true,
-                categoryId: true,
-              },
-            },
-          },
-        });
-      } catch (err) {
-        throw new Error("Error fetching questions");
-      }
-
-      return foundQuestions;
-    },
-    ["searchQuestionsByStatementCache"],
-    { tags: ["question"] },
-  );
-  try {
-    const questions = await cachedQuestions(statement);
-    return { statusCode: 200, questions: questions };
-  } catch (e) {
-    return { statusCode: 500, questions: [] };
-  }
-};
-
-export {
-  _questionSubmit,
-  _deleteQuestion,
-  _questionUpdate,
-  _searchQuestionsByStatement,
-};
-
-export type { QuestionSearchedByStatement, QuestionWithCategories };
+export { _questionSubmit, _questionUpdate };

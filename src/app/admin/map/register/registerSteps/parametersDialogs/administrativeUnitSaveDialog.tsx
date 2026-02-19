@@ -3,9 +3,9 @@
 import { AdministrativeUnitLevel } from "@/app/admin/map/register/registerSteps/addressStep";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { _saveAdministrativeUnit } from "@/lib/serverFunctions/serverActions/administrativeUnit";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
-import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
 
 const AdministrativeUnitSaveDialog = ({
@@ -20,7 +20,7 @@ const AdministrativeUnitSaveDialog = ({
   open: boolean;
   onClose: () => void;
   level: AdministrativeUnitLevel;
-  city?: { id: number; name: string; state: BrazilianStates };
+  city?: FetchCitiesResponse["cities"][number];
   selectedUnit: { id: number; name: string } | null;
   reloadItems: () => void;
   openDeleteDialog: () => void;
@@ -34,9 +34,9 @@ const AdministrativeUnitSaveDialog = ({
     },
   });
   const levelName =
-    level === "NARROW" ? "estreita"
-    : level === "INTERMEDIATE" ? "intermediária"
-    : "ampla";
+    level === "NARROW" ? city?.narrowAdministrativeUnitTitle
+    : level === "INTERMEDIATE" ? city?.intermediateAdministrativeUnitTitle
+    : city?.broadAdministrativeUnitTitle;
 
   return (
     <CDialog
@@ -45,7 +45,7 @@ const AdministrativeUnitSaveDialog = ({
       open={open}
       onClose={onClose}
       confirmLoading={isPending}
-      title={`${selectedUnit ? "Editar" : "Cadastrar"} região administrativa ${levelName}`}
+      title={`${selectedUnit ? "Editar" : "Cadastrar"} ${levelName}`}
       subtitle={`${city?.name} - ${city?.state}`}
       confirmChildren={selectedUnit ? "Editar" : "Cadastrar"}
       cancelChildren={selectedUnit ? <IconTrash /> : undefined}
@@ -54,6 +54,7 @@ const AdministrativeUnitSaveDialog = ({
     >
       <div className="flex flex-col gap-1">
         <input type="hidden" name="cityId" value={city?.id} />
+        <input type="hidden" name="levelName" value={levelName ?? ""} />
         <input
           type="hidden"
           name="unitId"

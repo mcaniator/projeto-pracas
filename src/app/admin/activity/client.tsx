@@ -6,7 +6,7 @@ import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { FetchRecentlyCompletedAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchRecentlyCompletedTallyResponse } from "@/lib/serverFunctions/queries/tally";
-import { Chip, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
   IconCalendar,
   IconClipboard,

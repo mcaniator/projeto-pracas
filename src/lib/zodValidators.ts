@@ -4,7 +4,6 @@ import {
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
-  Role,
   WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
@@ -242,7 +241,6 @@ const locationSchema = z.object({
   cityId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().min(1).max(1024).nullish(),
   lastMaintenanceYear: z.coerce.number().int().finite().nonnegative().nullish(),
-  overseeingMayor: z.string().trim().min(1).max(255).nullish(),
   legislation: z.string().trim().min(1).max(255).nullish(),
   usableArea: z.coerce.number().finite().nonnegative().nullish(),
   legalArea: z.coerce.number().finite().nonnegative().nullish(),
@@ -389,6 +387,7 @@ const ongoingTallySchema = z.object({
     id: z.string(),
   }),
   location: z.object({
+    id: z.number(),
     name: z.coerce.string(),
   }),
   tallyPerson: tallyPersonArraySchema.nullable(),
@@ -484,21 +483,4 @@ export type {
   CommercialActivity,
   FinalizedTally,
 };
-// #endregion
-// #region Users
-//  ------------------------------------------------------------------------------------------------------------
-//  Users
-//  ------------------------------------------------------------------------------------------------------------
-const tableUserSchema = z.object({
-  id: z.coerce.string(),
-  image: z.coerce.string().nullable(),
-  username: z.coerce.string().nullable(),
-  email: z.coerce.string(),
-  name: z.coerce.string().nullable(),
-  active: z.coerce.boolean(),
-  createdAt: z.coerce.date(),
-  roles: z.array(z.nativeEnum(Role)),
-});
-
-export { tableUserSchema };
 // #endregion

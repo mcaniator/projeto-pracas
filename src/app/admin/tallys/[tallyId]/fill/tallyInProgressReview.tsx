@@ -1,8 +1,9 @@
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
-import { Button } from "@components/button";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { CommercialActivity, OngoingTally } from "@lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
+import { Dayjs } from "dayjs";
 import { useState } from "react";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
@@ -12,15 +13,27 @@ import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
 type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
 
+const assistBarOptions: { label: string; value: AssistBarStates }[] = [
+  { label: "Dados textuais", value: "TEXTUAL_DATA" },
+  { label: "Gráficos", value: "CHARTS" },
+  { label: "Salvar/Excluir", value: "SAVE_DELETE" },
+];
+
 const TallyInProgressReview = ({
   submittingObj,
   tallyId,
   locationId,
+  locationName,
   tally,
   weatherStats,
   complementaryData,
   commercialActivities,
   tallyMap,
+  startDate,
+  endDate,
+  finalizedTally,
+  setStartDate,
+  setEndDate,
   setSubmittingObj,
 }: {
   submittingObj: {
@@ -30,6 +43,7 @@ const TallyInProgressReview = ({
   };
   tallyId: number;
   locationId: number;
+  locationName: string;
   tally: OngoingTally;
   weatherStats: WeatherStats;
   complementaryData: {
@@ -38,6 +52,11 @@ const TallyInProgressReview = ({
   };
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
+  startDate: Dayjs;
+  endDate: Dayjs | null;
+  finalizedTally: boolean;
+  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
   setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
 }) => {
   const [assistBarState, setAssistBarState] =
@@ -45,34 +64,14 @@ const TallyInProgressReview = ({
   return (
     <div className="flex h-full flex-col gap-1 p-3">
       <h4 className="text-xl font-semibold">Acompanhamento</h4>
-      <div>
-        <div className="inline-flex w-auto gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-          <Button
-            isDisabled={submittingObj.submitting}
-            variant={"ghost"}
-            onPress={() => setAssistBarState("TEXTUAL_DATA")}
-            className={`rounded-xl px-4 py-1 ${assistBarState === "TEXTUAL_DATA" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-          >
-            Dados textuais
-          </Button>
-          <Button
-            isDisabled={submittingObj.submitting}
-            variant={"ghost"}
-            onPress={() => setAssistBarState("CHARTS")}
-            className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "CHARTS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-          >
-            Gráficos
-          </Button>
-          <Button
-            isDisabled={submittingObj.submitting}
-            variant={"ghost"}
-            onPress={() => setAssistBarState("SAVE_DELETE")}
-            className={`rounded-xl bg-blue-500 px-4 py-1 ${assistBarState === "SAVE_DELETE" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-          >
-            Salvar/Excluir
-          </Button>
-        </div>
-      </div>
+      <CToggleButtonGroup
+        options={assistBarOptions}
+        value={assistBarState}
+        getLabel={(i) => i.label}
+        getValue={(i) => i.value}
+        onChange={(_, v) => setAssistBarState(v.value)}
+      />
+
       {assistBarState === "TEXTUAL_DATA" && (
         <TallyInProgressTextualData
           tally={tally}
@@ -91,11 +90,17 @@ const TallyInProgressReview = ({
         <TallyInProgressDatabaseOptions
           tallyId={tallyId}
           locationId={locationId}
+          locationName={locationName}
           tallyMap={tallyMap}
           weatherStats={weatherStats}
           commercialActivities={commercialActivities}
           complementaryData={complementaryData}
           submittingObj={submittingObj}
+          startDate={startDate}
+          endDate={endDate}
+          finalizedTally={finalizedTally}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
           setSubmittingObj={setSubmittingObj}
         />
       )}

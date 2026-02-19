@@ -4,7 +4,6 @@ import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
-import { Button } from "@/components/button";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -12,8 +11,10 @@ import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
+import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CNumberField from "@/components/ui/cNumberField";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import {
   ActivityType,
@@ -34,10 +35,12 @@ import {
   IconMoodDollar,
   IconPlus,
   IconTrashX,
+  IconUpload,
 } from "@tabler/icons-react";
 import { CommercialActivity, OngoingTally } from "@zodValidators";
+import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, ReactNode, useState } from "react";
 import React from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
@@ -69,6 +72,50 @@ type PersonCharacteristics = {
   };
 };
 
+const activityOptionsMale: {
+  value: ActivityType;
+  label: ReactNode;
+  tooltip: string;
+}[] = [
+  {
+    value: "SEDENTARY",
+    label: <BsPersonStanding size={32} />,
+    tooltip: "Sedentário",
+  },
+  {
+    value: "WALKING",
+    label: <FaPersonWalking size={32} />,
+    tooltip: "Caminhando",
+  },
+  {
+    value: "STRENUOUS",
+    label: <FaPersonRunning size={32} />,
+    tooltip: "Vigoroso",
+  },
+];
+
+const activityOptionsFemale: {
+  value: ActivityType;
+  label: ReactNode;
+  tooltip: string;
+}[] = [
+  {
+    value: "SEDENTARY",
+    label: <BsPersonStandingDress size={32} />,
+    tooltip: "Sedentária",
+  },
+  {
+    value: "WALKING",
+    label: <FaPersonWalking size={32} />,
+    tooltip: "Caminhando",
+  },
+  {
+    value: "STRENUOUS",
+    label: <FaPersonRunning size={32} />,
+    tooltip: "Vigorosa",
+  },
+];
+
 const defaultCommercialActivitiesOptions = [
   { value: "Alimentos", label: "Alimentos" },
   { value: "Produtos", label: "Produtos" },
@@ -82,15 +129,18 @@ const defaultCommercialActivitiesOptions = [
   },
   { value: "Outros", label: "Outros" },
 ];
-
 const TallyInProgressPage = ({
   tallyId,
   locationId,
+  locationName,
   tally,
+  finalizedTally,
 }: {
   tallyId: number;
   locationId: number;
+  locationName: string;
   tally: OngoingTally;
+  finalizedTally: boolean;
 }) => {
   const { user } = useUserContext();
   if (user.id !== tally.user.id) {
@@ -112,6 +162,10 @@ const TallyInProgressPage = ({
     finishing: false,
     deleting: false,
   });
+  const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
+  const [endDate, setEndDate] = useState<Dayjs | null>(
+    tally.endDate ? dayjs(tally.endDate) : null,
+  );
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
     if (tally.tallyPerson) {
@@ -231,6 +285,56 @@ const TallyInProgressPage = ({
     });
     return count;
   };
+
+  const importData = async (e: ChangeEvent<HTMLInputElement>) => {
+    //TODO: Add validation with Zod
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+
+      if (!parsed || typeof parsed !== "object") {
+        throw new Error();
+      }
+
+      const importedData = parsed as {
+        weatherStats: {
+          temperature: number | null;
+          weather: WeatherConditions;
+        };
+        tallyMap: Record<string, number>;
+        commercialActivities: Record<string, number>;
+        complementaryData: {
+          animalsAmount: number;
+          groupsAmount: number;
+        };
+        startDate: string;
+        endDate: string | null;
+      };
+
+      setWeatherStats(importedData.weatherStats);
+      setTallyMap(new Map(Object.entries(importedData.tallyMap)));
+      setCommercialActivities(importedData.commercialActivities);
+      setComplementaryData(importedData.complementaryData);
+      setStartDate(dayjs(new Date(importedData.startDate)));
+      setEndDate(
+        dayjs(importedData.endDate ? new Date(importedData.endDate) : null),
+      );
+
+      setHelperCard({
+        show: true,
+        helperCardType: "CONFIRM",
+        content: <>Avaliação importada!</>,
+      });
+    } catch (err) {
+      setHelperCard({
+        show: true,
+        helperCardType: "ERROR",
+        content: <>Arquivo inválido!</>,
+      });
+    }
+  };
   return (
     <div className="flex h-full max-h-full min-h-0 w-full bg-white p-2 text-black">
       <div className="flex w-full flex-row gap-5 overflow-auto">
@@ -261,6 +365,16 @@ const TallyInProgressPage = ({
           />
 
           <div className="flex flex-col gap-2 xl:overflow-auto">
+            <CButtonFilePicker
+              fileAccept="application/json"
+              className="w-fit"
+              onFileInput={(e) => {
+                void importData(e);
+              }}
+            >
+              <IconUpload />
+              Importar
+            </CButtonFilePicker>
             <div className="flex flex-col gap-1">
               <CAccordion>
                 <CAccordionSummary>
@@ -276,6 +390,7 @@ const TallyInProgressPage = ({
                       tooltip="Temperatura"
                       alignEndAdornmentWithText
                       defaultValue={tally.temperature}
+                      value={weatherStats.temperature}
                       endAdornment={<span className="mt-4">°C</span>}
                       sx={{
                         width: "11rem",
@@ -331,58 +446,46 @@ const TallyInProgressPage = ({
                       <div className="flex flex-1 flex-col gap-1 rounded-md px-1 py-2">
                         <div className="flex justify-between">
                           <h5 className="text-xl font-semibold">Homens</h5>
-                          <CButton
-                            square
-                            onClick={() => setIsCountingFemales(true)}
-                          >
-                            <IconGenderFemale />
-                          </CButton>
-                        </div>
-
-                        <div className="flex w-full items-center justify-center">
-                          <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  MALE: { ...prev.MALE, activity: "SEDENTARY" },
-                                }))
-                              }
-                              className={`rounded-xl px-4 py-6 ${personCharacteristics.MALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                          <div className="flex flex-wrap gap-1">
+                            <CButton
+                              square
+                              onClick={() => {
+                                setOpenReviewDialog(true);
+                              }}
                             >
-                              <BsPersonStanding size={32} />
-                            </Button>
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  MALE: { ...prev.MALE, activity: "WALKING" },
-                                }))
-                              }
-                              className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                              <IconChartBar />
+                            </CButton>
+                            <CButton
+                              square
+                              onClick={() => setIsCountingFemales(true)}
                             >
-                              <FaPersonWalking size={32} />
-                            </Button>
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  MALE: { ...prev.MALE, activity: "STRENUOUS" },
-                                }))
-                              }
-                              className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.MALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                            >
-                              <FaPersonRunning size={32} />
-                            </Button>
+                              <IconGenderFemale />
+                            </CButton>
                           </div>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <CToggleButtonGroup
+                            options={activityOptionsMale}
+                            value={personCharacteristics.MALE.activity}
+                            getLabel={(o) => o.label}
+                            getValue={(o) => o.value}
+                            getTooltip={(o) => o.tooltip}
+                            toggleButtonColor="gray"
+                            toggleButtonSx={{
+                              padding: { xs: "8px" },
+                            }}
+                            onChange={(_, v) => {
+                              setPersonCharacteristics((prev) => ({
+                                ...prev,
+                                MALE: { ...prev.MALE, activity: v.value },
+                              }));
+                            }}
+                          />
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-2 py-1">
                           <CCheckbox
-                            label="Passando"
+                            label="Passando ou esperando ônibus"
                             onChange={(e) =>
                               setPersonCharacteristics((prev) => ({
                                 ...prev,
@@ -521,69 +624,48 @@ const TallyInProgressPage = ({
                       <div className="flex flex-1 flex-col gap-1 rounded-md px-1 py-2">
                         <div className="flex justify-between">
                           <h5 className="text-xl font-semibold">Mulheres</h5>
-                          <CButton
-                            square
-                            onClick={() => {
-                              setIsCountingFemales(false);
-                            }}
-                          >
-                            <IconGenderMale />
-                          </CButton>
-                        </div>
-
-                        <div className="flex w-full items-center justify-center">
-                          <div className="inline-flex w-auto flex-row gap-1 rounded-xl bg-gray-400/20 py-1 shadow-inner">
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  FEMALE: {
-                                    ...prev.FEMALE,
-                                    activity: "SEDENTARY",
-                                  },
-                                }))
-                              }
-                              className={`rounded-xl px-4 py-6 ${personCharacteristics.FEMALE.activity === "SEDENTARY" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                          <div className="flex flex-row gap-1">
+                            <CButton
+                              square
+                              onClick={() => {
+                                setOpenReviewDialog(true);
+                              }}
                             >
-                              <BsPersonStandingDress size={32} />
-                            </Button>
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  FEMALE: {
-                                    ...prev.FEMALE,
-                                    activity: "WALKING",
-                                  },
-                                }))
-                              }
-                              className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "WALKING" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
+                              <IconChartBar />
+                            </CButton>
+                            <CButton
+                              square
+                              onClick={() => {
+                                setIsCountingFemales(false);
+                              }}
                             >
-                              <FaPersonWalking size={32} />
-                            </Button>
-                            <Button
-                              variant={"ghost"}
-                              onPress={() =>
-                                setPersonCharacteristics((prev) => ({
-                                  ...prev,
-                                  FEMALE: {
-                                    ...prev.FEMALE,
-                                    activity: "STRENUOUS",
-                                  },
-                                }))
-                              }
-                              className={`rounded-xl bg-blue-500 px-4 py-6 ${personCharacteristics.FEMALE.activity === "STRENUOUS" ? "bg-gray-200/20 shadow-md" : "bg-gray-400/0 shadow-none"}`}
-                            >
-                              <FaPersonRunning size={32} />
-                            </Button>
+                              <IconGenderMale />
+                            </CButton>
                           </div>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <CToggleButtonGroup
+                            options={activityOptionsFemale}
+                            value={personCharacteristics.FEMALE.activity}
+                            getLabel={(o) => o.label}
+                            getValue={(o) => o.value}
+                            getTooltip={(o) => o.tooltip}
+                            toggleButtonColor="gray"
+                            toggleButtonSx={{
+                              padding: { xs: "8px" },
+                            }}
+                            onChange={(_, v) => {
+                              setPersonCharacteristics((prev) => ({
+                                ...prev,
+                                FEMALE: { ...prev.FEMALE, activity: v.value },
+                              }));
+                            }}
+                          />
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-2 py-1">
                           <CCheckbox
-                            label="Passando"
+                            label="Passando ou esperando ônibus"
                             onChange={(e) =>
                               setPersonCharacteristics((prev) => ({
                                 ...prev,
@@ -734,6 +816,15 @@ const TallyInProgressPage = ({
                 </span>
               </CAccordionSummary>
               <CAccordionDetails>
+                <CButton
+                  square
+                  className="ml-auto w-fit px-1 pt-2"
+                  onClick={() => {
+                    setOpenReviewDialog(true);
+                  }}
+                >
+                  <IconChartBar />
+                </CButton>
                 <div className="flex flex-wrap justify-center gap-5">
                   <CounterButtonGroup
                     label="Pets"
@@ -781,6 +872,15 @@ const TallyInProgressPage = ({
               </CAccordionSummary>
               <CAccordionDetails>
                 <div className="flex flex-col gap-1">
+                  <CButton
+                    square
+                    className="ml-auto w-fit px-1 pt-2"
+                    onClick={() => {
+                      setOpenReviewDialog(true);
+                    }}
+                  >
+                    <IconChartBar />
+                  </CButton>
                   <CAutocomplete
                     label="Atividade"
                     className="w-full"
@@ -885,11 +985,17 @@ const TallyInProgressPage = ({
             submittingObj={submittingObj}
             tallyId={tallyId}
             locationId={locationId}
+            locationName={locationName}
             tally={tally}
             weatherStats={weatherStats}
             complementaryData={complementaryData}
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
+            startDate={startDate}
+            endDate={endDate}
+            finalizedTally={finalizedTally}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
             setSubmittingObj={setSubmittingObj}
           />
         </Paper>
@@ -945,10 +1051,16 @@ const TallyInProgressPage = ({
         submittingObj={submittingObj}
         tallyId={tallyId}
         locationId={locationId}
+        locationName={locationName}
         weatherStats={weatherStats}
         complementaryData={complementaryData}
         commercialActivities={commercialActivities}
         tallyMap={tallyMap}
+        startDate={startDate}
+        endDate={endDate}
+        finalizedTally={finalizedTally}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
         setSubmittingObj={setSubmittingObj}
       />
     </div>

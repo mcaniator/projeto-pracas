@@ -4,10 +4,10 @@ import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { Breadcrumbs, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
-  IconBuildingCommunity,
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
   IconExternalLink,
@@ -16,7 +16,6 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
 import { Link } from "react-aria-components";
 
@@ -33,7 +32,6 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
-  const router = useRouter();
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
@@ -103,23 +101,7 @@ const LocationDetails = ({
       />
       <Divider />
       <h4 className="font-semibold">Localização</h4>
-      <div className="flex items-center">
-        <CIconChip
-          icon={<IconBuildingCommunity />}
-          tooltip="Unidades Administrativas"
-        />
-        <Breadcrumbs separator="›" aria-label="breadcrumb">
-          {location.narrowAdministrativeUnitName ?
-            <div>{location.narrowAdministrativeUnitName}</div>
-          : <span className="ml-1">-</span>}
-          {location.intermediateAdministrativeUnitName ?
-            <div>{location.intermediateAdministrativeUnitName}</div>
-          : <span>-</span>}
-          {location.broadAdministrativeUnitName ?
-            <div>{location.broadAdministrativeUnitName}</div>
-          : <span>-</span>}
-        </Breadcrumbs>
-      </div>
+      <CLocationAdministrativeUnits location={location} />
 
       <div className="flex items-center">
         <CIconChip icon={<IconRoad />} tooltip="Ruas" />
@@ -144,7 +126,7 @@ const LocationDetails = ({
       </span>
       <Divider />
       <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área na prefeitura: ${location.legalArea ?? "-"} m²`}</span>
+      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
 
       <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
 
@@ -153,7 +135,6 @@ const LocationDetails = ({
       <h4 className="font-semibold">Histórico</h4>
       <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
       <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Prefeito fundador: ${location.overseeingMayor ?? "-"}`}</span>
       <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
       <Divider />
       <h4 className="font-semibold">Observações gerais</h4>
