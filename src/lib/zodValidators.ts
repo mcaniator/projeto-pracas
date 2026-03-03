@@ -266,6 +266,7 @@ const locationSchema = z.object({
     .nonnegative()
     .nullish(),
   polygonArea: z.coerce.number().finite().nonnegative().nullish(),
+  isPublic: booleanFromString,
 });
 
 const featuresGeoJsonSchema = z.object({

@@ -1,39 +1,28 @@
-import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
 import {
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
-  IconExternalLink,
-  IconPencil,
   IconRoad,
-  IconTrash,
   IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
-import { Link } from "react-aria-components";
 
 const LocationDetails = ({
   location,
   isMobileView,
   closeLocationDetails,
-  reloadLocations,
-  enableLocationEdition,
 }: {
-  location: FetchLocationsResponse["locations"][number];
+  location: PublicFetchLocationsResponse["locations"][number];
   closeLocationDetails: () => void;
-  reloadLocations: () => void;
   isMobileView: boolean;
-  enableLocationEdition: () => void;
 }) => {
-  const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
-    useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
   const inner = (
     <div className="flex flex-col gap-1">
@@ -57,48 +46,6 @@ const LocationDetails = ({
         width={384}
         height={200}
       />
-      <div className="flex justify-between">
-        <div className="flex gap-1">
-          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-            {location.assessmentCount} avaliações{" "}
-            <Link href={`/admin/assessments?locationId=${location.id}`}>
-              <CButton square dense variant="text">
-                <IconExternalLink />
-              </CButton>
-            </Link>
-          </div>
-          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-            {location.tallyCount} contagens{" "}
-            <Link href={`/admin/tallys?locationId=${location.id}`}>
-              <CButton square dense variant="text">
-                <IconExternalLink />
-              </CButton>
-            </Link>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          <CButton
-            onClick={() => {
-              enableLocationEdition();
-              setOpenMobileDialog(false);
-            }}
-            square
-            dense
-          >
-            <IconPencil />
-          </CButton>
-          <CButton
-            color="error"
-            square
-            dense
-            onClick={() => {
-              setOpenDeleteLocationDialog(true);
-            }}
-          >
-            <IconTrash />
-          </CButton>
-        </div>
-      </div>
       <Divider />
       <h4 className="font-semibold">Situação cadastral</h4>
       <CCheckbox checked={location.isPark} label="É praça" disabled />
@@ -147,17 +94,6 @@ const LocationDetails = ({
       <Divider />
       <h4 className="font-semibold">Observações gerais</h4>
       <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
-      <LocationDeleteDialog
-        location={location}
-        open={openDeleteLocationDialog}
-        onDeletionSuccess={() => {
-          reloadLocations();
-          closeLocationDetails();
-        }}
-        onClose={() => {
-          setOpenDeleteLocationDialog(false);
-        }}
-      />
     </div>
   );
   if (isMobileView) {

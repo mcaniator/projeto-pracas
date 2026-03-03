@@ -4,10 +4,11 @@ import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressSt
 import DeleteLocationCateogryOrTypeDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/deleteLocationCateogoryOrTypeDialog";
 import LocationCategoryOrTypeSaveDialog from "@/app/admin/map/register/registerSteps/parametersDialogs/locationCategoryOrTypeSaveDialog";
 import CImageInput from "@/components/ui/CImageInput";
+import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { Divider } from "@mui/material";
-import { IconPencil, IconPlus } from "@tabler/icons-react";
+import { IconHelp, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
 import CAutocomplete from "../../../../../components/ui/cAutoComplete";
@@ -229,6 +230,21 @@ const BasicInfoStep = ({
           }}
         />
       </div>
+      <Divider />
+      <h3>
+        Visibilidade{" "}
+        <CIconChip
+          icon={<IconHelp />}
+          tooltip={"Visibilidade da praça para os visitantes do sistema"}
+        />
+      </h3>
+      <CSwitch
+        label="Pública"
+        checked={parkData.isPublic}
+        onChange={(e) => {
+          setParkData((prev) => ({ ...prev, isPublic: e.target.checked }));
+        }}
+      />
     </div>
   );
 };

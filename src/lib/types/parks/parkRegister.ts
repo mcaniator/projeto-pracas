@@ -25,6 +25,7 @@ type ParkRegisterData = {
   intermediateAdministrativeUnitId: number | null;
   broadAdministrativeUnitId: number | null;
   mainImage: File | null;
+  isPublic: boolean;
 };
 
 export { type ParkRegisterData };

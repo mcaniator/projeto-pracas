@@ -1,4 +1,5 @@
 import CIconChip from "@/components/ui/cIconChip";
+import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Breadcrumbs, Divider } from "@mui/material";
 import { IconBuildingCommunity } from "@tabler/icons-react";
 
@@ -9,7 +10,9 @@ const CLocationAdministrativeUnits = ({
   topDivider,
 }: {
   topDivider?: boolean;
-  location: FetchLocationsResponse["locations"][number];
+  location:
+    | FetchLocationsResponse["locations"][number]
+    | PublicFetchLocationsResponse["locations"][number];
 }) => {
   if (
     !location.broadAdministrativeUnitTitle &&

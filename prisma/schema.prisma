@@ -10,9 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //directUrl = env("DIRECT_URL")
   //extensions = [postgis] moved extensions management to custom migration
 }
 
@@ -424,6 +424,8 @@ model Location {
   category   LocationCategory? @relation(fields: [categoryId], references: [id])
 
   polygon Unsupported("Geometry(MultiPolygon, 4326)")?
+
+  isPublic Boolean @default(false) @map("is_public")
 
   mainImageId Int?   @unique @map("main_image_id")
   mainImage   Image? @relation(name: "location_main_image_relation", fields: [mainImageId], references: [imageId])

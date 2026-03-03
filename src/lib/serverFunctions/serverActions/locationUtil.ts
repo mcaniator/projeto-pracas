@@ -139,6 +139,7 @@ const _updateLocation = async (
         "intermediateAdministrativeUnitId",
       ),
       broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
+      isPublic: formData.get("isPublic"),
     });
     const locationId = z.coerce.number().parse(formData.get("locationId"));
     if (!locationId) {
@@ -270,6 +271,7 @@ const _createLocation = async (
         "intermediateAdministrativeUnitId",
       ),
       broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
+      isPublic: formData.get("isPublic"),
     });
 
     const formImage = formData.get("mainImage") as File | null;
