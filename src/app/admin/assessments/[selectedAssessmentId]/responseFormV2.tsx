@@ -35,7 +35,7 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useMemo, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
 import MapDialog from "./MapDialog";
@@ -83,9 +83,6 @@ const ResponseFormV2 = ({
     mode: "onChange",
     defaultValues: assessmentTree.responsesFormValues,
   });
-  const [numericResponses, setNumericResponses] = useState(
-    new Map<number, number>(),
-  );
   const [isFilling, setIsFilling] = useState(
     finalized ? false
     : userCanEdit ? true
@@ -128,9 +125,6 @@ const ResponseFormV2 = ({
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
-  const [filledCount, setFilledCount] = useState(0);
-
-  const allValues = useWatch({ control });
 
   const totalQuestions = assessmentTree.totalQuestions;
 
@@ -210,25 +204,6 @@ const ResponseFormV2 = ({
       });
     }
   };
-
-  useEffect(() => {
-    const numericResponses = new Map<number, number>();
-    let filledFieldsCounter = 0;
-    Object.entries(allValues).forEach(([key, val]) => {
-      if (typeof val === "number") {
-        numericResponses.set(Number(key), val);
-      }
-      if (
-        val != null &&
-        val !== "" &&
-        (!(val instanceof Array) || val.length > 0)
-      ) {
-        filledFieldsCounter++;
-      }
-    });
-    setNumericResponses(numericResponses);
-    setFilledCount(filledFieldsCounter);
-  }, [allValues]);
 
   return (
     <form
@@ -324,7 +299,6 @@ const ResponseFormV2 = ({
         <Category
           key={index}
           category={cat}
-          numericResponses={numericResponses}
           geometries={geometries}
           questionsForMention={questionsForMention}
           finalized={!isFilling}
@@ -333,9 +307,7 @@ const ResponseFormV2 = ({
         />
       ))}
 
-      <Typography mt={2} className="text-black">
-        Campos preenchidos: {filledCount} / {totalQuestions}
-      </Typography>
+      <FilledCount control={control} totalQuestions={totalQuestions} />
       {isFilling && (
         <div className="flew-row flex justify-center gap-1">
           <CButton type="submit">
@@ -371,7 +343,6 @@ const ResponseFormV2 = ({
 
 const Category = ({
   category,
-  numericResponses,
   geometries,
   questionsForMention,
   handleQuestionGeometryChange,
@@ -379,7 +350,6 @@ const Category = ({
   finalized,
 }: {
   category: AssessmentCategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
@@ -402,7 +372,6 @@ const Category = ({
                 <Subcategory
                   key={index}
                   subcategory={child}
-                  numericResponses={numericResponses}
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
@@ -415,7 +384,6 @@ const Category = ({
                 <Question
                   key={index}
                   question={child}
-                  numericResponses={numericResponses}
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
@@ -433,7 +401,6 @@ const Category = ({
 
 const Subcategory = ({
   subcategory,
-  numericResponses,
   geometries,
   questionsForMention,
   handleQuestionGeometryChange,
@@ -441,7 +408,6 @@ const Subcategory = ({
   finalized,
 }: {
   subcategory: AssessmentSubcategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
@@ -470,7 +436,6 @@ const Subcategory = ({
               <Question
                 key={index}
                 question={question}
-                numericResponses={numericResponses}
                 geometries={geometries}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
@@ -487,7 +452,6 @@ const Subcategory = ({
 
 const Question = ({
   question,
-  numericResponses,
   geometries,
   questionsForMention,
   handleQuestionGeometryChange,
@@ -495,7 +459,6 @@ const Question = ({
   finalized,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
@@ -561,7 +524,6 @@ const Question = ({
       {question.questionType === "WRITTEN" && (
         <WrittenQuestion
           question={question}
-          numericResponses={numericResponses}
           finalized={finalized}
           control={control}
         />
@@ -580,23 +542,15 @@ const Question = ({
 
 const WrittenQuestion = ({
   question,
-  numericResponses,
   control,
   finalized,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
   if (question.calculationExpression) {
-    return (
-      <CalculationQuestion
-        question={question}
-        numericResponses={numericResponses}
-        control={control}
-      />
-    );
+    return <CalculationQuestion question={question} control={control} />;
   }
   return question.characterType === "NUMBER" ?
       <Controller
@@ -669,28 +623,77 @@ const OptionsQuestion = ({
 
 const CalculationQuestion = ({
   question,
-  numericResponses,
   control,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
-  const [value, setValue] = useState<number | null>(null);
+  const expressionQuestionIds = useMemo(
+    () =>
+      new Calculation(
+        question.calculationExpression ?? "",
+      ).getExpressionQuestionIds(),
+    [question.calculationExpression],
+  );
+  const expressionQuestionFieldNames = useMemo(
+    () => expressionQuestionIds.map((id) => String(id)),
+    [expressionQuestionIds],
+  );
+  const expressionValues = useWatch({
+    control,
+    name: expressionQuestionFieldNames,
+  });
+  const value = useMemo(() => {
+    const responses = new Map<number, number | null>();
 
-  useEffect(() => {
-    const calc = new Calculation(
-      question.calculationExpression!,
-      numericResponses,
-    );
-    setValue(calc.evaluate());
-  }, [numericResponses, question.calculationExpression]);
+    expressionQuestionIds.forEach((id, index) => {
+      const currentValue = expressionValues?.[index];
+      responses.set(id, typeof currentValue === "number" ? currentValue : null);
+    });
+
+    return new Calculation(
+      question.calculationExpression ?? "",
+      responses,
+    ).evaluate();
+  }, [expressionValues, expressionQuestionIds, question.calculationExpression]);
+
   return (
     <Controller
       name={String(question.questionId)}
       control={control}
       render={({ field }) => <CNumberField {...field} readOnly value={value} />}
     />
+  );
+};
+
+const FilledCount = ({
+  control,
+  totalQuestions,
+}: {
+  control: Control<FormValues, unknown, FormValues>;
+  totalQuestions: number;
+}) => {
+  const watchedValues = useWatch({ control });
+  const filledCount = useMemo(() => {
+    const allValues = (watchedValues ?? {}) as FormValues;
+
+    return Object.values(allValues).reduce<number>((counter, val) => {
+      if (
+        val != null &&
+        val !== "" &&
+        (!Array.isArray(val) || val.length > 0)
+      ) {
+        return counter + 1;
+      }
+
+      return counter;
+    }, 0);
+  }, [watchedValues]);
+
+  return (
+    <Typography mt={2} className="text-black">
+      Campos preenchidos: {filledCount} / {totalQuestions}
+    </Typography>
   );
 };
 
