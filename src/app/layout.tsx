@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 
 import AppProviders from "./appProviders";
+import ConditionalPublicHeader from "./conditionalPublicHeader";
 import "./globals.css";
 
 const metadata: Metadata = {
@@ -17,8 +18,16 @@ const viewport: Viewport = {
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
-      <body className={josefin_sans.className}>
-        <AppProviders>{children}</AppProviders>
+      <body
+        className={
+          josefin_sans.className +
+          " flex h-[100dvh] flex-col bg-gradient-to-br from-olivine to-asparagus text-white"
+        }
+      >
+        <AppProviders>
+          <ConditionalPublicHeader />
+          {children}
+        </AppProviders>
       </body>
     </html>
   );
