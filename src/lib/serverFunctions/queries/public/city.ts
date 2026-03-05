@@ -32,7 +32,14 @@ const publicFetchCities = async (params: PublicFetchCitiesParams) => {
       createdAt: Date | null;
       updatedAt: Date | null;
     })[] = await prisma.city.findMany({
-      where: { state: params.state },
+      where: {
+        state: params.state,
+        locations: {
+          some: {
+            isPublic: true,
+          },
+        },
+      },
       ...(params.includeAdminstrativeRegions ?
         {
           include: {
