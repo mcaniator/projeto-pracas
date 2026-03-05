@@ -10,9 +10,10 @@ import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { usePublicFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/public/category";
+import { usePublicFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/public/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
-import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import CImage from "@components/ui/CImage";
 import { Chip, LinearProgress } from "@mui/material";
@@ -40,10 +41,8 @@ import { Virtuoso } from "react-virtuoso";
 const Sidebar = ({
   loadingLocations,
   loadingCities,
-  loadingTypes,
   locations,
   citiesOptions,
-  locationTypes,
   selectedCity,
   numberOfActiveFilters,
   state,
@@ -59,9 +58,7 @@ const Sidebar = ({
 }: {
   loadingLocations: boolean;
   loadingCities: boolean;
-  loadingTypes: boolean;
   locations: PublicFetchLocationsResponse["locations"];
-  locationTypes: FetchLocationTypesResponse["types"];
   selectedCity: FetchCitiesResponse["cities"][number] | null;
   citiesOptions: FetchCitiesResponse["cities"] | null;
   numberOfActiveFilters: number;
@@ -83,6 +80,9 @@ const Sidebar = ({
   const [locationCategories, setLocationCategories] = useState<
     FetchLocationCategoriesResponse["categories"]
   >([]);
+  const [locationTypes, setLocationTypes] = useState<
+    PublicFetchLocationTypesResponse["types"]
+  >([]);
 
   const [_fetchLocationCategories, loadingCategories] =
     usePublicFetchLocationCategories({
@@ -91,6 +91,11 @@ const Sidebar = ({
           setLocationCategories(response.data?.categories ?? []),
       },
     });
+  const [_fetchLocationTypes, loadingTypes] = usePublicFetchLocationTypes({
+    callbacks: {
+      onSuccess: (response) => setLocationTypes(response.data?.types ?? []),
+    },
+  });
 
   const loadCategories = useCallback(async () => {
     if (!selectedCity?.id) {
@@ -102,10 +107,23 @@ const Sidebar = ({
       cityId: selectedCity.id,
     });
   }, [_fetchLocationCategories, selectedCity]);
+  const loadTypes = useCallback(async () => {
+    if (!selectedCity?.id) {
+      setLocationTypes([]);
+      return;
+    }
+
+    await _fetchLocationTypes({
+      cityId: selectedCity.id,
+    });
+  }, [_fetchLocationTypes, selectedCity]);
 
   useEffect(() => {
     void loadCategories();
   }, [loadCategories]);
+  useEffect(() => {
+    void loadTypes();
+  }, [loadTypes]);
 
   const broadUnits = useMemo(() => {
     return [

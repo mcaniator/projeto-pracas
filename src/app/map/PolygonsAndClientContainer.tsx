@@ -3,10 +3,8 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import { usePublicFetchCities } from "@/lib/serverFunctions/apiCalls/city";
-import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { usePublicFetchLocations } from "@/lib/serverFunctions/apiCalls/public/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
-import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import {
   LAST_SELECTED_LOCATION_KEY,
@@ -56,10 +54,6 @@ const PolygonsAndClientContainer = () => {
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
   >(null);
-
-  const [locationTypes, setLocationTypes] = useState<
-    FetchLocationTypesResponse["types"]
-  >([]);
 
   const [filter, setFilter] = useState<LocationsMapClientFilter>({
     broadAdministrativeUnitId: null,
@@ -121,11 +115,6 @@ const PolygonsAndClientContainer = () => {
         }
         setSelectedCity(initialCity);
       },
-    },
-  });
-  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes({
-    callbacks: {
-      onSuccess: (response) => setLocationTypes(response.data?.types ?? []),
     },
   });
 
@@ -225,22 +214,6 @@ const PolygonsAndClientContainer = () => {
     [state, _fetchCities],
   );
 
-  const loadTypes = useCallback(
-    async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationTypes(
-        {},
-        {
-          cache: invalidateCache ? "reload" : "default",
-        },
-      );
-    },
-    [_fetchLocationTypes],
-  );
-
-  useEffect(() => {
-    void loadTypes();
-  }, [loadTypes]);
-
   useEffect(() => {
     void loadCitiesOptions();
   }, [loadCitiesOptions]);
@@ -306,9 +279,7 @@ const PolygonsAndClientContainer = () => {
           <Sidebar
             loadingLocations={loadingLocations}
             loadingCities={loadingCities}
-            loadingTypes={loadingTypes}
             locations={filteredLocationsWithPolygon}
-            locationTypes={locationTypes}
             citiesOptions={citiesOptions}
             selectedCity={selectedCity}
             selectedLocationId={selectedLocation?.id ?? null}
