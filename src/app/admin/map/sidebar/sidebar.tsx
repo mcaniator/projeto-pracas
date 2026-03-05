@@ -1,13 +1,19 @@
 "use client";
 
-import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
-import { MapContext } from "@/app/admin/map/mapProvider";
+import { LocationsMapClientFilter } from "@/app/map/PolygonsAndClientContainer";
+import { MapContext } from "@/app/map/mapProvider";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import CImage from "@components/ui/CImage";
+import CAccordion from "@components/ui/accordion/CAccordion";
+import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CTextField from "@components/ui/cTextField";
+import { FetchCitiesResponse } from "@lib/serverFunctions/queries/city";
 import { Chip, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import {
@@ -21,13 +27,6 @@ import { createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Dispatch, SetStateAction, useContext, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
-
-import CAccordion from "../../../../components/ui/accordion/CAccordion";
-import CAccordionDetails from "../../../../components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "../../../../components/ui/accordion/CAccordionSummary";
-import CAutocomplete from "../../../../components/ui/cAutoComplete";
-import CTextField from "../../../../components/ui/cTextField";
-import { FetchCitiesResponse } from "../../../../lib/serverFunctions/queries/city";
 
 const Sidebar = ({
   loadingLocations,

@@ -1,5 +1,6 @@
 "use client";
 
+import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { checkIfValidLocationFeature } from "@/lib/utils/map";
 import Feature, { FeatureLike } from "ol/Feature";
 import { click } from "ol/events/condition";
@@ -22,7 +23,6 @@ import {
   useMemo,
 } from "react";
 
-import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
 import { MapContext } from "./mapProvider";
 
 type PolygonProviderContextType = {
@@ -41,8 +41,8 @@ const PolygonProvider = ({
   disableAutoFitAfterLocationsLoad,
   handleSelectLocation,
 }: {
-  fullLocations: FetchLocationsResponse["locations"];
-  selectedLocation: FetchLocationsResponse["locations"][number] | null;
+  fullLocations: PublicFetchLocationsResponse["locations"];
+  selectedLocation: PublicFetchLocationsResponse["locations"][number] | null;
   children: ReactNode;
   isMobileView: boolean;
   disableAutoFitAfterLocationsLoad?: boolean;

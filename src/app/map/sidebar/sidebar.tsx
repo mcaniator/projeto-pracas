@@ -1,7 +1,7 @@
 "use client";
 
-import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
-import { MapContext } from "@/app/admin/map/mapProvider";
+import { LocationsMapClientFilter } from "@/app/map/PolygonsAndClientContainer";
+import { MapContext } from "@/app/map/mapProvider";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
@@ -13,8 +13,8 @@ import { usePublicFetchLocationCategories } from "@/lib/serverFunctions/apiCalls
 import { usePublicFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/public/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
-import { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
+import { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
 import CImage from "@components/ui/CImage";
 import { Chip, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
