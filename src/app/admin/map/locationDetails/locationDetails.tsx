@@ -1,13 +1,18 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
+import { useUserContext } from "@/components/context/UserContext";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
+import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
 import {
+  IconCheck,
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
   IconExternalLink,
@@ -16,7 +21,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-aria-components";
 
 const LocationDetails = ({
@@ -32,9 +37,41 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
+  const { user } = useUserContext();
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
+  const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false);
+  const [isPublic, setIsPublic] = useState(location.isPublic);
+  const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
+    null,
+  );
+
+  const [updateLocationVisibility, updateLocationVisibilityLoading] =
+    useServerAction({
+      action: _updateLocationVisibility,
+      callbacks: {
+        onSuccess: () => {
+          if (pendingVisibility === null) {
+            return;
+          }
+          setIsPublic(pendingVisibility);
+          setPendingVisibility(null);
+          setOpenVisibilityDialog(false);
+          reloadLocations();
+        },
+        onError: () => {
+          setPendingVisibility(null);
+          setOpenVisibilityDialog(false);
+        },
+      },
+    });
+
+  useEffect(() => {
+    setIsPublic(location.isPublic);
+    setPendingVisibility(null);
+    setOpenVisibilityDialog(false);
+  }, [location]);
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -100,6 +137,17 @@ const LocationDetails = ({
         </div>
       </div>
       <Divider />
+      <h4 className="font-semibold">Visibilidade</h4>
+      <CSwitch
+        checked={pendingVisibility ?? isPublic}
+        label="Publico"
+        onChange={(_, checked) => {
+          setPendingVisibility(checked);
+          setOpenVisibilityDialog(true);
+        }}
+        disabled={user.roles.includes("PARK_MANAGER")}
+      />
+      <Divider />
       <h4 className="font-semibold">Situação cadastral</h4>
       <CCheckbox checked={location.isPark} label="É praça" disabled />
       <CCheckbox
@@ -156,6 +204,42 @@ const LocationDetails = ({
         }}
         onClose={() => {
           setOpenDeleteLocationDialog(false);
+        }}
+      />
+      <CDialog
+        open={openVisibilityDialog}
+        onClose={() => {
+          if (updateLocationVisibilityLoading) {
+            return;
+          }
+          setPendingVisibility(null);
+          setOpenVisibilityDialog(false);
+        }}
+        title="Alterar visibilidade"
+        subtitle={
+          pendingVisibility ?
+            "Deseja que esta praça seja visível publicamente?"
+          : "Deseja que esta praça deixe de ser visível publicamente?"
+        }
+        confirmLoading={updateLocationVisibilityLoading}
+        confirmChildren={<IconCheck />}
+        cancelChildren={<IconX />}
+        cancelVariant="outlined"
+        onCancel={() => {
+          if (updateLocationVisibilityLoading) {
+            return;
+          }
+          setPendingVisibility(null);
+          setOpenVisibilityDialog(false);
+        }}
+        onConfirm={() => {
+          if (pendingVisibility === null) {
+            return;
+          }
+          void updateLocationVisibility({
+            id: location.id,
+            isPublic: pendingVisibility,
+          });
         }}
       />
     </div>
