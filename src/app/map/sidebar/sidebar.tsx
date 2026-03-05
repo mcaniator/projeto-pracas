@@ -9,6 +9,7 @@ import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { usePublicFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/public/category";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
@@ -25,17 +26,23 @@ import {
 } from "@tabler/icons-react";
 import { createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
-import { Dispatch, SetStateAction, useContext, useMemo } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Virtuoso } from "react-virtuoso";
 
 const Sidebar = ({
   loadingLocations,
   loadingCities,
-  loadingCategories,
   loadingTypes,
   locations,
   citiesOptions,
-  locationCategories,
   locationTypes,
   selectedCity,
   numberOfActiveFilters,
@@ -52,10 +59,8 @@ const Sidebar = ({
 }: {
   loadingLocations: boolean;
   loadingCities: boolean;
-  loadingCategories: boolean;
   loadingTypes: boolean;
   locations: PublicFetchLocationsResponse["locations"];
-  locationCategories: FetchLocationCategoriesResponse["categories"];
   locationTypes: FetchLocationTypesResponse["types"];
   selectedCity: FetchCitiesResponse["cities"][number] | null;
   citiesOptions: FetchCitiesResponse["cities"] | null;
@@ -75,6 +80,32 @@ const Sidebar = ({
 }) => {
   const map = useContext(MapContext);
   const view = map?.getView();
+  const [locationCategories, setLocationCategories] = useState<
+    FetchLocationCategoriesResponse["categories"]
+  >([]);
+
+  const [_fetchLocationCategories, loadingCategories] =
+    usePublicFetchLocationCategories({
+      callbacks: {
+        onSuccess: (response) =>
+          setLocationCategories(response.data?.categories ?? []),
+      },
+    });
+
+  const loadCategories = useCallback(async () => {
+    if (!selectedCity?.id) {
+      setLocationCategories([]);
+      return;
+    }
+
+    await _fetchLocationCategories({
+      cityId: selectedCity.id,
+    });
+  }, [_fetchLocationCategories, selectedCity]);
+
+  useEffect(() => {
+    void loadCategories();
+  }, [loadCategories]);
 
   const broadUnits = useMemo(() => {
     return [

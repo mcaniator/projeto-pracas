@@ -3,11 +3,9 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import { usePublicFetchCities } from "@/lib/serverFunctions/apiCalls/city";
-import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { usePublicFetchLocations } from "@/lib/serverFunctions/apiCalls/public/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
-import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import {
@@ -58,10 +56,6 @@ const PolygonsAndClientContainer = () => {
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
   >(null);
-
-  const [locationCategories, setLocationCategories] = useState<
-    FetchLocationCategoriesResponse["categories"]
-  >([]);
 
   const [locationTypes, setLocationTypes] = useState<
     FetchLocationTypesResponse["types"]
@@ -129,13 +123,6 @@ const PolygonsAndClientContainer = () => {
       },
     },
   });
-  const [_fetchLocationCategories, loadingCategories] =
-    useFetchLocationCategories({
-      callbacks: {
-        onSuccess: (response) =>
-          setLocationCategories(response.data?.categories ?? []),
-      },
-    });
   const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes({
     callbacks: {
       onSuccess: (response) => setLocationTypes(response.data?.types ?? []),
@@ -238,18 +225,6 @@ const PolygonsAndClientContainer = () => {
     [state, _fetchCities],
   );
 
-  const loadCategories = useCallback(
-    async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationCategories(
-        {},
-        {
-          cache: invalidateCache ? "reload" : "default",
-        },
-      );
-    },
-    [_fetchLocationCategories],
-  );
-
   const loadTypes = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
       await _fetchLocationTypes(
@@ -261,10 +236,6 @@ const PolygonsAndClientContainer = () => {
     },
     [_fetchLocationTypes],
   );
-
-  useEffect(() => {
-    void loadCategories();
-  }, [loadCategories]);
 
   useEffect(() => {
     void loadTypes();
@@ -335,10 +306,8 @@ const PolygonsAndClientContainer = () => {
           <Sidebar
             loadingLocations={loadingLocations}
             loadingCities={loadingCities}
-            loadingCategories={loadingCategories}
             loadingTypes={loadingTypes}
             locations={filteredLocationsWithPolygon}
-            locationCategories={locationCategories}
             locationTypes={locationTypes}
             citiesOptions={citiesOptions}
             selectedCity={selectedCity}
