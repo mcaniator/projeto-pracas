@@ -11,8 +11,8 @@ import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import {
-  getStoredLocationSelection,
   LAST_SELECTED_LOCATION_KEY,
+  getStoredLocationSelection,
 } from "@/lib/utils/localStorage";
 import { Chip, CircularProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
@@ -40,6 +40,7 @@ export type LocationsMapClientFilter = {
   categoryId: number | null;
   typeId: number | null;
   name: string | null;
+  isPublic: boolean;
 };
 
 const PolygonsAndClientContainer = () => {
@@ -77,6 +78,7 @@ const PolygonsAndClientContainer = () => {
     categoryId: null,
     typeId: null,
     name: null,
+    isPublic: true,
   });
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -86,7 +88,7 @@ const PolygonsAndClientContainer = () => {
   ] = useState(false);
 
   const numberOfActiveFilters = useMemo(() => {
-    let count = 0;
+    let count = 1; //Sempre há um filtro de praça visivel publicamente
     if (filter.broadAdministrativeUnitId !== null) count++;
     if (filter.intermediateAdministrativeUnitId !== null) count++;
     if (filter.narrowAdministrativeUnitId !== null) count++;
@@ -184,6 +186,7 @@ const PolygonsAndClientContainer = () => {
         if (filter.typeId !== -1) return;
         if (location.typeId !== null) return;
       }
+      if (filter.isPublic !== location.isPublic) return;
 
       result.push(location);
     });

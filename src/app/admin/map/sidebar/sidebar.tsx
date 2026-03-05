@@ -1,8 +1,9 @@
 "use client";
 
-import { LocationsMapClientFilter } from "@/app/map/PolygonsAndClientContainer";
-import { MapContext } from "@/app/map/mapProvider";
+import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
+import { MapContext } from "@/app/admin/map/mapProvider";
 import CButton from "@/components/ui/cButton";
+import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
@@ -265,6 +266,16 @@ const Sidebar = ({
                   typeId: v?.id ?? null,
                 })
               }
+            />
+            <CSwitch
+              label="Público"
+              checked={filter.isPublic}
+              onChange={(_, checked) => {
+                setFilter({
+                  ...filter,
+                  isPublic: checked,
+                });
+              }}
             />
           </div>
         </CAccordionDetails>
