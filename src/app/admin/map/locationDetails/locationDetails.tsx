@@ -140,12 +140,12 @@ const LocationDetails = ({
       <h4 className="font-semibold">Visibilidade</h4>
       <CSwitch
         checked={pendingVisibility ?? isPublic}
-        label="Publico"
+        label="Visibibilidade pública"
         onChange={(_, checked) => {
           setPendingVisibility(checked);
           setOpenVisibilityDialog(true);
         }}
-        disabled={user.roles.includes("PARK_MANAGER")}
+        disabled={!user.roles.includes("PARK_MANAGER")}
       />
       <Divider />
       <h4 className="font-semibold">Situação cadastral</h4>

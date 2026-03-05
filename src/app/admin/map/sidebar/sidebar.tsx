@@ -268,7 +268,7 @@ const Sidebar = ({
               }
             />
             <CSwitch
-              label="Público"
+              label="Visibilidade pública"
               checked={filter.isPublic}
               onChange={(_, checked) => {
                 setFilter({

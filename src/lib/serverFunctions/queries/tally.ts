@@ -1,5 +1,6 @@
 import { FetchTallysParams } from "@/app/api/admin/tallys/route";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+import { VISIBILITY_STATUS } from "@/lib/enums/visibilityStatus";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
@@ -14,6 +15,12 @@ export const fetchTallys = async (params: FetchTallysParams) => {
   } else if (params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED) {
     endDateFilter = null;
   }
+  let visibilityFilter = undefined;
+  if (params.visibilityStatus === VISIBILITY_STATUS.PUBLIC) {
+    visibilityFilter = true;
+  } else if (params.visibilityStatus === VISIBILITY_STATUS.PRIVATE) {
+    visibilityFilter = false;
+  }
   try {
     const tallys = await prisma.tally.findMany({
       where: {
@@ -22,6 +29,7 @@ export const fetchTallys = async (params: FetchTallysParams) => {
           lte: params.endDate,
         },
         endDate: endDateFilter,
+        isPublic: visibilityFilter,
         userId: params.userId,
         location: {
           id: params.locationId,
@@ -38,6 +46,7 @@ export const fetchTallys = async (params: FetchTallysParams) => {
         id: true,
         startDate: true,
         endDate: true,
+        isPublic: true,
         user: {
           select: {
             username: true,

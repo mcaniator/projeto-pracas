@@ -8,8 +8,8 @@ import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import {
-  getStoredLocationSelection,
   LAST_SELECTED_LOCATION_KEY,
+  getStoredLocationSelection,
 } from "@/lib/utils/localStorage";
 import { Chip } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
@@ -71,7 +71,9 @@ const LocationSelector = ({
     FetchCitiesResponse["cities"] | null
   >(null);
 
-  const [filter, setFilter] = useState<LocationsMapClientFilter>({
+  const [filter, setFilter] = useState<
+    Omit<LocationsMapClientFilter, "isPublic">
+  >({
     broadAdministrativeUnitId: null,
     intermediateAdministrativeUnitId: null,
     narrowAdministrativeUnitId: null,

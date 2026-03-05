@@ -260,4 +260,48 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
+export const _updateTallyVisibility = async ({
+  id,
+  isPublic,
+}: {
+  id: number;
+  isPublic: boolean;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    await prisma.tally.update({
+      where: {
+        id,
+      },
+      data: {
+        isPublic,
+      },
+    });
+    revalidateTag("tally");
+    return {
+      responseInfo: {
+        statusCode: 201,
+        showSuccessCard: true,
+        message: `Contagem atualizada!`,
+      } as APIResponseInfo,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao editar contagem!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
 export { _saveOngoingTallyData, _deleteTallys };

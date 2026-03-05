@@ -1,6 +1,7 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+import { VISIBILITY_STATUS } from "@/lib/enums/visibilityStatus";
 import { Divider } from "@mui/material";
 import { Suspense, use } from "react";
 
@@ -19,6 +20,17 @@ const statusOptions = [
   {
     id: FINALIZATION_STATUS.FINALIZED,
     label: "Finalizado",
+  },
+];
+
+const visibilityOptions = [
+  {
+    id: VISIBILITY_STATUS.PRIVATE,
+    label: "Privado",
+  },
+  {
+    id: VISIBILITY_STATUS.PUBLIC,
+    label: "Publico",
   },
 ];
 
@@ -121,7 +133,9 @@ const TallysFilter = ({
       />
       <Divider />
       <h4>Responsável</h4>
-      <Suspense fallback={<CAutocomplete label="Responsável" options={[]} loading />}>
+      <Suspense
+        fallback={<CAutocomplete label="Responsável" options={[]} loading />}
+      >
         <UserSelector
           usersPromise={usersPromise}
           handleFilterChange={handleFilterChange}
@@ -138,6 +152,21 @@ const TallysFilter = ({
         getOptionLabel={(i) => i.label}
         onChange={(_, a) =>
           handleFilterChange({ type: "FINALIZATION_STATUS", newValue: a.id })
+        }
+      />
+      <Divider />
+      <h4>Visibilidade</h4>
+      <CAutocomplete
+        label="Visibilidade"
+        options={visibilityOptions}
+        defaultValue={null}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        getOptionLabel={(i) => i.label}
+        onChange={(_, a) =>
+          handleFilterChange({
+            type: "VISIBILITY_STATUS",
+            newValue: a?.id ?? null,
+          })
         }
       />
     </div>

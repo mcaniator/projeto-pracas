@@ -1,4 +1,4 @@
-import { PublicFetchCategoriesParams } from "@/app/api/public/categories/route";
+import { PublicFetchCategoriesParams } from "@/app/api/public/locationCategories/route";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 

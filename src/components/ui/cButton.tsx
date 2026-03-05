@@ -1,6 +1,7 @@
 import { Box, Chip, Tooltip } from "@mui/material";
 import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
-import React from "react";
+import Link from "next/link";
+import React, { useState } from "react";
 
 import { useHelperCard } from "../context/helperCardContext";
 
@@ -13,6 +14,8 @@ export type CButtonProps = ButtonProps & {
   color?: ButtonOwnProps["color"];
   toDo?: boolean;
   tooltip?: string;
+  loadingOnClick?: boolean;
+  href?: string;
 };
 
 function CButton(props: CButtonProps) {
@@ -28,10 +31,16 @@ function CButton(props: CButtonProps) {
     color,
     toDo,
     tooltip,
+    loadingOnClick,
+    href,
+    loading,
+    disabled,
     onClick,
     sx,
     ...rest
   } = props;
+  const [internalLoading, setInternalLoading] = useState(false);
+  const isLoading = loading ?? (loadingOnClick ? internalLoading : false);
   const minWidthSx =
     disableMinWidth ? { minWidth: "0px" } : { minWidth: "64px" };
   const denseSx = dense ? { padding: "0px 0px", minWidth: "0px" } : {};
@@ -66,6 +75,8 @@ function CButton(props: CButtonProps) {
       <Button
         color={color ?? "primary"}
         variant={variant}
+        loading={isLoading}
+        disabled={disabled || isLoading}
         sx={{ ...minWidthSx, ...denseSx, ...squareSx, ...sx }}
         onClick={(e) => {
           if (toDo) {
@@ -75,6 +86,9 @@ function CButton(props: CButtonProps) {
               content: <>Em desenvolvimento</>,
             });
           } else {
+            if (loadingOnClick) {
+              setInternalLoading(true);
+            }
             onClick?.(e);
           }
         }}
@@ -85,11 +99,13 @@ function CButton(props: CButtonProps) {
     </Box>
   );
 
+  const componentWithLink = href ? <Link href={href}>{component}</Link> : component;
+
   return tooltip ?
       <Tooltip title={tooltip} enterTouchDelay={1}>
-        {component}
+        {componentWithLink}
       </Tooltip>
-    : component;
+    : componentWithLink;
 }
 
 export default CButton;

@@ -537,6 +537,7 @@ model Assessment {
 
   startDate DateTime  @map("start_date") @db.Timestamptz()
   endDate   DateTime? @map("end_date") @db.Timestamptz()
+  isPublic  Boolean   @default(false) @map("is_public")
 
   userId String @db.VarChar(255)
   user   User   @relation(fields: [userId], references: [id])
@@ -578,6 +579,7 @@ model Tally {
 
   startDate DateTime  @map("start_date") @db.Timestamptz(0)
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
+  isPublic  Boolean   @default(false) @map("is_public")
 
   animalsAmount        Int?               @map("animals_amount")
   temperature          Float?

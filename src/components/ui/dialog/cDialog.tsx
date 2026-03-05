@@ -299,7 +299,7 @@ const CDialog = ({
       fullScreen={memoFullScreen}
       slotProps={{
         backdrop: {
-          className: "bg-black/25 backdrop-blur",
+          className: "bg-black/25",
         },
         paper: {
           sx: {

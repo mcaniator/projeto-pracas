@@ -1,4 +1,4 @@
-import { PublicFetchCategoriesParams } from "@/app/api/public/categories/route";
+import { PublicFetchCategoriesParams } from "@/app/api/public/locationCategories/route";
 import { PublicFetchCategoriesResponse } from "@/lib/serverFunctions/queries/public/category";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
@@ -6,7 +6,7 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 export const usePublicFetchLocationCategories = (
   params?: UseFetchAPIParams<PublicFetchCategoriesResponse>,
 ) => {
-  const url = "/api/public/categories";
+  const url = "/api/public/locationCategories";
   return useFetchAPI<
     PublicFetchCategoriesResponse,
     PublicFetchCategoriesParams
