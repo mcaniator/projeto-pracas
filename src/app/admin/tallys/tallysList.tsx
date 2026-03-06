@@ -91,7 +91,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                   <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
                     <CIconChip
                       icon={<IconFilePencil />}
-                      tooltip="Praça - Avaliação"
+                      tooltip="Praça - Contagem"
                     />
                     {`${a.location.name} - ${a.id} `}
                     <Chip
@@ -117,7 +117,6 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                   <span className="flex items-center gap-2 text-base sm:text-xl">
                     <CButton
                       square
-                      tooltip="Navegar"
                       loadingOnClick
                       href={
                         a.endDate ?
@@ -141,7 +140,9 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                         setPendingVisibility(checked);
                         setOpenVisibilityDialog(true);
                       }}
-                      disabled={!user.roles.includes("TALLY_MANAGER")}
+                      disabled={
+                        !user.roles.includes("TALLY_MANAGER") || !a.endDate
+                      }
                       formControlSx={{
                         "& .MuiFormControlLabel-label": {
                           color: "black",

@@ -1,18 +1,33 @@
+import LocationInfo from "@/app/map/locationDetails/locationInfo";
+import LocationTallys from "@/app/map/locationDetails/locationTallys";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
-import CCheckbox from "@/components/ui/cCheckbox";
-import CIconChip from "@/components/ui/cIconChip";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
-import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
-import {
-  IconCircleDashedLetterC,
-  IconCircleDashedLetterT,
-  IconRoad,
-  IconX,
-} from "@tabler/icons-react";
-import { useState } from "react";
+import { IconInfoCircle, IconX } from "@tabler/icons-react";
+import { ReactNode, useState } from "react";
+import { IoIosPeople } from "react-icons/io";
+
+type LocationDetailsOption = "INFO" | "PERSONS";
+
+const detailsOptions: {
+  id: LocationDetailsOption;
+  label: string;
+  icon: ReactNode;
+}[] = [
+  {
+    id: "INFO",
+    label: "Informações",
+    icon: <IconInfoCircle />,
+  },
+  {
+    id: "PERSONS",
+    label: "Pessoas",
+    icon: <IoIosPeople size={24} />,
+  },
+];
 
 const LocationDetails = ({
   location,
@@ -24,6 +39,8 @@ const LocationDetails = ({
   isMobileView: boolean;
 }) => {
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
+  const [detailsOption, setDetailsOption] =
+    useState<LocationDetailsOption>("INFO");
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -46,54 +63,28 @@ const LocationDetails = ({
         width={384}
         height={200}
       />
-      <Divider />
-      <h4 className="font-semibold">Situação cadastral</h4>
-      <CCheckbox checked={location.isPark} label="É praça" disabled />
-      <CCheckbox
-        checked={location.inactiveNotFound}
-        label="Inativo ou não encontrado"
-        disabled
-      />
-      <Divider />
-      <h4 className="font-semibold">Localização</h4>
-      <CLocationAdministrativeUnits location={location} />
-
-      <div className="flex items-center">
-        <CIconChip icon={<IconRoad />} tooltip="Ruas" />
-        {[
-          location.firstStreet,
-          location.secondStreet,
-          location.thirdStreet,
-          location.fourthStreet,
-        ]
-          .filter(Boolean)
-          .join(", ")}
+      <div className="flex gap-1">
+        <CToggleButtonGroup
+          options={detailsOptions}
+          value={detailsOption}
+          getLabel={(o) => {
+            return (
+              <>
+                {o.icon} {o.label}
+              </>
+            );
+          }}
+          getValue={(o) => o.id}
+          onChange={(_, v) => {
+            setDetailsOption(v.id);
+          }}
+        />
       </div>
-      <Divider />
-      <h4 className="font-semibold">Categorização</h4>
-      <span>
-        <CIconChip icon={<IconCircleDashedLetterT />} tooltip="Tipo" />
-        {location.typeName ?? "-"}
-      </span>
-      <span>
-        <CIconChip icon={<IconCircleDashedLetterC />} tooltip="Categoria" />
-        {location.categoryName ?? "-"}
-      </span>
-      <Divider />
-      <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
 
-      <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
+      <Divider />
 
-      <span>{`Inclinação: ${location.incline ?? "-"} %`}</span>
-      <Divider />
-      <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
-      <Divider />
-      <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
+      {detailsOption === "INFO" && <LocationInfo location={location} />}
+      {detailsOption === "PERSONS" && <LocationTallys location={location} />}
     </div>
   );
   if (isMobileView) {

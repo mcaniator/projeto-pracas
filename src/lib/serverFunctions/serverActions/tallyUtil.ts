@@ -278,6 +278,27 @@ export const _updateTallyVisibility = async ({
     };
   }
   try {
+    const tally = await prisma.tally.findUnique({
+      where: { id },
+      select: { endDate: true },
+    });
+    if (!tally) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Contagem não encontrada!",
+        } as APIResponseInfo,
+      };
+    }
+    if (!tally.endDate) {
+      return {
+        responseInfo: {
+          statusCode: 403,
+          message:
+            "Não é possível alterar a visibilidade de uma contagem em andamento!",
+        } as APIResponseInfo,
+      };
+    }
     await prisma.tally.update({
       where: {
         id,
