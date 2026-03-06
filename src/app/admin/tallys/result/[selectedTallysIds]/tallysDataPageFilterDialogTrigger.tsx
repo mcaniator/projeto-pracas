@@ -1,17 +1,14 @@
 import { DataFilter } from "@/app/admin/tallys/result/[selectedTallysIds]/dataFilter";
 import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
-import { BooleanPersonProperties } from "@/lib/types/tallys/tallys";
+import { TallyDataPersonFilters } from "@/lib/utils/tallyDataVisualization";
 import { IconFilter } from "@tabler/icons-react";
 
 const TallysDataPageFilterDialogTrigger = ({
-  setBooleanConditionsFilter,
-  booleanConditionsFilter,
+  setPersonFilters,
+  personFilters,
 }: {
-  setBooleanConditionsFilter: React.Dispatch<
-    React.SetStateAction<(BooleanPersonProperties | "DEFAULT")[]>
-  >;
-
-  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
+  setPersonFilters: React.Dispatch<React.SetStateAction<TallyDataPersonFilters>>;
+  personFilters: TallyDataPersonFilters;
 }) => {
   return (
     <CDialogTrigger
@@ -20,8 +17,8 @@ const TallysDataPageFilterDialogTrigger = ({
       title="Filtros"
     >
       <DataFilter
-        setBooleanConditionsFilter={setBooleanConditionsFilter}
-        booleanConditionsFilter={booleanConditionsFilter}
+        setPersonFilters={setPersonFilters}
+        personFilters={personFilters}
       />
     </CDialogTrigger>
   );

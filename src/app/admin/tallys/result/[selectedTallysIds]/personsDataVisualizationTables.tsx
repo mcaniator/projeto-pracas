@@ -268,7 +268,7 @@ const PersonsDatavisualizationTables = ({
           <IconChartPie2 /> Gráficos percentuais
         </CAccordionSummary>
         <CAccordionDetails>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap justify-center gap-1">
             <GenderRelativeGraph tallyMap={tallyMap} />
             <ActivityRelativeGraph tallyMap={tallyMap} />
             <AgeGroupRelativeGraph tallyMap={tallyMap} />

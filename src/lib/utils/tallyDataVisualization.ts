@@ -22,6 +22,22 @@ const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithoutHousing",
 ];
 
+type TallyPersonData = NonNullable<FinalizedTally["tallyPerson"]>[number]["person"];
+
+export type TallyDataPersonFilters = {
+  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
+  genders: Gender[];
+  ageGroups: AgeGroup[];
+  activities: Activity[];
+};
+
+export const getDefaultTallyDataPersonFilters = (): TallyDataPersonFilters => ({
+  booleanConditionsFilter: [],
+  genders: Object.values(Gender),
+  ageGroups: Object.values(AgeGroup),
+  activities: Object.values(Activity),
+});
+
 const booleanPersonPropertiesWithNoBooleanCharacteristic: BooleanPersonPropertiesWithNoBooleanCharacteristic[] =
   [
     "isPersonWithImpairment",
@@ -62,9 +78,49 @@ export const immutableTallyData = (tallys: TallyDataVisualizationInput[]) => {
   };
 };
 
+export const shouldIncludePersonByFilters = (
+  person: TallyPersonData,
+  filters: TallyDataPersonFilters,
+) => {
+  const {
+    booleanConditionsFilter,
+    genders,
+    ageGroups,
+    activities,
+  } = filters;
+
+  if (booleanConditionsFilter.length > 0) {
+    for (const filter of booleanConditionsFilter) {
+      if (filter === "DEFAULT") {
+        for (const property of booleanPersonProperties) {
+          if (person[property] === true) {
+            return false;
+          }
+        }
+      } else if (person[filter] === false) {
+        return false;
+      }
+    }
+  }
+
+  if (genders.length > 0 && !genders.includes(person.gender)) {
+    return false;
+  }
+
+  if (ageGroups.length > 0 && !ageGroups.includes(person.ageGroup)) {
+    return false;
+  }
+
+  if (activities.length > 0 && !activities.includes(person.activity)) {
+    return false;
+  }
+
+  return true;
+};
+
 export const processTallyData = (
   tallys: TallyDataVisualizationInput[],
-  booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[],
+  filters: TallyDataPersonFilters,
 ) => {
   const tallyMap = new Map<string, number>();
   for (const gender of Object.keys(Gender)) {
@@ -102,23 +158,7 @@ export const processTallyData = (
   for (const tally of tallys) {
     if (!tally.tallyPerson) continue;
     for (const tallyPerson of tally.tallyPerson) {
-      let skipToNextPerson = false;
-      if (booleanConditionsFilter.length > 0) {
-        for (const filter of booleanConditionsFilter) {
-          if (filter === "DEFAULT") {
-            for (const property of booleanPersonProperties) {
-              if (tallyPerson.person[property] === true) {
-                skipToNextPerson = true;
-                break;
-              }
-            }
-          } else if (tallyPerson.person[filter] === false) {
-            skipToNextPerson = true;
-            break;
-          }
-        }
-      }
-      if (skipToNextPerson) {
+      if (!shouldIncludePersonByFilters(tallyPerson.person, filters)) {
         continue;
       }
       const key = `${tallyPerson.person.gender}-${tallyPerson.person.ageGroup}-${tallyPerson.person.activity}`;

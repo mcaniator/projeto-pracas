@@ -8,10 +8,11 @@ import {
 import TallysDataPageFilterDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterDialogTrigger";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import {
+  getDefaultTallyDataPersonFilters,
   immutableTallyData,
   processTallyData,
+  TallyDataPersonFilters,
 } from "@/lib/utils/tallyDataVisualization";
-import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import { Divider, Paper } from "@mui/material";
 import { FinalizedTally } from "@zodValidators";
 import { useEffect, useState } from "react";
@@ -35,14 +36,14 @@ const TallysDataPage = ({
   locationName: string;
   locationUsableArea: number | null | undefined;
 }) => {
-  const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
-    (BooleanPersonProperties | "DEFAULT")[]
-  >([]);
+  const [personFilters, setPersonFilters] = useState<TallyDataPersonFilters>(
+    getDefaultTallyDataPersonFilters,
+  );
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
-    setTallyMap(processTallyData(tallys, booleanConditionsFilter));
-  }, [booleanConditionsFilter, tallys]);
+    setTallyMap(processTallyData(tallys, personFilters));
+  }, [personFilters, tallys]);
   const immutableTallyMaps = immutableTallyData(tallys);
   return (
     <div className="flex max-h-full min-h-0 max-w-full gap-5 text-black">
@@ -53,8 +54,8 @@ const TallysDataPage = ({
           append={
             <div className="xl:hidden">
               <TallysDataPageFilterDialogTrigger
-                setBooleanConditionsFilter={setBooleanConditionsFilter}
-                booleanConditionsFilter={booleanConditionsFilter}
+                setPersonFilters={setPersonFilters}
+                personFilters={personFilters}
               />
               <IndividualDataTableDialogTrigger tallys={tallys} />
             </div>
@@ -76,8 +77,8 @@ const TallysDataPage = ({
             className="hidden h-full max-h-full flex-col gap-2 overflow-auto p-2 xl:flex xl:basis-2/5"
           >
             <TallysDataPageActions
-              setBooleanConditionsFilter={setBooleanConditionsFilter}
-              booleanConditionsFilter={booleanConditionsFilter}
+              setPersonFilters={setPersonFilters}
+              personFilters={personFilters}
             />
             <Divider />
             <div className="0 flex h-full min-h-56 flex-col gap-1 overflow-auto shadow-md">
