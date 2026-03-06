@@ -1,8 +1,16 @@
-﻿import { PublicFetchTallyDetailsParams } from "@/app/api/public/tallyDetails/route";
+import { PublicFetchTallyDetailsParams } from "@/app/api/public/tallyDetails/route";
 import { PublicFetchTallysParams } from "@/app/api/public/tallys/route";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import { finalizedTallyArraySchema } from "@zodValidators";
+import { tallySchema } from "@zodValidators";
+import { z } from "zod";
+
+const publicFinalizedTallySchema = tallySchema.omit({
+  location: true,
+  user: true,
+});
+
+export type PublicFinalizedTally = z.infer<typeof publicFinalizedTallySchema>;
 
 export type PublicFetchTallysResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchTallys>>["data"]
@@ -69,12 +77,17 @@ export const publicFetchTallyDetails = async (
         id: params.tallyId,
         isPublic: true,
       },
-      include: {
-        user: {
-          select: {
-            username: true,
-          },
-        },
+      select: {
+        id: true,
+        locationId: true,
+        startDate: true,
+        endDate: true,
+        animalsAmount: true,
+        temperature: true,
+        weatherCondition: true,
+        groups: true,
+        tallyPerson: true,
+        commercialActivities: true,
         location: {
           select: {
             name: true,
@@ -98,7 +111,18 @@ export const publicFetchTallyDetails = async (
       };
     }
 
-    const parsedTally = finalizedTallyArraySchema.safeParse([tally]);
+    const parsedTally = publicFinalizedTallySchema.safeParse({
+      id: tally.id,
+      locationId: tally.locationId,
+      startDate: tally.startDate,
+      endDate: tally.endDate,
+      animalsAmount: tally.animalsAmount,
+      temperature: tally.temperature,
+      weatherCondition: tally.weatherCondition,
+      groups: tally.groups,
+      tallyPerson: tally.tallyPerson,
+      commercialActivities: tally.commercialActivities,
+    });
     if (!parsedTally.success) {
       return {
         responseInfo: {
@@ -116,7 +140,7 @@ export const publicFetchTallyDetails = async (
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
-        tally: parsedTally.data[0],
+        tally: parsedTally.data,
         locationName: tally.location.name,
         usableArea: tally.location.usableArea,
       },

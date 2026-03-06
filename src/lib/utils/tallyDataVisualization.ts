@@ -4,6 +4,10 @@ import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import { FinalizedTally } from "@zodValidators";
 import { z } from "zod";
 
+type TallyDataVisualizationInput = Omit<FinalizedTally, "user"> & {
+  user?: FinalizedTally["user"];
+};
+
 type BooleanPersonPropertiesWithNoBooleanCharacteristic =
   | "isPersonWithImpairment"
   | "isTraversing"
@@ -27,7 +31,7 @@ const booleanPersonPropertiesWithNoBooleanCharacteristic: BooleanPersonPropertie
     "noBooleanCharacteristic",
   ];
 
-export const immutableTallyData = (tallys: FinalizedTally[]) => {
+export const immutableTallyData = (tallys: TallyDataVisualizationInput[]) => {
   const commercialActivitiesMap = new Map<
     number,
     TallyInfoAndCommercialActivitiesObject
@@ -40,7 +44,7 @@ export const immutableTallyData = (tallys: FinalizedTally[]) => {
   for (const tally of tallys) {
     commercialActivitiesMap.set(tally.id, {
       tallyInfo: {
-        observer: tally.user.username ?? "",
+        observer: tally.user?.username ?? "",
         startDate: new Date(tally.startDate).toLocaleString(),
       },
       commercialActivities: tally.commercialActivities ?? {},
@@ -59,7 +63,7 @@ export const immutableTallyData = (tallys: FinalizedTally[]) => {
 };
 
 export const processTallyData = (
-  tallys: FinalizedTally[],
+  tallys: TallyDataVisualizationInput[],
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[],
 ) => {
   const tallyMap = new Map<string, number>();

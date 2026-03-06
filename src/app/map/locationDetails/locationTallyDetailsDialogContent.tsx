@@ -5,6 +5,7 @@ import GenderRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/g
 import { TallysDataPageActions } from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageActions";
 import TallysDataPageFilterDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterDialogTrigger";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import type { PublicFinalizedTally } from "@/lib/serverFunctions/queries/public/tally";
 import {
   immutableTallyData,
   processTallyData,
@@ -19,15 +20,12 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { FinalizedTally } from "@zodValidators";
 import { useEffect, useMemo, useState } from "react";
 
 const LocationTallyDetailsDialogContent = ({
   tally,
-  locationName,
 }: {
-  tally: FinalizedTally;
-  locationName: string | null;
+  tally: PublicFinalizedTally;
 }) => {
   const [booleanConditionsFilter, setBooleanConditionsFilter] = useState<
     (BooleanPersonProperties | "DEFAULT")[]
@@ -87,21 +85,25 @@ const LocationTallyDetailsDialogContent = ({
     }),
     [tally.animalsAmount, tally.groups],
   );
+  const hasCommercialActivities =
+    commercialActivitiesData.totalCommercialActivities > 0;
 
   return (
     <div className="flex h-full min-h-0 w-full gap-4 overflow-hidden text-black">
       <div className="flex h-full min-h-0 w-full flex-col gap-3 overflow-auto rounded bg-white p-2">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="text-xl font-semibold">
-              Resultado da contagem em {locationName ?? "-"}
-            </h3>
-            <span className="text-sm text-gray-500">
-              {dateTimeFormatter.format(new Date(tally.startDate))}
-              {tally.endDate ?
-                ` - ${dateTimeFormatter.format(new Date(tally.endDate))}`
-              : ""}
-            </span>
+            <div className="text-sm text-gray-500">
+              <span className="block">
+                inicio: {dateTimeFormatter.format(new Date(tally.startDate))}
+              </span>
+              <span className="block">
+                fim:{" "}
+                {tally.endDate ?
+                  dateTimeFormatter.format(new Date(tally.endDate))
+                : "-"}
+              </span>
+            </div>
           </div>
           <div className="xl:hidden">
             <TallysDataPageFilterDialogTrigger
@@ -112,7 +114,7 @@ const LocationTallyDetailsDialogContent = ({
         </div>
 
         <Paper elevation={2} className="p-2">
-          <h4 className="text-lg font-semibold">Gráficos relativos</h4>
+          <h4 className="text-lg font-semibold">Pessoas</h4>
           <Divider className="my-2" />
           <div className="flex flex-wrap gap-1">
             <GenderRelativeGraph tallyMap={tallyMap} />
@@ -140,22 +142,24 @@ const LocationTallyDetailsDialogContent = ({
           </Table>
         </Paper>
 
-        <Paper elevation={2} className="p-2">
-          <h4 className="text-lg font-semibold">
-            Atividades comerciais itinerantes
-          </h4>
-          <Divider className="my-2" />
-          <CommercialActivitiesTable
-            tallyWithCommercialActivities={
-              immutableTallyMaps.commercialActivitiesMap
-            }
-            sortedCommercialActivitiesNames={commercialActivitiesData.names}
-            totalCommercialActivities={
-              commercialActivitiesData.totalCommercialActivities
-            }
-            sortedOccurrences={commercialActivitiesData.occurrences}
-          />
-        </Paper>
+        {hasCommercialActivities && (
+          <Paper elevation={2} className="p-2">
+            <h4 className="text-lg font-semibold">
+              Atividades comerciais itinerantes
+            </h4>
+            <Divider className="my-2" />
+            <CommercialActivitiesTable
+              tallyWithCommercialActivities={
+                immutableTallyMaps.commercialActivitiesMap
+              }
+              sortedCommercialActivitiesNames={commercialActivitiesData.names}
+              totalCommercialActivities={
+                commercialActivitiesData.totalCommercialActivities
+              }
+              sortedOccurrences={commercialActivitiesData.occurrences}
+            />
+          </Paper>
+        )}
       </div>
 
       <Paper
