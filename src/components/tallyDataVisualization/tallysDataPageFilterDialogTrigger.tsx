@@ -1,4 +1,4 @@
-import { DataFilter } from "@/app/admin/tallys/result/[selectedTallysIds]/dataFilter";
+import { DataFilter } from "@/components/tallyDataVisualization/dataFilter";
 import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
 import { TallyDataPersonFilters } from "@/lib/utils/tallyDataVisualization";
 import { IconFilter } from "@tabler/icons-react";
@@ -25,3 +25,4 @@ const TallysDataPageFilterDialogTrigger = ({
 };
 
 export default TallysDataPageFilterDialogTrigger;
+

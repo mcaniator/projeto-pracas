@@ -5,7 +5,7 @@ import {
   PersonsDatavisualizationTables,
   TallyComplementaryData,
 } from "@/app/admin/tallys/result/[selectedTallysIds]/personsDataVisualizationTables";
-import TallysDataPageFilterDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterDialogTrigger";
+import TallysDataPageFilterDialogTrigger from "@/components/tallyDataVisualization/tallysDataPageFilterDialogTrigger";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import {
   getDefaultTallyDataPersonFilters,
@@ -20,7 +20,7 @@ import React from "react";
 import { GrGroup } from "react-icons/gr";
 
 import { IndividualDataTable } from "./individualDataTable";
-import { TallysDataPageActions } from "./tallysDataPageActions";
+import { TallysDataPageActions } from "@/components/tallyDataVisualization/tallysDataPageActions";
 
 type DataTypesInTallyVisualization = "PERSONS_DATA" | "COMPLEMENTARY_DATA";
 type TallyDataVisualizationModes = "CHART" | "TABLE";
@@ -94,3 +94,4 @@ const TallysDataPage = ({
 
 export { TallysDataPage };
 export { type DataTypesInTallyVisualization, type TallyDataVisualizationModes };
+

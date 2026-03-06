@@ -1,17 +1,17 @@
-﻿import { CommercialActivitiesTable } from "@/app/admin/tallys/result/[selectedTallysIds]/commercialActivitiesTable";
-import ActivityRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/activityRelativeGraph";
-import AgeGroupRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/ageGroupRelativeGraph";
-import GenderRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/genderRelativeGraph";
-import { TallysDataPageActions } from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageActions";
-import TallysDataPageFilterDialogTrigger from "@/app/admin/tallys/result/[selectedTallysIds]/tallysDataPageFilterDialogTrigger";
+﻿import { CommercialActivitiesTable } from "@/components/tallyDataVisualization/commercialActivitiesTable";
+import ActivityRelativeGraph from "@/components/tallyDataVisualization/graphs/activityRelativeGraph";
+import AgeGroupRelativeGraph from "@/components/tallyDataVisualization/graphs/ageGroupRelativeGraph";
+import GenderRelativeGraph from "@/components/tallyDataVisualization/graphs/genderRelativeGraph";
+import { TallysDataPageActions } from "@/components/tallyDataVisualization/tallysDataPageActions";
+import TallysDataPageFilterDialogTrigger from "@/components/tallyDataVisualization/tallysDataPageFilterDialogTrigger";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import type { PublicFinalizedTally } from "@/lib/serverFunctions/queries/public/tally";
 import {
+  TallyDataPersonFilters,
   getDefaultTallyDataPersonFilters,
   immutableTallyData,
   processTallyData,
   shouldIncludePersonByFilters,
-  TallyDataPersonFilters,
 } from "@/lib/utils/tallyDataVisualization";
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
 import {
@@ -179,10 +179,7 @@ const LocationTallyDetailsDialogContent = ({
 
         <Paper elevation={2} className="p-2">
           <h4 className="text-lg font-semibold">Condições das pessoas</h4>
-          <span className="text-xs text-gray-500">
-            Base: {extraCharacteristicsData.totalPeople} pessoas (contagens não
-            exclusivas)
-          </span>
+
           <Divider className="my-2" />
           <div className="flex flex-col gap-2">
             {extraCharacteristicsData.bars.map((bar) => (
@@ -193,14 +190,7 @@ const LocationTallyDetailsDialogContent = ({
                     {bar.count} ({bar.percentage.toFixed(1)}%)
                   </span>
                 </div>
-                <div className="h-2 w-full rounded bg-gray-200">
-                  <div
-                    className="bg-emerald-600 h-2 rounded"
-                    style={{
-                      width: `${Math.min(100, bar.percentage)}%`,
-                    }}
-                  />
-                </div>
+                <Divider />
               </div>
             ))}
           </div>

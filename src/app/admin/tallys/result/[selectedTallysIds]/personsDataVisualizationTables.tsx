@@ -1,10 +1,10 @@
 "use client ";
 
-import { CommercialActivitiesTable } from "@/app/admin/tallys/result/[selectedTallysIds]/commercialActivitiesTable";
+import { CommercialActivitiesTable } from "@/components/tallyDataVisualization/commercialActivitiesTable";
 import { AbsoluteGraphs } from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/absoluteGraphs";
-import ActivityRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/activityRelativeGraph";
-import AgeGroupRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/ageGroupRelativeGraph";
-import GenderRelativeGraph from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/genderRelativeGraph";
+import ActivityRelativeGraph from "@/components/tallyDataVisualization/graphs/activityRelativeGraph";
+import AgeGroupRelativeGraph from "@/components/tallyDataVisualization/graphs/ageGroupRelativeGraph";
+import GenderRelativeGraph from "@/components/tallyDataVisualization/graphs/genderRelativeGraph";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
@@ -316,3 +316,4 @@ const PersonsDatavisualizationTables = ({
 };
 
 export { PersonsDatavisualizationTables };
+
