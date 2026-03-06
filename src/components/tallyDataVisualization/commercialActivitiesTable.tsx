@@ -14,6 +14,7 @@ const CommercialActivitiesTable = ({
   sortedCommercialActivitiesNames,
   totalCommercialActivities,
   sortedOccurrences,
+  hideTallyDate = false,
 }: {
   tallyWithCommercialActivities: Map<
     number,
@@ -22,6 +23,7 @@ const CommercialActivitiesTable = ({
   sortedCommercialActivitiesNames: string[];
   totalCommercialActivities: number;
   sortedOccurrences: number[];
+  hideTallyDate?: boolean;
 }) => {
   const commercialActivitiesWithTallys: {
     [key: string]: { tally: string; occurrences: number }[];
@@ -83,11 +85,13 @@ const CommercialActivitiesTable = ({
           </TableRow>
           {Array.from(tallyWithCommercialActivities).map(
             ([tallyId, commercialActivitiesObject]) => {
+              const tallyLabel =
+                hideTallyDate ?
+                  ""
+                : `${commercialActivitiesObject.tallyInfo.startDate} - ${commercialActivitiesObject.tallyInfo.observer}`;
               return (
                 <TableRow key={tallyId}>
-                  <TableCell>
-                    {`${commercialActivitiesObject.tallyInfo.startDate} - ${commercialActivitiesObject.tallyInfo.observer}`}
-                  </TableCell>
+                  <TableCell>{tallyLabel}</TableCell>
                   {sortedCommercialActivitiesNames.length ?
                     sortedCommercialActivitiesNames.map(
                       (commercialActivityName, key) => {

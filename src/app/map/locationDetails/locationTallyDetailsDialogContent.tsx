@@ -152,7 +152,7 @@ const LocationTallyDetailsDialogContent = ({
                 Início: {dateTimeFormatter.format(new Date(tally.startDate))}
               </span>
               <span className="block">
-                fim:{" "}
+                Fim:{" "}
                 {tally.endDate ?
                   dateTimeFormatter.format(new Date(tally.endDate))
                 : "-"}
@@ -170,6 +170,12 @@ const LocationTallyDetailsDialogContent = ({
         <Paper elevation={2} className="p-2">
           <h4 className="text-lg font-semibold">Pessoas</h4>
           <Divider className="my-2" />
+          <div className="mb-3 rounded border border-emerald-200 bg-emerald-50 p-3 text-center">
+            <span className="text-sm text-emerald-800">Total de pessoas</span>
+            <div className="text-3xl font-bold text-emerald-700">
+              {tallyMap.get("Tot-H&M") ?? 0}
+            </div>
+          </div>
           <div className="flex flex-wrap justify-center gap-1">
             <GenderRelativeGraph tallyMap={tallyMap} />
             <ActivityRelativeGraph tallyMap={tallyMap} />
@@ -230,6 +236,7 @@ const LocationTallyDetailsDialogContent = ({
                 commercialActivitiesData.totalCommercialActivities
               }
               sortedOccurrences={commercialActivitiesData.occurrences}
+              hideTallyDate
             />
           </Paper>
         )}
