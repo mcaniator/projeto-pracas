@@ -34,6 +34,9 @@ importers:
       '@formkit/auto-animate':
         specifier: ^0.8.2
         version: 0.8.2
+      '@iconify/react':
+        specifier: ^6.0.2
+        version: 6.0.2(react@19.1.1)
       '@jackstenglein/mui-mentions':
         specifier: ^0.1.11
         version: 0.1.11(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1))(@mui/material@7.3.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)
@@ -713,6 +716,14 @@ packages:
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@iconify/react@6.0.2':
+    resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
+    peerDependencies:
+      react: '>=16'
+
+  '@iconify/types@2.0.0':
+    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@img/colour@1.0.0':
     resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
@@ -4019,6 +4030,7 @@ packages:
   next@15.3.4:
     resolution: {integrity: sha512-mHKd50C+mCjam/gcnwqL1T1vPx/XQNFlXqFIVdgQdVAFY9iIQtY0IfaVflEYzKiqjeA7B0cYYMaCrmAYFjs4rA==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -5669,6 +5681,13 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@2.0.3': {}
+
+  '@iconify/react@6.0.2(react@19.1.1)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      react: 19.1.1
+
+  '@iconify/types@2.0.0': {}
 
   '@img/colour@1.0.0':
     optional: true

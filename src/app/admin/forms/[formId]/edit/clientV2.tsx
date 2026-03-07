@@ -46,6 +46,7 @@ export type QuestionItem = {
   position: number;
   questionId: number;
   name: string;
+  iconKey: string;
   notes: string | null;
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
@@ -184,6 +185,7 @@ const ClientV2 = ({
             {
               questionId: question.id,
               name: question.name,
+              iconKey: question.iconKey,
               notes: question.notes,
               questionType: question.questionType,
               position: (subItem.questions?.length ?? 0) + 1,
@@ -215,6 +217,7 @@ const ClientV2 = ({
         const questionItem: QuestionItem = {
           questionId: question.id,
           name: question.name,
+          iconKey: question.iconKey,
           notes: question.notes,
           questionType: question.questionType,
           characterType: question.characterType,

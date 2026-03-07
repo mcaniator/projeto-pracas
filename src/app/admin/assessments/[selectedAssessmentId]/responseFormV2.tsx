@@ -16,6 +16,7 @@ import CCalculationChip from "@/components/ui/question/cCalculationChip";
 import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
+import QuestionIcon from "@/components/ui/question/questionIcon";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import {
@@ -525,7 +526,10 @@ const Question = ({
           questions={questionsForMention}
         />
       </div>
-      <div className="break-all">{question.name}</div>
+      <div className="flex items-center gap-2 break-all">
+        <QuestionIcon iconKey={question.iconKey} />
+        {question.name}
+      </div>
       <div className="mb-1 flex flex-wrap justify-start gap-1">
         {question.geometryTypes.length > 0 && (
           <>

@@ -77,7 +77,7 @@ const publicFetchCities = async (params: PublicFetchCitiesParams) => {
   } catch (error) {
     return {
       responseInfo: {
-        statusCode: 200,
+        statusCode: 500,
       } as APIResponseInfo,
       data: {
         cities: [],

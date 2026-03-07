@@ -6,6 +6,7 @@ import CNotesChip from "@components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
+import QuestionIcon from "@components/ui/question/questionIcon";
 import {
   CategoryForQuestionPicker,
   QuestionForQuestionPicker,
@@ -241,6 +242,7 @@ const QuestionListV2 = ({
           questionId={question.id}
           characterType={question.characterType}
           name={question.name}
+          iconKey={question.iconKey}
           notes={question.notes}
           questionType={question.questionType}
           optionType={question.optionType}
@@ -264,6 +266,7 @@ const QuestionComponentV2 = ({
   characterType,
   addQuestion,
   name,
+  iconKey,
   notes,
   questionType,
   optionType,
@@ -280,6 +283,7 @@ const QuestionComponentV2 = ({
   characterType: QuestionResponseCharacterTypes;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   name: string;
+  iconKey: string;
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
@@ -314,7 +318,10 @@ const QuestionComponentV2 = ({
         <CQuestionGeometryChip geometryTypes={geometryTypes} />
         <CNotesChip notes={notes} name={name} />
       </div>
-      <div className="max-w-full break-all">{name}</div>
+      <div className="flex max-w-full items-center gap-2 break-all">
+        <QuestionIcon iconKey={iconKey} />
+        {name}
+      </div>
       {showAllQuestions ?
         <CButton
           variant="text"
@@ -337,6 +344,7 @@ const QuestionComponentV2 = ({
             addQuestion({
               id: questionId,
               name,
+              iconKey,
               notes,
               questionType,
               optionType,

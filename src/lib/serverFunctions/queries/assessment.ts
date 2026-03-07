@@ -156,6 +156,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                   select: {
                     id: true,
                     name: true,
+                    iconKey: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -296,6 +297,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           position: item.position,
           questionId: item.questionId,
           name: dbQuestion.name,
+          iconKey: dbQuestion.iconKey,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,

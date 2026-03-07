@@ -6,6 +6,7 @@ import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
 import CNotesChip from "@components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
+import QuestionIcon from "@components/ui/question/questionIcon";
 import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   DndContext,
@@ -606,7 +607,10 @@ const SortableFormItem = ({
           <CQuestionGeometryChip geometryTypes={formItem.geometryTypes} />
           <CNotesChip notes={formItem.notes} name={formItem.name} />
         </div>
-        <span className={`break-all ${isFinalized ? "ml-2" : ""}`}>
+        <span
+          className={`flex items-center gap-2 break-all ${isFinalized ? "ml-2" : ""}`}
+        >
+          <QuestionIcon iconKey={formItem.iconKey} />
           {formItem.name}
         </span>
 

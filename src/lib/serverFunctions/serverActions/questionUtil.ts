@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { isSupportedQuestionIconKey } from "@/lib/questionIcons/questionIconCatalog";
 import {
   optionSchema,
   questionEditDataSchema,
@@ -24,6 +25,7 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
+  const iconKey = formData.get("iconKey");
 
   switch (questionType) {
     case "WRITTEN": {
@@ -33,6 +35,7 @@ const _questionSubmit = async (
         if (questionCharacterType === "TEXT") {
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
+            iconKey: iconKey,
             notes: notes.length > 0 ? notes : null,
             questionType: questionType,
             characterType: questionCharacterType,
@@ -52,6 +55,7 @@ const _questionSubmit = async (
         } else {
           writtenQuestionParsed = questionSchema.parse({
             name: formData.get("name"),
+            iconKey: iconKey,
             notes: notes.length > 0 ? notes : null,
             questionType: questionType,
             characterType: questionCharacterType,
@@ -74,6 +78,10 @@ const _questionSubmit = async (
       }
 
       try {
+        if (!isSupportedQuestionIconKey(writtenQuestionParsed.iconKey)) {
+          return { statusCode: 400, questionName: null };
+        }
+
         const newQuestion = await prisma.question.create({
           data: writtenQuestionParsed,
         });
@@ -99,6 +107,7 @@ const _questionSubmit = async (
       try {
         optionsQuestionParsed = questionSchema.parse({
           name,
+          iconKey,
           notes: notes.length > 0 ? notes : null,
           questionType: questionType,
           characterType: questionCharacterType,
@@ -119,11 +128,16 @@ const _questionSubmit = async (
       }
 
       try {
+        if (!isSupportedQuestionIconKey(optionsQuestionParsed.iconKey)) {
+          return { statusCode: 400, questionName: null };
+        }
+
         let questionName: string | null = null;
         await prisma.$transaction(async (prisma) => {
           const newQuestion = await prisma.question.create({
             data: {
               name: optionsQuestionParsed.name,
+              iconKey: optionsQuestionParsed.iconKey,
               notes: optionsQuestionParsed.notes,
               questionType: questionType,
               characterType: optionsQuestionParsed.characterType,

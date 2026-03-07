@@ -28,6 +28,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
           select: {
             id: true,
             name: true,
+            iconKey: true,
             questionType: true,
             notes: true,
             characterType: true,
@@ -51,6 +52,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
               select: {
                 id: true,
                 name: true,
+                iconKey: true,
                 questionType: true,
                 notes: true,
                 characterType: true,
@@ -153,6 +155,7 @@ const searchQuestionsByName = async (
               json_build_object(
                 'id', q.id,
                 'name', q.name,
+                'iconKey', q."icon_key",
                 'questionType', q."question_type",
                 'notes', q.notes,
                 'characterType', q."character_type",
@@ -197,6 +200,7 @@ const searchQuestionsByName = async (
                       json_build_object(
                         'id', sq.id,
                         'name', sq.name,
+                        'iconKey', sq."icon_key",
                         'questionType', sq."question_type",
                         'notes', sq.notes,
                         'characterType', sq."character_type",

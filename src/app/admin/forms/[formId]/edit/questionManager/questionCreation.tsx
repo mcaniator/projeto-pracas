@@ -17,6 +17,7 @@ import CCheckboxGroup from "../../../../../../components/ui/cCheckboxGroup";
 import CNumberField from "../../../../../../components/ui/cNumberField";
 import CRadioGroup from "../../../../../../components/ui/cRadioGroup";
 import CTextField from "../../../../../../components/ui/cTextField";
+import QuestionIconPicker from "./questionIconPicker";
 
 type CharacterType = "TEXT" | "NUMBER";
 
@@ -58,6 +59,7 @@ const QuestionCreation = ({
   const [selectionType, setSelectionType] = useState<string | null>(null);
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
+  const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
 
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
@@ -87,6 +89,7 @@ const QuestionCreation = ({
     setAddedOptions(undefined);
     setQuestionTemplate(null);
     setGeometryTypes([]);
+    setSelectedIconKey(null);
     setPageState("FORM");
   };
   useEffect(() => {
@@ -157,6 +160,14 @@ const QuestionCreation = ({
           return;
         }
         e.preventDefault();
+        if (!selectedIconKey || selectedIconKey.length === 0) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Selecione um icone para a questao.</>,
+          });
+          return;
+        }
         if (
           type === "OPTIONS" &&
           (!addedOptions || addedOptions.length === 0)
@@ -178,7 +189,10 @@ const QuestionCreation = ({
       title="Criar questão"
       confirmChildren={<>Criar</>}
       disableConfirmButton={
-        isPending || pageState !== "FORM" || hasAssociatedGeometry === null
+        isPending ||
+        pageState !== "FORM" ||
+        hasAssociatedGeometry === null ||
+        selectedIconKey === null
       }
     >
       <div className="h-full">
@@ -224,6 +238,17 @@ const QuestionCreation = ({
                   maxCharacters={255}
                 />
               </div>
+
+              <input
+                type="hidden"
+                id="iconKey"
+                name="iconKey"
+                value={selectedIconKey ?? ""}
+              />
+              <QuestionIconPicker
+                selectedIconKey={selectedIconKey}
+                onChange={setSelectedIconKey}
+              />
 
               <CRadioGroup
                 label="Tipo de questão"

@@ -8,6 +8,7 @@ import {
 type FormQuestionWithCategoryAndSubcategory = {
   id: number;
   name: string;
+  iconKey: string;
   notes: string | null;
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
@@ -30,6 +31,7 @@ type FormQuestionWithCategoryAndSubcategory = {
 type QuestionForQuestionPicker = {
   id: number;
   name: string;
+  iconKey: string;
   questionType: QuestionTypes;
   notes: string | null;
   characterType: QuestionResponseCharacterTypes;
