@@ -46,6 +46,9 @@ importers:
       '@iconify-json/tabler':
         specifier: ^1.2.31
         version: 1.2.31
+      '@iconify/icons-line-md':
+        specifier: ^1.2.30
+        version: 1.2.30
       '@iconify/react':
         specifier: ^6.0.2
         version: 6.0.2(react@19.1.1)
@@ -740,6 +743,9 @@ packages:
 
   '@iconify-json/tabler@1.2.31':
     resolution: {integrity: sha512-Jfcw5TpGhfKKWyz1dGk7e79zIgDmpMKNYL0bjt17sURBPifAxowQcWAzcEhuiWU7FGXUM2NT6UhvACFZp7Hnjw==}
+
+  '@iconify/icons-line-md@1.2.30':
+    resolution: {integrity: sha512-gFZmHkWSkSGDZEauw7D1m4HEIGXFHRv9H3tiZYwXKD43j1QmtF4D/A2e4UYJ+rfcS1BZ1lmdzLQUzmH3vCIsPQ==}
 
   '@iconify/react@6.0.2':
     resolution: {integrity: sha512-SMmC2sactfpJD427WJEDN6PMyznTFMhByK9yLW0gOTtnjzzbsi/Ke/XqsumsavFPwNiXs8jSiYeZTmLCLwO+Fg==}
@@ -5719,6 +5725,10 @@ snapshots:
       '@iconify/types': 2.0.0
 
   '@iconify-json/tabler@1.2.31':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify/icons-line-md@1.2.30':
     dependencies:
       '@iconify/types': 2.0.0
 

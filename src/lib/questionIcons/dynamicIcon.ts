@@ -1,11 +1,11 @@
 const DEFAULT_DYNAMIC_ICON_KEY = "tb:TbHelp";
 
-const reactIconPackIds = ["mdi", "tabler", "lucide", "ri"] as const;
+const DYNAMIC_ICON_PACK_IDS = ["mdi", "tabler", "lucide", "ri"] as const;
 
-type ReactIconPackId = (typeof reactIconPackIds)[number];
+type DynamicIconPackId = (typeof DYNAMIC_ICON_PACK_IDS)[number];
 
-const buildDynamicIconKey = (libraryId: ReactIconPackId, iconName: string) =>
+const buildDynamicIconKey = (libraryId: DynamicIconPackId, iconName: string) =>
   `${libraryId}:${iconName}`;
 
 export { DEFAULT_DYNAMIC_ICON_KEY, buildDynamicIconKey };
-export type { ReactIconPackId };
+export type { DynamicIconPackId };

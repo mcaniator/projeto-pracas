@@ -1,6 +1,6 @@
 import { FetchDynamicIconsParams } from "@/app/api/admin/forms/dynamicIcons/route";
 import {
-  ReactIconPackId,
+  DynamicIconPackId,
   buildDynamicIconKey,
 } from "@/lib/questionIcons/dynamicIcon";
 import lucide from "@iconify-json/lucide/icons.json";
@@ -13,7 +13,7 @@ import "server-only";
 const iconModules = [mdi, tabler, lucide, ri];
 
 const createCatalogEntry = (
-  libraryId: ReactIconPackId,
+  libraryId: DynamicIconPackId,
   iconName: string,
   aliases?: string[],
 ) => ({
@@ -24,7 +24,7 @@ const createCatalogEntry = (
 });
 
 const catalogEntries = iconModules.flatMap((module) => {
-  const libraryId = `${module.prefix}` as ReactIconPackId;
+  const libraryId = `${module.prefix}` as DynamicIconPackId;
   return Object.keys(module.icons).map((iconName) => {
     const aliases = Object.entries(module.aliases)
       .filter(([, data]) => data.parent === iconName)
