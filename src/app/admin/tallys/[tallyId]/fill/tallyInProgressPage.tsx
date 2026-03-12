@@ -4,6 +4,10 @@ import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
+import TallyPersonActions, {
+  ActivityOption,
+  SharedCharacteristics,
+} from "@/app/admin/tallys/[tallyId]/fill/tallyPersonActions";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -12,15 +16,9 @@ import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
-import CCheckbox from "@/components/ui/cCheckbox";
 import CNumberField from "@/components/ui/cNumberField";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
-import {
-  ActivityType,
-  AgeGroupType,
-  GenderType,
-} from "@/lib/types/tallys/person";
+import { AgeGroupType, GenderType } from "@/lib/types/tallys/person";
 import { useUserContext } from "@components/context/UserContext";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
@@ -30,8 +28,6 @@ import {
   IconChartBar,
   IconClipboardData,
   IconDeviceFloppy,
-  IconGenderFemale,
-  IconGenderMale,
   IconMoodDollar,
   IconPlus,
   IconTrashX,
@@ -40,8 +36,7 @@ import {
 import { CommercialActivity, OngoingTally } from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
-import { ChangeEvent, ReactNode, useState } from "react";
-import React from "react";
+import { ChangeEvent, useState } from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { GrGroup } from "react-icons/gr";
@@ -55,28 +50,7 @@ interface SubmittingObj {
   deleting: boolean;
 }
 
-type PersonCharacteristics = {
-  FEMALE: {
-    activity: ActivityType;
-    isTraversing: boolean;
-    isPersonWithImpairment: boolean;
-    isInApparentIllicitActivity: boolean;
-    isPersonWithoutHousing: boolean;
-  };
-  MALE: {
-    activity: ActivityType;
-    isTraversing: boolean;
-    isPersonWithImpairment: boolean;
-    isInApparentIllicitActivity: boolean;
-    isPersonWithoutHousing: boolean;
-  };
-};
-
-const activityOptionsMale: {
-  value: ActivityType;
-  label: ReactNode;
-  tooltip: string;
-}[] = [
+const activityOptionsMale: ActivityOption[] = [
   {
     value: "SEDENTARY",
     label: <BsPersonStanding size={32} />,
@@ -94,11 +68,7 @@ const activityOptionsMale: {
   },
 ];
 
-const activityOptionsFemale: {
-  value: ActivityType;
-  label: ReactNode;
-  tooltip: string;
-}[] = [
+const activityOptionsFemale: ActivityOption[] = [
   {
     value: "SEDENTARY",
     label: <BsPersonStandingDress size={32} />,
@@ -227,26 +197,19 @@ const TallyInProgressPage = ({
     animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
     groupsAmount: tally.groups ? tally.groups : 0,
   });
-  const [personCharacteristics, setPersonCharacteristics] =
-    useState<PersonCharacteristics>({
-      FEMALE: {
-        activity: "SEDENTARY",
-        isTraversing: false,
-        isPersonWithImpairment: false,
-        isInApparentIllicitActivity: false,
-        isPersonWithoutHousing: false,
-      },
-      MALE: {
-        activity: "SEDENTARY",
-        isTraversing: false,
-        isPersonWithImpairment: false,
-        isInApparentIllicitActivity: false,
-        isPersonWithoutHousing: false,
-      },
-    });
+  const buildPersonKey = (
+    gender: GenderType,
+    ageGroup: AgeGroupType,
+    characteristics: SharedCharacteristics,
+  ) =>
+    `${gender}-${ageGroup}-${characteristics.activity}-${characteristics.isTraversing}-${characteristics.isPersonWithImpairment}-${characteristics.isInApparentIllicitActivity}-${characteristics.isPersonWithoutHousing}`;
 
-  const handlePersonAdd = (gender: GenderType, ageGroup: AgeGroupType) => {
-    const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
+  const handlePersonAdd = (
+    gender: GenderType,
+    ageGroup: AgeGroupType,
+    characteristics: SharedCharacteristics,
+  ) => {
+    const key = buildPersonKey(gender, ageGroup, characteristics);
     setTallyMap((prev) => {
       const newMap = new Map(prev);
       const prevValue = newMap.get(key) || 0;
@@ -254,8 +217,12 @@ const TallyInProgressPage = ({
       return newMap;
     });
   };
-  const handlePersonRemoval = (gender: GenderType, ageGroup: AgeGroupType) => {
-    const key = `${gender}-${ageGroup}-${personCharacteristics[gender].activity}-${personCharacteristics[gender].isTraversing}-${personCharacteristics[gender].isPersonWithImpairment}-${personCharacteristics[gender].isInApparentIllicitActivity}-${personCharacteristics[gender].isPersonWithoutHousing}`;
+  const handlePersonRemoval = (
+    gender: GenderType,
+    ageGroup: AgeGroupType,
+    characteristics: SharedCharacteristics,
+  ) => {
+    const key = buildPersonKey(gender, ageGroup, characteristics);
     setTallyMap((prev) => {
       const newMap = new Map(prev);
       const prevValue = newMap.get(key);
@@ -270,15 +237,11 @@ const TallyInProgressPage = ({
   const countPeople = (
     gender: GenderType,
     ageGroup: AgeGroupType,
-    activity: ActivityType,
-    isTraversing: boolean,
-    isPersonWithImpairment: boolean,
-    isInApparentIllicitActivity: boolean,
-    isPersonWithoutHousing: boolean,
+    characteristics: SharedCharacteristics,
   ) => {
     let count = 0;
     const filter = new RegExp(
-      `^${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
+      `^${gender}-${ageGroup}-${characteristics.activity}-${characteristics.isTraversing}-${characteristics.isPersonWithImpairment}-${characteristics.isInApparentIllicitActivity}-${characteristics.isPersonWithoutHousing}`,
     );
     tallyMap.forEach((value, key) => {
       if (filter.test(key)) count += value;
@@ -437,372 +400,18 @@ const TallyInProgressPage = ({
               </CAccordionSummary>
               <CAccordionDetails>
                 <div className="flex flex-col gap-5">
-                  {!isCountingFemales ?
-                    <Paper
-                      elevation={5}
-                      sx={{ display: "flex", borderLeft: "4px solid blue" }}
-                    >
-                      <div className="flex flex-1 flex-col gap-1 rounded-md px-1 py-2">
-                        <div className="flex justify-between">
-                          <h5 className="text-xl font-semibold">Homens</h5>
-                          <div className="flex flex-wrap gap-1">
-                            <CButton
-                              square
-                              onClick={() => {
-                                setOpenReviewDialog(true);
-                              }}
-                            >
-                              <IconChartBar />
-                            </CButton>
-                            <CButton
-                              square
-                              onClick={() => setIsCountingFemales(true)}
-                            >
-                              <IconGenderFemale />
-                            </CButton>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-center">
-                          <CToggleButtonGroup
-                            options={activityOptionsMale}
-                            value={personCharacteristics.MALE.activity}
-                            getLabel={(o) => o.label}
-                            getValue={(o) => o.value}
-                            getTooltip={(o) => o.tooltip}
-                            toggleButtonColor="gray"
-                            toggleButtonSx={{
-                              padding: { xs: "8px" },
-                            }}
-                            onChange={(_, v) => {
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                MALE: { ...prev.MALE, activity: v.value },
-                              }));
-                            }}
-                          />
-                        </div>
-
-                        <div className="flex flex-wrap justify-center gap-2 py-1">
-                          <CCheckbox
-                            label="Passando ou esperando ônibus"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                MALE: {
-                                  ...prev.MALE,
-                                  isTraversing: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-
-                          <CCheckbox
-                            label="Deficiente"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                MALE: {
-                                  ...prev.MALE,
-                                  isPersonWithImpairment: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                          <CCheckbox
-                            label="Atividade ilícita"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                MALE: {
-                                  ...prev.MALE,
-                                  isInApparentIllicitActivity: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                          <CCheckbox
-                            label="Situação de rua"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                MALE: {
-                                  ...prev.MALE,
-                                  isPersonWithoutHousing: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-5">
-                          <CounterButtonGroup
-                            label="Criança"
-                            count={countPeople(
-                              "MALE",
-                              "CHILD",
-                              personCharacteristics.MALE.activity,
-                              personCharacteristics.MALE.isTraversing,
-                              personCharacteristics.MALE.isPersonWithImpairment,
-                              personCharacteristics.MALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.MALE.isPersonWithoutHousing,
-                            )}
-                            onIncrement={() => {
-                              handlePersonAdd("MALE", "CHILD");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("MALE", "CHILD");
-                            }}
-                          />
-
-                          <CounterButtonGroup
-                            label="Jovem"
-                            count={countPeople(
-                              "MALE",
-                              "TEEN",
-                              personCharacteristics.MALE.activity,
-                              personCharacteristics.MALE.isTraversing,
-                              personCharacteristics.MALE.isPersonWithImpairment,
-                              personCharacteristics.MALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.MALE.isPersonWithoutHousing,
-                            )}
-                            onIncrement={() => {
-                              handlePersonAdd("MALE", "TEEN");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("MALE", "TEEN");
-                            }}
-                          />
-
-                          <CounterButtonGroup
-                            label="Adulto"
-                            count={countPeople(
-                              "MALE",
-                              "ADULT",
-                              personCharacteristics.MALE.activity,
-                              personCharacteristics.MALE.isTraversing,
-                              personCharacteristics.MALE.isPersonWithImpairment,
-                              personCharacteristics.MALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.MALE.isPersonWithoutHousing,
-                            )}
-                            onIncrement={() => {
-                              handlePersonAdd("MALE", "ADULT");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("MALE", "ADULT");
-                            }}
-                          />
-
-                          <CounterButtonGroup
-                            label="Idoso"
-                            count={countPeople(
-                              "MALE",
-                              "ELDERLY",
-                              personCharacteristics.MALE.activity,
-                              personCharacteristics.MALE.isTraversing,
-                              personCharacteristics.MALE.isPersonWithImpairment,
-                              personCharacteristics.MALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.MALE.isPersonWithoutHousing,
-                            )}
-                            onIncrement={() => {
-                              handlePersonAdd("MALE", "ELDERLY");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("MALE", "ELDERLY");
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </Paper>
-                  : <Paper
-                      elevation={5}
-                      sx={{ display: "flex", borderLeft: "4px solid red" }}
-                    >
-                      <div className="flex flex-1 flex-col gap-1 rounded-md px-1 py-2">
-                        <div className="flex justify-between">
-                          <h5 className="text-xl font-semibold">Mulheres</h5>
-                          <div className="flex flex-row gap-1">
-                            <CButton
-                              square
-                              onClick={() => {
-                                setOpenReviewDialog(true);
-                              }}
-                            >
-                              <IconChartBar />
-                            </CButton>
-                            <CButton
-                              square
-                              onClick={() => {
-                                setIsCountingFemales(false);
-                              }}
-                            >
-                              <IconGenderMale />
-                            </CButton>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-center">
-                          <CToggleButtonGroup
-                            options={activityOptionsFemale}
-                            value={personCharacteristics.FEMALE.activity}
-                            getLabel={(o) => o.label}
-                            getValue={(o) => o.value}
-                            getTooltip={(o) => o.tooltip}
-                            toggleButtonColor="gray"
-                            toggleButtonSx={{
-                              padding: { xs: "8px" },
-                            }}
-                            onChange={(_, v) => {
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                FEMALE: { ...prev.FEMALE, activity: v.value },
-                              }));
-                            }}
-                          />
-                        </div>
-
-                        <div className="flex flex-wrap justify-center gap-2 py-1">
-                          <CCheckbox
-                            label="Passando ou esperando ônibus"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                FEMALE: {
-                                  ...prev.FEMALE,
-                                  isTraversing: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                          <CCheckbox
-                            label="Deficiente"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                FEMALE: {
-                                  ...prev.FEMALE,
-                                  isPersonWithImpairment: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-
-                          <CCheckbox
-                            label=" Atividade ilícita"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                FEMALE: {
-                                  ...prev.FEMALE,
-                                  isInApparentIllicitActivity: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                          <CCheckbox
-                            label="Situação de rua"
-                            onChange={(e) =>
-                              setPersonCharacteristics((prev) => ({
-                                ...prev,
-                                FEMALE: {
-                                  ...prev.FEMALE,
-                                  isPersonWithoutHousing: e.target.checked,
-                                },
-                              }))
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-5">
-                          <CounterButtonGroup
-                            label="Criança"
-                            onIncrement={() => {
-                              handlePersonAdd("FEMALE", "CHILD");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("FEMALE", "CHILD");
-                            }}
-                            count={countPeople(
-                              "FEMALE",
-                              "CHILD",
-                              personCharacteristics.FEMALE.activity,
-                              personCharacteristics.FEMALE.isTraversing,
-                              personCharacteristics.FEMALE
-                                .isPersonWithImpairment,
-                              personCharacteristics.FEMALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.FEMALE
-                                .isPersonWithoutHousing,
-                            )}
-                          />
-
-                          <CounterButtonGroup
-                            label="Jovem"
-                            onIncrement={() => {
-                              handlePersonAdd("FEMALE", "TEEN");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("FEMALE", "TEEN");
-                            }}
-                            count={countPeople(
-                              "FEMALE",
-                              "TEEN",
-                              personCharacteristics.FEMALE.activity,
-                              personCharacteristics.FEMALE.isTraversing,
-                              personCharacteristics.FEMALE
-                                .isPersonWithImpairment,
-                              personCharacteristics.FEMALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.FEMALE
-                                .isPersonWithoutHousing,
-                            )}
-                          />
-                          <CounterButtonGroup
-                            label="Adulta"
-                            onIncrement={() => {
-                              handlePersonAdd("FEMALE", "ADULT");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("FEMALE", "ADULT");
-                            }}
-                            count={countPeople(
-                              "FEMALE",
-                              "ADULT",
-                              personCharacteristics.FEMALE.activity,
-                              personCharacteristics.FEMALE.isTraversing,
-                              personCharacteristics.FEMALE
-                                .isPersonWithImpairment,
-                              personCharacteristics.FEMALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.FEMALE
-                                .isPersonWithoutHousing,
-                            )}
-                          />
-                          <CounterButtonGroup
-                            label="Idosa"
-                            onIncrement={() => {
-                              handlePersonAdd("FEMALE", "ELDERLY");
-                            }}
-                            onDecrement={() => {
-                              handlePersonRemoval("FEMALE", "ELDERLY");
-                            }}
-                            count={countPeople(
-                              "FEMALE",
-                              "ELDERLY",
-                              personCharacteristics.FEMALE.activity,
-                              personCharacteristics.FEMALE.isTraversing,
-                              personCharacteristics.FEMALE
-                                .isPersonWithImpairment,
-                              personCharacteristics.FEMALE
-                                .isInApparentIllicitActivity,
-                              personCharacteristics.FEMALE
-                                .isPersonWithoutHousing,
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </Paper>
-                  }
+                  <TallyPersonActions
+                    activityOptionsMale={activityOptionsMale}
+                    activityOptionsFemale={activityOptionsFemale}
+                    isCountingFemales={isCountingFemales}
+                    setIsCountingFemales={setIsCountingFemales}
+                    onOpenReview={() => {
+                      setOpenReviewDialog(true);
+                    }}
+                    countPeople={countPeople}
+                    onIncrement={handlePersonAdd}
+                    onDecrement={handlePersonRemoval}
+                  />
                 </div>
               </CAccordionDetails>
             </CAccordion>
