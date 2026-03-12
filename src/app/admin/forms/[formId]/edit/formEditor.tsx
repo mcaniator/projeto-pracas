@@ -1,12 +1,12 @@
 "use client";
 
+import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
 import CNotesChip from "@components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
-import QuestionIcon from "@components/ui/question/questionIcon";
 import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   DndContext,
@@ -610,7 +610,7 @@ const SortableFormItem = ({
         <span
           className={`flex items-center gap-2 break-all ${isFinalized ? "ml-2" : ""}`}
         >
-          <QuestionIcon iconKey={formItem.iconKey} />
+          <CDynamicIcon iconKey={formItem.iconKey} />
           {formItem.name}
         </span>
 

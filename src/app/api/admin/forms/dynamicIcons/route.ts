@@ -1,4 +1,4 @@
-import { fetchQuestionIcons } from "@/lib/serverFunctions/queries/questionIcon";
+import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -8,7 +8,7 @@ const iconSearchQuerySchema = z.object({
   limit: z.coerce.number().int().positive().optional(),
 });
 
-export type FetchQuestionIconsParams = z.infer<typeof iconSearchQuerySchema>;
+export type FetchDynamicIconsParams = z.infer<typeof iconSearchQuerySchema>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid params", { status: 400 });
   }
 
-  const response = fetchQuestionIcons(parse.data);
+  const response = fetchDynamicIcons(parse.data);
 
   return new Response(JSON.stringify(response), {
     status: 200,

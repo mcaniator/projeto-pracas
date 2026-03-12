@@ -1,4 +1,5 @@
 import CButton from "@/components/ui/cButton";
+import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
@@ -6,7 +7,6 @@ import CNotesChip from "@components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
-import QuestionIcon from "@components/ui/question/questionIcon";
 import {
   CategoryForQuestionPicker,
   QuestionForQuestionPicker,
@@ -319,7 +319,7 @@ const QuestionComponentV2 = ({
         <CNotesChip notes={notes} name={name} />
       </div>
       <div className="flex max-w-full items-center gap-2 break-all">
-        <QuestionIcon iconKey={iconKey} />
+        <CDynamicIcon iconKey={iconKey} />
         {name}
       </div>
       {showAllQuestions ?

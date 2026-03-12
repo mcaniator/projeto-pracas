@@ -1,12 +1,25 @@
 "use client";
 
-import { DEFAULT_QUESTION_ICON_KEY } from "@/lib/questionIcons/questionIconKeys";
-import { type FetchQuestionIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
-import { useFetchQuestionIcons } from "@apiCalls/questionIcon";
+import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import { type FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
+import { useFetchDynamicIcons } from "@apiCalls/questionIcon";
 import CTextField from "@components/ui/cTextField";
-import QuestionIcon from "@components/ui/question/questionIcon";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+
+const DEFAULT_QUESTION_ICONS = [
+  { key: "mdi:cctv", iconName: "cctv" },
+  { key: "mdi:police-badge", iconName: "police-badge" },
+  { key: "mdi:phone", iconName: "phone" },
+  { key: "tabler:trash", iconName: "trash" },
+  { key: "mdi:wifi", iconName: "wifi" },
+  { key: "lucide:toilet", iconName: "toilet" },
+  { key: "mdi:cup-water", iconName: "cup-water" },
+  { key: "mdi:volume", iconName: "volume" },
+  { key: "mdi:slide", iconName: "slide" },
+  { key: "mdi:wheelchair-accessibility", iconName: "wheelchair-accessibility" },
+  { key: "tabler:letter-a", iconName: "letter-a" },
+];
 
 type QuestionIconPickerProps = {
   selectedIconKey: string | null;
@@ -19,10 +32,10 @@ const QuestionIconPicker = ({
 }: QuestionIconPickerProps) => {
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState<
-    FetchQuestionIconsResponse["icons"][number][]
+    FetchDynamicIconsResponse["icons"][number][]
   >([]);
 
-  const [fetchQuestionIcons, isLoading] = useFetchQuestionIcons({
+  const [fetchDynamicIcons, isLoading] = useFetchDynamicIcons({
     callbacks: {
       onSuccess: (response) => {
         setResults(response.data?.icons ?? []);
@@ -35,13 +48,11 @@ const QuestionIconPicker = ({
 
   useEffect(() => {
     if (searchText.length === 0) {
-      setResults([]);
+      setResults(DEFAULT_QUESTION_ICONS);
       return;
     }
-    void fetchQuestionIcons({ query: searchText, limit: 300 });
-  }, [fetchQuestionIcons, searchText]);
-
-  const selectedIcon = selectedIconKey ?? DEFAULT_QUESTION_ICON_KEY;
+    void fetchDynamicIcons({ query: searchText, limit: 500 });
+  }, [fetchDynamicIcons, searchText]);
 
   return (
     <div className="flex flex-col gap-2 rounded border border-gray-300 p-2">
@@ -51,7 +62,7 @@ const QuestionIconPicker = ({
         value={searchText}
         clearable
         debounce={250}
-        placeholder="Ex.: TbUser, FaHome, MdMap"
+        placeholder="Ex.: bench, trash, letter b..."
         onChange={(e) => {
           setSearchText(e.target.value);
         }}
@@ -86,7 +97,7 @@ const QuestionIconPicker = ({
                     onChange(icon.key);
                   }}
                 >
-                  <QuestionIcon iconKey={icon.key} />
+                  <CDynamicIcon iconKey={icon.key} />
                   <span className="truncate">{icon.iconName}</span>
                 </button>
               );
@@ -96,7 +107,7 @@ const QuestionIconPicker = ({
       </div>
 
       <div className="flex items-center gap-2 rounded bg-gray-100 p-2">
-        <QuestionIcon iconKey={selectedIcon} />
+        <CDynamicIcon iconKey={selectedIconKey} />
         <span className="text-sm">
           {selectedIconKey ? selectedIconKey : "Nenhum icone selecionado"}
         </span>

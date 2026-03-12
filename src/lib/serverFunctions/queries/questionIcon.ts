@@ -1,14 +1,14 @@
-import { FetchQuestionIconsParams } from "@/app/api/admin/forms/questionIcons/route";
-import { searchQuestionIcons } from "@/lib/questionIcons/questionIconCatalog";
+import { FetchDynamicIconsParams } from "@/app/api/admin/forms/dynamicIcons/route";
+import { searchDynamicIcons } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 
-export type FetchQuestionIconsResponse = Awaited<
-  ReturnType<typeof fetchQuestionIcons>
+export type FetchDynamicIconsResponse = Awaited<
+  ReturnType<typeof fetchDynamicIcons>
 >["data"];
 
-const fetchQuestionIcons = (params: FetchQuestionIconsParams) => {
+const fetchDynamicIcons = (params: FetchDynamicIconsParams) => {
   try {
-    const icons = searchQuestionIcons({
+    const icons = searchDynamicIcons({
       query: params.query,
       limit: params.limit,
     });
@@ -19,8 +19,6 @@ const fetchQuestionIcons = (params: FetchQuestionIconsParams) => {
         icons: icons.map((icon) => ({
           key: icon.key,
           iconName: icon.iconName,
-          libraryId: icon.libraryId,
-          label: icon.label,
         })),
       },
     };
@@ -37,4 +35,4 @@ const fetchQuestionIcons = (params: FetchQuestionIconsParams) => {
   }
 };
 
-export { fetchQuestionIcons };
+export { fetchDynamicIcons };

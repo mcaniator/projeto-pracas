@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { isSupportedQuestionIconKey } from "@/lib/questionIcons/questionIconCatalog";
+import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import {
   optionSchema,
   questionEditDataSchema,
@@ -78,7 +78,7 @@ const _questionSubmit = async (
       }
 
       try {
-        if (!isSupportedQuestionIconKey(writtenQuestionParsed.iconKey)) {
+        if (!isSupportedDynamicIconKey(writtenQuestionParsed.iconKey)) {
           return { statusCode: 400, questionName: null };
         }
 
@@ -128,7 +128,7 @@ const _questionSubmit = async (
       }
 
       try {
-        if (!isSupportedQuestionIconKey(optionsQuestionParsed.iconKey)) {
+        if (!isSupportedDynamicIconKey(optionsQuestionParsed.iconKey)) {
           return { statusCode: 400, questionName: null };
         }
 

@@ -1,14 +1,14 @@
-import { FetchQuestionIconsParams } from "@/app/api/admin/forms/questionIcons/route";
-import { FetchQuestionIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
+import { FetchDynamicIconsParams } from "@/app/api/admin/forms/dynamicIcons/route";
+import { FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-const useFetchQuestionIcons = (
-  params?: UseFetchAPIParams<FetchQuestionIconsResponse>,
+const useFetchDynamicIcons = (
+  params?: UseFetchAPIParams<FetchDynamicIconsResponse>,
 ) => {
-  const url = "/api/admin/forms/questionIcons";
+  const url = "/api/admin/forms/dynamicIcons";
 
-  return useFetchAPI<FetchQuestionIconsResponse, FetchQuestionIconsParams>({
+  return useFetchAPI<FetchDynamicIconsResponse, FetchDynamicIconsParams>({
     url,
     callbacks: params?.callbacks,
     options: {
@@ -18,4 +18,4 @@ const useFetchQuestionIcons = (
   });
 };
 
-export { useFetchQuestionIcons };
+export { useFetchDynamicIcons };

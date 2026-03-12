@@ -1,5 +1,4 @@
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
-import { parseQuestionIconKey } from "@lib/questionIcons/questionIconKeys";
 import {
   OptionTypes,
   QuestionGeometryTypes,
@@ -136,12 +135,7 @@ const subcategoryInfoToCreateSchema = z.object({
 
 const questionSchema = z.object({
   name: z.string().trim().min(1).max(255),
-  iconKey: z
-    .string()
-    .trim()
-    .min(1)
-    .max(255)
-    .refine((iconKey) => parseQuestionIconKey(iconKey) != null),
+  iconKey: z.string().trim(),
   notes: z.string().trim().optional().nullish(),
   optional: z.boolean().optional(),
   active: z.boolean().optional(),

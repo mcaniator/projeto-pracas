@@ -108,6 +108,7 @@ const ClientV2 = ({
   const [saveAsDone, setSaveAsDone] = useState(false);
   const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     setIsLoadingCategories(true);
@@ -304,6 +305,7 @@ const ClientV2 = ({
           content: <>Formulário salvo!</>,
         });
         if (saveAsDone) {
+          setIsRedirecting(true);
           void router.push("/admin/forms");
         }
       }
@@ -456,6 +458,7 @@ const ClientV2 = ({
         openSaveFormDialog={openSaveFormDialog}
         setOpenSaveFormDialog={setOpenSaveFormDialog}
         saveAsDone={saveAsDone}
+        isRedirecting={isRedirecting}
         setSaveAsDone={setSaveAsDone}
         save={() => {
           void handleUpdateForm();
