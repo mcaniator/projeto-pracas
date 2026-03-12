@@ -389,6 +389,7 @@ const TallyInProgressPage = ({
                       alignEndAdornmentWithText
                       defaultValue={tally.temperature}
                       value={weatherStats.temperature}
+                      debounce={500}
                       endAdornment={<span className="mt-4">°C</span>}
                       sx={{
                         width: "11rem",

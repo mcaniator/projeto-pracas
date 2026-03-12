@@ -24,7 +24,7 @@ const AssessmentCreationDialog = ({
   >(null);
 
   const [selectedDateTime, setSelectedDateTime] = useState<Dayjs | null>(
-    dayjs(new Date()),
+    dayjs(new Date()).second(0).millisecond(0),
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
 

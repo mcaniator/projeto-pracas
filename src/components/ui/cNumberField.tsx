@@ -14,6 +14,8 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   endAdornment?: ReactNode;
   alignEndAdornmentWithText?: boolean;
   tooltip?: string;
+  defaultValue?: number | null;
+  value?: number | null;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
 };
@@ -49,6 +51,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState("");
+    const [isFocused, setIsFocused] = useState(false);
 
     const debouncedOnChange = useMemo(
       () => createDebouncedFunction({ func: onChange, timeoutRef, debounce }),
@@ -65,33 +68,36 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       return valid;
     };
 
+    const normalizeNumber = (value: string) => value.replace(",", ".");
+    const formatNumber = (value: number | null | undefined) => {
+      if (value == null) return "";
+      return String(value).replace(".", ",");
+    };
+    const isIncompleteNumber = (value: string) =>
+      value === "" ||
+      value === "-" ||
+      value === "+" ||
+      value === "." ||
+      value === "," ||
+      value.endsWith(".") ||
+      value.endsWith(",");
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
       const raw = event.target.value;
 
-      const filtered = raw.replace(/[^0-9+\-.]/g, "");
-      const match = filtered.match(/^[-+]?\d*\.?\d*$/);
+      const filtered = raw.replace(/[^0-9+\-.,]/g, "");
+      const match = filtered.match(/^[-+]?\d*(?:[.,]?\d*)?$/);
 
       if (!match || match[0] === localValue) return;
       const newLocalValue = match ? filtered : localValue;
-      if (newLocalValue !== "+" && newLocalValue !== ".") {
-        setLocalValue(newLocalValue);
-      }
+      setLocalValue(newLocalValue);
 
       if (required) {
         validate();
       }
-      if (debouncedOnChange) {
-        if (
-          newLocalValue === "" ||
-          newLocalValue === "-" ||
-          newLocalValue === "+" ||
-          newLocalValue === "."
-        ) {
-          debouncedOnChange(null);
-        } else {
-          debouncedOnChange(Number(newLocalValue));
-        }
+      if (debouncedOnChange && !isIncompleteNumber(newLocalValue)) {
+        debouncedOnChange(Number(normalizeNumber(newLocalValue)));
       }
     };
 
@@ -99,13 +105,31 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       if (required) {
         validate();
       }
+      const current = inputRef.current?.value ?? "";
+      if (debouncedOnChange) {
+        if (current.trim() === "") {
+          debouncedOnChange(null);
+        } else if (isIncompleteNumber(current)) {
+          const normalized = normalizeNumber(current.replace(/[.,]$/, ""));
+          const nextNumber = Number(normalized);
+          if (Number.isNaN(nextNumber)) {
+            debouncedOnChange(null);
+          } else {
+            debouncedOnChange(nextNumber);
+          }
+        }
+      }
+      setIsFocused(false);
       if (onBlur) {
         onBlur(event);
       }
     };
+    const handleFocus = () => {
+      setIsFocused(true);
+    };
 
     const handleIncrement = () => {
-      const next = String(Number(localValue || 0) + 1);
+      const next = String(Number(normalizeNumber(localValue) || 0) + 1);
       setLocalValue(() => {
         return next;
       });
@@ -113,7 +137,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const handleDecrement = () => {
-      const next = String(Number(localValue || 0) - 1);
+      const next = String(Number(normalizeNumber(localValue) || 0) - 1);
       setLocalValue(() => {
         return next;
       });
@@ -122,23 +146,24 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
     const forceFireOnChange = (next: string) => {
       if (debouncedOnChange) {
-        if (next === "") {
+        if (isIncompleteNumber(next)) {
           debouncedOnChange(null);
         } else {
-          debouncedOnChange(Number(next));
+          debouncedOnChange(Number(normalizeNumber(next)));
         }
       }
     };
     useEffect(() => {
-      setLocalValue(value != undefined ? String(value) : "");
+      if (isFocused) return;
+      setLocalValue(formatNumber(value));
       if (readOnly && onChange) {
         onChange(value != undefined ? Number(value) : null);
       }
-    }, [value, readOnly, onChange]);
+    }, [value, readOnly, onChange, isFocused]);
 
     useEffect(() => {
       if (defaultValue) {
-        setLocalValue(String(defaultValue));
+        setLocalValue(formatNumber(defaultValue));
       }
     }, [defaultValue]);
 
@@ -160,6 +185,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
             (required && !isValid) || error ? errorMessage : helperText
           }
           onChange={handleChange}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           sx={{
             mb: 0,
