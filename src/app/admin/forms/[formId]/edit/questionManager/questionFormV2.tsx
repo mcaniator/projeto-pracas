@@ -64,6 +64,7 @@ const QuestionFormV2 = ({
   const [questionToEdit, setQuestionToEdit] = useState<{
     questionId: number;
     questionName: string;
+    iconKey: string;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
@@ -175,12 +176,14 @@ const QuestionFormV2 = ({
   const handleOpenQuestionEdit = ({
     questionId,
     questionName,
+    iconKey,
     notes,
     categoryName,
     subcategoryName,
   }: {
     questionId: number;
     questionName: string;
+    iconKey: string;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
@@ -188,6 +191,7 @@ const QuestionFormV2 = ({
     setQuestionToEdit({
       questionId,
       questionName,
+      iconKey,
       notes,
       categoryName,
       subcategoryName,
@@ -305,6 +309,7 @@ const QuestionFormV2 = ({
         open={!!questionToEdit}
         questionId={questionToEdit?.questionId ?? -1}
         questionName={questionToEdit?.questionName ?? ""}
+        iconKey={questionToEdit?.iconKey ?? ""}
         notes={questionToEdit?.notes ?? null}
         categoryName={questionToEdit?.categoryName ?? ""}
         subcategoryName={questionToEdit?.subcategoryName ?? ""}

@@ -36,6 +36,7 @@ const CategoriesListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -147,6 +148,7 @@ const SubcategoriesListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -219,6 +221,7 @@ const QuestionListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -297,6 +300,7 @@ const QuestionComponentV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -331,6 +335,7 @@ const QuestionComponentV2 = ({
               questionName: name,
               categoryName: categoryName,
               subcategoryName: subcategoryName,
+              iconKey: iconKey,
               notes: notes,
             });
           }}

@@ -191,6 +191,7 @@ const _questionUpdate = async (
       questionId: formData.get("questionId"),
       questionName: formData.get("questionName"),
       notes: formData.get("notes"),
+      iconKey: formData.get("iconKey"),
     });
     const question = await prisma.question.update({
       where: {
@@ -199,6 +200,7 @@ const _questionUpdate = async (
       data: {
         name: parse.questionName,
         notes: parse.notes,
+        iconKey: parse.iconKey,
       },
       select: {
         name: true,

@@ -1,4 +1,5 @@
-import { useActionState, useEffect } from "react";
+import QuestionIconPicker from "@/app/admin/forms/[formId]/edit/questionManager/questionIconPicker";
+import { useActionState, useEffect, useState } from "react";
 
 import { useHelperCard } from "../../../../../../components/context/helperCardContext";
 import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
@@ -9,6 +10,7 @@ import { _questionUpdate } from "../../../../../../lib/serverFunctions/serverAct
 const QuestionEditDialog = ({
   questionId,
   questionName,
+  iconKey,
   notes,
   categoryName,
   subcategoryName,
@@ -18,6 +20,7 @@ const QuestionEditDialog = ({
 }: {
   questionId: number;
   questionName: string;
+  iconKey: string;
   notes: string | null;
   categoryName: string;
   subcategoryName?: string | null;
@@ -36,6 +39,8 @@ const QuestionEditDialog = ({
     initialState,
   );
 
+  const [selectedIconKey, setSelectedIconKey] = useState<string>(iconKey);
+
   useEffect(() => {
     helperCardProcessResponse(state.responseInfo);
     if (state.responseInfo.statusCode === 200) {
@@ -51,12 +56,17 @@ const QuestionEditDialog = ({
     }
   }, [isPending, setLoadingOverlay]);
 
+  useEffect(() => {
+    setSelectedIconKey(iconKey);
+  }, [iconKey]);
+
   return (
     <CDialog
       isForm
       title="Editar questão"
       action={formAction}
       onClose={onClose}
+      fullScreen
       open={open}
       confirmChildren={<>Editar</>}
     >
@@ -74,6 +84,12 @@ const QuestionEditDialog = ({
           id="questionId"
           value={questionId}
         />
+        <input
+          type="hidden"
+          name="iconKey"
+          id="iconKey"
+          value={selectedIconKey}
+        />
         <CTextField
           required
           defaultValue={questionName}
@@ -86,6 +102,10 @@ const QuestionEditDialog = ({
           defaultValue={notes}
           id="notes"
           name="notes"
+        />
+        <QuestionIconPicker
+          selectedIconKey={selectedIconKey}
+          onChange={setSelectedIconKey}
         />
       </div>
     </CDialog>
