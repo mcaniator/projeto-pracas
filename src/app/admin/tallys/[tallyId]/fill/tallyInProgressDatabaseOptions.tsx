@@ -100,6 +100,11 @@ const TallyInProgressDatabaseOptions = ({
       },
       onSuccess() {
         setEnableJsonSaving(false);
+        setSubmittingObj({
+          submitting: false,
+          finishing: false,
+          deleting: false,
+        });
         if (endDate && endDate.isValid()) {
           router.push(`/admin/tallys?locationId=${locationId}`);
         }
