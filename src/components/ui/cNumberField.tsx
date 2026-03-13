@@ -144,7 +144,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
     useEffect(() => {
       const currentInput = inputRef.current?.value ?? "";
-      if (currentInput.trim() !== "" && isIncompleteNumber(currentInput)) return;
+      if (currentInput.trim() !== "" && isIncompleteNumber(currentInput))
+        return;
       setLocalValue(formatNumber(value));
       if (readOnly && onChange) {
         onChange(value != undefined ? Number(value) : null);
@@ -201,9 +202,6 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
             },
           }}
           slotProps={{
-            htmlInput: {
-              inputMode: "decimal",
-            },
             input: {
               endAdornment: !disabled && !readOnly && (
                 <InputAdornment position="end">
