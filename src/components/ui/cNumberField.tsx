@@ -51,7 +51,6 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     const [isValid, setIsValid] = useState(true);
     const inputRef = useRef<HTMLInputElement>(null);
     const [localValue, setLocalValue] = useState("");
-    const [isFocused, setIsFocused] = useState(false);
 
     const debouncedOnChange = useMemo(
       () => createDebouncedFunction({ func: onChange, timeoutRef, debounce }),
@@ -119,13 +118,9 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           }
         }
       }
-      setIsFocused(false);
       if (onBlur) {
         onBlur(event);
       }
-    };
-    const handleFocus = () => {
-      setIsFocused(true);
     };
 
     const handleIncrement = () => {
@@ -154,12 +149,11 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       }
     };
     useEffect(() => {
-      if (isFocused) return;
       setLocalValue(formatNumber(value));
       if (readOnly && onChange) {
         onChange(value != undefined ? Number(value) : null);
       }
-    }, [value, readOnly, onChange, isFocused]);
+    }, [value, readOnly, onChange]);
 
     useEffect(() => {
       if (defaultValue) {
@@ -185,7 +179,6 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
             (required && !isValid) || error ? errorMessage : helperText
           }
           onChange={handleChange}
-          onFocus={handleFocus}
           onBlur={handleBlur}
           sx={{
             mb: 0,
