@@ -607,7 +607,16 @@ const WrittenQuestion = ({
         name={String(question.questionId)}
         control={control}
         render={({ field }) => (
-          <CNumberField readOnly={finalized} debounce={1000} {...field} />
+          <CNumberField
+            readOnly={finalized}
+            debounce={1000}
+            {...field}
+            value={
+              typeof field.value === "number" || field.value === null ?
+                field.value
+              : null
+            }
+          />
         )}
       />
     : <Controller

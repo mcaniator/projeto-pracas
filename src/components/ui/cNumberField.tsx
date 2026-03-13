@@ -14,6 +14,8 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   endAdornment?: ReactNode;
   alignEndAdornmentWithText?: boolean;
   tooltip?: string;
+  defaultValue?: number | null;
+  value?: number | null;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
 };
@@ -65,32 +67,39 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       return valid;
     };
 
+    const normalizeNumber = (value: string) => value.replace(",", ".");
+    const formatNumber = (value: number | null | undefined) => {
+      if (value == null) return "";
+      return String(value).replace(".", ",");
+    };
+    const isIncompleteNumber = (value: string) =>
+      value === "" ||
+      value === "-" ||
+      value === "+" ||
+      value === "." ||
+      value === "," ||
+      value.endsWith(".") ||
+      value.endsWith(",");
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
       const raw = event.target.value;
 
-      const filtered = raw.replace(/[^0-9+\-.]/g, "");
-      const match = filtered.match(/^[-+]?\d*\.?\d*$/);
+      const filtered = raw.replace(/[^0-9+\-.,]/g, "");
+      const match = filtered.match(/^[-+]?\d*(?:[.,]?\d*)?$/);
 
       if (!match || match[0] === localValue) return;
       const newLocalValue = match ? filtered : localValue;
-      if (newLocalValue !== "+" && newLocalValue !== ".") {
-        setLocalValue(newLocalValue);
-      }
+      setLocalValue(newLocalValue);
 
       if (required) {
         validate();
       }
       if (debouncedOnChange) {
-        if (
-          newLocalValue === "" ||
-          newLocalValue === "-" ||
-          newLocalValue === "+" ||
-          newLocalValue === "."
-        ) {
+        if (newLocalValue.trim() === "") {
           debouncedOnChange(null);
-        } else {
-          debouncedOnChange(Number(newLocalValue));
+        } else if (!isIncompleteNumber(newLocalValue)) {
+          debouncedOnChange(Number(normalizeNumber(newLocalValue)));
         }
       }
     };
@@ -99,13 +108,17 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       if (required) {
         validate();
       }
+      const current = inputRef.current?.value ?? "";
+      if (current.trim() !== "" && isIncompleteNumber(current)) {
+        setLocalValue(formatNumber(value));
+      }
       if (onBlur) {
         onBlur(event);
       }
     };
 
     const handleIncrement = () => {
-      const next = String(Number(localValue || 0) + 1);
+      const next = String(Number(normalizeNumber(localValue) || 0) + 1);
       setLocalValue(() => {
         return next;
       });
@@ -113,7 +126,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const handleDecrement = () => {
-      const next = String(Number(localValue || 0) - 1);
+      const next = String(Number(normalizeNumber(localValue) || 0) - 1);
       setLocalValue(() => {
         return next;
       });
@@ -122,15 +135,18 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
     const forceFireOnChange = (next: string) => {
       if (debouncedOnChange) {
-        if (next === "") {
+        if (isIncompleteNumber(next)) {
           debouncedOnChange(null);
         } else {
-          debouncedOnChange(Number(next));
+          debouncedOnChange(Number(normalizeNumber(next)));
         }
       }
     };
     useEffect(() => {
-      setLocalValue(value != undefined ? String(value) : "");
+      const currentInput = inputRef.current?.value ?? "";
+      if (currentInput.trim() !== "" && isIncompleteNumber(currentInput))
+        return;
+      setLocalValue(formatNumber(value));
       if (readOnly && onChange) {
         onChange(value != undefined ? Number(value) : null);
       }
@@ -138,7 +154,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
     useEffect(() => {
       if (defaultValue) {
-        setLocalValue(String(defaultValue));
+        setLocalValue(formatNumber(defaultValue));
       }
     }, [defaultValue]);
 
@@ -186,9 +202,6 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
             },
           }}
           slotProps={{
-            htmlInput: {
-              inputMode: "decimal",
-            },
             input: {
               endAdornment: !disabled && !readOnly && (
                 <InputAdornment position="end">
