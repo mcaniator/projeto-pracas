@@ -36,7 +36,7 @@ const TallyInProgressTextualData = ({
       </p>
       <p>
         <CIconChip icon={<IconTemperature />} tooltip="Temperatura" />
-        {`${temperature ? temperature + "°C" : "Não definido!"}`}
+        {`${temperature !== null ? temperature + "°C" : "Não definido!"}`}
       </p>
       <p>
         <CIconChip

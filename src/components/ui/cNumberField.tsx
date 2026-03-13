@@ -95,8 +95,12 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       if (required) {
         validate();
       }
-      if (debouncedOnChange && !isIncompleteNumber(newLocalValue)) {
-        debouncedOnChange(Number(normalizeNumber(newLocalValue)));
+      if (debouncedOnChange) {
+        if (newLocalValue.trim() === "") {
+          debouncedOnChange(null);
+        } else if (!isIncompleteNumber(newLocalValue)) {
+          debouncedOnChange(Number(normalizeNumber(newLocalValue)));
+        }
       }
     };
 
@@ -105,18 +109,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         validate();
       }
       const current = inputRef.current?.value ?? "";
-      if (debouncedOnChange) {
-        if (current.trim() === "") {
-          debouncedOnChange(null);
-        } else if (isIncompleteNumber(current)) {
-          const normalized = normalizeNumber(current.replace(/[.,]$/, ""));
-          const nextNumber = Number(normalized);
-          if (Number.isNaN(nextNumber)) {
-            debouncedOnChange(null);
-          } else {
-            debouncedOnChange(nextNumber);
-          }
-        }
+      if (current.trim() !== "" && isIncompleteNumber(current)) {
+        setLocalValue(formatNumber(value));
       }
       if (onBlur) {
         onBlur(event);
@@ -149,6 +143,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       }
     };
     useEffect(() => {
+      const currentInput = inputRef.current?.value ?? "";
+      if (currentInput.trim() !== "" && isIncompleteNumber(currentInput)) return;
       setLocalValue(formatNumber(value));
       if (readOnly && onChange) {
         onChange(value != undefined ? Number(value) : null);
