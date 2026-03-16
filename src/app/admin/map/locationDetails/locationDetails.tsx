@@ -140,7 +140,7 @@ const LocationDetails = ({
       <h4 className="font-semibold">Visibilidade</h4>
       <CSwitch
         checked={pendingVisibility ?? isPublic}
-        label="Visibibilidade pública"
+        label="Visibilidade pública"
         onChange={(_, checked) => {
           setPendingVisibility(checked);
           setOpenVisibilityDialog(true);
