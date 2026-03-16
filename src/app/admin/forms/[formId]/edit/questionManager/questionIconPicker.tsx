@@ -1,10 +1,11 @@
 "use client";
 
+import CButton from "@/components/ui/cButton";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import { type FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { useFetchDynamicIcons } from "@apiCalls/questionIcon";
 import CTextField from "@components/ui/cTextField";
-import { IconLoader2 } from "@tabler/icons-react";
+import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const DEFAULT_QUESTION_ICONS = [
@@ -75,7 +76,7 @@ const QuestionIconPicker = ({
       <div className="max-h-56 overflow-auto rounded border border-gray-200 p-2">
         {isLoading ?
           <div className="flex justify-center py-4">
-            <IconLoader2 className="animate-spin" />
+            <CircularProgress />
           </div>
         : results.length === 0 ?
           <div className="py-2 text-center text-sm text-gray-600">
@@ -85,21 +86,26 @@ const QuestionIconPicker = ({
             {results.map((icon) => {
               const isSelected = selectedIconKey === icon.key;
               return (
-                <button
+                <CButton
                   key={icon.key}
                   type="button"
-                  className={`flex items-center gap-2 rounded border p-2 text-left text-sm ${
-                    isSelected ?
-                      "border-blue-600 bg-blue-50"
-                    : "border-gray-300 hover:bg-gray-50"
-                  }`}
+                  variant="outlined"
+                  sx={{
+                    width: "100%",
+                    textTransform: "none",
+                    color: "gray",
+                    ...(isSelected && {
+                      backgroundColor: "primary.lighter3",
+                      color: "primary.main",
+                    }),
+                  }}
                   onClick={() => {
                     onChange(icon.key);
                   }}
                 >
                   <CDynamicIcon iconKey={icon.key} />
                   <span className="truncate">{icon.iconName}</span>
-                </button>
+                </CButton>
               );
             })}
           </div>
