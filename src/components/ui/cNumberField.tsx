@@ -68,7 +68,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const normalizeNumber = (value: string) => value.replace(",", ".");
-    const formatNumber = (value: number | null | undefined) => {
+    const formatNumber = (value: number | null | string | undefined) => {
       if (value == null) return "";
       return String(value).replace(".", ",");
     };
@@ -90,7 +90,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
       if (!match || match[0] === localValue) return;
       const newLocalValue = match ? filtered : localValue;
-      setLocalValue(newLocalValue);
+      setLocalValue(formatNumber(newLocalValue));
 
       if (required) {
         validate();
