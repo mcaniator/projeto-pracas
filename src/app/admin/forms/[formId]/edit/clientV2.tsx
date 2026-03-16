@@ -2,6 +2,7 @@
 
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
+import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { _getCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
@@ -32,6 +33,11 @@ import SaveFormDialog from "./saveFormDialog";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
   ssr: false,
+  loading: () => (
+    <div className="text-black">
+      <CLinearProgress label="Carregando..." />
+    </div>
+  ),
 });
 
 export type SubcategoryItem = {
