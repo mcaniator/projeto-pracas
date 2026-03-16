@@ -6,6 +6,7 @@ import {
   DialogProps,
   DialogTitle,
   Fade,
+  PaperProps,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -53,14 +54,6 @@ const Transition = React.forwardRef(function Transition(
   return <Fade ref={ref} {...props} />;
 });
 
-/**
- * A Dialog component that can be used to display a modal
- * window for various purposes, such as displaying information,
- * requesting user input, or confirming an action. It can also be used as a form.
- *
- * It integrates with the browser history so that pressing the navigation buttons
- * closes the most recent dialog instead of navigating away.
- */
 const CDialog = ({
   title,
   subtitle,
@@ -224,6 +217,16 @@ const CDialog = ({
     : { px: { xs: "4px", sm: "12px" }, py: "4px" };
   //TODO: Study ways to remove code duplication
   if (isForm) {
+    const formPaperProps: PaperProps & React.ComponentPropsWithoutRef<"form"> = {
+      component: "form",
+      sx: {
+        borderRadius: memoFullScreen ? "0px" : "12px",
+        py: { xs: "4px", sm: "16px" },
+      },
+      action,
+      onSubmit,
+    };
+
     return (
       <Dialog
         onClose={handleEventClose}
@@ -235,58 +238,51 @@ const CDialog = ({
           backdrop: {
             className: "bg-black/25",
           },
-          paper: {
-            sx: {
-              borderRadius: memoFullScreen ? "0px" : "12px",
-              py: { xs: "4px", sm: "16px" },
-            },
-          },
+          paper: formPaperProps,
         }}
         {...props}
       >
-        <form action={action} onSubmit={onSubmit}>
-          <DialogTitle
-            sx={{
-              px: { xs: "4px", sm: "16px" },
-              py: "0px",
-            }}
+        <DialogTitle
+          sx={{
+            px: { xs: "4px", sm: "16px" },
+            py: "0px",
+          }}
+        >
+          <CDialogHeader
+            close={onClose}
+            title={title}
+            subtitle={subtitle}
+            removeCloseButton={removeCloseButton}
+          />
+        </DialogTitle>
+
+        <DialogContent sx={contentSx} dividers={!!children}>
+          {children}
+        </DialogContent>
+
+        {!disableDialogActions && (
+          <DialogActions
+            sx={{ px: { xs: "4px", sm: "16px" }, marginTop: "8px" }}
           >
-            <CDialogHeader
-              close={onClose}
-              title={title}
-              subtitle={subtitle}
-              removeCloseButton={removeCloseButton}
+            <CDialogFooter
+              cancelChildren={cancelChildren}
+              confirmChildren={confirmChildren}
+              cancelVariant={cancelVariant}
+              confirmVariant={confirmVariant}
+              disableConfirmButton={disableConfirmButton}
+              disableCancelButton={disableCancelButton}
+              confirmSx={confirmSx}
+              cancelSx={cancelSx}
+              confirmColor={confirmColor}
+              cancelColor={cancelColor}
+              isForm={isForm}
+              confirmLoading={confirmLoading}
+              cancelLoading={cancelLoading}
+              onCancel={onCancel}
+              onConfirm={onConfirm}
             />
-          </DialogTitle>
-
-          <DialogContent sx={contentSx} dividers={!!children}>
-            {children}
-          </DialogContent>
-
-          {!disableDialogActions && (
-            <DialogActions
-              sx={{ px: { xs: "4px", sm: "16px" }, marginTop: "8px" }}
-            >
-              <CDialogFooter
-                cancelChildren={cancelChildren}
-                confirmChildren={confirmChildren}
-                cancelVariant={cancelVariant}
-                confirmVariant={confirmVariant}
-                disableConfirmButton={disableConfirmButton}
-                disableCancelButton={disableCancelButton}
-                confirmSx={confirmSx}
-                cancelSx={cancelSx}
-                confirmColor={confirmColor}
-                cancelColor={cancelColor}
-                isForm={isForm}
-                confirmLoading={confirmLoading}
-                cancelLoading={cancelLoading}
-                onCancel={onCancel}
-                onConfirm={onConfirm}
-              />
-            </DialogActions>
-          )}
-        </form>
+          </DialogActions>
+        )}
       </Dialog>
     );
   }
