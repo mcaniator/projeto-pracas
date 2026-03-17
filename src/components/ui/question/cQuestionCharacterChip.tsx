@@ -18,9 +18,11 @@ const CQuestionCharacterTypeChip = ({
   if (characterType === "NUMBER") {
     icon = <IconNumber123 />;
     tooltip = "Resposta numérica";
-  } else {
+  } else if (characterType === "TEXT") {
     icon = <IconLetterCase />;
     tooltip = "Resposta em texto";
+  } else if (characterType === "BOOLEAN") {
+    return null;
   }
 
   return <CIconChip icon={icon} tooltip={tooltip} sx={sx} />;

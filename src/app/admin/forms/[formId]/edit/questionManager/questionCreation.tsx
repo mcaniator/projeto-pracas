@@ -19,7 +19,7 @@ import CRadioGroup from "../../../../../../components/ui/cRadioGroup";
 import CTextField from "../../../../../../components/ui/cTextField";
 import QuestionIconPicker from "./questionIconPicker";
 
-type CharacterType = "TEXT" | "NUMBER";
+type CharacterType = "TEXT" | "NUMBER" | "BOOLEAN";
 
 const QuestionCreation = ({
   categoryId,
@@ -256,6 +256,7 @@ const QuestionCreation = ({
                 options={[
                   { value: "WRITTEN", label: "Escrito" },
                   { value: "OPTIONS", label: "Seleção" },
+                  { value: "BOOLEAN", label: "Verdadeiro ou falso" },
                 ]}
                 value={type}
                 onChange={(val) => {
@@ -263,12 +264,22 @@ const QuestionCreation = ({
                     return;
                   }
                   setType(val);
+                  if (val === "BOOLEAN") {
+                    setCharacterType("BOOLEAN");
+                  } else if (characterType === "BOOLEAN") {
+                    setCharacterType(null);
+                  }
+                  setSelectionType(null);
+                  setQuestionTemplate(null);
+                  setAddedOptions(undefined);
+                  setCurrentOption("");
+                  setMinimumOptionsError(false);
                 }}
                 getOptionValue={(i) => i.value}
                 getOptionLabel={(i) => i.label}
               />
 
-              {type.length > 0 && (
+              {type.length > 0 && type !== "BOOLEAN" && (
                 <CRadioGroup
                   label="Tipo de caracteres"
                   name="characterType"
@@ -283,6 +294,10 @@ const QuestionCreation = ({
                   getOptionValue={(i) => i.value as CharacterType}
                   getOptionLabel={(i) => i.label}
                 />
+              )}
+
+              {type === "BOOLEAN" && (
+                <input type="hidden" name="characterType" value="BOOLEAN" />
               )}
 
               <div className={"flex flex-col gap-2"}>
@@ -433,6 +448,7 @@ const QuestionCreation = ({
               </div>
 
               {(type === "WRITTEN" ||
+                type === "BOOLEAN" ||
                 (questionTemplate && questionTemplate.length > 0)) &&
                 characterType &&
                 characterType.length > 0 && (
@@ -455,7 +471,7 @@ const QuestionCreation = ({
 
               {hasAssociatedGeometry && (
                 <CCheckboxGroup
-                  label="Tipos de geomtria aceitos"
+                  label="Tipos de geometria aceitos"
                   name="geometryTypes"
                   value={geometryTypes}
                   options={[

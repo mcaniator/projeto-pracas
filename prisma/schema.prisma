@@ -58,6 +58,7 @@ enum BrazilianStates {
 enum QuestionTypes {
   WRITTEN
   OPTIONS
+  BOOLEAN
 
   @@map("question_types")
 }
@@ -65,6 +66,9 @@ enum QuestionTypes {
 enum QuestionResponseCharacterTypes {
   TEXT
   NUMBER
+  BOOLEAN
+
+  @@map("question_response_character_types")
 }
 
 enum QuestionGeometryTypes {

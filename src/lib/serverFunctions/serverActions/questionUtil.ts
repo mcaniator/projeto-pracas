@@ -28,62 +28,43 @@ const _questionSubmit = async (
   const iconKey = formData.get("iconKey");
 
   switch (questionType) {
-    case "WRITTEN": {
-      let writtenQuestionParsed;
+    case "WRITTEN":
+    case "BOOLEAN": {
+      let writtenOrBooleanQuestionParsed;
 
       try {
-        if (questionCharacterType === "TEXT") {
-          writtenQuestionParsed = questionSchema.parse({
-            name: formData.get("name"),
-            iconKey: iconKey,
-            notes: notes.length > 0 ? notes : null,
-            questionType: questionType,
-            characterType: questionCharacterType,
-            categoryId: formData.get("categoryId"),
-            subcategoryId:
-              Number(formData.get("subcategoryId")) > 0 ?
-                formData.get("subcategoryId")
-              : undefined,
-            geometryTypes:
-              (
-                formData.getAll("geometryTypes").length > 0 &&
-                formData.get("hasAssociatedGeometry") === "true"
-              ) ?
-                formData.getAll("geometryTypes")
-              : undefined,
-          });
-        } else {
-          writtenQuestionParsed = questionSchema.parse({
-            name: formData.get("name"),
-            iconKey: iconKey,
-            notes: notes.length > 0 ? notes : null,
-            questionType: questionType,
-            characterType: questionCharacterType,
-            categoryId: formData.get("categoryId"),
-            subcategoryId:
-              Number(formData.get("subcategoryId")) > 0 ?
-                formData.get("subcategoryId")
-              : undefined,
-            geometryTypes:
-              (
-                formData.getAll("geometryTypes").length > 0 &&
-                formData.get("hasAssociatedGeometry") === "true"
-              ) ?
-                formData.getAll("geometryTypes")
-              : undefined,
-          });
-        }
+        writtenOrBooleanQuestionParsed = questionSchema.parse({
+          name: formData.get("name"),
+          iconKey: iconKey,
+          notes: notes.length > 0 ? notes : null,
+          questionType: questionType,
+          characterType: questionCharacterType,
+          categoryId: formData.get("categoryId"),
+          subcategoryId:
+            Number(formData.get("subcategoryId")) > 0 ?
+              formData.get("subcategoryId")
+            : undefined,
+          geometryTypes:
+            (
+              formData.getAll("geometryTypes").length > 0 &&
+              formData.get("hasAssociatedGeometry") === "true"
+            ) ?
+              formData.getAll("geometryTypes")
+            : undefined,
+        });
       } catch (err) {
         return { statusCode: 400, questionName: null };
       }
 
       try {
-        if (!isSupportedDynamicIconKey(writtenQuestionParsed.iconKey)) {
+        if (
+          !isSupportedDynamicIconKey(writtenOrBooleanQuestionParsed.iconKey)
+        ) {
           return { statusCode: 400, questionName: null };
         }
 
         const newQuestion = await prisma.question.create({
-          data: writtenQuestionParsed,
+          data: writtenOrBooleanQuestionParsed,
         });
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };

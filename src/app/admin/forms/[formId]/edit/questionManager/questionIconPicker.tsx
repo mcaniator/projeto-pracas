@@ -93,7 +93,7 @@ const QuestionIconPicker = ({
                   sx={{
                     width: "100%",
                     textTransform: "none",
-                    color: "gray",
+                    color: "black",
                     ...(isSelected && {
                       backgroundColor: "primary.lighter3",
                       color: "primary.main",

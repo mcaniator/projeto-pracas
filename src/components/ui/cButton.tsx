@@ -99,7 +99,8 @@ function CButton(props: CButtonProps) {
     </Box>
   );
 
-  const componentWithLink = href ? <Link href={href}>{component}</Link> : component;
+  const componentWithLink =
+    href ? <Link href={href}>{component}</Link> : component;
 
   return tooltip ?
       <Tooltip title={tooltip} enterTouchDelay={1}>

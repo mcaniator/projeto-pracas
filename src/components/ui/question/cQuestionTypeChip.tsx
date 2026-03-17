@@ -1,6 +1,7 @@
 import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps } from "@mui/material";
 import { OptionTypes, QuestionTypes } from "@prisma/client";
+import { IconToggleRight } from "@tabler/icons-react";
 import { useState } from "react";
 import { FaKeyboard as IconKeyboard } from "react-icons/fa";
 import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
@@ -37,9 +38,12 @@ const CQuestionTypeChip = ({
       tooltip =
         "Questão de múltipla escolha (caixa de seleção). Clique para ver as opções";
     }
-  } else {
+  } else if (questionType === "WRITTEN") {
     icon = <IconKeyboard />;
     tooltip = "Questão escrita";
+  } else if (questionType === "BOOLEAN") {
+    icon = <IconToggleRight />;
+    tooltip = "Questão de verdadeiro ou falso";
   }
 
   const handleChipClick = () => {
