@@ -7,7 +7,7 @@ import {
 } from "@/lib/formatters/dateFormatters";
 import { prisma } from "@/lib/prisma";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import { QuestionTypes } from "@prisma/client";
+import { QuestionResponseCharacterTypes, QuestionTypes } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
@@ -33,6 +33,7 @@ type AssessmentExportQuestionItem = {
   name: string;
   position: number;
   questionType: QuestionTypes;
+  characterType: QuestionResponseCharacterTypes;
 };
 
 type AssessmentExportCategoryItem = {
@@ -292,6 +293,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         }
 
         // SUBCATEGORY
+        //TODO: do not use isSubcategoryType, because it will infer that item is a "SubcategoryItem", which is a type used in the form editor.
         else if (FormItemUtils.isSubcategoryType(item)) {
           const dbSubcategory = item.subcategory;
           if (!dbSubcategory) {
@@ -306,6 +308,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
 
           let subcategory = category.categoryChildren.find(
             (c): c is AssessmentExportSubcategoryItem =>
+              //TODO: do not use isSubcategoryType, because it will infer that c is a "SubcategoryItem", which is a type used in the form editor.
               FormItemUtils.isSubcategoryType(c) &&
               c.subcategoryId === item.subcategoryId,
           );
@@ -324,6 +327,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         }
 
         // QUESTION
+        //TODO: do not use isQuestionType, because it will infer that item is a "QuestionItem", which is a type used in the form editor.
         else if (FormItemUtils.isQuestionType(item)) {
           const dbQuestion = item.question;
           if (!dbQuestion) {
@@ -336,6 +340,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
             questionId: item.questionId,
             name: dbQuestion.name,
             questionType: dbQuestion.questionType,
+            characterType: dbQuestion.characterType,
           };
           const category = categories.find(
             (c) => c.categoryId === dbQuestion.categoryId,
@@ -348,6 +353,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
             // question is inserted in a subcategory
             const subcategory = category.categoryChildren.find(
               (c): c is AssessmentExportSubcategoryItem =>
+                //TODO: do not use isSubcategoryType, because it will infer that c is a "SubcategoryItem", which is a type used in the form editor.
                 FormItemUtils.isSubcategoryType(c) &&
                 c.subcategoryId === dbQuestion.subcategoryId,
             );
@@ -367,6 +373,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       categories.forEach((cat) => {
         cat.categoryChildren.sort((a, b) => a.position - b.position);
         cat.categoryChildren.forEach((child) => {
+          //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child))
             child.questions.sort((a, b) => a.position - b.position);
         });
@@ -392,6 +399,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       for (const category of categories) {
         // Here we create the first line of the CSV: categories
         for (const child of category.categoryChildren) {
+          //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
               CSVHeader += `,${formatCSVField(category.name)}`;
@@ -405,6 +413,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       for (const category of categories) {
         // Here we create the second line of the CSV: subcategories
         for (const child of category.categoryChildren) {
+          //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
               CSVHeader += `,${formatCSVField(child.name)}`;
@@ -418,6 +427,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       for (const category of categories) {
         // Here we create the third line of the CSV: questions
         for (const child of category.categoryChildren) {
+          //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             for (const question of child.questions) {
               CSVHeader += `,${formatCSVField(question.name)}`;
@@ -438,6 +448,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         // Responses of the assessment
         for (const category of categories) {
           for (const child of category.categoryChildren) {
+            //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
             if (FormItemUtils.isSubcategoryType(child)) {
               for (const question of child.questions) {
                 let responseValue = "";
@@ -456,7 +467,12 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                           r.assessmentId === assessment.id &&
                           r.questionId === question.questionId,
                       )
-                      .map((r) => r.option?.text)
+                      .map((r) => {
+                        if (question.characterType === "PERCENTAGE") {
+                          return r.option?.text + "%";
+                        }
+                        return r.option?.text;
+                      })
                       .join(" / ") || "";
                 } else if (question.questionType === "BOOLEAN") {
                   const checked = booleanResponses.find(
@@ -472,6 +488,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                 }
                 CSVAssessments += `,${formatCSVField(responseValue)}`;
               }
+              //TODO: do not use isQuestionType, because it will infer that child is a "QuestionItem", which is a type used in the form editor.
             } else if (FormItemUtils.isQuestionType(child)) {
               let responseValue = "";
               if (child.questionType === "WRITTEN") {
@@ -481,13 +498,24 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                       r.assessmentId === assessment.id &&
                       r.questionId === child.questionId,
                   )?.response || "";
+                if (child.characterType === "PERCENTAGE") {
+                  responseValue += "%";
+                }
               } else if (child.questionType === "OPTIONS") {
                 responseValue =
-                  responsesOptions.find(
-                    (r) =>
-                      r.assessmentId === assessment.id &&
-                      r.questionId === child.questionId,
-                  )?.option?.text || "";
+                  responsesOptions
+                    .filter(
+                      (r) =>
+                        r.assessmentId === assessment.id &&
+                        r.questionId === child.questionId,
+                    )
+                    .map((r) => {
+                      if (child.characterType === "PERCENTAGE") {
+                        return r.option?.text + "%";
+                      }
+                      return r.option?.text;
+                    })
+                    .join(" / ") || "";
               } else if (child.questionType === "BOOLEAN") {
                 const checked = booleanResponses.find(
                   (r) =>

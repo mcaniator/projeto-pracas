@@ -19,6 +19,7 @@ import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharac
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -37,7 +38,7 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
 import MapDialog from "./MapDialog";
@@ -610,7 +611,10 @@ const WrittenQuestion = ({
       />
     );
   }
-  return question.characterType === "NUMBER" ?
+  return (
+      question.characterType === "NUMBER" ||
+        question.characterType === "PERCENTAGE"
+    ) ?
       <Controller
         name={String(question.questionId)}
         control={control}
@@ -618,6 +622,9 @@ const WrittenQuestion = ({
           <CNumberField
             readOnly={finalized}
             debounce={1000}
+            endAdornment={
+              question.characterType === "PERCENTAGE" ? "%" : undefined
+            }
             {...field}
             value={
               typeof field.value === "number" || field.value === null ?
@@ -648,6 +655,25 @@ const OptionsQuestion = ({
   if (!question.options) {
     throw new Error("Options questions must have options");
   }
+  const isPercentage = question.characterType === "PERCENTAGE";
+  const options = useMemo(() => {
+    if (
+      question.characterType === "PERCENTAGE" ||
+      question.characterType === "NUMBER"
+    ) {
+      return (
+        question.options?.map((opt) => ({
+          ...opt,
+          text:
+            isPercentage ?
+              localeNumberFormatter.format(Number(opt.text)) + "%"
+            : opt.text,
+        })) || []
+      );
+    } else {
+      return question.options || [];
+    }
+  }, [question.options, isPercentage, question.characterType]);
   if (question.optionType === "CHECKBOX") {
     return (
       <Controller
@@ -659,7 +685,7 @@ const OptionsQuestion = ({
             value={Array.isArray(field.value) ? field.value : ([] as number[])}
             clearable
             readOnly={finalized}
-            options={question.options!.map((opt) => opt)}
+            options={options}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.text}
           />
@@ -678,7 +704,7 @@ const OptionsQuestion = ({
             clearable
             readOnly={finalized}
             onChange={(e) => field.onChange(e)}
-            options={question.options!}
+            options={options}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.text}
           />
