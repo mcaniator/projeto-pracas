@@ -1,12 +1,10 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { VISIBILITY_STATUS } from "@/lib/enums/visibilityStatus";
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CDateTimePicker from "@components/ui/cDateTimePicker";
 import { Divider } from "@mui/material";
 import { Suspense, use } from "react";
-
-import CAutocomplete from "../../../components/ui/cAutoComplete";
-import CDateTimePicker from "../../../components/ui/cDateTimePicker";
 
 const statusOptions = [
   {
@@ -20,17 +18,6 @@ const statusOptions = [
   {
     id: FINALIZATION_STATUS.FINALIZED,
     label: "Finalizado",
-  },
-];
-
-const visibilityOptions = [
-  {
-    id: VISIBILITY_STATUS.PRIVATE,
-    label: "Privado",
-  },
-  {
-    id: VISIBILITY_STATUS.PUBLIC,
-    label: "Publico",
   },
 ];
 
@@ -152,21 +139,6 @@ const TallysFilter = ({
         getOptionLabel={(i) => i.label}
         onChange={(_, a) =>
           handleFilterChange({ type: "FINALIZATION_STATUS", newValue: a.id })
-        }
-      />
-      <Divider />
-      <h4>Visibilidade</h4>
-      <CAutocomplete
-        label="Visibilidade"
-        options={visibilityOptions}
-        defaultValue={null}
-        isOptionEqualToValue={(option, value) => option.id === value.id}
-        getOptionLabel={(i) => i.label}
-        onChange={(_, a) =>
-          handleFilterChange({
-            type: "VISIBILITY_STATUS",
-            newValue: a?.id ?? null,
-          })
         }
       />
     </div>

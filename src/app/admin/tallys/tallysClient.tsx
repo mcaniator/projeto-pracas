@@ -27,7 +27,6 @@ export type TallysFilterType =
   | "START_DATE"
   | "END_DATE"
   | "USER_ID"
-  | "VISIBILITY_STATUS"
   | "BROAD_UNIT_ID"
   | "INTERMEDIATE_UNIT_ID"
   | "NARROW_UNIT_ID"
@@ -55,7 +54,6 @@ const TallysClient = ({
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [userId, setUserId] = useState<string>();
-  const [visibilityStatus, setVisibilityStatus] = useState<number>();
   const [cityId, setCityId] = useState<number>();
   const [broadUnitId, setBroadUnitId] = useState<number>();
   const [intermediateUnitId, setIntermediateUnitId] = useState<number>();
@@ -85,9 +83,6 @@ const TallysClient = ({
           break;
         case "USER_ID":
           setUserId(undefined);
-          break;
-        case "VISIBILITY_STATUS":
-          setVisibilityStatus(undefined);
           break;
         case "START_DATE":
           setStartDate(undefined);
@@ -140,9 +135,6 @@ const TallysClient = ({
         case "FINALIZATION_STATUS":
           setFinalizationStatus(newValue);
           break;
-        case "VISIBILITY_STATUS":
-          setVisibilityStatus(newValue);
-          break;
       }
     } else if (newValue instanceof Date) {
       switch (type) {
@@ -160,17 +152,6 @@ const TallysClient = ({
     async (params?: { forceFetch: boolean }) => {
       if (!params?.forceFetch) {
         lastFetchedLocationId.current === locationId;
-
-        /*if (
-          !!locationId &&
-          lastFetchedLocationId.current === locationId &&
-          !formId &&
-          !userId &&
-          !startDate &&
-          !endDate
-        ) {
-          return; //Prevents loading a second time the data filtered by location in params.
-        }*/
       }
 
       if (
@@ -183,8 +164,7 @@ const TallysClient = ({
         !broadUnitId &&
         !intermediateUnitId &&
         !narrowUnitId &&
-        !finalizationStatus &&
-        !visibilityStatus
+        !finalizationStatus
       ) {
         // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
         setTallys([]);
@@ -214,7 +194,6 @@ const TallysClient = ({
         intermediateUnitId,
         narrowUnitId,
         finalizationStatus,
-        visibilityStatus,
       });
       setTallys(response.data?.tallys ?? []);
 
@@ -232,7 +211,6 @@ const TallysClient = ({
       intermediateUnitId,
       narrowUnitId,
       finalizationStatus,
-      visibilityStatus,
     ],
   );
 
@@ -259,7 +237,7 @@ const TallysClient = ({
 
   useEffect(() => {
     router.replace(pathname);
-  }, []);
+  }, [pathname, router]);
 
   const totalFilters = useMemo(() => {
     let total = 0;
