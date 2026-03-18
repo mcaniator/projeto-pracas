@@ -11,6 +11,7 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import CNumberField from "@/components/ui/cNumberField";
 import CRadioGroup from "@/components/ui/cRadioGroup";
+import CSwitch from "@/components/ui/cSwtich";
 import CTextField from "@/components/ui/cTextField";
 import CCalculationChip from "@/components/ui/question/cCalculationChip";
 import CNotesChip from "@/components/ui/question/cNotesChip";
@@ -44,7 +45,7 @@ import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
 export type FormValues = {
-  [key: string]: string | number | number[] | null;
+  [key: string]: string | number | number[] | boolean | null;
 };
 
 export type ResponseFormGeometry = {
@@ -578,6 +579,13 @@ const Question = ({
           control={control}
         />
       )}
+      {question.questionType === "BOOLEAN" && (
+        <BooleanQuestion
+          question={question}
+          finalized={finalized}
+          control={control}
+        />
+      )}
     </Box>
   );
 };
@@ -703,6 +711,34 @@ const CalculationQuestion = ({
       name={String(question.questionId)}
       control={control}
       render={({ field }) => <CNumberField {...field} readOnly value={value} />}
+    />
+  );
+};
+
+const BooleanQuestion = ({
+  question,
+  control,
+  finalized,
+}: {
+  question: AssessmentQuestionItem;
+  control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
+}) => {
+  if (!question.options) {
+    throw new Error("Options questions must have options");
+  }
+
+  return (
+    <Controller
+      name={String(question.questionId)}
+      control={control}
+      render={({ field }) => (
+        <CSwitch
+          {...field}
+          checked={typeof field.value === "boolean" ? field.value : false}
+          readOnly={finalized}
+        />
+      )}
     />
   );
 };

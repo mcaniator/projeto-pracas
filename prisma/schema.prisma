@@ -128,9 +128,10 @@ model User {
 
   assessment Assessment[]
 
-  response       Response[]
-  responseOption ResponseOption[]
-  tally          Tally[]
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  responseOption   ResponseOption[]
+  tally            Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -247,14 +248,15 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name          String                         @db.VarChar(255)
-  iconKey       String                         @map("icon_key") @db.VarChar(255)
-  notes         String?                        @db.Text
-  questionType  QuestionTypes                  @map("question_type")
-  characterType QuestionResponseCharacterTypes @map("character_type")
-  response      Response[]
-  optionType    OptionTypes?                   @map("option_type")
-  geometryTypes QuestionGeometryTypes[]        @map("geometry_types")
+  name             String                         @db.VarChar(255)
+  iconKey          String                         @map("icon_key") @db.VarChar(255)
+  notes            String?                        @db.Text
+  questionType     QuestionTypes                  @map("question_type")
+  characterType    QuestionResponseCharacterTypes @map("character_type")
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  optionType       OptionTypes?                   @map("option_type")
+  geometryTypes    QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 
@@ -323,6 +325,26 @@ model Response {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("response")
+}
+
+model BooleanResponse {
+  id Int @id @default(autoincrement())
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  checked   Boolean
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@map("boolean_response")
 }
 
 model Option {
@@ -553,9 +575,10 @@ model Assessment {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  question       Question[]
-  response       Response[]
-  responseOption ResponseOption[]
+  question         Question[]
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  responseOption   ResponseOption[]
 
   geometries QuestionGeometry[]
 

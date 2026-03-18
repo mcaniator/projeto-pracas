@@ -97,6 +97,7 @@ const _addResponsesV2 = async ({
       value: string | number | null;
     }[] = [];
     const optionsResponses: { questionId: number; value: number[] }[] = [];
+    const booleanResponses: { questionId: number; value: boolean }[] = [];
     questions.forEach((q) => {
       if (!Object.keys(responses).includes(String(q.id))) {
         throw new Error("Resposta não enviada para uma ou mais questões!");
@@ -106,8 +107,11 @@ const _addResponsesV2 = async ({
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
+        if (typeof response === "boolean") {
+          throw new Error("Resposta em booleana enviada para questão escrita!");
+        }
         writtenResponses.push({ questionId: q.id, value: response ?? null });
-      } else {
+      } else if (q.questionType === "OPTIONS") {
         if (!Array.isArray(response)) {
           optionsResponses.push({
             questionId: q.id,
@@ -116,6 +120,13 @@ const _addResponsesV2 = async ({
         } else {
           optionsResponses.push({ questionId: q.id, value: response });
         }
+      } else if (q.questionType === "BOOLEAN") {
+        if (typeof response !== "boolean") {
+          throw new Error(
+            "Resposta não booleana enviada para questão de verdadeiro ou falso!",
+          );
+        }
+        booleanResponses.push({ questionId: q.id, value: response });
       }
     });
 
@@ -157,9 +168,23 @@ const _addResponsesV2 = async ({
       const writtenResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "assessment_id", "updated_at")
     VALUES ${Prisma.join(writtenResponsesSQLValues, `,`)}
     ON CONFLICT ("assessment_id", "question_id")
-    DO UPDATE SET "response" = EXCLUDED."response"`;
+    DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id" , "updated_at" = EXCLUDED."updated_at"`;
 
       transactions.push(prisma.$executeRaw(writtenResponsesQuery));
+    }
+
+    const booleanResponsesSQLValues = booleanResponses.map(
+      (r) =>
+        Prisma.sql`(${r.value}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
+    );
+
+    if (booleanResponsesSQLValues.length > 0) {
+      const booleanResponsesQuery = Prisma.sql`INSERT INTO "boolean_response" ("checked", "user_id", "question_id", "assessment_id", "updated_at")
+    VALUES ${Prisma.join(booleanResponsesSQLValues, `,`)}
+    ON CONFLICT ("assessment_id", "question_id")
+    DO UPDATE SET "checked" = EXCLUDED."checked", "user_id" = EXCLUDED."user_id" , "updated_at" = EXCLUDED."updated_at"`;
+
+      transactions.push(prisma.$executeRaw(booleanResponsesQuery));
     }
 
     const existingOptions = await prisma.responseOption.findMany({
@@ -201,7 +226,9 @@ const _addResponsesV2 = async ({
     SET option_id = CASE
       ${Prisma.join(caseStatements, "\n")}
       ELSE option_id
-    END
+    END,
+    updated_at = NOW(),
+    user_id = ${user.id}
     WHERE id IN (${Prisma.join(responseOptionIds)});
   `;
 

@@ -11,12 +11,60 @@ type CSwtichProps = SwitchProps & {
 
 const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
   (props, ref) => {
-    const { label, formControlSx, labelPosition = "right", ...rest } = props;
+    const {
+      label,
+      formControlSx,
+      labelPosition = "right",
+      readOnly,
+      onChange,
+      inputProps,
+      sx,
+      ...rest
+    } = props;
+
+    const handleChange: SwitchProps["onChange"] = (event, checked) => {
+      if (readOnly) {
+        event.preventDefault();
+        return;
+      }
+      onChange?.(event, checked);
+    };
+
+    const readOnlySx: SxProps<Theme> =
+      readOnly ?
+        {
+          filter: "saturate(0.0)",
+          cursor: "default",
+          "& .MuiSwitch-track": {
+            outline: "3px dashed currentColor",
+            outlineOffset: "-2.5px",
+          },
+          "& .MuiSwitch-switchBase": {
+            cursor: "default",
+          },
+        }
+      : {};
 
     return (
       <FormControlLabel
         sx={formControlSx}
-        control={<Switch {...rest} ref={ref} />}
+        control={
+          <Switch
+            {...rest}
+            ref={ref}
+            onChange={handleChange}
+            inputProps={{ ...inputProps, readOnly }}
+            disableRipple={readOnly}
+            onClick={
+              readOnly ?
+                (event) => {
+                  event.preventDefault();
+                }
+              : undefined
+            }
+            sx={{ ...readOnlySx, ...sx }}
+          />
+        }
         label={label}
         labelPlacement={labelPosition === "left" ? "start" : "end"}
       />

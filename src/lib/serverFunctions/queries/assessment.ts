@@ -173,6 +173,14 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                         response: true,
                       },
                     },
+                    booleanResponses: {
+                      where: {
+                        assessmentId: params.assessmentId,
+                      },
+                      select: {
+                        checked: true,
+                      },
+                    },
                     ResponseOption: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -287,6 +295,9 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
               (r) => r.option!.id,
             );
           }
+        } else if (dbQuestion.questionType === "BOOLEAN") {
+          responsesFormValues[dbQuestion.id] =
+            dbQuestion.booleanResponses[0]?.checked ?? false;
         }
 
         const relatedCalculation = form.calculations.find(
