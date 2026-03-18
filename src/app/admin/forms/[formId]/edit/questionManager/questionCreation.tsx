@@ -1,8 +1,10 @@
 "use client";
 
+import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
+import { QuestionResponseCharacterTypes } from "@prisma/client";
 import { _questionSubmit } from "@serverActions/questionUtil";
 import { IconCheck, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import React, {
@@ -19,7 +21,14 @@ import CRadioGroup from "../../../../../../components/ui/cRadioGroup";
 import CTextField from "../../../../../../components/ui/cTextField";
 import QuestionIconPicker from "./questionIconPicker";
 
-type CharacterType = "TEXT" | "NUMBER" | "BOOLEAN";
+const characterTypeOptions: {
+  value: QuestionResponseCharacterTypes;
+  label: string;
+}[] = [
+  { value: "TEXT", label: "Texto" },
+  { value: "NUMBER", label: "Numérico" },
+  { value: "PERCENTAGE", label: "Porcentagem" },
+];
 
 const QuestionCreation = ({
   categoryId,
@@ -47,9 +56,8 @@ const QuestionCreation = ({
   const [isOpen, setIsOpen] = useState(false);
   const [reloadOnClose, setReloadOnClose] = useState(false);
   const [type, setType] = useState("");
-  const [characterType, setCharacterType] = useState<CharacterType | null>(
-    null,
-  );
+  const [characterType, setCharacterType] =
+    useState<QuestionResponseCharacterTypes | null>(null);
   const [hasAssociatedGeometry, setHasAssociatedGeometry] = useState<
     boolean | null
   >(null);
@@ -281,17 +289,14 @@ const QuestionCreation = ({
 
               {type.length > 0 && type !== "BOOLEAN" && (
                 <CRadioGroup
-                  label="Tipo de caracteres"
+                  label="Tipo de valor"
                   name="characterType"
-                  options={[
-                    { value: "TEXT", label: "Texto" },
-                    { value: "NUMBER", label: "Numérico" },
-                  ]}
+                  options={characterTypeOptions}
                   value={characterType}
                   onChange={(e) => {
-                    setCharacterType(e as CharacterType);
+                    setCharacterType(e);
                   }}
-                  getOptionValue={(i) => i.value as CharacterType}
+                  getOptionValue={(i) => i.value}
                   getOptionLabel={(i) => i.label}
                 />
               )}
@@ -332,6 +337,7 @@ const QuestionCreation = ({
                           options={
                             (
                               characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE" ||
                               selectionType === "CHECKBOX"
                             ) ?
                               [{ value: "FREE", label: "Livre" }]
@@ -355,16 +361,22 @@ const QuestionCreation = ({
                             Digite as opções:
                           </div>
                           <div className="flex w-full items-center">
-                            {characterType === "NUMBER" ?
+                            {(
+                              characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE"
+                            ) ?
                               <CNumberField
                                 className="w-full"
+                                endAdornment={
+                                  characterType === "PERCENTAGE" ? "%" : ""
+                                }
                                 value={
                                   currentOption.length > 0 ?
                                     Number(currentOption)
                                   : null
                                 }
                                 onChange={(val) => {
-                                  setCurrentOption(
+                                  setCurrentOption(() =>
                                     val != null ? String(val) : "",
                                   );
                                 }}
@@ -418,7 +430,15 @@ const QuestionCreation = ({
                                 key={option.text}
                                 className="flex items-center rounded-md bg-white p-2 outline outline-1 outline-black"
                               >
-                                {option.text}
+                                {(
+                                  characterType === "NUMBER" ||
+                                  characterType === "PERCENTAGE"
+                                ) ?
+                                  localeNumberFormatter.format(
+                                    Number(option.text),
+                                  ) +
+                                  `${characterType === "PERCENTAGE" ? "%" : ""}`
+                                : option.text}
 
                                 <CButton
                                   className="ml-auto"

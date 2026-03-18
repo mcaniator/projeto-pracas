@@ -70,7 +70,7 @@ const QuestionIconPicker = ({
       />
 
       <div className="text-xs text-gray-600">
-        Busque pelo do ícone em inglês.
+        Busque pelo nome do ícone em inglês.
       </div>
 
       <div className="max-h-56 overflow-auto rounded border border-gray-200 p-2">

@@ -67,6 +67,7 @@ enum QuestionResponseCharacterTypes {
   TEXT
   NUMBER
   BOOLEAN
+  PERCENTAGE
 
   @@map("question_response_character_types")
 }
