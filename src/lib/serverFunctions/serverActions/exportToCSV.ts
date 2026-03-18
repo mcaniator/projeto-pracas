@@ -218,6 +218,18 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       },
     });
 
+    const booleanResponses = await prisma.booleanResponse.findMany({
+      where: {
+        assessmentId: { in: assessmentIds },
+      },
+      select: {
+        id: true,
+        questionId: true,
+        assessmentId: true,
+        checked: true,
+      },
+    });
+
     const responsesOptions = await prisma.responseOption.findMany({
       where: {
         assessmentId: { in: assessmentIds },
@@ -446,6 +458,17 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                       )
                       .map((r) => r.option?.text)
                       .join(" / ") || "";
+                } else if (question.questionType === "BOOLEAN") {
+                  const checked = booleanResponses.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === question.questionId,
+                  )?.checked;
+                  if (checked) {
+                    responseValue = "Sim";
+                  } else {
+                    responseValue = "Não";
+                  }
                 }
                 CSVAssessments += `,${formatCSVField(responseValue)}`;
               }
@@ -465,6 +488,17 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                       r.assessmentId === assessment.id &&
                       r.questionId === child.questionId,
                   )?.option?.text || "";
+              } else if (child.questionType === "BOOLEAN") {
+                const checked = booleanResponses.find(
+                  (r) =>
+                    r.assessmentId === assessment.id &&
+                    r.questionId === child.questionId,
+                )?.checked;
+                if (checked) {
+                  responseValue = "Sim";
+                } else {
+                  responseValue = "Não";
+                }
               }
               CSVAssessments += `,${formatCSVField(responseValue)}`;
             }
