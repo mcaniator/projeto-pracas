@@ -36,8 +36,12 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
           filter: "saturate(0.0)",
           cursor: "default",
           "& .MuiSwitch-track": {
-            outline: "3px dashed currentColor",
-            outlineOffset: "-2.5px",
+            backgroundColor: "#666",
+            border: "2.5px dashed #000",
+            boxSizing: "border-box",
+          },
+          "& .Mui-checked + .MuiSwitch-track": {
+            borderColor: "#000",
           },
           "& .MuiSwitch-switchBase": {
             cursor: "default",
