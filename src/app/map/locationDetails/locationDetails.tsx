@@ -1,33 +1,11 @@
 import LocationInfo from "@/app/map/locationDetails/locationInfo";
-import LocationTallys from "@/app/map/locationDetails/locationTallys";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
-import { IconInfoCircle, IconX } from "@tabler/icons-react";
-import { ReactNode, useState } from "react";
-import { IoIosPeople } from "react-icons/io";
-
-type LocationDetailsOption = "INFO" | "PERSONS";
-
-const detailsOptions: {
-  id: LocationDetailsOption;
-  label: string;
-  icon: ReactNode;
-}[] = [
-  {
-    id: "INFO",
-    label: "Informações",
-    icon: <IconInfoCircle />,
-  },
-  {
-    id: "PERSONS",
-    label: "Pessoas",
-    icon: <IoIosPeople size={24} />,
-  },
-];
+import { IconX } from "@tabler/icons-react";
+import { useState } from "react";
 
 const LocationDetails = ({
   location,
@@ -39,8 +17,6 @@ const LocationDetails = ({
   isMobileView: boolean;
 }) => {
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
-  const [detailsOption, setDetailsOption] =
-    useState<LocationDetailsOption>("INFO");
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -57,34 +33,18 @@ const LocationDetails = ({
           </CButton>
         )}
       </div>
-      <CImage
-        src={location.mainImage}
-        alt={location.name}
-        width={384}
-        height={200}
-      />
-      <div className="flex gap-1">
-        <CToggleButtonGroup
-          options={detailsOptions}
-          value={detailsOption}
-          getLabel={(o) => {
-            return (
-              <>
-                {o.icon} {o.label}
-              </>
-            );
-          }}
-          getValue={(o) => o.id}
-          onChange={(_, v) => {
-            setDetailsOption(v.id);
-          }}
+      <div className="flex justify-center">
+        <CImage
+          src={location.mainImage}
+          alt={location.name}
+          width={384}
+          height={200}
         />
       </div>
 
       <Divider />
 
-      {detailsOption === "INFO" && <LocationInfo location={location} />}
-      {detailsOption === "PERSONS" && <LocationTallys location={location} />}
+      <LocationInfo location={location} />
     </div>
   );
   if (isMobileView) {

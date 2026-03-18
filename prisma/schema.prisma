@@ -608,7 +608,6 @@ model Tally {
 
   startDate DateTime  @map("start_date") @db.Timestamptz(0)
   endDate   DateTime? @map("end_date") @db.Timestamptz(0)
-  isPublic  Boolean   @default(false) @map("is_public")
 
   animalsAmount        Int?               @map("animals_amount")
   temperature          Float?
