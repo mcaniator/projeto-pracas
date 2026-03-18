@@ -38,7 +38,6 @@ export const fetchTallys = async (params: FetchTallysParams) => {
         id: true,
         startDate: true,
         endDate: true,
-        isPublic: true,
         user: {
           select: {
             username: true,
