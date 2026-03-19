@@ -1,12 +1,16 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
 import { useUserContext } from "@/components/context/UserContext";
 import CImage from "@/components/ui/CImage";
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
+import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
@@ -46,6 +50,20 @@ const LocationDetails = ({
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
     null,
   );
+  const [mainAssessment, setMainAssessment] =
+    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
+
+  const [fetchMainAssessmentTree, fetchMainAssessmentTreeLoading] =
+    useFetchAssessmentTree({
+      assessmentId: location.mainAssessmentId ?? -1,
+      params: {
+        callbacks: {
+          onSuccess: (response) => {
+            setMainAssessment(response.data?.assessmentTree);
+          },
+        },
+      },
+    });
 
   const [updateLocationVisibility, updateLocationVisibilityLoading] =
     useServerAction({
@@ -71,7 +89,10 @@ const LocationDetails = ({
     setIsPublic(location.isPublic);
     setPendingVisibility(null);
     setOpenVisibilityDialog(false);
-  }, [location]);
+    if (location.mainAssessmentId) {
+      void fetchMainAssessmentTree({});
+    }
+  }, [location, fetchMainAssessmentTree]);
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -192,6 +213,11 @@ const LocationDetails = ({
       <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
       <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
       <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
+      <Divider />
+      {fetchMainAssessmentTreeLoading && (
+        <CLinearProgress label="Carregando mais informações..." />
+      )}
+      {mainAssessment && <AssessmentResultViewer assessment={mainAssessment} />}
       <Divider />
       <h4 className="font-semibold">Observações gerais</h4>
       <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>

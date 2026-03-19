@@ -468,6 +468,9 @@ model Location {
   assessment Assessment[]
   tally      Tally[]
 
+  mainAssessmentId Int?        @unique @map("main_assessment_id")
+  mainAssessment   Assessment? @relation(fields: [mainAssessmentId], references: [id], name: "location_main_assessment_relation")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -572,6 +575,8 @@ model Assessment {
 
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
+
+  mainOfLocation Location? @relation("location_main_assessment_relation")
 
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])

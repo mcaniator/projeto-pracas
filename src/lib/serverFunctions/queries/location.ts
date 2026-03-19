@@ -35,6 +35,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.intermediate_administrative_unit_id as "intermediateAdministrativeUnitId",
     l.broad_administrative_unit_id as "broadAdministrativeUnitId",
     l.is_public as "isPublic",
+    l.main_assessment_id as "mainAssessmentId",
     nau.name AS "narrowAdministrativeUnitName",
     iau.name AS "intermediateAdministrativeUnitName",
     bau.name AS "broadAdministrativeUnitName",

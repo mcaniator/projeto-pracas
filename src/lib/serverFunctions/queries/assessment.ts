@@ -104,6 +104,10 @@ const fetchRecentlyCompletedAssessments = async () => {
   }
 };
 
+export type FetchAssessmentTreeResponse = NonNullable<
+  Awaited<ReturnType<typeof getAssessmentTree>>["data"]
+>;
+
 const getAssessmentTree = async (params: { assessmentId: number }) => {
   try {
     const assessment = await prisma.assessment.findUnique({
@@ -419,23 +423,25 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
-      assessmentTree: {
-        id: assessment.id,
-        startDate: assessment.startDate,
-        endDate: assessment.endDate,
-        formName: assessment.form.name,
-        location: {
-          id: assessment.location.id,
-          name: assessment.location.name,
+      data: {
+        assessmentTree: {
+          id: assessment.id,
+          startDate: assessment.startDate,
+          endDate: assessment.endDate,
+          formName: assessment.form.name,
+          location: {
+            id: assessment.location.id,
+            name: assessment.location.name,
+          },
+          user: {
+            id: assessment.user.id,
+            username: assessment.user.username,
+          },
+          totalQuestions: totalQuestions,
+          responsesFormValues: responsesFormValues,
+          geometries: geometries,
+          categories: categories,
         },
-        user: {
-          id: assessment.user.id,
-          username: assessment.user.username,
-        },
-        totalQuestions: totalQuestions,
-        responsesFormValues: responsesFormValues,
-        geometries: geometries,
-        categories: categories,
       },
     };
   } catch (e) {
@@ -443,7 +449,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       responseInfo: {
         statusCode: 500,
       } as APIResponseInfo,
-      assessmentTree: null,
+      data: null,
     };
   }
 };
