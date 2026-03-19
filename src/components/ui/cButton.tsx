@@ -79,6 +79,11 @@ function CButton(props: CButtonProps) {
         disabled={disabled || isLoading}
         sx={{ ...minWidthSx, ...denseSx, ...squareSx, ...sx }}
         onClick={(e) => {
+          if (isLoading) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
           if (toDo) {
             setHelperCard({
               show: true,
@@ -100,7 +105,22 @@ function CButton(props: CButtonProps) {
   );
 
   const componentWithLink =
-    href ? <Link href={href}>{component}</Link> : component;
+    href ?
+      <Link
+        href={href}
+        aria-disabled={isLoading}
+        tabIndex={isLoading ? -1 : undefined}
+        style={isLoading ? { pointerEvents: "none" } : undefined}
+        onClick={(e) => {
+          if (isLoading) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+      >
+        {component}
+      </Link>
+    : component;
 
   return tooltip ?
       <Tooltip title={tooltip} enterTouchDelay={1}>
