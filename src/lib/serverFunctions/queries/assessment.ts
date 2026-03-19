@@ -277,7 +277,10 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         }
         totalQuestions++;
         if (dbQuestion.questionType === "WRITTEN") {
-          if (dbQuestion.characterType === "NUMBER") {
+          if (
+            dbQuestion.characterType === "NUMBER" ||
+            dbQuestion.characterType === "PERCENTAGE"
+          ) {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.response[0]?.response ?
                 Number(dbQuestion.response[0].response)
