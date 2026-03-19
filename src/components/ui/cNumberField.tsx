@@ -203,7 +203,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           }}
           slotProps={{
             input: {
-              endAdornment: !disabled && !readOnly && (
+              endAdornment: (
                 <InputAdornment position="end">
                   <div className="flex items-center gap-1">
                     <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
@@ -216,20 +216,24 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                         gap: 0,
                       }}
                     >
-                      <IconButton
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={handleIncrement}
-                      >
-                        <IconChevronUp fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={handleDecrement}
-                      >
-                        <IconChevronDown fontSize="small" />
-                      </IconButton>
+                      {!disabled && !readOnly && (
+                        <>
+                          <IconButton
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={handleIncrement}
+                          >
+                            <IconChevronUp fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={handleDecrement}
+                          >
+                            <IconChevronDown fontSize="small" />
+                          </IconButton>
+                        </>
+                      )}
                     </div>
                   </div>
                 </InputAdornment>
