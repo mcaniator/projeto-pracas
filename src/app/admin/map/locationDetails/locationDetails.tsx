@@ -178,10 +178,10 @@ const LocationDetails = ({
       />
       <Divider />
       <h4 className="font-semibold">Localização</h4>
-      <CLocationAdministrativeUnits location={location} />
+      <CLocationAdministrativeUnits location={location} variant="emphasis" />
 
       <div className="flex items-center">
-        <CIconChip icon={<IconRoad />} tooltip="Ruas" />
+        <CIconChip icon={<IconRoad />} tooltip="Ruas" variant="emphasis" />
         {[
           location.firstStreet,
           location.secondStreet,
@@ -194,11 +194,19 @@ const LocationDetails = ({
       <Divider />
       <h4 className="font-semibold">Categorização</h4>
       <span>
-        <CIconChip icon={<IconCircleDashedLetterT />} tooltip="Tipo" />
+        <CIconChip
+          icon={<IconCircleDashedLetterT />}
+          tooltip="Tipo"
+          variant={location.typeName ? "emphasis" : "disabled"}
+        />
         {location.typeName ?? "-"}
       </span>
       <span>
-        <CIconChip icon={<IconCircleDashedLetterC />} tooltip="Categoria" />
+        <CIconChip
+          icon={<IconCircleDashedLetterC />}
+          tooltip="Categoria"
+          variant={location.categoryName ? "emphasis" : "disabled"}
+        />
         {location.categoryName ?? "-"}
       </span>
       <Divider />

@@ -1,4 +1,5 @@
 import CIconChip from "@/components/ui/cIconChip";
+import { IconChipVariant } from "@/components/ui/cIconChip";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Breadcrumbs, Divider } from "@mui/material";
 import { IconBuildingCommunity } from "@tabler/icons-react";
@@ -8,11 +9,13 @@ import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/loc
 const CLocationAdministrativeUnits = ({
   location,
   topDivider,
+  variant = "default",
 }: {
   topDivider?: boolean;
   location:
     | FetchLocationsResponse["locations"][number]
     | PublicFetchLocationsResponse["locations"][number];
+  variant?: IconChipVariant;
 }) => {
   if (
     !location.broadAdministrativeUnitTitle &&
@@ -26,6 +29,7 @@ const CLocationAdministrativeUnits = ({
       <div className="flex items-center">
         <CIconChip
           icon={<IconBuildingCommunity />}
+          variant={variant}
           tooltip={[
             location.broadAdministrativeUnitTitle,
             location.intermediateAdministrativeUnitTitle,

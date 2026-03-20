@@ -2,6 +2,7 @@
 
 import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 import CIconChip from "@/components/ui/cIconChip";
+import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import {
   AssessmentCategoryItem,
@@ -9,7 +10,9 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import { Box, Chip, Divider } from "@mui/material";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
+import { useMemo } from "react";
 import { Pie } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -451,9 +454,34 @@ const Category = ({
   assessment: AssessmentTree;
   category: AssessmentCategoryItem;
 }) => {
+  const categoryIcons = useMemo(() => {
+    const icons: { questionName: string; iconKey: string }[] = [];
+    category.categoryChildren.forEach((child) => {
+      if (isAssessmentSubcategoryItem(child)) {
+        child.questions.forEach((question) => {
+          icons.push({
+            questionName: question.name,
+            iconKey: question.iconKey,
+          });
+        });
+      } else {
+        icons.push({
+          questionName: child.name,
+          iconKey: child.iconKey,
+        });
+      }
+    });
+    return icons;
+  }, [category.categoryChildren]);
   return (
     <div className="flex flex-col gap-2">
-      <h4 className="font-semibold">{category.name}</h4>
+      <div className="flex items-center gap-2">
+        <h4 className="font-semibold">{category.name}</h4>
+        <span>
+          <IconsLegendDialog categoryIcons={categoryIcons} />
+        </span>
+      </div>
+
       <div className="flex flex-col gap-3">
         {category.categoryChildren.map((child) =>
           isAssessmentSubcategoryItem(child) ?
@@ -470,6 +498,34 @@ const Category = ({
         )}
       </div>
     </div>
+  );
+};
+
+const IconsLegendDialog = ({
+  categoryIcons,
+}: {
+  categoryIcons: {
+    questionName: string;
+    iconKey: string;
+  }[];
+}) => {
+  return (
+    <CDialogTrigger
+      title="Legenda"
+      triggerProps={{ square: true, variant: "outlined" }}
+      triggerchildren={<IconInfoCircle />}
+    >
+      {categoryIcons.map((icon, index) => (
+        <div key={index} className="my-1 flex items-center">
+          <CIconChip
+            icon={<CDynamicIcon iconKey={icon.iconKey} />}
+            variant="emphasis"
+            tooltip={icon.questionName}
+          />
+          <span>{icon.questionName}</span>
+        </div>
+      ))}
+    </CDialogTrigger>
   );
 };
 
