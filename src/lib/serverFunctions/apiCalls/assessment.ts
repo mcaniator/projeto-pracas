@@ -1,3 +1,4 @@
+import { FetchAssessmentTreeParams } from "@/app/api/admin/assessments/[assessmentId]/route";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -37,14 +38,12 @@ export const useFetchAssessments = (
 };
 
 export const useFetchAssessmentTree = ({
-  assessmentId,
   params,
 }: {
-  assessmentId: number;
   params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse>({
-    url: "/api/admin/assessments/" + assessmentId,
+  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+    url: "/api/admin/assessments/:assessmentId",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

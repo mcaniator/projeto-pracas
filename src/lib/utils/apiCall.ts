@@ -79,6 +79,42 @@ export const generateQueryString = <P extends Record<string, unknown>>(
     .join("&");
 };
 
+export const replaceRouteParams = <P extends Record<string, unknown>>(
+  url: string,
+  params?: P,
+): { url: string; queryParams: Record<string, unknown> } => {
+  if (!params) {
+    return { url, queryParams: {} };
+  }
+
+  const usedRouteParamKeys = new Set<string>();
+
+  const parsedUrl = url.replace(/:([A-Za-z0-9_]+)/g, (_, paramKey: string) => {
+    const value = params[paramKey];
+
+    if (value === undefined || value === null) {
+      throw new Error(`Missing route param: ${paramKey}`);
+    }
+
+    usedRouteParamKeys.add(paramKey);
+
+    if (value instanceof Date) {
+      return encodeURIComponent(value.toISOString());
+    }
+
+    return encodeURIComponent(String(value));
+  });
+
+  const queryParams = Object.fromEntries(
+    Object.entries(params).filter(([key]) => !usedRouteParamKeys.has(key)),
+  );
+
+  return {
+    url: parsedUrl,
+    queryParams,
+  };
+};
+
 export async function fetchAPI<T>({
   url,
   params,

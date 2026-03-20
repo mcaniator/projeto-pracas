@@ -3,10 +3,16 @@ import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
+const paramsSchema = z.object({
+  assessmentId: z.coerce.number(),
+});
+
+export type FetchAssessmentTreeParams = z.infer<typeof paramsSchema>;
+
 export async function GET(
   request: NextRequest,
   props: {
-    params: Promise<{ assessmentId: number }>;
+    params: Promise<FetchAssessmentTreeParams>;
   },
 ) {
   try {

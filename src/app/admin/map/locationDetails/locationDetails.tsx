@@ -55,7 +55,6 @@ const LocationDetails = ({
 
   const [fetchMainAssessmentTree, fetchMainAssessmentTreeLoading] =
     useFetchAssessmentTree({
-      assessmentId: location.mainAssessmentId ?? -1,
       params: {
         callbacks: {
           onSuccess: (response) => {
@@ -90,7 +89,11 @@ const LocationDetails = ({
     setPendingVisibility(null);
     setOpenVisibilityDialog(false);
     if (location.mainAssessmentId) {
-      void fetchMainAssessmentTree({});
+      void fetchMainAssessmentTree({
+        assessmentId: location.mainAssessmentId,
+      });
+    } else {
+      setMainAssessment(undefined);
     }
   }, [location, fetchMainAssessmentTree]);
   const inner = (
