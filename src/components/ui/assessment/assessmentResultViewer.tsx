@@ -260,14 +260,17 @@ export const AssessmentPercentageValueRenderer = ({
             {
               id: "footerText",
               afterDraw(chart) {
-                const { ctx, width, height } = chart;
+                const { ctx, chartArea } = chart;
+
+                const centerX = (chartArea.left + chartArea.right) / 2;
+                const centerY = chartArea.bottom + 12;
 
                 ctx.save();
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.font = "12px sans-serif";
 
-                ctx.fillText(`${boundedValue}%`, width / 2, height - 10);
+                ctx.fillText(`${boundedValue}%`, centerX, centerY);
 
                 ctx.restore();
               },
@@ -277,6 +280,7 @@ export const AssessmentPercentageValueRenderer = ({
             layout: {
               padding: {
                 bottom: 24,
+                right: 200,
               },
             },
             responsive: true,
