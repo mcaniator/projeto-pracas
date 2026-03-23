@@ -492,6 +492,7 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
         id: true,
         startDate: true,
         endDate: true,
+        isPublic: true,
         user: {
           select: {
             username: true,

@@ -156,6 +156,48 @@ const _createAssessmentV2 = async (
   }
 };
 
+const _updateAssessmentVisibility = async ({
+  assessmentId,
+  isPublic,
+}: {
+  assessmentId: number;
+  isPublic: boolean;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["ASSESSMENT_MANAGER"],
+    });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    await prisma.assessment.update({
+      where: { id: assessmentId },
+      data: { isPublic: isPublic },
+    });
+    revalidateTag("assessemnt");
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Visibilidade da avaliação atualizada!",
+        showSuccessCard: true,
+      } as APIResponseInfo,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao atualizar visibilidade da avaliação!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
 const _fetchAssessmentsByLocation = async (locationId: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
@@ -270,4 +312,5 @@ export {
   _createAssessmentV2,
   _deleteAssessment,
   _fetchAssessmentsByLocation,
+  _updateAssessmentVisibility,
 };

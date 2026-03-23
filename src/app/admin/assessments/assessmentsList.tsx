@@ -1,12 +1,18 @@
 import CButton from "@/components/ui/cButton";
+import CSwitch from "@/components/ui/cSwtich";
+import CDialog from "@/components/ui/dialog/cDialog";
+import { _updateAssessmentVisibility } from "@/lib/serverFunctions/serverActions/assessmentUtil";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { Chip, Divider } from "@mui/material";
 import {
   IconCalendar,
+  IconCheck,
   IconClipboard,
   IconExternalLink,
   IconFilePencil,
   IconUser,
 } from "@tabler/icons-react";
+import { useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 import CIconChip from "../../../components/ui/cIconChip";
@@ -15,9 +21,36 @@ import { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/a
 
 const AssessmentsList = ({
   assessments,
+  handleVisibilityChange,
 }: {
   assessments: FetchAssessmentsResponse["assessments"];
+  handleVisibilityChange: (id: number, isPublic: boolean) => void;
 }) => {
+  const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
+    id: number;
+    locationName: string;
+    isPublic: boolean;
+  }>();
+
+  const [updateVisibility, updatingVisibility] = useServerAction({
+    action: _updateAssessmentVisibility,
+    callbacks: {
+      onSuccess: () => {
+        if (pendingVisibilityChange === undefined) {
+          return;
+        }
+
+        handleVisibilityChange(
+          pendingVisibilityChange.id,
+          pendingVisibilityChange.isPublic,
+        );
+        setPendingVisibilityChange(undefined);
+      },
+      onError: () => {
+        setPendingVisibilityChange(undefined);
+      },
+    },
+  });
   return (
     <div className="flex h-full flex-col gap-1">
       {assessments.length === 0 && (
@@ -76,6 +109,22 @@ const AssessmentsList = ({
                       <IconExternalLink />
                       Acessar
                     </CButton>
+                    <Divider orientation="vertical" />
+                    <CSwitch
+                      checked={
+                        pendingVisibilityChange?.id === a.id ?
+                          pendingVisibilityChange.isPublic
+                        : a.isPublic
+                      }
+                      label="Visível publicamente"
+                      onChange={(e) => {
+                        setPendingVisibilityChange({
+                          id: a.id,
+                          locationName: a.location.name,
+                          isPublic: e.target.checked,
+                        });
+                      }}
+                    />
                   </span>
                 </div>
               </div>
@@ -83,6 +132,28 @@ const AssessmentsList = ({
           );
         }}
       />
+      <CDialog
+        title="Alterar visibilidade"
+        open={!!pendingVisibilityChange}
+        onClose={() => {
+          setPendingVisibilityChange(undefined);
+        }}
+        confirmChildren={<IconCheck />}
+        confirmLoading={updatingVisibility}
+        onConfirm={() => {
+          void updateVisibility({
+            assessmentId: pendingVisibilityChange!.id,
+            isPublic: pendingVisibilityChange!.isPublic,
+          });
+        }}
+      >
+        <div>
+          {pendingVisibilityChange?.isPublic ?
+            "Deixar esta avaliação visível publicamente?"
+          : "Ocultar publicamente esta avaliação?"}
+        </div>
+        <div className="font-semibold">{`${pendingVisibilityChange?.locationName} - ${pendingVisibilityChange?.id}`}</div>
+      </CDialog>
     </div>
   );
 };
