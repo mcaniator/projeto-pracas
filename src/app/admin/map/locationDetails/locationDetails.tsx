@@ -90,7 +90,7 @@ const LocationDetails = ({
     setOpenVisibilityDialog(false);
     if (location.mainAssessmentId) {
       void fetchMainAssessmentTree({
-        assessmentId: location.mainAssessmentId,
+        assessmentId: String(location.mainAssessmentId),
       });
     } else {
       setMainAssessment(undefined);

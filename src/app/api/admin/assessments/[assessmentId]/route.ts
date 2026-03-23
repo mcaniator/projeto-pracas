@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 const paramsSchema = z.object({
-  assessmentId: z.coerce.number(),
+  assessmentId: z.string().min(1),
 });
 
 export type FetchAssessmentTreeParams = z.infer<typeof paramsSchema>;
