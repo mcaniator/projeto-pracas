@@ -1,4 +1,5 @@
 import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
@@ -454,7 +455,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
   }
 };
 
-type FetchAssessmentsResponse = NonNullable<
+export type FetchAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessments>>["data"]
 >;
 
@@ -529,9 +530,50 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
   }
 };
 
+export type FetchPublicAssessmentsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchPublicAssessments>>["data"]
+>;
+
+export const fetchPublicAssessments = async (
+  params: FetchPublicAssessmentsParams,
+) => {
+  try {
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        isPublic: true,
+        location: {
+          id: params.locationId,
+        },
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+      select: {
+        id: true,
+        startDate: true,
+      },
+    });
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        assessments,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliações!",
+      } as APIResponseInfo,
+      data: {
+        assessments: [],
+      },
+    };
+  }
+};
+
 export {
   fetchRecentlyCompletedAssessments,
   getAssessmentTree,
   fetchAssessments,
 };
-export { type FetchAssessmentsResponse };

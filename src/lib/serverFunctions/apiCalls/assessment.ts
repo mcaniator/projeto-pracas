@@ -1,4 +1,5 @@
 import { FetchAssessmentTreeParams } from "@/app/api/admin/assessments/[assessmentId]/route";
+import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -7,6 +8,7 @@ import { fetchAPI } from "../../utils/apiCall";
 import {
   FetchAssessmentTreeResponse,
   FetchAssessmentsResponse,
+  FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
 
 export const _fetchAssessments = async (params: FetchAssessmentsParams) => {
@@ -29,6 +31,22 @@ export const useFetchAssessments = (
 ) => {
   return useFetchAPI<FetchAssessmentsResponse, FetchAssessmentsParams>({
     url: "/api/admin/assessments",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["assessment", "database"] },
+    },
+  });
+};
+
+export const useFetchPublicAssessments = (
+  params?: UseFetchAPIParams<FetchPublicAssessmentsResponse>,
+) => {
+  return useFetchAPI<
+    FetchPublicAssessmentsResponse,
+    FetchPublicAssessmentsParams
+  >({
+    url: "/api/admin/publicAssessments",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

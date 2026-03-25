@@ -1,32 +1,30 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
-import { useUserContext } from "@/components/context/UserContext";
+import AssessmentHistory from "@/app/admin/map/locationDetails/assessmentHistory";
+import LocationInfo from "@/app/admin/map/locationDetails/locationInfo";
 import CImage from "@/components/ui/CImage";
-import CLinearProgress from "@/components/ui/CLinearProgress";
-import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CButton from "@/components/ui/cButton";
-import CCheckbox from "@/components/ui/cCheckbox";
-import CIconChip from "@/components/ui/cIconChip";
-import CSwitch from "@/components/ui/cSwtich";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
-import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
-import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
 import {
-  IconCheck,
-  IconCircleDashedLetterC,
-  IconCircleDashedLetterT,
   IconExternalLink,
   IconPencil,
-  IconRoad,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
-import { Link } from "react-aria-components";
+import Link from "next/link";
+import { useState } from "react";
+
+const detailsModes = {
+  DETAILS: 0,
+  HISTORY: 1,
+};
+
+const detailsModeOptions = [
+  { label: "Detalhes", value: detailsModes.DETAILS },
+  { label: "Histórico", value: detailsModes.HISTORY },
+];
 
 const LocationDetails = ({
   location,
@@ -41,61 +39,11 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
-  const { user } = useUserContext();
+  const [detailsMode, setDetailsMode] = useState(detailsModes.DETAILS);
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
-  const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false);
-  const [isPublic, setIsPublic] = useState(location.isPublic);
-  const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
-    null,
-  );
-  const [mainAssessment, setMainAssessment] =
-    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
 
-  const [fetchMainAssessmentTree, fetchMainAssessmentTreeLoading] =
-    useFetchAssessmentTree({
-      params: {
-        callbacks: {
-          onSuccess: (response) => {
-            setMainAssessment(response.data?.assessmentTree);
-          },
-        },
-      },
-    });
-
-  const [updateLocationVisibility, updateLocationVisibilityLoading] =
-    useServerAction({
-      action: _updateLocationVisibility,
-      callbacks: {
-        onSuccess: () => {
-          if (pendingVisibility === null) {
-            return;
-          }
-          setIsPublic(pendingVisibility);
-          setPendingVisibility(null);
-          setOpenVisibilityDialog(false);
-          reloadLocations();
-        },
-        onError: () => {
-          setPendingVisibility(null);
-          setOpenVisibilityDialog(false);
-        },
-      },
-    });
-
-  useEffect(() => {
-    setIsPublic(location.isPublic);
-    setPendingVisibility(null);
-    setOpenVisibilityDialog(false);
-    if (location.mainAssessmentId) {
-      void fetchMainAssessmentTree({
-        assessmentId: String(location.mainAssessmentId),
-      });
-    } else {
-      setMainAssessment(undefined);
-    }
-  }, [location, fetchMainAssessmentTree]);
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -161,77 +109,25 @@ const LocationDetails = ({
         </div>
       </div>
       <Divider />
-      <h4 className="font-semibold">Visibilidade</h4>
-      <CSwitch
-        checked={pendingVisibility ?? isPublic}
-        label="Visibilidade pública"
-        onChange={(_, checked) => {
-          setPendingVisibility(checked);
-          setOpenVisibilityDialog(true);
+      <CToggleButtonGroup
+        options={detailsModeOptions}
+        value={detailsMode}
+        getLabel={(o) => o.label}
+        getValue={(o) => o.value}
+        onChange={(_, v) => {
+          setDetailsMode(v.value);
         }}
-        disabled={!user.roles.includes("PARK_MANAGER")}
       />
-      <Divider />
-      <h4 className="font-semibold">Situação cadastral</h4>
-      <CCheckbox checked={location.isPark} label="É praça" disabled />
-      <CCheckbox
-        checked={location.inactiveNotFound}
-        label="Inativo ou não encontrado"
-        disabled
-      />
-      <Divider />
-      <h4 className="font-semibold">Localização</h4>
-      <CLocationAdministrativeUnits location={location} variant="emphasis" />
-
-      <div className="flex items-center">
-        <CIconChip icon={<IconRoad />} tooltip="Ruas" variant="emphasis" />
-        {[
-          location.firstStreet,
-          location.secondStreet,
-          location.thirdStreet,
-          location.fourthStreet,
-        ]
-          .filter(Boolean)
-          .join(", ")}
+      <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
+        <LocationInfo location={location} />
       </div>
-      <Divider />
-      <h4 className="font-semibold">Categorização</h4>
-      <span>
-        <CIconChip
-          icon={<IconCircleDashedLetterT />}
-          tooltip="Tipo"
-          variant={location.typeName ? "emphasis" : "disabled"}
+      <div className={detailsMode === detailsModes.HISTORY ? "" : "hidden"}>
+        <AssessmentHistory
+          locationId={location.id}
+          locationName={location.name}
         />
-        {location.typeName ?? "-"}
-      </span>
-      <span>
-        <CIconChip
-          icon={<IconCircleDashedLetterC />}
-          tooltip="Categoria"
-          variant={location.categoryName ? "emphasis" : "disabled"}
-        />
-        {location.categoryName ?? "-"}
-      </span>
-      <Divider />
-      <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
+      </div>
 
-      <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
-
-      <span>{`Inclinação: ${location.incline ?? "-"} %`}</span>
-      <Divider />
-      <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
-      <Divider />
-      {fetchMainAssessmentTreeLoading && (
-        <CLinearProgress label="Carregando mais informações..." />
-      )}
-      {mainAssessment && <AssessmentResultViewer assessment={mainAssessment} />}
-      <Divider />
-      <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
       <LocationDeleteDialog
         location={location}
         open={openDeleteLocationDialog}
@@ -241,42 +137,6 @@ const LocationDetails = ({
         }}
         onClose={() => {
           setOpenDeleteLocationDialog(false);
-        }}
-      />
-      <CDialog
-        open={openVisibilityDialog}
-        onClose={() => {
-          if (updateLocationVisibilityLoading) {
-            return;
-          }
-          setPendingVisibility(null);
-          setOpenVisibilityDialog(false);
-        }}
-        title="Alterar visibilidade"
-        subtitle={
-          pendingVisibility ?
-            "Deseja que esta praça seja visível publicamente?"
-          : "Deseja que esta praça deixe de ser visível publicamente?"
-        }
-        confirmLoading={updateLocationVisibilityLoading}
-        confirmChildren={<IconCheck />}
-        cancelChildren={<IconX />}
-        cancelVariant="outlined"
-        onCancel={() => {
-          if (updateLocationVisibilityLoading) {
-            return;
-          }
-          setPendingVisibility(null);
-          setOpenVisibilityDialog(false);
-        }}
-        onConfirm={() => {
-          if (pendingVisibility === null) {
-            return;
-          }
-          void updateLocationVisibility({
-            id: location.id,
-            isPublic: pendingVisibility,
-          });
         }}
       />
     </div>

@@ -44,10 +44,10 @@ function CToggleButtonGroup<T>({
     borderTop: "none",
     borderBottom: "none",
     "&.Mui-selected": {
-      bgcolor: toggleButtonColor ?? "gray",
+      bgcolor: toggleButtonColor ?? "primary.main",
       color: "white",
       "&:hover": {
-        bgcolor: toggleButtonColor ?? "gray",
+        bgcolor: toggleButtonColor ?? "primary.dark",
       },
     },
     "&:hover": {

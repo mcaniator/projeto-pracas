@@ -444,7 +444,7 @@ const Subcategory = ({
   subcategory: AssessmentSubcategoryItem;
 }) => {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 p-1 outline-dashed outline-1 outline-gray-300">
       <h5 className="font-medium">{subcategory.name}</h5>
       <QuestionList assessment={assessment} questions={subcategory.questions} />
     </div>
