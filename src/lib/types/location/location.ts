@@ -38,7 +38,7 @@ export type LocationForMap = {
   typeName: string | null;
   st_asgeojson: string | null;
   isPublic: boolean;
-  mainAssessmentId: number | null;
+  latestAssessmentId: number | null;
 };
 
 export type PublicLocationForMap = {

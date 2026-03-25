@@ -22,7 +22,7 @@ const AssessmentResultViewerDialog = ({
 }) => {
   const [assessment, setAssessment] =
     useState<FetchAssessmentTreeResponse["assessmentTree"]>();
-  const [fetchMainAssessmentTree, loading] = useFetchAssessmentTree({
+  const [fetchAssessmentTree, loading] = useFetchAssessmentTree({
     params: {
       callbacks: {
         onSuccess: (response) => {
@@ -34,10 +34,10 @@ const AssessmentResultViewerDialog = ({
 
   useEffect(() => {
     if (!selectedAssessment) return;
-    void fetchMainAssessmentTree({
+    void fetchAssessmentTree({
       assessmentId: String(selectedAssessment?.id),
     });
-  }, [selectedAssessment, fetchMainAssessmentTree]);
+  }, [selectedAssessment, fetchAssessmentTree]);
   return (
     <CDialog
       open={!!selectedAssessment}

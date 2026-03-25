@@ -32,15 +32,15 @@ const LocationInfo = ({
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
     null,
   );
-  const [mainAssessment, setMainAssessment] =
+  const [latestAssessment, setLatestAssessment] =
     useState<FetchAssessmentTreeResponse["assessmentTree"]>();
 
-  const [fetchMainAssessmentTree, fetchMainAssessmentTreeLoading] =
+  const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
     useFetchAssessmentTree({
       params: {
         callbacks: {
           onSuccess: (response) => {
-            setMainAssessment(response.data?.assessmentTree);
+            setLatestAssessment(response.data?.assessmentTree);
           },
         },
       },
@@ -67,14 +67,15 @@ const LocationInfo = ({
   useEffect(() => {
     setPendingVisibility(null);
     setOpenVisibilityDialog(false);
-    if (location.mainAssessmentId) {
-      void fetchMainAssessmentTree({
-        assessmentId: String(location.mainAssessmentId),
+    setLatestAssessment(undefined);
+    if (location.latestAssessmentId) {
+      void fetchLatestAssessmentTree({
+        assessmentId: String(location.latestAssessmentId),
       });
     } else {
-      setMainAssessment(undefined);
+      setLatestAssessment(undefined);
     }
-  }, [location, fetchMainAssessmentTree]);
+  }, [location, fetchLatestAssessmentTree]);
 
   return (
     <div className="flex flex-col gap-1">
@@ -141,11 +142,15 @@ const LocationInfo = ({
       <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
       <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
       <Divider />
-      {fetchMainAssessmentTreeLoading && (
+      {fetchLatestAssessmentTreeLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
-      {mainAssessment && <AssessmentResultViewer assessment={mainAssessment} />}
-      <Divider />
+      {latestAssessment && (
+        <>
+          <AssessmentResultViewer assessment={latestAssessment} />
+          <Divider />
+        </>
+      )}
       <h4 className="font-semibold">Observações gerais</h4>
       <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
       <CDialog

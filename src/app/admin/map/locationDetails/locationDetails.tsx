@@ -14,7 +14,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const detailsModes = {
   DETAILS: 0,
@@ -43,6 +43,10 @@ const LocationDetails = ({
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
+
+  useEffect(() => {
+    setDetailsMode(detailsModes.DETAILS);
+  }, [location]);
 
   const inner = (
     <div className="flex flex-col gap-1">
@@ -109,15 +113,18 @@ const LocationDetails = ({
         </div>
       </div>
       <Divider />
-      <CToggleButtonGroup
-        options={detailsModeOptions}
-        value={detailsMode}
-        getLabel={(o) => o.label}
-        getValue={(o) => o.value}
-        onChange={(_, v) => {
-          setDetailsMode(v.value);
-        }}
-      />
+      {location.latestAssessmentId && (
+        <CToggleButtonGroup
+          options={detailsModeOptions}
+          value={detailsMode}
+          getLabel={(o) => o.label}
+          getValue={(o) => o.value}
+          onChange={(_, v) => {
+            setDetailsMode(v.value);
+          }}
+        />
+      )}
+
       <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
         <LocationInfo location={location} />
       </div>

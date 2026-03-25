@@ -35,7 +35,6 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.intermediate_administrative_unit_id as "intermediateAdministrativeUnitId",
     l.broad_administrative_unit_id as "broadAdministrativeUnitId",
     l.is_public as "isPublic",
-    l.main_assessment_id as "mainAssessmentId",
     nau.name AS "narrowAdministrativeUnitName",
     iau.name AS "intermediateAdministrativeUnitName",
     bau.name AS "broadAdministrativeUnitName",
@@ -52,6 +51,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
     END AS st_asgeojson,
+    latest_assessment.id AS "latestAssessmentId",
     COUNT(DISTINCT a.id) AS "assessmentCount",
     COUNT(DISTINCT t.id) AS "tallyCount"
   FROM location l
@@ -64,10 +64,17 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
   LEFT JOIN city c ON c.id = l.city_id
+  LEFT JOIN LATERAL (
+    SELECT a2.id
+    FROM assessment a2
+    WHERE a2.location_id = l.id
+    ORDER BY a2.created_at DESC
+    LIMIT 1
+  ) latest_assessment ON true
   WHERE l.id = COALESCE(${params.locationId}, l.id) 
   AND l.city_id = COALESCE(${params.cityId}, l.city_id)
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
