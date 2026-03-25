@@ -26,6 +26,7 @@ const _questionSubmit = async (
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
   const iconKey = formData.get("iconKey");
+  const isPublic = formData.get("isPublic") === "true";
 
   switch (questionType) {
     case "WRITTEN":
@@ -40,6 +41,7 @@ const _questionSubmit = async (
           questionType: questionType,
           characterType: questionCharacterType,
           categoryId: formData.get("categoryId"),
+          isPublic: isPublic,
           subcategoryId:
             Number(formData.get("subcategoryId")) > 0 ?
               formData.get("subcategoryId")
@@ -94,6 +96,7 @@ const _questionSubmit = async (
           characterType: questionCharacterType,
           categoryId,
           subcategoryId,
+          isPublic: isPublic,
 
           geometryTypes:
             (
@@ -126,6 +129,7 @@ const _questionSubmit = async (
               subcategoryId: optionsQuestionParsed.subcategoryId,
               optionType: optionsQuestionParsed.optionType,
               geometryTypes: optionsQuestionParsed.geometryTypes,
+              isPublic: optionsQuestionParsed.isPublic,
             },
           });
 

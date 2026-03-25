@@ -32,6 +32,7 @@ type QuestionForQuestionPicker = {
   id: number;
   name: string;
   iconKey: string;
+  isPublic: boolean;
   questionType: QuestionTypes;
   notes: string | null;
   characterType: QuestionResponseCharacterTypes;

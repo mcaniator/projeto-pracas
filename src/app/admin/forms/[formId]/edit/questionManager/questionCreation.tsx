@@ -1,12 +1,20 @@
 "use client";
 
+import CIconChip from "@/components/ui/cIconChip";
+import CSwitch from "@/components/ui/cSwtich";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 import { _questionSubmit } from "@serverActions/questionUtil";
-import { IconCheck, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconHelp,
+  IconPlus,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import React, {
   startTransition,
   useActionState,
@@ -68,6 +76,7 @@ const QuestionCreation = ({
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(true);
 
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
@@ -253,6 +262,28 @@ const QuestionCreation = ({
                 name="iconKey"
                 value={selectedIconKey ?? ""}
               />
+              <div className="flex items-center gap-1">
+                <input
+                  type="hidden"
+                  id="isPublic"
+                  name="isPublic"
+                  value={isPublic ? "true" : "false"}
+                />
+                <CSwitch
+                  checked={isPublic}
+                  label="Respostas públicas"
+                  name="isPublic"
+                  id="isPublic"
+                  onChange={(e) => {
+                    setIsPublic(e.target.checked);
+                  }}
+                />
+                <CIconChip
+                  icon={<IconHelp />}
+                  tooltip="Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente"
+                />
+              </div>
+
               <QuestionIconPicker
                 selectedIconKey={selectedIconKey}
                 onChange={setSelectedIconKey}

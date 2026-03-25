@@ -252,6 +252,7 @@ model Question {
   name             String                         @db.VarChar(255)
   iconKey          String                         @map("icon_key") @db.VarChar(255)
   notes            String?                        @db.Text
+  isPublic         Boolean                        @map("is_public")
   questionType     QuestionTypes                  @map("question_type")
   characterType    QuestionResponseCharacterTypes @map("character_type")
   response         Response[]

@@ -65,6 +65,7 @@ const QuestionFormV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
@@ -177,6 +178,7 @@ const QuestionFormV2 = ({
     questionId,
     questionName,
     iconKey,
+    isPublic,
     notes,
     categoryName,
     subcategoryName,
@@ -184,6 +186,7 @@ const QuestionFormV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
@@ -192,6 +195,7 @@ const QuestionFormV2 = ({
       questionId,
       questionName,
       iconKey,
+      isPublic,
       notes,
       categoryName,
       subcategoryName,
@@ -310,6 +314,7 @@ const QuestionFormV2 = ({
         questionId={questionToEdit?.questionId ?? -1}
         questionName={questionToEdit?.questionName ?? ""}
         iconKey={questionToEdit?.iconKey ?? ""}
+        isPublic={questionToEdit?.isPublic ?? false}
         notes={questionToEdit?.notes ?? null}
         categoryName={questionToEdit?.categoryName ?? ""}
         subcategoryName={questionToEdit?.subcategoryName ?? ""}

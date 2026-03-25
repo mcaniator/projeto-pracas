@@ -37,6 +37,7 @@ const CategoriesListV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -149,6 +150,7 @@ const SubcategoriesListV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -222,6 +224,7 @@ const QuestionListV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -246,6 +249,7 @@ const QuestionListV2 = ({
           characterType={question.characterType}
           name={question.name}
           iconKey={question.iconKey}
+          isPublic={question.isPublic}
           notes={question.notes}
           questionType={question.questionType}
           optionType={question.optionType}
@@ -270,6 +274,7 @@ const QuestionComponentV2 = ({
   addQuestion,
   name,
   iconKey,
+  isPublic,
   notes,
   questionType,
   optionType,
@@ -287,6 +292,7 @@ const QuestionComponentV2 = ({
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   name: string;
   iconKey: string;
+  isPublic: boolean;
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
@@ -301,6 +307,7 @@ const QuestionComponentV2 = ({
     questionId: number;
     questionName: string;
     iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -336,6 +343,7 @@ const QuestionComponentV2 = ({
               categoryName: categoryName,
               subcategoryName: subcategoryName,
               iconKey: iconKey,
+              isPublic: isPublic,
               notes: notes,
             });
           }}
@@ -350,6 +358,7 @@ const QuestionComponentV2 = ({
               id: questionId,
               name,
               iconKey,
+              isPublic,
               notes,
               questionType,
               optionType,
