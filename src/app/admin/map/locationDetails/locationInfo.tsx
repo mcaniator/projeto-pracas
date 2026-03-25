@@ -23,8 +23,10 @@ import { useEffect, useState } from "react";
 
 const LocationInfo = ({
   location,
+  reloadLocations,
 }: {
   location: FetchLocationsResponse["locations"][number];
+  reloadLocations: () => void;
 }) => {
   const { user } = useUserContext();
 
@@ -56,6 +58,7 @@ const LocationInfo = ({
           }
           setPendingVisibility(null);
           setOpenVisibilityDialog(false);
+          reloadLocations();
         },
         onError: () => {
           setPendingVisibility(null);
@@ -82,6 +85,9 @@ const LocationInfo = ({
       <h4 className="font-semibold">Visibilidade</h4>
       <CSwitch
         label="Visibilidade pública"
+        checked={
+          pendingVisibility !== null ? pendingVisibility : location.isPublic
+        }
         onChange={(_, checked) => {
           setPendingVisibility(checked);
           setOpenVisibilityDialog(true);
@@ -164,7 +170,8 @@ const LocationInfo = ({
         }}
         title="Alterar visibilidade"
         subtitle={
-          pendingVisibility ?
+          pendingVisibility === null ? ""
+          : pendingVisibility ?
             "Deseja que esta praça seja visível publicamente?"
           : "Deseja que esta praça deixe de ser visível publicamente?"
         }

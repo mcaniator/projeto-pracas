@@ -126,7 +126,7 @@ const LocationDetails = ({
       )}
 
       <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
-        <LocationInfo location={location} />
+        <LocationInfo location={location} reloadLocations={reloadLocations} />
       </div>
       <div className={detailsMode === detailsModes.HISTORY ? "" : "hidden"}>
         <AssessmentHistory
