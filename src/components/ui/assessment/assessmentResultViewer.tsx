@@ -167,6 +167,19 @@ const QuestionIcon = ({
   );
 };
 
+export const AssessmentUnfilledValueRenderer = ({
+  question,
+}: {
+  question: AssessmentQuestionItem;
+}) => {
+  return (
+    <div className="flex items-center gap-2">
+      <QuestionIcon question={question} hasValue={false} />
+      <span className="break-all">{"(Não preenchido)"}</span>
+    </div>
+  );
+};
+
 export const AssessmentBooleanValueRenderer = ({
   question,
   value,
@@ -353,7 +366,7 @@ const QuestionValues = ({
   const resolvedValue = resolveAssessmentQuestionValue(assessment, question);
 
   if (resolvedValue.kind === "none") {
-    return null;
+    return <AssessmentUnfilledValueRenderer question={question} />;
   }
 
   if (

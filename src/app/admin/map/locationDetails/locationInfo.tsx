@@ -125,7 +125,7 @@ const LocationInfo = ({
           tooltip="Tipo"
           variant={location.typeName ? "emphasis" : "disabled"}
         />
-        {location.typeName ?? "-"}
+        {location.typeName ?? "(Não preenchido)"}
       </span>
       <span>
         <CIconChip
@@ -133,20 +133,20 @@ const LocationInfo = ({
           tooltip="Categoria"
           variant={location.categoryName ? "emphasis" : "disabled"}
         />
-        {location.categoryName ?? "-"}
+        {location.categoryName ?? "(Não preenchido)"}
       </span>
       <Divider />
       <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
+      <span>{`Área oficial (prefeitura): ${location.legalArea ? location.legalArea + " m²" : "(Não preenchido)"}`}</span>
 
-      <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
+      <span>{`Área útil: ${location.usableArea ? location.usableArea + " m²" : "(Não preenchido)"}`}</span>
 
-      <span>{`Inclinação: ${location.incline ?? "-"} %`}</span>
+      <span>{`Inclinação: ${location.incline ? location.incline + " %" : "(Não preenchido)"}`}</span>
       <Divider />
       <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
+      <span>{`Ano de criação: ${location.creationYear ?? "(Não preenchido)"}`}</span>
+      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "(Não preenchido)"}`}</span>
+      <span>{`Legislação: ${location.legislation ?? "(Não preenchido)"}`}</span>
       <Divider />
       {fetchLatestAssessmentTreeLoading && (
         <CLinearProgress label="Carregando mais informações..." />
@@ -158,7 +158,9 @@ const LocationInfo = ({
         </>
       )}
       <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
+      <div className="whitespace-pre-wrap">
+        {location.notes ?? "(Não preenchido)"}
+      </div>
       <CDialog
         open={openVisibilityDialog}
         onClose={() => {

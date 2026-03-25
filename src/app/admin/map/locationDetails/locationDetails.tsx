@@ -64,12 +64,15 @@ const LocationDetails = ({
           </CButton>
         )}
       </div>
-      <CImage
-        src={location.mainImage}
-        alt={location.name}
-        width={384}
-        height={200}
-      />
+      <div className="flex justify-center">
+        <CImage
+          src={location.mainImage}
+          alt={location.name}
+          width={384}
+          height={200}
+        />
+      </div>
+
       <div className="flex justify-between">
         <div className="flex gap-1">
           <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
