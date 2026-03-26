@@ -2,9 +2,9 @@ import CLinearProgress from "@/components/ui/CLinearProgress";
 import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import {
-  FetchAssessmentTreeResponse,
+  FetchPublicAssessmentTreeResponse,
   FetchPublicAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import { useEffect, useState } from "react";
@@ -21,8 +21,8 @@ const AssessmentResultViewerDialog = ({
   onClose: () => void;
 }) => {
   const [assessment, setAssessment] =
-    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
-  const [fetchAssessmentTree, loading] = useFetchAssessmentTree({
+    useState<FetchPublicAssessmentTreeResponse["assessmentTree"]>();
+  const [fetchAssessmentTree, loading] = useFetchPublicAssessmentTree({
     params: {
       callbacks: {
         onSuccess: (response) => {

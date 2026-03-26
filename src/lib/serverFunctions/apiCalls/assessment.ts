@@ -6,8 +6,8 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
 import { fetchAPI } from "../../utils/apiCall";
 import {
-  FetchAssessmentTreeResponse,
   FetchAssessmentsResponse,
+  FetchPublicAssessmentTreeResponse,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
 
@@ -55,12 +55,15 @@ export const useFetchPublicAssessments = (
   });
 };
 
-export const useFetchAssessmentTree = ({
+export const useFetchPublicAssessmentTree = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchPublicAssessmentTreeResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+  return useFetchAPI<
+    FetchPublicAssessmentTreeResponse,
+    FetchAssessmentTreeParams
+  >({
     url: "/api/admin/assessments/:assessmentId",
     callbacks: params?.callbacks,
     options: {
