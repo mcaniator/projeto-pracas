@@ -18,6 +18,7 @@ import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
+import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import {
@@ -521,6 +522,7 @@ const Question = ({
         />
         <CQuestionCharacterTypeChip characterType={question.characterType} />
         <CQuestionGeometryChip geometryTypes={question.geometryTypes} />
+        <CQuestionVisibilityChip isPublic={question.isPublic} />
         <CNotesChip notes={question.notes} name={question.name} />
         <CCalculationChip
           name={question.name}

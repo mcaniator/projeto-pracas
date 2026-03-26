@@ -127,7 +127,7 @@ const FormItemManager = ({
     <div className="flex flex-col gap-2 overflow-auto">
       <h4>Criar questão: </h4>
       <div className="text-red-500">
-        Atenção: Antes de criar uma questão, certifique-se se já existe uma
+        Atenção: Antes de criar uma questão, certifique-se que já não existe uma
         questão que aborde a avaliação desejada.
       </div>
       <div>
