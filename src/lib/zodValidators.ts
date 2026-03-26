@@ -151,6 +151,7 @@ const questionEditDataSchema = z.object({
   questionId: z.coerce.number(),
   questionName: z.string().trim().min(1).max(255),
   iconKey: z.string().trim(),
+  isPublic: booleanFromString,
   notes: z.preprocess((val) => {
     if (typeof val === "string" && val.trim() === "") return null;
     return val;

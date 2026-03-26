@@ -177,6 +177,7 @@ const _questionUpdate = async (
       questionName: formData.get("questionName"),
       notes: formData.get("notes"),
       iconKey: formData.get("iconKey"),
+      isPublic: formData.get("isPublic"),
     });
     const question = await prisma.question.update({
       where: {
@@ -186,6 +187,7 @@ const _questionUpdate = async (
         name: parse.questionName,
         notes: parse.notes,
         iconKey: parse.iconKey,
+        isPublic: parse.isPublic,
       },
       select: {
         name: true,

@@ -5,10 +5,7 @@ import {
   APIResponseInfo,
   FetchAPIOptions,
 } from "@/lib/types/backendCalls/APIResponse";
-import {
-  generateQueryString,
-  replaceRouteParams,
-} from "@/lib/utils/apiCall";
+import { generateQueryString, replaceRouteParams } from "@/lib/utils/apiCall";
 import { useCallback, useState } from "react";
 
 export function useFetchAPI<
@@ -100,6 +97,10 @@ export function useFetchAPI<
           message: `Erro na requisição ao servidor!`,
         };
         callbacks?.onCallFailed?.({
+          responseInfo: errorResponseInfo,
+          data: null,
+        });
+        callbacks?.onError?.({
           responseInfo: errorResponseInfo,
           data: null,
         });

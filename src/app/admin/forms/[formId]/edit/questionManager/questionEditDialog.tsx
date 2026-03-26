@@ -64,7 +64,8 @@ const QuestionEditDialog = ({
 
   useEffect(() => {
     setSelectedIconKey(iconKey);
-  }, [iconKey]);
+    setIsPublicState(isPublic);
+  }, [questionId, iconKey, isPublic]);
 
   return (
     <CDialog

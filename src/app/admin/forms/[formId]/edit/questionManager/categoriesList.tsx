@@ -1,5 +1,6 @@
 import CButton from "@/components/ui/cButton";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
@@ -234,6 +235,7 @@ const QuestionListV2 = ({
     showAllQuestions ? questions : (
       questions.filter((q) => !formQuestionsIds.includes(q.id))
     );
+
   return (
     <div className="px-1">
       {!showAllQuestions ||
@@ -327,6 +329,7 @@ const QuestionComponentV2 = ({
         />
         <CQuestionCharacterTypeChip characterType={characterType} />
         <CQuestionGeometryChip geometryTypes={geometryTypes} />
+        <CQuestionVisibilityChip isPublic={isPublic} />
         <CNotesChip notes={notes} name={name} />
       </div>
       <div className="flex max-w-full items-center gap-2 break-all">

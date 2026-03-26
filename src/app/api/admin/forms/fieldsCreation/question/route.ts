@@ -1,3 +1,5 @@
+import { parseQueryParams } from "@/lib/utils/apiCall";
+import { booleanFromString } from "@/lib/zodValidators";
 import {
   searchQuestionsByCategoryAndSubcategory,
   searchQuestionsByName,
@@ -5,6 +7,17 @@ import {
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
+
+const paramsSchema = z.object({
+  categoryId: z.coerce.number().int().nullish(),
+  subcategoryId: z.coerce.number().nullish(),
+  verifySubcategoryNullness: booleanFromString.nullish(),
+  name: z.string().optional().nullish(),
+});
+
+export type FetchQuestionsByCategoryAndSubcategoryParams = z.infer<
+  typeof paramsSchema
+>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,29 +27,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const categoryId = z.coerce
-      .number()
-      .parse(request.nextUrl.searchParams.get("categoryId"));
-    const subcategoryId = z.coerce
-      .number()
-      .parse(request.nextUrl.searchParams.get("subcategoryId"));
-    const verCatNull = z
-      .enum(["true", "false"])
-      .transform((val) => val === "true")
-      .parse(request.nextUrl.searchParams.get("verCatNull") ?? "false");
-    const name = z.string().safeParse(request.nextUrl.searchParams.get("name"));
-    if (name.success) {
-      const questions = await searchQuestionsByName(name.data);
+    const searchParams = request.nextUrl.searchParams;
+    const params = parseQueryParams(paramsSchema, searchParams);
+    if (params.name) {
+      const questions = await searchQuestionsByName(params.name);
       return new Response(JSON.stringify(questions), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }
-    const questions = await searchQuestionsByCategoryAndSubcategory(
-      categoryId,
-      subcategoryId,
-      verCatNull,
-    );
+    const questions = await searchQuestionsByCategoryAndSubcategory(params);
     return new Response(JSON.stringify(questions), {
       status: 200,
       headers: { "Content-Type": "application/json" },

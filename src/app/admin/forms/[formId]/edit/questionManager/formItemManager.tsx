@@ -47,6 +47,7 @@ const FormItemManager = ({
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
     )?.subcategory || [];
   const fullSubcategoriesOptions = [
+    { id: 0, name: "TODAS" },
     { id: -1, name: "NENHUMA" },
     ...subcategoriesOptions,
   ];
@@ -199,7 +200,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
                 subcategoryId: val.id,
-                verifySubcategoryNullness: true,
+                verifySubcategoryNullness: val.id === -1 ? true : false,
               });
             }}
           />

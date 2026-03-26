@@ -53,6 +53,7 @@ export type QuestionItem = {
   questionId: number;
   name: string;
   iconKey: string;
+  isPublic: boolean;
   notes: string | null;
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
@@ -193,6 +194,7 @@ const ClientV2 = ({
               questionId: question.id,
               name: question.name,
               iconKey: question.iconKey,
+              isPublic: question.isPublic,
               notes: question.notes,
               questionType: question.questionType,
               position: (subItem.questions?.length ?? 0) + 1,
@@ -225,6 +227,7 @@ const ClientV2 = ({
           questionId: question.id,
           name: question.name,
           iconKey: question.iconKey,
+          isPublic: question.isPublic,
           notes: question.notes,
           questionType: question.questionType,
           characterType: question.characterType,
