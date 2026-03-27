@@ -1,7 +1,6 @@
 "use client";
 
-import { _searchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
-import LoadingIcon from "@components/LoadingIcon";
+import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import { useHelperCard } from "@context/helperCardContext";
@@ -9,6 +8,7 @@ import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
 } from "@customTypes/forms/formCreation";
+import { CircularProgress } from "@mui/material";
 import { CategoriesWithQuestions } from "@queries/category";
 import { IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
@@ -57,19 +57,35 @@ const QuestionFormV2 = ({
     verifySubcategoryNullness: boolean;
   }>({
     categoryId: undefined,
-    subcategoryId: -1,
+    subcategoryId: 0,
     verifySubcategoryNullness: false,
   });
 
   const [questionToEdit, setQuestionToEdit] = useState<{
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
   } | null>(null);
 
-  const searchByName = useCallback(() => {
+  const [fetchQuestionsByCategoryAndSubcategory, loadingQuestions] =
+    useFetchQuestionsByCategoryAndSubcategory({
+      callbacks: {
+        onSuccess(response) {
+          setQuestionsListState("LOADED");
+          setCategoriesList(response.data?.categories ?? []);
+        },
+        onError() {
+          setQuestionsListState("ERROR");
+          setCategoriesList([]);
+        },
+      },
+    });
+
+  const searchByName = useCallback(async () => {
     if (!searchedName || searchedName.length === 0) {
       setHelperCard({
         show: true,
@@ -78,77 +94,23 @@ const QuestionFormV2 = ({
       });
       return;
     }
-    setQuestionsListState("LOADING");
-    _searchQuestionsByCategoryAndSubcategory({
-      name: searchedName,
-    })
-      .then((categories) => {
-        if (categories.statusCode === 200) {
-          setQuestionsListState("LOADED");
-          setCategoriesList(categories.categories);
-        } else {
-          if (categories.statusCode === 401) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Não possui permissão para obter questões!</>,
-            });
-          } else {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Erro ao obter questões!</>,
-            });
-          }
-          setQuestionsListState("LOADED");
-          setCategoriesList([]);
-        }
-      })
-      .catch(() => {
-        setQuestionsListState("ERROR");
-      });
-  }, [searchedName, setHelperCard]);
+    await fetchQuestionsByCategoryAndSubcategory({ name: searchedName });
+  }, [searchedName, fetchQuestionsByCategoryAndSubcategory, setHelperCard]);
 
-  const searchByCategoryAndSubcateogory = useCallback(() => {
+  const searchByCategoryAndSubcateogory = useCallback(async () => {
     if (isLoadingCategories || !selectedCategoryAndSubcategoryId.categoryId)
       return;
-    setQuestionsListState("LOADING");
-    _searchQuestionsByCategoryAndSubcategory({
+
+    await fetchQuestionsByCategoryAndSubcategory({
       categoryId: selectedCategoryAndSubcategoryId.categoryId,
       subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
       verifySubcategoryNullness:
         selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
-    })
-      .then((categories) => {
-        if (categories.statusCode === 200) {
-          setQuestionsListState("LOADED");
-          setCategoriesList(categories.categories);
-        } else {
-          if (categories.statusCode === 401) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Não possui permissão para obter questões!</>,
-            });
-          } else {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Erro ao obter questões!</>,
-            });
-          }
-          setQuestionsListState("LOADED");
-          setCategoriesList([]);
-        }
-      })
-      .catch(() => {
-        setQuestionsListState("ERROR");
-      });
+    });
   }, [
     selectedCategoryAndSubcategoryId,
-    categories,
     isLoadingCategories,
-    setHelperCard,
+    fetchQuestionsByCategoryAndSubcategory,
   ]);
 
   const searchQuestions = useCallback(() => {
@@ -158,16 +120,16 @@ const QuestionFormV2 = ({
     }
     if (currentSearchMethod === 1) {
       setShowAllQuestions(false);
-      searchByName();
+      void searchByName();
     } else if (currentSearchMethod === 0) {
       setShowAllQuestions(false);
-      searchByCategoryAndSubcateogory();
+      void searchByCategoryAndSubcateogory();
     } else if (currentSearchMethod === 2) {
       /*setSelectedCategoryAndSubcategoryId((prev) => ({
         ...prev,
         verifySubcategoryNullness: true,
       }));*/
-      searchByCategoryAndSubcateogory();
+      void searchByCategoryAndSubcateogory();
       setShowAllQuestions(true);
     }
   }, [currentSearchMethod]);
@@ -175,12 +137,16 @@ const QuestionFormV2 = ({
   const handleOpenQuestionEdit = ({
     questionId,
     questionName,
+    iconKey,
+    isPublic,
     notes,
     categoryName,
     subcategoryName,
   }: {
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     notes: string | null;
     categoryName: string;
     subcategoryName: string | null;
@@ -188,6 +154,8 @@ const QuestionFormV2 = ({
     setQuestionToEdit({
       questionId,
       questionName,
+      iconKey,
+      isPublic,
       notes,
       categoryName,
       subcategoryName,
@@ -195,7 +163,7 @@ const QuestionFormV2 = ({
   };
 
   useEffect(() => {
-    searchByCategoryAndSubcateogory();
+    void searchByCategoryAndSubcateogory();
   }, [
     selectedCategoryAndSubcategoryId,
     setHelperCard,
@@ -209,7 +177,7 @@ const QuestionFormV2 = ({
     )
       setSelectedCategoryAndSubcategoryId({
         categoryId: categories[0]?.id,
-        subcategoryId: -1,
+        subcategoryId: 0,
         verifySubcategoryNullness: false,
       });
   }, [categories]);
@@ -260,7 +228,9 @@ const QuestionFormV2 = ({
             value={searchedName}
             isSearch
             clearable
-            onSearch={searchByName}
+            onSearch={() => {
+              void searchByName();
+            }}
             onChange={(e) => {
               setSearchedName(e.target.value);
             }}
@@ -280,9 +250,9 @@ const QuestionFormV2 = ({
           }
         />
       )}
-      {questionsListState === "LOADING" || isLoadingCategories ?
+      {loadingQuestions || isLoadingCategories ?
         <div className="m-2 flex justify-center">
-          <LoadingIcon className="h-32 w-32 text-2xl" />
+          <CircularProgress />
         </div>
       : questionsListState === "LOADED" ?
         <div className="flex flex-col">
@@ -305,6 +275,8 @@ const QuestionFormV2 = ({
         open={!!questionToEdit}
         questionId={questionToEdit?.questionId ?? -1}
         questionName={questionToEdit?.questionName ?? ""}
+        iconKey={questionToEdit?.iconKey ?? ""}
+        isPublic={questionToEdit?.isPublic ?? false}
         notes={questionToEdit?.notes ?? null}
         categoryName={questionToEdit?.categoryName ?? ""}
         subcategoryName={questionToEdit?.subcategoryName ?? ""}

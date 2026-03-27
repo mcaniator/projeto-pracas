@@ -10,9 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //directUrl = env("DIRECT_URL")
   //extensions = [postgis] moved extensions management to custom migration
 }
 
@@ -58,6 +58,7 @@ enum BrazilianStates {
 enum QuestionTypes {
   WRITTEN
   OPTIONS
+  BOOLEAN
 
   @@map("question_types")
 }
@@ -65,6 +66,11 @@ enum QuestionTypes {
 enum QuestionResponseCharacterTypes {
   TEXT
   NUMBER
+  BOOLEAN
+  PERCENTAGE
+  SCALE
+
+  @@map("question_response_character_types")
 }
 
 enum QuestionGeometryTypes {
@@ -124,9 +130,10 @@ model User {
 
   assessment Assessment[]
 
-  response       Response[]
-  responseOption ResponseOption[]
-  tally          Tally[]
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  responseOption   ResponseOption[]
+  tally            Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -243,13 +250,16 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name          String                         @db.VarChar(255)
-  notes         String?                        @db.Text
-  questionType  QuestionTypes                  @map("question_type")
-  characterType QuestionResponseCharacterTypes @map("character_type")
-  response      Response[]
-  optionType    OptionTypes?                   @map("option_type")
-  geometryTypes QuestionGeometryTypes[]        @map("geometry_types")
+  name             String                         @db.VarChar(255)
+  iconKey          String                         @map("icon_key") @db.VarChar(255)
+  notes            String?                        @db.Text
+  isPublic         Boolean                        @map("is_public")
+  questionType     QuestionTypes                  @map("question_type")
+  characterType    QuestionResponseCharacterTypes @map("character_type")
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  optionType       OptionTypes?                   @map("option_type")
+  geometryTypes    QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 
@@ -265,6 +275,8 @@ model Question {
   geometries QuestionGeometry[]
 
   formItems FormItem[]
+
+  scaleConfig QuestionScaleConfig? //setting for question with characterType "SCALE"
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -285,6 +297,16 @@ model QuestionGeometry {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("question_geometry")
+}
+
+model QuestionScaleConfig {
+  minValue Float @map("min_value")
+  maxValue Float @map("max_value")
+
+  questionId Int      @unique @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_scale_config")
 }
 
 model Calculation {
@@ -318,6 +340,26 @@ model Response {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("response")
+}
+
+model BooleanResponse {
+  id Int @id @default(autoincrement())
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  questionId Int      @map("question_id")
+  question   Question @relation(fields: [questionId], references: [id])
+
+  checked   Boolean
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@map("boolean_response")
 }
 
 model Option {
@@ -424,6 +466,8 @@ model Location {
   category   LocationCategory? @relation(fields: [categoryId], references: [id])
 
   polygon Unsupported("Geometry(MultiPolygon, 4326)")?
+
+  isPublic Boolean @default(false) @map("is_public")
 
   mainImageId Int?   @unique @map("main_image_id")
   mainImage   Image? @relation(name: "location_main_image_relation", fields: [mainImageId], references: [imageId])
@@ -535,6 +579,7 @@ model Assessment {
 
   startDate DateTime  @map("start_date") @db.Timestamptz()
   endDate   DateTime? @map("end_date") @db.Timestamptz()
+  isPublic  Boolean   @default(false) @map("is_public")
 
   userId String @db.VarChar(255)
   user   User   @relation(fields: [userId], references: [id])
@@ -545,9 +590,10 @@ model Assessment {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  question       Question[]
-  response       Response[]
-  responseOption ResponseOption[]
+  question         Question[]
+  response         Response[]
+  booleanResponses BooleanResponse[]
+  responseOption   ResponseOption[]
 
   geometries QuestionGeometry[]
 

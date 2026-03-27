@@ -152,17 +152,6 @@ const TallysClient = ({
     async (params?: { forceFetch: boolean }) => {
       if (!params?.forceFetch) {
         lastFetchedLocationId.current === locationId;
-
-        /*if (
-          !!locationId &&
-          lastFetchedLocationId.current === locationId &&
-          !formId &&
-          !userId &&
-          !startDate &&
-          !endDate
-        ) {
-          return; //Prevents loading a second time the data filtered by location in params.
-        }*/
       }
 
       if (
@@ -248,7 +237,7 @@ const TallysClient = ({
 
   useEffect(() => {
     router.replace(pathname);
-  }, []);
+  }, [pathname, router]);
 
   const totalFilters = useMemo(() => {
     let total = 0;
@@ -261,6 +250,7 @@ const TallysClient = ({
     if (broadUnitId) total++;
     if (intermediateUnitId) total++;
     if (narrowUnitId) total++;
+    if (finalizationStatus) total++;
     return total + 1; // +1 for the state filter always being shown
   }, [
     locationId,
@@ -272,6 +262,7 @@ const TallysClient = ({
     broadUnitId,
     intermediateUnitId,
     narrowUnitId,
+    finalizationStatus,
   ]);
   return (
     <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">

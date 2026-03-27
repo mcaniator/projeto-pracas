@@ -8,7 +8,7 @@ export default auth((req) => {
   const search = req.nextUrl.search;
 
   if (pathname === "/") {
-    const url = new URL("/admin/map", req.url);
+    const url = new URL("/map", req.url);
     url.search = search;
     return Response.redirect(url);
   }

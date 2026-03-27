@@ -11,13 +11,16 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import CNumberField from "@/components/ui/cNumberField";
 import CRadioGroup from "@/components/ui/cRadioGroup";
+import CSwitch from "@/components/ui/cSwtich";
 import CTextField from "@/components/ui/cTextField";
 import CCalculationChip from "@/components/ui/question/cCalculationChip";
 import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
+import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -26,6 +29,7 @@ import {
 import { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
+import CDynamicIcon from "@components/ui/dynamicIcon/cDynamicIcon";
 import { Box, Typography } from "@mui/material";
 import {
   IconDeviceFloppy,
@@ -35,7 +39,7 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Control, Controller, useForm, useWatch } from "react-hook-form";
 
 import MapDialog from "./MapDialog";
@@ -43,7 +47,7 @@ import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
 export type FormValues = {
-  [key: string]: string | number | number[] | null;
+  [key: string]: string | number | number[] | boolean | null;
 };
 
 export type ResponseFormGeometry = {
@@ -518,6 +522,7 @@ const Question = ({
         />
         <CQuestionCharacterTypeChip characterType={question.characterType} />
         <CQuestionGeometryChip geometryTypes={question.geometryTypes} />
+        <CQuestionVisibilityChip isPublic={question.isPublic} />
         <CNotesChip notes={question.notes} name={question.name} />
         <CCalculationChip
           name={question.name}
@@ -525,7 +530,10 @@ const Question = ({
           questions={questionsForMention}
         />
       </div>
-      <div className="break-all">{question.name}</div>
+      <div className="flex items-center gap-2 break-all">
+        <CDynamicIcon iconKey={question.iconKey} />
+        {question.name}
+      </div>
       <div className="mb-1 flex flex-wrap justify-start gap-1">
         {question.geometryTypes.length > 0 && (
           <>
@@ -574,6 +582,13 @@ const Question = ({
           control={control}
         />
       )}
+      {question.questionType === "BOOLEAN" && (
+        <BooleanQuestion
+          question={question}
+          finalized={finalized}
+          control={control}
+        />
+      )}
     </Box>
   );
 };
@@ -598,7 +613,11 @@ const WrittenQuestion = ({
       />
     );
   }
-  return question.characterType === "NUMBER" ?
+  return (
+      question.characterType === "NUMBER" ||
+        question.characterType === "PERCENTAGE" ||
+        question.characterType === "SCALE"
+    ) ?
       <Controller
         name={String(question.questionId)}
         control={control}
@@ -606,6 +625,11 @@ const WrittenQuestion = ({
           <CNumberField
             readOnly={finalized}
             debounce={1000}
+            minValue={question.scaleConfig?.minValue ?? undefined}
+            maxValue={question.scaleConfig?.maxValue ?? undefined}
+            endAdornment={
+              question.characterType === "PERCENTAGE" ? "%" : undefined
+            }
             {...field}
             value={
               typeof field.value === "number" || field.value === null ?
@@ -636,6 +660,25 @@ const OptionsQuestion = ({
   if (!question.options) {
     throw new Error("Options questions must have options");
   }
+  const isPercentage = question.characterType === "PERCENTAGE";
+  const options = useMemo(() => {
+    if (
+      question.characterType === "PERCENTAGE" ||
+      question.characterType === "NUMBER"
+    ) {
+      return (
+        question.options?.map((opt) => ({
+          ...opt,
+          text:
+            isPercentage ?
+              localeNumberFormatter.format(Number(opt.text)) + "%"
+            : opt.text,
+        })) || []
+      );
+    } else {
+      return question.options || [];
+    }
+  }, [question.options, isPercentage, question.characterType]);
   if (question.optionType === "CHECKBOX") {
     return (
       <Controller
@@ -647,7 +690,7 @@ const OptionsQuestion = ({
             value={Array.isArray(field.value) ? field.value : ([] as number[])}
             clearable
             readOnly={finalized}
-            options={question.options!.map((opt) => opt)}
+            options={options}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.text}
           />
@@ -666,7 +709,7 @@ const OptionsQuestion = ({
             clearable
             readOnly={finalized}
             onChange={(e) => field.onChange(e)}
-            options={question.options!}
+            options={options}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.text}
           />
@@ -699,6 +742,34 @@ const CalculationQuestion = ({
       name={String(question.questionId)}
       control={control}
       render={({ field }) => <CNumberField {...field} readOnly value={value} />}
+    />
+  );
+};
+
+const BooleanQuestion = ({
+  question,
+  control,
+  finalized,
+}: {
+  question: AssessmentQuestionItem;
+  control: Control<FormValues, unknown, FormValues>;
+  finalized: boolean;
+}) => {
+  if (!question.options) {
+    throw new Error("Options questions must have options");
+  }
+
+  return (
+    <Controller
+      name={String(question.questionId)}
+      control={control}
+      render={({ field }) => (
+        <CSwitch
+          {...field}
+          checked={typeof field.value === "boolean" ? field.value : false}
+          readOnly={finalized}
+        />
+      )}
     />
   );
 };

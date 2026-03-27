@@ -1,124 +1,9 @@
 import { buildImageUrl } from "@/lib/utils/image";
-import {
-  LocationForMap,
-  LocationWithPolygon,
-} from "@customTypes/location/location";
+import { LocationForMap } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
-import { hasPolygon } from "@serverOnly/geometries";
 
 import { FetchLocationsParams } from "../../../app/api/admin/locations/route";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-
-const fetchLocationsNames = async () => {
-  try {
-    const locations = await prisma.location.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-    return { statusCode: 200, locations };
-  } catch (e) {
-    return { statusCode: 500, locations: [] };
-  }
-};
-
-const searchLocationsById = async (id: number) => {
-  let foundLocation;
-  try {
-    foundLocation = await prisma.location.findUnique({
-      where: {
-        id: id,
-      },
-      include: {
-        category: true,
-        type: true,
-        narrowAdministrativeUnit: {
-          select: {
-            id: true,
-            name: true,
-            city: {
-              select: {
-                name: true,
-                state: true,
-              },
-            },
-          },
-        },
-        intermediateAdministrativeUnit: {
-          select: {
-            id: true,
-            name: true,
-            city: {
-              select: {
-                name: true,
-                state: true,
-              },
-            },
-          },
-        },
-        broadAdministrativeUnit: {
-          select: {
-            id: true,
-            name: true,
-            city: {
-              select: {
-                name: true,
-                state: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    if (!foundLocation) {
-      return { statusCode: 404, location: null };
-    }
-    const locationHasPolygon = await hasPolygon(id);
-
-    foundLocation = {
-      ...foundLocation,
-      hasGeometry: locationHasPolygon ?? false,
-    };
-    return { statusCode: 200, location: foundLocation };
-  } catch (err) {
-    return { statusCode: 500, location: null };
-  }
-};
-
-const searchLocationNameById = async (id: number) => {
-  try {
-    const location = await prisma.location.findUnique({
-      where: {
-        id: id,
-      },
-      select: {
-        name: true,
-      },
-    });
-    return { statusCode: 200, locationName: location?.name };
-  } catch (e) {
-    return { statusCode: 500, locationName: null };
-  }
-};
-
-const searchLocationsForMap = async () => {
-  try {
-    const locations = await prisma.$queryRaw<Array<LocationWithPolygon>>`
-          SELECT 
-            id,
-            name,
-            ST_AsGeoJSON(polygon)::text as st_asgeojson
-          FROM location 
-        `;
-    return { statusCode: 200, locations };
-  } catch (e) {
-    return { statusCode: 500, locations: [] } as {
-      statusCode: number;
-      locations: LocationWithPolygon[];
-    };
-  }
-};
 
 export type FetchLocationsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchLocations>>["data"]
@@ -149,6 +34,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
     l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
     l.intermediate_administrative_unit_id as "intermediateAdministrativeUnitId",
     l.broad_administrative_unit_id as "broadAdministrativeUnitId",
+    l.is_public as "isPublic",
     nau.name AS "narrowAdministrativeUnitName",
     iau.name AS "intermediateAdministrativeUnitName",
     bau.name AS "broadAdministrativeUnitName",
@@ -165,6 +51,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
     END AS st_asgeojson,
+    latest_assessment.id AS "latestAssessmentId",
     COUNT(DISTINCT a.id) AS "assessmentCount",
     COUNT(DISTINCT t.id) AS "tallyCount"
   FROM location l
@@ -177,10 +64,17 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
   LEFT JOIN city c ON c.id = l.city_id
+  LEFT JOIN LATERAL (
+    SELECT a2.id
+    FROM assessment a2
+    WHERE a2.location_id = l.id
+    ORDER BY a2.created_at DESC
+    LIMIT 1
+  ) latest_assessment ON true
   WHERE l.id = COALESCE(${params.locationId}, l.id) 
   AND l.city_id = COALESCE(${params.cityId}, l.city_id)
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
@@ -302,11 +196,4 @@ const orderLocationsByCity = (
     ),
   );
   return grouped;
-};
-
-export {
-  searchLocationsById,
-  searchLocationNameById,
-  fetchLocationsNames,
-  searchLocationsForMap,
 };

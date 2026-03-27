@@ -47,6 +47,7 @@ const FormItemManager = ({
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
     )?.subcategory || [];
   const fullSubcategoriesOptions = [
+    { id: 0, name: "TODAS" },
     { id: -1, name: "NENHUMA" },
     ...subcategoriesOptions,
   ];
@@ -126,7 +127,7 @@ const FormItemManager = ({
     <div className="flex flex-col gap-2 overflow-auto">
       <h4>Criar questão: </h4>
       <div className="text-red-500">
-        Atenção: Antes de criar uma questão, certifique-se se já existe uma
+        Atenção: Antes de criar uma questão, certifique-se que já não existe uma
         questão que aborde a avaliação desejada.
       </div>
       <div>
@@ -199,7 +200,7 @@ const FormItemManager = ({
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
                 subcategoryId: val.id,
-                verifySubcategoryNullness: true,
+                verifySubcategoryNullness: val.id === -1 ? true : false,
               });
             }}
           />

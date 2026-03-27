@@ -109,9 +109,11 @@ const getFormTree = async (params: { formId: number }) => {
             question: {
               select: {
                 name: true,
+                iconKey: true,
                 notes: true,
                 questionType: true,
                 characterType: true,
+                isPublic: true,
                 optionType: true,
                 options: { select: { text: true } },
                 categoryId: true,
@@ -206,6 +208,8 @@ const getFormTree = async (params: { formId: number }) => {
           position: item.position,
           questionId: item.questionId,
           name: dbQuestion.name,
+          iconKey: dbQuestion.iconKey,
+          isPublic: dbQuestion.isPublic,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,

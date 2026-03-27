@@ -10,6 +10,8 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   errorMessage?: string;
   readOnly?: boolean;
   debounce?: number;
+  minValue?: number;
+  maxValue?: number;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
   alignEndAdornmentWithText?: boolean;
@@ -34,6 +36,8 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       disabled,
       readOnly,
       label,
+      minValue,
+      maxValue,
       startAdornment,
       endAdornment,
       tooltip,
@@ -68,7 +72,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const normalizeNumber = (value: string) => value.replace(",", ".");
-    const formatNumber = (value: number | null | undefined) => {
+    const formatNumber = (value: number | null | string | undefined) => {
       if (value == null) return "";
       return String(value).replace(".", ",");
     };
@@ -81,6 +85,22 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       value.endsWith(".") ||
       value.endsWith(",");
 
+    const clampNumber = (value: number) => {
+      const hasMin = Number.isFinite(minValue);
+      const hasMax = Number.isFinite(maxValue);
+      if (!hasMin || !hasMax) return value;
+      if (minValue! > maxValue!) return value;
+      return Math.min(Math.max(value, minValue!), maxValue!);
+    };
+
+    const applyClampedNumber = (value: number) => {
+      const clamped = clampNumber(value);
+      setLocalValue(formatNumber(clamped));
+      if (debouncedOnChange) {
+        debouncedOnChange(clamped);
+      }
+    };
+
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
       const raw = event.target.value;
@@ -90,18 +110,28 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
       if (!match || match[0] === localValue) return;
       const newLocalValue = match ? filtered : localValue;
-      setLocalValue(newLocalValue);
-
       if (required) {
         validate();
       }
-      if (debouncedOnChange) {
-        if (newLocalValue.trim() === "") {
+      if (newLocalValue.trim() === "") {
+        setLocalValue(formatNumber(newLocalValue));
+        if (debouncedOnChange) {
           debouncedOnChange(null);
-        } else if (!isIncompleteNumber(newLocalValue)) {
-          debouncedOnChange(Number(normalizeNumber(newLocalValue)));
         }
+        return;
       }
+      if (isIncompleteNumber(newLocalValue)) {
+        setLocalValue(formatNumber(newLocalValue));
+        return;
+      }
+
+      const parsed = Number(normalizeNumber(newLocalValue));
+      if (!Number.isFinite(parsed)) {
+        setLocalValue(formatNumber(newLocalValue));
+        return;
+      }
+
+      applyClampedNumber(parsed);
     };
 
     const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
@@ -118,45 +148,43 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     };
 
     const handleIncrement = () => {
-      const next = String(Number(normalizeNumber(localValue) || 0) + 1);
-      setLocalValue(() => {
-        return next;
-      });
-      forceFireOnChange(next);
+      const base = Number(normalizeNumber(localValue));
+      const safeBase = Number.isFinite(base) ? base : 0;
+      applyClampedNumber(safeBase + 1);
     };
 
     const handleDecrement = () => {
-      const next = String(Number(normalizeNumber(localValue) || 0) - 1);
-      setLocalValue(() => {
-        return next;
-      });
-      forceFireOnChange(next);
-    };
-
-    const forceFireOnChange = (next: string) => {
-      if (debouncedOnChange) {
-        if (isIncompleteNumber(next)) {
-          debouncedOnChange(null);
-        } else {
-          debouncedOnChange(Number(normalizeNumber(next)));
-        }
-      }
+      const base = Number(normalizeNumber(localValue));
+      const safeBase = Number.isFinite(base) ? base : 0;
+      applyClampedNumber(safeBase - 1);
     };
     useEffect(() => {
       const currentInput = inputRef.current?.value ?? "";
       if (currentInput.trim() !== "" && isIncompleteNumber(currentInput))
         return;
-      setLocalValue(formatNumber(value));
+      const clampedValue = value == null ? null : clampNumber(Number(value));
+      setLocalValue(formatNumber(clampedValue));
       if (readOnly && onChange) {
-        onChange(value != undefined ? Number(value) : null);
+        onChange(clampedValue != undefined ? Number(clampedValue) : null);
       }
-    }, [value, readOnly, onChange]);
+    }, [value, readOnly, onChange, minValue, maxValue]);
 
     useEffect(() => {
-      if (defaultValue) {
-        setLocalValue(formatNumber(defaultValue));
+      if (defaultValue != null) {
+        const clampedValue = clampNumber(Number(defaultValue));
+        setLocalValue(formatNumber(clampedValue));
       }
-    }, [defaultValue]);
+    }, [defaultValue, minValue, maxValue]);
+
+    useEffect(() => {
+      const currentInput = inputRef.current?.value ?? "";
+      if (currentInput.trim() === "" || isIncompleteNumber(currentInput)) {
+        return;
+      }
+      const parsed = Number(normalizeNumber(currentInput));
+      if (!Number.isFinite(parsed)) return;
+      applyClampedNumber(parsed);
+    }, [minValue, maxValue]);
 
     return (
       <Tooltip title={tooltip} enterTouchDelay={0}>
@@ -173,7 +201,10 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           type="text"
           error={(required && !isValid) || error}
           helperText={
-            (required && !isValid) || error ? errorMessage : helperText
+            (required && !isValid) || error ? errorMessage
+            : minValue || maxValue ?
+              `Digite um valor entre ${minValue} e ${maxValue}`
+            : helperText
           }
           onChange={handleChange}
           onBlur={handleBlur}
@@ -203,7 +234,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
           }}
           slotProps={{
             input: {
-              endAdornment: !disabled && !readOnly && (
+              endAdornment: (
                 <InputAdornment position="end">
                   <div className="flex items-center gap-1">
                     <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
@@ -216,20 +247,24 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                         gap: 0,
                       }}
                     >
-                      <IconButton
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={handleIncrement}
-                      >
-                        <IconChevronUp fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        style={{ padding: 0 }}
-                        onClick={handleDecrement}
-                      >
-                        <IconChevronDown fontSize="small" />
-                      </IconButton>
+                      {!disabled && !readOnly && (
+                        <>
+                          <IconButton
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={handleIncrement}
+                          >
+                            <IconChevronUp fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            style={{ padding: 0 }}
+                            onClick={handleDecrement}
+                          >
+                            <IconChevronDown fontSize="small" />
+                          </IconButton>
+                        </>
+                      )}
                     </div>
                   </div>
                 </InputAdornment>

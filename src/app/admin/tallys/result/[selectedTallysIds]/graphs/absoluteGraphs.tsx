@@ -223,7 +223,7 @@ const AbsoluteGraphs = ({ tallyMap }: { tallyMap: Map<string, number> }) => {
     ],
   };
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap justify-center gap-1">
       <Bar
         className="h-full max-h-60 w-full"
         data={activityData}

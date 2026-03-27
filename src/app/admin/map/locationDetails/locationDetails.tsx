@@ -1,23 +1,30 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
+import AssessmentHistory from "@/app/admin/map/locationDetails/assessmentHistory";
+import LocationInfo from "@/app/admin/map/locationDetails/locationInfo";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
-import CCheckbox from "@/components/ui/cCheckbox";
-import CIconChip from "@/components/ui/cIconChip";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
-import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { Divider } from "@mui/material";
 import {
-  IconCircleDashedLetterC,
-  IconCircleDashedLetterT,
   IconExternalLink,
   IconPencil,
-  IconRoad,
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
-import { Link } from "react-aria-components";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const detailsModes = {
+  DETAILS: 0,
+  HISTORY: 1,
+};
+
+const detailsModeOptions = [
+  { label: "Detalhes", value: detailsModes.DETAILS },
+  { label: "Histórico", value: detailsModes.HISTORY },
+];
 
 const LocationDetails = ({
   location,
@@ -32,9 +39,15 @@ const LocationDetails = ({
   isMobileView: boolean;
   enableLocationEdition: () => void;
 }) => {
+  const [detailsMode, setDetailsMode] = useState(detailsModes.DETAILS);
   const [openDeleteLocationDialog, setOpenDeleteLocationDialog] =
     useState(false);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
+
+  useEffect(() => {
+    setDetailsMode(detailsModes.DETAILS);
+  }, [location]);
+
   const inner = (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between">
@@ -51,12 +64,15 @@ const LocationDetails = ({
           </CButton>
         )}
       </div>
-      <CImage
-        src={location.mainImage}
-        alt={location.name}
-        width={384}
-        height={200}
-      />
+      <div className="flex justify-center">
+        <CImage
+          src={location.mainImage}
+          alt={location.name}
+          width={384}
+          height={200}
+        />
+      </div>
+
       <div className="flex justify-between">
         <div className="flex gap-1">
           <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
@@ -100,52 +116,28 @@ const LocationDetails = ({
         </div>
       </div>
       <Divider />
-      <h4 className="font-semibold">Situação cadastral</h4>
-      <CCheckbox checked={location.isPark} label="É praça" disabled />
-      <CCheckbox
-        checked={location.inactiveNotFound}
-        label="Inativo ou não encontrado"
-      />
-      <Divider />
-      <h4 className="font-semibold">Localização</h4>
-      <CLocationAdministrativeUnits location={location} />
+      {location.latestAssessmentId && (
+        <CToggleButtonGroup
+          options={detailsModeOptions}
+          value={detailsMode}
+          getLabel={(o) => o.label}
+          getValue={(o) => o.value}
+          onChange={(_, v) => {
+            setDetailsMode(v.value);
+          }}
+        />
+      )}
 
-      <div className="flex items-center">
-        <CIconChip icon={<IconRoad />} tooltip="Ruas" />
-        {[
-          location.firstStreet,
-          location.secondStreet,
-          location.thirdStreet,
-          location.fourthStreet,
-        ]
-          .filter(Boolean)
-          .join(", ")}
+      <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
+        <LocationInfo location={location} reloadLocations={reloadLocations} />
       </div>
-      <Divider />
-      <h4 className="font-semibold">Categorização</h4>
-      <span>
-        <CIconChip icon={<IconCircleDashedLetterT />} tooltip="Tipo" />
-        {location.typeName ?? "-"}
-      </span>
-      <span>
-        <CIconChip icon={<IconCircleDashedLetterC />} tooltip="Categoria" />
-        {location.categoryName ?? "-"}
-      </span>
-      <Divider />
-      <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área oficial (prefeitura): ${location.legalArea ?? "-"} m²`}</span>
+      <div className={detailsMode === detailsModes.HISTORY ? "" : "hidden"}>
+        <AssessmentHistory
+          locationId={location.id}
+          locationName={location.name}
+        />
+      </div>
 
-      <span>{`Área útil: ${location.usableArea ?? "-"} m²`}</span>
-
-      <span>{`Inclinação: ${location.incline ?? "-"} %`}</span>
-      <Divider />
-      <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear ?? "-"}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "-"}`}</span>
-      <span>{`Legislação: ${location.legislation ?? "-"}`}</span>
-      <Divider />
-      <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">{location.notes ?? "-"}</div>
       <LocationDeleteDialog
         location={location}
         open={openDeleteLocationDialog}

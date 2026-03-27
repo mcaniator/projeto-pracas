@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import {
   optionSchema,
   questionEditDataSchema,
@@ -24,58 +25,76 @@ const _questionSubmit = async (
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
+  const iconKey = formData.get("iconKey");
+  const isPublic = formData.get("isPublic") === "true";
+  const parseScaleBounds = () => {
+    const minValue = Number(formData.get("minValue"));
+    const maxValue = Number(formData.get("maxValue"));
+    if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
+      return null;
+    }
+    if (minValue >= maxValue) {
+      return null;
+    }
+    return { minValue, maxValue };
+  };
 
   switch (questionType) {
-    case "WRITTEN": {
-      let writtenQuestionParsed;
+    case "WRITTEN":
+    case "BOOLEAN": {
+      let writtenOrBooleanQuestionParsed;
+      const scaleBounds =
+        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
 
       try {
-        if (questionCharacterType === "TEXT") {
-          writtenQuestionParsed = questionSchema.parse({
-            name: formData.get("name"),
-            notes: notes.length > 0 ? notes : null,
-            questionType: questionType,
-            characterType: questionCharacterType,
-            categoryId: formData.get("categoryId"),
-            subcategoryId:
-              Number(formData.get("subcategoryId")) > 0 ?
-                formData.get("subcategoryId")
-              : undefined,
-            geometryTypes:
-              (
-                formData.getAll("geometryTypes").length > 0 &&
-                formData.get("hasAssociatedGeometry") === "true"
-              ) ?
-                formData.getAll("geometryTypes")
-              : undefined,
-          });
-        } else {
-          writtenQuestionParsed = questionSchema.parse({
-            name: formData.get("name"),
-            notes: notes.length > 0 ? notes : null,
-            questionType: questionType,
-            characterType: questionCharacterType,
-            categoryId: formData.get("categoryId"),
-            subcategoryId:
-              Number(formData.get("subcategoryId")) > 0 ?
-                formData.get("subcategoryId")
-              : undefined,
-            geometryTypes:
-              (
-                formData.getAll("geometryTypes").length > 0 &&
-                formData.get("hasAssociatedGeometry") === "true"
-              ) ?
-                formData.getAll("geometryTypes")
-              : undefined,
-          });
-        }
+        writtenOrBooleanQuestionParsed = questionSchema.parse({
+          name: formData.get("name"),
+          iconKey: iconKey,
+          notes: notes.length > 0 ? notes : null,
+          questionType: questionType,
+          characterType: questionCharacterType,
+          categoryId: formData.get("categoryId"),
+          isPublic: isPublic,
+          subcategoryId:
+            Number(formData.get("subcategoryId")) > 0 ?
+              formData.get("subcategoryId")
+            : undefined,
+          geometryTypes:
+            (
+              formData.getAll("geometryTypes").length > 0 &&
+              formData.get("hasAssociatedGeometry") === "true"
+            ) ?
+              formData.getAll("geometryTypes")
+            : undefined,
+        });
       } catch (err) {
+        return { statusCode: 400, questionName: null };
+      }
+      if (questionCharacterType === "SCALE" && !scaleBounds) {
         return { statusCode: 400, questionName: null };
       }
 
       try {
-        const newQuestion = await prisma.question.create({
-          data: writtenQuestionParsed,
+        if (
+          !isSupportedDynamicIconKey(writtenOrBooleanQuestionParsed.iconKey)
+        ) {
+          return { statusCode: 400, questionName: null };
+        }
+
+        const newQuestion = await prisma.$transaction(async (prisma) => {
+          const question = await prisma.question.create({
+            data: writtenOrBooleanQuestionParsed,
+          });
+          if (questionCharacterType === "SCALE" && scaleBounds) {
+            await prisma.questionScaleConfig.create({
+              data: {
+                questionId: question.id,
+                minValue: scaleBounds.minValue,
+                maxValue: scaleBounds.maxValue,
+              },
+            });
+          }
+          return question;
         });
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
@@ -88,10 +107,19 @@ const _questionSubmit = async (
       const optionType = formData.get("optionType");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
+      const scaleBounds =
+        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
       const subcategoryId =
         Number(formData.get("subcategoryId")) > 0 ?
           formData.get("subcategoryId")
         : undefined;
+
+      if (questionCharacterType === "SCALE" && !scaleBounds) {
+        return { statusCode: 400, questionName: null };
+      }
+      if (questionCharacterType === "SCALE" && optionType !== "RADIO") {
+        return { statusCode: 400, questionName: null };
+      }
 
       const optionsQuestionObject = { optionType };
 
@@ -99,11 +127,13 @@ const _questionSubmit = async (
       try {
         optionsQuestionParsed = questionSchema.parse({
           name,
+          iconKey,
           notes: notes.length > 0 ? notes : null,
           questionType: questionType,
           characterType: questionCharacterType,
           categoryId,
           subcategoryId,
+          isPublic: isPublic,
 
           geometryTypes:
             (
@@ -119,11 +149,31 @@ const _questionSubmit = async (
       }
 
       try {
+        if (!isSupportedDynamicIconKey(optionsQuestionParsed.iconKey)) {
+          return { statusCode: 400, questionName: null };
+        }
+
         let questionName: string | null = null;
+        const rawOptions = formData.getAll("options");
+        if (questionCharacterType === "SCALE" && scaleBounds) {
+          const parsedOptions = rawOptions.map((value) => Number(value));
+          if (parsedOptions.some((value) => !Number.isFinite(value))) {
+            return { statusCode: 400, questionName: null };
+          }
+          if (
+            parsedOptions.some(
+              (value) =>
+                value < scaleBounds.minValue || value > scaleBounds.maxValue,
+            )
+          ) {
+            return { statusCode: 400, questionName: null };
+          }
+        }
         await prisma.$transaction(async (prisma) => {
           const newQuestion = await prisma.question.create({
             data: {
               name: optionsQuestionParsed.name,
+              iconKey: optionsQuestionParsed.iconKey,
               notes: optionsQuestionParsed.notes,
               questionType: questionType,
               characterType: optionsQuestionParsed.characterType,
@@ -131,10 +181,21 @@ const _questionSubmit = async (
               subcategoryId: optionsQuestionParsed.subcategoryId,
               optionType: optionsQuestionParsed.optionType,
               geometryTypes: optionsQuestionParsed.geometryTypes,
+              isPublic: optionsQuestionParsed.isPublic,
             },
           });
 
-          const options = formData.getAll("options").map((value) => ({
+          if (questionCharacterType === "SCALE" && scaleBounds) {
+            await prisma.questionScaleConfig.create({
+              data: {
+                questionId: newQuestion.id,
+                minValue: scaleBounds.minValue,
+                maxValue: scaleBounds.maxValue,
+              },
+            });
+          }
+
+          const options = rawOptions.map((value) => ({
             text: value,
             questionId: newQuestion.id,
           }));
@@ -177,6 +238,8 @@ const _questionUpdate = async (
       questionId: formData.get("questionId"),
       questionName: formData.get("questionName"),
       notes: formData.get("notes"),
+      iconKey: formData.get("iconKey"),
+      isPublic: formData.get("isPublic"),
     });
     const question = await prisma.question.update({
       where: {
@@ -185,6 +248,8 @@ const _questionUpdate = async (
       data: {
         name: parse.questionName,
         notes: parse.notes,
+        iconKey: parse.iconKey,
+        isPublic: parse.isPublic,
       },
       select: {
         name: true,

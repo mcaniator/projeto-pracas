@@ -1,3 +1,8 @@
+import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
+import { FetchquestionsByCategoryAndSubcategoryResponse } from "@/lib/serverFunctions/queries/question";
+import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
 const _searchQuestionsByCategoryAndSubcategory = async ({
@@ -52,6 +57,24 @@ const _searchQuestionsByCategoryAndSubcategory = async ({
     categories: CategoryForQuestionPicker[];
   };
   return categories;
+};
+
+export const useFetchQuestionsByCategoryAndSubcategory = (
+  params?: UseFetchAPIParams<FetchquestionsByCategoryAndSubcategoryResponse>,
+) => {
+  const url = `/api/admin/forms/fieldsCreation/question`;
+
+  return useFetchAPI<
+    FetchquestionsByCategoryAndSubcategoryResponse,
+    FetchQuestionsByCategoryAndSubcategoryParams
+  >({
+    url,
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["location", "database"] },
+    },
+  });
 };
 
 export { _searchQuestionsByCategoryAndSubcategory };

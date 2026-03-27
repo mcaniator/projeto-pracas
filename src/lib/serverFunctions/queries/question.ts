@@ -1,17 +1,20 @@
+import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
+import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
+export type FetchquestionsByCategoryAndSubcategoryResponse = NonNullable<
+  Awaited<ReturnType<typeof searchQuestionsByCategoryAndSubcategory>>["data"]
+>;
 const searchQuestionsByCategoryAndSubcategory = async (
-  categoryId: number | undefined,
-  subcategoryId: number | undefined,
-  verifySubcategoryNullness: boolean,
-): Promise<{ statusCode: number; categories: CategoryForQuestionPicker[] }> => {
-  if (!categoryId) return { statusCode: 400, categories: [] };
+  params: FetchQuestionsByCategoryAndSubcategoryParams,
+) => {
+  if (!params.categoryId) return { statusCode: 400, categories: [] };
   try {
     const categories = await prisma.category.findMany({
       where: {
-        id: categoryId,
+        id: params.categoryId,
       },
       orderBy: { name: "desc" },
       select: {
@@ -21,13 +24,15 @@ const searchQuestionsByCategoryAndSubcategory = async (
         question: {
           where: {
             subcategoryId: null,
-            ...(verifySubcategoryNullness && !subcategoryId ? {}
-            : !subcategoryId ? {}
+            ...(params.verifySubcategoryNullness && !params.subcategoryId ? {}
+            : params.subcategoryId === 0 || params.subcategoryId === -1 ? {}
             : { id: -1 }),
           },
           select: {
             id: true,
             name: true,
+            iconKey: true,
+            isPublic: true,
             questionType: true,
             notes: true,
             characterType: true,
@@ -45,12 +50,15 @@ const searchQuestionsByCategoryAndSubcategory = async (
             notes: true,
             question: {
               where:
-                verifySubcategoryNullness && !subcategoryId ? { id: -1 }
-                : !subcategoryId ? {}
-                : { subcategoryId },
+                params.verifySubcategoryNullness && !params.subcategoryId ?
+                  { id: -1 }
+                : !params.subcategoryId ? {}
+                : { subcategoryId: params.subcategoryId },
               select: {
                 id: true,
                 name: true,
+                iconKey: true,
+                isPublic: true,
                 questionType: true,
                 notes: true,
                 characterType: true,
@@ -71,9 +79,22 @@ const searchQuestionsByCategoryAndSubcategory = async (
         cat.question.length > 0,
     );
 
-    return { statusCode: 200, categories: nonEmptyCategories };
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: { categories: nonEmptyCategories },
+    };
   } catch (e) {
-    return { statusCode: 500, categories: [] };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar questões!",
+      } as APIResponseInfo,
+      data: {
+        categories: [],
+      },
+    };
   }
 };
 
@@ -153,6 +174,7 @@ const searchQuestionsByName = async (
               json_build_object(
                 'id', q.id,
                 'name', q.name,
+                'iconKey', q."icon_key",
                 'questionType', q."question_type",
                 'notes', q.notes,
                 'characterType', q."character_type",
@@ -197,6 +219,7 @@ const searchQuestionsByName = async (
                       json_build_object(
                         'id', sq.id,
                         'name', sq.name,
+                        'iconKey', sq."icon_key",
                         'questionType', sq."question_type",
                         'notes', sq.notes,
                         'characterType', sq."character_type",

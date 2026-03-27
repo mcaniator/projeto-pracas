@@ -1,7 +1,12 @@
 import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps } from "@mui/material";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
-import { IconLetterCase, IconNumber123 } from "@tabler/icons-react";
+import {
+  IconArrowAutofitRight,
+  IconLetterCase,
+  IconNumber123,
+  IconPercentage,
+} from "@tabler/icons-react";
 
 type QuestionCharacterTypeChipProps = {
   characterType: QuestionResponseCharacterTypes;
@@ -18,9 +23,17 @@ const CQuestionCharacterTypeChip = ({
   if (characterType === "NUMBER") {
     icon = <IconNumber123 />;
     tooltip = "Resposta numérica";
-  } else {
+  } else if (characterType === "PERCENTAGE") {
+    icon = <IconPercentage />;
+    tooltip = "Resposta em porcentagem";
+  } else if (characterType === "TEXT") {
     icon = <IconLetterCase />;
     tooltip = "Resposta em texto";
+  } else if (characterType === "SCALE") {
+    icon = <IconArrowAutofitRight />;
+    tooltip = "Resposta em escala";
+  } else if (characterType === "BOOLEAN") {
+    return null;
   }
 
   return <CIconChip icon={icon} tooltip={tooltip} sx={sx} />;

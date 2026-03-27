@@ -139,6 +139,7 @@ const _updateLocation = async (
         "intermediateAdministrativeUnitId",
       ),
       broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
+      isPublic: formData.get("isPublic"),
     });
     const locationId = z.coerce.number().parse(formData.get("locationId"));
     if (!locationId) {
@@ -270,6 +271,7 @@ const _createLocation = async (
         "intermediateAdministrativeUnitId",
       ),
       broadAdministrativeUnitId: formData.get("broadAdministrativeUnitId"),
+      isPublic: formData.get("isPublic"),
     });
 
     const formImage = formData.get("mainImage") as File | null;
@@ -368,9 +370,54 @@ const _editLocationPolygon = async ({
   }
 };
 
+const _updateLocationVisibility = async ({
+  id,
+  isPublic,
+}: {
+  id: number;
+  isPublic: boolean;
+}) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Permissão inválida!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    await prisma.location.update({
+      where: {
+        id,
+      },
+      data: {
+        isPublic,
+      },
+    });
+    revalidateTag("location");
+    return {
+      responseInfo: {
+        statusCode: 201,
+        showSuccessCard: true,
+        message: `Praça atualizada!`,
+      } as APIResponseInfo,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao editar praça!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
 export {
   _deleteLocation,
   _updateLocation,
   _createLocation,
   _editLocationPolygon,
+  _updateLocationVisibility,
 };

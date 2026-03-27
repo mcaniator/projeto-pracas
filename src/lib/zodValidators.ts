@@ -135,9 +135,9 @@ const subcategoryInfoToCreateSchema = z.object({
 
 const questionSchema = z.object({
   name: z.string().trim().min(1).max(255),
+  iconKey: z.string().trim(),
   notes: z.string().trim().optional().nullish(),
-  optional: z.boolean().optional(),
-  active: z.boolean().optional(),
+  isPublic: booleanFromString,
   questionType: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   optionType: z.nativeEnum(OptionTypes).optional(),
@@ -150,6 +150,8 @@ const questionSchema = z.object({
 const questionEditDataSchema = z.object({
   questionId: z.coerce.number(),
   questionName: z.string().trim().min(1).max(255),
+  iconKey: z.string().trim(),
+  isPublic: booleanFromString,
   notes: z.preprocess((val) => {
     if (typeof val === "string" && val.trim() === "") return null;
     return val;
@@ -266,6 +268,7 @@ const locationSchema = z.object({
     .nonnegative()
     .nullish(),
   polygonArea: z.coerce.number().finite().nonnegative().nullish(),
+  isPublic: booleanFromString,
 });
 
 const featuresGeoJsonSchema = z.object({

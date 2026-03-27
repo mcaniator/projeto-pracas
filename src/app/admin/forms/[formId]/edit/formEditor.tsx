@@ -1,5 +1,7 @@
 "use client";
 
+import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
@@ -604,9 +606,13 @@ const SortableFormItem = ({
           />
           <CQuestionCharacterTypeChip characterType={formItem.characterType} />
           <CQuestionGeometryChip geometryTypes={formItem.geometryTypes} />
+          <CQuestionVisibilityChip isPublic={formItem.isPublic} />
           <CNotesChip notes={formItem.notes} name={formItem.name} />
         </div>
-        <span className={`break-all ${isFinalized ? "ml-2" : ""}`}>
+        <span
+          className={`flex items-center gap-2 break-all ${isFinalized ? "ml-2" : ""}`}
+        >
+          <CDynamicIcon iconKey={formItem.iconKey} />
           {formItem.name}
         </span>
 

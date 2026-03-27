@@ -5,10 +5,13 @@ import {
   APIResponseInfo,
   FetchAPIOptions,
 } from "@/lib/types/backendCalls/APIResponse";
-import { generateQueryString } from "@/lib/utils/apiCall";
+import { generateQueryString, replaceRouteParams } from "@/lib/utils/apiCall";
 import { useCallback, useState } from "react";
 
-export function useFetchAPI<T, P = Record<string, unknown>>({
+export function useFetchAPI<
+  T,
+  P extends Record<string, unknown> = Record<string, unknown>,
+>({
   url,
   callbacks,
   options,
@@ -45,8 +48,9 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
           message: functionOptions?.loadingMessage ?? "",
         });
       }
-      const queryString = params ? generateQueryString(params) : "";
-      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      const { url: parsedUrl, queryParams } = replaceRouteParams(url, params);
+      const queryString = generateQueryString(queryParams);
+      const fullUrl = queryString ? `${parsedUrl}?${queryString}` : parsedUrl;
       try {
         const response = await fetch(fullUrl, {
           method: options.method,
@@ -93,6 +97,10 @@ export function useFetchAPI<T, P = Record<string, unknown>>({
           message: `Erro na requisição ao servidor!`,
         };
         callbacks?.onCallFailed?.({
+          responseInfo: errorResponseInfo,
+          data: null,
+        });
+        callbacks?.onError?.({
           responseInfo: errorResponseInfo,
           data: null,
         });

@@ -16,8 +16,8 @@ const Responses = async (props: {
   const assessment = await getAssessmentTree({
     assessmentId: Number(params.selectedAssessmentId),
   });
-  if (!assessment || !assessment.assessmentTree) redirect("/error");
-  const location = assessment.assessmentTree?.location;
+  if (!assessment || !assessment.data?.assessmentTree) redirect("/error");
+  const location = assessment.data.assessmentTree?.location;
   if (!location) {
     redirect("/error");
   }
@@ -27,7 +27,7 @@ const Responses = async (props: {
     redirect("/error");
   }
   let userCanEdit = false;
-  if (assessment.assessmentTree.user.id === user.id) {
+  if (assessment.data.assessmentTree.user.id === user.id) {
     userCanEdit = true;
   } else if (user.roles.includes("ASSESSMENT_MANAGER")) {
     userCanEdit = true;
@@ -39,17 +39,17 @@ const Responses = async (props: {
         <IconMapPin /> {location.name}
       </h3>
       <h3 className="flex text-2xl font-semibold">
-        <IconClipboard /> {assessment.assessmentTree.formName}
+        <IconClipboard /> {assessment.data.assessmentTree.formName}
       </h3>
       <h3 className="flex text-2xl font-semibold">
-        <IconUser /> {assessment.assessmentTree.user.username}
+        <IconUser /> {assessment.data.assessmentTree.user.username}
       </h3>
 
       <ResponseFormV2
         locationId={location.id}
         locationName={location.name}
-        assessmentTree={assessment.assessmentTree}
-        finalized={assessment.assessmentTree.endDate !== null}
+        assessmentTree={assessment.data.assessmentTree}
+        finalized={assessment.data.assessmentTree.endDate !== null}
         userCanEdit={userCanEdit}
       />
     </div>

@@ -2,6 +2,7 @@
 
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
+import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { _getCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
@@ -32,6 +33,11 @@ import SaveFormDialog from "./saveFormDialog";
 
 const FormEditor = dynamic(() => import("./formEditor"), {
   ssr: false,
+  loading: () => (
+    <div className="text-black">
+      <CLinearProgress label="Carregando..." />
+    </div>
+  ),
 });
 
 export type SubcategoryItem = {
@@ -46,6 +52,8 @@ export type QuestionItem = {
   position: number;
   questionId: number;
   name: string;
+  iconKey: string;
+  isPublic: boolean;
   notes: string | null;
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
@@ -107,6 +115,7 @@ const ClientV2 = ({
   const [saveAsDone, setSaveAsDone] = useState(false);
   const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     setIsLoadingCategories(true);
@@ -184,6 +193,8 @@ const ClientV2 = ({
             {
               questionId: question.id,
               name: question.name,
+              iconKey: question.iconKey,
+              isPublic: question.isPublic,
               notes: question.notes,
               questionType: question.questionType,
               position: (subItem.questions?.length ?? 0) + 1,
@@ -215,6 +226,8 @@ const ClientV2 = ({
         const questionItem: QuestionItem = {
           questionId: question.id,
           name: question.name,
+          iconKey: question.iconKey,
+          isPublic: question.isPublic,
           notes: question.notes,
           questionType: question.questionType,
           characterType: question.characterType,
@@ -301,6 +314,7 @@ const ClientV2 = ({
           content: <>Formulário salvo!</>,
         });
         if (saveAsDone) {
+          setIsRedirecting(true);
           void router.push("/admin/forms");
         }
       }
@@ -453,6 +467,7 @@ const ClientV2 = ({
         openSaveFormDialog={openSaveFormDialog}
         setOpenSaveFormDialog={setOpenSaveFormDialog}
         saveAsDone={saveAsDone}
+        isRedirecting={isRedirecting}
         setSaveAsDone={setSaveAsDone}
         save={() => {
           void handleUpdateForm();

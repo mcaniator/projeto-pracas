@@ -62,6 +62,7 @@ const defaultParkData: ParkRegisterData = {
   intermediateAdministrativeUnitId: null,
   broadAdministrativeUnitId: null,
   mainImage: null,
+  isPublic: false,
 };
 
 const steps = ["", "", ""];
@@ -184,6 +185,7 @@ const LocationRegisterDialog = ({
             location.intermediateAdministrativeUnitId,
           broadAdministrativeUnitId: location.broadAdministrativeUnitId,
           mainImage: null,
+          isPublic: location.isPublic,
         } as ParkRegisterData;
         if (location.mainImage) {
           try {
@@ -355,7 +357,6 @@ const LocationRegisterDialog = ({
   const goToPreviousStep = () => {
     setStep((prev) => prev - 1);
   };
-
   return (
     <CDialog
       title="Cadastro de praça"

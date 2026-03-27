@@ -1,11 +1,10 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+import CAutocomplete from "@components/ui/cAutoComplete";
+import CDateTimePicker from "@components/ui/cDateTimePicker";
 import { Divider } from "@mui/material";
 import { Suspense, use } from "react";
-
-import CAutocomplete from "../../../components/ui/cAutoComplete";
-import CDateTimePicker from "../../../components/ui/cDateTimePicker";
 
 const statusOptions = [
   {
@@ -121,7 +120,9 @@ const TallysFilter = ({
       />
       <Divider />
       <h4>Responsável</h4>
-      <Suspense fallback={<CAutocomplete label="Responsável" options={[]} loading />}>
+      <Suspense
+        fallback={<CAutocomplete label="Responsável" options={[]} loading />}
+      >
         <UserSelector
           usersPromise={usersPromise}
           handleFilterChange={handleFilterChange}

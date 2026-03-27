@@ -1,4 +1,6 @@
 import CButton from "@/components/ui/cButton";
+import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
@@ -35,6 +37,8 @@ const CategoriesListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -146,6 +150,8 @@ const SubcategoriesListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -218,6 +224,8 @@ const QuestionListV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -227,6 +235,7 @@ const QuestionListV2 = ({
     showAllQuestions ? questions : (
       questions.filter((q) => !formQuestionsIds.includes(q.id))
     );
+
   return (
     <div className="px-1">
       {!showAllQuestions ||
@@ -241,6 +250,8 @@ const QuestionListV2 = ({
           questionId={question.id}
           characterType={question.characterType}
           name={question.name}
+          iconKey={question.iconKey}
+          isPublic={question.isPublic}
           notes={question.notes}
           questionType={question.questionType}
           optionType={question.optionType}
@@ -264,6 +275,8 @@ const QuestionComponentV2 = ({
   characterType,
   addQuestion,
   name,
+  iconKey,
+  isPublic,
   notes,
   questionType,
   optionType,
@@ -280,6 +293,8 @@ const QuestionComponentV2 = ({
   characterType: QuestionResponseCharacterTypes;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   name: string;
+  iconKey: string;
+  isPublic: boolean;
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
@@ -293,6 +308,8 @@ const QuestionComponentV2 = ({
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
+    iconKey: string;
+    isPublic: boolean;
     categoryName: string;
     notes: string | null;
     subcategoryName: string | null;
@@ -312,9 +329,13 @@ const QuestionComponentV2 = ({
         />
         <CQuestionCharacterTypeChip characterType={characterType} />
         <CQuestionGeometryChip geometryTypes={geometryTypes} />
+        <CQuestionVisibilityChip isPublic={isPublic} />
         <CNotesChip notes={notes} name={name} />
       </div>
-      <div className="max-w-full break-all">{name}</div>
+      <div className="flex max-w-full items-center gap-2 break-all">
+        <CDynamicIcon iconKey={iconKey} />
+        {name}
+      </div>
       {showAllQuestions ?
         <CButton
           variant="text"
@@ -324,6 +345,8 @@ const QuestionComponentV2 = ({
               questionName: name,
               categoryName: categoryName,
               subcategoryName: subcategoryName,
+              iconKey: iconKey,
+              isPublic: isPublic,
               notes: notes,
             });
           }}
@@ -337,6 +360,8 @@ const QuestionComponentV2 = ({
             addQuestion({
               id: questionId,
               name,
+              iconKey,
+              isPublic,
               notes,
               questionType,
               optionType,

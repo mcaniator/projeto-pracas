@@ -154,6 +154,19 @@ const AssessmentsClient = ({
     }
   };
 
+  const handleVisibilityChange = useCallback(
+    (id: number, isPublic: boolean) => {
+      const newAssessments = assessments.map((assessment) => {
+        if (assessment.id === id) {
+          return { ...assessment, isPublic: isPublic };
+        }
+        return assessment;
+      });
+      setAssessments(newAssessments);
+    },
+    [assessments],
+  );
+
   const fetchAssessments = useCallback(
     async (params?: { forceFetch: boolean }) => {
       if (!params?.forceFetch) {
@@ -264,7 +277,7 @@ const AssessmentsClient = ({
 
   useEffect(() => {
     router.replace(pathname);
-  }, []);
+  }, [pathname, router]);
 
   const totalFilters = useMemo(() => {
     let total = 0;
@@ -323,7 +336,11 @@ const AssessmentsClient = ({
         >
           {isLoading ?
             <CSkeletonGroup quantity={5} height={120} />
-          : <AssessmentsList assessments={assessments} />}
+          : <AssessmentsList
+              assessments={assessments}
+              handleVisibilityChange={handleVisibilityChange}
+            />
+          }
         </div>
 
         <Suspense fallback={<CSkeletonGroup quantity={5} />}>

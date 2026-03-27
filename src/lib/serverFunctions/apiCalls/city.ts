@@ -18,3 +18,18 @@ export const useFetchCities = (
     },
   });
 };
+
+export const usePublicFetchCities = (
+  params?: UseFetchAPIParams<FetchCitiesResponse>,
+) => {
+  const url = "/api/public/cities";
+
+  return useFetchAPI<FetchCitiesResponse, FetchCitiesParams>({
+    url,
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["city", "database"] },
+    },
+  });
+};

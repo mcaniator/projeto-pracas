@@ -1,7 +1,7 @@
 import { IconButton, IconButtonOwnProps, Tooltip } from "@mui/material";
 import { ReactNode } from "react";
 
-type IconChipVariant = "disabled" | "default";
+export type IconChipVariant = "disabled" | "default" | "emphasis";
 
 type IconChipProps = {
   icon: ReactNode;
@@ -32,6 +32,7 @@ const CIconChip = ({
   const variantSx: Record<IconChipVariant, IconButtonOwnProps["sx"]> = {
     disabled: {
       backgroundColor: "#e0e0e0",
+      color: "#a0a0a0",
       cursor: "default",
       "&:hover": {
         backgroundColor: "primary.main",
@@ -41,6 +42,15 @@ const CIconChip = ({
     default: {
       color: "primary.light",
       backgroundColor: "#e0e0e0",
+      "&:hover": {
+        cursor: clickable ? "pointer" : "default",
+        backgroundColor: "primary.dark",
+        color: "primary.contrastText",
+      },
+    },
+    emphasis: {
+      color: "white",
+      backgroundColor: "primary.light",
       "&:hover": {
         cursor: clickable ? "pointer" : "default",
         backgroundColor: "primary.dark",

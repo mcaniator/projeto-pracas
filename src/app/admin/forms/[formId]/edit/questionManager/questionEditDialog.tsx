@@ -1,14 +1,19 @@
-import { useActionState, useEffect } from "react";
-
-import { useHelperCard } from "../../../../../../components/context/helperCardContext";
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
-import CTextField from "../../../../../../components/ui/cTextField";
-import CDialog from "../../../../../../components/ui/dialog/cDialog";
-import { _questionUpdate } from "../../../../../../lib/serverFunctions/serverActions/questionUtil";
+import QuestionIconPicker from "@/app/admin/forms/[formId]/edit/questionManager/questionIconPicker";
+import CIconChip from "@/components/ui/cIconChip";
+import CSwitch from "@/components/ui/cSwtich";
+import { useHelperCard } from "@components/context/helperCardContext";
+import { useLoadingOverlay } from "@components/context/loadingContext";
+import CTextField from "@components/ui/cTextField";
+import CDialog from "@components/ui/dialog/cDialog";
+import { _questionUpdate } from "@lib/serverFunctions/serverActions/questionUtil";
+import { IconHelp } from "@tabler/icons-react";
+import { useActionState, useEffect, useState } from "react";
 
 const QuestionEditDialog = ({
   questionId,
   questionName,
+  iconKey,
+  isPublic,
   notes,
   categoryName,
   subcategoryName,
@@ -18,6 +23,8 @@ const QuestionEditDialog = ({
 }: {
   questionId: number;
   questionName: string;
+  iconKey: string;
+  isPublic: boolean;
   notes: string | null;
   categoryName: string;
   subcategoryName?: string | null;
@@ -36,6 +43,10 @@ const QuestionEditDialog = ({
     initialState,
   );
 
+  const [isPublicState, setIsPublicState] = useState(isPublic);
+
+  const [selectedIconKey, setSelectedIconKey] = useState<string>(iconKey);
+
   useEffect(() => {
     helperCardProcessResponse(state.responseInfo);
     if (state.responseInfo.statusCode === 200) {
@@ -51,12 +62,18 @@ const QuestionEditDialog = ({
     }
   }, [isPending, setLoadingOverlay]);
 
+  useEffect(() => {
+    setSelectedIconKey(iconKey);
+    setIsPublicState(isPublic);
+  }, [questionId, iconKey, isPublic]);
+
   return (
     <CDialog
       isForm
       title="Editar questão"
       action={formAction}
       onClose={onClose}
+      fullScreen
       open={open}
       confirmChildren={<>Editar</>}
     >
@@ -74,9 +91,16 @@ const QuestionEditDialog = ({
           id="questionId"
           value={questionId}
         />
+        <input
+          type="hidden"
+          name="iconKey"
+          id="iconKey"
+          value={selectedIconKey}
+        />
         <CTextField
           required
           defaultValue={questionName}
+          maxCharacters={255}
           label="Nome"
           id="questionName"
           name="questionName"
@@ -84,8 +108,34 @@ const QuestionEditDialog = ({
         <CTextField
           label="Observações"
           defaultValue={notes}
+          maxCharacters={255}
           id="notes"
           name="notes"
+        />
+        <div className="flex items-center gap-1">
+          <input
+            type="hidden"
+            id="isPublic"
+            name="isPublic"
+            value={isPublicState ? "true" : "false"}
+          />
+          <CSwitch
+            checked={isPublicState}
+            label="Respostas públicas"
+            name="isPublic"
+            id="isPublic"
+            onChange={(e) => {
+              setIsPublicState(e.target.checked);
+            }}
+          />
+          <CIconChip
+            icon={<IconHelp />}
+            tooltip="Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente"
+          />
+        </div>
+        <QuestionIconPicker
+          selectedIconKey={selectedIconKey}
+          onChange={setSelectedIconKey}
         />
       </div>
     </CDialog>
