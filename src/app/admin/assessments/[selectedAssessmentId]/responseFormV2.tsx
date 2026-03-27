@@ -615,7 +615,8 @@ const WrittenQuestion = ({
   }
   return (
       question.characterType === "NUMBER" ||
-        question.characterType === "PERCENTAGE"
+        question.characterType === "PERCENTAGE" ||
+        question.characterType === "SCALE"
     ) ?
       <Controller
         name={String(question.questionId)}
@@ -624,6 +625,8 @@ const WrittenQuestion = ({
           <CNumberField
             readOnly={finalized}
             debounce={1000}
+            minValue={question.scaleConfig?.minValue ?? undefined}
+            maxValue={question.scaleConfig?.maxValue ?? undefined}
             endAdornment={
               question.characterType === "PERCENTAGE" ? "%" : undefined
             }

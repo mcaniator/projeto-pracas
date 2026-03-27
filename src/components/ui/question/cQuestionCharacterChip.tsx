@@ -2,6 +2,7 @@ import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps } from "@mui/material";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 import {
+  IconArrowAutofitRight,
   IconLetterCase,
   IconNumber123,
   IconPercentage,
@@ -28,6 +29,9 @@ const CQuestionCharacterTypeChip = ({
   } else if (characterType === "TEXT") {
     icon = <IconLetterCase />;
     tooltip = "Resposta em texto";
+  } else if (characterType === "SCALE") {
+    icon = <IconArrowAutofitRight />;
+    tooltip = "Resposta em escala";
   } else if (characterType === "BOOLEAN") {
     return null;
   }

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "question_scale_config" ALTER COLUMN "min_value" SET DATA TYPE DOUBLE PRECISION,
+ALTER COLUMN "max_value" SET DATA TYPE DOUBLE PRECISION;

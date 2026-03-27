@@ -1,4 +1,4 @@
-import { getAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
+import { fetchPublicAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -23,7 +23,7 @@ export async function GET(
     }
     const params = await props.params;
     const assessmentId = z.coerce.number().parse(params.assessmentId);
-    const assessments = await getAssessmentTree({ assessmentId });
+    const assessments = await fetchPublicAssessmentTree({ assessmentId });
     return new Response(JSON.stringify(assessments), {
       status: 200,
       headers: {

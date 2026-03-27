@@ -10,7 +10,7 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import { Box, Chip, Divider } from "@mui/material";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconChevronDown, IconInfoCircle } from "@tabler/icons-react";
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { useMemo } from "react";
 import { Pie } from "react-chartjs-2";
@@ -105,7 +105,8 @@ export const resolveAssessmentQuestionValue = (
 
     if (
       question.characterType === "NUMBER" ||
-      question.characterType === "PERCENTAGE"
+      question.characterType === "PERCENTAGE" ||
+      question.characterType === "SCALE"
     ) {
       const numericValues = optionTexts
         .map((optionText) => Number(optionText))
@@ -123,7 +124,8 @@ export const resolveAssessmentQuestionValue = (
 
   if (
     question.characterType === "NUMBER" ||
-    question.characterType === "PERCENTAGE"
+    question.characterType === "PERCENTAGE" ||
+    question.characterType === "SCALE"
   ) {
     if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
       return { kind: "number", values: [rawValue] };
@@ -234,6 +236,63 @@ export const AssessmentNumericValueRenderer = ({
           fontSize: "0.7rem",
         }}
       />
+    </div>
+  );
+};
+
+export const AssessmentScaleValueRenderer = ({
+  question,
+  value,
+}: {
+  question: AssessmentQuestionItem;
+  value: number;
+}) => {
+  if (!question.scaleConfig) return null;
+  const { minValue, maxValue } = question.scaleConfig;
+
+  const percentage =
+    maxValue === minValue ? 0 : (
+      ((value - minValue) / (maxValue - minValue)) * 100
+    );
+
+  return (
+    <div className="flex w-full items-center gap-3">
+      <QuestionIcon question={question} hasValue={true} />
+
+      <div className="relative w-full">
+        <Box
+          sx={{
+            width: "100%",
+            height: "16px",
+            borderRadius: "calc(infinity * 1px)",
+            backgroundColor: "#E8EAED",
+          }}
+        />
+
+        <Box
+          sx={{
+            width: `${percentage}%`,
+            position: "absolute",
+            backgroundColor: "primary.main",
+            height: "14px",
+            top: "1px",
+            left: "0",
+            borderRadius: "calc(infinity * 1px)",
+          }}
+        />
+
+        <div
+          className="absolute -top-3 flex flex-col items-center"
+          style={{ left: `calc(${percentage}% - 8px)` }}
+        >
+          <span className="text-xs font-medium">{value}</span>
+          <IconChevronDown size={16} className="-mt-2" />
+        </div>
+        <div className="absolute -bottom-4 left-0 flex w-full justify-between text-xs text-gray-500">
+          <span>{minValue}</span>
+          <span>{maxValue}</span>
+        </div>
+      </div>
     </div>
   );
 };
@@ -374,16 +433,18 @@ const QuestionValues = ({
     resolvedValue.kind === "boolean"
   ) {
     return (
-      <AssessmentBooleanValueRenderer
-        question={question}
-        value={resolvedValue.value}
-      />
+      <div className="flex flex-wrap gap-4">
+        <AssessmentBooleanValueRenderer
+          question={question}
+          value={resolvedValue.value}
+        />
+      </div>
     );
   }
 
   if (question.characterType === "TEXT" && resolvedValue.kind === "text") {
     return (
-      <>
+      <div className="flex flex-wrap gap-4">
         {resolvedValue.values.map((value, index) => (
           <AssessmentTextValueRenderer
             key={`${question.questionId}-text-${index}`}
@@ -391,16 +452,30 @@ const QuestionValues = ({
             value={value}
           />
         ))}
-      </>
+      </div>
     );
   }
 
   if (question.characterType === "NUMBER" && resolvedValue.kind === "number") {
     return (
-      <>
+      <div className="flex flex-wrap gap-4">
         {resolvedValue.values.map((value, index) => (
           <AssessmentNumericValueRenderer
             key={`${question.questionId}-number-${index}`}
+            question={question}
+            value={value}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (question.characterType === "SCALE" && resolvedValue.kind === "number") {
+    return (
+      <>
+        {resolvedValue.values.map((value, index) => (
+          <AssessmentScaleValueRenderer
+            key={`${question.questionId}-scale-${index}`}
             question={question}
             value={value}
           />

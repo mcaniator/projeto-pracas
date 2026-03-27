@@ -13,6 +13,10 @@ import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   options?: {
     id: number;
     text: string;
@@ -171,6 +175,12 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
+                    scaleConfig: {
+                      select: {
+                        minValue: true,
+                        maxValue: true,
+                      },
+                    },
                     response: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -285,7 +295,8 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         if (dbQuestion.questionType === "WRITTEN") {
           if (
             dbQuestion.characterType === "NUMBER" ||
-            dbQuestion.characterType === "PERCENTAGE"
+            dbQuestion.characterType === "PERCENTAGE" ||
+            dbQuestion.characterType === "SCALE"
           ) {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.response[0]?.response ?
@@ -319,6 +330,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -518,6 +530,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    scaleConfig: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -648,7 +661,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
         if (dbQuestion.questionType === "WRITTEN") {
           if (
             dbQuestion.characterType === "NUMBER" ||
-            dbQuestion.characterType === "PERCENTAGE"
+            dbQuestion.characterType === "PERCENTAGE" ||
+            dbQuestion.characterType === "SCALE"
           ) {
             responsesFormValues[dbQuestion.id] =
               dbQuestion.response[0]?.response ?
@@ -682,6 +696,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -941,4 +956,5 @@ export {
   fetchRecentlyCompletedAssessments,
   getAssessmentTree,
   fetchAssessments,
+  fetchPublicAssessmentTree,
 };

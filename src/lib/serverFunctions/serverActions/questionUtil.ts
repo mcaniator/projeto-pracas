@@ -27,11 +27,24 @@ const _questionSubmit = async (
   const notes = formData.get("notes") as string;
   const iconKey = formData.get("iconKey");
   const isPublic = formData.get("isPublic") === "true";
+  const parseScaleBounds = () => {
+    const minValue = Number(formData.get("minValue"));
+    const maxValue = Number(formData.get("maxValue"));
+    if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
+      return null;
+    }
+    if (minValue >= maxValue) {
+      return null;
+    }
+    return { minValue, maxValue };
+  };
 
   switch (questionType) {
     case "WRITTEN":
     case "BOOLEAN": {
       let writtenOrBooleanQuestionParsed;
+      const scaleBounds =
+        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
 
       try {
         writtenOrBooleanQuestionParsed = questionSchema.parse({
@@ -57,6 +70,9 @@ const _questionSubmit = async (
       } catch (err) {
         return { statusCode: 400, questionName: null };
       }
+      if (questionCharacterType === "SCALE" && !scaleBounds) {
+        return { statusCode: 400, questionName: null };
+      }
 
       try {
         if (
@@ -65,8 +81,20 @@ const _questionSubmit = async (
           return { statusCode: 400, questionName: null };
         }
 
-        const newQuestion = await prisma.question.create({
-          data: writtenOrBooleanQuestionParsed,
+        const newQuestion = await prisma.$transaction(async (prisma) => {
+          const question = await prisma.question.create({
+            data: writtenOrBooleanQuestionParsed,
+          });
+          if (questionCharacterType === "SCALE" && scaleBounds) {
+            await prisma.questionScaleConfig.create({
+              data: {
+                questionId: question.id,
+                minValue: scaleBounds.minValue,
+                maxValue: scaleBounds.maxValue,
+              },
+            });
+          }
+          return question;
         });
         revalidateTag("question");
         return { statusCode: 201, questionName: newQuestion.name };
@@ -79,10 +107,19 @@ const _questionSubmit = async (
       const optionType = formData.get("optionType");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
+      const scaleBounds =
+        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
       const subcategoryId =
         Number(formData.get("subcategoryId")) > 0 ?
           formData.get("subcategoryId")
         : undefined;
+
+      if (questionCharacterType === "SCALE" && !scaleBounds) {
+        return { statusCode: 400, questionName: null };
+      }
+      if (questionCharacterType === "SCALE" && optionType !== "RADIO") {
+        return { statusCode: 400, questionName: null };
+      }
 
       const optionsQuestionObject = { optionType };
 
@@ -117,6 +154,21 @@ const _questionSubmit = async (
         }
 
         let questionName: string | null = null;
+        const rawOptions = formData.getAll("options");
+        if (questionCharacterType === "SCALE" && scaleBounds) {
+          const parsedOptions = rawOptions.map((value) => Number(value));
+          if (parsedOptions.some((value) => !Number.isFinite(value))) {
+            return { statusCode: 400, questionName: null };
+          }
+          if (
+            parsedOptions.some(
+              (value) =>
+                value < scaleBounds.minValue || value > scaleBounds.maxValue,
+            )
+          ) {
+            return { statusCode: 400, questionName: null };
+          }
+        }
         await prisma.$transaction(async (prisma) => {
           const newQuestion = await prisma.question.create({
             data: {
@@ -133,7 +185,17 @@ const _questionSubmit = async (
             },
           });
 
-          const options = formData.getAll("options").map((value) => ({
+          if (questionCharacterType === "SCALE" && scaleBounds) {
+            await prisma.questionScaleConfig.create({
+              data: {
+                questionId: newQuestion.id,
+                minValue: scaleBounds.minValue,
+                maxValue: scaleBounds.maxValue,
+              },
+            });
+          }
+
+          const options = rawOptions.map((value) => ({
             text: value,
             questionId: newQuestion.id,
           }));
