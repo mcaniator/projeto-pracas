@@ -1,12 +1,13 @@
 "use client";
 
-import { Button } from "@components/button";
+import CButton from "@/components/ui/cButton";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import { Input } from "@components/ui/input";
 import { _createPasswordReset } from "@serverActions/passwordResetUtil";
-import { IconTree } from "@tabler/icons-react";
 import { startTransition, useActionState, useEffect } from "react";
+
+import AuthPageShell from "../authPageShell";
 
 const RequestPasswordRecoveryForm = () => {
   const { setHelperCard } = useHelperCard();
@@ -39,7 +40,7 @@ const RequestPasswordRecoveryForm = () => {
         helperCardType: "ERROR",
         content: (
           <>
-            Um e-mail do recuperação de senha já foi enviado para este endereço
+            Um e-mail de recuperação de senha já foi enviado para este endereço
             de e-mail!
           </>
         ),
@@ -61,7 +62,7 @@ const RequestPasswordRecoveryForm = () => {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
-        content: <>Erro ao registrar recuperção de senha.</>,
+        content: <>Erro ao registrar recuperação de senha.</>,
       });
     }
   }, [state, setHelperCard]);
@@ -73,35 +74,35 @@ const RequestPasswordRecoveryForm = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <IconTree size={48} className="inline" />
-      <h1 className="inline text-4xl">Projeto praças</h1>
-      <div className={`rounded-lg bg-gray-200 p-6 ${isPending && "hidden"}`}>
+    <AuthPageShell>
+      <div className={`w-full max-w-xs ${isPending && "hidden"}`}>
         <form onSubmit={handleSubmit}>
-          <div className={`flex flex-col gap-4 text-center`}>
+          <div className="flex flex-col gap-4 text-center text-white">
             <h2 className="text-2xl">Redefinir senha</h2>
-            <div className="flex flex-col gap-2">
-              <div className="relative flex flex-row items-center justify-center gap-1">
-                <label htmlFor="email">E-mail</label>
-              </div>
+            <div className="flex flex-col gap-2 text-left">
+              <label htmlFor="email">E-mail</label>
               <Input
-                className={`w-full`}
+                className="w-full rounded-full border-none bg-praca-green-dark"
                 type="email"
                 name="email"
                 id="email"
               />
             </div>
-            <Button type="submit" variant={"constructive"}>
-              Solicitar redefinição de senha
-            </Button>
-            <div>
+            <CButton
+              type="submit"
+              color="secondary"
+              className="cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+            >
+              Solicitar redefinição
+            </CButton>
+            <div className="px-8 text-sm text-white/90">
               Caso o e-mail informado esteja cadastrado no sistema, você
               receberá um link para redefinir sua senha.
             </div>
           </div>
         </form>
       </div>
-    </div>
+    </AuthPageShell>
   );
 };
 

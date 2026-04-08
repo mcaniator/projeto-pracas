@@ -151,3 +151,6 @@ typings/
 
 # worktrees
 .worktrees/
+
+#docs
+docs

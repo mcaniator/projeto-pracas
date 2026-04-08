@@ -1,75 +1,193 @@
 "use client";
 
 import { Button } from "@/components/button";
+import ButtonLink from "@/components/ui/buttonLink";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   IconContrast,
   IconContrastOff,
-  IconLogin,
+  IconInfoSquareRounded,
   IconLogin2,
+  IconMapSearch,
+  IconMenu2,
   IconSettings,
   IconTree,
   IconUser,
+  IconX,
 } from "@tabler/icons-react";
-import { VariantProps, cva } from "class-variance-authority";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { HTMLAttributes, forwardRef, useState } from "react";
+import {
+  HTMLAttributes,
+  MouseEvent,
+  ReactNode,
+  forwardRef,
+  useEffect,
+  useState,
+} from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
-const headerVariants = cva("flex w-full pl-14 pr-7 transition-all md:py-1", {
-  variants: {
-    variant: {
-      default:
-        "fixed bg-black/30 backdrop-blur-[2px] lg:bg-transparent lg:bg-opacity-0 lg:backdrop-blur-none",
-      fixed: "fixed top-0",
-      static: "static",
-    },
-  },
+type HeaderVariant = "public" | "admin";
+type HeaderPosition = "static" | "box";
+type HeaderColorType = "filled" | "translucid";
 
-  defaultVariants: {
-    variant: "default",
-  },
-});
-
-interface headerProps
-  extends HTMLAttributes<HTMLElement>,
-    VariantProps<typeof headerVariants> {
-  user: { username: string | null; email: string; image: string | null } | null;
-  isAuthHeader?: boolean;
+interface HeaderProps extends HTMLAttributes<HTMLElement> {
+  user?: {
+    username: string | null;
+    email: string;
+    image: string | null;
+  } | null;
+  variant: HeaderVariant;
+  position?: HeaderPosition;
+  colorType?: HeaderColorType;
 }
 
-const Header = forwardRef<HTMLElement, headerProps>(
-  ({ user, isAuthHeader, variant, ...props }, ref) => {
+const Header = forwardRef<HTMLElement, HeaderProps>(
+  (
+    {
+      user = null,
+      variant,
+      position = "static",
+      colorType = "filled",
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const [popupContentRef] = useAutoAnimate();
+    const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+    const isPublic = variant === "public";
+    const isAdmin = variant === "admin";
+
+    useEffect(() => {
+      setIsSidebarVisible(false);
+    }, []);
+
+    const toggleSidebar = () => setIsSidebarVisible((prev) => !prev);
+    const closeSidebar = () => setIsSidebarVisible(false);
+
+    const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
+      if (e.target === e.currentTarget) {
+        closeSidebar();
+      }
+    };
+
+    const sidebarOptions: {
+      icon: ReactNode;
+      name: string;
+      path: string;
+    }[] = [
+      {
+        icon: <IconMapSearch size={34} />,
+        name: "Mapa",
+        path: "/map",
+      },
+      {
+        icon: <IconInfoSquareRounded size={34} />,
+        name: "Sobre",
+        path: "/about",
+      },
+    ];
 
     return (
-      <header
-        className={cn(titillium_web.className, headerVariants({ variant }))}
-        ref={ref}
-        {...props}
-      >
-        <Link className="z-[50] flex items-center" href={"/"}>
-          <Button
-            type={"button"}
-            variant={"ghost"}
-            use={"link"}
-            className="px-3 py-6"
-          >
-            <IconTree size={34} />
-            <span className="hidden sm:inline sm:text-xl">Projeto Praças</span>
-          </Button>
-        </Link>
-        {user ?
-          <DialogTrigger>
-            <Button
-              variant={"ghost"}
-              className="z-[50] ml-auto flex items-center px-3 py-6 pl-2"
+      <>
+        {isPublic && (
+          <>
+            <button
+              onClick={toggleSidebar}
+              type="button"
+              aria-label="Abrir menu"
+              className="fixed left-4 top-2 z-[61] items-center md:top-3"
             >
-              {user !== null && user !== undefined ?
+              {!isSidebarVisible && <IconMenu2 size={34} />}
+            </button>
+
+            {isSidebarVisible && (
+              <div
+                className="fixed inset-0 z-[61] bg-black bg-opacity-50"
+                onClick={handleOverlayClick}
+              ></div>
+            )}
+
+            <nav
+              className={cn(
+                "fixed left-0 top-0 z-[62] flex h-full w-64 flex-col bg-main p-5 text-xl shadow-lg transition-transform duration-300",
+                isSidebarVisible ? "translate-x-0" : "-translate-x-full",
+                titillium_web.className,
+              )}
+            >
+              <div className="mb-4 flex justify-between">
+                <Link className="flex items-center" href="/">
+                  <Button
+                    type={"button"}
+                    variant={"ghost"}
+                    use={"link"}
+                    className="px-1 py-5"
+                  >
+                    <IconTree size={34} />
+                    Projeto Pracas
+                  </Button>
+                </Link>
+                <Button
+                  variant={"ghost"}
+                  onPress={closeSidebar}
+                  className="cursor-pointer gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+                >
+                  <IconX size={34} />
+                </Button>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                {sidebarOptions.map((option) => (
+                  <ButtonLink
+                    href={option.path}
+                    key={option.path}
+                    variant={"ghost"}
+                    className="w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+                  >
+                    {option.icon}
+                    <span className="-mb-1">{option.name}</span>
+                  </ButtonLink>
+                ))}
+              </div>
+            </nav>
+          </>
+        )}
+
+        <header
+          className={cn(
+            titillium_web.className,
+            "flex w-full pl-14 pr-7 transition-all md:py-1",
+            position === "box" && "relative z-[60] mx-2 mt-2 rounded-2xl",
+            colorType === "translucid" ?
+              "fixed inset-x-0 top-0 z-[60] bg-main opacity-20 backdrop-blur-[2px]"
+            : "static",
+            className,
+          )}
+          ref={ref}
+          {...props}
+        >
+          <Link className="z-[50] flex items-center" href="/">
+            <Button
+              type={"button"}
+              variant={"ghost"}
+              use={"link"}
+              className="px-3 py-6"
+            >
+              <IconTree size={34} />
+              <span className="text-xl">Projeto Pracas</span>
+            </Button>
+          </Link>
+
+          {isAdmin && user && (
+            <DialogTrigger>
+              <Button
+                variant={"ghost"}
+                className="z-[50] ml-auto flex items-center px-3 py-6 pl-2"
+              >
                 <div className="flex items-center gap-2">
                   <span className="hidden text-xl md:inline">
                     {user.username ?? user.email}
@@ -85,29 +203,24 @@ const Header = forwardRef<HTMLElement, headerProps>(
                   : <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
                   }
                 </div>
-              : <div className={"flex"}>
-                  <IconLogin size={34} />
-                  <span className="pointer-events-none text-2xl sm:text-3xl">
-                    Login
-                  </span>
-                </div>
-              }
-            </Button>
-            <Popover
-              className={
-                "z-81 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
-              }
-            >
-              <Dialog className={"outline-none"}>
-                <div ref={popupContentRef}>
-                  <UserInfo user={user} />
-                </div>
-              </Dialog>
-            </Popover>
-          </DialogTrigger>
-        : !isAuthHeader && (
+              </Button>
+              <Popover
+                className={
+                  "z-81 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
+                }
+              >
+                <Dialog className={"outline-none"}>
+                  <div ref={popupContentRef}>
+                    <UserInfo user={user} />
+                  </div>
+                </Dialog>
+              </Popover>
+            </DialogTrigger>
+          )}
+
+          {isAdmin && !user && (
             <div className="z-[50] ml-auto flex flex-wrap gap-1">
-              <Link href={"/auth/login"}>
+              <Link href="/auth/login">
                 <Button
                   variant={"ghost"}
                   use={"link"}
@@ -118,12 +231,13 @@ const Header = forwardRef<HTMLElement, headerProps>(
                 </Button>
               </Link>
             </div>
-          )
-        }
-      </header>
+          )}
+        </header>
+      </>
     );
   },
 );
+
 Header.displayName = "Header";
 
 const UserInfo = ({
@@ -146,7 +260,7 @@ const UserInfo = ({
         </div>
       </div>
       <div className="my-3 flex gap-4">
-        <Link href={"/admin/map"}>
+        <Link href="/admin/map">
           <Button
             type={"button"}
             className="w-full text-white"
@@ -192,3 +306,4 @@ const UserInfo = ({
 };
 
 export { Header };
+export type { HeaderVariant, HeaderPosition, HeaderColorType };
