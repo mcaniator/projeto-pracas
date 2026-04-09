@@ -39,7 +39,15 @@ const HomeHeader = ({
     };
   }, []);
 
-  return <Header variant={"default"} user={user} ref={header} />;
+  return (
+    <Header
+      variant="public"
+      position="static"
+      colorType="filled"
+      user={user}
+      ref={header}
+    />
+  );
 };
 
 export { HomeHeader };

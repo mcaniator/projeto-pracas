@@ -7,12 +7,7 @@ import { useLoadingOverlay } from "@components/context/loadingContext";
 import GoogleRegisterButton from "@components/singleUse/auth/googleRegisterButton";
 import { Input } from "@components/ui/input";
 import _register from "@serverActions/register";
-import {
-  IconEye,
-  IconEyeClosed,
-  IconHelp,
-  IconTree,
-} from "@tabler/icons-react";
+import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import Link from "next/link";
 import {
   startTransition,
@@ -21,6 +16,8 @@ import {
   useMemo,
   useState,
 } from "react";
+
+import AuthPageShell from "../authPageShell";
 
 const RegisterForm = ({
   inviteToken,
@@ -40,6 +37,7 @@ const RegisterForm = ({
     statusCode: number;
     errors: { message: string | null; element: string | null }[] | null;
   }>({ statusCode: 0, errors: null });
+
   useEffect(() => {
     if (state) {
       if (state.statusCode !== 201) {
@@ -67,6 +65,7 @@ const RegisterForm = ({
       }
     }
   }, [state, setHelperCard, setLoadingOverlayVisible]);
+
   const emailError = useMemo(
     () => errors.errors?.find((e) => e.element === "email"),
     [errors],
@@ -89,21 +88,22 @@ const RegisterForm = ({
     const formData = new FormData(event.currentTarget);
     startTransition(() => formAction(formData));
   }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <IconTree size={48} className="inline" />
-      <h1 className="inline text-4xl">Projeto praças</h1>
+    <AuthPageShell showIllustration={false} centerContent>
       {isPending && <LoadingIcon className="h-32 w-32" />}
       {state?.statusCode === 201 ?
-        <div className="flex flex-col items-center gap-2 text-2xl text-green-500">
+        <div className="flex flex-col items-center gap-2 text-2xl text-white">
           Usuário criado com sucesso!
-          <Link href={"/auth/login"}>
+          <Link href="/auth/login">
             <Button className="w-fit">Entrar</Button>
           </Link>
         </div>
-      : <div className={`rounded-lg bg-gray-200 p-6 ${isPending && "hidden"}`}>
+      : <div
+          className={`w-full max-w-xs ${isPending && "hidden"} rounded-md bg-white/10 p-4`}
+        >
           <form onSubmit={handleSubmit}>
-            <div className={`flex flex-col gap-4 text-center`}>
+            <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Cadastro</h2>
               <input
                 type="hidden"
@@ -111,10 +111,10 @@ const RegisterForm = ({
                 name="inviteToken"
                 id="inviteToken"
               />
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label htmlFor="email">E-mail</label>
                 <Input
-                  className={`w-full ${emailError && "outline outline-2 outline-red-500"}`}
+                  className={`w-full rounded-full border-none bg-praca-green-dark ${emailError && "outline outline-2 outline-red-500"}`}
                   type="email"
                   name="email"
                   id="email"
@@ -123,10 +123,10 @@ const RegisterForm = ({
                   <p className="text-red-500">{emailError.message}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label htmlFor="name">Nome</label>
                 <Input
-                  className={`w-full ${nameError && "outline outline-2 outline-red-500"}`}
+                  className={`w-full rounded-full border-none bg-praca-green-dark ${nameError && "outline outline-2 outline-red-500"}`}
                   name="name"
                   id="name"
                 />
@@ -134,12 +134,12 @@ const RegisterForm = ({
                   <p className="text-red-500">{nameError.message}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="relative flex flex-row items-center justify-center gap-1">
+              <div className="flex flex-col gap-2 text-left">
+                <div className="relative flex flex-row items-center gap-1">
                   <label htmlFor="password">Senha</label>
                   <Button
                     variant={"ghost"}
-                    className="group absolute left-2/3"
+                    className="group absolute left-20 text-white"
                     onPress={() =>
                       setHelperCard({
                         show: true,
@@ -156,19 +156,19 @@ const RegisterForm = ({
                       })
                     }
                   >
-                    <IconHelp className="text-black" />
+                    <IconHelp className="text-white" />
                   </Button>
                 </div>
 
                 <div className="flex flex-row gap-1">
                   <Input
-                    className={`w-full ${passwordError && "outline outline-2 outline-red-500"}`}
+                    className={`w-full rounded-full border-none bg-praca-green-dark ${passwordError && "outline outline-2 outline-red-500"}`}
                     type={`${!showPasswords.password && "password"}`}
                     name="password"
                     id="password"
                   />
                   <Button
-                    className="text-black"
+                    className="text-white"
                     variant={"ghost"}
                     onPress={() => {
                       setShowPasswords((prev) => ({
@@ -187,17 +187,17 @@ const RegisterForm = ({
                   <p className="text-red-500">{passwordError.message}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label htmlFor="passwordConfirmation">Confirmar senha</label>
                 <div className="flex flex-row gap-1">
                   <Input
-                    className={`w-full ${confirmPasswordError && "outline outline-2 outline-red-500"}`}
+                    className={`w-full rounded-full border-none bg-praca-green-dark ${confirmPasswordError && "outline outline-2 outline-red-500"}`}
                     type={`${!showPasswords.confirmPasswordError && "password"}`}
                     name="passwordConfirmation"
                     id="passwordConfirmation"
                   />
                   <Button
-                    className="text-black"
+                    className="text-white"
                     variant={"ghost"}
                     onPress={() => {
                       setShowPasswords((prev) => ({
@@ -216,20 +216,24 @@ const RegisterForm = ({
                   <p className="text-red-500">{confirmPasswordError.message}</p>
                 )}
               </div>
-              <Button type="submit" variant={"constructive"}>
+              <Button
+                type="submit"
+                variant={"constructive"}
+                className="cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+              >
                 Cadastrar
               </Button>
             </div>
           </form>
           {enableGoogleLogin && (
             <>
-              <div className={`my-2 w-full text-center`}>ou</div>
+              <div className="my-2 w-full text-center text-white">ou</div>
               <GoogleRegisterButton inviteToken={inviteToken} />
             </>
           )}
         </div>
       }
-    </div>
+    </AuthPageShell>
   );
 };
 

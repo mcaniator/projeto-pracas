@@ -5,14 +5,11 @@ import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
 import { _resetPassword } from "@serverActions/passwordResetUtil";
-import {
-  IconEye,
-  IconEyeClosed,
-  IconHelp,
-  IconTree,
-} from "@tabler/icons-react";
+import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { startTransition, useActionState, useEffect, useState } from "react";
+
+import AuthPageShell from "../authPageShell";
 
 const PasswordResetForm = ({
   token,
@@ -28,6 +25,7 @@ const PasswordResetForm = ({
     password: false,
     confirmPassword: false,
   });
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -56,23 +54,22 @@ const PasswordResetForm = ({
       });
     }
   }, [state, router, setHelperCard]);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <IconTree size={48} className="inline" />
-      <h1 className="inline text-4xl">Projeto praças</h1>
+    <AuthPageShell>
       {isPending && <LoadingIcon className="h-32 w-32" />}
-      <div className={`rounded-lg bg-gray-200 p-6 ${isPending && "hidden"}`}>
+      <div className={`w-full max-w-xs ${isPending && "hidden"}`}>
         <form onSubmit={handleSubmit}>
-          <div className={`flex flex-col gap-4 text-center`}>
+          <div className="flex flex-col gap-4 text-center text-white">
             <h2 className="text-2xl">Redefinir senha</h2>
             <h3 className="text-xl">{email}</h3>
             <input type="hidden" value={token} name="token" id="token" />
-            <div className="flex flex-col gap-2">
-              <div className="relative flex flex-row items-center justify-center gap-1">
+            <div className="flex flex-col gap-2 text-left">
+              <div className="relative flex flex-row items-center gap-1">
                 <label htmlFor="password">Senha</label>
                 <Button
                   variant={"ghost"}
-                  className="group absolute left-2/3"
+                  className="group absolute left-20 text-white"
                   onPress={() =>
                     setHelperCard({
                       show: true,
@@ -89,19 +86,19 @@ const PasswordResetForm = ({
                     })
                   }
                 >
-                  <IconHelp className="text-black" />
+                  <IconHelp className="text-white" />
                 </Button>
               </div>
 
               <div className="flex flex-row gap-1">
                 <Input
-                  className={`w-full ${state && state?.statusCode !== 200 && "outline outline-2 outline-red-500"}`}
+                  className={`w-full rounded-full border-none bg-praca-green-dark ${state && state?.statusCode !== 200 && "outline outline-2 outline-red-500"}`}
                   type={`${!showPasswords.password && "password"}`}
                   name="password"
                   id="password"
                 />
                 <Button
-                  className="text-black"
+                  className="text-white"
                   variant={"ghost"}
                   onPress={() => {
                     setShowPasswords((prev) => ({
@@ -116,17 +113,17 @@ const PasswordResetForm = ({
                 </Button>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 text-left">
               <label htmlFor="passwordConfirmation">Confirmar senha</label>
               <div className="flex flex-row gap-1">
                 <Input
-                  className={`w-full ${state && state?.statusCode !== 200 && "outline outline-2 outline-red-500"}`}
+                  className={`w-full rounded-full border-none bg-praca-green-dark ${state && state?.statusCode !== 200 && "outline outline-2 outline-red-500"}`}
                   type={`${!showPasswords.confirmPassword && "password"}`}
                   name="passwordConfirmation"
                   id="passwordConfirmation"
                 />
                 <Button
-                  className="text-black"
+                  className="text-white"
                   variant={"ghost"}
                   onPress={() => {
                     setShowPasswords((prev) => ({
@@ -141,13 +138,17 @@ const PasswordResetForm = ({
                 </Button>
               </div>
             </div>
-            <Button type="submit" variant={"constructive"}>
+            <Button
+              type="submit"
+              variant={"constructive"}
+              className="cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+            >
               Redefinir senha
             </Button>
           </div>
         </form>
       </div>
-    </div>
+    </AuthPageShell>
   );
 };
 
