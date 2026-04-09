@@ -91,11 +91,15 @@ const RequestPasswordRecoveryForm = () => {
             <CButton
               type="submit"
               color="secondary"
-              className="cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+              sx={{
+                textTransform: "none",
+                borderRadius: 20,
+                fontSize: 16,
+              }}
             >
               Solicitar redefinição
             </CButton>
-            <div className="px-8 text-sm text-white/90">
+            <div className="px-14 text-sm text-white/90">
               Caso o e-mail informado esteja cadastrado no sistema, você
               receberá um link para redefinir sua senha.
             </div>

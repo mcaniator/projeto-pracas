@@ -99,7 +99,9 @@ const RegisterForm = ({
             <Button className="w-fit">Entrar</Button>
           </Link>
         </div>
-      : <div className={`w-full max-w-xs ${isPending && "hidden"}`}>
+      : <div
+          className={`w-full max-w-xs ${isPending && "hidden"} rounded-md bg-white/10 p-4`}
+        >
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Cadastro</h2>

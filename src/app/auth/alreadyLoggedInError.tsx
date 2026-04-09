@@ -23,8 +23,13 @@ const AlreadyLoggedInError = () => {
           }}
           color="secondary"
           loadingOnClick
+          sx={{
+            textTransform: "none",
+            borderRadius: 20,
+            fontSize: 16,
+          }}
         >
-          Deslogar
+          Finalizar
         </CButton>
       </div>
     </AuthPageShell>
