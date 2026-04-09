@@ -13,10 +13,14 @@ import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { Stack } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { IconPencil, IconTrashX, IconUser } from "@tabler/icons-react";
+import {
+  IconMail,
+  IconPencil,
+  IconTrashX,
+  IconUser,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { FaTrashRestore } from "react-icons/fa";
 
 type FormRow = FetchUsersResponse["users"][number];
@@ -166,7 +170,7 @@ const UsersClient = () => {
           <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
             <Link href="/admin/users/invites">
               <CButton>
-                <AiOutlineUsergroupAdd size={26} />
+                <IconMail />
               </CButton>
             </Link>
           </PermissionGuard>

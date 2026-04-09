@@ -14,9 +14,9 @@ import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Role } from "@prisma/client";
 import {
   IconMail,
+  IconMailPlus,
   IconPencil,
   IconTrashX,
-  IconUserPlus,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
@@ -131,7 +131,7 @@ const InvitesClient = () => {
               setSelectedInvite(null);
             }}
           >
-            <IconUserPlus size={28} />
+            <IconMailPlus />
           </CButton>
         }
       />

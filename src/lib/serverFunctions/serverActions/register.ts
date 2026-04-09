@@ -33,6 +33,7 @@ const _register = async (
     const newUser = userRegisterSchema.parse({
       email: formData.get("email"),
       name: formData.get("name"),
+      username: formData.get("username"),
       password: formData.get("password"),
       confirmPassword: formData.get("passwordConfirmation"),
     });
@@ -77,6 +78,7 @@ const _register = async (
           name: newUser.name,
           password: hashedPassword,
           roles: invite.roles,
+          username: newUser.username,
         },
       });
 

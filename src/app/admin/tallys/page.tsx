@@ -6,9 +6,6 @@ import { prisma } from "../../../lib/prisma";
 const Tallys = () => {
   const usersPromise = prisma.user.findMany({
     where: {
-      username: {
-        not: null,
-      },
       tally: {
         some: {},
       },
