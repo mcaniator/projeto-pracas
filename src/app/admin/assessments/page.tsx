@@ -7,9 +7,6 @@ import AssessmentsClient from "./assessmentsClient";
 const Assessments = () => {
   const usersPromise = prisma.user.findMany({
     where: {
-      username: {
-        not: null,
-      },
       assessment: {
         some: {},
       },

@@ -128,7 +128,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                     className="px-1 py-5"
                   >
                     <IconTree size={34} />
-                    Projeto Pracas
+                    Projeto Praças
                   </Button>
                 </Link>
                 <Button
@@ -178,7 +178,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
               className="px-3 py-6"
             >
               <IconTree size={34} />
-              <span className="text-xl">Projeto Pracas</span>
+              <span className="text-xl">Projeto Praças</span>
             </Button>
           </Link>
 

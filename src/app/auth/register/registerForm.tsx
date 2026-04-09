@@ -74,6 +74,10 @@ const RegisterForm = ({
     () => errors.errors?.find((e) => e.element === "name"),
     [errors],
   );
+  const usernameError = useMemo(
+    () => errors.errors?.find((e) => e.element === "username"),
+    [errors],
+  );
   const passwordError = useMemo(
     () => errors.errors?.find((e) => e.element === "password"),
     [errors],
@@ -132,6 +136,41 @@ const RegisterForm = ({
                 />
                 {nameError && (
                   <p className="text-red-500">{nameError.message}</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 text-left">
+                <div className="relative flex flex-row items-center gap-1">
+                  <label htmlFor="username">Nome de usuário</label>
+                  <Button
+                    variant={"ghost"}
+                    className="group absolute left-40 text-white"
+                    onPress={() =>
+                      setHelperCard({
+                        show: true,
+                        helperCardType: "INFO",
+                        content: (
+                          <div className="flex flex-col gap-2">
+                            <p>
+                              Nome de usuário: Este será seu identificador único
+                              no sistema. É composto apenas por letras, números
+                              e pontos.
+                            </p>
+                          </div>
+                        ),
+                      })
+                    }
+                  >
+                    <IconHelp className="text-white" />
+                  </Button>
+                </div>
+                <Input
+                  className={`w-full rounded-full border-none bg-praca-green-dark ${usernameError && "outline outline-2 outline-red-500"}`}
+                  name="username"
+                  id="username"
+                  placeholder="Ex.: joao.silva"
+                />
+                {usernameError && (
+                  <p className="text-red-500">{usernameError.message}</p>
                 )}
               </div>
               <div className="flex flex-col gap-2 text-left">
