@@ -91,6 +91,10 @@ export const {
                     name: user.name,
                     image: user.image,
                     roles: invite.roles,
+                    username: (user.email.split("@")[0] ?? user.email).slice(
+                      0,
+                      20,
+                    ),
                   },
                 });
 
