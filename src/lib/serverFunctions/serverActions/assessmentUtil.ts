@@ -1,89 +1,13 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { AssessmentCreationFormType } from "@customTypes/assessments/assessmentCreation";
 import { auth } from "@lib/auth/auth";
 import { getSessionUser } from "@lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-
-export type LocationAssessment = NonNullable<
-  Awaited<ReturnType<typeof _fetchAssessmentsByLocation>>
->["assessments"][number];
-
-const _createAssessment = async (
-  prevState: AssessmentCreationFormType | undefined,
-  formData: FormData,
-) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      statusCode: 401,
-      locationId: "",
-      userId: "",
-      formId: "",
-      startDate: "",
-      errors: {
-        startDate: false,
-      },
-    };
-  }
-  const session = await auth();
-  if (!session || !session.user) {
-    return {
-      statusCode: 401,
-      locationId: "",
-      userId: "",
-      formId: "",
-      startDate: "",
-      errors: {
-        startDate: false,
-      },
-    };
-  }
-  const locationId = formData.get("locationId") as string;
-  const userId = session.user.id;
-  const formId = formData.get("formId") as string;
-  const startDate = formData.get("startDate") as string;
-  try {
-    await prisma.assessment.create({
-      data: {
-        startDate: new Date(startDate),
-        user: { connect: { id: userId } },
-        location: { connect: { id: Number(locationId) } },
-        form: { connect: { id: Number(formId) } },
-      },
-    });
-    revalidatePath("/");
-    return {
-      statusCode: 201,
-      locationId,
-      userId,
-      formId,
-      startDate,
-      errors: {
-        startDate: !startDate,
-      },
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      locationId,
-      userId,
-      formId,
-      startDate,
-      errors: {
-        startDate: !startDate,
-      },
-    };
-  }
-};
 
 const _createAssessmentV2 = async (
   prevState: { responseInfo: APIResponseInfo },
@@ -198,47 +122,6 @@ const _updateAssessmentVisibility = async ({
   }
 };
 
-const _fetchAssessmentsByLocation = async (locationId: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
-  } catch (e) {
-    return { statusCode: 401, assessments: [] };
-  }
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        locationId,
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        user: {
-          select: {
-            username: true,
-          },
-        },
-        form: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-    const result = assessments.map((a) => ({
-      id: a.id,
-      startDate: a.startDate,
-      endDate: a.endDate,
-      username: a.user.username!,
-      formName: a.form.name,
-      status: a.endDate ? "Finalizada" : "Em progresso",
-    }));
-    return { statusCode: 200, assessments: result };
-  } catch (e) {
-    return { statusCode: 500, assessments: [] };
-  }
-};
-
 const _deleteAssessment = async (assessmentId: number) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
@@ -307,10 +190,4 @@ const _deleteAssessment = async (assessmentId: number) => {
   }
 };
 
-export {
-  _createAssessment,
-  _createAssessmentV2,
-  _deleteAssessment,
-  _fetchAssessmentsByLocation,
-  _updateAssessmentVisibility,
-};
+export { _createAssessmentV2, _deleteAssessment, _updateAssessmentVisibility };
