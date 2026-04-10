@@ -40,7 +40,7 @@ export type LocationsMapClientFilter = {
   categoryId: number | null;
   typeId: number | null;
   name: string | null;
-  isPublic: boolean;
+  onlyPublic: boolean;
 };
 
 const PolygonsAndClientContainer = () => {
@@ -78,7 +78,7 @@ const PolygonsAndClientContainer = () => {
     categoryId: null,
     typeId: null,
     name: null,
-    isPublic: true,
+    onlyPublic: true,
   });
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -186,7 +186,7 @@ const PolygonsAndClientContainer = () => {
         if (filter.typeId !== -1) return;
         if (location.typeId !== null) return;
       }
-      if (filter.isPublic !== location.isPublic) return;
+      if (filter.onlyPublic && !location.isPublic) return;
 
       result.push(location);
     });

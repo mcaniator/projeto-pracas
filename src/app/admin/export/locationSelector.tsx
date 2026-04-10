@@ -50,7 +50,7 @@ const LocationSelector = ({
   >(null);
 
   const [filter, setFilter] = useState<
-    Omit<LocationsMapClientFilter, "isPublic">
+    Omit<LocationsMapClientFilter, "onlyPublic">
   >({
     broadAdministrativeUnitId: null,
     intermediateAdministrativeUnitId: null,
