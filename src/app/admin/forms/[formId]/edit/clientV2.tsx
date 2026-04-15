@@ -23,7 +23,7 @@ import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import CalculationDialog, {
   CalculationParams,
@@ -291,6 +291,24 @@ const ClientV2 = ({
     setFormQuestionsIds(questionsIds);
   }, [formTree]);
 
+  const formCategoriesAndSubcategoriesIds = useMemo(() => {
+    const result = {
+      categoriesIds: [] as number[],
+      subcategoriesIds: [] as number[],
+    };
+
+    formTree.categories.forEach((cat) => {
+      result.categoriesIds.push(cat.categoryId);
+      cat.categoryChildren.forEach((sub) => {
+        if (FormItemUtils.isSubcategoryType(sub)) {
+          result.subcategoriesIds.push(sub.subcategoryId);
+        }
+      });
+    });
+
+    return result;
+  }, [formTree]);
+
   const handleUpdateForm = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
@@ -430,6 +448,9 @@ const ClientV2 = ({
               categories={categories}
               formQuestionsIds={formQuestionsIds}
               isLoadingCategories={isLoadingCategories}
+              formCategoriesAndSubcategoriesIds={
+                formCategoriesAndSubcategoriesIds
+              }
               showTitle
             />
           </div>
@@ -450,6 +471,9 @@ const ClientV2 = ({
             categories={categories}
             formQuestionsIds={formQuestionsIds}
             isLoadingCategories={isLoadingCategories}
+            formCategoriesAndSubcategoriesIds={
+              formCategoriesAndSubcategoriesIds
+            }
             showTitle={false}
           />
         </CDialog>

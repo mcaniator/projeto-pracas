@@ -55,7 +55,10 @@ const CategoriesListV2 = ({
     return (
       <div className="p-1">
         <div>
-          Não há questões restantes para os parâmetros de busca selecionados!
+          {showAllQuestions ?
+            "Não há questões para os parâmetros de busca selecionados!"
+          : "Não há questões restantes para os parâmetros de busca selecionados!"
+          }
         </div>
       </div>
     );

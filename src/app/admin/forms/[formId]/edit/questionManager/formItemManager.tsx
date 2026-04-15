@@ -2,7 +2,7 @@ import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
 import { CategoriesWithQuestions } from "@queries/category";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import CategoryCreationDialog from "./categoryCreationDialog";
 import CategoryDeletionDialog from "./categoryDeletionDialog";
@@ -13,6 +13,7 @@ import SubcategoryDeletionDialog from "./subcategoryDeletionDialog";
 const FormItemManager = ({
   categories,
   selectedCategoryAndSubcategoryId,
+  formCategoriesAndSubcategoriesIds,
   reloadCategories,
   setSelectedCategoryAndSubcategoryId,
 }: {
@@ -21,6 +22,10 @@ const FormItemManager = ({
     categoryId: number | undefined;
     subcategoryId: number | null;
     verifySubcategoryNullness: boolean;
+  };
+  formCategoriesAndSubcategoriesIds: {
+    categoriesIds: number[];
+    subcategoriesIds: number[];
   };
   reloadCategories: () => void;
   setSelectedCategoryAndSubcategoryId: React.Dispatch<
@@ -85,6 +90,29 @@ const FormItemManager = ({
       ),
   );
 
+  const selectedCategoryAndSubcategoryInForm = useMemo(() => {
+    const result = {
+      selectedCategoryInForm: false,
+      selectedSubcategoryInForm: false,
+    };
+    if (selectedCategoryAndSubcategoryId.categoryId) {
+      result.selectedCategoryInForm =
+        formCategoriesAndSubcategoriesIds.categoriesIds.includes(
+          selectedCategoryAndSubcategoryId.categoryId,
+        );
+    }
+    if (
+      !!selectedCategoryAndSubcategoryId.subcategoryId &&
+      selectedCategoryAndSubcategoryId.subcategoryId > 0
+    ) {
+      result.selectedSubcategoryInForm =
+        formCategoriesAndSubcategoriesIds.subcategoriesIds.includes(
+          selectedCategoryAndSubcategoryId.subcategoryId,
+        );
+    }
+    return result;
+  }, [selectedCategoryAndSubcategoryId, formCategoriesAndSubcategoriesIds]);
+
   const handleReloadCategories = (params?: {
     resetSelectedCategory?: boolean;
     resetSelectedSubcategory?: boolean;
@@ -125,10 +153,10 @@ const FormItemManager = ({
   }, [categories, selectedCategoryAndSubcategoryId]);
   return (
     <div className="flex flex-col gap-2 overflow-auto">
-      <h4>Criar questão: </h4>
+      <h4>Cadastro de categorias, subcategorias e questões: </h4>
       <div className="text-red-500">
-        Atenção: Antes de criar uma questão, certifique-se que já não existe uma
-        questão que aborde a avaliação desejada.
+        Atenção: Antes de criar uma nova questão, verifique se já não existe uma
+        que aborde o mesmo assunto, a fim de evitar duplicidade.
       </div>
       <div>
         Questões são reutilizáveis entre formulários, para garantir a comparação
@@ -147,9 +175,18 @@ const FormItemManager = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             disableClearable
             disableAppendIconButton={
-              !selectedCategoryAndSubcategoryId.categoryId
+              selectedCategoryAndSubcategoryInForm.selectedCategoryInForm
             }
-            appendIconButton={<IconPencil />}
+            appendIconButtonTooltip={
+              selectedCategoryAndSubcategoryInForm.selectedCategoryInForm ?
+                "Para editar esta categoria, remova todas as suas questões do formulário"
+              : undefined
+            }
+            appendIconButton={
+              selectedCategoryAndSubcategoryId.categoryId ?
+                <IconPencil />
+              : undefined
+            }
             onAppendIconButtonClick={() => {
               setIsEdition(true);
               setOpenCategoryCreationDialog(true);
@@ -187,10 +224,21 @@ const FormItemManager = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             disableClearable
             disableAppendIconButton={
-              !selectedCategoryAndSubcategoryId.subcategoryId ||
-              selectedCategoryAndSubcategoryId.subcategoryId === -1
+              selectedCategoryAndSubcategoryInForm.selectedSubcategoryInForm
             }
-            appendIconButton={<IconPencil />}
+            appendIconButtonTooltip={
+              selectedCategoryAndSubcategoryInForm.selectedSubcategoryInForm ?
+                "Para editar esta subcategoria, remova todas as suas questões do formulário"
+              : undefined
+            }
+            appendIconButton={
+              (
+                selectedCategoryAndSubcategoryId.subcategoryId &&
+                selectedCategoryAndSubcategoryId.subcategoryId !== -1
+              ) ?
+                <IconPencil />
+              : undefined
+            }
             onAppendIconButtonClick={() => {
               setIsEdition(true);
               setOpenSubcategoryCreationDialog(true);

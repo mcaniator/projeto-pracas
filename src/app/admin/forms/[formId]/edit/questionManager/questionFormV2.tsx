@@ -8,7 +8,7 @@ import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
 } from "@customTypes/forms/formCreation";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Divider } from "@mui/material";
 import { CategoriesWithQuestions } from "@queries/category";
 import { IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
@@ -23,6 +23,7 @@ const QuestionFormV2 = ({
   formQuestionsIds,
   showTitle,
   isLoadingCategories,
+  formCategoriesAndSubcategoriesIds,
   addQuestion,
   reloadCategories,
 }: {
@@ -30,6 +31,10 @@ const QuestionFormV2 = ({
   formQuestionsIds: number[];
   showTitle: boolean;
   isLoadingCategories: boolean;
+  formCategoriesAndSubcategoriesIds: {
+    categoriesIds: number[];
+    subcategoriesIds: number[];
+  };
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   reloadCategories: () => void;
 }) => {
@@ -120,7 +125,6 @@ const QuestionFormV2 = ({
     }
     if (currentSearchMethod === 1) {
       setShowAllQuestions(false);
-      void searchByName();
     } else if (currentSearchMethod === 0) {
       setShowAllQuestions(false);
       void searchByCategoryAndSubcateogory();
@@ -200,7 +204,7 @@ const QuestionFormV2 = ({
         options={[
           { id: 0, label: "Categorias" },
           { id: 1, label: "Nome" },
-          { id: 2, label: "Criar" },
+          { id: 2, label: "Cadastro" },
         ]}
         getLabel={(i) => i.label}
         getValue={(i) => i.id}
@@ -241,14 +245,21 @@ const QuestionFormV2 = ({
         </div>
       )}
       {currentSearchMethod == 2 && (
-        <FormItemManager
-          categories={categories}
-          selectedCategoryAndSubcategoryId={selectedCategoryAndSubcategoryId}
-          reloadCategories={reloadCategories}
-          setSelectedCategoryAndSubcategoryId={
-            setSelectedCategoryAndSubcategoryId
-          }
-        />
+        <>
+          <FormItemManager
+            categories={categories}
+            selectedCategoryAndSubcategoryId={selectedCategoryAndSubcategoryId}
+            formCategoriesAndSubcategoriesIds={
+              formCategoriesAndSubcategoriesIds
+            }
+            reloadCategories={reloadCategories}
+            setSelectedCategoryAndSubcategoryId={
+              setSelectedCategoryAndSubcategoryId
+            }
+          />
+          <Divider />
+          <h4>Questões já existentes:</h4>
+        </>
       )}
       {loadingQuestions || isLoadingCategories ?
         <div className="m-2 flex justify-center">
