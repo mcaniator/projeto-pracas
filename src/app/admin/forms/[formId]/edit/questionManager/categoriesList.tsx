@@ -263,6 +263,7 @@ const QuestionListV2 = ({
           showAllQuestions={showAllQuestions}
           categoryName={categoryName}
           subcategoryName={subcategoryName}
+          isInCurrentForm={formQuestionsIds.includes(question.id)}
           editQuestion={editQuestion}
         />
       ))}
@@ -287,6 +288,7 @@ const QuestionComponentV2 = ({
   showAllQuestions,
   categoryName,
   subcategoryName,
+  isInCurrentForm,
   editQuestion,
 }: {
   questionId: number;
@@ -305,6 +307,7 @@ const QuestionComponentV2 = ({
   subcategoryId?: number | null;
   subcategoryName: string | null;
   showAllQuestions: boolean;
+  isInCurrentForm: boolean;
   editQuestion?: (question: {
     questionId: number;
     questionName: string;
@@ -339,6 +342,12 @@ const QuestionComponentV2 = ({
       {showAllQuestions ?
         <CButton
           variant="text"
+          disabled={isInCurrentForm}
+          tooltip={
+            isInCurrentForm ?
+              "Remova a questão do formulário para editá-la"
+            : undefined
+          }
           onClick={() => {
             editQuestion?.({
               questionId: questionId,

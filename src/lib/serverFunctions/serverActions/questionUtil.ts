@@ -273,4 +273,109 @@ const _questionUpdate = async (
   }
 };
 
-export { _questionSubmit, _questionUpdate };
+const _deleteQuestion = async (
+  prevState: { responseInfo: APIResponseInfo },
+  formData: FormData,
+) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para excluir questões!",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+
+  const questionId = parseInt(formData.get("questionId") as string);
+
+  try {
+    const formsWithQuestions = await prisma.form.findMany({
+      where: {
+        formItems: {
+          some: {
+            questionId: questionId,
+          },
+        },
+      },
+      select: {
+        name: true,
+        formItems: {
+          where: {
+            questionId: questionId,
+          },
+          select: {
+            question: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (formsWithQuestions.length > 0) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message:
+            "Não foi possí­vel excluir a questão. Ela está sendo usada em outros formulários",
+        } as APIResponseInfo,
+        data: {
+          formsWithQuestions,
+        },
+      };
+    }
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao verificar formulários com esta questão",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+
+  try {
+    const deletedQuestion = await prisma.question.delete({
+      where: {
+        id: questionId,
+      },
+      select: {
+        name: true,
+      },
+    });
+    revalidateTag("question");
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+        showSuccessCard: true,
+        message: `Questão "${deletedQuestion.name}" excluí­da!`,
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir questão!",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+};
+
+export { _deleteQuestion, _questionSubmit, _questionUpdate };

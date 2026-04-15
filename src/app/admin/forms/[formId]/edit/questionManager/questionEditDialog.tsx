@@ -9,6 +9,8 @@ import { _questionUpdate } from "@lib/serverFunctions/serverActions/questionUtil
 import { IconHelp } from "@tabler/icons-react";
 import { useActionState, useEffect, useState } from "react";
 
+import QuestionDeletionDialog from "./questionDeletionDialog";
+
 const QuestionEditDialog = ({
   questionId,
   questionName,
@@ -44,15 +46,15 @@ const QuestionEditDialog = ({
   );
 
   const [isPublicState, setIsPublicState] = useState(isPublic);
-
   const [selectedIconKey, setSelectedIconKey] = useState<string>(iconKey);
+  const [openDeletionDialog, setOpenDeletionDialog] = useState(false);
 
   useEffect(() => {
     helperCardProcessResponse(state.responseInfo);
     if (state.responseInfo.statusCode === 200) {
       reloadCategories();
     }
-  }, [state, helperCardProcessResponse]);
+  }, [state, helperCardProcessResponse, reloadCategories]);
 
   useEffect(() => {
     if (isPending) {
@@ -65,7 +67,8 @@ const QuestionEditDialog = ({
   useEffect(() => {
     setSelectedIconKey(iconKey);
     setIsPublicState(isPublic);
-  }, [questionId, iconKey, isPublic]);
+    setOpenDeletionDialog(false);
+  }, [questionId, iconKey, isPublic, open]);
 
   return (
     <CDialog
@@ -73,71 +76,92 @@ const QuestionEditDialog = ({
       title="Editar questão"
       action={formAction}
       onClose={onClose}
+      onCancel={() => {
+        setOpenDeletionDialog(true);
+      }}
       fullScreen
       open={open}
+      cancelChildren={<>Excluir</>}
+      cancelColor="error"
       confirmChildren={<>Editar</>}
     >
-      <div className="flex flex-col">
-        <div>{`Categoria: ${categoryName}`}</div>
-        {subcategoryName && <div>{`Subcategoria: ${subcategoryName}`}</div>}
+      <>
+        <div className="flex flex-col">
+          <div>{`Categoria: ${categoryName}`}</div>
+          {subcategoryName && <div>{`Subcategoria: ${subcategoryName}`}</div>}
 
-        <div>
-          Atenção: editar esta questão acarretará mudanças em todos os
-          formulários em que ela está presente!
-        </div>
-        <input
-          type="hidden"
-          name="questionId"
-          id="questionId"
-          value={questionId}
-        />
-        <input
-          type="hidden"
-          name="iconKey"
-          id="iconKey"
-          value={selectedIconKey}
-        />
-        <CTextField
-          required
-          defaultValue={questionName}
-          maxCharacters={255}
-          label="Nome"
-          id="questionName"
-          name="questionName"
-        />
-        <CTextField
-          label="Observações"
-          defaultValue={notes}
-          maxCharacters={255}
-          id="notes"
-          name="notes"
-        />
-        <div className="flex items-center gap-1">
+          <div>
+            Atenção: editar esta questão acarretará mudanças em todos os
+            formulários em que ela está presente!
+          </div>
           <input
             type="hidden"
-            id="isPublic"
-            name="isPublic"
-            value={isPublicState ? "true" : "false"}
+            name="questionId"
+            id="questionId"
+            value={questionId}
           />
-          <CSwitch
-            checked={isPublicState}
-            label="Respostas públicas"
-            name="isPublic"
-            id="isPublic"
-            onChange={(e) => {
-              setIsPublicState(e.target.checked);
-            }}
+          <input
+            type="hidden"
+            name="iconKey"
+            id="iconKey"
+            value={selectedIconKey}
           />
-          <CIconChip
-            icon={<IconHelp />}
-            tooltip="Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente"
+          <CTextField
+            required
+            defaultValue={questionName}
+            maxCharacters={255}
+            label="Nome"
+            id="questionName"
+            name="questionName"
+          />
+          <CTextField
+            label="Observações"
+            defaultValue={notes}
+            maxCharacters={255}
+            id="notes"
+            name="notes"
+          />
+          <div className="flex items-center gap-1">
+            <input
+              type="hidden"
+              id="isPublic"
+              name="isPublic"
+              value={isPublicState ? "true" : "false"}
+            />
+            <CSwitch
+              checked={isPublicState}
+              label="Respostas públicas"
+              name="isPublic"
+              id="isPublic"
+              onChange={(e) => {
+                setIsPublicState(e.target.checked);
+              }}
+            />
+            <CIconChip
+              icon={<IconHelp />}
+              tooltip="Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente"
+            />
+          </div>
+          <QuestionIconPicker
+            selectedIconKey={selectedIconKey}
+            onChange={setSelectedIconKey}
           />
         </div>
-        <QuestionIconPicker
-          selectedIconKey={selectedIconKey}
-          onChange={setSelectedIconKey}
+
+        <QuestionDeletionDialog
+          questionId={questionId}
+          questionName={questionName}
+          open={openDeletionDialog}
+          onClose={() => {
+            setOpenDeletionDialog(false);
+          }}
+          onDeleted={() => {
+            setOpenDeletionDialog(false);
+            onClose();
+            reloadCategories();
+          }}
         />
-      </div>
+      </>
     </CDialog>
   );
 };

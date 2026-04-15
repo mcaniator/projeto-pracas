@@ -284,6 +284,7 @@ const QuestionFormV2 = ({
           setQuestionToEdit(null);
         }}
         reloadCategories={() => {
+          reloadCategories();
           searchQuestions();
         }}
       />
