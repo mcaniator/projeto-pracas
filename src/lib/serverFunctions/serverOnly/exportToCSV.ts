@@ -1,15 +1,12 @@
 import { BooleanPersonProperties } from "@customTypes/tallys/tallys";
-import { hourFormatter } from "@formatters/dateFormatters";
+import {
+  dateFormatter,
+  hourFormatter,
+  weekdayFormatter,
+} from "@formatters/dateFormatters";
 
 import { Tally } from "../../zodValidators";
 
-const dateWithWeekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  weekday: "short",
-});
 const weatherNameMap = new Map([
   ["SUNNY", "Com sol"],
   ["CLOUDY", "Nublado"],
@@ -169,7 +166,7 @@ const processAndFormatTallyDataLineWithAddedContent = (tallys: Tally[]) => {
     }
   }
   return {
-    tallyString: `${[...tallyMap.values()].join(";")}`,
+    tallyString: `${[...tallyMap.values()].join(",")}`,
     totalPeople: totalPeople,
   };
 };
@@ -187,12 +184,13 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
   CSVstring +=
     ",,,,,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
   CSVstring +=
-    "Identificador;Nome da Praça;Observador;Dia;Data;Início;Duração;Temperatura;Com sol/Nublado;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
+    "Identificador,Nome da Praça,Observador,Dia,Data,Início,Duração,Temperatura,Com sol/Nublado,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-SED,MI-CAM,MI-VIG,TOT-MI,MC-SED,MC-CAM,MC-VIG,TOT-MC,MJ-SED,MJ-CAM,MJ-VIG,TOT-MJ,TOT-MULHERES,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
 
   CSVstring += tallys
     .map((tally) => {
       const startDateTime = hourFormatter.format(tally.startDate);
-      const date = dateWithWeekdayFormatter.format(tally.startDate);
+      const weekday = weekdayFormatter.format(tally.startDate);
+      const date = dateFormatter.format(tally.startDate);
       let duration = "Horário do fim da contagem não definido";
       if (tally.endDate) {
         const durationTimestampMs =
@@ -323,14 +321,14 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
             );
           }
         }
-        tallyString = `${[...tallyMap.values()].join(";")}`;
+        tallyString = `${[...tallyMap.values()].join(",")}`;
       }
       let weatherCondition = "";
       if (tally.weatherCondition) {
         weatherCondition = weatherNameMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId},${formatCSVField(tally.location.name)},${formatCSVField(tally.user.username)},${formatCSVField(date)},${formatCSVField(startDateTime)},${formatCSVField(duration)},${tally.temperature ? tally.temperature : "-"},${formatCSVField(weatherCondition)},` +
+        `${tally.locationId},${formatCSVField(tally.location.name)},${formatCSVField(tally.user.username)},${formatCSVField(weekday)},${formatCSVField(date)},${formatCSVField(startDateTime)},${formatCSVField(duration)},${tally.temperature ? tally.temperature : "-"},${formatCSVField(weatherCondition)},` +
         tallyString
       );
     })
