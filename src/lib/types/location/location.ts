@@ -76,4 +76,5 @@ export type PublicLocationForMap = {
   categoryName: string | null;
   typeName: string | null;
   st_asgeojson: string | null;
+  latestAssessmentId: number | null;
 };

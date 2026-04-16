@@ -389,7 +389,7 @@ export const AssessmentPercentageValueRenderer = ({
   );
 };
 
-const AssessmentResultViewer = ({
+const CAssessmentResultViewer = ({
   assessment,
 }: {
   assessment: AssessmentTree;
@@ -621,4 +621,4 @@ const IconsLegendDialog = ({
   );
 };
 
-export default AssessmentResultViewer;
+export default CAssessmentResultViewer;

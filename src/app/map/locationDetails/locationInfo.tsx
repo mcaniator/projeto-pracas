@@ -1,6 +1,10 @@
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
+import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { PublicFetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
 import {
@@ -8,14 +12,40 @@ import {
   IconCircleDashedLetterT,
   IconRoad,
 } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 const LocationInfo = ({
   location,
 }: {
   location: PublicFetchLocationsResponse["locations"][number];
 }) => {
+  const [latestAssessment, setLatestAssessment] =
+    useState<PublicFetchPublicAssessmentTreeResponse["assessmentTree"]>();
+
+  const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
+    usePublicFetchPublicAssessmentTree({
+      params: {
+        callbacks: {
+          onSuccess: (response) => {
+            setLatestAssessment(response.data?.assessmentTree);
+          },
+        },
+      },
+    });
+
+  useEffect(() => {
+    setLatestAssessment(undefined);
+    if (location.latestAssessmentId) {
+      void fetchLatestAssessmentTree({
+        assessmentId: String(location.latestAssessmentId),
+      });
+    } else {
+      setLatestAssessment(undefined);
+    }
+  }, [location, fetchLatestAssessmentTree]);
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 pr-2">
       <h4 className="font-semibold">Localização</h4>
       <CLocationAdministrativeUnits location={location} />
 
@@ -86,6 +116,15 @@ const LocationInfo = ({
         </>
       )}
       <Divider />
+      {fetchLatestAssessmentTreeLoading && (
+        <CLinearProgress label="Carregando mais informações..." />
+      )}
+      {latestAssessment && (
+        <>
+          <AssessmentResultViewer assessment={latestAssessment} />
+          <Divider />
+        </>
+      )}
       <h4 className="font-semibold">Situação cadastral</h4>
       <CCheckbox checked={location.isPark} label="É praça" disabled />
       <CCheckbox

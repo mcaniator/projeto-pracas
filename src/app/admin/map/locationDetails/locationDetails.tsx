@@ -49,7 +49,7 @@ const LocationDetails = ({
   }, [location]);
 
   const inner = (
-    <div className="flex flex-col gap-1">
+    <div className="flex h-full flex-col gap-1">
       <div className="flex justify-between">
         {!isMobileView && (
           <div className="flex flex-col">
@@ -64,78 +64,90 @@ const LocationDetails = ({
           </CButton>
         )}
       </div>
-      <div className="flex justify-center">
-        <CImage
-          src={location.mainImage}
-          alt={location.name}
-          width={384}
-          height={200}
-        />
-      </div>
+      {!isMobileView && <Divider />}
+      <div className="flex h-full flex-col gap-1 overflow-auto">
+        {detailsMode === detailsModes.DETAILS && (
+          <>
+            <div className="flex justify-center">
+              <CImage
+                src={location.mainImage}
+                alt={location.name}
+                width={384}
+                height={200}
+              />
+            </div>
+            <Divider />
+            <div className="flex justify-between">
+              <div className="flex gap-1">
+                <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
+                  {location.assessmentCount} avaliações{" "}
+                  <Link href={`/admin/assessments?locationId=${location.id}`}>
+                    <CButton square dense variant="text">
+                      <IconExternalLink />
+                    </CButton>
+                  </Link>
+                </div>
+                <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
+                  {location.tallyCount} contagens{" "}
+                  <Link href={`/admin/tallys?locationId=${location.id}`}>
+                    <CButton square dense variant="text">
+                      <IconExternalLink />
+                    </CButton>
+                  </Link>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                <CButton
+                  onClick={() => {
+                    enableLocationEdition();
+                    setOpenMobileDialog(false);
+                  }}
+                  square
+                  dense
+                >
+                  <IconPencil />
+                </CButton>
+                <CButton
+                  color="error"
+                  square
+                  dense
+                  onClick={() => {
+                    setOpenDeleteLocationDialog(true);
+                  }}
+                >
+                  <IconTrash />
+                </CButton>
+              </div>
+            </div>
+            <Divider />
+          </>
+        )}
 
-      <div className="flex justify-between">
-        <div className="flex gap-1">
-          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-            {location.assessmentCount} avaliações{" "}
-            <Link href={`/admin/assessments?locationId=${location.id}`}>
-              <CButton square dense variant="text">
-                <IconExternalLink />
-              </CButton>
-            </Link>
-          </div>
-          <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-            {location.tallyCount} contagens{" "}
-            <Link href={`/admin/tallys?locationId=${location.id}`}>
-              <CButton square dense variant="text">
-                <IconExternalLink />
-              </CButton>
-            </Link>
-          </div>
-        </div>
-        <div className="flex gap-1">
-          <CButton
-            onClick={() => {
-              enableLocationEdition();
-              setOpenMobileDialog(false);
+        {location.latestAssessmentId && (
+          <CToggleButtonGroup
+            options={detailsModeOptions}
+            value={detailsMode}
+            getLabel={(o) => o.label}
+            getValue={(o) => o.value}
+            onChange={(_, v) => {
+              setDetailsMode(v.value);
             }}
-            square
-            dense
-          >
-            <IconPencil />
-          </CButton>
-          <CButton
-            color="error"
-            square
-            dense
-            onClick={() => {
-              setOpenDeleteLocationDialog(true);
-            }}
-          >
-            <IconTrash />
-          </CButton>
-        </div>
-      </div>
-      <Divider />
-      {location.latestAssessmentId && (
-        <CToggleButtonGroup
-          options={detailsModeOptions}
-          value={detailsMode}
-          getLabel={(o) => o.label}
-          getValue={(o) => o.value}
-          onChange={(_, v) => {
-            setDetailsMode(v.value);
-          }}
-        />
-      )}
+          />
+        )}
 
-      <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
-        <LocationInfo location={location} reloadLocations={reloadLocations} />
-      </div>
-      <div className={detailsMode === detailsModes.HISTORY ? "" : "hidden"}>
-        <AssessmentHistory
-          locationId={location.id}
-          locationName={location.name}
-        />
+        <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
+          <LocationInfo location={location} reloadLocations={reloadLocations} />
+        </div>
+        <div
+          className={
+            detailsMode === detailsModes.HISTORY ? "min-h-0 flex-1" : "hidden"
+          }
+        >
+          <AssessmentHistory
+            locationId={location.id}
+            locationName={location.name}
+          />
+        </div>
       </div>
 
       <LocationDeleteDialog

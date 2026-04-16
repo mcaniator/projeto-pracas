@@ -1,10 +1,10 @@
+import PublicAssessmentResultViewerDialog from "@/app/map/locationDetails/publicAssessmentResultViewerDialog";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CPublicAssessmentResultViewerDialog from "@/components/ui/assessment/cPublicAssessmentResultViewerDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import { useFetchPublicAssessments } from "@/lib/serverFunctions/apiCalls/assessment";
-import { FetchPublicAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
+import { usePublicFetchPublicAssessments } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { PublicFetchPublicAssessmentsResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { Box } from "@mui/material";
 import { IconBrowserMaximize, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -18,12 +18,12 @@ const AssessmentHistory = ({
   locationName: string;
 }) => {
   const [assessments, setAssessments] = useState<
-    FetchPublicAssessmentsResponse["assessments"]
+    PublicFetchPublicAssessmentsResponse["assessments"]
   >([]);
   const [selectedAssessment, setSelectedAssessment] = useState<
-    FetchPublicAssessmentsResponse["assessments"][number] | null
+    PublicFetchPublicAssessmentsResponse["assessments"][number] | null
   >(null);
-  const [fetchPublicAssessments, loading] = useFetchPublicAssessments({
+  const [fetchPublicAssessments, loading] = usePublicFetchPublicAssessments({
     callbacks: {
       onSuccess: (response) => {
         setAssessments(response.data?.assessments ?? []);
@@ -71,7 +71,7 @@ const AssessmentHistory = ({
           );
         }}
       />
-      <CPublicAssessmentResultViewerDialog
+      <PublicAssessmentResultViewerDialog
         locationName={locationName}
         selectedAssessment={selectedAssessment}
         onClose={() => {

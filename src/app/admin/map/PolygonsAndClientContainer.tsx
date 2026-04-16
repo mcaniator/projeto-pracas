@@ -78,7 +78,7 @@ const PolygonsAndClientContainer = () => {
     categoryId: null,
     typeId: null,
     name: null,
-    onlyPublic: true,
+    onlyPublic: false,
   });
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -88,12 +88,13 @@ const PolygonsAndClientContainer = () => {
   ] = useState(false);
 
   const numberOfActiveFilters = useMemo(() => {
-    let count = 1; //Sempre há um filtro de praça visivel publicamente
+    let count = 0;
     if (filter.broadAdministrativeUnitId !== null) count++;
     if (filter.intermediateAdministrativeUnitId !== null) count++;
     if (filter.narrowAdministrativeUnitId !== null) count++;
     if (filter.categoryId !== null) count++;
     if (filter.typeId !== null) count++;
+    if (filter.onlyPublic) count++;
     return count;
   }, [filter]);
 

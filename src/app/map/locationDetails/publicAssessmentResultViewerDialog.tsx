@@ -2,27 +2,27 @@ import CLinearProgress from "@/components/ui/CLinearProgress";
 import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import {
-  FetchPublicAssessmentTreeResponse,
-  FetchPublicAssessmentsResponse,
-} from "@/lib/serverFunctions/queries/assessment";
+  PublicFetchPublicAssessmentTreeResponse,
+  PublicFetchPublicAssessmentsResponse,
+} from "@/lib/serverFunctions/queries/public/assessment";
 import { useEffect, useState } from "react";
 
-const AssessmentResultViewerDialog = ({
+const PublicAssessmentResultViewerDialog = ({
   selectedAssessment,
   locationName,
   onClose,
 }: {
   selectedAssessment:
-    | FetchPublicAssessmentsResponse["assessments"][number]
+    | PublicFetchPublicAssessmentsResponse["assessments"][number]
     | null;
   locationName: string;
   onClose: () => void;
 }) => {
   const [assessment, setAssessment] =
-    useState<FetchPublicAssessmentTreeResponse["assessmentTree"]>();
-  const [fetchAssessmentTree, loading] = useFetchPublicAssessmentTree({
+    useState<PublicFetchPublicAssessmentTreeResponse["assessmentTree"]>();
+  const [fetchAssessmentTree, loading] = usePublicFetchPublicAssessmentTree({
     params: {
       callbacks: {
         onSuccess: (response) => {
@@ -58,4 +58,4 @@ const AssessmentResultViewerDialog = ({
   );
 };
 
-export default AssessmentResultViewerDialog;
+export default PublicAssessmentResultViewerDialog;

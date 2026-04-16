@@ -1,14 +1,14 @@
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
+import CAssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
-import { FetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { PublicFetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
@@ -35,10 +35,10 @@ const LocationInfo = ({
     null,
   );
   const [latestAssessment, setLatestAssessment] =
-    useState<FetchPublicAssessmentTreeResponse["assessmentTree"]>();
+    useState<PublicFetchPublicAssessmentTreeResponse["assessmentTree"]>();
 
   const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
-    useFetchPublicAssessmentTree({
+    usePublicFetchPublicAssessmentTree({
       params: {
         callbacks: {
           onSuccess: (response) => {
@@ -81,7 +81,7 @@ const LocationInfo = ({
   }, [location, fetchLatestAssessmentTree]);
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 pr-2">
       <h4 className="font-semibold">Visibilidade</h4>
       <CSwitch
         label="Visibilidade pública"
@@ -153,7 +153,7 @@ const LocationInfo = ({
       )}
       {latestAssessment && (
         <>
-          <AssessmentResultViewer assessment={latestAssessment} />
+          <CAssessmentResultViewer assessment={latestAssessment} />
           <Divider />
         </>
       )}
