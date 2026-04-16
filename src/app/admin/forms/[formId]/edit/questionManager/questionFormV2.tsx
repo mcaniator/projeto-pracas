@@ -133,8 +133,8 @@ const QuestionFormV2 = ({
         ...prev,
         verifySubcategoryNullness: true,
       }));*/
-      void searchByCategoryAndSubcateogory();
       setShowAllQuestions(true);
+      void searchByCategoryAndSubcateogory();
     }
   }, [currentSearchMethod]);
 

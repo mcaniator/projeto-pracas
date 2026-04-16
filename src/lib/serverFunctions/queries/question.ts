@@ -98,10 +98,17 @@ const searchQuestionsByCategoryAndSubcategory = async (
   }
 };
 
-const searchQuestionsByName = async (
-  name: string,
-): Promise<{ statusCode: number; categories: CategoryForQuestionPicker[] }> => {
-  if (!name) return { statusCode: 400, categories: [] };
+const searchQuestionsByName = async (name: string) => {
+  if (!name)
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Nome inválido",
+      } as APIResponseInfo,
+      data: {
+        categories: [],
+      },
+    };
   name = "%" + name + "%";
   try {
     // This query was replaced by the one after it to use unaccent
@@ -266,9 +273,19 @@ const searchQuestionsByName = async (
         cat.question.length > 0,
     );
 
-    return { statusCode: 200, categories: nonEmptyCategories };
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        categories: nonEmptyCategories,
+      },
+    };
   } catch (e) {
-    return { statusCode: 500, categories: [] };
+    return {
+      responseInfo: { statusCode: 500 },
+      data: {
+        categories: [],
+      },
+    };
   }
 };
 
