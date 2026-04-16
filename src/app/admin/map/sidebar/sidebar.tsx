@@ -297,6 +297,9 @@ const Sidebar = ({
       )}
       <Virtuoso
         data={locations}
+        components={{
+          EmptyPlaceholder: () => <div>Nenhuma praça encontrada!</div>,
+        }}
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, location) => {
           const isSelected = selectedLocationId === location.id;

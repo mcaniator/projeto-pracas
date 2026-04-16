@@ -318,7 +318,7 @@ const PolygonsAndClientContainer = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobileView(window.innerWidth < 1000);
+      setIsMobileView(window.innerWidth < 1055);
     };
 
     window.addEventListener("resize", handleResize);
