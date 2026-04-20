@@ -7,6 +7,7 @@ import {
   InputAdornment,
   InputLabel,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { TextFieldProps } from "@mui/material/TextField";
@@ -24,6 +25,7 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   maxValue?: number;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  endAdornmentText?: string;
   alignEndAdornmentWithText?: boolean;
   tooltip?: string;
   defaultValue?: number | null;
@@ -65,6 +67,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       maxValue,
       startAdornment,
       endAdornment,
+      endAdornmentText,
       tooltip,
       alignEndAdornmentWithText,
       defaultValue,
@@ -208,6 +211,11 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                 }
                 onBlur?.(event);
               }}
+              sx={{
+                "@media (max-width: 679.95px)": {
+                  height: "36px",
+                },
+              }}
               slotProps={{
                 input: {
                   ...inputProps,
@@ -224,7 +232,19 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                 <InputAdornment position="end">
                   <div className="flex items-center gap-1">
                     <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
-                      {endAdornment}
+                      {endAdornmentText ?
+                        <Typography
+                          component="span"
+                          sx={(theme) => ({
+                            fontSize: 16,
+                            [theme.breakpoints.up("sm")]: {
+                              fontSize: 20,
+                            },
+                          })}
+                        >
+                          {endAdornmentText}
+                        </Typography>
+                      : endAdornment}
                     </div>
                     {!disabled && !readOnly ?
                       <div
