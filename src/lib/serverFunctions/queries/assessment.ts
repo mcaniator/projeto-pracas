@@ -121,6 +121,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         id: true,
         endDate: true,
         startDate: true,
+        driveFolderUrl: true,
         user: {
           select: {
             username: true,
@@ -443,6 +444,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           id: assessment.id,
           startDate: assessment.startDate,
           endDate: assessment.endDate,
+          driveFolderUrl: assessment.driveFolderUrl,
           formName: assessment.form.name,
           location: {
             id: assessment.location.id,

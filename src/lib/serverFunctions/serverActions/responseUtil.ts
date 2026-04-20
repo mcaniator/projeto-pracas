@@ -19,12 +19,14 @@ const _addResponsesV2 = async ({
   geometries,
   startDate,
   finalizationDate,
+  driveFolderUrl,
 }: {
   assessmentId: number;
   responses: FormValues;
   geometries: ResponseFormGeometry[];
   startDate: Date;
   finalizationDate: Date | null;
+  driveFolderUrl: string | null;
 }) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
@@ -137,6 +139,7 @@ const _addResponsesV2 = async ({
       data: {
         startDate,
         endDate: finalizationDate,
+        driveFolderUrl: driveFolderUrl,
       },
     });
 

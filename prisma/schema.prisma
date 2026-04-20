@@ -577,9 +577,10 @@ model BroadAdministrativeUnit {
 model Assessment {
   id Int @id @default(autoincrement())
 
-  startDate DateTime  @map("start_date") @db.Timestamptz()
-  endDate   DateTime? @map("end_date") @db.Timestamptz()
-  isPublic  Boolean   @default(false) @map("is_public")
+  startDate      DateTime  @map("start_date") @db.Timestamptz()
+  endDate        DateTime? @map("end_date") @db.Timestamptz()
+  isPublic       Boolean   @default(false) @map("is_public")
+  driveFolderUrl String?   @map("drive_folder_url") @db.VarChar(2083)
 
   userId String @db.VarChar(255)
   user   User   @relation(fields: [userId], references: [id])

@@ -20,6 +20,7 @@ const SaveAssessmentDialog = ({
   geometries,
   importedFinalizationDatetime,
   startDate,
+  driveFolderUrl,
   onClose,
 }: {
   open: boolean;
@@ -29,6 +30,7 @@ const SaveAssessmentDialog = ({
   geometries: ResponseFormGeometry[];
   importedFinalizationDatetime: Dayjs | null;
   startDate: Dayjs;
+  driveFolderUrl: string | null;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -53,6 +55,7 @@ const SaveAssessmentDialog = ({
         geometries: geometries,
         startDate: startDate.toDate(),
         finalizationDate: finalized ? (dateTime?.toDate() ?? null) : null,
+        driveFolderUrl: driveFolderUrl,
       });
       helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 201) {
@@ -82,6 +85,7 @@ const SaveAssessmentDialog = ({
       assessmentId: assessmentId,
       responses: formValues,
       geometries: geometries,
+      driveFolderUrl: driveFolderUrl,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",

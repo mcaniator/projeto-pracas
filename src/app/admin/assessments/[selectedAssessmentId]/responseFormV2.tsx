@@ -1,5 +1,6 @@
 "use client";
 
+import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -32,6 +33,7 @@ import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import CDynamicIcon from "@components/ui/dynamicIcon/cDynamicIcon";
 import { Box, Typography } from "@mui/material";
 import {
+  IconBrandGoogleDrive,
   IconDeviceFloppy,
   IconMap,
   IconPencil,
@@ -78,6 +80,7 @@ const ResponseFormV2 = ({
     responsesFormValues: FormValues;
     geometries: ResponseFormGeometry[];
     categories: AssessmentCategoryItem[];
+    driveFolderUrl: string | null;
   };
   finalized: boolean;
   userCanEdit: boolean;
@@ -123,6 +126,13 @@ const ResponseFormV2 = ({
     );
   const [startDate, setStartDate] = useState<Dayjs>(
     dayjs(assessmentTree.startDate),
+  );
+
+  const [openDriveFolderUrlDialog, setOpenDriveFolderUrlDialog] =
+    useState(false);
+
+  const [driveFolderUrl, setDriveFolderUrl] = useState<string | null>(
+    assessmentTree.driveFolderUrl,
   );
 
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
@@ -184,6 +194,7 @@ const ResponseFormV2 = ({
         geometries?: ResponseFormGeometry[];
         finalizationDateTime: string | null;
         startDate: string;
+        driveFolderUrl: string | null;
       };
 
       if (importedData.responses) {
@@ -200,6 +211,8 @@ const ResponseFormV2 = ({
       setImportedFinalizationDatetime(
         finalizationDateTime.isValid() ? finalizationDateTime : null,
       );
+
+      setDriveFolderUrl(importedData.driveFolderUrl);
 
       setHelperCard({
         show: true,
@@ -284,7 +297,7 @@ const ResponseFormV2 = ({
               setStartDate(e);
             }}
           />
-          <div className="flex items-center justify-end gap-1">
+          <div className="flex items-center justify-end gap-2">
             <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
             <CButtonFilePicker
               fileAccept="application/json"
@@ -298,6 +311,17 @@ const ResponseFormV2 = ({
             </CButtonFilePicker>
             <CButton
               square
+              tooltip="Drive"
+              enableTopLeftChip={!!driveFolderUrl}
+              topLeftChipLabel={"1"}
+              onClick={() => {
+                setOpenDriveFolderUrlDialog(true);
+              }}
+            >
+              <IconBrandGoogleDrive />
+            </CButton>
+            <CButton
+              square
               color="error"
               onClick={() => {
                 setOpenDeleteAssessmentDialog(true);
@@ -308,17 +332,34 @@ const ResponseFormV2 = ({
           </div>
         </div>
       )}
-      {!isFilling && userCanEdit && (
+      {!isFilling && (
         <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
-          <div className="flex items-center gap-1">
-            <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+          <div className="flex items-center gap-2">
+            {userCanEdit && (
+              <>
+                <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+                <CButton
+                  square
+                  onClick={() => {
+                    setIsFilling(true);
+                  }}
+                >
+                  <IconPencil />
+                </CButton>
+              </>
+            )}
+
             <CButton
               square
+              tooltip="Drive"
+              enableTopLeftChip={!!driveFolderUrl}
+              topLeftChipLabel={"1"}
+              disabled={!driveFolderUrl}
               onClick={() => {
-                setIsFilling(true);
+                setOpenDriveFolderUrlDialog(true);
               }}
             >
-              <IconPencil />
+              <IconBrandGoogleDrive />
             </CButton>
           </div>
         </div>
@@ -357,6 +398,7 @@ const ResponseFormV2 = ({
         geometries={geometries}
         importedFinalizationDatetime={importedFinalizationDatetime}
         startDate={startDate}
+        driveFolderUrl={driveFolderUrl}
         onClose={() => {
           setOpenSaveDialog(false);
         }}
@@ -368,6 +410,13 @@ const ResponseFormV2 = ({
         onClose={() => {
           setOpenDeleteAssessmentDialog(false);
         }}
+      />
+      <DriveFolderUrlDialog
+        open={openDriveFolderUrlDialog}
+        driveFolderUrl={driveFolderUrl}
+        isFilling={isFilling}
+        onClose={() => setOpenDriveFolderUrlDialog(false)}
+        onConfirm={(url) => setDriveFolderUrl(url)}
       />
     </form>
   );
