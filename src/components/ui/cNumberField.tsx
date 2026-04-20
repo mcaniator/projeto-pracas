@@ -6,6 +6,8 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  SxProps,
+  Theme,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -17,7 +19,9 @@ import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import { createDebouncedFunction } from "../../lib/utils/ui";
 
-type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
+type CNumberFieldSx = Extract<NonNullable<SxProps<Theme>>, readonly unknown[]>[number];
+
+type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   errorMessage?: string;
   readOnly?: boolean;
   debounce?: number;
@@ -32,6 +36,7 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   value?: number | null;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
+  sx?: SxProps<Theme>;
 };
 
 function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
@@ -41,6 +46,10 @@ function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
     return;
   }
   ref.current = value;
+}
+
+function isSxArray(value: SxProps<Theme> | undefined): value is readonly CNumberFieldSx[] {
+  return Array.isArray(value);
 }
 
 const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
@@ -134,7 +143,11 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       : minValue != null || maxValue != null ?
         `Digite um valor entre ${minValue} e ${maxValue}`
       : helperText;
-    const formControlSx = [
+    const normalizedSx: CNumberFieldSx[] =
+      isSxArray(sx) ? [...sx]
+      : sx ? [sx]
+      : [];
+    const formControlSx: SxProps<Theme> = [
       {
         mt: "4px",
         mb: 0,
@@ -147,9 +160,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         },
       },
       ...(readOnly ? [readOnlyTextFieldSx] : []),
-      ...(Array.isArray(sx) ? sx
-      : sx ? [sx]
-      : []),
+      ...normalizedSx,
     ];
     const field = (
       <BaseNumberField.Root
@@ -194,7 +205,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               placeholder={placeholder}
               label={label}
               disabled={disabled || readOnly}
-              inputRef={(node) => {
+              inputRef={(node: HTMLInputElement | null) => {
                 inputRef.current = node;
                 assignRef(inputProps.ref, node);
                 assignRef(ref, node);
