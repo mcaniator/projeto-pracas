@@ -1,7 +1,8 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { isValidUrl } from "@/lib/utils/url";
+import { IconCheck, IconExternalLink } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 const DriveFolderUrlDialog = ({
@@ -23,21 +24,16 @@ const DriveFolderUrlDialog = ({
     setUrl(driveFolderUrl);
   }, [open, driveFolderUrl]);
 
-  const copyLink = async () => {
-    if (!url) {
+  const openLink = () => {
+    if (!url || !isValidUrl(url)) {
       setHelperCard({
         show: true,
         helperCardType: "ERROR",
-        content: "Link vazio!",
+        content: "Link inválido!",
       });
       return;
     }
-    await navigator.clipboard.writeText(url);
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: "Link copiado!",
-    });
+    window.open(url, "_blank", "noopener,noreferrer");
   };
   return (
     <CDialog
@@ -46,11 +42,17 @@ const DriveFolderUrlDialog = ({
       open={open}
       onClose={onClose}
       confirmChildren={isFilling ? <IconCheck /> : undefined}
-      cancelChildren={url ? <IconCopy /> : undefined}
-      onCancel={() => {
-        void copyLink();
-      }}
+      cancelChildren={url && isValidUrl(url) ? <IconExternalLink /> : undefined}
+      onCancel={openLink}
       onConfirm={() => {
+        if (url && !isValidUrl(url)) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: "Link inválido!",
+          });
+          return;
+        }
         onConfirm(url);
         onClose();
       }}
