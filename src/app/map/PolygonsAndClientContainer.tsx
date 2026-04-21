@@ -1,9 +1,9 @@
 "use client";
 
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import { usePublicFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { usePublicFetchLocations } from "@/lib/serverFunctions/apiCalls/public/location";
+import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import {
@@ -36,9 +36,9 @@ export type LocationsMapClientFilter = {
 };
 
 const PolygonsAndClientContainer = () => {
-  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
   const view = map?.getView();
+  const centerOnUserLocation = useCenterOnUserLocation();
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     PublicFetchLocationsResponse["locations"]
@@ -262,6 +262,7 @@ const PolygonsAndClientContainer = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
   return (
     <PolygonProvider
       fullLocations={filteredLocationsWithPolygon}
@@ -366,27 +367,13 @@ const PolygonsAndClientContainer = () => {
           square
           tooltip="Centralizar na sua localização"
           onClick={() => {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                view?.animate({
-                  center: [pos.coords.longitude, pos.coords.latitude],
-                  zoom: 17,
-                  duration: 1000,
-                });
-              },
-              () => {
-                setHelperCard({
-                  show: true,
-                  helperCardType: "ERROR",
-                  content: <>Erro ao obter sua localização!</>,
-                });
-              },
-              {
-                enableHighAccuracy: false,
-                maximumAge: 0,
-                timeout: 60000,
-              },
-            );
+            void centerOnUserLocation({
+              view,
+              zoom: 17,
+              duration: 1000,
+              maximumAge: 0,
+              useCachedLocationImmediately: true,
+            });
           }}
         >
           <IconLocationPin />

@@ -1,10 +1,16 @@
 "use client";
 
-import { useHelperCard } from "@/components/context/helperCardContext";
+import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
+import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionGeometryTypes } from "@prisma/client";
-import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
+import {
+  IconClick,
+  IconDragDrop,
+  IconLocationPin,
+  IconPolygon,
+} from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -89,7 +95,7 @@ const MapProvider = forwardRef(
     ref,
   ) => {
     useGeographic();
-    const { setHelperCard } = useHelperCard();
+    const centerOnUserLocation = useCenterOnUserLocation();
     const [geometryTypeOptions] = useState(
       geometryType.map((g) => ({
         id: geometryTypeFormatter.get(g)!,
@@ -228,28 +234,14 @@ const MapProvider = forwardRef(
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          view.animate({
-            center: [pos.coords.longitude, pos.coords.latitude],
-            zoom: 16,
-            duration: 0,
-          });
-        },
-        () => {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Erro ao obter sua localização!</>,
-          });
-        },
-        {
-          enableHighAccuracy: false,
-          maximumAge: Infinity,
-          timeout: 60000,
-        },
-      );
-    }, [initialGeometries, locationPolygonGeoJson, setHelperCard, view]);
+      void centerOnUserLocation({
+        view,
+        zoom: 16,
+        duration: 0,
+        maximumAge: Infinity,
+        useCachedLocationImmediately: true,
+      });
+    }, [centerOnUserLocation, initialGeometries, locationPolygonGeoJson, view]);
 
     const getGeometries = () => {
       const features = vectorSource.current.getFeatures();
@@ -367,6 +359,23 @@ const MapProvider = forwardRef(
               />
             </div>
           )}
+          <div className="pointer-events-auto absolute bottom-2 right-2 z-50 flex h-fit w-fit flex-col gap-2 overflow-auto">
+            <CButton
+              square
+              tooltip="Centralizar na sua localização"
+              onClick={() => {
+                void centerOnUserLocation({
+                  view,
+                  zoom: 17,
+                  duration: 1000,
+                  maximumAge: 0,
+                  useCachedLocationImmediately: true,
+                });
+              }}
+            >
+              <IconLocationPin />
+            </CButton>
+          </div>
         </MapContext.Provider>
       </div>
     );

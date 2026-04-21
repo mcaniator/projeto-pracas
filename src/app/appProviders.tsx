@@ -1,5 +1,6 @@
 "use client";
 
+import { GeolocationProvider } from "@/components/context/geolocationContext";
 import { HelperCardProvider } from "@/components/context/helperCardContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
 import { OpenedDialogsCounterProvider } from "@/components/context/openedDialogsCounterContext";
@@ -19,7 +20,9 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
             dateAdapter={AdapterDayjs}
             adapterLocale="pt-br"
           >
-            <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+            <GeolocationProvider>
+              <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+            </GeolocationProvider>
 
             <ProgressBar
               height="4px"
