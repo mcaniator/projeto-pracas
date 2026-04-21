@@ -1,5 +1,6 @@
 "use client";
 
+import { useGeolocation } from "@/components/context/geolocationContext";
 import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
@@ -99,6 +100,7 @@ const MapProvider = forwardRef(
   ) => {
     useGeographic();
     const centerOnUserLocation = useCenterOnUserLocation();
+    const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
     const [geometryTypeOptions] = useState(
       geometryType.map((g) => ({
         id: geometryTypeFormatter.get(g)!,
@@ -158,6 +160,8 @@ const MapProvider = forwardRef(
     }, []);
 
     const view = map.getView();
+    const isUserLocationLoading =
+      !cachedUserCoordinates && isReadingUserLocation;
 
     useEffect(() => {
       if (mapRef.current !== null) {
@@ -374,6 +378,7 @@ const MapProvider = forwardRef(
             <CButton
               square
               tooltip="Centralizar na sua localização"
+              loading={isUserLocationLoading}
               onClick={() => {
                 void centerOnUserLocation({
                   view,

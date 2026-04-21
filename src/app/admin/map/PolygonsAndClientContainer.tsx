@@ -2,6 +2,7 @@
 
 import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
 import { MapContext } from "@/app/admin/map/mapProvider";
+import { useGeolocation } from "@/components/context/geolocationContext";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
@@ -47,6 +48,9 @@ const PolygonsAndClientContainer = () => {
   const map = useContext(MapContext);
   const view = map?.getView();
   const centerOnUserLocation = useCenterOnUserLocation();
+  const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
+  const isUserLocationLoading =
+    !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
@@ -457,6 +461,7 @@ const PolygonsAndClientContainer = () => {
           <CButton
             square
             tooltip="Centralizar na sua localização"
+            loading={isUserLocationLoading}
             onClick={() => {
               void centerOnUserLocation({
                 view,

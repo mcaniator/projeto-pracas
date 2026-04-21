@@ -17,6 +17,7 @@ type ReadLocationOptions = {
 
 type GeolocationContextType = {
   cachedUserCoordinates: UserCoordinates | null;
+  isReadingUserLocation: boolean;
   readUserLocation: (
     options: ReadLocationOptions,
   ) => Promise<UserCoordinates | null>;
@@ -33,6 +34,7 @@ export const GeolocationProvider = ({
 }) => {
   const [cachedUserCoordinates, setCachedUserCoordinates] =
     useState<UserCoordinates | null>(null);
+  const [pendingUserLocationReads, setPendingUserLocationReads] = useState(0);
 
   const readUserLocation = useCallback(
     async ({
@@ -43,6 +45,8 @@ export const GeolocationProvider = ({
       }
 
       return new Promise((resolve) => {
+        setPendingUserLocationReads((current) => current + 1);
+
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const coordinates: UserCoordinates = [
@@ -50,9 +54,11 @@ export const GeolocationProvider = ({
               pos.coords.latitude,
             ];
             setCachedUserCoordinates(coordinates);
+            setPendingUserLocationReads((current) => Math.max(0, current - 1));
             resolve(coordinates);
           },
           () => {
+            setPendingUserLocationReads((current) => Math.max(0, current - 1));
             resolve(null);
           },
           {
@@ -69,9 +75,10 @@ export const GeolocationProvider = ({
   const value = useMemo(
     () => ({
       cachedUserCoordinates,
+      isReadingUserLocation: pendingUserLocationReads > 0,
       readUserLocation,
     }),
-    [cachedUserCoordinates, readUserLocation],
+    [cachedUserCoordinates, pendingUserLocationReads, readUserLocation],
   );
 
   return (

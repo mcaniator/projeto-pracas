@@ -1,5 +1,6 @@
 "use client";
 
+import { useGeolocation } from "@/components/context/geolocationContext";
 import CButton from "@/components/ui/cButton";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { usePublicFetchCities } from "@/lib/serverFunctions/apiCalls/city";
@@ -39,6 +40,9 @@ const PolygonsAndClientContainer = () => {
   const map = useContext(MapContext);
   const view = map?.getView();
   const centerOnUserLocation = useCenterOnUserLocation();
+  const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
+  const isUserLocationLoading =
+    !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     PublicFetchLocationsResponse["locations"]
@@ -366,6 +370,7 @@ const PolygonsAndClientContainer = () => {
         <CButton
           square
           tooltip="Centralizar na sua localização"
+          loading={isUserLocationLoading}
           onClick={() => {
             void centerOnUserLocation({
               view,
