@@ -36,7 +36,10 @@ import {
   useState,
 } from "react";
 
-import { resolveInitialViewTarget } from "./mapInitialView";
+import {
+  getInitialViewTargetKey,
+  resolveInitialViewTarget,
+} from "./mapInitialView";
 
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 
@@ -111,6 +114,7 @@ const MapProvider = forwardRef(
     );
     const vectorSource = useRef<VectorSource>(new VectorSource());
     const mapRef = useRef<HTMLDivElement>(null);
+    const lastAppliedInitialViewKeyRef = useRef<string | null>(null);
 
     const styleFunction = () => {
       const style = new Style({
@@ -225,6 +229,13 @@ const MapProvider = forwardRef(
         locationPolygonGeoJson,
         initialGeometries,
       });
+      const initialViewTargetKey = getInitialViewTargetKey(initialViewTarget);
+
+      if (lastAppliedInitialViewKeyRef.current === initialViewTargetKey) {
+        return;
+      }
+
+      lastAppliedInitialViewKeyRef.current = initialViewTargetKey;
 
       if (initialViewTarget.type !== "geolocation") {
         view.fit(initialViewTarget.extent, {
@@ -367,7 +378,7 @@ const MapProvider = forwardRef(
                 void centerOnUserLocation({
                   view,
                   zoom: 17,
-                  duration: 1000,
+                  duration: 500,
                   maximumAge: 0,
                   useCachedLocationImmediately: true,
                 });

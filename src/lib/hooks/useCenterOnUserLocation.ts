@@ -31,7 +31,7 @@ const useCenterOnUserLocation = () => {
         view.animate({
           center: cachedUserCoordinates,
           zoom,
-          duration: 150,
+          duration,
         });
 
         void readUserLocation({

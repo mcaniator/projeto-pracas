@@ -5,7 +5,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -66,12 +65,6 @@ export const GeolocationProvider = ({
     },
     [],
   );
-
-  useEffect(() => {
-    void readUserLocation({
-      maximumAge: Infinity,
-    });
-  }, [readUserLocation]);
 
   const value = useMemo(
     () => ({

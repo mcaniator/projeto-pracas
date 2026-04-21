@@ -1,9 +1,9 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
+import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { usePublicFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { usePublicFetchLocations } from "@/lib/serverFunctions/apiCalls/public/location";
-import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import {
@@ -370,7 +370,7 @@ const PolygonsAndClientContainer = () => {
             void centerOnUserLocation({
               view,
               zoom: 17,
-              duration: 1000,
+              duration: 500,
               maximumAge: 0,
               useCachedLocationImmediately: true,
             });

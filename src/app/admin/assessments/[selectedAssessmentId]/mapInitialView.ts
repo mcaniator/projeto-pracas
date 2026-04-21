@@ -18,6 +18,14 @@ export type InitialViewTarget =
       type: "geolocation";
     };
 
+export const getInitialViewTargetKey = (target: InitialViewTarget) => {
+  if (target.type === "geolocation") {
+    return target.type;
+  }
+
+  return `${target.type}:${target.extent.join(",")}`;
+};
+
 const getLocationPolygonExtent = (
   locationPolygonGeoJson: string | null | undefined,
 ): Extent | null => {

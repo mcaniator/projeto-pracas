@@ -461,7 +461,7 @@ const PolygonsAndClientContainer = () => {
               void centerOnUserLocation({
                 view,
                 zoom: 17,
-                duration: 1000,
+                duration: 500,
                 maximumAge: 0,
                 useCachedLocationImmediately: true,
               });
