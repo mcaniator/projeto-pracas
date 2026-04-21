@@ -157,3 +157,4 @@ docs
 
 # tests
 *.test.cjs
+*.test.ts
