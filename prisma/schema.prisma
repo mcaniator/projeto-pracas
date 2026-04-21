@@ -622,8 +622,9 @@ model Assessment {
 model Tally {
   id Int @id @default(autoincrement())
 
-  startDate DateTime  @map("start_date") @db.Timestamptz(0)
-  endDate   DateTime? @map("end_date") @db.Timestamptz(0)
+  startDate   DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate     DateTime? @map("end_date") @db.Timestamptz(0)
+  isFinalized Boolean   @default(false) @map("is_finalized")
 
   animalsAmount        Int?               @map("animals_amount")
   temperature          Float?

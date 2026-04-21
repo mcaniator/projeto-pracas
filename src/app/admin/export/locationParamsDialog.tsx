@@ -145,7 +145,15 @@ const LocationParamsDialog = ({
                       }}
                     />
                     <div className="flex w-full flex-row items-center justify-between">
-                      <span>{`${dateTimeFormatter.format(new Date(t.startDate))} - ${t.endDate ? dateTimeFormatter.format(new Date(t.endDate)) : "Sem data final!"}`}</span>
+                      <div className="flex flex-col">
+                        <span>{`${dateTimeFormatter.format(new Date(t.startDate))} - ${t.endDate ? dateTimeFormatter.format(new Date(t.endDate)) : "Sem data final!"}`}</span>
+                        <Chip
+                          sx={{ mt: 0.5, width: "fit-content" }}
+                          size="small"
+                          color={t.isFinalized ? "secondary" : "error"}
+                          label={t.isFinalized ? "Finalizado" : "Em progresso"}
+                        />
+                      </div>
                       <span className="flex">
                         <IconUser />
                         {t.user.username}

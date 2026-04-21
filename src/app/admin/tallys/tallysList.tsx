@@ -39,8 +39,8 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                     {`${a.location.name} - ${a.id} `}
                     <Chip
                       sx={{ ml: 2 }}
-                      color={a.endDate ? "secondary" : "error"}
-                      label={a.endDate ? "Finalizado" : "Em progresso"}
+                      color={a.isFinalized ? "secondary" : "error"}
+                      label={a.isFinalized ? "Finalizado" : "Em progresso"}
                     />
                   </span>
                   <Divider />
@@ -62,7 +62,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                       square
                       loadingOnClick
                       href={
-                        a.endDate ?
+                        a.isFinalized ?
                           `/admin/tallys/result/${a.id}`
                         : `/admin/tallys/${a.id}/fill`
                       }

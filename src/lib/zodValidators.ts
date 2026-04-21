@@ -392,6 +392,7 @@ const commercialActivitySchema = z.record(
 const ongoingTallySchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
@@ -414,6 +415,7 @@ const tallySchema = z.object({
   locationId: z.coerce.number().int().nonnegative().finite(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
@@ -447,6 +449,7 @@ const tallysExportIndividualTallysSchema = z.array(
     locationId: z.coerce.number().int().nonnegative().finite(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().nullable(),
+    isFinalized: z.coerce.boolean(),
     animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
     temperature: z.coerce.number().finite().nullable(),
     weatherCondition: z.nativeEnum(WeatherConditions).nullable(),

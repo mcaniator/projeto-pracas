@@ -44,12 +44,6 @@ import { TiWeatherPartlySunny } from "react-icons/ti";
 
 import TallyInProgressReview from "./tallyInProgressReview";
 
-interface SubmittingObj {
-  submitting: boolean;
-  finishing: boolean;
-  deleting: boolean;
-}
-
 const activityOptionsMale: ActivityOption[] = [
   {
     value: "SEDENTARY",
@@ -101,13 +95,11 @@ const defaultCommercialActivitiesOptions = [
 ];
 const TallyInProgressPage = ({
   tallyId,
-  locationId,
   locationName,
   tally,
   finalizedTally,
 }: {
   tallyId: number;
-  locationId: number;
   locationName: string;
   tally: OngoingTally;
   finalizedTally: boolean;
@@ -127,15 +119,11 @@ const TallyInProgressPage = ({
   ] = useState(false);
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
-  const [submittingObj, setSubmittingObj] = useState<SubmittingObj>({
-    submitting: false,
-    finishing: false,
-    deleting: false,
-  });
   const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
   const [endDate, setEndDate] = useState<Dayjs | null>(
     tally.endDate ? dayjs(tally.endDate) : null,
   );
+  const [isFinalized, setIsFinalized] = useState(finalizedTally);
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
     const tallyMap = new Map();
     if (tally.tallyPerson) {
@@ -274,6 +262,7 @@ const TallyInProgressPage = ({
         };
         startDate: string;
         endDate: string | null;
+        isFinalized?: boolean;
       };
 
       setWeatherStats(importedData.weatherStats);
@@ -282,11 +271,12 @@ const TallyInProgressPage = ({
       setComplementaryData(importedData.complementaryData);
       setStartDate(dayjs(importedData.startDate));
       setEndDate(dayjs(importedData.endDate ? importedData.endDate : null));
+      setIsFinalized(importedData.isFinalized ?? !!importedData.endDate);
 
       setHelperCard({
         show: true,
         helperCardType: "CONFIRM",
-        content: <>Avaliação importada!</>,
+        content: <>Contagem importada!</>,
       });
     } catch (err) {
       setHelperCard({
@@ -590,21 +580,14 @@ const TallyInProgressPage = ({
           className="hidden min-w-[525px] basis-1/3 xl:block"
         >
           <TallyInProgressReview
-            submittingObj={submittingObj}
-            tallyId={tallyId}
-            locationId={locationId}
-            locationName={locationName}
             tally={tally}
             weatherStats={weatherStats}
             complementaryData={complementaryData}
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
             startDate={startDate}
-            endDate={endDate}
-            finalizedTally={finalizedTally}
             setStartDate={setStartDate}
-            setEndDate={setEndDate}
-            setSubmittingObj={setSubmittingObj}
+            onOpenSaveDialog={() => setOpenSaveDialog(true)}
           />
         </Paper>
       </div>
@@ -656,9 +639,7 @@ const TallyInProgressPage = ({
       <TallyInProgressSaveDialog
         open={openSaveDialog}
         onClose={() => setOpenSaveDialog(false)}
-        submittingObj={submittingObj}
         tallyId={tallyId}
-        locationId={locationId}
         locationName={locationName}
         weatherStats={weatherStats}
         complementaryData={complementaryData}
@@ -666,14 +647,12 @@ const TallyInProgressPage = ({
         tallyMap={tallyMap}
         startDate={startDate}
         endDate={endDate}
-        finalizedTally={finalizedTally}
-        setStartDate={setStartDate}
+        finalizedTally={isFinalized}
         setEndDate={setEndDate}
-        setSubmittingObj={setSubmittingObj}
+        setIsFinalized={setIsFinalized}
       />
     </div>
   );
 };
 
 export { TallyInProgressPage };
-export { type SubmittingObj };
