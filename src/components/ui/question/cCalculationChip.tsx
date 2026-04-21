@@ -1,7 +1,8 @@
+import { Calculation } from "@/lib/utils/calculationUtils";
 import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps, Tooltip } from "@mui/material";
 import { IconCalculator } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import CMentionsTextField from "../cMentionsTextField";
 import CDialog from "../dialog/cDialog";
@@ -20,9 +21,12 @@ const CCalculationChip = ({
   questions,
 }: CalculationChipProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const tooltip = "Questão preenchida por cálculo";
+  const tooltip = "Questão preenchida por cálculo. Clique para ver.";
   const icon = <IconCalculator />;
   const variant = "default";
+  const calculationReadableExpression = useMemo(() => {
+    return new Calculation(expression).getReadableExpression();
+  }, [expression]);
 
   const handleChipClick = () => {
     if (!expression) return;
@@ -54,7 +58,7 @@ const CCalculationChip = ({
         disableDialogActions
       >
         <div className="mt-1 w-full">
-          <Tooltip title={expression} enterTouchDelay={1}>
+          <Tooltip title={calculationReadableExpression} enterTouchDelay={1}>
             <CMentionsTextField
               fullWidth
               label="Expressão"

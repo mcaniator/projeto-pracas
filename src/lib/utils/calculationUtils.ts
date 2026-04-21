@@ -2,11 +2,12 @@ import { evaluate as MathEvaluate } from "mathjs";
 
 class Calculation {
   idRegex = /@\[[^\]]+\]\((\d+)\)/g;
+  readableExpressionRegex = /@\[(.*?)\]\(\d+\)/g;
   expression: string | null | undefined = undefined;
   responses: Map<number, number | null> = new Map();
 
   constructor(
-    expression: string | null,
+    expression: string | null | undefined,
     responses?: Map<number, number | null>,
   ) {
     this.expression = expression;
@@ -59,6 +60,17 @@ class Calculation {
       }
       return Number(id);
     });
+  }
+
+  public getReadableExpression() {
+    if (!this.expression) {
+      return this.expression;
+    }
+
+    return this.expression.replace(
+      this.readableExpressionRegex,
+      (_, questionName: string) => questionName,
+    );
   }
 
   private findResponse(questionId: number) {

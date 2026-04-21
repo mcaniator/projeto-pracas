@@ -1,6 +1,6 @@
 import CIconChip from "@components/ui/cIconChip";
 import { QuestionGeometryTypes } from "@prisma/client";
-import { IconLassoPolygon, IconMapOff, IconPolygon } from "@tabler/icons-react";
+import { IconLassoPolygon, IconPolygon } from "@tabler/icons-react";
 import { FaMapPin } from "react-icons/fa6";
 
 type QuestionGeometryChipProps = {
@@ -30,8 +30,7 @@ const CQuestionGeometryChip = ({
       }
     }
   } else {
-    icon = <IconMapOff />;
-    tooltip = "Não permite adição de geometrias ao mapa";
+    return;
   }
 
   return <CIconChip icon={icon} tooltip={tooltip} variant={variant} />;

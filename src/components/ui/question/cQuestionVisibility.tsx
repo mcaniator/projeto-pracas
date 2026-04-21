@@ -1,5 +1,5 @@
 import CIconChip from "@components/ui/cIconChip";
-import { IconWorld, IconWorldOff } from "@tabler/icons-react";
+import { IconWorld } from "@tabler/icons-react";
 
 type QuestionVisibilityChipProps = {
   isPublic: boolean;
@@ -15,8 +15,7 @@ const CQuestionVisibilityChip = ({ isPublic }: QuestionVisibilityChipProps) => {
     icon = <IconWorld />;
     tooltip = "Respostas a esta questão são visíveis publicamente";
   } else {
-    icon = <IconWorldOff />;
-    tooltip = "Respostas a esta questão não são visíveis publicamente";
+    return;
   }
 
   return <CIconChip icon={icon} tooltip={tooltip} variant={variant} />;
