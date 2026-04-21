@@ -8,7 +8,7 @@ import { useFetchAssessments } from "@/lib/serverFunctions/apiCalls/assessment";
 import { useFetchTallys } from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
-import { Divider, LinearProgress } from "@mui/material";
+import { Chip, Divider, LinearProgress } from "@mui/material";
 import { IconCheck, IconClipboard, IconUser } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -193,6 +193,12 @@ const LocationParamsDialog = ({
                         <div className="flex flex-row items-center">
                           <IconClipboard />
                           {a.form.name}
+                          <Chip
+                            sx={{ ml: 1 }}
+                            size="small"
+                            color={a.isFinalized ? "secondary" : "error"}
+                            label={a.isFinalized ? "Finalizado" : "Em progresso"}
+                          />
                         </div>
                         <span className="flex flex-row items-center">
                           {`${dateTimeFormatter.format(new Date(a.startDate))} - ${a.endDate ? dateTimeFormatter.format(new Date(a.endDate)) : "Sem data final!"}`}

@@ -57,9 +57,7 @@ const fetchRecentlyCompletedAssessments = async () => {
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
-        NOT: {
-          endDate: null,
-        },
+        isFinalized: true,
       },
       orderBy: {
         endDate: "desc",
@@ -67,6 +65,7 @@ const fetchRecentlyCompletedAssessments = async () => {
       select: {
         id: true,
         endDate: true,
+        isFinalized: true,
         startDate: true,
         location: {
           select: {
@@ -124,6 +123,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       select: {
         id: true,
         endDate: true,
+        isFinalized: true,
         startDate: true,
         driveFolderUrl: true,
         user: {
@@ -457,6 +457,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           id: assessment.id,
           startDate: assessment.startDate,
           endDate: assessment.endDate,
+          isFinalized: assessment.isFinalized,
           driveFolderUrl: assessment.driveFolderUrl,
           formName: assessment.form.name,
           location: {
@@ -496,6 +497,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
       select: {
         id: true,
         endDate: true,
+        isFinalized: true,
         startDate: true,
         user: {
           select: {
@@ -825,6 +827,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           id: assessment.id,
           startDate: assessment.startDate,
           endDate: assessment.endDate,
+          isFinalized: assessment.isFinalized,
           formName: assessment.form.name,
           location: {
             id: assessment.location.id,
@@ -857,13 +860,13 @@ export type FetchAssessmentsResponse = NonNullable<
 
 const fetchAssessments = async (params: FetchAssessmentsParams) => {
   try {
-    let endDateFilter = undefined;
+    let isFinalizedFilter = undefined;
     if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
-      endDateFilter = { not: null };
+      isFinalizedFilter = true;
     } else if (
       params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED
     ) {
-      endDateFilter = null;
+      isFinalizedFilter = false;
     }
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -871,7 +874,7 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
           gte: params.startDate,
           lte: params.endDate,
         },
-        endDate: endDateFilter,
+        isFinalized: isFinalizedFilter,
         formId: params.formId,
         userId: params.userId,
         location: {
@@ -889,6 +892,7 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
         id: true,
         startDate: true,
         endDate: true,
+        isFinalized: true,
         isPublic: true,
         user: {
           select: {

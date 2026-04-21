@@ -77,6 +77,7 @@ const ResponseFormV2 = ({
     id: number;
     startDate: Date;
     endDate: Date | null;
+    isFinalized: boolean;
     formName: string;
     totalQuestions: number;
     responsesFormValues: FormValues;
@@ -123,9 +124,10 @@ const ResponseFormV2 = ({
   });
 
   const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(
-      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
-    );
+    useState<Dayjs | null>(assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null);
+  const [importedIsFinalized, setImportedIsFinalized] = useState(
+    assessmentTree.isFinalized,
+  );
   const [startDate, setStartDate] = useState<Dayjs>(
     dayjs(assessmentTree.startDate),
   );
@@ -194,7 +196,9 @@ const ResponseFormV2 = ({
         assessmentId: number;
         responses: FormValues;
         geometries?: ResponseFormGeometry[];
-        finalizationDateTime: string | null;
+        endDateTime?: string | null;
+        finalizationDateTime?: string | null;
+        isFinalized?: boolean;
         startDate: string;
         driveFolderUrl: string | null;
       };
@@ -209,9 +213,14 @@ const ResponseFormV2 = ({
       const startDate = dayjs(importedData.startDate);
       setStartDate(startDate);
 
-      const finalizationDateTime = dayjs(importedData.finalizationDateTime);
+      const endDateTime = dayjs(
+        importedData.endDateTime ?? importedData.finalizationDateTime,
+      );
       setImportedFinalizationDatetime(
-        finalizationDateTime.isValid() ? finalizationDateTime : null,
+        endDateTime.isValid() ? endDateTime : null,
+      );
+      setImportedIsFinalized(
+        importedData.isFinalized ?? !!importedData.finalizationDateTime,
       );
 
       setDriveFolderUrl(importedData.driveFolderUrl);
@@ -399,7 +408,8 @@ const ResponseFormV2 = ({
         open={openSaveDialog}
         formValues={formValues}
         geometries={geometries}
-        importedFinalizationDatetime={importedFinalizationDatetime}
+        importedEndDatetime={importedFinalizationDatetime}
+        importedIsFinalized={importedIsFinalized}
         startDate={startDate}
         driveFolderUrl={driveFolderUrl}
         onClose={() => {
