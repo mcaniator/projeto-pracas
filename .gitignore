@@ -152,5 +152,8 @@ typings/
 # worktrees
 .worktrees/
 
-#docs
+# docs
 docs
+
+# tests
+*.test.cjs

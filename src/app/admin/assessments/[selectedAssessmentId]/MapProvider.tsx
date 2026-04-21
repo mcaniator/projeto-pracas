@@ -30,6 +30,8 @@ import {
   useState,
 } from "react";
 
+import { resolveInitialViewTarget } from "./mapInitialView";
+
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 
 const geometryTypeTranslation = new globalThis.Map<
@@ -61,6 +63,7 @@ const mapModeOptions: {
 interface MapProviderProps {
   geometryType: QuestionGeometryTypes[];
   questionId: number;
+  locationPolygonGeoJson: string | null;
   initialGeometries: ResponseGeometry[] | undefined;
   handleQuestionGeometryChange: (
     questionId: number,
@@ -77,6 +80,7 @@ const MapProvider = forwardRef(
     {
       geometryType,
       questionId,
+      locationPolygonGeoJson,
       initialGeometries,
       handleQuestionGeometryChange,
       handleChangeIsInSelectMode,
@@ -100,7 +104,6 @@ const MapProvider = forwardRef(
       null,
     );
     const vectorSource = useRef<VectorSource>(new VectorSource());
-
     const mapRef = useRef<HTMLDivElement>(null);
 
     const styleFunction = () => {
@@ -143,9 +146,88 @@ const MapProvider = forwardRef(
         controls: [],
       });
     }, []);
+
     const view = map.getView();
+
     useEffect(() => {
-      if (mapRef.current !== null) map.setTarget(mapRef.current);
+      if (mapRef.current !== null) {
+        map.setTarget(mapRef.current);
+      }
+
+      const interactions = map.getInteractions();
+      interactions.forEach((interaction) => {
+        if (
+          interaction instanceof Draw ||
+          interaction instanceof Modify ||
+          interaction instanceof Select
+        ) {
+          map.removeInteraction(interaction);
+        }
+      });
+
+      const draw = new Draw({
+        source: vectorSource.current,
+        type: currentGeometryType,
+        style:
+          currentGeometryType === "Polygon" ?
+            {
+              "fill-color": "#9B59B24D",
+              "stroke-color": "#7C4091",
+              "stroke-line-cap": "butt",
+              "stroke-line-dash": [10],
+              "stroke-width": 3,
+            }
+          : {
+              "circle-radius": 5,
+              "circle-fill-color": "#9B59B2",
+            },
+      });
+
+      if (!finalized) {
+        map.addInteraction(draw);
+        handleChangeIsInSelectMode(false);
+        setMapMode("DRAW");
+      }
+
+      return () => {
+        map.setTarget(undefined);
+      };
+    }, [map, currentGeometryType, finalized, handleChangeIsInSelectMode]);
+
+    useEffect(() => {
+      vectorSource.current.clear();
+
+      initialGeometries?.forEach((geometry) => {
+        let feature: Feature | undefined;
+
+        if (geometry.type === "Point") {
+          feature = new Feature(new Point(geometry.coordinates as number[]));
+        } else if (geometry.type === "Polygon") {
+          feature = new Feature(
+            new Polygon(geometry.coordinates as number[][][]),
+          );
+        }
+
+        if (feature) {
+          vectorSource.current.addFeature(feature);
+        }
+      });
+    }, [initialGeometries]);
+
+    useEffect(() => {
+      const initialViewTarget = resolveInitialViewTarget({
+        locationPolygonGeoJson,
+        initialGeometries,
+      });
+
+      if (initialViewTarget.type !== "geolocation") {
+        view.fit(initialViewTarget.extent, {
+          padding: [48, 48, 48, 48],
+          duration: 0,
+        });
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           view.animate({
@@ -167,68 +249,7 @@ const MapProvider = forwardRef(
           timeout: 60000,
         },
       );
-      const interactions = map.getInteractions();
-      interactions.forEach((interaction) => {
-        if (
-          interaction instanceof Draw ||
-          interaction instanceof Modify ||
-          interaction instanceof Select
-        )
-          map.removeInteraction(interaction);
-      });
-      const draw = new Draw({
-        source: vectorSource.current,
-        type: currentGeometryType,
-        style:
-          currentGeometryType === "Polygon" ?
-            {
-              "fill-color": "#9B59B24D",
-              "stroke-color": "#7C4091",
-              "stroke-line-cap": "butt",
-              "stroke-line-dash": [10],
-              "stroke-width": 3,
-            }
-          : {
-              "circle-radius": 5,
-              "circle-fill-color": "#9B59B2",
-            },
-      });
-      if (!finalized) {
-        map.addInteraction(draw);
-        handleChangeIsInSelectMode(false);
-        setMapMode("DRAW");
-      }
-
-      return () => {
-        map.setTarget(undefined);
-      };
-    }, [
-      map,
-      view,
-      currentGeometryType,
-      finalized,
-      handleChangeIsInSelectMode,
-      setHelperCard,
-    ]);
-
-    useEffect(() => {
-      if (initialGeometries) {
-        vectorSource.current.clear();
-        initialGeometries.forEach((geometry) => {
-          let feature;
-          if (geometry.type === "Point") {
-            feature = new Feature(new Point(geometry.coordinates as number[]));
-          } else if (geometry.type === "Polygon") {
-            feature = new Feature(
-              new Polygon(geometry.coordinates as number[]),
-            );
-          }
-          if (feature) {
-            vectorSource.current.addFeature(feature);
-          }
-        });
-      }
-    }, [initialGeometries]);
+    }, [initialGeometries, locationPolygonGeoJson, setHelperCard, view]);
 
     const getGeometries = () => {
       const features = vectorSource.current.getFeatures();
@@ -243,6 +264,7 @@ const MapProvider = forwardRef(
           }
         })
         .filter((g) => g !== undefined);
+
       if (geometries !== undefined) {
         handleQuestionGeometryChange(questionId, geometries);
       }
@@ -254,8 +276,10 @@ const MapProvider = forwardRef(
         setSelectedFeature(null);
       }
     };
+
     const switchMode = (newMode: MapMode) => {
       if (finalized) return;
+
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
 

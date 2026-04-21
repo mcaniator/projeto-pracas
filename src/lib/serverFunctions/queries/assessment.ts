@@ -113,6 +113,10 @@ export type FetchAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof getAssessmentTree>>["data"]
 >;
 
+type AssessmentLocationPolygon = {
+  st_asgeojson: string | null;
+};
+
 const getAssessmentTree = async (params: { assessmentId: number }) => {
   try {
     const assessment = await prisma.assessment.findUnique({
@@ -221,6 +225,15 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       },
     });
     if (!assessment) throw new Error("Assessment not found");
+    const [locationPolygon] = await prisma.$queryRaw<Array<AssessmentLocationPolygon>>`
+      SELECT
+        CASE
+          WHEN ST_IsEmpty(l.polygon) THEN NULL
+          ELSE ST_AsGeoJSON(l.polygon)::text
+        END AS st_asgeojson
+      FROM location l
+      WHERE l.id = ${assessment.location.id}
+    `;
     const form = assessment.form;
 
     const categories: AssessmentCategoryItem[] = [];
@@ -449,6 +462,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           location: {
             id: assessment.location.id,
             name: assessment.location.name,
+            st_asgeojson: locationPolygon?.st_asgeojson ?? null,
           },
           user: {
             id: assessment.user.id,

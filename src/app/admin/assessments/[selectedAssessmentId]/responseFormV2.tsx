@@ -65,12 +65,14 @@ export type SimpleMention = {
 const ResponseFormV2 = ({
   locationId,
   locationName,
+  locationPolygonGeoJson,
   assessmentTree,
   finalized,
   userCanEdit,
 }: {
   locationId: number;
   locationName: string;
+  locationPolygonGeoJson: string | null;
   assessmentTree: {
     id: number;
     startDate: Date;
@@ -373,6 +375,7 @@ const ResponseFormV2 = ({
           geometries={geometries}
           questionsForMention={questionsForMention}
           finalized={!isFilling}
+          locationPolygonGeoJson={locationPolygonGeoJson}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           control={control}
         />
@@ -427,6 +430,7 @@ const Category = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -435,6 +439,7 @@ const Category = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -459,6 +464,7 @@ const Category = ({
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -472,6 +478,7 @@ const Category = ({
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -489,6 +496,7 @@ const Subcategory = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -497,6 +505,7 @@ const Subcategory = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -527,6 +536,7 @@ const Subcategory = ({
                 geometries={geometries}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
+                locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 control={control}
               />
@@ -543,6 +553,7 @@ const Question = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -551,6 +562,7 @@ const Question = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -601,6 +613,7 @@ const Question = ({
               }}
               questionId={question.questionId}
               questionName={question.name}
+              locationPolygonGeoJson={locationPolygonGeoJson}
               initialGeometries={
                 geometries.find((g) => g.questionId === question.questionId)
                   ?.geometries

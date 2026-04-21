@@ -15,6 +15,7 @@ const MapDialog = ({
   openMapDialog,
   onClose,
   questionId,
+  locationPolygonGeoJson,
   initialGeometries,
   geometryType,
   questionName,
@@ -24,6 +25,7 @@ const MapDialog = ({
   openMapDialog: boolean;
   onClose: () => void;
   questionId: number;
+  locationPolygonGeoJson: string | null;
   initialGeometries: ResponseGeometry[] | undefined;
   geometryType: QuestionGeometryTypes[];
   questionName: string;
@@ -75,6 +77,7 @@ const MapDialog = ({
         <MapProvider
           geometryType={geometryType}
           questionId={questionId}
+          locationPolygonGeoJson={locationPolygonGeoJson}
           initialGeometries={initialGeometries}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           handleChangeIsInSelectMode={handleChangeIsInSelectMode}
