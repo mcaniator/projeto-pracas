@@ -309,7 +309,12 @@ const Sidebar = ({
       <Virtuoso
         data={locations}
         components={{
-          EmptyPlaceholder: () => <div>Nenhuma praça encontrada!</div>,
+          EmptyPlaceholder: () => {
+            if (loadingLocations || loadingCities) {
+              return;
+            }
+            return <div>Nenhuma praça encontrada!</div>;
+          },
         }}
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, location) => {

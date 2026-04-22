@@ -373,7 +373,12 @@ const LocationSelector = ({
       <Virtuoso
         data={filteredLocations}
         components={{
-          EmptyPlaceholder: () => <div>Nenhuma praça encontrada!</div>,
+          EmptyPlaceholder: () => {
+            if (loadingLocations || loadingCities) {
+              return;
+            }
+            return <div>Nenhuma praça encontrada!</div>;
+          },
         }}
         itemContent={(_, l) => (
           <div className="pb-4">
