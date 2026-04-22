@@ -1,7 +1,7 @@
 "use client ";
 
-import { CommercialActivitiesTable } from "@/components/tallyDataVisualization/commercialActivitiesTable";
 import { AbsoluteGraphs } from "@/app/admin/tallys/result/[selectedTallysIds]/graphs/absoluteGraphs";
+import { CommercialActivitiesTable } from "@/components/tallyDataVisualization/commercialActivitiesTable";
 import ActivityRelativeGraph from "@/components/tallyDataVisualization/graphs/activityRelativeGraph";
 import AgeGroupRelativeGraph from "@/components/tallyDataVisualization/graphs/ageGroupRelativeGraph";
 import GenderRelativeGraph from "@/components/tallyDataVisualization/graphs/genderRelativeGraph";
@@ -113,9 +113,11 @@ const PersonsDatavisualizationTables = ({
           <tr>
             <th className="broder-gray-500 border xl:p-1">Total de pessoas</th>
             <th className="broder-gray-500 border xl:p-1">
-              Área útil da praça
+              Área útil da praça(m²)
             </th>
-            <th className="broder-gray-500 border xl:p-1">Vitalidade</th>
+            <th className="broder-gray-500 border xl:p-1">
+              Vitalidade(pessoas/dam)
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -127,7 +129,9 @@ const PersonsDatavisualizationTables = ({
               {locationUsableArea ?? "-"}
             </td>
             <td className="broder-gray-500 border text-center xl:p-1">
-              {locationUsableArea ? totalPersons / locationUsableArea : "-"}
+              {locationUsableArea ?
+                totalPersons / (locationUsableArea / 10)
+              : "-"}
             </td>
           </tr>
         </tbody>
@@ -316,4 +320,3 @@ const PersonsDatavisualizationTables = ({
 };
 
 export { PersonsDatavisualizationTables };
-
