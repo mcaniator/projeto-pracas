@@ -21,7 +21,7 @@ export type FetchTallysParams = z.infer<typeof paramsSchema>;
 export async function GET(request: NextRequest) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
