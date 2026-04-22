@@ -2,7 +2,6 @@ import type { DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
 import { addCollection, type IconifyJSON } from "@iconify/react";
 
 type CollectionLoader = () => Promise<IconifyJSON>;
-type AddCollectionFn = (collection: IconifyJSON) => void;
 
 const defaultCollectionLoaders: Record<DynamicIconPackId, CollectionLoader> = {
   mdi: () => import("@iconify-json/mdi/icons.json"),
@@ -16,8 +15,6 @@ const collectionLoaders: Record<DynamicIconPackId, CollectionLoader> = {
 
 const loadedCollections = new Set<DynamicIconPackId>();
 const pendingCollections = new Map<DynamicIconPackId, Promise<void>>();
-
-let addCollectionImpl: AddCollectionFn = addCollection;
 
 const isDynamicIconPackId = (value: string): value is DynamicIconPackId =>
   value in collectionLoaders;
@@ -43,7 +40,7 @@ const ensureDynamicIconCollection = (packId: DynamicIconPackId) => {
 
   const loadPromise = collectionLoaders[packId]()
     .then((collection) => {
-      addCollectionImpl(collection);
+      addCollection(collection);
       loadedCollections.add(packId);
       pendingCollections.delete(packId);
     })
@@ -66,30 +63,7 @@ const preloadAllDynamicIconCollections = () =>
 const isDynamicIconCollectionLoaded = (packId: DynamicIconPackId) =>
   loadedCollections.has(packId);
 
-const __resetDynamicIconLoaderForTests = () => {
-  loadedCollections.clear();
-  pendingCollections.clear();
-  addCollectionImpl = addCollection;
-  for (const packId of Object.keys(defaultCollectionLoaders) as DynamicIconPackId[]) {
-    collectionLoaders[packId] = defaultCollectionLoaders[packId];
-  }
-};
-
-const __setCollectionLoaderForTests = (
-  packId: DynamicIconPackId,
-  loader: CollectionLoader,
-) => {
-  collectionLoaders[packId] = loader;
-};
-
-const __setAddCollectionForTests = (nextAddCollection: AddCollectionFn) => {
-  addCollectionImpl = nextAddCollection;
-};
-
 export {
-  __resetDynamicIconLoaderForTests,
-  __setAddCollectionForTests,
-  __setCollectionLoaderForTests,
   ensureDynamicIconCollection,
   getDynamicIconPackId,
   isDynamicIconCollectionLoaded,
