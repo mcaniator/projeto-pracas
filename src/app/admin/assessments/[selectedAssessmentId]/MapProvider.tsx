@@ -1,10 +1,17 @@
 "use client";
 
-import { useHelperCard } from "@/components/context/helperCardContext";
+import { useGeolocation } from "@/components/context/geolocationContext";
+import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
+import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { ResponseGeometry } from "@customTypes/assessments/geometry";
 import { QuestionGeometryTypes } from "@prisma/client";
-import { IconClick, IconDragDrop, IconPolygon } from "@tabler/icons-react";
+import {
+  IconClick,
+  IconDragDrop,
+  IconLocationPin,
+  IconPolygon,
+} from "@tabler/icons-react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -29,6 +36,11 @@ import {
   useRef,
   useState,
 } from "react";
+
+import {
+  getInitialViewTargetKey,
+  resolveInitialViewTarget,
+} from "./mapInitialView";
 
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 
@@ -61,6 +73,7 @@ const mapModeOptions: {
 interface MapProviderProps {
   geometryType: QuestionGeometryTypes[];
   questionId: number;
+  locationPolygonGeoJson: string | null;
   initialGeometries: ResponseGeometry[] | undefined;
   handleQuestionGeometryChange: (
     questionId: number,
@@ -77,6 +90,7 @@ const MapProvider = forwardRef(
     {
       geometryType,
       questionId,
+      locationPolygonGeoJson,
       initialGeometries,
       handleQuestionGeometryChange,
       handleChangeIsInSelectMode,
@@ -85,7 +99,8 @@ const MapProvider = forwardRef(
     ref,
   ) => {
     useGeographic();
-    const { setHelperCard } = useHelperCard();
+    const centerOnUserLocation = useCenterOnUserLocation();
+    const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
     const [geometryTypeOptions] = useState(
       geometryType.map((g) => ({
         id: geometryTypeFormatter.get(g)!,
@@ -100,8 +115,8 @@ const MapProvider = forwardRef(
       null,
     );
     const vectorSource = useRef<VectorSource>(new VectorSource());
-
     const mapRef = useRef<HTMLDivElement>(null);
+    const lastAppliedInitialViewKeyRef = useRef<string | null>(null);
 
     const styleFunction = () => {
       const style = new Style({
@@ -143,39 +158,27 @@ const MapProvider = forwardRef(
         controls: [],
       });
     }, []);
+
     const view = map.getView();
+    const isUserLocationLoading =
+      !cachedUserCoordinates && isReadingUserLocation;
+
     useEffect(() => {
-      if (mapRef.current !== null) map.setTarget(mapRef.current);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          view.animate({
-            center: [pos.coords.longitude, pos.coords.latitude],
-            zoom: 16,
-            duration: 0,
-          });
-        },
-        () => {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Erro ao obter sua localização!</>,
-          });
-        },
-        {
-          enableHighAccuracy: false,
-          maximumAge: Infinity,
-          timeout: 60000,
-        },
-      );
+      if (mapRef.current !== null) {
+        map.setTarget(mapRef.current);
+      }
+
       const interactions = map.getInteractions();
       interactions.forEach((interaction) => {
         if (
           interaction instanceof Draw ||
           interaction instanceof Modify ||
           interaction instanceof Select
-        )
+        ) {
           map.removeInteraction(interaction);
+        }
       });
+
       const draw = new Draw({
         source: vectorSource.current,
         type: currentGeometryType,
@@ -193,6 +196,7 @@ const MapProvider = forwardRef(
               "circle-fill-color": "#9B59B2",
             },
       });
+
       if (!finalized) {
         map.addInteraction(draw);
         handleChangeIsInSelectMode(false);
@@ -202,33 +206,57 @@ const MapProvider = forwardRef(
       return () => {
         map.setTarget(undefined);
       };
-    }, [
-      map,
-      view,
-      currentGeometryType,
-      finalized,
-      handleChangeIsInSelectMode,
-      setHelperCard,
-    ]);
+    }, [map, currentGeometryType, finalized, handleChangeIsInSelectMode]);
 
     useEffect(() => {
-      if (initialGeometries) {
-        vectorSource.current.clear();
-        initialGeometries.forEach((geometry) => {
-          let feature;
-          if (geometry.type === "Point") {
-            feature = new Feature(new Point(geometry.coordinates as number[]));
-          } else if (geometry.type === "Polygon") {
-            feature = new Feature(
-              new Polygon(geometry.coordinates as number[]),
-            );
-          }
-          if (feature) {
-            vectorSource.current.addFeature(feature);
-          }
-        });
-      }
+      vectorSource.current.clear();
+
+      initialGeometries?.forEach((geometry) => {
+        let feature: Feature | undefined;
+
+        if (geometry.type === "Point") {
+          feature = new Feature(new Point(geometry.coordinates as number[]));
+        } else if (geometry.type === "Polygon") {
+          feature = new Feature(
+            new Polygon(geometry.coordinates as number[][][]),
+          );
+        }
+
+        if (feature) {
+          vectorSource.current.addFeature(feature);
+        }
+      });
     }, [initialGeometries]);
+
+    useEffect(() => {
+      const initialViewTarget = resolveInitialViewTarget({
+        locationPolygonGeoJson,
+        initialGeometries,
+      });
+      const initialViewTargetKey = getInitialViewTargetKey(initialViewTarget);
+
+      if (lastAppliedInitialViewKeyRef.current === initialViewTargetKey) {
+        return;
+      }
+
+      lastAppliedInitialViewKeyRef.current = initialViewTargetKey;
+
+      if (initialViewTarget.type !== "geolocation") {
+        view.fit(initialViewTarget.extent, {
+          padding: [48, 48, 48, 48],
+          duration: 0,
+        });
+        return;
+      }
+
+      void centerOnUserLocation({
+        view,
+        zoom: 16,
+        duration: 0,
+        maximumAge: Infinity,
+        useCachedLocationImmediately: true,
+      });
+    }, [centerOnUserLocation, initialGeometries, locationPolygonGeoJson, view]);
 
     const getGeometries = () => {
       const features = vectorSource.current.getFeatures();
@@ -243,6 +271,7 @@ const MapProvider = forwardRef(
           }
         })
         .filter((g) => g !== undefined);
+
       if (geometries !== undefined) {
         handleQuestionGeometryChange(questionId, geometries);
       }
@@ -254,8 +283,10 @@ const MapProvider = forwardRef(
         setSelectedFeature(null);
       }
     };
+
     const switchMode = (newMode: MapMode) => {
       if (finalized) return;
+
       if (newMode === "SELECT") {
         const interactions = map.getInteractions();
 
@@ -343,6 +374,24 @@ const MapProvider = forwardRef(
               />
             </div>
           )}
+          <div className="pointer-events-auto absolute bottom-2 right-2 z-50 flex h-fit w-fit flex-col gap-2 overflow-auto">
+            <CButton
+              square
+              tooltip="Centralizar na sua localização"
+              loading={isUserLocationLoading}
+              onClick={() => {
+                void centerOnUserLocation({
+                  view,
+                  zoom: 17,
+                  duration: 500,
+                  maximumAge: 0,
+                  useCachedLocationImmediately: true,
+                });
+              }}
+            >
+              <IconLocationPin />
+            </CButton>
+          </div>
         </MapContext.Provider>
       </div>
     );

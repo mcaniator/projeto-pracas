@@ -3,26 +3,15 @@
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
+import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { shouldShowScaleOptionsSection } from "@/lib/utils/questionCreationUtils";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 import { _questionSubmit } from "@serverActions/questionUtil";
-import {
-  IconCheck,
-  IconHelp,
-  IconPlus,
-  IconTrash,
-  IconX,
-} from "@tabler/icons-react";
-import React, {
-  startTransition,
-  useActionState,
-  useEffect,
-  useState,
-} from "react";
-
-import { useLoadingOverlay } from "../../../../../../components/context/loadingContext";
+import { IconCheck, IconHelp, IconPlus, IconTrash } from "@tabler/icons-react";
+import { startTransition, useEffect, useState } from "react";
 import CCheckboxGroup from "../../../../../../components/ui/cCheckboxGroup";
 import CNumberField from "../../../../../../components/ui/cNumberField";
 import CRadioGroup from "../../../../../../components/ui/cRadioGroup";
@@ -64,12 +53,7 @@ const QuestionCreation = ({
   fetchCategoriesAfterCreation: () => void;
 }) => {
   const { setHelperCard } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [state, formAction, isPending] = useActionState(_questionSubmit, null);
-  const [pageState, setPageState] = useState<"FORM" | "SUCCESS" | "ERROR">(
-    "FORM",
-  );
-  const [isOpen, setIsOpen] = useState(false);
+  const [pageState, setPageState] = useState<"FORM" | "SUCCESS">("FORM");
   const [reloadOnClose, setReloadOnClose] = useState(false);
   const [type, setType] = useState("");
   const [characterType, setCharacterType] =
@@ -91,6 +75,22 @@ const QuestionCreation = ({
     useState<ScaleOptionMode>("MANUAL");
   const [scaleStep, setScaleStep] = useState<number | null>(null);
 
+  const [formAction, isPending, , resetActionState] = useResettableActionState({
+    action: _questionSubmit,
+    callbacks: {
+      onSuccess: () => {
+        setReloadOnClose(true);
+        setPageState("SUCCESS");
+      },
+      onError: () => {
+        setPageState("FORM");
+      },
+    },
+    options: {
+      loadingMessage: "Salvando questão...",
+    },
+  });
+
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
       case "YES_NO":
@@ -111,6 +111,7 @@ const QuestionCreation = ({
   };
 
   const resetModal = () => {
+    resetActionState();
     setType("");
     setCharacterType(null);
     setSelectionType(null);
@@ -126,32 +127,6 @@ const QuestionCreation = ({
     setScaleOptionMode("MANUAL");
     setScaleStep(null);
   };
-  useEffect(() => {
-    if (state?.statusCode === 201) {
-      setReloadOnClose(true);
-      setPageState("SUCCESS");
-      setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Questão registrada!</>,
-      });
-    } else if (state?.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para registrar questões!</>,
-      });
-      setPageState("ERROR");
-    } else if (state?.statusCode === 400 || state?.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao registar questão!</>,
-      });
-      setPageState("ERROR");
-    }
-  }, [state, setHelperCard]);
-
   const handleRemoveOption = (option: string) => {
     setAddedOptions((prev) => prev?.filter((p) => p.text !== option));
   };
@@ -161,7 +136,6 @@ const QuestionCreation = ({
       fetchCategoriesAfterCreation();
     }
     resetModal();
-    setIsOpen(false);
     onClose();
   };
 
@@ -181,19 +155,6 @@ const QuestionCreation = ({
     }
   }, [type, characterType]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setPageState("FORM");
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Salvando questão..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
-  }, [isPending, setLoadingOverlay]);
   return (
     <CDialog
       onClose={handleClose}
@@ -268,10 +229,13 @@ const QuestionCreation = ({
           return;
         }
         const formData = new FormData(e.currentTarget);
-        startTransition(() => formAction(formData));
+        startTransition(() => {
+          formAction(formData);
+        });
       }}
       title="Criar questão"
       confirmChildren={<>Criar</>}
+      confirmLoading={isPending}
       disableConfirmButton={
         isPending ||
         pageState !== "FORM" ||
@@ -428,9 +392,12 @@ const QuestionCreation = ({
               )}
 
               <div className={"flex flex-col gap-2"}>
-                {!!characterType &&
-                  type == "OPTIONS" &&
-                  (characterType === "SCALE" ? minValue && maxValue : true) && (
+                {shouldShowScaleOptionsSection({
+                  type,
+                  characterType,
+                  minValue,
+                  maxValue,
+                }) && (
                     <>
                       <CRadioGroup
                         label="Tipo de seleção"
@@ -774,33 +741,11 @@ const QuestionCreation = ({
         )}
         {pageState === "SUCCESS" && (
           <div className="flex flex-col items-center">
-            <h5 className="text-center text-xl font-semibold">
-              {`Questão "${state?.questionName}" criada!`}
-            </h5>
+            <h5 className="text-center text-xl font-semibold">Questão criada!</h5>
             <div className="flex justify-center">
               <IconCheck className="h-32 w-32 text-2xl text-green-500" />
             </div>
             <CButton onClick={resetModal}>Criar nova questão</CButton>
-          </div>
-        )}
-        {pageState === "ERROR" && (
-          <div className="flex flex-col items-center">
-            {state?.statusCode === 500 && (
-              <h5 className="text-center text-xl font-semibold">
-                Algo deu errado!
-              </h5>
-            )}
-
-            <div className="flex justify-center">
-              <IconX className="h-32 w-32 text-2xl text-red-500" />
-            </div>
-            <CButton
-              onClick={() => {
-                setPageState("FORM");
-              }}
-            >
-              Tentar novamente
-            </CButton>
           </div>
         )}
       </div>

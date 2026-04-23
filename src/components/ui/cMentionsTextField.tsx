@@ -19,6 +19,9 @@ const CMentionsTextField = React.forwardRef<
   const { sx, readOnly, spellCheck = false, ...rest } = props;
   const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
   const baseSx = {
+    "& .MuiOutlinedInput-root > div:first-of-type": {
+      width: "calc(100% - 20px)",
+    },
     "& .MuiInputBase-input": {
       fontSize: "20px",
     },

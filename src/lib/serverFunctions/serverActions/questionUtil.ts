@@ -14,13 +14,30 @@ import { ZodError } from "zod";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 const _questionSubmit = async (
-  prevState: { statusCode: number; questionName: string | null } | null,
+  prevState:
+    | {
+        responseInfo: APIResponseInfo;
+        data: null;
+      }
+    | null,
   formData: FormData,
-): Promise<{ statusCode: number; questionName: string | null } | null> => {
+): Promise<
+  | {
+      responseInfo: APIResponseInfo;
+      data: null;
+    }
+  | null
+> => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {
-    return { statusCode: 401, questionName: null };
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para registrar questões!",
+      },
+      data: null,
+    };
   }
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
@@ -68,20 +85,38 @@ const _questionSubmit = async (
             : undefined,
         });
       } catch (err) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message: "Dados inválidos para registrar questão!",
+          },
+          data: null,
+        };
       }
       if (questionCharacterType === "SCALE" && !scaleBounds) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message: "Dados inválidos para registrar questão!",
+          },
+          data: null,
+        };
       }
 
       try {
         if (
           !isSupportedDynamicIconKey(writtenOrBooleanQuestionParsed.iconKey)
         ) {
-          return { statusCode: 400, questionName: null };
+          return {
+            responseInfo: {
+              statusCode: 400,
+              message: "Dados inválidos para registrar questão!",
+            },
+            data: null,
+          };
         }
 
-        const newQuestion = await prisma.$transaction(async (prisma) => {
+        await prisma.$transaction(async (prisma) => {
           const question = await prisma.question.create({
             data: writtenOrBooleanQuestionParsed,
           });
@@ -94,12 +129,22 @@ const _questionSubmit = async (
               },
             });
           }
-          return question;
         });
         revalidateTag("question");
-        return { statusCode: 201, questionName: newQuestion.name };
+        return {
+          responseInfo: {
+            statusCode: 201,
+          },
+          data: null,
+        };
       } catch (err) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 500,
+            message: "Erro ao registrar questão!",
+          },
+          data: null,
+        };
       }
     }
 
@@ -115,10 +160,22 @@ const _questionSubmit = async (
         : undefined;
 
       if (questionCharacterType === "SCALE" && !scaleBounds) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message: "Dados inválidos para registrar questão!",
+          },
+          data: null,
+        };
       }
       if (questionCharacterType === "SCALE" && optionType !== "RADIO") {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message: "Dados inválidos para registrar questão!",
+          },
+          data: null,
+        };
       }
 
       const optionsQuestionObject = { optionType };
@@ -145,20 +202,37 @@ const _questionSubmit = async (
           ...optionsQuestionObject,
         });
       } catch (err) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message: "Dados inválidos para registrar questão!",
+          },
+          data: null,
+        };
       }
 
       try {
         if (!isSupportedDynamicIconKey(optionsQuestionParsed.iconKey)) {
-          return { statusCode: 400, questionName: null };
+          return {
+            responseInfo: {
+              statusCode: 400,
+              message: "Dados inválidos para registrar questão!",
+            },
+            data: null,
+          };
         }
 
-        let questionName: string | null = null;
         const rawOptions = formData.getAll("options");
         if (questionCharacterType === "SCALE" && scaleBounds) {
           const parsedOptions = rawOptions.map((value) => Number(value));
           if (parsedOptions.some((value) => !Number.isFinite(value))) {
-            return { statusCode: 400, questionName: null };
+            return {
+              responseInfo: {
+                statusCode: 400,
+                message: "Dados inválidos para registrar questão!",
+              },
+              data: null,
+            };
           }
           if (
             parsedOptions.some(
@@ -166,7 +240,13 @@ const _questionSubmit = async (
                 value < scaleBounds.minValue || value > scaleBounds.maxValue,
             )
           ) {
-            return { statusCode: 400, questionName: null };
+            return {
+              responseInfo: {
+                statusCode: 400,
+                message: "Dados inválidos para registrar questão!",
+              },
+              data: null,
+            };
           }
         }
         await prisma.$transaction(async (prisma) => {
@@ -204,18 +284,37 @@ const _questionSubmit = async (
           await prisma.option.createMany({
             data: optionsParsed,
           });
-          questionName = newQuestion.name;
         });
 
         revalidateTag("question");
-        return { statusCode: 201, questionName: questionName };
+        return {
+          responseInfo: {
+            statusCode: 201,
+          },
+          data: null,
+        };
       } catch (err) {
-        return { statusCode: 400, questionName: null };
+        return {
+          responseInfo: {
+            statusCode: err instanceof ZodError ? 400 : 500,
+            message:
+              err instanceof ZodError ?
+                "Dados inválidos para registrar questão!"
+              : "Erro ao registrar questão!",
+          },
+          data: null,
+        };
       }
     }
   }
 
-  return { statusCode: 400, questionName: null };
+  return {
+    responseInfo: {
+      statusCode: 400,
+      message: "Dados inválidos para registrar questão!",
+    },
+    data: null,
+  };
 };
 
 const _questionUpdate = async (
@@ -273,4 +372,109 @@ const _questionUpdate = async (
   }
 };
 
-export { _questionSubmit, _questionUpdate };
+const _deleteQuestion = async (
+  prevState: { responseInfo: APIResponseInfo },
+  formData: FormData,
+) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Sem permissão para excluir questões!",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+
+  const questionId = parseInt(formData.get("questionId") as string);
+
+  try {
+    const formsWithQuestions = await prisma.form.findMany({
+      where: {
+        formItems: {
+          some: {
+            questionId: questionId,
+          },
+        },
+      },
+      select: {
+        name: true,
+        formItems: {
+          where: {
+            questionId: questionId,
+          },
+          select: {
+            question: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (formsWithQuestions.length > 0) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message:
+            "Não foi possí­vel excluir a questão. Ela está sendo usada em outros formulários",
+        } as APIResponseInfo,
+        data: {
+          formsWithQuestions,
+        },
+      };
+    }
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao verificar formulários com esta questão",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+
+  try {
+    const deletedQuestion = await prisma.question.delete({
+      where: {
+        id: questionId,
+      },
+      select: {
+        name: true,
+      },
+    });
+    revalidateTag("question");
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+        showSuccessCard: true,
+        message: `Questão "${deletedQuestion.name}" excluí­da!`,
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir questão!",
+      } as APIResponseInfo,
+      data: {
+        formsWithQuestions: [],
+      },
+    };
+  }
+};
+
+export { _deleteQuestion, _questionSubmit, _questionUpdate };

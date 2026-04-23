@@ -8,42 +8,26 @@ import { useState } from "react";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
 import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
-import { SubmittingObj } from "./tallyInProgressPage";
 import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
-type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE_DELETE";
+type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE";
 
 const assistBarOptions: { label: string; value: AssistBarStates }[] = [
   { label: "Dados textuais", value: "TEXTUAL_DATA" },
-  { label: "Gráficos", value: "CHARTS" },
-  { label: "Salvar/Excluir", value: "SAVE_DELETE" },
+  { label: "Graficos", value: "CHARTS" },
+  { label: "Salvar", value: "SAVE" },
 ];
 
 const TallyInProgressReview = ({
-  submittingObj,
-  tallyId,
-  locationId,
-  locationName,
   tally,
   weatherStats,
   complementaryData,
   commercialActivities,
   tallyMap,
   startDate,
-  endDate,
-  finalizedTally,
   setStartDate,
-  setEndDate,
-  setSubmittingObj,
+  onOpenSaveDialog,
 }: {
-  submittingObj: {
-    submitting: boolean;
-    finishing: boolean;
-    deleting: boolean;
-  };
-  tallyId: number;
-  locationId: number;
-  locationName: string;
   tally: OngoingTally;
   weatherStats: WeatherStats;
   complementaryData: {
@@ -53,11 +37,8 @@ const TallyInProgressReview = ({
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
   startDate: Dayjs;
-  endDate: Dayjs | null;
-  finalizedTally: boolean;
   setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
-  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
-  setSubmittingObj: React.Dispatch<React.SetStateAction<SubmittingObj>>;
+  onOpenSaveDialog: () => void;
 }) => {
   const [assistBarState, setAssistBarState] =
     useState<AssistBarStates>("TEXTUAL_DATA");
@@ -86,22 +67,11 @@ const TallyInProgressReview = ({
       {assistBarState === "CHARTS" && (
         <TallyInProgressCharts tallyMap={tallyMap} isOnModal={false} />
       )}
-      {assistBarState === "SAVE_DELETE" && (
+      {assistBarState === "SAVE" && (
         <TallyInProgressDatabaseOptions
-          tallyId={tallyId}
-          locationId={locationId}
-          locationName={locationName}
-          tallyMap={tallyMap}
-          weatherStats={weatherStats}
-          commercialActivities={commercialActivities}
-          complementaryData={complementaryData}
-          submittingObj={submittingObj}
           startDate={startDate}
-          endDate={endDate}
-          finalizedTally={finalizedTally}
           setStartDate={setStartDate}
-          setEndDate={setEndDate}
-          setSubmittingObj={setSubmittingObj}
+          onOpenSaveDialog={onOpenSaveDialog}
         />
       )}
     </div>

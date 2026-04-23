@@ -6,7 +6,7 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
 
@@ -18,8 +18,10 @@ const SaveAssessmentDialog = ({
   assessmentId,
   formValues,
   geometries,
-  importedFinalizationDatetime,
+  importedEndDatetime,
+  importedIsFinalized,
   startDate,
+  driveFolderUrl,
   onClose,
 }: {
   open: boolean;
@@ -27,21 +29,21 @@ const SaveAssessmentDialog = ({
   assessmentId: number;
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
-  importedFinalizationDatetime: Dayjs | null;
+  importedEndDatetime: Dayjs | null;
+  importedIsFinalized: boolean;
   startDate: Dayjs;
+  driveFolderUrl: string | null;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
   const router = useRouter();
-  const [finalized, setIsFinalized] = useState(!!importedFinalizationDatetime);
-  const [dateTime, setDateTime] = useState<Dayjs | null>(
-    importedFinalizationDatetime,
-  );
+  const [isFinalized, setIsFinalized] = useState(importedIsFinalized);
+  const [dateTime, setDateTime] = useState<Dayjs | null>(importedEndDatetime);
   const { setLoadingOverlay } = useLoadingOverlay();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const save = async () => {
-    if (finalized && !dateTime) {
+    if (isFinalized && !dateTime) {
       setShowDatePickerError(true);
       return;
     }
@@ -52,7 +54,9 @@ const SaveAssessmentDialog = ({
         responses: formValues,
         geometries: geometries,
         startDate: startDate.toDate(),
-        finalizationDate: finalized ? (dateTime?.toDate() ?? null) : null,
+        endDate: dateTime?.toDate() ?? null,
+        isFinalized: isFinalized,
+        driveFolderUrl: driveFolderUrl,
       });
       helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 201) {
@@ -78,10 +82,13 @@ const SaveAssessmentDialog = ({
   const generateExport = () => {
     const data = {
       startDate: startDate,
-      finalizationDateTime: finalized ? (dateTime ?? null) : null,
+      endDateTime: dateTime ?? null,
+      finalizationDateTime: dateTime ?? null,
+      isFinalized: isFinalized,
       assessmentId: assessmentId,
       responses: formValues,
       geometries: geometries,
+      driveFolderUrl: driveFolderUrl,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
@@ -95,9 +102,15 @@ const SaveAssessmentDialog = ({
   };
 
   useEffect(() => {
-    setDateTime(importedFinalizationDatetime);
-    setIsFinalized(!!importedFinalizationDatetime);
-  }, [importedFinalizationDatetime]);
+    setDateTime(importedEndDatetime);
+    setIsFinalized(importedIsFinalized);
+  }, [importedEndDatetime, importedIsFinalized]);
+
+  useEffect(() => {
+    if (isFinalized) {
+      setDateTime((prev) => prev ?? dayjs(new Date()));
+    }
+  }, [isFinalized]);
 
   return (
     <CDialog
@@ -134,23 +147,22 @@ const SaveAssessmentDialog = ({
           </div>
         )}
         <CSwitch
-          checked={finalized}
+          checked={isFinalized}
           label="Salvar como finalizado"
           onChange={(e) => {
             setIsFinalized(e.target.checked);
           }}
         />
-        {finalized && (
-          <CDateTimePicker
-            value={dateTime}
-            error={showDatePickerError}
-            onChange={(e) => {
-              setShowDatePickerError(false);
-              setDateTime(e);
-            }}
-            label="Finalizado em"
-          />
-        )}
+        <CDateTimePicker
+          value={dateTime}
+          error={showDatePickerError}
+          clearable
+          onChange={(e) => {
+            setShowDatePickerError(false);
+            setDateTime(e);
+          }}
+          label="Data final"
+        />
       </div>
     </CDialog>
   );

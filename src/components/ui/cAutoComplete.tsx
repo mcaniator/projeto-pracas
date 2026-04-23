@@ -1,9 +1,11 @@
 import CButton from "@/components/ui/cButton";
 import {
+  Box,
   IconButton,
   IconButtonOwnProps,
   InputAdornment,
   Skeleton,
+  Tooltip,
 } from "@mui/material";
 import Autocomplete, { AutocompleteProps } from "@mui/material/Autocomplete";
 import React from "react";
@@ -26,6 +28,7 @@ type CAutocompleteProps<
   appendIconButton?: React.ReactNode;
   appendIconButtonSx?: IconButtonOwnProps["sx"];
   disableAppendIconButton?: boolean;
+  appendIconButtonTooltip?: string;
   placeholder?: string;
   name?: string;
   textFieldName?: string;
@@ -50,6 +53,7 @@ function CAutocomplete<
     value,
     appendIconButton,
     disableAppendIconButton,
+    appendIconButtonTooltip,
     appendIconButtonSx,
     placeholder,
     name,
@@ -103,18 +107,25 @@ function CAutocomplete<
                 {((appendIconButton && showAppendButtonWhenClear) ||
                   (appendIconButton && value)) && (
                   <InputAdornment position="end">
-                    <IconButton
-                      sx={{
-                        padding: "0px 8px 6px 8px",
-                        color: disableAppendIconButton ? "gray" : "inherit",
-                        ...appendIconButtonSx,
-                      }}
-                      disabled={disableAppendIconButton}
-                      edge="end"
-                      onClick={handleAppendIconButtonClick}
+                    <Tooltip
+                      title={appendIconButtonTooltip}
+                      enterTouchDelay={1}
                     >
-                      {appendIconButton}
-                    </IconButton>
+                      <Box>
+                        <IconButton
+                          sx={{
+                            padding: "0px 8px 6px 8px",
+                            color: disableAppendIconButton ? "gray" : "inherit",
+                            ...appendIconButtonSx,
+                          }}
+                          disabled={disableAppendIconButton}
+                          edge="end"
+                          onClick={handleAppendIconButtonClick}
+                        >
+                          {appendIconButton}
+                        </IconButton>
+                      </Box>
+                    </Tooltip>
                   </InputAdornment>
                 )}
               </>

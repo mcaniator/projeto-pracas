@@ -2,7 +2,7 @@
 
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { emailTransporter } from "@serverOnly/email";
 import { getInviteEmail } from "@serverOnly/renderEmail";
@@ -141,6 +141,7 @@ export const _createInviteV2 = async (params: {
         return {
           responseInfo: {
             statusCode: 201,
+            showSuccessCard: true,
             message: "Convite criado, mas sem envio de email!",
           } as APIResponseInfo,
         };
@@ -149,6 +150,7 @@ export const _createInviteV2 = async (params: {
       return {
         responseInfo: {
           statusCode: 201,
+          showSuccessCard: true,
           message: "Convite criado com sucesso!",
         } as APIResponseInfo,
       };
@@ -202,6 +204,20 @@ export const _createInviteV2 = async (params: {
       };
     }
   } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002" &&
+      Array.isArray(e.meta?.target) &&
+      e.meta.target.includes("email")
+    ) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message: "Já existe um convite para este e-mail!",
+        } as APIResponseInfo,
+      };
+    }
+
     return {
       responseInfo: {
         statusCode: 500,

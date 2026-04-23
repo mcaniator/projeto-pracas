@@ -2,7 +2,8 @@
 
 import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
 import { MapContext } from "@/app/admin/map/mapProvider";
-import { useHelperCard } from "@/components/context/helperCardContext";
+import { useGeolocation } from "@/components/context/geolocationContext";
+import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
@@ -40,13 +41,16 @@ export type LocationsMapClientFilter = {
   categoryId: number | null;
   typeId: number | null;
   name: string | null;
-  isPublic: boolean;
+  onlyPublic: boolean;
 };
 
 const PolygonsAndClientContainer = () => {
-  const { setHelperCard } = useHelperCard();
   const map = useContext(MapContext);
   const view = map?.getView();
+  const centerOnUserLocation = useCenterOnUserLocation();
+  const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
+  const isUserLocationLoading =
+    !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
@@ -78,7 +82,7 @@ const PolygonsAndClientContainer = () => {
     categoryId: null,
     typeId: null,
     name: null,
-    isPublic: true,
+    onlyPublic: false,
   });
 
   const [isEditingLocation, setIsEditingLocation] = useState(false);
@@ -88,12 +92,13 @@ const PolygonsAndClientContainer = () => {
   ] = useState(false);
 
   const numberOfActiveFilters = useMemo(() => {
-    let count = 1; //Sempre há um filtro de praça visivel publicamente
+    let count = 0;
     if (filter.broadAdministrativeUnitId !== null) count++;
     if (filter.intermediateAdministrativeUnitId !== null) count++;
     if (filter.narrowAdministrativeUnitId !== null) count++;
     if (filter.categoryId !== null) count++;
     if (filter.typeId !== null) count++;
+    if (filter.onlyPublic) count++;
     return count;
   }, [filter]);
 
@@ -186,7 +191,7 @@ const PolygonsAndClientContainer = () => {
         if (filter.typeId !== -1) return;
         if (location.typeId !== null) return;
       }
-      if (filter.isPublic !== location.isPublic) return;
+      if (filter.onlyPublic && !location.isPublic) return;
 
       result.push(location);
     });
@@ -317,7 +322,7 @@ const PolygonsAndClientContainer = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobileView(window.innerWidth < 1000);
+      setIsMobileView(window.innerWidth < 1055);
     };
 
     window.addEventListener("resize", handleResize);
@@ -326,6 +331,7 @@ const PolygonsAndClientContainer = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
   return (
     <PolygonProvider
       fullLocations={filteredLocationsWithPolygon}
@@ -455,28 +461,15 @@ const PolygonsAndClientContainer = () => {
           <CButton
             square
             tooltip="Centralizar na sua localização"
+            loading={isUserLocationLoading}
             onClick={() => {
-              navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                  view?.animate({
-                    center: [pos.coords.longitude, pos.coords.latitude],
-                    zoom: 17,
-                    duration: 1000,
-                  });
-                },
-                () => {
-                  setHelperCard({
-                    show: true,
-                    helperCardType: "ERROR",
-                    content: <>Erro ao obter sua localização!</>,
-                  });
-                },
-                {
-                  enableHighAccuracy: false,
-                  maximumAge: 0,
-                  timeout: 60000,
-                },
-              );
+              void centerOnUserLocation({
+                view,
+                zoom: 17,
+                duration: 500,
+                maximumAge: 0,
+                useCachedLocationImmediately: true,
+              });
             }}
           >
             <IconLocationPin />

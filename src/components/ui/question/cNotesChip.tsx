@@ -13,10 +13,11 @@ type NotesChipProps = {
 
 const CNotesChip = ({ notes, name, sx }: NotesChipProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const tooltip =
-    notes ? "Possui observações. Clique para ver." : "Sem observações";
+  if (!notes) {
+    return;
+  }
+  const tooltip = "Possui observações. Clique para ver.";
   const icon = <IconInfoCircle />;
-  const variant = notes ? "default" : "disabled";
 
   const handleChipClick = () => {
     if (!notes) return;
@@ -30,7 +31,6 @@ const CNotesChip = ({ notes, name, sx }: NotesChipProps) => {
         tooltip={tooltip}
         onClick={handleChipClick}
         sx={sx}
-        variant={variant}
         clickable={!!notes}
       />
       <CDialog

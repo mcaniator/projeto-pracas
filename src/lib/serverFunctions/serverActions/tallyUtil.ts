@@ -114,6 +114,7 @@ const _saveOngoingTallyData = async ({
   complementaryData,
   startDate,
   endDate,
+  isFinalized,
 }: {
   tallyId: number;
   weatherStats: WeatherStats;
@@ -122,6 +123,7 @@ const _saveOngoingTallyData = async ({
   complementaryData: { animalsAmount: number; groupsAmount: number };
   startDate: Date;
   endDate: Date | null;
+  isFinalized: boolean;
 }) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
@@ -201,6 +203,7 @@ const _saveOngoingTallyData = async ({
         tallyPerson: parsedTallyPersonArray.data,
         startDate: startDate,
         endDate: endDate,
+        isFinalized,
       },
     });
     return {
@@ -209,6 +212,9 @@ const _saveOngoingTallyData = async ({
         message: "Contagem salva com sucesso!",
         showSuccessCard: true,
       } as APIResponseInfo,
+      data: {
+        savedAsFinalized: isFinalized,
+      },
     };
   } catch (error) {
     return {

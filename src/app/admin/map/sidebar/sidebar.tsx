@@ -96,6 +96,13 @@ const Sidebar = ({
     ];
   }, [selectedCity?.narrowAdministrativeUnit]);
 
+  const locationCategoriesOptions = useMemo(() => {
+    return [...(locationCategories ?? []), { id: -1, name: "NENHUMA" }];
+  }, [locationCategories]);
+  const locationTypesOptions = useMemo(() => {
+    return [...(locationTypes ?? []), { id: -1, name: "NENHUMA" }];
+  }, [locationTypes]);
+
   const handleShowLocationOnMap = (locationId: number) => {
     //This is used to show the location on the map after selecting it in the list on mobile.
     const location = locations.find((loc) => loc.id === locationId);
@@ -238,13 +245,14 @@ const Sidebar = ({
 
             <CAutocomplete
               label="Categoria"
-              options={[...locationCategories, { id: -1, name: "NENHUMA" }]}
+              options={locationCategoriesOptions}
               loading={loadingCategories}
               isOptionEqualToValue={(a, b) => a.id === b.id}
               getOptionLabel={(o) => o.name}
               value={
-                locationCategories?.find((b) => b.id === filter.categoryId) ??
-                null
+                locationCategoriesOptions?.find(
+                  (b) => b.id === filter.categoryId,
+                ) ?? null
               }
               onChange={(_, v) =>
                 setFilter({
@@ -255,11 +263,14 @@ const Sidebar = ({
             />
             <CAutocomplete
               label="Tipo"
-              options={[...locationTypes, { id: -1, name: "NENHUM" }]}
+              options={locationTypesOptions}
               loading={loadingTypes}
               isOptionEqualToValue={(a, b) => a.id === b.id}
               getOptionLabel={(o) => o.name}
-              value={locationTypes?.find((b) => b.id === filter.typeId) ?? null}
+              value={
+                locationTypesOptions?.find((b) => b.id === filter.typeId) ??
+                null
+              }
               onChange={(_, v) =>
                 setFilter({
                   ...filter,
@@ -268,12 +279,12 @@ const Sidebar = ({
               }
             />
             <CSwitch
-              label="Visibilidade pública"
-              checked={filter.isPublic}
+              label="Apenas visibilidade pública"
+              checked={filter.onlyPublic}
               onChange={(_, checked) => {
                 setFilter({
                   ...filter,
-                  isPublic: checked,
+                  onlyPublic: checked,
                 });
               }}
             />
@@ -297,6 +308,14 @@ const Sidebar = ({
       )}
       <Virtuoso
         data={locations}
+        components={{
+          EmptyPlaceholder: () => {
+            if (loadingLocations || loadingCities) {
+              return;
+            }
+            return <div>Nenhuma praça encontrada!</div>;
+          },
+        }}
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, location) => {
           const isSelected = selectedLocationId === location.id;

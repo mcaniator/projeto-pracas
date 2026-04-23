@@ -8,11 +8,11 @@ export type FetchTallysResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallys>>["data"]
 >;
 export const fetchTallys = async (params: FetchTallysParams) => {
-  let endDateFilter = undefined;
+  let isFinalizedFilter = undefined;
   if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
-    endDateFilter = { not: null };
+    isFinalizedFilter = true;
   } else if (params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED) {
-    endDateFilter = null;
+    isFinalizedFilter = false;
   }
   try {
     const tallys = await prisma.tally.findMany({
@@ -21,7 +21,7 @@ export const fetchTallys = async (params: FetchTallysParams) => {
           gte: params.startDate,
           lte: params.endDate,
         },
-        endDate: endDateFilter,
+        isFinalized: isFinalizedFilter,
         userId: params.userId,
         location: {
           id: params.locationId,
@@ -38,6 +38,7 @@ export const fetchTallys = async (params: FetchTallysParams) => {
         id: true,
         startDate: true,
         endDate: true,
+        isFinalized: true,
         user: {
           select: {
             username: true,
@@ -79,7 +80,7 @@ const fetchRecentlyCompletedTallys = async () => {
     const tallys = await prisma.tally.findMany({
       where: {
         NOT: {
-          endDate: null,
+          isFinalized: false,
         },
       },
       orderBy: {
@@ -89,6 +90,7 @@ const fetchRecentlyCompletedTallys = async () => {
         id: true,
         startDate: true,
         endDate: true,
+        isFinalized: true,
         location: {
           select: {
             id: true,
@@ -131,15 +133,14 @@ const fetchOngoingTallyById = async (tallyId: number) => {
       },
       select: {
         tallyPerson: true,
-        locationId: true,
         location: {
           select: {
             name: true,
-            id: true,
           },
         },
         startDate: true,
         endDate: true,
+        isFinalized: true,
         user: {
           select: {
             id: true,
@@ -195,7 +196,7 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
       return { statusCode: 400, tallys: null };
     }
     const filteredParsedTallys = parsedTallys.data.filter((tally) => {
-      if (tally.endDate) return true;
+      if (tally.isFinalized) return true;
     });
     filteredParsedTallys.sort(
       (a, b) => b.startDate.getTime() - a.startDate.getTime(),

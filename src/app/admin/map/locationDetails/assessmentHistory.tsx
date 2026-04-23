@@ -1,5 +1,5 @@
-import AssessmentResultViewerDialog from "@/app/admin/map/locationDetails/assessmentResultViewerDialog";
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import CPublicAssessmentResultViewerDialog from "@/components/ui/assessment/cPublicAssessmentResultViewerDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
@@ -37,10 +37,10 @@ const AssessmentHistory = ({
     return <CLinearProgress label="Carregando..." />;
   }
   return (
-    <Box>
+    <Box sx={{ height: "100%" }}>
       <Virtuoso
         data={assessments}
-        style={{ height: "300px", overflowX: "auto" }}
+        style={{ height: "100%", overflowX: "auto" }}
         components={{
           EmptyPlaceholder: () => (
             <div className="flex items-center justify-center">
@@ -71,7 +71,7 @@ const AssessmentHistory = ({
           );
         }}
       />
-      <AssessmentResultViewerDialog
+      <CPublicAssessmentResultViewerDialog
         locationName={locationName}
         selectedAssessment={selectedAssessment}
         onClose={() => {

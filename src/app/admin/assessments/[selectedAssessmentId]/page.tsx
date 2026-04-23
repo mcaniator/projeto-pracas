@@ -48,8 +48,9 @@ const Responses = async (props: {
       <ResponseFormV2
         locationId={location.id}
         locationName={location.name}
+        locationPolygonGeoJson={location.st_asgeojson}
         assessmentTree={assessment.data.assessmentTree}
-        finalized={assessment.data.assessmentTree.endDate !== null}
+        finalized={assessment.data.assessmentTree.isFinalized}
         userCanEdit={userCanEdit}
       />
     </div>

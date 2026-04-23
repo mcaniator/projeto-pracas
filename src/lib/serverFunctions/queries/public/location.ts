@@ -50,7 +50,8 @@ export const publicFetchLocations = async (
     CASE
       WHEN ST_IsEmpty(l.polygon) THEN NULL
       ELSE ST_AsGeoJSON(l.polygon)::text
-    END AS st_asgeojson
+    END AS st_asgeojson,
+    latest_assessment.id AS "latestAssessmentId"
   FROM location l
   LEFT JOIN assessment a ON a.location_id = l.id
   LEFT JOIN tally t      ON t.location_id = l.id
@@ -61,6 +62,13 @@ export const publicFetchLocations = async (
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
   LEFT JOIN city c ON c.id = l.city_id
+  LEFT JOIN LATERAL (
+    SELECT a2.id
+    FROM assessment a2
+    WHERE a2.location_id = l.id AND a2.is_public = ${true}
+    ORDER BY a2.created_at DESC
+    LIMIT 1
+  ) latest_assessment ON true
   WHERE l.is_public = ${true} 
   AND l.id = COALESCE(${params.locationId}, l.id) 
   AND l.city_id = COALESCE(${params.cityId}, l.city_id)

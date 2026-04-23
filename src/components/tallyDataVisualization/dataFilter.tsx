@@ -205,7 +205,7 @@ const DataFilter = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <h5 className="text-base font-semibold">Gênero</h5>
+          <h5 className="text-base font-semibold">Sexo</h5>
           <CSwitch
             checked={personFilters.genders.includes(Gender.MALE)}
             label="Homens"

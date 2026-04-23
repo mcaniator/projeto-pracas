@@ -13,8 +13,10 @@ import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 const _categorySubmit = async (
   prevState: {
-    responseInfo: APIResponseInfo | null;
-    categoryName: string | null;
+    responseInfo: APIResponseInfo;
+    data: {
+      categoryName: string | null;
+    } | null;
   },
   formData: FormData,
 ) => {
@@ -26,7 +28,7 @@ const _categorySubmit = async (
         statusCode: 401,
         message: "Sem permissão para criar categorias!",
       } as APIResponseInfo,
-      categoryName: null,
+      data: null,
     };
   }
   let parse;
@@ -42,7 +44,7 @@ const _categorySubmit = async (
         statusCode: 400,
         message: "Dados inválidos!",
       } as APIResponseInfo,
-      categoryName: null,
+      data: null,
     };
   }
 
@@ -59,7 +61,7 @@ const _categorySubmit = async (
           showSuccessCard: true,
           message: `Categoria ${category.name} editada!`,
         } as APIResponseInfo,
-        categoryName: category.name,
+        data: null,
       };
     }
     const category = await prisma.category.create({
@@ -72,7 +74,7 @@ const _categorySubmit = async (
         showSuccessCard: true,
         message: `Categoria ${category.name} criada!`,
       } as APIResponseInfo,
-      categoryName: category.name,
+      data: null,
     };
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError)
@@ -82,14 +84,14 @@ const _categorySubmit = async (
             statusCode: 409,
             message: `Já existe uma categoria de nome ${parse.name}`,
           } as APIResponseInfo,
-          categoryName: parse.name,
+          data: null,
         };
     return {
       responseInfo: {
         statusCode: 500,
         message: `Erro ao criar categoria!`,
       } as APIResponseInfo,
-      categoryName: parse.name,
+      data: null,
     };
   }
 };
@@ -97,6 +99,22 @@ const _categorySubmit = async (
 const _deleteCategory = async (
   prevState: {
     responseInfo: APIResponseInfo;
+    data: {
+      formsWithQuestions: {
+        name: string;
+        formItems: {
+          question: {
+            id: number;
+            name: string;
+          } | null;
+        }[];
+      }[];
+    } | null;
+  } | null,
+  formData: FormData,
+): Promise<{
+  responseInfo: APIResponseInfo;
+  data: {
     formsWithQuestions: {
       name: string;
       formItems: {
@@ -106,19 +124,7 @@ const _deleteCategory = async (
         } | null;
       }[];
     }[];
-  } | null,
-  formData: FormData,
-): Promise<{
-  responseInfo: APIResponseInfo;
-  formsWithQuestions: {
-    name: string;
-    formItems: {
-      question: {
-        id: number;
-        name: string;
-      } | null;
-    }[];
-  }[];
+  } | null;
 } | null> => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
@@ -128,7 +134,7 @@ const _deleteCategory = async (
         statusCode: 401,
         message: "Sem permissão para excluir categorias!",
       } as APIResponseInfo,
-      formsWithQuestions: [],
+      data: null,
     };
   }
   const categoryId = parseInt(formData.get("categoryId") as string);
@@ -172,13 +178,15 @@ const _deleteCategory = async (
           message:
             "Não foi possível excluir a categoria. Há questões pertencentes a ela usadas em formulários.",
         } as APIResponseInfo,
-        formsWithQuestions: formsWithQuestions,
+        data: {
+          formsWithQuestions,
+        },
       };
     }
   } catch (e) {
     return {
       responseInfo: { statusCode: 500, message: "Erro ao excluir categoria!" },
-      formsWithQuestions: [],
+      data: null,
     };
   }
   try {
@@ -208,12 +216,12 @@ const _deleteCategory = async (
         showSuccessCard: true,
         message: `Categoria "${deletedCategoryName}" excluída!`,
       },
-      formsWithQuestions: [],
+      data: null,
     };
   } catch (e) {
     return {
       responseInfo: { statusCode: 500, message: "Erro ao excluir categoria!" },
-      formsWithQuestions: [],
+      data: null,
     };
   }
 };
@@ -221,6 +229,22 @@ const _deleteCategory = async (
 const _deleteSubcategory = async (
   prevState: {
     responseInfo: APIResponseInfo;
+    data: {
+      formsWithQuestions: {
+        name: string;
+        formItems: {
+          question: {
+            id: number;
+            name: string;
+          } | null;
+        }[];
+      }[];
+    } | null;
+  } | null,
+  formData: FormData,
+): Promise<{
+  responseInfo: APIResponseInfo;
+  data: {
     formsWithQuestions: {
       name: string;
       formItems: {
@@ -230,19 +254,7 @@ const _deleteSubcategory = async (
         } | null;
       }[];
     }[];
-  } | null,
-  formData: FormData,
-): Promise<{
-  responseInfo: APIResponseInfo;
-  formsWithQuestions: {
-    name: string;
-    formItems: {
-      question: {
-        id: number;
-        name: string;
-      } | null;
-    }[];
-  }[];
+  } | null;
 } | null> => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
@@ -252,7 +264,7 @@ const _deleteSubcategory = async (
         statusCode: 401,
         message: "Sem permissão para excluir subcategorias!",
       } as APIResponseInfo,
-      formsWithQuestions: [],
+      data: null,
     };
   }
   const subcategoryId = parseInt(formData.get("subcategoryId") as string);
@@ -294,13 +306,15 @@ const _deleteSubcategory = async (
           message:
             "Não foi possível excluir a subcategoria. Há questões pertencentes a ela usadas em formulários.",
         } as APIResponseInfo,
-        formsWithQuestions: formsWithQuestions,
+        data: {
+          formsWithQuestions,
+        },
       };
     }
   } catch (e) {
     return {
       responseInfo: { statusCode: 500, message: "Erro ao excluir categoria!" },
-      formsWithQuestions: [],
+      data: null,
     };
   }
   try {
@@ -325,7 +339,7 @@ const _deleteSubcategory = async (
         showSuccessCard: true,
         message: `Subcategoria "${deletedSubcategoryName}" excluída!`,
       },
-      formsWithQuestions: [],
+      data: null,
     };
   } catch (e) {
     return {
@@ -333,13 +347,18 @@ const _deleteSubcategory = async (
         statusCode: 500,
         message: "Erro ao excluir subcategoria!",
       },
-      formsWithQuestions: [],
+      data: null,
     };
   }
 };
 
 const _subcategorySubmit = async (
-  prevState: { responseInfo: APIResponseInfo; subcategoryName: string | null },
+  prevState: {
+    responseInfo: APIResponseInfo;
+    data: {
+      subcategoryName: string | null;
+    } | null;
+  },
   formData: FormData,
 ) => {
   try {
@@ -350,7 +369,7 @@ const _subcategorySubmit = async (
         statusCode: 401,
         message: "Sem permissão para criar categorias!",
       } as APIResponseInfo,
-      subcategoryName: null,
+      data: null,
     };
   }
 
@@ -368,7 +387,7 @@ const _subcategorySubmit = async (
         statusCode: 400,
         message: "Dados inválidos!",
       } as APIResponseInfo,
-      subcategoryName: null,
+      data: null,
     };
   }
 
@@ -385,7 +404,7 @@ const _subcategorySubmit = async (
           showSuccessCard: true,
           message: `Subcategoria ${subcategory.name} editada!`,
         } as APIResponseInfo,
-        subcategoryName: subcategory.name,
+        data: null,
       };
     }
     const subcategory = await prisma.subcategory.create({
@@ -403,7 +422,7 @@ const _subcategorySubmit = async (
         showSuccessCard: true,
         message: `Subcategoria ${subcategory.name} criada!`,
       } as APIResponseInfo,
-      subcategoryName: subcategory.name,
+      data: null,
     };
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError)
@@ -413,14 +432,14 @@ const _subcategorySubmit = async (
             statusCode: 409,
             message: `Já existe uma subcategoria de nome ${(formData.get("subcategory-name") as string) ?? "inválido"}`,
           } as APIResponseInfo,
-          subcategoryName: null,
+          data: null,
         };
     return {
       responseInfo: {
         statusCode: 500,
         message: "Erro ao criar subcategoria!",
       } as APIResponseInfo,
-      subcategoryName: null,
+      data: null,
     };
   }
 };

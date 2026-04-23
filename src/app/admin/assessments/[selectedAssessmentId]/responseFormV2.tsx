@@ -1,5 +1,6 @@
 "use client";
 
+import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -32,6 +33,7 @@ import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import CDynamicIcon from "@components/ui/dynamicIcon/cDynamicIcon";
 import { Box, Typography } from "@mui/material";
 import {
+  IconBrandGoogleDrive,
   IconDeviceFloppy,
   IconMap,
   IconPencil,
@@ -63,21 +65,25 @@ export type SimpleMention = {
 const ResponseFormV2 = ({
   locationId,
   locationName,
+  locationPolygonGeoJson,
   assessmentTree,
   finalized,
   userCanEdit,
 }: {
   locationId: number;
   locationName: string;
+  locationPolygonGeoJson: string | null;
   assessmentTree: {
     id: number;
     startDate: Date;
     endDate: Date | null;
+    isFinalized: boolean;
     formName: string;
     totalQuestions: number;
     responsesFormValues: FormValues;
     geometries: ResponseFormGeometry[];
     categories: AssessmentCategoryItem[];
+    driveFolderUrl: string | null;
   };
   finalized: boolean;
   userCanEdit: boolean;
@@ -118,11 +124,19 @@ const ResponseFormV2 = ({
   });
 
   const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(
-      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
-    );
+    useState<Dayjs | null>(assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null);
+  const [importedIsFinalized, setImportedIsFinalized] = useState(
+    assessmentTree.isFinalized,
+  );
   const [startDate, setStartDate] = useState<Dayjs>(
     dayjs(assessmentTree.startDate),
+  );
+
+  const [openDriveFolderUrlDialog, setOpenDriveFolderUrlDialog] =
+    useState(false);
+
+  const [driveFolderUrl, setDriveFolderUrl] = useState<string | null>(
+    assessmentTree.driveFolderUrl,
   );
 
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
@@ -182,8 +196,11 @@ const ResponseFormV2 = ({
         assessmentId: number;
         responses: FormValues;
         geometries?: ResponseFormGeometry[];
-        finalizationDateTime: string | null;
+        endDateTime?: string | null;
+        finalizationDateTime?: string | null;
+        isFinalized?: boolean;
         startDate: string;
+        driveFolderUrl: string | null;
       };
 
       if (importedData.responses) {
@@ -196,10 +213,17 @@ const ResponseFormV2 = ({
       const startDate = dayjs(importedData.startDate);
       setStartDate(startDate);
 
-      const finalizationDateTime = dayjs(importedData.finalizationDateTime);
-      setImportedFinalizationDatetime(
-        finalizationDateTime.isValid() ? finalizationDateTime : null,
+      const endDateTime = dayjs(
+        importedData.endDateTime ?? importedData.finalizationDateTime,
       );
+      setImportedFinalizationDatetime(
+        endDateTime.isValid() ? endDateTime : null,
+      );
+      setImportedIsFinalized(
+        importedData.isFinalized ?? !!importedData.finalizationDateTime,
+      );
+
+      setDriveFolderUrl(importedData.driveFolderUrl);
 
       setHelperCard({
         show: true,
@@ -284,7 +308,7 @@ const ResponseFormV2 = ({
               setStartDate(e);
             }}
           />
-          <div className="flex items-center justify-end gap-1">
+          <div className="flex items-center justify-end gap-2">
             <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
             <CButtonFilePicker
               fileAccept="application/json"
@@ -298,6 +322,17 @@ const ResponseFormV2 = ({
             </CButtonFilePicker>
             <CButton
               square
+              tooltip="Drive"
+              enableTopLeftChip={!!driveFolderUrl}
+              topLeftChipLabel={"1"}
+              onClick={() => {
+                setOpenDriveFolderUrlDialog(true);
+              }}
+            >
+              <IconBrandGoogleDrive />
+            </CButton>
+            <CButton
+              square
               color="error"
               onClick={() => {
                 setOpenDeleteAssessmentDialog(true);
@@ -308,17 +343,34 @@ const ResponseFormV2 = ({
           </div>
         </div>
       )}
-      {!isFilling && userCanEdit && (
+      {!isFilling && (
         <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
-          <div className="flex items-center gap-1">
-            <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+          <div className="flex items-center gap-2">
+            {userCanEdit && (
+              <>
+                <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+                <CButton
+                  square
+                  onClick={() => {
+                    setIsFilling(true);
+                  }}
+                >
+                  <IconPencil />
+                </CButton>
+              </>
+            )}
+
             <CButton
               square
+              tooltip="Drive"
+              enableTopLeftChip={!!driveFolderUrl}
+              topLeftChipLabel={"1"}
+              disabled={!driveFolderUrl}
               onClick={() => {
-                setIsFilling(true);
+                setOpenDriveFolderUrlDialog(true);
               }}
             >
-              <IconPencil />
+              <IconBrandGoogleDrive />
             </CButton>
           </div>
         </div>
@@ -332,6 +384,7 @@ const ResponseFormV2 = ({
           geometries={geometries}
           questionsForMention={questionsForMention}
           finalized={!isFilling}
+          locationPolygonGeoJson={locationPolygonGeoJson}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           control={control}
         />
@@ -355,8 +408,10 @@ const ResponseFormV2 = ({
         open={openSaveDialog}
         formValues={formValues}
         geometries={geometries}
-        importedFinalizationDatetime={importedFinalizationDatetime}
+        importedEndDatetime={importedFinalizationDatetime}
+        importedIsFinalized={importedIsFinalized}
         startDate={startDate}
+        driveFolderUrl={driveFolderUrl}
         onClose={() => {
           setOpenSaveDialog(false);
         }}
@@ -369,6 +424,13 @@ const ResponseFormV2 = ({
           setOpenDeleteAssessmentDialog(false);
         }}
       />
+      <DriveFolderUrlDialog
+        open={openDriveFolderUrlDialog}
+        driveFolderUrl={driveFolderUrl}
+        isFilling={isFilling}
+        onClose={() => setOpenDriveFolderUrlDialog(false)}
+        onConfirm={(url) => setDriveFolderUrl(url)}
+      />
     </form>
   );
 };
@@ -378,6 +440,7 @@ const Category = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -386,6 +449,7 @@ const Category = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -410,6 +474,7 @@ const Category = ({
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -423,6 +488,7 @@ const Category = ({
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   finalized={finalized}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   control={control}
                 />
@@ -440,6 +506,7 @@ const Subcategory = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -448,6 +515,7 @@ const Subcategory = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -478,6 +546,7 @@ const Subcategory = ({
                 geometries={geometries}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
+                locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 control={control}
               />
@@ -494,6 +563,7 @@ const Question = ({
   numericResponses,
   geometries,
   questionsForMention,
+  locationPolygonGeoJson,
   handleQuestionGeometryChange,
   control,
   finalized,
@@ -502,6 +572,7 @@ const Question = ({
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   questionsForMention: SimpleMention[];
+  locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
@@ -552,6 +623,7 @@ const Question = ({
               }}
               questionId={question.questionId}
               questionName={question.name}
+              locationPolygonGeoJson={locationPolygonGeoJson}
               initialGeometries={
                 geometries.find((g) => g.questionId === question.questionId)
                   ?.geometries

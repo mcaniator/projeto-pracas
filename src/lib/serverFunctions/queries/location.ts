@@ -67,7 +67,7 @@ export const fetchLocations = async (params: FetchLocationsParams) => {
   LEFT JOIN LATERAL (
     SELECT a2.id
     FROM assessment a2
-    WHERE a2.location_id = l.id
+    WHERE a2.location_id = l.id AND a2.is_public = ${true}
     ORDER BY a2.created_at DESC
     LIMIT 1
   ) latest_assessment ON true

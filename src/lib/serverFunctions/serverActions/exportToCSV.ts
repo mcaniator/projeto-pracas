@@ -96,10 +96,10 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
         else return 0;
       }
     });
-    let CSVstring = "IDENTIFICAÇÃO PRAÇA,,,,,,,DADOS HISTÓRICOS,,,\n";
-    CSVstring += ",,,,,,,,,,\n";
+    let CSVstring = "IDENTIFICAÇÃO PRAÇA;;;;;;;DADOS HISTÓRICOS;;;\n";
+    CSVstring += ";;;;;;;;;;\n";
     CSVstring +=
-      "Identificador,Nome da Praça,Nome popular,Categoria,Tipo,Observações,Endereço,Ano criação,Ano reforma,Legislação\n";
+      "Identificador;Nome da Praça;Nome popular;Categoria;Tipo;Observações;Endereço;Ano criação;Ano reforma;Legislação\n";
     CSVstring += locations
       .map((location) => {
         const locationString = [
@@ -115,7 +115,7 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
           location.creationYear,
           location.lastMaintenanceYear,
           location.legislation,
-        ].join(",");
+        ].join(";");
 
         return locationString;
       })
@@ -394,7 +394,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
       }
 
       let CSVHeader =
-        "Identificador da praça,Nome da praça,Identificador da avaliação,Avaliador,Dia,Data,Horário,Duração (minutos)";
+        "Identificador da praça;Nome da praça;Identificador da avaliação;Avaliador;Dia;Data;Horário;Duração (minutos)";
 
       for (const category of categories) {
         // Here we create the first line of the CSV: categories
@@ -402,38 +402,38 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
           //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
-              CSVHeader += `,${formatCSVField(category.name)}`;
+              CSVHeader += `;${formatCSVField(category.name)}`;
             });
           } else {
-            CSVHeader += `,${formatCSVField(category.name)}`;
+            CSVHeader += `;${formatCSVField(category.name)}`;
           }
         }
       }
-      CSVHeader += "\n,,,,,,,";
+      CSVHeader += "\n;;;;;;;";
       for (const category of categories) {
         // Here we create the second line of the CSV: subcategories
         for (const child of category.categoryChildren) {
           //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             child.questions.forEach(() => {
-              CSVHeader += `,${formatCSVField(child.name)}`;
+              CSVHeader += `;${formatCSVField(child.name)}`;
             });
           } else {
-            CSVHeader += `,`;
+            CSVHeader += `;`;
           }
         }
       }
-      CSVHeader += "\n,,,,,,,";
+      CSVHeader += "\n;;;;;;;";
       for (const category of categories) {
         // Here we create the third line of the CSV: questions
         for (const child of category.categoryChildren) {
           //TODO: do not use isSubcategoryType, because it will infer that child is a "SubcategoryItem", which is a type used in the form editor.
           if (FormItemUtils.isSubcategoryType(child)) {
             for (const question of child.questions) {
-              CSVHeader += `,${formatCSVField(question.name)}`;
+              CSVHeader += `;${formatCSVField(question.name)}`;
             }
           } else {
-            CSVHeader += `,${formatCSVField(child.name)}`;
+            CSVHeader += `;${formatCSVField(child.name)}`;
           }
         }
       }
@@ -444,7 +444,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
           continue;
         }
         // General data of the assessment
-        CSVAssessments += `\n${assessment.location.id},${formatCSVField(assessment.location.name)},${assessment.id},${formatCSVField(assessment.user.username)},${weekdayFormatter.format(assessment.startDate)},${dateFormatter.format(assessment.startDate)},${hourFormatter.format(assessment.startDate)},${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
+        CSVAssessments += `\n${assessment.location.id};${formatCSVField(assessment.location.name)};${assessment.id};${formatCSVField(assessment.user.username)};${weekdayFormatter.format(assessment.startDate)};${dateFormatter.format(assessment.startDate)};${hourFormatter.format(assessment.startDate)};${assessment.endDate ? (assessment.endDate.getTime() - assessment.startDate.getTime()) / 60000 : "Não finalizada!"}`;
         // Responses of the assessment
         for (const category of categories) {
           for (const child of category.categoryChildren) {
@@ -486,7 +486,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                     responseValue = "Não";
                   }
                 }
-                CSVAssessments += `,${formatCSVField(responseValue)}`;
+                CSVAssessments += `;${formatCSVField(responseValue)}`;
               }
               //TODO: do not use isQuestionType, because it will infer that child is a "QuestionItem", which is a type used in the form editor.
             } else if (FormItemUtils.isQuestionType(child)) {
@@ -528,7 +528,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                   responseValue = "Não";
                 }
               }
-              CSVAssessments += `,${formatCSVField(responseValue)}`;
+              CSVAssessments += `;${formatCSVField(responseValue)}`;
             }
           }
         }
@@ -717,10 +717,10 @@ const _exportDailyTallys = async (
     const CSVstringWeekendDays: string[] = [];
     for (let i = 0; i < maxWeekdays; i++) {
       let CSVstring =
-        "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+        "IDENTIFICAÇÃO PRAÇA;;LEVANTAMENTO;;;;CONTAGEM DE PESSOAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
       CSVstring +=
-        ",,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-      CSVstring += `Identificador,Nome da Praça,Observador(es),Dia,Data,Nº horários,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
+        ";;;;;;HOMENS;;;;;;;;;;;;;;;;;MULHERES;;;;;;;;;;;;;;;;;;% SEXO;;% IDADE;;;;% ATIVIDADE FÍSICA;;;USUÁRIOS;;;;;;;;\n";
+      CSVstring += `Identificador;Nome da Praça;Observador(es);Dia;Data;Nº horários;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-S;MI-C;MI-V;TOT-MI;MC-S;MC-C;MC-V;TOT-MC;MJ-S;MJ-C;MJ-V;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n`;
       CSVstring += locationsWithTallyGroupsByDate
         .map((locationObj) => {
           let observers = "";
@@ -760,7 +760,7 @@ const _exportDailyTallys = async (
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id};${formatCSVField(locationObj.location.name)};${formatCSVField(observers)};${day};${date};${tallysInAday};${dataLine}`;
         })
         .join("\n");
 
@@ -768,10 +768,10 @@ const _exportDailyTallys = async (
     }
     for (let i = 0; i < maxWeekendDays; i++) {
       let CSVstring =
-        "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+        "IDENTIFICAÇÃO PRAÇA;;LEVANTAMENTO;;;;CONTAGEM DE PESSOAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
       CSVstring +=
-        ",,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
-      CSVstring += `Identificador,Nome da Praça,Observador(es),Dia,Data,Nº horários,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n`;
+        ";;;;;;HOMENS;;;;;;;;;;;;;;;;;MULHERES;;;;;;;;;;;;;;;;;;% SEXO;;% IDADE;;;;% ATIVIDADE FÍSICA;;;USUÁRIOS;;;;;;;;\n";
+      CSVstring += `Identificador;Nome da Praça;Observador(es);Dia;Data;Nº horários;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-S;MI-C;MI-V;TOT-MI;MC-S;MC-C;MC-V;TOT-MC;MJ-S;MJ-C;MJ-V;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n`;
       CSVstring += locationsWithTallyGroupsByDate
         .map((locationObj) => {
           let observers = "";
@@ -811,7 +811,7 @@ const _exportDailyTallys = async (
           const dataLine =
             processAndFormatTallyDataLineWithAddedContent(tallys).tallyString;
 
-          return `${locationObj.location.id},${formatCSVField(locationObj.location.name)},${formatCSVField(observers)},${day},${date},${tallysInAday},${dataLine}`;
+          return `${locationObj.location.id};${formatCSVField(locationObj.location.name)};${formatCSVField(observers)};${day};${date};${tallysInAday};${dataLine}`;
         })
         .join("\n");
 
@@ -864,11 +864,11 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
   let tallys = parsedTallys.data;
 
   let CSVstring =
-    "IDENTIFICAÇÃO PRAÇA,,LEVANTAMENTO,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+    "IDENTIFICAÇÃO PRAÇA;;LEVANTAMENTO;;;;CONTAGEM DE PESSOAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
   CSVstring +=
-    ",,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+    ";;;;;;HOMENS;;;;;;;;;;;;;;;;;MULHERES;;;;;;;;;;;;;;;;;;% SEXO;;% IDADE;;;;% ATIVIDADE FÍSICA;;;USUÁRIOS;;;;;;;;\n";
   CSVstring +=
-    "Identificador,Nome da Praça,Observador(es),Dia,Data,Nº observações,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-S,MI-C,MI-V,TOT-MI,MC-S,MC-C,MC-V,TOT-MC,MJ-S,MJ-C,MJ-V,TOT-MJ,TOT-M,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
+    "Identificador;Nome da Praça;Observador(es);Dia;Data;Nº observações;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-S;MI-C;MI-V;TOT-MI;MC-S;MC-C;MC-V;TOT-MC;MJ-S;MJ-C;MJ-V;TOT-MJ;TOT-M;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
 
   tallys = tallys.sort((a, b) => {
     if (a.location.name < b.location.name) return -1;
@@ -925,7 +925,7 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
             processAndFormatTallyDataLineWithAddedContent(
               tallyGroup,
             ).tallyString;
-          return `${locationId},${formatCSVField(tallyGroup[0]?.location.name)},${formatCSVField(observers)},${dateFormatter.format(tallyGroup[0]?.startDate)},${tallyGroup.length},${dataLine}`;
+          return `${locationId};${formatCSVField(tallyGroup[0]?.location.name)};${formatCSVField(observers)};${dateFormatter.format(tallyGroup[0]?.startDate)};${tallyGroup.length};${dataLine}`;
         })
         .join("\n");
     })

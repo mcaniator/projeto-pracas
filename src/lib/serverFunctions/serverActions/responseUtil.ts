@@ -18,13 +18,17 @@ const _addResponsesV2 = async ({
   responses,
   geometries,
   startDate,
-  finalizationDate,
+  endDate,
+  isFinalized,
+  driveFolderUrl,
 }: {
   assessmentId: number;
   responses: FormValues;
   geometries: ResponseFormGeometry[];
   startDate: Date;
-  finalizationDate: Date | null;
+  endDate: Date | null;
+  isFinalized: boolean;
+  driveFolderUrl: string | null;
 }) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
@@ -136,7 +140,9 @@ const _addResponsesV2 = async ({
       },
       data: {
         startDate,
-        endDate: finalizationDate,
+        endDate,
+        isFinalized,
+        driveFolderUrl: driveFolderUrl,
       },
     });
 
@@ -147,6 +153,7 @@ const _addResponsesV2 = async ({
             id: number;
             startDate: Date;
             endDate: Date | null;
+            isFinalized: boolean;
             userId: string;
             locationId: number;
             formId: number;
@@ -300,6 +307,7 @@ const _addResponsesV2 = async ({
       where: { id: assessmentId },
       select: {
         endDate: true,
+        isFinalized: true,
       },
     });
     return {
@@ -309,7 +317,7 @@ const _addResponsesV2 = async ({
         showSuccessCard: true,
       } as APIResponseInfo,
       data: {
-        savedAsFinalized: finalizationDate !== null,
+        savedAsFinalized: isFinalized,
       },
     };
   } catch (e) {

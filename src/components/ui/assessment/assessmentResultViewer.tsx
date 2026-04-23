@@ -221,7 +221,7 @@ export const AssessmentNumericValueRenderer = ({
   value: number;
 }) => {
   return (
-    <div className="relative inline-flex">
+    <div className="inline-flex items-start">
       <QuestionIcon question={question} hasValue={value !== 0} />
       <Chip
         label={value}
@@ -229,11 +229,19 @@ export const AssessmentNumericValueRenderer = ({
         color="primary"
         disabled={value === 0}
         sx={{
-          position: "absolute",
-          top: -6,
-          left: 20,
+          marginLeft: "-6px",
+          marginTop: "-4px",
           height: 20,
           fontSize: "0.7rem",
+          width: "max-content",
+          maxWidth: "none",
+          flexShrink: 0,
+          zIndex: 1,
+          "& .MuiChip-label": {
+            overflow: "visible",
+            textOverflow: "clip",
+            whiteSpace: "nowrap",
+          },
         }}
       />
     </div>
@@ -389,7 +397,7 @@ export const AssessmentPercentageValueRenderer = ({
   );
 };
 
-const AssessmentResultViewer = ({
+const CAssessmentResultViewer = ({
   assessment,
 }: {
   assessment: AssessmentTree;
@@ -566,7 +574,7 @@ const Category = ({
     return icons;
   }, [category.categoryChildren]);
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 pl-px">
       <div className="flex items-center gap-2">
         <h4 className="font-semibold">{category.name}</h4>
         <span>
@@ -574,14 +582,12 @@ const Category = ({
         </span>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-4">
         {category.categoryChildren.map((child) =>
           isAssessmentSubcategoryItem(child) ?
-            <Subcategory
-              key={child.id}
-              assessment={assessment}
-              subcategory={child}
-            />
+            <div className="w-full" key={child.id}>
+              <Subcategory assessment={assessment} subcategory={child} />
+            </div>
           : <QuestionValues
               key={child.id}
               assessment={assessment}
@@ -621,4 +627,4 @@ const IconsLegendDialog = ({
   );
 };
 
-export default AssessmentResultViewer;
+export default CAssessmentResultViewer;

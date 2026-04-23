@@ -235,7 +235,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
               {appendIconButton}
             </IconButton>
           : null}
-          {clearable ?
+          {!readOnly && clearable ?
             localValue.length > 0 ?
               <IconButton edge="end" onClick={handleClear}>
                 <IconX size={16} />

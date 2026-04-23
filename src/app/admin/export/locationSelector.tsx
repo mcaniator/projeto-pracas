@@ -4,6 +4,7 @@ import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
@@ -17,7 +18,12 @@ import {
 } from "@/lib/utils/localStorage";
 import { Chip, Divider, LinearProgress } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconFilter, IconMapPin, IconTree } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconMapPin,
+  IconPlus,
+  IconTree,
+} from "@tabler/icons-react";
 import Fuse from "fuse.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -50,7 +56,7 @@ const LocationSelector = ({
   >(null);
 
   const [filter, setFilter] = useState<
-    Omit<LocationsMapClientFilter, "isPublic">
+    Omit<LocationsMapClientFilter, "onlyPublic">
   >({
     broadAdministrativeUnitId: null,
     intermediateAdministrativeUnitId: null,
@@ -367,14 +373,18 @@ const LocationSelector = ({
       <Virtuoso
         data={filteredLocations}
         components={{
-          EmptyPlaceholder: () => <div>Nenhuma praça encontrada!</div>,
+          EmptyPlaceholder: () => {
+            if (loadingLocations || loadingCities) {
+              return;
+            }
+            return <div>Nenhuma praça encontrada!</div>;
+          },
         }}
         itemContent={(_, l) => (
           <div className="pb-4">
             <div
               key={l.id}
-              className="flex cursor-pointer flex-row justify-between bg-gray-200 p-2 px-2 shadow-xl hover:scale-[1.02]"
-              onClick={() => onSelecion(l)}
+              className="flex flex-row justify-between bg-gray-200 p-2 px-2 shadow-xl"
             >
               <div className="flex h-auto w-full flex-col gap-1">
                 <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
@@ -393,6 +403,10 @@ const LocationSelector = ({
                 <div className="flex items-center">
                   <span>{`Avaliações: ${l.assessmentCount},  Contagens: ${l.tallyCount}`}</span>
                 </div>
+                <Divider />
+                <CButton square onClick={() => onSelecion(l)} className="w-fit">
+                  <IconPlus />
+                </CButton>
               </div>
             </div>
           </div>

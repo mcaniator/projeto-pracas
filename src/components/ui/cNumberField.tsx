@@ -1,12 +1,27 @@
-import { IconButton, InputAdornment, Tooltip } from "@mui/material";
-import TextField, { TextFieldProps } from "@mui/material/TextField";
+import { NumberField as BaseNumberField } from "@base-ui/react/number-field";
+import {
+  Box,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  SxProps,
+  Theme,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import { TextFieldProps } from "@mui/material/TextField";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import { createDebouncedFunction } from "../../lib/utils/ui";
 
-type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
+type CNumberFieldSx = Extract<NonNullable<SxProps<Theme>>, readonly unknown[]>[number];
+
+type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   errorMessage?: string;
   readOnly?: boolean;
   debounce?: number;
@@ -14,17 +29,38 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange"> & {
   maxValue?: number;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
+  endAdornmentText?: string;
   alignEndAdornmentWithText?: boolean;
   tooltip?: string;
   defaultValue?: number | null;
   value?: number | null;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
+  sx?: SxProps<Theme>;
 };
+
+function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
+  if (!ref) return;
+  if (typeof ref === "function") {
+    ref(value);
+    return;
+  }
+  ref.current = value;
+}
+
+function isSxArray(value: SxProps<Theme> | undefined): value is readonly CNumberFieldSx[] {
+  return Array.isArray(value);
+}
 
 const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
   (props, ref) => {
     const {
+      id: idProp,
+      name,
+      className,
+      fullWidth,
+      placeholder,
+      autoFocus,
       variant = "outlined",
       margin = "normal",
       size = "small",
@@ -40,6 +76,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       maxValue,
       startAdornment,
       endAdornment,
+      endAdornmentText,
       tooltip,
       alignEndAdornmentWithText,
       defaultValue,
@@ -48,13 +85,16 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       onRequiredCheck,
       onChange,
       onBlur,
-      ...rest
     } = props;
+
+    const generatedId = React.useId();
+    const id = idProp ?? generatedId;
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const readOnlySx = readOnly ? readOnlyTextFieldSx : undefined;
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const [isValid, setIsValid] = useState(true);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [localValue, setLocalValue] = useState("");
+    const [optimisticValue, setOptimisticValue] = useState<number | null>(
+      value ?? null,
+    );
 
     const debouncedOnChange = useMemo(
       () => createDebouncedFunction({ func: onChange, timeoutRef, debounce }),
@@ -62,225 +102,225 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     );
 
     const validate = () => {
-      const value = inputRef?.current?.value ?? "";
-      const valid = value.trim().length > 0;
-      setIsValid(valid);
-      if (required && onRequiredCheck) {
-        onRequiredCheck(valid);
+      const filled =
+        value != null || (inputRef.current?.value?.trim().length ?? 0) > 0;
+      setIsValid(filled);
+      if (required) {
+        onRequiredCheck?.(filled);
       }
-      return valid;
+      return filled;
     };
 
-    const normalizeNumber = (value: string) => value.replace(",", ".");
-    const formatNumber = (value: number | null | string | undefined) => {
-      if (value == null) return "";
-      return String(value).replace(".", ",");
-    };
-    const isIncompleteNumber = (value: string) =>
-      value === "" ||
-      value === "-" ||
-      value === "+" ||
-      value === "." ||
-      value === "," ||
-      value.endsWith(".") ||
-      value.endsWith(",");
-
-    const clampNumber = (value: number) => {
-      const hasMin = Number.isFinite(minValue);
-      const hasMax = Number.isFinite(maxValue);
-      if (!hasMin || !hasMax) return value;
-      if (minValue! > maxValue!) return value;
-      return Math.min(Math.max(value, minValue!), maxValue!);
-    };
-
-    const applyClampedNumber = (value: number) => {
-      const clamped = clampNumber(value);
-      setLocalValue(formatNumber(clamped));
-      if (debouncedOnChange) {
-        debouncedOnChange(clamped);
-      }
-    };
-
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (readOnly) return;
-      const raw = event.target.value;
-
-      const filtered = raw.replace(/[^0-9+\-.,]/g, "");
-      const match = filtered.match(/^[-+]?\d*(?:[.,]?\d*)?$/);
-
-      if (!match || match[0] === localValue) return;
-      const newLocalValue = match ? filtered : localValue;
+    const handleValueChange = (
+      nextValue: number | null,
+      eventDetails: BaseNumberField.Root.ChangeEventDetails,
+    ) => {
+      setOptimisticValue(nextValue);
       if (required) {
         validate();
       }
-      if (newLocalValue.trim() === "") {
-        setLocalValue(formatNumber(newLocalValue));
-        if (debouncedOnChange) {
-          debouncedOnChange(null);
+      const isStepperPress =
+        eventDetails.reason === "increment-press" ||
+        eventDetails.reason === "decrement-press";
+      if (isStepperPress) {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
         }
+        onChange?.(nextValue);
         return;
       }
-      if (isIncompleteNumber(newLocalValue)) {
-        setLocalValue(formatNumber(newLocalValue));
-        return;
-      }
-
-      const parsed = Number(normalizeNumber(newLocalValue));
-      if (!Number.isFinite(parsed)) {
-        setLocalValue(formatNumber(newLocalValue));
-        return;
-      }
-
-      applyClampedNumber(parsed);
+      debouncedOnChange?.(nextValue);
     };
-
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (required) {
-        validate();
-      }
-      const current = inputRef.current?.value ?? "";
-      if (current.trim() !== "" && isIncompleteNumber(current)) {
-        setLocalValue(formatNumber(value));
-      }
-      if (onBlur) {
-        onBlur(event);
-      }
-    };
-
-    const handleIncrement = () => {
-      const base = Number(normalizeNumber(localValue));
-      const safeBase = Number.isFinite(base) ? base : 0;
-      applyClampedNumber(safeBase + 1);
-    };
-
-    const handleDecrement = () => {
-      const base = Number(normalizeNumber(localValue));
-      const safeBase = Number.isFinite(base) ? base : 0;
-      applyClampedNumber(safeBase - 1);
-    };
-    useEffect(() => {
-      const currentInput = inputRef.current?.value ?? "";
-      if (currentInput.trim() !== "" && isIncompleteNumber(currentInput))
-        return;
-      const clampedValue = value == null ? null : clampNumber(Number(value));
-      setLocalValue(formatNumber(clampedValue));
-      if (readOnly && onChange) {
-        onChange(clampedValue != undefined ? Number(clampedValue) : null);
-      }
-    }, [value, readOnly, onChange, minValue, maxValue]);
 
     useEffect(() => {
-      if (defaultValue != null) {
-        const clampedValue = clampNumber(Number(defaultValue));
-        setLocalValue(formatNumber(clampedValue));
-      }
-    }, [defaultValue, minValue, maxValue]);
+      setOptimisticValue(value ?? null);
+    }, [value]);
 
-    useEffect(() => {
-      const currentInput = inputRef.current?.value ?? "";
-      if (currentInput.trim() === "" || isIncompleteNumber(currentInput)) {
-        return;
-      }
-      const parsed = Number(normalizeNumber(currentInput));
-      if (!Number.isFinite(parsed)) return;
-      applyClampedNumber(parsed);
-    }, [minValue, maxValue]);
-
-    return (
-      <Tooltip title={tooltip} enterTouchDelay={0}>
-        <TextField
-          ref={ref}
-          label={label}
-          defaultValue={undefined}
-          inputRef={inputRef}
-          variant={variant}
-          margin={margin}
-          size={size}
-          value={localValue}
-          disabled={disabled || readOnly}
-          type="text"
-          error={(required && !isValid) || error}
-          helperText={
-            (required && !isValid) || error ? errorMessage
-            : minValue || maxValue ?
-              `Digite um valor entre ${minValue} e ${maxValue}`
-            : helperText
-          }
-          onChange={handleChange}
-          onBlur={handleBlur}
-          sx={{
-            mb: 0,
-            mt: label ? "8px" : "0px",
-            ...sx,
-            ...readOnlySx,
-            "& input[type=number]::-webkit-inner-spin-button": {
-              WebkitAppearance: "none",
-              margin: 0,
-            },
-            "& input[type=number]::-webkit-outer-spin-button": {
-              WebkitAppearance: "none",
-              margin: 0,
-            },
-            "& input[type=number]": {
-              MozAppearance: "textfield",
-            },
-            "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
-              paddingTop: label ? "12px" : "6px",
-              paddingBottom: label ? "0px" : "6px",
-            },
-            "& .MuiInputLabel-root": {
-              pr: "32px",
-            },
-          }}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  <div className="flex items-center gap-1">
-                    <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
-                      {endAdornment}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0,
-                      }}
-                    >
-                      {!disabled && !readOnly && (
-                        <>
-                          <IconButton
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={handleIncrement}
-                          >
-                            <IconChevronUp fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={handleDecrement}
-                          >
-                            <IconChevronDown fontSize="small" />
-                          </IconButton>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </InputAdornment>
-              ),
-              startAdornment:
+    const showError = (required && !isValid) || !!error;
+    const resolvedHelperText =
+      showError ? errorMessage
+      : minValue != null || maxValue != null ?
+        `Digite um valor entre ${minValue} e ${maxValue}`
+      : helperText;
+    const normalizedSx: CNumberFieldSx[] =
+      isSxArray(sx) ? [...sx]
+      : sx ? [sx]
+      : [];
+    const formControlSx: SxProps<Theme> = [
+      {
+        mt: "4px",
+        mb: 0,
+        "& .MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
+          paddingTop: label ? "12px" : "6px",
+          paddingBottom: label ? "0px" : "6px",
+        },
+        "& .MuiInputLabel-root": {
+          pr: "32px",
+        },
+      },
+      ...(readOnly ? [readOnlyTextFieldSx] : []),
+      ...normalizedSx,
+    ];
+    const field = (
+      <BaseNumberField.Root
+        id={id}
+        name={name}
+        value={optimisticValue}
+        defaultValue={defaultValue ?? undefined}
+        min={minValue}
+        max={maxValue}
+        disabled={disabled}
+        readOnly={readOnly}
+        required={required}
+        inputRef={inputRef}
+        onValueChange={handleValueChange}
+        render={(rootProps) => (
+          <FormControl
+            ref={rootProps.ref}
+            className={className}
+            fullWidth={fullWidth}
+            margin={margin}
+            size={size}
+            required={required}
+            disabled={disabled || readOnly}
+            error={showError}
+            variant={variant}
+            sx={formControlSx}
+          >
+            {rootProps.children}
+          </FormControl>
+        )}
+      >
+        {label ?
+          <InputLabel htmlFor={id} shrink>
+            {label}
+          </InputLabel>
+        : null}
+        <BaseNumberField.Input
+          id={id}
+          render={(inputProps, state) => (
+            <OutlinedInput
+              autoFocus={autoFocus}
+              placeholder={placeholder}
+              label={label}
+              disabled={disabled || readOnly}
+              inputRef={(node: HTMLInputElement | null) => {
+                inputRef.current = node;
+                assignRef(inputProps.ref, node);
+                assignRef(ref, node);
+              }}
+              value={state.inputValue}
+              onFocus={inputProps.onFocus}
+              onKeyDown={inputProps.onKeyDown}
+              onKeyUp={inputProps.onKeyUp}
+              onChange={inputProps.onChange}
+              onBlur={(event) => {
+                inputProps.onBlur?.(event);
+                if (required) {
+                  validate();
+                }
+                onBlur?.(event);
+              }}
+              sx={{
+                "@media (max-width: 679.95px)": {
+                  height: "36px",
+                },
+              }}
+              slotProps={{
+                input: {
+                  ...inputProps,
+                },
+              }}
+              startAdornment={
                 startAdornment ?
                   <InputAdornment position="start">
                     {startAdornment}
                   </InputAdornment>
-                : undefined,
-            },
-          }}
-          {...rest}
+                : undefined
+              }
+              endAdornment={
+                <InputAdornment position="end">
+                  <div className="flex items-center gap-1">
+                    <div className={alignEndAdornmentWithText ? "mt-4" : ""}>
+                      {endAdornmentText ?
+                        <Typography
+                          component="span"
+                          sx={(theme) => ({
+                            fontSize: 16,
+                            [theme.breakpoints.up("sm")]: {
+                              fontSize: 20,
+                            },
+                          })}
+                        >
+                          {endAdornmentText}
+                        </Typography>
+                      : endAdornment}
+                    </div>
+                    {!disabled && !readOnly ?
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 0,
+                        }}
+                      >
+                        <BaseNumberField.Increment
+                          render={
+                            <IconButton
+                              size="small"
+                              style={{ padding: 0, height: 18 }}
+                            />
+                          }
+                        >
+                          <IconChevronUp className="h-4" />
+                        </BaseNumberField.Increment>
+                        <BaseNumberField.Decrement
+                          render={
+                            <IconButton
+                              size="small"
+                              style={{ padding: 0, height: 18 }}
+                            />
+                          }
+                        >
+                          <IconChevronDown className="h-4" />
+                        </BaseNumberField.Decrement>
+                      </div>
+                    : null}
+                  </div>
+                </InputAdornment>
+              }
+            />
+          )}
         />
-      </Tooltip>
+        <FormHelperText>{resolvedHelperText}</FormHelperText>
+      </BaseNumberField.Root>
     );
+    const wrappedField = (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          mt: label ? "8px" : "0px",
+          width: fullWidth ? "100%" : undefined,
+        }}
+      >
+        {tooltip ?
+          <Tooltip title={tooltip} enterTouchDelay={0}>
+            <Box
+              sx={{
+                display: "block",
+                width: fullWidth ? "100%" : undefined,
+              }}
+            >
+              {field}
+            </Box>
+          </Tooltip>
+        : field}
+      </Box>
+    );
+
+    return wrappedField;
   },
 );
 

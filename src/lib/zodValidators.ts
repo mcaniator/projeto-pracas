@@ -392,17 +392,16 @@ const commercialActivitySchema = z.record(
 const ongoingTallySchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
   groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  locationId: z.coerce.number(),
   user: z.object({
     username: z.coerce.string().nullable(),
     id: z.string(),
   }),
   location: z.object({
-    id: z.number(),
     name: z.coerce.string(),
   }),
   tallyPerson: tallyPersonArraySchema.nullable(),
@@ -414,6 +413,7 @@ const tallySchema = z.object({
   locationId: z.coerce.number().int().nonnegative().finite(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
   weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
@@ -447,6 +447,7 @@ const tallysExportIndividualTallysSchema = z.array(
     locationId: z.coerce.number().int().nonnegative().finite(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().nullable(),
+    isFinalized: z.coerce.boolean(),
     animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
     temperature: z.coerce.number().finite().nullable(),
     weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
@@ -467,8 +468,6 @@ const locationArrayExportDailyTallysSchema = z.array(
   locationExportDailyTallysSchema,
 );
 
-const ongoingTallyArraySchema = z.array(ongoingTallySchema);
-
 type Tally = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type TallyPerson = z.infer<typeof tallyPersonSchema>;
@@ -484,7 +483,6 @@ export {
   tallyPersonSchema,
   tallyPersonArraySchema,
   ongoingTallySchema,
-  ongoingTallyArraySchema,
   commercialActivitySchema,
   locationArrayExportDailyTallysSchema,
   tallysExportIndividualTallysSchema,

@@ -2,6 +2,7 @@ import { josefin_sans } from "@/lib/fonts";
 import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 
+import DynamicIconPreloader from "@/components/ui/dynamicIcon/dynamicIconPreloader";
 import AppProviders from "./appProviders";
 import ConditionalPublicHeader from "./conditionalPublicHeader";
 import "./globals.css";
@@ -25,6 +26,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
         }
       >
         <AppProviders>
+          <DynamicIconPreloader />
           <ConditionalPublicHeader />
           {children}
         </AppProviders>

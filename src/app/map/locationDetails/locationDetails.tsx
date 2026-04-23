@@ -1,11 +1,23 @@
+import AssessmentHistory from "@/app/map/locationDetails/assessmentHistory";
 import LocationInfo from "@/app/map/locationDetails/locationInfo";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
 import { IconX } from "@tabler/icons-react";
 import { useState } from "react";
+
+const detailsModes = {
+  DETAILS: 0,
+  HISTORY: 1,
+};
+
+const detailsModeOptions = [
+  { label: "Detalhes", value: detailsModes.DETAILS },
+  { label: "Histórico", value: detailsModes.HISTORY },
+];
 
 const LocationDetails = ({
   location,
@@ -16,9 +28,10 @@ const LocationDetails = ({
   closeLocationDetails: () => void;
   isMobileView: boolean;
 }) => {
+  const [detailsMode, setDetailsMode] = useState(detailsModes.DETAILS);
   const [openMobileDialog, setOpenMobileDialog] = useState(isMobileView);
   const inner = (
-    <div className="flex flex-col gap-1">
+    <div className="flex h-full flex-col gap-1">
       <div className="flex justify-between">
         {!isMobileView && (
           <div className="flex flex-col">
@@ -33,18 +46,48 @@ const LocationDetails = ({
           </CButton>
         )}
       </div>
-      <div className="flex justify-center">
-        <CImage
-          src={location.mainImage}
-          alt={location.name}
-          width={384}
-          height={200}
-        />
+      {!isMobileView && <Divider />}
+      <div className="flex h-full flex-col gap-1 overflow-auto">
+        {detailsMode === detailsModes.DETAILS && (
+          <>
+            <div className="flex justify-center">
+              <CImage
+                src={location.mainImage}
+                alt={location.name}
+                width={384}
+                height={200}
+              />
+            </div>
+            <Divider />
+          </>
+        )}
+
+        {location.latestAssessmentId && (
+          <CToggleButtonGroup
+            options={detailsModeOptions}
+            value={detailsMode}
+            getLabel={(o) => o.label}
+            getValue={(o) => o.value}
+            onChange={(_, v) => {
+              setDetailsMode(v.value);
+            }}
+          />
+        )}
+
+        <div className={detailsMode === detailsModes.DETAILS ? "" : "hidden"}>
+          <LocationInfo location={location} />
+        </div>
+        <div
+          className={
+            detailsMode === detailsModes.HISTORY ? "min-h-0 flex-1" : "hidden"
+          }
+        >
+          <AssessmentHistory
+            locationId={location.id}
+            locationName={location.name}
+          />
+        </div>
       </div>
-
-      <Divider />
-
-      <LocationInfo location={location} />
     </div>
   );
   if (isMobileView) {

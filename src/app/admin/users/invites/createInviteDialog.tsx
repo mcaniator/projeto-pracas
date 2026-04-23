@@ -8,7 +8,7 @@ import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
 import { _createInviteV2 } from "@/lib/serverFunctions/serverActions/inviteUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
 import { Role } from "@prisma/client";
-import { IconCheck, IconClipboard } from "@tabler/icons-react";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { SystemSection, roles, rows } from "../consts";
@@ -169,7 +169,7 @@ const CreateInviteDialog = ({
         });
       }}
       confirmChildren={<IconCheck />}
-      cancelChildren={invite ? <IconClipboard /> : undefined}
+      cancelChildren={invite ? <IconCopy /> : undefined}
       confirmLoading={loading}
     >
       <div className="flex flex-col gap-1">
