@@ -217,15 +217,17 @@ const CDialog = ({
     : { px: { xs: "4px", sm: "12px" }, py: "4px" };
   //TODO: Study ways to remove code duplication
   if (isForm) {
-    const formPaperProps: PaperProps & React.ComponentPropsWithoutRef<"form"> = {
-      component: "form",
-      sx: {
-        borderRadius: memoFullScreen ? "0px" : "12px",
-        py: { xs: "4px", sm: "16px" },
-      },
-      action,
-      onSubmit,
-    };
+    const formPaperProps: PaperProps & React.ComponentPropsWithoutRef<"form"> =
+      {
+        component: "form",
+        sx: {
+          borderRadius: memoFullScreen ? "0px" : "12px",
+          py: { xs: "4px", sm: "16px" },
+          overflow: "hidden",
+        },
+        action,
+        onSubmit,
+      };
 
     return (
       <Dialog
