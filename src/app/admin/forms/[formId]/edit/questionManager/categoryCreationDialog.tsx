@@ -1,9 +1,7 @@
-import { useHelperCard } from "@components/context/helperCardContext";
-import { useLoadingOverlay } from "@components/context/loadingContext";
+import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import { _categorySubmit } from "@serverActions/categoryServerActions";
-import { useActionState, useEffect } from "react";
 
 const CategoryCreationDialog = ({
   open,
@@ -22,31 +20,17 @@ const CategoryCreationDialog = ({
   reloadCategories: () => void;
   openCategoryDeletionDialog: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const initialState = {
-    responseInfo: { statusCode: 0 },
-    categoryName: null,
-  };
-  const [state, formAction, isPending] = useActionState(
-    _categorySubmit,
-    initialState,
-  );
-
-  useEffect(() => {
-    helperCardProcessResponse(state.responseInfo);
-    if (state.responseInfo.statusCode === 201) {
-      reloadCategories();
-    }
-  }, [state, helperCardProcessResponse, reloadCategories]);
-
-  useEffect(() => {
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Salvando categoria..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
-  }, [isPending, setLoadingOverlay]);
+  const [formAction, isPending] = useResettableActionState({
+    action: _categorySubmit,
+    callbacks: {
+      onSuccess: () => {
+        reloadCategories();
+      },
+    },
+    options: {
+      loadingMessage: "Salvando categoria...",
+    },
+  });
   return (
     <CDialog
       isForm
@@ -58,6 +42,7 @@ const CategoryCreationDialog = ({
       confirmChildren={categoryId ? <>Editar</> : <>Criar</>}
       cancelChildren={categoryId ? <>Excluir</> : undefined}
       cancelColor="error"
+      confirmLoading={isPending}
     >
       <div className="flex flex-col">
         {categoryId && (

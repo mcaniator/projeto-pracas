@@ -1,9 +1,7 @@
+import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useHelperCard } from "@context/helperCardContext";
-import { useLoadingOverlay } from "@context/loadingContext";
 import { _subcategorySubmit } from "@serverActions/categoryServerActions";
-import { useActionState, useEffect } from "react";
 
 const SubcategoryCreationDialog = ({
   categoryId,
@@ -26,30 +24,17 @@ const SubcategoryCreationDialog = ({
   reloadCategories: () => void;
   openSubcategoryDeletionDialog: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const initialState = {
-    responseInfo: {
-      statusCode: 0,
-      message: "",
+  const [formAction, isPending] = useResettableActionState({
+    action: _subcategorySubmit,
+    callbacks: {
+      onSuccess: () => {
+        reloadCategories();
+      },
     },
-    subcategoryName: null,
-  };
-  const [state, formAction, isPending] = useActionState(
-    _subcategorySubmit,
-    initialState,
-  );
-
-  useEffect(() => {
-    helperCardProcessResponse(state?.responseInfo);
-    if (state?.responseInfo.statusCode === 201) {
-      reloadCategories();
-    }
-  }, [state, helperCardProcessResponse, reloadCategories]);
-
-  useEffect(() => {
-    setLoadingOverlay({ show: isPending, message: "Criando subcategoria..." });
-  }, [isPending, setLoadingOverlay]);
+    options: {
+      loadingMessage: "Salvando subcategoria...",
+    },
+  });
   return (
     <CDialog
       title={subcategoryId ? "Editar subcategoria" : "Criar subcategoria"}
@@ -61,6 +46,7 @@ const SubcategoryCreationDialog = ({
       confirmChildren={subcategoryId ? <>Editar</> : <>Criar</>}
       cancelChildren={subcategoryId ? <>Excluir</> : undefined}
       cancelColor="error"
+      confirmLoading={isPending}
     >
       <div className="flex flex-col gap-1">
         <h6 className="text-base font-semibold">
