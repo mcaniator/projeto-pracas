@@ -34,7 +34,7 @@ export const formatCSVField = (val?: string | null) => {
 
   // If the field contains a comma, quotation marks, or a line break, we need to escape it
   if (
-    str.includes(",") ||
+    str.includes(";") ||
     str.includes('"') ||
     str.includes("\n") ||
     str.includes("\r")
@@ -49,7 +49,7 @@ export const formatCSVField = (val?: string | null) => {
 const processAndFormatTallyDataLineWithAddedContent = (tallys: Tally[]) => {
   if (tallys.length === 0)
     return {
-      tallyString: ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+      tallyString: ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;",
       totalPeople: 0,
     };
   const tallyMap = new Map();
@@ -166,7 +166,7 @@ const processAndFormatTallyDataLineWithAddedContent = (tallys: Tally[]) => {
     }
   }
   return {
-    tallyString: `${[...tallyMap.values()].join(",")}`,
+    tallyString: `${[...tallyMap.values()].join(";")}`,
     totalPeople: totalPeople,
   };
 };
@@ -180,11 +180,11 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
     }
   });
   let CSVstring =
-    "IDENTIFICAÇÃO PRAÇA,,IDENTIFICAÇÃO LEVANTAMENTO,,,,,,,CONTAGEM DE PESSOAS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n";
+    "IDENTIFICAÇÃO PRAÇA;;IDENTIFICAÇÃO LEVANTAMENTO;;;;;;;CONTAGEM DE PESSOAS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n";
   CSVstring +=
-    ",,,,,,,,,HOMENS,,,,,,,,,,,,,,,,,MULHERES,,,,,,,,,,,,,,,,,,% SEXO,,% IDADE,,,,% ATIVIDADE FÍSICA,,,USUÁRIOS,,,,,,,,\n";
+    ";;;;;;;;;HOMENS;;;;;;;;;;;;;;;;;MULHERES;;;;;;;;;;;;;;;;;;% SEXO;;% IDADE;;;;% ATIVIDADE FÍSICA;;;USUÁRIOS;;;;;;;;\n";
   CSVstring +=
-    "Identificador,Nome da Praça,Observador,Dia,Data,Início,Duração,Temperatura,Com sol/Nublado,HA-SED,HA-CAM,HA-VIG,TOT-HA,HI-SED,HI-CAM,HI-VIG,TOT-HI,HC-SED,HC-CAM,HC-VIG,TOT-HC,HJ-SED,HJ-CAM,HJ-VIG,TOT-HJ,TOT-HOMENS,MA-SED,MA-CAM,MA-VIG,TOT-MA,MI-SED,MI-CAM,MI-VIG,TOT-MI,MC-SED,MC-CAM,MC-VIG,TOT-MC,MJ-SED,MJ-CAM,MJ-VIG,TOT-MJ,TOT-MULHERES,TOTAL H&M,%HOMENS,%MULHERES,%ADULTO,%IDOSO,%CRIANÇA,%JOVEM,%SEDENTÁRIO,%CAMINHANDO,%VIGOROSO,PCD,Grupos,Pets,Passando,Qtde Atvividades comerciais intinerantes,Atividades Ilícitas,%Ativ Ilic,Pessoas em situação de rua,% Pessoas em situação de rua\n";
+    "Identificador;Nome da Praça;Observador;Dia;Data;Início;Duração;Temperatura;Com sol/Nublado;HA-SED;HA-CAM;HA-VIG;TOT-HA;HI-SED;HI-CAM;HI-VIG;TOT-HI;HC-SED;HC-CAM;HC-VIG;TOT-HC;HJ-SED;HJ-CAM;HJ-VIG;TOT-HJ;TOT-HOMENS;MA-SED;MA-CAM;MA-VIG;TOT-MA;MI-SED;MI-CAM;MI-VIG;TOT-MI;MC-SED;MC-CAM;MC-VIG;TOT-MC;MJ-SED;MJ-CAM;MJ-VIG;TOT-MJ;TOT-MULHERES;TOTAL H&M;%HOMENS;%MULHERES;%ADULTO;%IDOSO;%CRIANÇA;%JOVEM;%SEDENTÁRIO;%CAMINHANDO;%VIGOROSO;PCD;Grupos;Pets;Passando;Qtde Atvividades comerciais intinerantes;Atividades Ilícitas;%Ativ Ilic;Pessoas em situação de rua;% Pessoas em situação de rua\n";
 
   CSVstring += tallys
     .map((tally) => {
@@ -203,7 +203,7 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
       }
       let tallyString = "";
       if (!tally.tallyPerson) {
-        tallyString = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+        tallyString = ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;";
       } else {
         const tallyMap = new Map();
         for (const gender of genders) {
@@ -321,14 +321,14 @@ const createTallyStringWithoutAddedData = (tallys: Tally[]) => {
             );
           }
         }
-        tallyString = `${[...tallyMap.values()].join(",")}`;
+        tallyString = `${[...tallyMap.values()].join(";")}`;
       }
       let weatherCondition = "";
       if (tally.weatherCondition) {
         weatherCondition = weatherNameMap.get(tally.weatherCondition) || "";
       }
       return (
-        `${tally.locationId},${formatCSVField(tally.location.name)},${formatCSVField(tally.user.username)},${formatCSVField(weekday)},${formatCSVField(date)},${formatCSVField(startDateTime)},${formatCSVField(duration)},${tally.temperature ? tally.temperature : "-"},${formatCSVField(weatherCondition)},` +
+        `${tally.locationId};${formatCSVField(tally.location.name)};${formatCSVField(tally.user.username)};${formatCSVField(weekday)};${formatCSVField(date)};${formatCSVField(startDateTime)};${formatCSVField(duration)};${tally.temperature ? tally.temperature : "-"};${formatCSVField(weatherCondition)};` +
         tallyString
       );
     })
