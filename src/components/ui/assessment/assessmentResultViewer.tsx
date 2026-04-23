@@ -234,6 +234,12 @@ export const AssessmentNumericValueRenderer = ({
           left: 20,
           height: 20,
           fontSize: "0.7rem",
+          width: "max-content",
+          maxWidth: "none",
+          "& .MuiChip-label": {
+            overflow: "visible",
+            textOverflow: "clip",
+          },
         }}
       />
     </div>
