@@ -6,26 +6,32 @@ import CAutocomplete from "@components/ui/cAutoComplete";
 import { Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconChartBar, IconListDetails } from "@tabler/icons-react";
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 import CButton from "../../../../components/ui/cButton";
-import AssessmentsSidebar from "../assessmentsSidebar/assessmentsSidebar";
-import Sidebar, { SidebarContent, SidebarProps } from "./sidebar";
+import AssessmentsSidebar, {
+  AssessmentsSidebarProps,
+} from "../assessmentsSidebar/assessmentsSidebar";
+import Sidebar, { LocationsSidebar, LocationsSidebarProps } from "./sidebar";
 
-const sidebarModes = {
+export const sidebarModes = {
   LOCATIONS: 0,
   ASSESSMENTS: 1,
 };
 
+export type SidebarMode = (typeof sidebarModes)[keyof typeof sidebarModes];
+
 const sidebarModeOptions = [
   {
     label: <IconListDetails />,
+    mobileLabel: "Praças",
     tooltip: "Praças",
     title: "Praças",
     value: sidebarModes.LOCATIONS,
   },
   {
     label: <IconChartBar />,
+    mobileLabel: "Comparar",
     tooltip: "Comparar praças",
     title: "Comparar praças",
     value: sidebarModes.ASSESSMENTS,
@@ -33,11 +39,16 @@ const sidebarModeOptions = [
 ];
 
 const MapSidebarShell = ({
+  assessmentsSidebarProps,
+  mode,
   locationsSidebarProps,
+  setMode,
 }: {
-  locationsSidebarProps: SidebarProps;
+  assessmentsSidebarProps: AssessmentsSidebarProps;
+  mode: SidebarMode;
+  locationsSidebarProps: LocationsSidebarProps;
+  setMode: Dispatch<SetStateAction<SidebarMode>>;
 }) => {
-  const [mode, setMode] = useState(sidebarModes.LOCATIONS);
   const {
     citiesOptions,
     isMobileView,
@@ -53,21 +64,16 @@ const MapSidebarShell = ({
 
   const content =
     mode === sidebarModes.LOCATIONS ?
-      <SidebarContent {...locationsSidebarProps} />
-    : <AssessmentsSidebar
-        citiesOptions={citiesOptions}
-        loadingCities={loadingCities}
-        locationCategories={locationsSidebarProps.locationCategories}
-        locationTypes={locationsSidebarProps.locationTypes}
-        selectedCity={selectedCity}
-        setCity={setCity}
-        setState={setState}
-        state={state}
-      />;
+      <LocationsSidebar {...locationsSidebarProps} />
+    : <AssessmentsSidebar {...assessmentsSidebarProps} />;
 
   const selectedMode =
     sidebarModeOptions.find((option) => option.value === mode) ??
     sidebarModeOptions[0]!;
+  const topLeftChipLabel =
+    mode === sidebarModes.LOCATIONS ?
+      locations.length
+    : assessmentsSidebarProps.locations.length;
 
   const modeToggle = (
     <CToggleButtonGroup
@@ -75,7 +81,7 @@ const MapSidebarShell = ({
       options={sidebarModeOptions}
       value={mode}
       getValue={(option) => option.value}
-      getLabel={(option) => option.label}
+      getLabel={(option) => (isMobileView ? option.mobileLabel : option.label)}
       getTooltip={(option) => option.tooltip}
       onChange={(_, option) => setMode(option.value)}
       sx={{
@@ -105,7 +111,7 @@ const MapSidebarShell = ({
           <CButton
             square={true}
             enableTopLeftChip
-            topLeftChipLabel={locations.length}
+            topLeftChipLabel={topLeftChipLabel}
             onClick={() => {
               setSidebarDialogOpen(true);
             }}

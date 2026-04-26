@@ -27,7 +27,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import { Dispatch, SetStateAction, useContext, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
 
-export type SidebarProps = {
+export type LocationsSidebarProps = {
   loadingLocations: boolean;
   loadingCities: boolean;
   loadingCategories: boolean;
@@ -52,7 +52,7 @@ export type SidebarProps = {
   isMobileView: boolean;
 };
 
-export const SidebarContent = ({
+export const LocationsSidebar = ({
   loadingLocations,
   loadingCities,
   loadingCategories,
@@ -72,7 +72,7 @@ export const SidebarContent = ({
   setCity,
   setFilter,
   setSidebarDialogOpen,
-}: SidebarProps) => {
+}: LocationsSidebarProps) => {
   const map = useContext(MapContext);
   const view = map?.getView();
 
@@ -383,7 +383,7 @@ export const SidebarContent = ({
   return inner;
 };
 
-const Sidebar = (props: SidebarProps) => {
+const Sidebar = (props: LocationsSidebarProps) => {
   const {
     citiesOptions,
     isMobileView,
@@ -397,7 +397,7 @@ const Sidebar = (props: SidebarProps) => {
     state,
   } = props;
 
-  const inner = <SidebarContent {...props} />;
+  const inner = <LocationsSidebar {...props} />;
 
   if (isMobileView) {
     return (

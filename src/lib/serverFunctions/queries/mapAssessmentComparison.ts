@@ -1,8 +1,9 @@
-import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import { buildImageUrl } from "../../utils/image";
 import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 
+import { prisma } from "../../prisma";
+import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import { FormItemUtils } from "../../utils/formTreeUtils";
+import { buildImageUrl } from "../../utils/image";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -13,7 +14,6 @@ import {
   MapAssessmentComparisonLocation,
   sortMapAssessmentComparisonLocations,
 } from "./mapAssessmentComparisonUtils";
-import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export type {
   MapAssessmentComparisonAssessment,
@@ -22,9 +22,7 @@ export type {
 } from "./mapAssessmentComparisonUtils";
 
 export type FetchMapAssessmentComparisonCategoriesResponse = NonNullable<
-  Awaited<
-    ReturnType<typeof fetchMapAssessmentComparisonCategories>
-  >["data"]
+  Awaited<ReturnType<typeof fetchMapAssessmentComparisonCategories>>["data"]
 >;
 
 export const fetchMapAssessmentComparisonCategories = async () => {
@@ -149,6 +147,21 @@ export const fetchMapAssessmentComparisonResults = async ({
         },
       },
     });
+    const locationPolygons = await prisma.$queryRaw<
+      Array<{ id: number; st_asgeojson: string | null }>
+    >`
+      SELECT
+        l.id,
+        CASE
+          WHEN ST_IsEmpty(l.polygon) THEN NULL
+          ELSE ST_AsGeoJSON(l.polygon)::text
+        END AS st_asgeojson
+      FROM location l
+      WHERE l.city_id = ${cityId}
+    `;
+    const locationPolygonsById = new Map(
+      locationPolygons.map((location) => [location.id, location.st_asgeojson]),
+    );
 
     const formattedLocations: MapAssessmentComparisonLocation[] = locations.map(
       (location) => {
@@ -161,6 +174,7 @@ export const fetchMapAssessmentComparisonResults = async ({
           id: location.id,
           name: location.name,
           popularName: location.popularName,
+          st_asgeojson: locationPolygonsById.get(location.id) ?? null,
           mainImage: buildImageUrl(location.mainImage?.relativePath ?? null),
           isPublic: location.isPublic,
           typeId: location.typeId,
@@ -414,10 +428,10 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
         locations: [...locationsById.values()].map((location) => ({
-            id: location.id,
-            name: location.name,
-            assessmentTrees: assessmentTreesByLocationId.get(location.id) ?? [],
-          })),
+          id: location.id,
+          name: location.name,
+          assessmentTrees: assessmentTreesByLocationId.get(location.id) ?? [],
+        })),
       },
     };
   } catch (e) {
@@ -532,7 +546,8 @@ const buildMapAssessmentComparisonAssessmentTree = ({
           dbQuestion.characterType === "PERCENTAGE" ||
           dbQuestion.characterType === "SCALE"
         ) {
-          responsesFormValues[dbQuestion.id] = response ? Number(response) : null;
+          responsesFormValues[dbQuestion.id] =
+            response ? Number(response) : null;
         } else {
           responsesFormValues[dbQuestion.id] = response ?? null;
         }

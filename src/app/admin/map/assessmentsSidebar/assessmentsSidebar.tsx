@@ -1,5 +1,6 @@
 "use client";
 
+import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
 import CImage from "@/components/ui/CImage";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CAccordion from "@/components/ui/accordion/CAccordion";
@@ -10,19 +11,17 @@ import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CSwitch from "@/components/ui/cSwtich";
 import CTextField from "@/components/ui/cTextField";
-import {
-  useFetchMapAssessmentComparisonCategories,
-  useFetchMapAssessmentComparisonResults,
-} from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
+import { useFetchMapAssessmentComparisonCategories } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import {
   FetchMapAssessmentComparisonCategoriesResponse,
   FetchMapAssessmentComparisonResultsResponse,
+  MapAssessmentComparisonCategory,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
-import { Chip, LinearProgress } from "@mui/material";
+import { Chip, Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import {
   IconAlertTriangle,
@@ -30,81 +29,60 @@ import {
   IconFilter,
   IconTree,
 } from "@tabler/icons-react";
-import Fuse from "fuse.js";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 import AssessmentComparisonDialog from "./assessmentComparisonDialog";
 
-type AssessmentComparisonClientFilter = {
-  broadAdministrativeUnitId: number | null;
-  intermediateAdministrativeUnitId: number | null;
-  narrowAdministrativeUnitId: number | null;
-  categoryId: number | null;
-  typeId: number | null;
-  name: string | null;
-  onlyPublic: boolean;
-};
-
-const emptyComparisonFilter: AssessmentComparisonClientFilter = {
-  broadAdministrativeUnitId: null,
-  intermediateAdministrativeUnitId: null,
-  narrowAdministrativeUnitId: null,
-  categoryId: null,
-  typeId: null,
-  name: null,
-  onlyPublic: false,
+export type AssessmentsSidebarProps = {
+  citiesOptions: FetchCitiesResponse["cities"] | null;
+  filter: LocationsMapClientFilter;
+  loadingCities: boolean;
+  loadingLocations: boolean;
+  locationCategories: FetchLocationCategoriesResponse["categories"];
+  locations: FetchMapAssessmentComparisonResultsResponse["locations"];
+  locationTypes: FetchLocationTypesResponse["types"];
+  selectedCity: FetchCitiesResponse["cities"][number] | null;
+  selectedCategory: MapAssessmentComparisonCategory | null;
+  selectedLocationIds: Set<number>;
+  setCity: Dispatch<
+    SetStateAction<FetchCitiesResponse["cities"][number] | null>
+  >;
+  setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
+  setLoadingCategories: Dispatch<SetStateAction<boolean>>;
+  setSelectedCategory: Dispatch<
+    SetStateAction<MapAssessmentComparisonCategory | null>
+  >;
+  setSelectedLocationIds: Dispatch<SetStateAction<Set<number>>>;
+  setState: Dispatch<SetStateAction<BrazilianStates>>;
+  state: BrazilianStates;
 };
 
 const AssessmentsSidebar = ({
   citiesOptions,
   loadingCities,
   locationCategories,
+  locations,
   locationTypes,
   selectedCity,
+  selectedCategory,
+  loadingLocations,
+  selectedLocationIds,
   setCity,
+  setFilter,
+  setLoadingCategories,
+  setSelectedCategory,
+  setSelectedLocationIds,
   setState,
   state,
-}: {
-  citiesOptions: FetchCitiesResponse["cities"] | null;
-  loadingCities: boolean;
-  locationCategories: FetchLocationCategoriesResponse["categories"];
-  locationTypes: FetchLocationTypesResponse["types"];
-  selectedCity: FetchCitiesResponse["cities"][number] | null;
-  setCity: Dispatch<
-    SetStateAction<FetchCitiesResponse["cities"][number] | null>
-  >;
-  setState: Dispatch<SetStateAction<BrazilianStates>>;
-  state: BrazilianStates;
-}) => {
+  filter,
+}: AssessmentsSidebarProps) => {
   const [categories, setCategories] = useState<
     FetchMapAssessmentComparisonCategoriesResponse["categories"]
   >([]);
-  const [selectedCategory, setSelectedCategory] = useState<
-    FetchMapAssessmentComparisonCategoriesResponse["categories"][number] | null
-  >(null);
-  const [locations, setLocations] = useState<
-    FetchMapAssessmentComparisonResultsResponse["locations"]
-  >([]);
-  const [filteredLocations, setFilteredLocations] = useState<
-    FetchMapAssessmentComparisonResultsResponse["locations"]
-  >([]);
-  const [selectedLocationIds, setSelectedLocationIds] = useState<Set<number>>(
-    () => new Set(),
-  );
-  const [filter, setFilter] = useState<AssessmentComparisonClientFilter>(
-    emptyComparisonFilter,
-  );
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [fetchCategories, loadingCategories] =
+  const [fetchCategories, fetchingCategories] =
     useFetchMapAssessmentComparisonCategories({
       callbacks: {
         onSuccess: (response) => {
@@ -117,91 +95,17 @@ const AssessmentsSidebar = ({
       },
     });
 
-  const [fetchResults, loadingResults] = useFetchMapAssessmentComparisonResults(
-    {
-      callbacks: {
-        onSuccess: (response) => {
-          setLocations(response.data?.locations ?? []);
-          setSelectedLocationIds(new Set());
-        },
-      },
-    },
-  );
-
-  const applyFilter = useCallback(() => {
-    const result: FetchMapAssessmentComparisonResultsResponse["locations"] =
-      [];
-
-    locations.forEach((location) => {
-      if (
-        filter.broadAdministrativeUnitId &&
-        location.broadAdministrativeUnitId !== filter.broadAdministrativeUnitId
-      ) {
-        if (filter.broadAdministrativeUnitId !== -1) return;
-        if (location.broadAdministrativeUnitId !== null) return;
-      }
-
-      if (
-        filter.intermediateAdministrativeUnitId &&
-        location.intermediateAdministrativeUnitId !==
-          filter.intermediateAdministrativeUnitId
-      ) {
-        if (filter.intermediateAdministrativeUnitId !== -1) return;
-        if (location.intermediateAdministrativeUnitId !== null) return;
-      }
-
-      if (
-        filter.narrowAdministrativeUnitId &&
-        location.narrowAdministrativeUnitId !== filter.narrowAdministrativeUnitId
-      ) {
-        if (filter.narrowAdministrativeUnitId !== -1) return;
-        if (location.narrowAdministrativeUnitId !== null) return;
-      }
-
-      if (filter.categoryId && location.categoryId !== filter.categoryId) {
-        if (filter.categoryId !== -1) return;
-        if (location.categoryId !== null) return;
-      }
-
-      if (filter.typeId && location.typeId !== filter.typeId) {
-        if (filter.typeId !== -1) return;
-        if (location.typeId !== null) return;
-      }
-
-      if (filter.onlyPublic && !location.isPublic) return;
-
-      result.push(location);
-    });
-
-    const fuseHaystack = new Fuse(result, {
-      keys: ["name", "popularName"],
-    });
-
-    if (filter.name) {
-      const resultFilteredByName = fuseHaystack.search(filter.name);
-      setFilteredLocations(resultFilteredByName.map((result) => result.item));
-    } else {
-      setFilteredLocations(result);
-    }
-  }, [filter, locations]);
-
   useEffect(() => {
     void fetchCategories({});
   }, [fetchCategories]);
 
   useEffect(() => {
-    setLocations([]);
-    setSelectedLocationIds(new Set());
-    if (!selectedCity || !selectedCategory) return;
-    void fetchResults({
-      cityId: selectedCity.id,
-      categoryId: selectedCategory.id,
-    });
-  }, [fetchResults, selectedCategory, selectedCity]);
+    setLoadingCategories(fetchingCategories);
+  }, [fetchingCategories, setLoadingCategories]);
 
   useEffect(() => {
-    applyFilter();
-  }, [applyFilter]);
+    return () => setLoadingCategories(false);
+  }, [setLoadingCategories]);
 
   const broadUnits = useMemo(() => {
     return [
@@ -294,7 +198,7 @@ const AssessmentsSidebar = ({
 
       <CAutocomplete
         label="Categoria de avaliação"
-        loading={loadingCategories}
+        loading={fetchingCategories}
         options={categories}
         value={selectedCategory}
         isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -432,37 +336,40 @@ const AssessmentsSidebar = ({
         }}
       />
 
-      {(loadingResults || loadingCategories) && (
+      {(loadingLocations || fetchingCategories) && (
         <div className="flex w-full flex-col justify-center text-lg">
-          <LinearProgress />
-          {loadingCategories ?
-            "Carregando categorias..."
-          : "Carregando praças..."}
+          <CLinearProgress
+            label={
+              fetchingCategories ?
+                "Carregando categorias..."
+              : "Carregando praças..."
+            }
+          />
         </div>
       )}
 
       {selectedCategory &&
-        !loadingResults &&
+        !loadingLocations &&
         locations.length > 0 &&
         !hasAnyResult && (
           <Chip
             color="warning"
             icon={<IconAlertTriangle />}
-            label="Nenhuma praça desta cidade possui avaliação pública nesta categoria."
+            label="Nenhuma praça filtrada foi avaliada nesta categoria."
           />
         )}
 
-      {!selectedCategory && !loadingCategories && (
+      {!selectedCategory && !fetchingCategories && (
         <div className="rounded border border-dashed border-gray-300 p-3 text-sm text-gray-600">
           Nenhuma categoria de avaliação pública encontrada.
         </div>
       )}
-
+      <Divider />
       <Virtuoso
-        data={filteredLocations}
+        data={locations}
         components={{
           EmptyPlaceholder: () => {
-            if (loadingResults || loadingCategories) {
+            if (loadingLocations || fetchingCategories) {
               return;
             }
             return <div>Nenhuma praça encontrada!</div>;
@@ -531,17 +438,19 @@ const AssessmentsSidebar = ({
           );
         }}
       />
-
-      <div className="shrink-0 pt-1">
-        <CButton
-          disabled={selectedLocations.length === 0}
-          onClick={() => setDialogOpen(true)}
-        >
-          <IconChartBar /> Comparar
-        </CButton>
+      <Divider />
+      <div className="flex w-full items-center justify-center pt-2">
+        <div className="w-fit">
+          <CButton
+            disabled={selectedLocations.length === 0}
+            onClick={() => setDialogOpen(true)}
+            enableTopLeftChip
+            topLeftChipLabel={selectedLocations.length}
+          >
+            <IconChartBar /> Comparar
+          </CButton>
+        </div>
       </div>
-
-      {loadingResults && <CLinearProgress label="Carregando avaliações..." />}
 
       <AssessmentComparisonDialog
         category={selectedCategory}

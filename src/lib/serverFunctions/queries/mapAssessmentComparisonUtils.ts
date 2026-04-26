@@ -13,6 +13,7 @@ export type MapAssessmentComparisonLocation = {
   id: number;
   name: string;
   popularName: string | null;
+  st_asgeojson: string | null;
   mainImage: string | null;
   isPublic: boolean;
   typeId: number | null;
