@@ -96,6 +96,7 @@ const MapSidebarShell = ({
       <>
         <CDialog
           fullScreen
+          keepMounted
           title={selectedMode.title}
           open={sidebarDialogOpen}
           onClose={() => {
