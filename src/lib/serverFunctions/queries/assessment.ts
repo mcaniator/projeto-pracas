@@ -490,99 +490,106 @@ export type FetchPublicAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof fetchPublicAssessmentTree>>["data"]
 >;
 
-const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
+const fetchPublicAssessmentTree = async (params: {
+  assessmentId: number;
+  categoryId?: number;
+}) => {
   try {
-    const assessment = await prisma.assessment.findUnique({
-      where: { id: params.assessmentId, isPublic: true },
-      select: {
-        id: true,
-        endDate: true,
-        isFinalized: true,
-        startDate: true,
-        user: {
-          select: {
-            username: true,
-            id: true,
-          },
-        },
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        form: {
-          select: {
-            id: true,
-            name: true,
-            calculations: {
-              select: {
-                expression: true,
-                targetQuestionId: true,
-              },
+    const [assessment, rawGeometries] = await Promise.all([
+      prisma.assessment.findUnique({
+        where: { id: params.assessmentId, isPublic: true },
+        select: {
+          id: true,
+          endDate: true,
+          isFinalized: true,
+          startDate: true,
+          user: {
+            select: {
+              username: true,
+              id: true,
             },
-            formItems: {
-              orderBy: { position: "asc" },
-              include: {
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                    notes: true,
-                  },
+          },
+          location: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          form: {
+            select: {
+              id: true,
+              name: true,
+              calculations: {
+                select: {
+                  expression: true,
+                  targetQuestionId: true,
                 },
-                subcategory: {
-                  select: {
-                    id: true,
-                    name: true,
-                    notes: true,
-                    categoryId: true,
-                  },
-                },
-                question: {
-                  where: {
-                    isPublic: true,
-                  },
-                  select: {
-                    id: true,
-                    name: true,
-                    iconKey: true,
-                    isPublic: true,
-                    scaleConfig: true,
-                    notes: true,
-                    questionType: true,
-                    characterType: true,
-                    optionType: true,
-                    options: { select: { text: true, id: true } },
-                    categoryId: true,
-                    subcategoryId: true,
-                    geometryTypes: true,
-                    response: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        response: true,
-                      },
+              },
+              formItems: {
+                where:
+                  params.categoryId ? { categoryId: params.categoryId } : {},
+                orderBy: { position: "asc" },
+                include: {
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      notes: true,
                     },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
-                      },
+                  },
+                  subcategory: {
+                    select: {
+                      id: true,
+                      name: true,
+                      notes: true,
+                      categoryId: true,
                     },
-                    ResponseOption: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                        optionId: { not: null },
+                  },
+                  question: {
+                    where: {
+                      isPublic: true,
+                    },
+                    select: {
+                      id: true,
+                      name: true,
+                      iconKey: true,
+                      isPublic: true,
+                      scaleConfig: true,
+                      notes: true,
+                      questionType: true,
+                      characterType: true,
+                      optionType: true,
+                      options: { select: { text: true, id: true } },
+                      categoryId: true,
+                      subcategoryId: true,
+                      geometryTypes: true,
+                      response: {
+                        where: {
+                          assessmentId: params.assessmentId,
+                        },
+                        select: {
+                          response: true,
+                        },
                       },
-                      select: {
-                        id: true,
-                        option: {
-                          select: {
-                            id: true,
+                      booleanResponses: {
+                        where: {
+                          assessmentId: params.assessmentId,
+                        },
+                        select: {
+                          checked: true,
+                        },
+                      },
+                      ResponseOption: {
+                        where: {
+                          assessmentId: params.assessmentId,
+                          optionId: { not: null },
+                        },
+                        select: {
+                          id: true,
+                          option: {
+                            select: {
+                              id: true,
+                            },
                           },
                         },
                       },
@@ -593,8 +600,9 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
             },
           },
         },
-      },
-    });
+      }),
+      fetchAssessmentGeometries(params.assessmentId),
+    ]);
     if (!assessment) {
       return {
         responseInfo: {
@@ -761,8 +769,21 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
       });
     });
 
-    const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
-    const geometries = rawGeometries.map((fetchedGeometry) => {
+    const selectedQuestionIds = new Set(
+      categories.flatMap((category) =>
+        category.categoryChildren.flatMap((child) =>
+          FormItemUtils.isSubcategoryType(child) ?
+            child.questions.map((question) => question.questionId)
+          : [child.questionId],
+        ),
+      ),
+    );
+
+    const geometries = rawGeometries
+      .filter((fetchedGeometry) =>
+        selectedQuestionIds.has(fetchedGeometry.questionId),
+      )
+      .map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
       if (!geometry) {
         return { questionId, geometries: [] };

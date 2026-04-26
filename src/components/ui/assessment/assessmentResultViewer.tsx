@@ -582,7 +582,7 @@ const Category = ({
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         {category.categoryChildren.map((child) =>
           isAssessmentSubcategoryItem(child) ?
             <div className="w-full" key={child.id}>

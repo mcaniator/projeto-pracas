@@ -32,7 +32,7 @@ import CButton from "../../../components/ui/cButton";
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
 import PolygonProvider from "./polygonProvider";
 import RegisterMenu from "./register/registerMenu";
-import Sidebar from "./sidebar/sidebar";
+import MapSidebarShell from "./sidebar/mapSidebarShell";
 
 export type LocationsMapClientFilter = {
   broadAdministrativeUnitId: number | null;
@@ -346,27 +346,29 @@ const PolygonsAndClientContainer = () => {
         <div
           className={`flex max-h-full shrink-0 justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
         >
-          <Sidebar
-            loadingLocations={loadingLocations}
-            loadingCities={loadingCities}
-            loadingCategories={loadingCategories}
-            loadingTypes={loadingTypes}
-            locations={filteredLocationsWithPolygon}
-            locationCategories={locationCategories}
-            locationTypes={locationTypes}
-            citiesOptions={citiesOptions}
-            selectedCity={selectedCity}
-            selectedLocationId={selectedLocation?.id ?? null}
-            setCity={setSelectedCity}
-            setState={setState}
-            selectLocation={selectLocation}
-            state={state}
-            filter={filter}
-            isMobileView={isMobileView}
-            numberOfActiveFilters={numberOfActiveFilters}
-            setFilter={setFilter}
-            sidebarDialogOpen={sidebarDialogOpen}
-            setSidebarDialogOpen={setSidebarDialogOpen}
+          <MapSidebarShell
+            locationsSidebarProps={{
+              loadingLocations,
+              loadingCities,
+              loadingCategories,
+              loadingTypes,
+              locations: filteredLocationsWithPolygon,
+              locationCategories,
+              locationTypes,
+              citiesOptions,
+              selectedCity,
+              selectedLocationId: selectedLocation?.id ?? null,
+              setCity: setSelectedCity,
+              setState,
+              selectLocation,
+              state,
+              filter,
+              isMobileView,
+              numberOfActiveFilters,
+              setFilter,
+              sidebarDialogOpen,
+              setSidebarDialogOpen,
+            }}
           />
         </div>
         {selectedLocation && (

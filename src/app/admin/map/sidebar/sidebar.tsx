@@ -1,5 +1,3 @@
-"use client";
-
 import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
 import { MapContext } from "@/app/admin/map/mapProvider";
 import CButton from "@/components/ui/cButton";
@@ -29,28 +27,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import { Dispatch, SetStateAction, useContext, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
 
-const Sidebar = ({
-  loadingLocations,
-  loadingCities,
-  loadingCategories,
-  loadingTypes,
-  locations,
-  citiesOptions,
-  locationCategories,
-  locationTypes,
-  selectedCity,
-  numberOfActiveFilters,
-  state,
-  filter,
-  isMobileView,
-  selectedLocationId,
-  sidebarDialogOpen,
-  selectLocation,
-  setState,
-  setCity,
-  setFilter,
-  setSidebarDialogOpen,
-}: {
+export type SidebarProps = {
   loadingLocations: boolean;
   loadingCities: boolean;
   loadingCategories: boolean;
@@ -73,7 +50,29 @@ const Sidebar = ({
   setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
   setSidebarDialogOpen: Dispatch<SetStateAction<boolean>>;
   isMobileView: boolean;
-}) => {
+};
+
+export const SidebarContent = ({
+  loadingLocations,
+  loadingCities,
+  loadingCategories,
+  loadingTypes,
+  locations,
+  citiesOptions,
+  locationCategories,
+  locationTypes,
+  selectedCity,
+  numberOfActiveFilters,
+  state,
+  filter,
+  isMobileView,
+  selectedLocationId,
+  selectLocation,
+  setState,
+  setCity,
+  setFilter,
+  setSidebarDialogOpen,
+}: SidebarProps) => {
   const map = useContext(MapContext);
   const view = map?.getView();
 
@@ -381,6 +380,25 @@ const Sidebar = ({
     </div>
   );
 
+  return inner;
+};
+
+const Sidebar = (props: SidebarProps) => {
+  const {
+    citiesOptions,
+    isMobileView,
+    loadingCities,
+    locations,
+    selectedCity,
+    setCity,
+    setSidebarDialogOpen,
+    setState,
+    sidebarDialogOpen,
+    state,
+  } = props;
+
+  const inner = <SidebarContent {...props} />;
+
   if (isMobileView) {
     return (
       <>
@@ -445,10 +463,7 @@ const Sidebar = ({
     );
   } else {
     return (
-      <div
-        className="pointer-events-auto flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-xl bg-white p-1 text-black"
-        style={{ boxShadow: "0px 0px 10px 5px rgba(0, 0, 0, 0.1)" }}
-      >
+      <div className="pointer-events-auto flex max-h-full w-96 flex-col gap-1 overflow-auto rounded-r-xl p-1 text-black">
         {inner}
       </div>
     );
