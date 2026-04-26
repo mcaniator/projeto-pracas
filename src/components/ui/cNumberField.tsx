@@ -19,7 +19,10 @@ import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import { createDebouncedFunction } from "../../lib/utils/ui";
 
-type CNumberFieldSx = Extract<NonNullable<SxProps<Theme>>, readonly unknown[]>[number];
+type CNumberFieldSx = Extract<
+  NonNullable<SxProps<Theme>>,
+  readonly unknown[]
+>[number];
 
 type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   errorMessage?: string;
@@ -39,18 +42,55 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   sx?: SxProps<Theme>;
 };
 
-function assignRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
+const assignRef = <T,>(ref: React.Ref<T> | undefined, value: T | null) => {
   if (!ref) return;
   if (typeof ref === "function") {
     ref(value);
     return;
   }
   ref.current = value;
-}
+};
 
-function isSxArray(value: SxProps<Theme> | undefined): value is readonly CNumberFieldSx[] {
+const isSxArray = (
+  value: SxProps<Theme> | undefined,
+): value is readonly CNumberFieldSx[] => {
   return Array.isArray(value);
-}
+};
+
+type NumberFieldTextControl = HTMLInputElement | HTMLTextAreaElement;
+
+const setNativeInputValue = (input: NumberFieldTextControl, value: string) => {
+  const inputPrototype =
+    input instanceof window.HTMLTextAreaElement ?
+      window.HTMLTextAreaElement.prototype
+    : window.HTMLInputElement.prototype;
+  const valueDescriptor = Object.getOwnPropertyDescriptor(
+    inputPrototype,
+    "value",
+  );
+
+  valueDescriptor?.set?.call(input, value);
+};
+
+const getValueWithInsertedText = (
+  input: NumberFieldTextControl,
+  text: string,
+) => {
+  const selectionStart = input.selectionStart ?? input.value.length;
+  const selectionEnd = input.selectionEnd ?? selectionStart;
+
+  return `${input.value.slice(0, selectionStart)}${text}${input.value.slice(
+    selectionEnd,
+  )}`;
+};
+
+const normalizeNumberFieldInputValue = (value: string) => {
+  if (value.includes(",")) {
+    return value.replaceAll(".", "");
+  }
+
+  return value.replace(".", ",");
+};
 
 const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
   (props, ref) => {
@@ -212,9 +252,45 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               }}
               value={state.inputValue}
               onFocus={inputProps.onFocus}
-              onKeyDown={inputProps.onKeyDown}
+              onKeyDown={(event) => {
+                if (event.key === ".") {
+                  event.preventDefault();
+
+                  const normalizedValue = normalizeNumberFieldInputValue(
+                    getValueWithInsertedText(event.currentTarget, event.key),
+                  );
+                  const caretPosition =
+                    event.currentTarget.selectionStart == null ?
+                      null
+                    : event.currentTarget.selectionStart + 1;
+
+                  if (normalizedValue !== event.currentTarget.value) {
+                    setNativeInputValue(event.currentTarget, normalizedValue);
+                    event.currentTarget.dispatchEvent(
+                      new Event("input", { bubbles: true }),
+                    );
+                    if (caretPosition != null) {
+                      event.currentTarget.setSelectionRange(
+                        caretPosition,
+                        caretPosition,
+                      );
+                    }
+                  }
+                  return;
+                }
+
+                inputProps.onKeyDown?.(event);
+              }}
               onKeyUp={inputProps.onKeyUp}
-              onChange={inputProps.onChange}
+              onChange={(event) => {
+                const normalizedValue = normalizeNumberFieldInputValue(
+                  event.currentTarget.value,
+                );
+                if (normalizedValue !== event.currentTarget.value) {
+                  setNativeInputValue(event.currentTarget, normalizedValue);
+                }
+                inputProps.onChange?.(event);
+              }}
               onBlur={(event) => {
                 inputProps.onBlur?.(event);
                 if (required) {
