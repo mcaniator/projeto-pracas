@@ -37,6 +37,7 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   tooltip?: string;
   defaultValue?: number | null;
   value?: number | null;
+  format?: Intl.NumberFormatOptions;
   onRequiredCheck?: (filled: boolean) => void;
   onChange?: (value: number | null) => void;
   sx?: SxProps<Theme>;
@@ -121,6 +122,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       alignEndAdornmentWithText,
       defaultValue,
       debounce = 0,
+      format,
       sx,
       onRequiredCheck,
       onChange,
@@ -202,6 +204,13 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       ...(readOnly ? [readOnlyTextFieldSx] : []),
       ...normalizedSx,
     ];
+    const resolvedFormat = useMemo(
+      () => ({
+        maximumFractionDigits: 20,
+        ...format,
+      }),
+      [format],
+    );
     const field = (
       <BaseNumberField.Root
         id={id}
@@ -213,6 +222,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         disabled={disabled}
         readOnly={readOnly}
         required={required}
+        format={resolvedFormat}
         inputRef={inputRef}
         onValueChange={handleValueChange}
         render={(rootProps) => (
