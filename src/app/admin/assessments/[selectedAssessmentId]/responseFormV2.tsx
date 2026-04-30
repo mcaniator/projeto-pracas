@@ -42,7 +42,13 @@ import {
 } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Control, Controller, useForm, useWatch } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  useController,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 
 import MapDialog from "./MapDialog";
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
@@ -124,7 +130,9 @@ const ResponseFormV2 = ({
   });
 
   const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null);
+    useState<Dayjs | null>(
+      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+    );
   const [importedIsFinalized, setImportedIsFinalized] = useState(
     assessmentTree.isFinalized,
   );
@@ -578,6 +586,10 @@ const Question = ({
   finalized: boolean;
 }) => {
   const [openMapDialog, setOpenMapDialog] = useState(false);
+  const questionGeometries = useMemo(() => {
+    return geometries.find((g) => g.questionId === question.questionId)
+      ?.geometries;
+  }, [geometries, question.questionId]);
   return (
     <Box
       sx={{ border: 1, borderColor: "primary.main", borderRadius: 1 }}
@@ -610,6 +622,10 @@ const Question = ({
           <>
             <CButton
               square
+              enableTopLeftChip={
+                questionGeometries && questionGeometries?.length > 0
+              }
+              topLeftChipLabel={questionGeometries?.length}
               onClick={() => {
                 setOpenMapDialog(true);
               }}
@@ -800,22 +816,25 @@ const CalculationQuestion = ({
   numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
-  const [value, setValue] = useState<number | null>(null);
-
-  useEffect(() => {
+  const { field } = useController({
+    name: String(question.questionId),
+    control,
+  });
+  const value = useMemo(() => {
     const calc = new Calculation(
-      question.calculationExpression!,
+      question.calculationExpression,
       numericResponses,
     );
-    setValue(calc.evaluate());
+    return calc.evaluate();
   }, [numericResponses, question.calculationExpression]);
-  return (
-    <Controller
-      name={String(question.questionId)}
-      control={control}
-      render={({ field }) => <CNumberField {...field} readOnly value={value} />}
-    />
-  );
+
+  useEffect(() => {
+    if (field.value !== value) {
+      field.onChange(value);
+    }
+  }, [field, value]);
+
+  return <CNumberField {...field} readOnly value={value} />;
 };
 
 const BooleanQuestion = ({
