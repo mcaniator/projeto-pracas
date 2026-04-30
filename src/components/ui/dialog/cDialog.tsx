@@ -36,6 +36,8 @@ export type CDialogProps = DialogProps & {
   disableBackdropClose?: boolean;
   confirmLoading?: boolean;
   cancelLoading?: boolean;
+  cancelTooltip?: string;
+  confirmTooltip?: string;
   mobileFullScreen?: boolean;
   removeCloseButton?: boolean;
   onCancel?: () => void;
@@ -68,6 +70,8 @@ const CDialog = ({
   cancelSx,
   confirmColor,
   cancelColor,
+  confirmTooltip,
+  cancelTooltip,
   disableDialogActions = false,
   fullScreen,
   mobileFullScreen,
@@ -277,6 +281,8 @@ const CDialog = ({
               cancelSx={cancelSx}
               confirmColor={confirmColor}
               cancelColor={cancelColor}
+              confirmTooltip={confirmTooltip}
+              cancelTooltip={cancelTooltip}
               isForm={isForm}
               confirmLoading={confirmLoading}
               cancelLoading={cancelLoading}
@@ -339,6 +345,8 @@ const CDialog = ({
             cancelSx={cancelSx}
             confirmColor={confirmColor}
             cancelColor={cancelColor}
+            confirmTooltip={confirmTooltip}
+            cancelTooltip={cancelTooltip}
             confirmLoading={confirmLoading}
             cancelLoading={cancelLoading}
             onCancel={onCancel}

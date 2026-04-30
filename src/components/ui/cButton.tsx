@@ -1,4 +1,4 @@
-import { Box, Chip, Tooltip } from "@mui/material";
+import { Box, Chip, Tooltip, TooltipProps } from "@mui/material";
 import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -14,6 +14,7 @@ export type CButtonProps = ButtonProps & {
   color?: ButtonOwnProps["color"];
   toDo?: boolean;
   tooltip?: string;
+  tooltipPlacement?: TooltipProps["placement"];
   loadingOnClick?: boolean;
   href?: string;
 };
@@ -31,6 +32,7 @@ function CButton(props: CButtonProps) {
     color,
     toDo,
     tooltip,
+    tooltipPlacement,
     loadingOnClick,
     href,
     loading,
@@ -123,7 +125,7 @@ function CButton(props: CButtonProps) {
     : component;
 
   return tooltip ?
-      <Tooltip title={tooltip} enterTouchDelay={1}>
+      <Tooltip title={tooltip} enterTouchDelay={1} placement={tooltipPlacement}>
         {componentWithLink}
       </Tooltip>
     : componentWithLink;

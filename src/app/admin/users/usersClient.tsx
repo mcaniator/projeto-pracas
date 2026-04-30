@@ -169,7 +169,7 @@ const UsersClient = () => {
         append={
           <PermissionGuard requiresAnyRoles={["USER_MANAGER"]}>
             <Link href="/admin/users/invites">
-              <CButton>
+              <CButton tooltip="Convites">
                 <IconMail />
               </CButton>
             </Link>

@@ -160,7 +160,7 @@ const CreateInviteDialog = ({
       onCancel={() => {
         void copyLink();
       }}
-      title="Criar convite"
+      title={invite ? "Editar convite" : "Criar convite"}
       onConfirm={() => {
         void action({
           email,
@@ -170,6 +170,8 @@ const CreateInviteDialog = ({
       }}
       confirmChildren={<IconCheck />}
       cancelChildren={invite ? <IconCopy /> : undefined}
+      cancelTooltip="Copiar"
+      confirmTooltip="Confirmar"
       confirmLoading={loading}
     >
       <div className="flex flex-col gap-1">

@@ -13,6 +13,8 @@ const CDialogFooter = ({
   cancelSx,
   confirmColor,
   cancelColor,
+  confirmTooltip,
+  cancelTooltip,
   confirmLoading,
   cancelLoading,
   isForm,
@@ -31,6 +33,8 @@ const CDialogFooter = ({
   cancelColor?: ButtonProps["color"];
   confirmLoading?: boolean;
   cancelLoading?: boolean;
+  cancelTooltip?: string;
+  confirmTooltip?: string;
   isForm?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
@@ -46,6 +50,7 @@ const CDialogFooter = ({
           disabled={disableCancelButton}
           sx={cancelSx}
           loading={cancelLoading}
+          tooltip={cancelTooltip}
           onClick={onCancel}
         >
           {cancelChildren}
@@ -59,6 +64,7 @@ const CDialogFooter = ({
           disabled={disableConfirmButton}
           sx={confirmSx}
           loading={confirmLoading}
+          tooltip={confirmTooltip}
           onClick={onConfirm}
         >
           {confirmChildren}

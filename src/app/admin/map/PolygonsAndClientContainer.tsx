@@ -49,8 +49,7 @@ const PolygonsAndClientContainer = () => {
   const view = map?.getView();
   const centerOnUserLocation = useCenterOnUserLocation();
   const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
-  const isUserLocationLoading =
-    !cachedUserCoordinates && isReadingUserLocation;
+  const isUserLocationLoading = !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
@@ -416,6 +415,8 @@ const PolygonsAndClientContainer = () => {
         >
           <CButton
             square
+            tooltip="Aumentar zoom"
+            tooltipPlacement="left"
             onClick={() => {
               const zoom = view?.getZoom();
 
@@ -429,6 +430,8 @@ const PolygonsAndClientContainer = () => {
           </CButton>
           <CButton
             square
+            tooltip="Diminuir zoom"
+            tooltipPlacement="left"
             onClick={() => {
               const zoom = view?.getZoom();
 
@@ -450,6 +453,7 @@ const PolygonsAndClientContainer = () => {
             <div>
               <CButton
                 square={isMobileView}
+                tooltip={isMobileView ? "Cadastrar praça" : undefined}
                 onClick={() => {
                   setIsCreating((prev) => !prev);
                 }}
