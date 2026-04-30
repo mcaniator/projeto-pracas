@@ -144,8 +144,16 @@ const _deleteAssessment = async (assessmentId: number) => {
         userId: true,
       },
     });
+    if (!assessment) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Avaliação não encontrada!",
+        } as APIResponseInfo,
+      };
+    }
     const user = await getSessionUser();
-    if (!assessment || assessment?.userId !== user?.id) {
+    if (assessment.userId !== user?.id) {
       try {
         await checkIfLoggedInUserHasAnyPermission({
           roles: ["ASSESSMENT_MANAGER"],
@@ -168,11 +176,34 @@ const _deleteAssessment = async (assessmentId: number) => {
     };
   }
   try {
-    await prisma.assessment.delete({
-      where: {
-        id: assessmentId,
-      },
-    });
+    await prisma.$transaction([
+      prisma.questionGeometry.deleteMany({
+        where: {
+          assessmentId,
+        },
+      }),
+      prisma.response.deleteMany({
+        where: {
+          assessmentId,
+        },
+      }),
+      prisma.responseOption.deleteMany({
+        where: {
+          assessmentId,
+        },
+      }),
+      prisma.booleanResponse.deleteMany({
+        where: {
+          assessmentId,
+        },
+      }),
+      prisma.assessment.delete({
+        where: {
+          id: assessmentId,
+        },
+      }),
+    ]);
+    revalidateTag("assessemnt");
     return {
       responseInfo: {
         statusCode: 200,
