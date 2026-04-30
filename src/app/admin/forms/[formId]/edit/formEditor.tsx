@@ -583,7 +583,7 @@ const SortableFormItem = ({
           `${isFinalized ? "justify-start" : "justify-between"}`
         }
       >
-        <div className="flex w-full items-center justify-between gap-1 sm:w-fit sm:justify-start">
+        <div className="flex w-full flex-wrap items-center gap-1 sm:w-fit">
           {!isFinalized && (
             <div
               {...listeners}
