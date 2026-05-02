@@ -1,4 +1,4 @@
-import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";

@@ -2,65 +2,42 @@
 
 import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
 import { useHelperCard } from "@/components/context/helperCardContext";
-import CAccordion from "@/components/ui/accordion/CAccordion";
-import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
-import CCheckboxGroup from "@/components/ui/cCheckboxGroup";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
-import CNumberField from "@/components/ui/cNumberField";
-import CRadioGroup from "@/components/ui/cRadioGroup";
-import CSwitch from "@/components/ui/cSwtich";
-import CTextField from "@/components/ui/cTextField";
-import CCalculationChip from "@/components/ui/question/cCalculationChip";
-import CNotesChip from "@/components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
-import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
+import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
+import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
+import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
+import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
+import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+  SimpleMention,
+} from "@/components/ui/responseForm/responseFormTypes";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
-import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
-import { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import { Calculation } from "@/lib/utils/calculationUtils";
+import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import CDynamicIcon from "@components/ui/dynamicIcon/cDynamicIcon";
-import { Box, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import {
   IconBrandGoogleDrive,
   IconDeviceFloppy,
-  IconMap,
   IconPencil,
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Control, Controller, useForm, useWatch } from "react-hook-form";
+import { ChangeEvent, useEffect, useState } from "react";
+import { type Control, useForm, useWatch } from "react-hook-form";
 
-import MapDialog from "./MapDialog";
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
-
-export type FormValues = {
-  [key: string]: string | number | number[] | boolean | null;
-};
-
-export type ResponseFormGeometry = {
-  questionId: number;
-  geometries: ResponseGeometry[];
-};
-
-export type SimpleMention = {
-  id: string;
-  display: string;
-};
 
 const ResponseFormV2 = ({
   locationId,
@@ -124,7 +101,9 @@ const ResponseFormV2 = ({
   });
 
   const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null);
+    useState<Dayjs | null>(
+      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+    );
   const [importedIsFinalized, setImportedIsFinalized] = useState(
     assessmentTree.isFinalized,
   );
@@ -455,49 +434,41 @@ const Category = ({
   finalized: boolean;
 }) => {
   return (
-    <CAccordion defaultExpanded>
-      <CAccordionSummary>
-        <div className="flex flex-row items-center gap-1">
-          <CNotesChip notes={category.notes} />
-          {category.name}
-        </div>
-      </CAccordionSummary>
-      <CAccordionDetails>
-        <div className="flex flex-col gap-3">
-          {category.categoryChildren.map((child, index) => {
-            if (FormItemUtils.isSubcategoryType(child)) {
-              return (
-                <Subcategory
-                  key={index}
-                  subcategory={child}
-                  numericResponses={numericResponses}
-                  geometries={geometries}
-                  questionsForMention={questionsForMention}
-                  finalized={finalized}
-                  locationPolygonGeoJson={locationPolygonGeoJson}
-                  handleQuestionGeometryChange={handleQuestionGeometryChange}
-                  control={control}
-                />
-              );
-            } else if (FormItemUtils.isQuestionType(child)) {
-              return (
-                <Question
-                  key={index}
-                  question={child}
-                  numericResponses={numericResponses}
-                  geometries={geometries}
-                  questionsForMention={questionsForMention}
-                  finalized={finalized}
-                  locationPolygonGeoJson={locationPolygonGeoJson}
-                  handleQuestionGeometryChange={handleQuestionGeometryChange}
-                  control={control}
-                />
-              );
-            }
-          })}
-        </div>
-      </CAccordionDetails>
-    </CAccordion>
+    <ResponseFormCategory category={category}>
+      <>
+        {category.categoryChildren.map((child, index) => {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            return (
+              <Subcategory
+                key={index}
+                subcategory={child}
+                numericResponses={numericResponses}
+                geometries={geometries}
+                questionsForMention={questionsForMention}
+                finalized={finalized}
+                locationPolygonGeoJson={locationPolygonGeoJson}
+                handleQuestionGeometryChange={handleQuestionGeometryChange}
+                control={control}
+              />
+            );
+          } else if (FormItemUtils.isQuestionType(child)) {
+            return (
+              <Question
+                key={index}
+                question={child}
+                numericResponses={numericResponses}
+                geometries={geometries}
+                questionsForMention={questionsForMention}
+                finalized={finalized}
+                locationPolygonGeoJson={locationPolygonGeoJson}
+                handleQuestionGeometryChange={handleQuestionGeometryChange}
+                control={control}
+              />
+            );
+          }
+        })}
+      </>
+    </ResponseFormCategory>
   );
 };
 
@@ -521,40 +492,23 @@ const Subcategory = ({
   finalized: boolean;
 }) => {
   return (
-    <Box
-      sx={{
-        padding: "6px",
-        border: 1,
-        borderColor: "primary.main",
-        borderRadius: 1,
-      }}
-    >
-      <CAccordion defaultExpanded>
-        <CAccordionSummary>
-          <div className="flex flex-row items-center gap-1">
-            <CNotesChip notes={subcategory.notes} />
-            {subcategory.name}
-          </div>
-        </CAccordionSummary>
-        <CAccordionDetails>
-          <div className="flex flex-col gap-3">
-            {subcategory.questions.map((question, index) => (
-              <Question
-                key={index}
-                question={question}
-                numericResponses={numericResponses}
-                geometries={geometries}
-                questionsForMention={questionsForMention}
-                finalized={finalized}
-                locationPolygonGeoJson={locationPolygonGeoJson}
-                handleQuestionGeometryChange={handleQuestionGeometryChange}
-                control={control}
-              />
-            ))}
-          </div>
-        </CAccordionDetails>
-      </CAccordion>
-    </Box>
+    <ResponseFormSubcategory subcategory={subcategory}>
+      <>
+        {subcategory.questions.map((question, index) => (
+          <Question
+            key={index}
+            question={question}
+            numericResponses={numericResponses}
+            geometries={geometries}
+            questionsForMention={questionsForMention}
+            finalized={finalized}
+            locationPolygonGeoJson={locationPolygonGeoJson}
+            handleQuestionGeometryChange={handleQuestionGeometryChange}
+            control={control}
+          />
+        ))}
+      </>
+    </ResponseFormSubcategory>
   );
 };
 
@@ -577,272 +531,27 @@ const Question = ({
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
-  const [openMapDialog, setOpenMapDialog] = useState(false);
   return (
-    <Box
-      sx={{ border: 1, borderColor: "primary.main", borderRadius: 1 }}
-      className="flex flex-col justify-between gap-1 px-4 py-2"
+    <ResponseFormQuestionCard
+      question={question}
+      questionsForMention={questionsForMention}
+      geometryControls={
+        <ResponseFormQuestionGeometryControls
+          question={question}
+          geometries={geometries}
+          locationPolygonGeoJson={locationPolygonGeoJson}
+          finalized={finalized}
+          handleQuestionGeometryChange={handleQuestionGeometryChange}
+        />
+      }
     >
-      <div className="flex flex-row items-center gap-1">
-        {" "}
-        <CQuestionTypeChip
-          questionType={question.questionType}
-          optionType={question.optionType}
-          options={question.options?.map((o) => o.text)}
-          name={question.name}
-        />
-        <CQuestionCharacterTypeChip characterType={question.characterType} />
-        <CQuestionGeometryChip geometryTypes={question.geometryTypes} />
-        <CQuestionVisibilityChip isPublic={question.isPublic} />
-        <CNotesChip notes={question.notes} name={question.name} />
-        <CCalculationChip
-          name={question.name}
-          expression={question.calculationExpression}
-          questions={questionsForMention}
-        />
-      </div>
-      <div className="flex items-center gap-2 break-all">
-        <CDynamicIcon iconKey={question.iconKey} />
-        {question.name}
-      </div>
-      <div className="mb-1 flex flex-wrap justify-start gap-1">
-        {question.geometryTypes.length > 0 && (
-          <>
-            <CButton
-              square
-              onClick={() => {
-                setOpenMapDialog(true);
-              }}
-            >
-              <IconMap />
-            </CButton>
-            <MapDialog
-              openMapDialog={openMapDialog}
-              onClose={() => {
-                setOpenMapDialog(false);
-              }}
-              questionId={question.questionId}
-              questionName={question.name}
-              locationPolygonGeoJson={locationPolygonGeoJson}
-              initialGeometries={
-                geometries.find((g) => g.questionId === question.questionId)
-                  ?.geometries
-              }
-              geometryType={question.geometryTypes}
-              finalized={finalized}
-              handleQuestionGeometryChange={(e, v) => {
-                handleQuestionGeometryChange({ questionId: e, geometries: v });
-              }}
-            />
-          </>
-        )}
-      </div>
-
-      {question.questionType === "WRITTEN" && (
-        <WrittenQuestion
-          question={question}
-          numericResponses={numericResponses}
-          finalized={finalized}
-          control={control}
-        />
-      )}
-
-      {question.questionType === "OPTIONS" && (
-        <OptionsQuestion
-          question={question}
-          finalized={finalized}
-          control={control}
-        />
-      )}
-      {question.questionType === "BOOLEAN" && (
-        <BooleanQuestion
-          question={question}
-          finalized={finalized}
-          control={control}
-        />
-      )}
-    </Box>
-  );
-};
-
-const WrittenQuestion = ({
-  question,
-  numericResponses,
-  control,
-  finalized,
-}: {
-  question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
-  control: Control<FormValues, unknown, FormValues>;
-  finalized: boolean;
-}) => {
-  if (question.calculationExpression) {
-    return (
-      <CalculationQuestion
+      <ControlledResponseQuestionField
         question={question}
         numericResponses={numericResponses}
         control={control}
+        finalized={finalized}
       />
-    );
-  }
-  return (
-      question.characterType === "NUMBER" ||
-        question.characterType === "PERCENTAGE" ||
-        question.characterType === "SCALE"
-    ) ?
-      <Controller
-        name={String(question.questionId)}
-        control={control}
-        render={({ field }) => (
-          <CNumberField
-            readOnly={finalized}
-            debounce={1000}
-            minValue={question.scaleConfig?.minValue ?? undefined}
-            maxValue={question.scaleConfig?.maxValue ?? undefined}
-            endAdornment={
-              question.characterType === "PERCENTAGE" ? "%" : undefined
-            }
-            {...field}
-            value={
-              typeof field.value === "number" || field.value === null ?
-                field.value
-              : null
-            }
-          />
-        )}
-      />
-    : <Controller
-        name={String(question.questionId)}
-        control={control}
-        render={({ field }) => (
-          <CTextField readOnly={finalized} debounce={1000} {...field} />
-        )}
-      />;
-};
-
-const OptionsQuestion = ({
-  question,
-  control,
-  finalized,
-}: {
-  question: AssessmentQuestionItem;
-  control: Control<FormValues, unknown, FormValues>;
-  finalized: boolean;
-}) => {
-  if (!question.options) {
-    throw new Error("Options questions must have options");
-  }
-  const isPercentage = question.characterType === "PERCENTAGE";
-  const options = useMemo(() => {
-    if (
-      question.characterType === "PERCENTAGE" ||
-      question.characterType === "NUMBER"
-    ) {
-      return (
-        question.options?.map((opt) => ({
-          ...opt,
-          text:
-            isPercentage ?
-              localeNumberFormatter.format(Number(opt.text)) + "%"
-            : opt.text,
-        })) || []
-      );
-    } else {
-      return question.options || [];
-    }
-  }, [question.options, isPercentage, question.characterType]);
-  if (question.optionType === "CHECKBOX") {
-    return (
-      <Controller
-        name={String(question.questionId)}
-        control={control}
-        render={({ field }) => (
-          <CCheckboxGroup
-            {...field}
-            value={Array.isArray(field.value) ? field.value : ([] as number[])}
-            clearable
-            readOnly={finalized}
-            options={options}
-            getOptionValue={(opt) => opt.id}
-            getOptionLabel={(opt) => opt.text}
-          />
-        )}
-      />
-    );
-  } else {
-    return (
-      <Controller
-        name={String(question.questionId)}
-        control={control}
-        render={({ field }) => (
-          <CRadioGroup
-            {...field}
-            value={Array.isArray(field.value) ? null : Number(field.value)}
-            clearable
-            readOnly={finalized}
-            onChange={(e) => field.onChange(e)}
-            options={options}
-            getOptionValue={(opt) => opt.id}
-            getOptionLabel={(opt) => opt.text}
-          />
-        )}
-      />
-    );
-  }
-};
-
-const CalculationQuestion = ({
-  question,
-  numericResponses,
-  control,
-}: {
-  question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
-  control: Control<FormValues, unknown, FormValues>;
-}) => {
-  const [value, setValue] = useState<number | null>(null);
-
-  useEffect(() => {
-    const calc = new Calculation(
-      question.calculationExpression!,
-      numericResponses,
-    );
-    setValue(calc.evaluate());
-  }, [numericResponses, question.calculationExpression]);
-  return (
-    <Controller
-      name={String(question.questionId)}
-      control={control}
-      render={({ field }) => <CNumberField {...field} readOnly value={value} />}
-    />
-  );
-};
-
-const BooleanQuestion = ({
-  question,
-  control,
-  finalized,
-}: {
-  question: AssessmentQuestionItem;
-  control: Control<FormValues, unknown, FormValues>;
-  finalized: boolean;
-}) => {
-  if (!question.options) {
-    throw new Error("Options questions must have options");
-  }
-
-  return (
-    <Controller
-      name={String(question.questionId)}
-      control={control}
-      render={({ field }) => (
-        <CSwitch
-          {...field}
-          checked={typeof field.value === "boolean" ? field.value : false}
-          readOnly={finalized}
-        />
-      )}
-    />
+    </ResponseFormQuestionCard>
   );
 };
 

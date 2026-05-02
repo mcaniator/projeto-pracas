@@ -40,7 +40,7 @@ import {
 import {
   getInitialViewTargetKey,
   resolveInitialViewTarget,
-} from "./mapInitialView";
+} from "./responseFormMapInitialView";
 
 type MapMode = "DRAW" | "SELECT" | "DRAG";
 

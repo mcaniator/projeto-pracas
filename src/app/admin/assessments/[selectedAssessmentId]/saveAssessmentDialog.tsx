@@ -10,7 +10,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
 
-import { FormValues, ResponseFormGeometry } from "./responseFormV2";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+} from "@/components/ui/responseForm/responseFormTypes";
 
 const SaveAssessmentDialog = ({
   open,
