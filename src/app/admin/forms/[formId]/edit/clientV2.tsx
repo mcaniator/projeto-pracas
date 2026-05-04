@@ -20,11 +20,12 @@ import {
 } from "@prisma/client";
 import { CategoriesWithQuestions } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
-import { IconCalculator } from "@tabler/icons-react";
+import { IconCalculator, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import FormPreviewDialog from "./FormPreviewDialog";
 import CalculationDialog, {
   CalculationParams,
 } from "./calculations/calculationDialog";
@@ -61,8 +62,13 @@ export type QuestionItem = {
   categoryName: string;
   subcategoryName: string | null;
   options?: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: QuestionGeometryTypes[];
 };
 
@@ -111,6 +117,7 @@ const ClientV2 = ({
     useState<CalculationParams[]>(dbCalculations);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
+  const [openFormPreviewDialog, setOpenFormPreviewDialog] = useState(false);
   const [openSaveFormDialog, setOpenSaveFormDialog] = useState(false);
   const [saveAsDone, setSaveAsDone] = useState(false);
   const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
@@ -201,6 +208,7 @@ const ClientV2 = ({
               characterType: question.characterType,
               optionType: question.optionType,
               options: question.options,
+              scaleConfig: question.scaleConfig,
               geometryTypes: question.geometryTypes,
               categoryName: category.name,
               subcategoryName: subItem.name,
@@ -233,6 +241,7 @@ const ClientV2 = ({
           characterType: question.characterType,
           optionType: question.optionType,
           options: question.options,
+          scaleConfig: question.scaleConfig,
           geometryTypes: question.geometryTypes,
           position: newCategory.categoryChildren.length + 1,
           categoryName: category.name,
@@ -377,6 +386,15 @@ const ClientV2 = ({
                   >
                     <IconCalculator />
                   </CButton>
+                  <CButton
+                    tooltip="Prévia"
+                    disableMinWidth
+                    onClick={() => {
+                      setOpenFormPreviewDialog(true);
+                    }}
+                  >
+                    <IconEye />
+                  </CButton>
                   {!isFinalized && (
                     <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
                       <CButton
@@ -410,6 +428,15 @@ const ClientV2 = ({
                   }}
                 >
                   <IconCalculator />
+                </CButton>
+                <CButton
+                  tooltip="Prévia"
+                  disableMinWidth
+                  onClick={() => {
+                    setOpenFormPreviewDialog(true);
+                  }}
+                >
+                  <IconEye />
                 </CButton>
                 {!isFinalized && (
                   <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
@@ -486,6 +513,12 @@ const ClientV2 = ({
         isFinalized={isFinalized}
         setOpenCalculationModal={setOpenCalculationDialog}
         setFormCalculations={setFormCalculations}
+      />
+      <FormPreviewDialog
+        open={openFormPreviewDialog}
+        onClose={() => setOpenFormPreviewDialog(false)}
+        formTree={formTree}
+        formCalculations={formCalculations}
       />
       <SaveFormDialog
         openSaveFormDialog={openSaveFormDialog}

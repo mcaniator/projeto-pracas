@@ -14,8 +14,13 @@ type FormQuestionWithCategoryAndSubcategory = {
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: [QuestionGeometryTypes];
   category: {
     id: number;
@@ -38,8 +43,13 @@ type QuestionForQuestionPicker = {
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: QuestionGeometryTypes[];
 };
 

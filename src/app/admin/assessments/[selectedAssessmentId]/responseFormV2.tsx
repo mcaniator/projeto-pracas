@@ -46,6 +46,7 @@ const ResponseFormV2 = ({
   assessmentTree,
   finalized,
   userCanEdit,
+  isPreview = false,
 }: {
   locationId: number;
   locationName: string;
@@ -64,6 +65,7 @@ const ResponseFormV2 = ({
   };
   finalized: boolean;
   userCanEdit: boolean;
+  isPreview?: boolean;
 }) => {
   const { setHelperCard } = useHelperCard();
   const { control, handleSubmit, reset } = useForm<FormValues>({
@@ -240,6 +242,10 @@ const ResponseFormV2 = ({
   return (
     <form
       onSubmit={(e) => {
+        if (isPreview) {
+          e.preventDefault();
+          return;
+        }
         void handleSubmit(onSubmit)(e);
       }}
       onKeyDown={(e) => {
@@ -287,18 +293,24 @@ const ResponseFormV2 = ({
               setStartDate(e);
             }}
           />
+
           <div className="flex items-center justify-end gap-2">
-            <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
-            <CButtonFilePicker
-              fileAccept="application/json"
-              className="w-fit"
-              onFileInput={(e) => {
-                void importData(e);
-              }}
-            >
-              <IconUpload />
-              Importar
-            </CButtonFilePicker>
+            {!isPreview && (
+              <>
+                <CHelpChip tooltip="É possível importar uma avaliação salva em seu dispositivo." />
+                <CButtonFilePicker
+                  fileAccept="application/json"
+                  className="w-fit"
+                  onFileInput={(e) => {
+                    void importData(e);
+                  }}
+                >
+                  <IconUpload />
+                  Importar
+                </CButtonFilePicker>
+              </>
+            )}
+
             <CButton
               square
               tooltip="Drive"
@@ -310,19 +322,21 @@ const ResponseFormV2 = ({
             >
               <IconBrandGoogleDrive />
             </CButton>
-            <CButton
-              square
-              color="error"
-              onClick={() => {
-                setOpenDeleteAssessmentDialog(true);
-              }}
-            >
-              <IconTrash />
-            </CButton>
+            {!isPreview && (
+              <CButton
+                square
+                color="error"
+                onClick={() => {
+                  setOpenDeleteAssessmentDialog(true);
+                }}
+              >
+                <IconTrash />
+              </CButton>
+            )}
           </div>
         </div>
       )}
-      {!isFilling && (
+      {!isPreview && !isFilling && (
         <div className="flex flex-wrap content-center justify-between gap-1 sm:justify-end">
           <div className="flex items-center gap-2">
             {userCanEdit && (
@@ -372,7 +386,7 @@ const ResponseFormV2 = ({
       <Typography mt={2} className="text-black">
         Campos preenchidos: {filledCount} / {totalQuestions}
       </Typography>
-      {isFilling && (
+      {isFilling && !isPreview && (
         <div className="flew-row flex justify-center gap-1">
           <CButton type="submit">
             <IconDeviceFloppy />
@@ -381,28 +395,32 @@ const ResponseFormV2 = ({
         </div>
       )}
 
-      <SaveAssessmentDialog
-        locationName={locationName}
-        assessmentId={assessmentTree.id}
-        open={openSaveDialog}
-        formValues={formValues}
-        geometries={geometries}
-        importedEndDatetime={importedFinalizationDatetime}
-        importedIsFinalized={importedIsFinalized}
-        startDate={startDate}
-        driveFolderUrl={driveFolderUrl}
-        onClose={() => {
-          setOpenSaveDialog(false);
-        }}
-      />
-      <DeleteAssessmentDialog
-        assessmentId={assessmentTree.id}
-        open={openDeleteAssessmentDialog}
-        locationId={locationId}
-        onClose={() => {
-          setOpenDeleteAssessmentDialog(false);
-        }}
-      />
+      {!isPreview && (
+        <>
+          <SaveAssessmentDialog
+            locationName={locationName}
+            assessmentId={assessmentTree.id}
+            open={openSaveDialog}
+            formValues={formValues}
+            geometries={geometries}
+            importedEndDatetime={importedFinalizationDatetime}
+            importedIsFinalized={importedIsFinalized}
+            startDate={startDate}
+            driveFolderUrl={driveFolderUrl}
+            onClose={() => {
+              setOpenSaveDialog(false);
+            }}
+          />
+          <DeleteAssessmentDialog
+            assessmentId={assessmentTree.id}
+            open={openDeleteAssessmentDialog}
+            locationId={locationId}
+            onClose={() => {
+              setOpenDeleteAssessmentDialog(false);
+            }}
+          />
+        </>
+      )}
       <DriveFolderUrlDialog
         open={openDriveFolderUrlDialog}
         driveFolderUrl={driveFolderUrl}
