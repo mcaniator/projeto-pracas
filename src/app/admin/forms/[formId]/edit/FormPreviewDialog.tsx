@@ -1,17 +1,28 @@
 "use client";
 
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import AssessmentResultViewer, {
+  type PublicAssessmentCategoryItem,
+  type PublicAssessmentQuestionItem,
+  type PublicAssessmentSubcategoryItem,
+} from "@/components/ui/assessment/assessmentResultViewer";
+import CSwitch from "@/components/ui/cSwtich";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+} from "@/components/ui/responseForm/responseFormTypes";
 import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
+import { Calculation } from "@/lib/utils/calculationUtils";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { CalculationParams } from "./calculations/calculationDialog";
 import type {
@@ -28,6 +39,13 @@ const ResponseFormV2 = dynamic(
     loading: () => <CLinearProgress label="Carregando prévia..." />,
   },
 );
+
+type PreviewViewMode = "form" | "result";
+
+const previewViewModes: { label: string; value: PreviewViewMode }[] = [
+  { label: "Formulário", value: "form" },
+  { label: "Resultado", value: "result" },
+];
 
 const getInitialQuestionValue = (question: QuestionItem) => {
   if (question.questionType === "OPTIONS") {
@@ -55,7 +73,7 @@ const toAssessmentQuestion = ({
 }: {
   question: QuestionItem;
   calculationExpression?: string;
-}): AssessmentQuestionItem => {
+}): PublicAssessmentQuestionItem => {
   return {
     ...question,
     id: question.questionId,
@@ -73,7 +91,7 @@ const toAssessmentSubcategory = ({
   subcategory: SubcategoryItem;
   calculationByQuestionId: Map<number, CalculationParams>;
   responsesFormValues: FormValues;
-}): AssessmentSubcategoryItem => ({
+}): PublicAssessmentSubcategoryItem => ({
   ...subcategory,
   id: subcategory.subcategoryId,
   questions: subcategory.questions.map((question) => {
@@ -96,7 +114,7 @@ const toAssessmentCategory = ({
   category: CategoryItem;
   calculationByQuestionId: Map<number, CalculationParams>;
   responsesFormValues: FormValues;
-}): AssessmentCategoryItem => ({
+}): PublicAssessmentCategoryItem => ({
   ...category,
   id: category.categoryId,
   categoryChildren: category.categoryChildren.map((child) => {
@@ -134,6 +152,64 @@ const countQuestions = (formTree: FormEditorTree) =>
 
     return total + categoryQuestions;
   }, 0);
+
+const isAssessmentSubcategoryItem = (
+  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
+): item is AssessmentSubcategoryItem => {
+  return "questions" in item;
+};
+
+const forEachAssessmentQuestion = (
+  categories: AssessmentCategoryItem[],
+  callback: (question: AssessmentQuestionItem) => void,
+) => {
+  categories.forEach((category) => {
+    category.categoryChildren.forEach((child) => {
+      if (isAssessmentSubcategoryItem(child)) {
+        child.questions.forEach(callback);
+        return;
+      }
+
+      callback(child);
+    });
+  });
+};
+
+const buildResultValues = ({
+  categories,
+  values,
+}: {
+  categories: AssessmentCategoryItem[];
+  values: FormValues;
+}) => {
+  const resultValues: FormValues = { ...values };
+  const numericResponses = new Map<number, number>();
+
+  Object.entries(values).forEach(([questionId, value]) => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      numericResponses.set(Number(questionId), value);
+    }
+  });
+
+  forEachAssessmentQuestion(categories, (question) => {
+    if (!question.calculationExpression) {
+      return;
+    }
+
+    const value = new Calculation(
+      question.calculationExpression,
+      numericResponses,
+    ).evaluate();
+
+    resultValues[String(question.questionId)] = value;
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      numericResponses.set(question.questionId, value);
+    }
+  });
+
+  return resultValues;
+};
 
 const buildPreviewAssessmentTree = ({
   formTree,
@@ -181,9 +257,47 @@ const FormPreviewDialog = ({
   formTree: FormEditorTree;
   formCalculations: CalculationParams[];
 }) => {
+  const [viewMode, setViewMode] = useState<PreviewViewMode>("form");
+  const [showOnlyPublicQuestions, setShowOnlyPublicQuestions] = useState(false);
   const assessmentTree = useMemo(
     () => buildPreviewAssessmentTree({ formTree, formCalculations }),
     [formTree, formCalculations],
+  );
+  const [previewValues, setPreviewValues] = useState<FormValues>(
+    assessmentTree.responsesFormValues,
+  );
+  const [previewGeometries, setPreviewGeometries] = useState<
+    ResponseFormGeometry[]
+  >(assessmentTree.geometries);
+
+  useEffect(() => {
+    setPreviewValues(assessmentTree.responsesFormValues);
+    setPreviewGeometries(assessmentTree.geometries);
+    setViewMode("form");
+    setShowOnlyPublicQuestions(false);
+  }, [assessmentTree]);
+
+  const handleValuesChange = useCallback((values: FormValues) => {
+    setPreviewValues({ ...values });
+  }, []);
+
+  const handleGeometriesChange = useCallback(
+    (geometries: ResponseFormGeometry[]) => {
+      setPreviewGeometries(geometries);
+    },
+    [],
+  );
+
+  const resultAssessmentTree = useMemo(
+    () => ({
+      ...assessmentTree,
+      responsesFormValues: buildResultValues({
+        categories: assessmentTree.categories,
+        values: previewValues,
+      }),
+      geometries: previewGeometries,
+    }),
+    [assessmentTree, previewGeometries, previewValues],
   );
 
   return (
@@ -194,7 +308,19 @@ const FormPreviewDialog = ({
       open={open}
       onClose={onClose}
     >
-      <div className="w-full">
+      <div className="fixed left-1/2 top-16 z-50 -translate-x-1/2">
+        <CToggleButtonGroup
+          options={previewViewModes}
+          value={viewMode}
+          getLabel={(option) => option.label}
+          getValue={(option) => option.value}
+          onChange={(_, option) => {
+            setViewMode(option.value);
+          }}
+        />
+      </div>
+
+      <div className={viewMode === "form" ? "w-full pt-16" : "hidden"}>
         <ResponseFormV2
           locationId={-1}
           locationName="Preview"
@@ -203,8 +329,28 @@ const FormPreviewDialog = ({
           finalized={false}
           userCanEdit
           isPreview
+          onValuesChange={handleValuesChange}
+          onGeometriesChange={handleGeometriesChange}
         />
       </div>
+
+      {viewMode === "result" && (
+        <div className="flex w-full flex-col gap-2 pt-16">
+          <CSwitch
+            checked={showOnlyPublicQuestions}
+            label="Mostrar apenas questões públicas"
+            onChange={(_, checked) => {
+              setShowOnlyPublicQuestions(checked);
+            }}
+          />
+          {showOnlyPublicQuestions ?
+            <AssessmentResultViewer
+              assessment={resultAssessmentTree}
+              filterNonPublicQuestions
+            />
+          : <AssessmentResultViewer assessment={resultAssessmentTree} />}
+        </div>
+      )}
     </CDialog>
   );
 };

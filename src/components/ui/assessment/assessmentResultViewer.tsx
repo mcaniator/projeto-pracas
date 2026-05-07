@@ -1,7 +1,7 @@
 "use client";
 
-import CIconChip from "@/components/ui/cIconChip";
 import QuestionResponseRenderer from "@/components/ui/assessment/questionResponseRenderer";
+import CIconChip from "@/components/ui/cIconChip";
 import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import {
@@ -9,22 +9,104 @@ import {
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
-import {
-  resolveAssessmentQuestionValue,
-  type AssessmentTree,
-} from "@utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { Divider } from "@mui/material";
 import { IconInfoCircle } from "@tabler/icons-react";
+import {
+  type AssessmentTree,
+  resolveAssessmentQuestionValue,
+} from "@utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { useMemo } from "react";
+
+export type PublicAssessmentQuestionItem = AssessmentQuestionItem & {
+  isPublic: boolean;
+};
+
+export type PublicAssessmentSubcategoryItem = Omit<
+  AssessmentSubcategoryItem,
+  "questions"
+> & {
+  questions: PublicAssessmentQuestionItem[];
+};
+
+export type PublicAssessmentCategoryItem = Omit<
+  AssessmentCategoryItem,
+  "categoryChildren"
+> & {
+  categoryChildren: (
+    | PublicAssessmentQuestionItem
+    | PublicAssessmentSubcategoryItem
+  )[];
+};
+
+export type PublicAssessmentTree = Omit<AssessmentTree, "categories"> & {
+  categories: PublicAssessmentCategoryItem[];
+};
+
+type CAssessmentResultViewerProps =
+  | {
+      assessment: AssessmentTree;
+      filterNonPublicQuestions?: false;
+    }
+  | {
+      assessment: PublicAssessmentTree;
+      filterNonPublicQuestions: true;
+    };
+
+const isAssessmentSubcategoryItem = (
+  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
+): item is AssessmentSubcategoryItem => {
+  return "questions" in item;
+};
+
+const filterPublicAssessmentCategories = (
+  categories: PublicAssessmentCategoryItem[],
+): AssessmentCategoryItem[] => {
+  return categories
+    .map((category): AssessmentCategoryItem => {
+      const categoryChildren =
+        category.categoryChildren.reduce<AssessmentCategoryItem["categoryChildren"]>(
+          (children, child) => {
+            if (isAssessmentSubcategoryItem(child)) {
+              const questions = child.questions.filter(
+                (question) => question.isPublic,
+              );
+
+              if (questions.length > 0) {
+                children.push({ ...child, questions });
+              }
+
+              return children;
+            }
+
+            if (child.isPublic) {
+              children.push(child);
+            }
+
+            return children;
+          },
+          [],
+        );
+
+      return {
+        ...category,
+        categoryChildren,
+      };
+    })
+    .filter((category) => category.categoryChildren.length > 0);
+};
 
 const CAssessmentResultViewer = ({
   assessment,
-}: {
-  assessment: AssessmentTree;
-}) => {
+  filterNonPublicQuestions,
+}: CAssessmentResultViewerProps) => {
+  const categories =
+    filterNonPublicQuestions ?
+      filterPublicAssessmentCategories(assessment.categories)
+    : assessment.categories;
+
   return (
     <div className="flex flex-col gap-1">
-      {assessment.categories.map((category, index, arr) => {
+      {categories.map((category, index, arr) => {
         const isLastItem = index === arr.length - 1;
         return (
           <div key={category.id} className="flex flex-col gap-2">
@@ -37,10 +119,12 @@ const CAssessmentResultViewer = ({
   );
 };
 
-const isAssessmentSubcategoryItem = (
-  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
-): item is AssessmentSubcategoryItem => {
-  return "questions" in item;
+const getCategoryChildKey = (
+  child: AssessmentQuestionItem | AssessmentSubcategoryItem,
+) => {
+  return isAssessmentSubcategoryItem(child) ?
+      `subcategory-${child.id}`
+    : `question-${child.id}`;
 };
 
 const QuestionValues = ({
@@ -133,11 +217,11 @@ const Category = ({
       <div className="flex flex-wrap gap-4">
         {category.categoryChildren.map((child) =>
           isAssessmentSubcategoryItem(child) ?
-            <div className="w-full" key={child.id}>
+            <div className="w-full" key={getCategoryChildKey(child)}>
               <Subcategory assessment={assessment} subcategory={child} />
             </div>
           : <QuestionValues
-              key={child.id}
+              key={getCategoryChildKey(child)}
               assessment={assessment}
               question={child}
             />,

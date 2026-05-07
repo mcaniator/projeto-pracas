@@ -23,7 +23,6 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { Typography } from "@mui/material";
 import {
   IconBrandGoogleDrive,
@@ -39,6 +38,18 @@ import { type Control, useForm, useWatch } from "react-hook-form";
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
+const isAssessmentSubcategoryItem = (
+  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
+): item is AssessmentSubcategoryItem => {
+  return "questions" in item;
+};
+
+const isAssessmentQuestionItem = (
+  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
+): item is AssessmentQuestionItem => {
+  return "questionId" in item && item.questionId !== null;
+};
+
 const ResponseFormV2 = ({
   locationId,
   locationName,
@@ -47,6 +58,8 @@ const ResponseFormV2 = ({
   finalized,
   userCanEdit,
   isPreview = false,
+  onValuesChange,
+  onGeometriesChange,
 }: {
   locationId: number;
   locationName: string;
@@ -66,6 +79,8 @@ const ResponseFormV2 = ({
   finalized: boolean;
   userCanEdit: boolean;
   isPreview?: boolean;
+  onValuesChange?: (values: FormValues) => void;
+  onGeometriesChange?: (geometries: ResponseFormGeometry[]) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const { control, handleSubmit, reset } = useForm<FormValues>({
@@ -84,14 +99,14 @@ const ResponseFormV2 = ({
     const questions: SimpleMention[] = [];
     assessmentTree.categories.forEach((c) => {
       c.categoryChildren.forEach((ch) => {
-        if (FormItemUtils.isSubcategoryType(ch)) {
+        if (isAssessmentSubcategoryItem(ch)) {
           ch.questions.forEach((q) => {
             questions.push({
               id: String(q.questionId),
               display: `${q.categoryName} ➤${q.subcategoryName ? " " + q.subcategoryName + " " : ""}➤ ${q.name}`,
             });
           });
-        } else if (FormItemUtils.isQuestionType(ch)) {
+        } else if (isAssessmentQuestionItem(ch)) {
           questions.push({
             id: String(ch.questionId),
             display: `${ch.categoryName} ➤${ch.subcategoryName ? " " + ch.subcategoryName + " " : ""}➤ ${ch.name}`,
@@ -223,7 +238,14 @@ const ResponseFormV2 = ({
   useEffect(() => {
     const numericResponses = new Map<number, number>();
     let filledFieldsCounter = 0;
-    Object.entries(allValues).forEach(([key, val]) => {
+    const normalizedValues = Object.fromEntries(
+      Object.entries(allValues).map(([key, value]) => [
+        key,
+        value === undefined ? null : value,
+      ]),
+    ) as FormValues;
+
+    Object.entries(normalizedValues).forEach(([key, val]) => {
       if (typeof val === "number") {
         numericResponses.set(Number(key), val);
       }
@@ -237,7 +259,12 @@ const ResponseFormV2 = ({
     });
     setNumericResponses(numericResponses);
     setFilledCount(filledFieldsCounter);
-  }, [allValues]);
+    onValuesChange?.(normalizedValues);
+  }, [allValues, onValuesChange]);
+
+  useEffect(() => {
+    onGeometriesChange?.(geometries);
+  }, [geometries, onGeometriesChange]);
 
   return (
     <form
@@ -455,7 +482,7 @@ const Category = ({
     <ResponseFormCategory category={category}>
       <>
         {category.categoryChildren.map((child, index) => {
-          if (FormItemUtils.isSubcategoryType(child)) {
+          if (isAssessmentSubcategoryItem(child)) {
             return (
               <Subcategory
                 key={index}
@@ -469,7 +496,7 @@ const Category = ({
                 control={control}
               />
             );
-          } else if (FormItemUtils.isQuestionType(child)) {
+          } else if (isAssessmentQuestionItem(child)) {
             return (
               <Question
                 key={index}
