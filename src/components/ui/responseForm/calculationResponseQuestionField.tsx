@@ -3,8 +3,9 @@
 import CNumberField from "@/components/ui/cNumberField";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import { Calculation } from "@/lib/utils/calculationUtils";
-import { useEffect, useState } from "react";
-import { Controller, type Control } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { type Control, useController } from "react-hook-form";
+
 import type { FormValues } from "./responseFormTypes";
 
 const CalculationResponseQuestionField = ({
@@ -16,23 +17,26 @@ const CalculationResponseQuestionField = ({
   numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
-  const [value, setValue] = useState<number | null>(null);
+  const { field } = useController({
+    name: String(question.questionId),
+    control,
+  });
 
-  useEffect(() => {
+  const value = useMemo(() => {
     const calc = new Calculation(
-      question.calculationExpression!,
+      question.calculationExpression,
       numericResponses,
     );
-    setValue(calc.evaluate());
+    return calc.evaluate();
   }, [numericResponses, question.calculationExpression]);
 
-  return (
-    <Controller
-      name={String(question.questionId)}
-      control={control}
-      render={({ field }) => <CNumberField {...field} readOnly value={value} />}
-    />
-  );
+  useEffect(() => {
+    if (field.value !== value) {
+      field.onChange(value);
+    }
+  }, [field, value]);
+
+  return <CNumberField {...field} readOnly value={value} />;
 };
 
 export default CalculationResponseQuestionField;
