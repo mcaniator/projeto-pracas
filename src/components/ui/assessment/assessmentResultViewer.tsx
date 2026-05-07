@@ -63,29 +63,27 @@ const filterPublicAssessmentCategories = (
 ): AssessmentCategoryItem[] => {
   return categories
     .map((category): AssessmentCategoryItem => {
-      const categoryChildren =
-        category.categoryChildren.reduce<AssessmentCategoryItem["categoryChildren"]>(
-          (children, child) => {
-            if (isAssessmentSubcategoryItem(child)) {
-              const questions = child.questions.filter(
-                (question) => question.isPublic,
-              );
+      const categoryChildren = category.categoryChildren.reduce<
+        AssessmentCategoryItem["categoryChildren"]
+      >((children, child) => {
+        if (isAssessmentSubcategoryItem(child)) {
+          const questions = child.questions.filter(
+            (question) => question.isPublic,
+          );
 
-              if (questions.length > 0) {
-                children.push({ ...child, questions });
-              }
+          if (questions.length > 0) {
+            children.push({ ...child, questions });
+          }
 
-              return children;
-            }
+          return children;
+        }
 
-            if (child.isPublic) {
-              children.push(child);
-            }
+        if (child.isPublic) {
+          children.push(child);
+        }
 
-            return children;
-          },
-          [],
-        );
+        return children;
+      }, []);
 
       return {
         ...category,
@@ -214,7 +212,7 @@ const Category = ({
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         {category.categoryChildren.map((child) =>
           isAssessmentSubcategoryItem(child) ?
             <div className="w-full" key={getCategoryChildKey(child)}>
