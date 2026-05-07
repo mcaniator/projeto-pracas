@@ -126,7 +126,7 @@ const QuestionCreationPreviewStep = ({
         </ResponseFormCategory>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
         <h5 className="text-base font-semibold">Visualização</h5>
         <QuestionResponseRenderer
           question={previewQuestion}

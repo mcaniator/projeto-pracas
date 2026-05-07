@@ -34,6 +34,8 @@ const QuestionCreationFormStep = ({
   categoryName,
   subcategoryId,
   subcategoryName,
+  title,
+  notes,
   type,
   characterType,
   hasAssociatedGeometry,
@@ -51,6 +53,7 @@ const QuestionCreationFormStep = ({
   scaleStep,
   onQuestionTemplateChange,
   onRemoveOption,
+  onTitleChange,
   onTypeChange,
   onCharacterTypeChange,
   onHasAssociatedGeometryChange,
@@ -71,6 +74,8 @@ const QuestionCreationFormStep = ({
   categoryName: string | undefined;
   subcategoryId: number | undefined;
   subcategoryName: string | undefined;
+  title: string | null;
+  notes: string | null;
   type: string;
   characterType: QuestionResponseCharacterTypes | null;
   hasAssociatedGeometry: boolean | null;
@@ -88,6 +93,8 @@ const QuestionCreationFormStep = ({
   scaleStep: number | null;
   onQuestionTemplateChange: (template: string) => void;
   onRemoveOption: (option: string) => void;
+  onTitleChange: (value: string) => void;
+  onNotesChange: (value: string | null) => void;
   onTypeChange: (value: string) => void;
   onCharacterTypeChange: (value: QuestionResponseCharacterTypes | null) => void;
   onHasAssociatedGeometryChange: (value: boolean | null) => void;
@@ -130,10 +137,14 @@ const QuestionCreationFormStep = ({
         <div>
           <CTextField
             className="w-full"
+            value={title}
             label="Título"
             name="name"
             id="name"
             required
+            onChange={(e) => {
+              onTitleChange(e.target.value);
+            }}
             maxCharacters={255}
           />
         </div>
@@ -143,6 +154,11 @@ const QuestionCreationFormStep = ({
             label="Observações"
             name="notes"
             id="notes"
+            clearable
+            value={notes}
+            onChange={(e) => {
+              onTitleChange(e.target.value);
+            }}
             maxCharacters={255}
           />
         </div>

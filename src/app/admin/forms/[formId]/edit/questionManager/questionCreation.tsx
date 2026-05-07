@@ -54,6 +54,8 @@ const QuestionCreation = ({
   const { setHelperCard } = useHelperCard();
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS">("FORM");
   const [reloadOnClose, setReloadOnClose] = useState(false);
+  const [title, setTitle] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string | null>(null);
   const [type, setType] = useState("");
   const [characterType, setCharacterType] =
     useState<QuestionResponseCharacterTypes | null>(null);
@@ -126,6 +128,9 @@ const QuestionCreation = ({
     setMaxValue(null);
     setScaleOptionMode("MANUAL");
     setScaleStep(null);
+    setIsPublic(true);
+    setTitle(null);
+    setNotes(null);
     setStep(1);
     setPendingFormData(null);
     setPreviewDraft(null);
@@ -284,6 +289,7 @@ const QuestionCreation = ({
       title="Criar questão"
       confirmChildren={step === 1 ? <IconArrowForwardUp /> : <>Criar</>}
       cancelChildren={<IconArrowBackUp />}
+      disableCancelButton={step === 1}
       onCancel={handleCancel}
       confirmLoading={isPending}
       disableConfirmButton={
@@ -316,6 +322,8 @@ const QuestionCreation = ({
             categoryName={categoryName}
             subcategoryId={subcategoryId}
             subcategoryName={subcategoryName}
+            title={title}
+            notes={notes}
             type={type}
             characterType={characterType}
             hasAssociatedGeometry={hasAssociatedGeometry}
@@ -331,6 +339,8 @@ const QuestionCreation = ({
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
             scaleStep={scaleStep}
+            onTitleChange={setTitle}
+            onNotesChange={setNotes}
             onQuestionTemplateChange={handleQuestionTemplate}
             onRemoveOption={handleRemoveOption}
             onTypeChange={setType}
