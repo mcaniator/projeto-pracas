@@ -1,13 +1,12 @@
 import QuestionIconPicker from "@/app/admin/forms/[formId]/edit/questionManager/questionIconPicker";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
-import { useHelperCard } from "@components/context/helperCardContext";
-import { useLoadingOverlay } from "@components/context/loadingContext";
+import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import { _questionUpdate } from "@lib/serverFunctions/serverActions/questionUtil";
 import { IconHelp } from "@tabler/icons-react";
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import QuestionDeletionDialog from "./questionDeletionDialog";
 
@@ -34,35 +33,19 @@ const QuestionEditDialog = ({
   onClose: () => void;
   reloadCategories: () => void;
 }) => {
-  const { helperCardProcessResponse } = useHelperCard();
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const initialState = {
-    responseInfo: { statusCode: 0 },
-  };
-
-  const [state, formAction, isPending] = useActionState(
-    _questionUpdate,
-    initialState,
-  );
+  const [formAction, isPending] = useResettableActionState({
+    action: _questionUpdate,
+    callbacks: {
+      onSuccess: () => {
+        reloadCategories();
+        onClose();
+      },
+    },
+  });
 
   const [isPublicState, setIsPublicState] = useState(isPublic);
   const [selectedIconKey, setSelectedIconKey] = useState<string>(iconKey);
   const [openDeletionDialog, setOpenDeletionDialog] = useState(false);
-
-  useEffect(() => {
-    helperCardProcessResponse(state.responseInfo);
-    if (state.responseInfo.statusCode === 200) {
-      reloadCategories();
-    }
-  }, [state, helperCardProcessResponse, reloadCategories]);
-
-  useEffect(() => {
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Atualizando questão..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
-  }, [isPending, setLoadingOverlay]);
 
   useEffect(() => {
     setSelectedIconKey(iconKey);
@@ -84,6 +67,7 @@ const QuestionEditDialog = ({
       cancelChildren={<>Excluir</>}
       cancelColor="error"
       confirmChildren={<>Editar</>}
+      confirmLoading={isPending}
     >
       <>
         <div className="flex flex-col">

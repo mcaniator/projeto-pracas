@@ -35,11 +35,13 @@ const CDialogFooter = ({
   onCancel?: () => void;
   onConfirm?: () => void;
 }) => {
+  const renderCancelButton = cancelChildren && !confirmLoading;
+  const renderConfirmButton = confirmChildren && !cancelLoading;
   return (
     <div
-      className={`flex w-full items-center ${cancelChildren ? "justify-between" : "justify-end"}`}
+      className={`flex w-full items-center ${renderCancelButton ? "justify-between" : "justify-end"}`}
     >
-      {cancelChildren && (
+      {renderCancelButton && (
         <CButton
           color={cancelColor}
           variant={cancelVariant}
@@ -51,7 +53,7 @@ const CDialogFooter = ({
           {cancelChildren}
         </CButton>
       )}
-      {confirmChildren && (
+      {renderConfirmButton && (
         <CButton
           color={confirmColor}
           type={isForm ? "submit" : "button"}
