@@ -90,21 +90,18 @@ const QuestionCreation = ({
       },
     },
     options: {
-      loadingMessage: "Salvando questÃ£o...",
+      loadingMessage: "Salvando questão...",
     },
   });
 
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
-      case "YES_NO":
-        setAddedOptions([{ text: "Sim" }, { text: "NÃ£o" }]);
-        break;
       case "QUALITY_SCALE":
         setAddedOptions([
-          { text: "PÃ©ssimo" },
+          { text: "Péssimo" },
           { text: "Ruim" },
           { text: "Bom" },
-          { text: "Ã“timo" },
+          { text: "Ótimo" },
         ]);
         break;
       default:
@@ -172,16 +169,16 @@ const QuestionCreation = ({
   const validateCurrentQuestion = () => {
     const isScale = characterType === "SCALE";
     if (!selectedIconKey || selectedIconKey.length === 0) {
-      showError(<>Selecione um Ã­cone para a questÃ£o.</>);
+      showError(<>Selecione um Í­cone para a questÃ£o.</>);
       return false;
     }
     if (isScale) {
       if (minValue === null || maxValue === null) {
-        showError(<>Informe o valor mÃ­nimo e mÃ¡ximo da escala.</>);
+        showError(<>Informe o valor mí­nimo e máximo da escala.</>);
         return false;
       }
       if (minValue >= maxValue) {
-        showError(<>O valor mÃ­nimo deve ser menor que o mÃ¡ximo.</>);
+        showError(<>O valor mÍnimo deve ser menor que o mÁximo.</>);
         return false;
       }
     }
@@ -198,7 +195,7 @@ const QuestionCreation = ({
       });
       if (invalidOption) {
         showError(
-          <>As opÃ§Ãµes devem ser nÃºmeros dentro do intervalo da escala.</>,
+          <>As opções devem ser números dentro do intervalo da escala.</>,
         );
         return false;
       }

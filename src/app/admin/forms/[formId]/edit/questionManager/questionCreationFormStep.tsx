@@ -294,7 +294,6 @@ const QuestionCreationFormStep = ({
                           [{ value: "FREE", label: "Livre" }]
                         : [
                             { value: "FREE", label: "Livre" },
-                            { value: "YES_NO", label: "Sim ou não" },
                             {
                               value: "QUALITY_SCALE",
                               label: "Escala de qualidade",
