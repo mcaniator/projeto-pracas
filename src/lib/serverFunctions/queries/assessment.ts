@@ -1,5 +1,5 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
+import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
@@ -225,7 +225,9 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       },
     });
     if (!assessment) throw new Error("Assessment not found");
-    const [locationPolygon] = await prisma.$queryRaw<Array<AssessmentLocationPolygon>>`
+    const [locationPolygon] = await prisma.$queryRaw<
+      Array<AssessmentLocationPolygon>
+    >`
       SELECT
         CASE
           WHEN ST_IsEmpty(l.polygon) THEN NULL
@@ -522,6 +524,9 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
               },
             },
             formItems: {
+              where: {
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
+              },
               orderBy: { position: "asc" },
               include: {
                 category: {
@@ -848,6 +853,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
     return {
       responseInfo: {
         statusCode: 500,
+        message: "Erro ao buscar avaliação",
       } as APIResponseInfo,
       data: null,
     };
