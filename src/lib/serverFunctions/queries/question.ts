@@ -37,7 +37,18 @@ const searchQuestionsByCategoryAndSubcategory = async (
             notes: true,
             characterType: true,
             optionType: true,
-            options: true,
+            options: {
+              select: {
+                id: true,
+                text: true,
+              },
+            },
+            scaleConfig: {
+              select: {
+                minValue: true,
+                maxValue: true,
+              },
+            },
             geometryTypes: true,
           },
           orderBy: { name: "desc" },
@@ -63,7 +74,18 @@ const searchQuestionsByCategoryAndSubcategory = async (
                 notes: true,
                 characterType: true,
                 optionType: true,
-                options: true,
+                options: {
+                  select: {
+                    id: true,
+                    text: true,
+                  },
+                },
+                scaleConfig: {
+                  select: {
+                    minValue: true,
+                    maxValue: true,
+                  },
+                },
                 geometryTypes: true,
               },
               orderBy: { name: "desc" },
@@ -182,11 +204,21 @@ const searchQuestionsByName = async (name: string) => {
                 'id', q.id,
                 'name', q.name,
                 'iconKey', q."icon_key",
+                'isPublic', q."is_public",
                 'questionType', q."question_type",
                 'notes', q.notes,
                 'characterType', q."character_type",
                 'optionType', q."option_type",
                 'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
+                'scaleConfig',
+                  (
+                    SELECT json_build_object(
+                      'minValue', qsc."min_value",
+                      'maxValue', qsc."max_value"
+                    )
+                    FROM "question_scale_config" qsc
+                    WHERE qsc."question_id" = q.id
+                  ),
                 
                 -- 1.1. Subquery para buscar as Options relacionadas
                 'options', COALESCE(
@@ -227,11 +259,21 @@ const searchQuestionsByName = async (name: string) => {
                         'id', sq.id,
                         'name', sq.name,
                         'iconKey', sq."icon_key",
+                        'isPublic', sq."is_public",
                         'questionType', sq."question_type",
                         'notes', sq.notes,
                         'characterType', sq."character_type",
                         'optionType', sq."option_type",
                         'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
+                        'scaleConfig',
+                          (
+                            SELECT json_build_object(
+                              'minValue', sqsc."min_value",
+                              'maxValue', sqsc."max_value"
+                            )
+                            FROM "question_scale_config" sqsc
+                            WHERE sqsc."question_id" = sq.id
+                          ),
                         
                         -- 2.1 Subquery para buscar as Options dentro da Subcategoria
                         'options', COALESCE(

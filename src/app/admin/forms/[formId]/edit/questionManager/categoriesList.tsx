@@ -259,6 +259,7 @@ const QuestionListV2 = ({
           questionType={question.questionType}
           optionType={question.optionType}
           options={question.options}
+          scaleConfig={question.scaleConfig}
           geometryTypes={question.geometryTypes}
           addQuestion={addQuestion}
           categoryId={categoryId}
@@ -286,6 +287,7 @@ const QuestionComponentV2 = ({
   optionType,
   options,
   geometryTypes,
+  scaleConfig,
   categoryId,
   subcategoryId,
   showAllQuestions,
@@ -304,7 +306,11 @@ const QuestionComponentV2 = ({
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
   geometryTypes: QuestionGeometryTypes[];
-  options: { text: string }[];
+  options: { id: number; text: string }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   categoryId: number;
   categoryName: string;
   subcategoryId?: number | null;
@@ -378,6 +384,7 @@ const QuestionComponentV2 = ({
               questionType,
               optionType,
               options,
+              scaleConfig,
               geometryTypes,
               categoryId,
               subcategoryId: subcategoryId ?? null,
