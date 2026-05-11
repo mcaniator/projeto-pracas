@@ -27,12 +27,14 @@ const CategoriesListV2 = ({
   categories,
   showAllQuestions,
   formQuestionsIds,
+  disableNoQuestionsLeftMessage,
   addQuestion,
   editQuestion,
 }: {
   categories: CategoryForQuestionPicker[];
   formQuestionsIds: number[];
   showAllQuestions: boolean;
+  disableNoQuestionsLeftMessage: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   editQuestion?: (question: {
     questionId: number;
@@ -51,14 +53,15 @@ const CategoriesListV2 = ({
         sub.question.some((q) => !formQuestionsIds.includes(q.id)),
       ),
   );
-  if (!searchHasRemainingQuestions && !showAllQuestions) {
+  if (
+    !disableNoQuestionsLeftMessage &&
+    !searchHasRemainingQuestions &&
+    !showAllQuestions
+  ) {
     return (
       <div className="p-1">
         <div>
-          {showAllQuestions ?
-            "Não há questões para os parâmetros de busca selecionados!"
-          : "Não há questões restantes para os parâmetros de busca selecionados!"
-          }
+          Não há questões restantes para os parâmetros de busca selecionados!
         </div>
       </div>
     );
