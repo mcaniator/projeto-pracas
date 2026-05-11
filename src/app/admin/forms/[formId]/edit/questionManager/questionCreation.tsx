@@ -287,8 +287,8 @@ const QuestionCreation = ({
       fullScreen
       onSubmit={handleSubmit}
       title="Criar questão"
-      confirmChildren={step === 1 ? <IconArrowForwardUp /> : <>Criar</>}
-      cancelChildren={<IconArrowBackUp />}
+      confirmChildren={step === 1 ? <IconArrowForwardUp /> : <IconCheck />}
+      cancelChildren={pageState === "FORM" ? <IconArrowBackUp /> : undefined}
       disableCancelButton={step === 1}
       onCancel={handleCancel}
       confirmLoading={isPending}
