@@ -23,18 +23,26 @@ const createCatalogEntry = (
   aliases,
 });
 
-const catalogEntries = iconModules.flatMap((module) => {
+const dynamicIconCatalog = iconModules.flatMap((module) => {
   const libraryId = `${module.prefix}` as DynamicIconPackId;
+  const aliasesByParent = Object.entries(module.aliases ?? {}).reduce(
+    (aliasesByParent, [alias, data]) => {
+      const aliases = aliasesByParent.get(data.parent) ?? [];
+      aliases.push(alias);
+      aliasesByParent.set(data.parent, aliases);
+
+      return aliasesByParent;
+    },
+    new Map<string, string[]>(),
+  );
+
   return Object.keys(module.icons).map((iconName) => {
-    const aliases = Object.entries(module.aliases)
-      .filter(([, data]) => data.parent === iconName)
-      .map(([alias]) => alias);
+    const aliases = aliasesByParent.get(iconName);
 
     return createCatalogEntry(libraryId, iconName, aliases);
   });
 });
 
-const dynamicIconCatalog = [...catalogEntries];
 const dynamicIconFuse = new Fuse(dynamicIconCatalog, {
   keys: ["iconName", "aliases"],
   threshold: 0.1,
