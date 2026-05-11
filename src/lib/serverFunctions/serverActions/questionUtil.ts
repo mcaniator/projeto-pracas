@@ -8,26 +8,20 @@ import {
   questionSchema,
 } from "@/lib/zodValidators";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag } from "next/cache";
 import { ZodError } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 const _questionSubmit = async (
-  prevState:
-    | {
-        responseInfo: APIResponseInfo;
-        data: null;
-      }
-    | null,
+  prevState: {
+    responseInfo: APIResponseInfo;
+    data: null;
+  } | null,
   formData: FormData,
-): Promise<
-  | {
-      responseInfo: APIResponseInfo;
-      data: null;
-    }
-  | null
-> => {
+): Promise<{
+  responseInfo: APIResponseInfo;
+  data: null;
+} | null> => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {
@@ -130,7 +124,6 @@ const _questionSubmit = async (
             });
           }
         });
-        revalidateTag("question");
         return {
           responseInfo: {
             statusCode: 201,
@@ -286,7 +279,6 @@ const _questionSubmit = async (
           });
         });
 
-        revalidateTag("question");
         return {
           responseInfo: {
             statusCode: 201,
@@ -354,7 +346,6 @@ const _questionUpdate = async (
         name: true,
       },
     });
-    revalidateTag("question");
     return {
       responseInfo: {
         statusCode: 200,
@@ -452,7 +443,6 @@ const _deleteQuestion = async (
         name: true,
       },
     });
-    revalidateTag("question");
 
     return {
       responseInfo: {

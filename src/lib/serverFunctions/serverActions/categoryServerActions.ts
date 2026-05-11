@@ -7,7 +7,6 @@ import {
 import { prisma } from "@lib/prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag } from "next/cache";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
@@ -54,7 +53,6 @@ const _categorySubmit = async (
         where: { id: parse.categoryId },
         data: { name: parse.name, notes: parse.notes },
       });
-      revalidateTag("category");
       return {
         responseInfo: {
           statusCode: 201,
@@ -67,7 +65,6 @@ const _categorySubmit = async (
     const category = await prisma.category.create({
       data: { name: parse.name, notes: parse.notes },
     });
-    revalidateTag("category");
     return {
       responseInfo: {
         statusCode: 201,
@@ -397,7 +394,6 @@ const _subcategorySubmit = async (
         where: { id: parse.subcategoryId },
         data: { name: parse.name, notes: parse.notes ?? null },
       });
-      revalidateTag("subcategory");
       return {
         responseInfo: {
           statusCode: 201,
@@ -414,7 +410,6 @@ const _subcategorySubmit = async (
         notes: parse.notes ?? null,
       },
     });
-    revalidateTag("subcategory");
 
     return {
       responseInfo: {
