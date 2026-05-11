@@ -51,7 +51,7 @@ const CategoriesListV2 = ({
         sub.question.some((q) => !formQuestionsIds.includes(q.id)),
       ),
   );
-  if (!searchHasRemainingQuestions) {
+  if (!searchHasRemainingQuestions && !showAllQuestions) {
     return (
       <div className="p-1">
         <div>
@@ -112,8 +112,10 @@ const CategoriesListV2 = ({
                       editQuestion={editQuestion}
                     />
                   )}
-                  {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
-                    .length > 0 && (
+                  {((showAllQuestions && cat.question.length > 0) ||
+                    cat.question.some(
+                      (q) => !formQuestionsIds.includes(q.id),
+                    )) && (
                     <QuestionListV2
                       questions={cat.question}
                       formQuestionsIds={formQuestionsIds}
