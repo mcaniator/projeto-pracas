@@ -320,7 +320,12 @@ const FormPreviewDialog = ({
         />
       </div>
 
-      <div className={viewMode === "form" ? "w-full pt-16" : "hidden"}>
+      <div
+        className={
+          viewMode === "form" ? "flex w-full flex-col pt-16" : "hidden"
+        }
+      >
+        <h5 className="text-xl font-bold">Preenchimento</h5>
         <ResponseFormV2
           locationId={-1}
           locationName="Preview"
@@ -336,6 +341,7 @@ const FormPreviewDialog = ({
 
       {viewMode === "result" && (
         <div className="flex w-full flex-col gap-2 pt-16">
+          <h5 className="text-xl font-bold">Resultados</h5>
           <CSwitch
             checked={showOnlyPublicQuestions}
             label="Mostrar apenas questões públicas"
@@ -343,12 +349,10 @@ const FormPreviewDialog = ({
               setShowOnlyPublicQuestions(checked);
             }}
           />
-          {showOnlyPublicQuestions ?
-            <AssessmentResultViewer
-              assessment={resultAssessmentTree}
-              filterNonPublicQuestions
-            />
-          : <AssessmentResultViewer assessment={resultAssessmentTree} />}
+          <AssessmentResultViewer
+            assessment={resultAssessmentTree}
+            filterNonPublicQuestions={showOnlyPublicQuestions}
+          />
         </div>
       )}
     </CDialog>

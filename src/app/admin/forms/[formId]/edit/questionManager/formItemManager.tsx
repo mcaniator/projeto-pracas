@@ -195,8 +195,8 @@ const FormItemManager = ({
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
-                subcategoryId: -1,
-                verifySubcategoryNullness: true,
+                subcategoryId: 0,
+                verifySubcategoryNullness: false,
               });
             }}
           />

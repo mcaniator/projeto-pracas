@@ -112,7 +112,7 @@ const QuestionCreationPreviewStep = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <h5 className="text-base font-semibold">Preenchimento</h5>
+        <h5 className="text-xl font-bold">Prévia de Preenchimento</h5>
         <ResponseFormCategory
           category={{ name: categoryName ?? "Categoria", notes: null }}
         >
@@ -126,8 +126,10 @@ const QuestionCreationPreviewStep = ({
         </ResponseFormCategory>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <h5 className="text-base font-semibold">Visualização</h5>
+      <div className="col flex flex-col gap-2">
+        <h5 className="text-xl font-bold">
+          Prévia de visualização de resultado
+        </h5>
         <QuestionResponseRenderer
           question={previewQuestion}
           resolvedValue={resolvedValue}

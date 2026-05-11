@@ -62,7 +62,7 @@ const QuestionIconPicker = ({
         label="Buscar ícone"
         value={searchText}
         clearable
-        debounce={250}
+        debounce={500}
         placeholder="Ex.: bench, trash, letter b..."
         onChange={(e) => {
           setSearchText(e.target.value);

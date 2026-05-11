@@ -92,15 +92,11 @@ const QuestionFormV2 = ({
 
   const searchByName = useCallback(async () => {
     if (!searchedName || searchedName.length === 0) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Digite um nome para fazer a pesquisa!</>,
-      });
+      setCategoriesList([]);
       return;
     }
     await fetchQuestionsByCategoryAndSubcategory({ name: searchedName });
-  }, [searchedName, fetchQuestionsByCategoryAndSubcategory, setHelperCard]);
+  }, [searchedName, fetchQuestionsByCategoryAndSubcategory]);
 
   const searchByCategoryAndSubcateogory = useCallback(async () => {
     if (isLoadingCategories || !selectedCategoryAndSubcategoryId.categoryId)
@@ -190,6 +186,10 @@ const QuestionFormV2 = ({
     searchQuestions();
   }, [searchQuestions]);
 
+  useEffect(() => {
+    void searchByName();
+  }, [searchByName]);
+
   const subcategoriesOptions =
     categories.find(
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
@@ -230,18 +230,15 @@ const QuestionFormV2 = ({
           <CTextField
             label="Nome"
             value={searchedName}
+            debounce={500}
             isSearch
             clearable
-            onSearch={() => {
-              void searchByName();
-            }}
             onChange={(e) => {
               setSearchedName(e.target.value);
             }}
           />
-          {(!searchedName || searchedName.length === 0) && (
-            <div>Digite um nome e pressione enter para realizar uma busca</div>
-          )}
+
+          <div>Digite um nome para realizar a busca</div>
         </div>
       )}
       {currentSearchMethod == 2 && (
@@ -271,6 +268,9 @@ const QuestionFormV2 = ({
             categories={categoriesList}
             formQuestionsIds={formQuestionsIds}
             showAllQuestions={showAllQuestions}
+            disableNoQuestionsLeftMessage={
+              currentSearchMethod === 1 && !searchedName
+            }
             addQuestion={addQuestion}
             editQuestion={(val) => {
               handleOpenQuestionEdit(val);
