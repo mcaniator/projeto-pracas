@@ -12,7 +12,7 @@ import {
 import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import { resolveQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { QuestionCreationDraft } from "./questionCreationTypes";
 
@@ -68,6 +68,13 @@ const QuestionCreationPreviewStep = ({
   );
   const [value, setValue] = useState<ResponseQuestionValue>(null);
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>([]);
+
+  useEffect(() => {
+    // Prevents boolean question from being unfilled, as this does not happens in ResponseForm
+    if (previewQuestion.questionType === "BOOLEAN" && value === null) {
+      setValue(false);
+    }
+  }, [previewQuestion, value]);
 
   const resolvedValue = resolveQuestionValue(previewQuestion, value);
   const questionCard = (
