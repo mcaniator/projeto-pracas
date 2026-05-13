@@ -171,7 +171,7 @@ const FormsClient = () => {
                     </>
                   : <>
                       <IconTrashX />
-                      Arquivar
+                      Excluir
                     </>
                   }
                 </div>

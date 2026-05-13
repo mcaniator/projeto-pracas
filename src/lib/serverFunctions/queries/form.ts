@@ -61,6 +61,9 @@ export const fetchForms = async (params: FetchFormParams) => {
       },
       orderBy: [
         {
+          archived: "asc",
+        },
+        {
           updatedAt: "desc",
         },
       ],
