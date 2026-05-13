@@ -29,12 +29,13 @@ export const AssessmentPercentageValueRenderer = ({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <AssessmentQuestionIcon question={question} hasValue={value !== 0} />
       <Box
         sx={{
-          width: 310,
+          width: 128,
           height: 128,
+          flex: "0 0 128px",
         }}
       >
         <Pie
@@ -64,7 +65,6 @@ export const AssessmentPercentageValueRenderer = ({
             layout: {
               padding: {
                 bottom: 24,
-                right: 200,
               },
             },
             responsive: true,
@@ -77,16 +77,7 @@ export const AssessmentPercentageValueRenderer = ({
                 display: false,
               },
               tooltip: {
-                enabled: true,
-                filter: function (context) {
-                  return context.dataIndex === 0;
-                },
-                callbacks: {
-                  label: function (context) {
-                    const value = context.raw as number;
-                    return `${value}%`;
-                  },
-                },
+                enabled: false,
               },
             },
             elements: {

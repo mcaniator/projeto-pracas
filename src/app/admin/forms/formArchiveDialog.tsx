@@ -26,13 +26,13 @@ const FormArchiveDialog = ({
       },
     },
   });
+
   if (!formToArchive) return null;
+  const isDeleting = !formToArchive.archived;
   return (
     <CDialog
       title={
-        formToArchive.archived ?
-          "Desarquivar formulário"
-        : "Arquivar formulário"
+        formToArchive.archived ? "Restaurar formulário" : "Excluir formulário"
       }
       isForm
       action={formAction}
@@ -52,10 +52,12 @@ const FormArchiveDialog = ({
           name="archived"
           value={formToArchive.archived ? "false" : "true"}
         />
-        {!formToArchive.finalized && (
+        {isDeleting && (
           <span className="text-md text-red-500">
-            Este formulário está em construção! Ele será excluído
-            permanentemente.
+            {formToArchive.finalized ?
+              "Este formulário será excluído permanentemente caso não tenha avaliações associadas. Caso tenha, será apenas arquivado."
+            : "Este formulário está em construção! Ele será excluído permanentemente."
+            }
           </span>
         )}
       </div>
