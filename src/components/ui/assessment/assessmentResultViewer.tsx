@@ -150,7 +150,7 @@ const QuestionList = ({
   questions: AssessmentQuestionItem[];
 }) => {
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap items-center gap-4">
       {questions.map((question) => (
         <QuestionValues
           key={question.id}
