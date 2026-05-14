@@ -98,6 +98,9 @@ const QuestionCreation = ({
 
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
+      case "YES_NO":
+        setAddedOptions([{ text: "Sim" }, { text: "Não" }]);
+        break;
       case "QUALITY_SCALE":
         setAddedOptions([
           { text: "Péssimo" },
