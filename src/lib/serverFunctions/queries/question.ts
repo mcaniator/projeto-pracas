@@ -1,8 +1,132 @@
 import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
+import { Prisma } from "@prisma/client";
 
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
+
+const buildQuestionsByCategoryQuery = ({
+  categoryWhere,
+  categoryQuestionWhere,
+  subcategoryQuestionWhere,
+}: {
+  categoryWhere: Prisma.Sql;
+  categoryQuestionWhere: Prisma.Sql;
+  subcategoryQuestionWhere: Prisma.Sql;
+}) => Prisma.sql`
+  SELECT
+    c.id,
+    c.name,
+    c.notes,
+
+    COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'id', q.id,
+            'name', q.name,
+            'iconKey', q."icon_key",
+            'isPublic', q."is_public",
+            'questionType', q."question_type",
+            'notes', q.notes,
+            'characterType', q."character_type",
+            'optionType', q."option_type",
+            'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
+            'scaleConfig',
+              (
+                SELECT json_build_object(
+                  'minValue', qsc."min_value",
+                  'maxValue', qsc."max_value"
+                )
+                FROM "question_scale_config" qsc
+                WHERE qsc."question_id" = q.id
+              ),
+            'options', COALESCE(
+              (
+                SELECT json_agg(
+                  json_build_object(
+                    'id', o.id,
+                    'text', o.text
+                  ) ORDER BY o.id ASC
+                )
+                FROM "option" o
+                WHERE o."question_id" = q.id
+              ),
+              '[]'::json
+            )
+          ) ORDER BY q.name DESC
+        )
+        FROM "question" q
+        WHERE q."category_id" = c.id
+          AND q."subcategory_id" IS NULL
+          ${categoryQuestionWhere}
+      ),
+      '[]'::json
+    ) AS question,
+
+    COALESCE(
+      (
+        SELECT json_agg(
+          json_build_object(
+            'id', s.id,
+            'name', s.name,
+            'notes', s.notes,
+            'question', COALESCE(
+              (
+                SELECT json_agg(
+                  json_build_object(
+                    'id', sq.id,
+                    'name', sq.name,
+                    'iconKey', sq."icon_key",
+                    'isPublic', sq."is_public",
+                    'questionType', sq."question_type",
+                    'notes', sq.notes,
+                    'characterType', sq."character_type",
+                    'optionType', sq."option_type",
+                    'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
+                    'scaleConfig',
+                      (
+                        SELECT json_build_object(
+                          'minValue', sqsc."min_value",
+                          'maxValue', sqsc."max_value"
+                        )
+                        FROM "question_scale_config" sqsc
+                        WHERE sqsc."question_id" = sq.id
+                      ),
+                    'options', COALESCE(
+                      (
+                        SELECT json_agg(
+                          json_build_object(
+                            'id', so.id,
+                            'text', so.text
+                          ) ORDER BY so.id ASC
+                        )
+                        FROM "option" so
+                        WHERE so."question_id" = sq.id
+                      ),
+                      '[]'::json
+                    )
+                  ) ORDER BY sq.name DESC
+                )
+                FROM "question" sq
+                WHERE sq."subcategory_id" = s.id
+                  ${subcategoryQuestionWhere}
+              ),
+              '[]'::json
+            )
+          ) ORDER BY s.name DESC
+        )
+        FROM "subcategory" s
+        WHERE s."category_id" = c.id
+      ),
+      '[]'::json
+    ) AS subcategory
+
+  FROM "category" c
+  WHERE 1 = 1
+    ${categoryWhere}
+  ORDER BY c.name DESC
+`;
 
 export type FetchquestionsByCategoryAndSubcategoryResponse = NonNullable<
   Awaited<ReturnType<typeof searchQuestionsByCategoryAndSubcategory>>["data"]
@@ -12,88 +136,27 @@ const searchQuestionsByCategoryAndSubcategory = async (
 ) => {
   if (!params.categoryId) return { statusCode: 400, categories: [] };
   try {
-    const categories = await prisma.category.findMany({
-      where: {
-        id: params.categoryId,
-      },
-      orderBy: { name: "desc" },
-      select: {
-        id: true,
-        name: true,
-        notes: true,
-        question: {
-          where: {
-            subcategoryId: null,
-            ...(params.verifySubcategoryNullness && !params.subcategoryId ? {}
-            : params.subcategoryId === 0 || params.subcategoryId === -1 ? {}
-            : { id: -1 }),
-          },
-          select: {
-            id: true,
-            name: true,
-            iconKey: true,
-            isPublic: true,
-            questionType: true,
-            notes: true,
-            characterType: true,
-            optionType: true,
-            options: {
-              select: {
-                id: true,
-                text: true,
-              },
-            },
-            scaleConfig: {
-              select: {
-                minValue: true,
-                maxValue: true,
-              },
-            },
-            geometryTypes: true,
-          },
-          orderBy: { name: "desc" },
-        },
-        subcategory: {
-          orderBy: { name: "desc" },
-          select: {
-            id: true,
-            name: true,
-            notes: true,
-            question: {
-              where:
-                params.verifySubcategoryNullness && !params.subcategoryId ?
-                  { id: -1 }
-                : !params.subcategoryId ? {}
-                : { subcategoryId: params.subcategoryId },
-              select: {
-                id: true,
-                name: true,
-                iconKey: true,
-                isPublic: true,
-                questionType: true,
-                notes: true,
-                characterType: true,
-                optionType: true,
-                options: {
-                  select: {
-                    id: true,
-                    text: true,
-                  },
-                },
-                scaleConfig: {
-                  select: {
-                    minValue: true,
-                    maxValue: true,
-                  },
-                },
-                geometryTypes: true,
-              },
-              orderBy: { name: "desc" },
-            },
-          },
-        },
-      },
-    });
+    const categoryQuestionFilter =
+      (
+        (params.verifySubcategoryNullness && !params.subcategoryId) ||
+        params.subcategoryId === 0 ||
+        params.subcategoryId === -1
+      ) ?
+        Prisma.empty
+      : Prisma.sql`AND q.id = -1`;
+    const subcategoryQuestionFilter =
+      params.verifySubcategoryNullness && !params.subcategoryId ?
+        Prisma.sql`AND sq.id = -1`
+      : !params.subcategoryId ? Prisma.empty
+      : Prisma.sql`AND sq."subcategory_id" = ${params.subcategoryId}`;
+
+    const categories = await prisma.$queryRaw<Array<CategoryForQuestionPicker>>(
+      buildQuestionsByCategoryQuery({
+        categoryWhere: Prisma.sql`AND c.id = ${params.categoryId}`,
+        categoryQuestionWhere: categoryQuestionFilter,
+        subcategoryQuestionWhere: subcategoryQuestionFilter,
+      }),
+    );
 
     const nonEmptyCategories = categories.filter(
       (cat) =>
@@ -133,181 +196,13 @@ const searchQuestionsByName = async (name: string) => {
     };
   name = "%" + name + "%";
   try {
-    // This query was replaced by the one after it to use unaccent
-    /*const categoriesLegacyQuery = await prisma.category.findMany({
-      orderBy: { name: "desc" },
-      select: {
-        id: true,
-        name: true,
-        notes: true,
-        question: {
-          where: {
-            name: {
-              contains: name,
-              mode: "insensitive",
-            },
-            subcategoryId: null,
-          },
-          select: {
-            id: true,
-            name: true,
-            questionType: true,
-            notes: true,
-            characterType: true,
-            optionType: true,
-            options: true,
-            geometryTypes: true,
-          },
-          orderBy: { name: "desc" },
-        },
-        subcategory: {
-          orderBy: { name: "desc" },
-          select: {
-            id: true,
-            name: true,
-            notes: true,
-            question: {
-              where: {
-                name: {
-                  contains: name,
-                  mode: "insensitive",
-                },
-              },
-              select: {
-                id: true,
-                name: true,
-                questionType: true,
-                notes: true,
-                characterType: true,
-                optionType: true,
-                options: true,
-                geometryTypes: true,
-              },
-              orderBy: { name: "desc" },
-            },
-          },
-        },
-      },
-    });*/
-
-    const categories = await prisma.$queryRaw<Array<CategoryForQuestionPicker>>`
-      SELECT 
-        c.id, 
-        c.name, 
-        c.notes,
-        
-        -- 1. QUESTÕES DIRETAS DA CATEGORIA
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'id', q.id,
-                'name', q.name,
-                'iconKey', q."icon_key",
-                'isPublic', q."is_public",
-                'questionType', q."question_type",
-                'notes', q.notes,
-                'characterType', q."character_type",
-                'optionType', q."option_type",
-                'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
-                'scaleConfig',
-                  (
-                    SELECT json_build_object(
-                      'minValue', qsc."min_value",
-                      'maxValue', qsc."max_value"
-                    )
-                    FROM "question_scale_config" qsc
-                    WHERE qsc."question_id" = q.id
-                  ),
-                
-                -- 1.1. Subquery para buscar as Options relacionadas
-                'options', COALESCE(
-                  (
-                    SELECT json_agg(
-                      json_build_object(
-                        'id', o.id,
-                        'text', o.text
-                      ) ORDER BY o.id ASC
-                    )
-                    FROM "option" o
-                    WHERE o."question_id" = q.id
-                  ),
-                  '[]'::json
-                )
-              ) ORDER BY q.name DESC
-            )
-            FROM "question" q
-            WHERE q."category_id" = c.id 
-              AND q."subcategory_id" IS NULL
-              AND unaccent(q.name) ILIKE unaccent(${name})
-          ), 
-          '[]'::json
-        ) AS question,
-
-        -- 2. SUBCATEGORIAS
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'id', s.id,
-                'name', s.name,
-                'notes', s.notes,
-                'question', COALESCE(
-                  (
-                    SELECT json_agg(
-                      json_build_object(
-                        'id', sq.id,
-                        'name', sq.name,
-                        'iconKey', sq."icon_key",
-                        'isPublic', sq."is_public",
-                        'questionType', sq."question_type",
-                        'notes', sq.notes,
-                        'characterType', sq."character_type",
-                        'optionType', sq."option_type",
-                        'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
-                        'scaleConfig',
-                          (
-                            SELECT json_build_object(
-                              'minValue', sqsc."min_value",
-                              'maxValue', sqsc."max_value"
-                            )
-                            FROM "question_scale_config" sqsc
-                            WHERE sqsc."question_id" = sq.id
-                          ),
-                        
-                        -- 2.1 Subquery para buscar as Options dentro da Subcategoria
-                        'options', COALESCE(
-                          (
-                            SELECT json_agg(
-                              json_build_object(
-                                'id', so.id,
-                                'text', so.text
-                              ) ORDER BY so.id ASC
-                            )
-                            FROM "option" so
-                            WHERE so."question_id" = sq.id
-                          ),
-                          '[]'::json
-                        )
-                      ) ORDER BY sq.name DESC
-                    )
-                    FROM "question" sq
-                    WHERE sq."subcategory_id" = s.id
-                      AND unaccent(sq.name) ILIKE unaccent(${name})
-                  ),
-                  '[]'::json
-                )
-              ) ORDER BY s.name DESC
-            )
-            FROM "subcategory" s
-            WHERE s."category_id" = c.id
-          ), 
-          '[]'::json
-        ) AS subcategory
-
-      FROM "category" c
-      ORDER BY c.name DESC
-    `;
+    const categories = await prisma.$queryRaw<Array<CategoryForQuestionPicker>>(
+      buildQuestionsByCategoryQuery({
+        categoryWhere: Prisma.empty,
+        categoryQuestionWhere: Prisma.sql`AND unaccent(q.name) ILIKE unaccent(${name})`,
+        subcategoryQuestionWhere: Prisma.sql`AND unaccent(sq.name) ILIKE unaccent(${name})`,
+      }),
+    );
 
     const nonEmptyCategories = categories.filter(
       (cat) =>
