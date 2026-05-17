@@ -1,4 +1,5 @@
-import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
+import type { FetchQuestionUsesParams } from "@/app/api/admin/forms/fieldsCreation/question/questionUses/route";
+import type { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
@@ -221,6 +222,118 @@ const searchQuestionsByName = async (name: string) => {
       responseInfo: { statusCode: 500 },
       data: {
         categories: [],
+      },
+    };
+  }
+};
+
+export type FetchquestionUsesResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchQuestionUses>>["data"]
+>;
+
+type QuestionUses = {
+  numberOfAssessments: number;
+  numberOfForms: number;
+  forms: {
+    id: number;
+    name: string;
+  }[];
+  assessments: {
+    assessmentId: number;
+    location: {
+      id: number;
+      name: string;
+      city: {
+        name: string;
+        state: string;
+      };
+    };
+  }[];
+};
+
+export const fetchQuestionUses = async (params: FetchQuestionUsesParams) => {
+  try {
+    const [questionUses] = await prisma.$queryRaw<QuestionUses[]>`
+      WITH question_forms AS (
+        SELECT DISTINCT fi."form_id"
+        FROM "form_item" fi
+        WHERE fi."question_id" = ${params.questionId}
+      ),
+      forms AS (
+        SELECT f.id, f.name
+        FROM "form" f
+        JOIN question_forms qf ON qf."form_id" = f.id
+      ),
+      assessments AS (
+        SELECT
+          a.id AS "assessmentId",
+          l.id AS "locationId",
+          l.name AS "locationName",
+          c.name AS "cityName",
+          c.state AS "cityState"
+        FROM "assessment" a
+        JOIN question_forms qf ON qf."form_id" = a."form_id"
+        JOIN "location" l ON l.id = a."location_id"
+        JOIN "city" c ON c.id = l."city_id"
+      )
+      SELECT
+        (SELECT COUNT(*)::int FROM assessments) AS "numberOfAssessments",
+        (SELECT COUNT(*)::int FROM forms) AS "numberOfForms",
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'id', forms.id,
+                'name', forms.name
+              ) ORDER BY forms.name ASC
+            )
+            FROM forms
+          ),
+          '[]'::json
+        ) AS forms,
+        COALESCE(
+          (
+            SELECT json_agg(
+              json_build_object(
+                'assessmentId', assessments."assessmentId",
+                'location', json_build_object(
+                  'id', assessments."locationId",
+                  'name', assessments."locationName",
+                  'city', json_build_object(
+                    'name', assessments."cityName",
+                    'state', assessments."cityState"
+                  )
+                )
+              ) ORDER BY assessments."assessmentId" ASC
+            )
+            FROM assessments
+          ),
+          '[]'::json
+        ) AS assessments
+    `;
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        numberOfAssessments: questionUses?.numberOfAssessments ?? 0,
+        numberOfForms: questionUses?.numberOfForms ?? 0,
+        forms: questionUses?.forms ?? [],
+        assessments: questionUses?.assessments ?? [],
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar usos da questão!",
+      } as APIResponseInfo,
+      data: {
+        numberOfAssessments: 0,
+        numberOfForms: 0,
+        forms: [],
+        assessments: [],
       },
     };
   }
