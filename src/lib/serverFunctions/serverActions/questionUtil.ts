@@ -2,11 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
-import {
-  optionSchema,
-  questionEditDataSchema,
-  questionSchema,
-} from "@/lib/zodValidators";
+import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { ZodError } from "zod";
 
@@ -104,7 +100,7 @@ const _questionSubmit = async (
           return {
             responseInfo: {
               statusCode: 400,
-              message: "Dados inválidos para registrar questão!",
+              message: "Ícone inválido!",
             },
             data: null,
           };
@@ -209,7 +205,7 @@ const _questionSubmit = async (
           return {
             responseInfo: {
               statusCode: 400,
-              message: "Dados inválidos para registrar questão!",
+              message: "Ícone inválido!",
             },
             data: null,
           };
@@ -325,27 +321,160 @@ const _questionUpdate = async (
   }
 
   try {
-    const parse = questionEditDataSchema.parse({
-      questionId: formData.get("questionId"),
-      questionName: formData.get("questionName"),
-      notes: formData.get("notes"),
-      iconKey: formData.get("iconKey"),
-      isPublic: formData.get("isPublic"),
+    const questionId = Number(formData.get("questionId"));
+    const questionType = formData.get("questionType");
+    const questionCharacterType = formData.get("characterType");
+    const notes = (formData.get("notes") as string | null) ?? "";
+    const iconKey = formData.get("iconKey");
+    const isPublic = formData.get("isPublic") === "true";
+    const rawOptions = formData.getAll("options").map((option) => ({
+      text: String(option),
+      questionId,
+    }));
+    const scaleBounds =
+      questionCharacterType === "SCALE" ?
+        {
+          minValue: Number(formData.get("minValue")),
+          maxValue: Number(formData.get("maxValue")),
+        }
+      : null;
+
+    if (!Number.isInteger(questionId) || questionId <= 0) {
+      return { responseInfo: { statusCode: 400, message: "Dados inválidos!" } };
+    }
+
+    const parsedQuestion = questionSchema.parse({
+      name: formData.get("name"),
+      iconKey,
+      notes: notes.length > 0 ? notes : null,
+      questionType,
+      characterType: questionCharacterType,
+      categoryId: formData.get("categoryId"),
+      isPublic,
+      subcategoryId:
+        Number(formData.get("subcategoryId")) > 0 ?
+          formData.get("subcategoryId")
+        : undefined,
+      optionType:
+        questionType === "OPTIONS" ? formData.get("optionType") : undefined,
+      geometryTypes:
+        (
+          formData.getAll("geometryTypes").length > 0 &&
+          formData.get("hasAssociatedGeometry") === "true"
+        ) ?
+          formData.getAll("geometryTypes")
+        : undefined,
     });
-    const question = await prisma.question.update({
-      where: {
-        id: parse.questionId,
-      },
-      data: {
-        name: parse.questionName,
-        notes: parse.notes,
-        iconKey: parse.iconKey,
-        isPublic: parse.isPublic,
-      },
-      select: {
-        name: true,
-      },
+
+    if (!isSupportedDynamicIconKey(parsedQuestion.iconKey)) {
+      return {
+        responseInfo: { statusCode: 400, message: "Ícone inválido!" },
+      };
+    }
+
+    const question = await prisma.$transaction(async (prisma) => {
+      const [questionUses] = await prisma.$queryRaw<
+        { numberOfAssessments: number }[]
+      >`
+      WITH question_forms AS (
+        SELECT DISTINCT fi."form_id"
+        FROM "form_item" fi
+        WHERE fi."question_id" = ${questionId}
+      ),
+      assessments AS (
+        SELECT
+          a.id AS "assessmentId",
+          l.name AS "locationName"
+        FROM "assessment" a
+        JOIN question_forms qf ON qf."form_id" = a."form_id"
+        JOIN "location" l ON l.id = a."location_id"
+      )
+      SELECT
+        (SELECT COUNT(*)::int FROM assessments) AS "numberOfAssessments"
+    `;
+      if (!questionUses) {
+        throw new Error("Question not found");
+      }
+      if (questionUses?.numberOfAssessments > 0) {
+        // If the question is being used in any assessment, it's structure cannot be changed
+        const updatedQuestion = await prisma.question.update({
+          where: {
+            id: questionId,
+          },
+          data: {
+            name: parsedQuestion.name,
+            notes: parsedQuestion.notes,
+            iconKey: parsedQuestion.iconKey,
+            isPublic: parsedQuestion.isPublic,
+          },
+          select: {
+            name: true,
+          },
+        });
+        return updatedQuestion;
+      }
+      const updatedQuestion = await prisma.question.update({
+        where: {
+          id: questionId,
+        },
+        data: {
+          name: parsedQuestion.name,
+          notes: parsedQuestion.notes,
+          iconKey: parsedQuestion.iconKey,
+          isPublic: parsedQuestion.isPublic,
+          questionType: parsedQuestion.questionType,
+          characterType: parsedQuestion.characterType,
+          optionType:
+            parsedQuestion.questionType === "OPTIONS" ?
+              parsedQuestion.optionType
+            : null,
+          geometryTypes: parsedQuestion.geometryTypes ?? [],
+          categoryId: parsedQuestion.categoryId,
+          subcategoryId: parsedQuestion.subcategoryId ?? null,
+        },
+        select: {
+          name: true,
+        },
+      });
+
+      if (parsedQuestion.characterType === "SCALE" && scaleBounds) {
+        await prisma.questionScaleConfig.upsert({
+          where: {
+            questionId,
+          },
+          create: {
+            questionId,
+            minValue: scaleBounds.minValue,
+            maxValue: scaleBounds.maxValue,
+          },
+          update: {
+            minValue: scaleBounds.minValue,
+            maxValue: scaleBounds.maxValue,
+          },
+        });
+      } else {
+        await prisma.questionScaleConfig.deleteMany({
+          where: {
+            questionId,
+          },
+        });
+      }
+
+      await prisma.option.deleteMany({
+        where: {
+          questionId,
+        },
+      });
+      if (parsedQuestion.questionType === "OPTIONS") {
+        const optionsParsed = optionSchema.parse(rawOptions);
+        await prisma.option.createMany({
+          data: optionsParsed,
+        });
+      }
+
+      return updatedQuestion;
     });
+
     return {
       responseInfo: {
         statusCode: 200,

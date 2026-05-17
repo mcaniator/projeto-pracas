@@ -1,9 +1,14 @@
 ﻿"use client";
 
+import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import { useFetchQuestionUses } from "@/lib/serverFunctions/apiCalls/question";
+import { FetchquestionUsesResponse } from "@/lib/serverFunctions/queries/question";
 import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
+import type { QuestionPickerQuestionToEdit } from "@customTypes/forms/formCreation";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import type {
   OptionTypes,
@@ -11,7 +16,7 @@ import type {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { _questionSubmit } from "@serverActions/questionUtil";
+import { _questionSubmit, _questionUpdate } from "@serverActions/questionUtil";
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -42,6 +47,7 @@ const QuestionCreation = ({
   open,
   onClose,
   fetchCategoriesAfterCreation,
+  question,
 }: {
   categoryId: number | undefined;
   categoryName: string | undefined;
@@ -50,7 +56,13 @@ const QuestionCreation = ({
   open: boolean;
   onClose: () => void;
   fetchCategoriesAfterCreation: () => void;
+  question?: QuestionPickerQuestionToEdit | null;
 }) => {
+  const isEditing = !!question;
+  const activeCategoryId = question?.categoryId ?? categoryId;
+  const activeCategoryName = question?.categoryName ?? categoryName;
+  const activeSubcategoryId = question?.subcategoryId ?? subcategoryId;
+  const activeSubcategoryName = question?.subcategoryName ?? subcategoryName;
   const { setHelperCard } = useHelperCard();
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS">("FORM");
   const [reloadOnClose, setReloadOnClose] = useState(false);
@@ -79,22 +91,51 @@ const QuestionCreation = ({
   const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
   const [previewDraft, setPreviewDraft] =
     useState<QuestionCreationDraft | null>(null);
+  const [questionUses, setQuestionUses] =
+    useState<FetchquestionUsesResponse | null>(null);
 
-  const [formAction, isPending, , resetActionState] = useResettableActionState({
-    action: _questionSubmit,
+  const [fetchQuestionUses, isFetchingQuestionUses] = useFetchQuestionUses({
     callbacks: {
-      onSuccess: () => {
-        setReloadOnClose(true);
-        setPageState("SUCCESS");
+      onSuccess: (response) => {
+        setQuestionUses(response.data ?? null);
       },
-      onError: () => {
-        setPageState("FORM");
-      },
-    },
-    options: {
-      loadingMessage: "Salvando questão...",
     },
   });
+
+  const [createFormAction, isCreatePending, , resetCreateActionState] =
+    useResettableActionState({
+      action: _questionSubmit,
+      callbacks: {
+        onSuccess: () => {
+          setReloadOnClose(true);
+          setPageState("SUCCESS");
+        },
+        onError: () => {
+          setPageState("FORM");
+        },
+      },
+      options: {
+        loadingMessage: "Salvando questão...",
+      },
+    });
+  const [updateFormAction, isUpdatePending, , resetUpdateActionState] =
+    useResettableActionState({
+      action: _questionUpdate,
+      callbacks: {
+        onSuccess: () => {
+          fetchCategoriesAfterCreation();
+          resetModal();
+          onClose();
+        },
+        onError: () => {
+          setPageState("FORM");
+        },
+      },
+      options: {
+        loadingMessage: "Salvando questão...",
+      },
+    });
+  const isPending = isCreatePending || isUpdatePending;
 
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
@@ -116,7 +157,8 @@ const QuestionCreation = ({
   };
 
   const resetModal = () => {
-    resetActionState();
+    resetCreateActionState();
+    resetUpdateActionState();
     setType("");
     setCharacterType(null);
     setSelectionType(null);
@@ -137,6 +179,7 @@ const QuestionCreation = ({
     setStep(1);
     setPendingFormData(null);
     setPreviewDraft(null);
+    setQuestionUses(null);
   };
   const handleRemoveOption = (option: string) => {
     setAddedOptions((prev) => prev?.filter((p) => p.text !== option));
@@ -151,8 +194,39 @@ const QuestionCreation = ({
   };
 
   useEffect(() => {
+    if (isEditing) {
+      return;
+    }
     setAddedOptions(undefined);
-  }, [characterType, type]);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!open || !question) {
+      return;
+    }
+    void fetchQuestionUses({ questionId: question.id });
+    setType(question.questionType);
+    setCharacterType(question.characterType);
+    setSelectionType(question.optionType);
+    setCurrentOption("");
+    setHasAssociatedGeometry(question.geometryTypes.length > 0);
+    setAddedOptions(question.options.map((option) => ({ text: option.text })));
+    setQuestionTemplate(question.questionType === "OPTIONS" ? "FREE" : null);
+    setGeometryTypes(question.geometryTypes);
+    setSelectedIconKey(question.iconKey);
+    setPageState("FORM");
+    setMinValue(question.scaleConfig?.minValue ?? null);
+    setMaxValue(question.scaleConfig?.maxValue ?? null);
+    setScaleOptionMode("MANUAL");
+    setScaleStep(null);
+    setIsPublic(question.isPublic);
+    setTitle(question.name);
+    setNotes(question.notes);
+    setStep(1);
+    setPendingFormData(null);
+    setPreviewDraft(null);
+    setReloadOnClose(false);
+  }, [open, question, fetchQuestionUses]);
 
   useEffect(() => {
     if (
@@ -177,7 +251,7 @@ const QuestionCreation = ({
   const validateCurrentQuestion = () => {
     const isScale = characterType === "SCALE";
     if (!selectedIconKey || selectedIconKey.length === 0) {
-      showError(<>Selecione um Í­cone para a questÃ£o.</>);
+      showError(<>Selecione um Í­cone para a questão.</>);
       return false;
     }
     if (isScale) {
@@ -258,6 +332,9 @@ const QuestionCreation = ({
       }
 
       const formData = new FormData(event.currentTarget);
+      if (question) {
+        formData.set("questionId", String(question.id));
+      }
       setPendingFormData(formData);
       setPreviewDraft(buildPreviewDraft(formData));
       setStep(2);
@@ -269,7 +346,11 @@ const QuestionCreation = ({
     }
 
     startTransition(() => {
-      formAction(pendingFormData);
+      if (isEditing) {
+        updateFormAction(pendingFormData);
+        return;
+      }
+      createFormAction(pendingFormData);
     });
   };
 
@@ -289,7 +370,7 @@ const QuestionCreation = ({
       isForm
       fullScreen
       onSubmit={handleSubmit}
-      title="Criar questão"
+      title={isEditing ? "Editar questão" : "Criar questão"}
       confirmChildren={step === 1 ? <IconArrowForwardUp /> : <IconCheck />}
       cancelChildren={pageState === "FORM" ? <IconArrowBackUp /> : undefined}
       disableCancelButton={step === 1}
@@ -314,17 +395,31 @@ const QuestionCreation = ({
             </Step>
           ))}
         </Stepper>
+        {isFetchingQuestionUses && (
+          <CLinearProgress label="Buscando usos da questão..." />
+        )}
+
+        {isEditing && !isFetchingQuestionUses && !!questionUses && (
+          <QuestionUses questionUses={questionUses} />
+        )}
 
         <div
           className={
-            !isPending && pageState === "FORM" && step === 1 ? "" : "hidden"
+            (
+              !isPending &&
+              pageState === "FORM" &&
+              step === 1 &&
+              !isFetchingQuestionUses
+            ) ?
+              ""
+            : "hidden"
           }
         >
           <QuestionCreationFormStep
-            categoryId={categoryId}
-            categoryName={categoryName}
-            subcategoryId={subcategoryId}
-            subcategoryName={subcategoryName}
+            categoryId={activeCategoryId}
+            categoryName={activeCategoryName}
+            subcategoryId={activeSubcategoryId ?? undefined}
+            subcategoryName={activeSubcategoryName ?? undefined}
             title={title}
             notes={notes}
             type={type}
@@ -342,6 +437,9 @@ const QuestionCreation = ({
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
             scaleStep={scaleStep}
+            isQuestionUsed={
+              !!questionUses && questionUses?.numberOfAssessments > 0
+            }
             onTitleChange={setTitle}
             onNotesChange={setNotes}
             onQuestionTemplateChange={handleQuestionTemplate}
@@ -362,6 +460,9 @@ const QuestionCreation = ({
             onScaleStepChange={setScaleStep}
             showError={showError}
           />
+          {question && (
+            <input type="hidden" name="questionId" value={question.id} />
+          )}
         </div>
 
         <div
@@ -372,8 +473,8 @@ const QuestionCreation = ({
           {previewDraft && (
             <QuestionCreationPreviewStep
               draft={previewDraft}
-              categoryName={categoryName}
-              subcategoryName={subcategoryName}
+              categoryName={activeCategoryName}
+              subcategoryName={activeSubcategoryName ?? undefined}
             />
           )}
         </div>
@@ -381,12 +482,14 @@ const QuestionCreation = ({
         {pageState === "SUCCESS" && (
           <div className="flex flex-col items-center">
             <h5 className="text-center text-xl font-semibold">
-              Questão criada!
+              {isEditing ? "Questão editada!" : "Questão criada!"}
             </h5>
             <div className="flex justify-center">
               <IconCheck className="h-32 w-32 text-2xl text-green-500" />
             </div>
-            <CButton onClick={resetModal}>Criar nova questão</CButton>
+            {!isEditing && (
+              <CButton onClick={resetModal}>Criar nova questão</CButton>
+            )}
           </div>
         )}
       </div>

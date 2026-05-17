@@ -241,12 +241,7 @@ type QuestionUses = {
   assessments: {
     assessmentId: number;
     location: {
-      id: number;
       name: string;
-      city: {
-        name: string;
-        state: string;
-      };
     };
   }[];
 };
@@ -267,14 +262,10 @@ export const fetchQuestionUses = async (params: FetchQuestionUsesParams) => {
       assessments AS (
         SELECT
           a.id AS "assessmentId",
-          l.id AS "locationId",
-          l.name AS "locationName",
-          c.name AS "cityName",
-          c.state AS "cityState"
+          l.name AS "locationName"
         FROM "assessment" a
         JOIN question_forms qf ON qf."form_id" = a."form_id"
         JOIN "location" l ON l.id = a."location_id"
-        JOIN "city" c ON c.id = l."city_id"
       )
       SELECT
         (SELECT COUNT(*)::int FROM assessments) AS "numberOfAssessments",
@@ -297,12 +288,7 @@ export const fetchQuestionUses = async (params: FetchQuestionUsesParams) => {
               json_build_object(
                 'assessmentId', assessments."assessmentId",
                 'location', json_build_object(
-                  'id', assessments."locationId",
-                  'name', assessments."locationName",
-                  'city', json_build_object(
-                    'name', assessments."cityName",
-                    'state', assessments."cityState"
-                  )
+                  'name', assessments."locationName"
                 )
               ) ORDER BY assessments."assessmentId" ASC
             )
