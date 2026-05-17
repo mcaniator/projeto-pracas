@@ -1,6 +1,6 @@
 import CDialog from "@/components/ui/dialog/cDialog";
 import { FetchquestionUsesResponse } from "@/lib/serverFunctions/queries/question";
-import { Chip, Divider } from "@mui/material";
+import { Chip } from "@mui/material";
 import { IconEye } from "@tabler/icons-react";
 import { useState } from "react";
 
