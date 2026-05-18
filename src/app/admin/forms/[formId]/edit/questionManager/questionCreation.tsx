@@ -437,9 +437,7 @@ const QuestionCreation = ({
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
             scaleStep={scaleStep}
-            isQuestionUsed={
-              !!questionUses && questionUses?.numberOfAssessments > 0
-            }
+            isQuestionUsed={!!questionUses && questionUses?.numberOfForms > 0}
             onTitleChange={setTitle}
             onNotesChange={setNotes}
             onQuestionTemplateChange={handleQuestionTemplate}

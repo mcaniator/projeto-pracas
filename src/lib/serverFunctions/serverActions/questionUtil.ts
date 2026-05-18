@@ -373,30 +373,21 @@ const _questionUpdate = async (
     }
 
     const question = await prisma.$transaction(async (prisma) => {
-      const [questionUses] = await prisma.$queryRaw<
-        { numberOfAssessments: number }[]
+      const [questionExistsInForms] = await prisma.$queryRaw<
+        { exists: boolean }[]
       >`
-      WITH question_forms AS (
-        SELECT DISTINCT fi."form_id"
-        FROM "form_item" fi
-        WHERE fi."question_id" = ${questionId}
-      ),
-      assessments AS (
-        SELECT
-          a.id AS "assessmentId",
-          l.name AS "locationName"
-        FROM "assessment" a
-        JOIN question_forms qf ON qf."form_id" = a."form_id"
-        JOIN "location" l ON l.id = a."location_id"
-      )
-      SELECT
-        (SELECT COUNT(*)::int FROM assessments) AS "numberOfAssessments"
-    `;
-      if (!questionUses) {
+        SELECT EXISTS (
+          SELECT 1
+          FROM "form_item"
+          WHERE "question_id" = ${questionId}
+        ) AS exists
+      `;
+
+      if (!questionExistsInForms) {
         throw new Error("Question not found");
       }
-      if (questionUses?.numberOfAssessments > 0) {
-        // If the question is being used in any assessment, it's structure cannot be changed
+      if (questionExistsInForms.exists) {
+        // If the question is being used in any form, it's structure cannot be changed
         const updatedQuestion = await prisma.question.update({
           where: {
             id: questionId,
