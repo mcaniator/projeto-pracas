@@ -59,6 +59,14 @@ export const fetchForms = async (params: FetchFormParams) => {
         ...(params?.finalizedOnly && { finalized: true }),
         ...(!params?.includeArchived && { archived: false }),
       },
+      select: {
+        id: true,
+        name: true,
+        finalized: true,
+        archived: true,
+        updatedAt: true,
+        _count: { select: { assessment: true } },
+      },
       orderBy: [
         {
           archived: "asc",

@@ -1,5 +1,6 @@
 import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import { Chip } from "@mui/material";
+
 import AssessmentQuestionIcon from "./assessmentQuestionIcon";
 
 export const AssessmentNumericValueRenderer = ({
@@ -16,7 +17,6 @@ export const AssessmentNumericValueRenderer = ({
         label={value}
         size="small"
         color="primary"
-        disabled={value === 0}
         sx={{
           marginLeft: "-6px",
           marginTop: "-4px",
