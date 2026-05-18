@@ -1,5 +1,8 @@
 import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
-import { FetchquestionsByCategoryAndSubcategoryResponse } from "@/lib/serverFunctions/queries/question";
+import {
+  FetchquestionUsesResponse,
+  FetchquestionsByCategoryAndSubcategoryResponse,
+} from "@/lib/serverFunctions/queries/question";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -72,7 +75,19 @@ export const useFetchQuestionsByCategoryAndSubcategory = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["location", "database"] },
+    },
+  });
+};
+
+export const useFetchQuestionUses = (
+  params?: UseFetchAPIParams<FetchquestionUsesResponse>,
+) => {
+  const url = `/api/admin/forms/fieldsCreation/question/questionUses`;
+  return useFetchAPI<FetchquestionUsesResponse>({
+    url,
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
     },
   });
 };

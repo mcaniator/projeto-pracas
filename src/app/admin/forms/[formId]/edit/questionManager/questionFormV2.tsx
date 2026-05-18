@@ -7,6 +7,7 @@ import { useHelperCard } from "@context/helperCardContext";
 import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
+  QuestionPickerQuestionToEdit,
 } from "@customTypes/forms/formCreation";
 import { CircularProgress, Divider } from "@mui/material";
 import { CategoriesWithQuestions } from "@queries/category";
@@ -15,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import CategoriesListV2 from "./categoriesList";
 import FormItemManager from "./formItemManager";
-import QuestionEditDialog from "./questionEditDialog";
+import QuestionCreation from "./questionCreation";
 import SearchQuestionByCategoryAndSubcategory from "./searchQuestionByCategoryAndSubcategory";
 
 const QuestionFormV2 = ({
@@ -66,15 +67,8 @@ const QuestionFormV2 = ({
     verifySubcategoryNullness: false,
   });
 
-  const [questionToEdit, setQuestionToEdit] = useState<{
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    notes: string | null;
-    categoryName: string;
-    subcategoryName: string | null;
-  } | null>(null);
+  const [questionToEdit, setQuestionToEdit] =
+    useState<QuestionPickerQuestionToEdit | null>(null);
 
   const [fetchQuestionsByCategoryAndSubcategory, loadingQuestions] =
     useFetchQuestionsByCategoryAndSubcategory({
@@ -134,32 +128,8 @@ const QuestionFormV2 = ({
     }
   }, [currentSearchMethod]);
 
-  const handleOpenQuestionEdit = ({
-    questionId,
-    questionName,
-    iconKey,
-    isPublic,
-    notes,
-    categoryName,
-    subcategoryName,
-  }: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    notes: string | null;
-    categoryName: string;
-    subcategoryName: string | null;
-  }) => {
-    setQuestionToEdit({
-      questionId,
-      questionName,
-      iconKey,
-      isPublic,
-      notes,
-      categoryName,
-      subcategoryName,
-    });
+  const handleOpenQuestionEdit = (question: QuestionPickerQuestionToEdit) => {
+    setQuestionToEdit(question);
   };
 
   useEffect(() => {
@@ -282,19 +252,17 @@ const QuestionFormV2 = ({
           <IconX className="h-32 w-32 text-2xl" />
         </div>
       }
-      <QuestionEditDialog
+      <QuestionCreation
         open={!!questionToEdit}
-        questionId={questionToEdit?.questionId ?? -1}
-        questionName={questionToEdit?.questionName ?? ""}
-        iconKey={questionToEdit?.iconKey ?? ""}
-        isPublic={questionToEdit?.isPublic ?? false}
-        notes={questionToEdit?.notes ?? null}
-        categoryName={questionToEdit?.categoryName ?? ""}
-        subcategoryName={questionToEdit?.subcategoryName ?? ""}
+        question={questionToEdit}
+        categoryId={questionToEdit?.categoryId}
+        subcategoryId={questionToEdit?.subcategoryId ?? undefined}
+        categoryName={questionToEdit?.categoryName}
+        subcategoryName={questionToEdit?.subcategoryName ?? undefined}
         onClose={() => {
           setQuestionToEdit(null);
         }}
-        reloadCategories={() => {
+        fetchCategoriesAfterCreation={() => {
           reloadCategories();
           searchQuestions();
         }}

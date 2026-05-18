@@ -12,6 +12,7 @@ import {
   CategoryForQuestionPicker,
   QuestionForQuestionPicker,
   QuestionPickerQuestionToAdd,
+  QuestionPickerQuestionToEdit,
   SubCategoryForQuestionPicker,
 } from "@customTypes/forms/formCreation";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -36,15 +37,7 @@ const CategoriesListV2 = ({
   showAllQuestions: boolean;
   disableNoQuestionsLeftMessage: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   const searchHasRemainingQuestions = categories.some(
     (cat) =>
@@ -155,15 +148,7 @@ const SubcategoriesListV2 = ({
   showAllQuestions: boolean;
   categoryName: string;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   return (
     <div className="p-1">
@@ -229,15 +214,7 @@ const QuestionListV2 = ({
   categoryName: string;
   subcategoryName: string | null;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   const filteredQuestions =
     showAllQuestions ? questions : (
@@ -322,15 +299,7 @@ const QuestionComponentV2 = ({
   subcategoryName: string | null;
   showAllQuestions: boolean;
   isInCurrentForm: boolean;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   return (
     <div
@@ -364,13 +333,21 @@ const QuestionComponentV2 = ({
           }
           onClick={() => {
             editQuestion?.({
-              questionId: questionId,
-              questionName: name,
-              categoryName: categoryName,
-              subcategoryName: subcategoryName,
-              iconKey: iconKey,
-              isPublic: isPublic,
-              notes: notes,
+              id: questionId,
+              name,
+              iconKey,
+              isPublic,
+              notes,
+              questionType,
+              optionType,
+              options,
+              scaleConfig,
+              geometryTypes,
+              categoryId,
+              subcategoryId: subcategoryId ?? null,
+              characterType,
+              categoryName,
+              subcategoryName,
             });
           }}
         >

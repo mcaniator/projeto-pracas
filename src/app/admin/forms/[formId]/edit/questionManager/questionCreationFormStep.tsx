@@ -7,8 +7,14 @@ import CNumberField from "@components/ui/cNumberField";
 import CRadioGroup from "@components/ui/cRadioGroup";
 import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
+import { Chip } from "@mui/material";
 import type { QuestionResponseCharacterTypes } from "@prisma/client";
-import { IconHelp, IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconHelp,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import { ReactNode } from "react";
 
 import type { ScaleOptionMode } from "./questionCreationTypes";
@@ -51,9 +57,11 @@ const QuestionCreationFormStep = ({
   maxValue,
   scaleOptionMode,
   scaleStep,
+  isQuestionUsed,
   onQuestionTemplateChange,
   onRemoveOption,
   onTitleChange,
+  onNotesChange,
   onTypeChange,
   onCharacterTypeChange,
   onHasAssociatedGeometryChange,
@@ -91,6 +99,7 @@ const QuestionCreationFormStep = ({
   maxValue: number | null;
   scaleOptionMode: ScaleOptionMode;
   scaleStep: number | null;
+  isQuestionUsed: boolean;
   onQuestionTemplateChange: (template: string) => void;
   onRemoveOption: (option: string) => void;
   onTitleChange: (value: string) => void;
@@ -125,19 +134,19 @@ const QuestionCreationFormStep = ({
         type="hidden"
         id="categoryId"
         name="categoryId"
-        value={categoryId}
+        value={categoryId ?? ""}
       />
       <input
         type="hidden"
         id="subcategoryId"
         name="subcategoryId"
-        value={subcategoryId}
+        value={subcategoryId ?? ""}
       />
       <div className="flex flex-col gap-2">
         <div>
           <CTextField
             className="w-full"
-            value={title}
+            value={title ?? ""}
             label="Título"
             name="name"
             id="name"
@@ -155,9 +164,9 @@ const QuestionCreationFormStep = ({
             name="notes"
             id="notes"
             clearable
-            value={notes}
+            value={notes ?? ""}
             onChange={(e) => {
-              onTitleChange(e.target.value);
+              onNotesChange(e.target.value);
             }}
             maxCharacters={255}
           />
@@ -195,10 +204,17 @@ const QuestionCreationFormStep = ({
           selectedIconKey={selectedIconKey}
           onChange={onSelectedIconKeyChange}
         />
-
+        {isQuestionUsed && (
+          <Chip
+            icon={<IconAlertTriangle />}
+            color="warning"
+            label="Questão usada em avaliações. Itens abaixo não podem ser modificados."
+          />
+        )}
         <CRadioGroup
           label="Tipo de questão"
           name="questionType"
+          readOnly={isQuestionUsed}
           options={[
             { value: "WRITTEN", label: "Escrito" },
             { value: "OPTIONS", label: "Seleção" },
@@ -229,6 +245,7 @@ const QuestionCreationFormStep = ({
           <CRadioGroup
             label="Tipo de valor"
             name="characterType"
+            readOnly={isQuestionUsed}
             options={characterTypeOptions}
             value={characterType}
             onChange={(e) => {
@@ -248,6 +265,7 @@ const QuestionCreationFormStep = ({
             <CNumberField
               label="Valor mínimo"
               name="minValue"
+              readOnly={isQuestionUsed}
               required
               value={minValue}
               onChange={onMinValueChange}
@@ -255,6 +273,7 @@ const QuestionCreationFormStep = ({
             <CNumberField
               label="Valor máximo"
               name="maxValue"
+              readOnly={isQuestionUsed}
               required
               value={maxValue}
               onChange={onMaxValueChange}
@@ -273,6 +292,7 @@ const QuestionCreationFormStep = ({
               <CRadioGroup
                 label="Tipo de seleção"
                 name="optionType"
+                readOnly={isQuestionUsed}
                 options={
                   characterType === "SCALE" ?
                     [{ value: "RADIO", label: "Única" }]
@@ -299,6 +319,7 @@ const QuestionCreationFormStep = ({
                   : <CRadioGroup
                       label="Tipo de opções"
                       value={questionTemplate}
+                      readOnly={isQuestionUsed}
                       onChange={(e) => {
                         if (!e) {
                           return;
@@ -321,7 +342,7 @@ const QuestionCreationFormStep = ({
                       getOptionValue={(i) => i.value}
                     />)}
 
-                {questionTemplate === "FREE" && (
+                {questionTemplate === "FREE" && !isQuestionUsed && (
                   <>
                     {characterType === "SCALE" && (
                       <CRadioGroup
@@ -504,7 +525,9 @@ const QuestionCreationFormStep = ({
                             square
                             color="error"
                             variant="text"
-                            disabled={questionTemplate !== "FREE"}
+                            disabled={
+                              questionTemplate !== "FREE" || isQuestionUsed
+                            }
                             onClick={() => onRemoveOption(option.text)}
                           >
                             <IconTrash />
@@ -536,6 +559,7 @@ const QuestionCreationFormStep = ({
               label="Possui geometria associada?"
               name="hasAssociatedGeometry"
               id="hasAssociatedGeometry"
+              readOnly={isQuestionUsed}
               options={[
                 { value: true, label: "Sim" },
                 { value: false, label: "Não" },
@@ -551,6 +575,7 @@ const QuestionCreationFormStep = ({
           <CCheckboxGroup
             label="Tipos de geometria aceitos"
             name="geometryTypes"
+            readOnly={isQuestionUsed}
             value={geometryTypes}
             options={[
               { value: "POINT", label: "Pontos" },

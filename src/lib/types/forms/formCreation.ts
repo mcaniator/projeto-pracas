@@ -72,10 +72,17 @@ type QuestionPickerQuestionToAdd = QuestionForQuestionPicker & {
   categoryId: number;
   subcategoryId: number | null;
 };
+
+type QuestionPickerQuestionToEdit = QuestionPickerQuestionToAdd & {
+  categoryName: string;
+  subcategoryName: string | null;
+};
+
 export {
   type FormQuestionWithCategoryAndSubcategory,
   type CategoryForQuestionPicker,
   type SubCategoryForQuestionPicker,
   type QuestionForQuestionPicker,
   type QuestionPickerQuestionToAdd,
+  type QuestionPickerQuestionToEdit,
 };
