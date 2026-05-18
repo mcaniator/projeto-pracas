@@ -208,7 +208,7 @@ const QuestionCreationFormStep = ({
           <Chip
             icon={<IconAlertTriangle />}
             color="warning"
-            label="Questão usada em avaliações. Itens abaixo não podem ser modificados."
+            label="Questão usada em formulários. Itens abaixo não podem ser modificados."
           />
         )}
         <CRadioGroup
