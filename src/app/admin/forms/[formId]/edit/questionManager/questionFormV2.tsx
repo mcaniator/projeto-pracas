@@ -12,12 +12,24 @@ import {
 import { CircularProgress, Divider } from "@mui/material";
 import { CategoriesWithQuestions } from "@queries/category";
 import { IconX } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import CategoriesListV2 from "./categoriesList";
 import FormItemManager from "./formItemManager";
 import QuestionCreation from "./questionCreation";
 import SearchQuestionByCategoryAndSubcategory from "./searchQuestionByCategoryAndSubcategory";
+
+const SEARCH_METHODS = {
+  CATEGORY: 0,
+  NAME: 1,
+  REGISTER: 2,
+};
+
+const SEARCH_METHODS_OPTIONS = [
+  { id: SEARCH_METHODS.CATEGORY, label: "Categorias" },
+  { id: SEARCH_METHODS.NAME, label: "Nome" },
+  { id: SEARCH_METHODS.REGISTER, label: "Cadastro" },
+];
 
 const QuestionFormV2 = ({
   categories,
@@ -47,7 +59,7 @@ const QuestionFormV2 = ({
     CategoryForQuestionPicker[]
   >([]);
   const [currentSearchMethod, setCurrentSearchMethod] = useState(0);
-
+  const lastSearchMethod = useRef(0);
   const [searchedName, setSearchedName] = useState("");
 
   const [showAllQuestions, setShowAllQuestions] = useState(
@@ -109,22 +121,23 @@ const QuestionFormV2 = ({
   ]);
 
   const searchQuestions = useCallback(() => {
-    setCategoriesList([]);
     if (!selectedCategoryAndSubcategoryId.categoryId) {
       setQuestionsListState("LOADED");
     }
-    if (currentSearchMethod === 1) {
+    if (currentSearchMethod === SEARCH_METHODS.CATEGORY) {
       setShowAllQuestions(false);
-    } else if (currentSearchMethod === 0) {
+    }
+    if (currentSearchMethod === SEARCH_METHODS.NAME) {
       setShowAllQuestions(false);
-      void searchByCategoryAndSubcateogory();
-    } else if (currentSearchMethod === 2) {
-      /*setSelectedCategoryAndSubcategoryId((prev) => ({
-        ...prev,
-        verifySubcategoryNullness: true,
-      }));*/
+    } else if (currentSearchMethod === SEARCH_METHODS.REGISTER) {
       setShowAllQuestions(true);
+    }
+
+    // Fetch questions if needed
+    if (lastSearchMethod.current === SEARCH_METHODS.NAME) {
       void searchByCategoryAndSubcateogory();
+    } else if (currentSearchMethod === SEARCH_METHODS.NAME) {
+      setCategoriesList([]);
     }
   }, [currentSearchMethod]);
 
@@ -171,20 +184,17 @@ const QuestionFormV2 = ({
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
       <CToggleButtonGroup
-        options={[
-          { id: 0, label: "Categorias" },
-          { id: 1, label: "Nome" },
-          { id: 2, label: "Cadastro" },
-        ]}
+        options={SEARCH_METHODS_OPTIONS}
         getLabel={(i) => i.label}
         getValue={(i) => i.id}
         value={currentSearchMethod}
         onChange={(e, newVal) => {
+          lastSearchMethod.current = currentSearchMethod;
           setCurrentSearchMethod(newVal.id);
         }}
       />
 
-      {currentSearchMethod === 0 && (
+      {currentSearchMethod === SEARCH_METHODS.CATEGORY && (
         <SearchQuestionByCategoryAndSubcategory
           categories={categories}
           subcategories={subcategoriesOptions}
@@ -194,7 +204,7 @@ const QuestionFormV2 = ({
           }
         />
       )}
-      {currentSearchMethod === 1 && (
+      {currentSearchMethod === SEARCH_METHODS.NAME && (
         <div className="mb-2 flex flex-col gap-2 overflow-auto">
           <h4>Buscar por nome: </h4>
           <CTextField
@@ -211,7 +221,7 @@ const QuestionFormV2 = ({
           <div>Digite um nome para realizar a busca</div>
         </div>
       )}
-      {currentSearchMethod == 2 && (
+      {currentSearchMethod == SEARCH_METHODS.REGISTER && (
         <>
           <FormItemManager
             categories={categories}
