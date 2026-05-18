@@ -264,7 +264,6 @@ const QuestionFormV2 = ({
         }}
         fetchCategoriesAfterCreation={() => {
           reloadCategories();
-          searchQuestions();
         }}
       />
     </div>

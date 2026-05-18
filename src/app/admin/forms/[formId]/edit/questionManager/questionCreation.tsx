@@ -102,39 +102,37 @@ const QuestionCreation = ({
     },
   });
 
-  const [createFormAction, isCreatePending, , resetCreateActionState] =
-    useResettableActionState({
-      action: _questionSubmit,
-      callbacks: {
-        onSuccess: () => {
-          setReloadOnClose(true);
-          setPageState("SUCCESS");
-        },
-        onError: () => {
-          setPageState("FORM");
-        },
+  const [createFormAction, isCreatePending] = useResettableActionState({
+    action: _questionSubmit,
+    callbacks: {
+      onSuccess: () => {
+        setReloadOnClose(true);
+        setPageState("SUCCESS");
       },
-      options: {
-        loadingMessage: "Salvando questão...",
+      onError: () => {
+        setPageState("FORM");
       },
-    });
-  const [updateFormAction, isUpdatePending, , resetUpdateActionState] =
-    useResettableActionState({
-      action: _questionUpdate,
-      callbacks: {
-        onSuccess: () => {
-          fetchCategoriesAfterCreation();
-          resetModal();
-          onClose();
-        },
-        onError: () => {
-          setPageState("FORM");
-        },
+    },
+    options: {
+      loadingMessage: "Salvando questão...",
+    },
+  });
+  const [updateFormAction, isUpdatePending] = useResettableActionState({
+    action: _questionUpdate,
+    callbacks: {
+      onSuccess: () => {
+        fetchCategoriesAfterCreation();
+        resetModal();
+        onClose();
       },
-      options: {
-        loadingMessage: "Salvando questão...",
+      onError: () => {
+        setPageState("FORM");
       },
-    });
+    },
+    options: {
+      loadingMessage: "Salvando questão...",
+    },
+  });
   const isPending = isCreatePending || isUpdatePending;
 
   const handleQuestionTemplate = (template: string) => {
@@ -157,8 +155,6 @@ const QuestionCreation = ({
   };
 
   const resetModal = () => {
-    resetCreateActionState();
-    resetUpdateActionState();
     setType("");
     setCharacterType(null);
     setSelectionType(null);
