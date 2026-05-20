@@ -160,6 +160,7 @@ const QuestionCreationFormStep = ({
         <div>
           <CTextField
             className="w-full"
+            multiline
             label="Observações"
             name="notes"
             id="notes"
@@ -168,7 +169,6 @@ const QuestionCreationFormStep = ({
             onChange={(e) => {
               onNotesChange(e.target.value);
             }}
-            maxCharacters={255}
           />
         </div>
 
