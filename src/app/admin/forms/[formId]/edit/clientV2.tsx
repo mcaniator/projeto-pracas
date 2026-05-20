@@ -492,6 +492,7 @@ const ClientV2 = ({
         <CDialog
           fullScreen
           title="Adicionar questões"
+          keepMounted
           open={openQuestionFormModal}
           onClose={() => {
             setOpenQuestionFormModal(false);
