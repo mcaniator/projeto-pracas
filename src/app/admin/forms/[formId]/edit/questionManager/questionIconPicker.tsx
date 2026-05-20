@@ -62,7 +62,7 @@ const QuestionIconPicker = ({
     if (showAllIcons) {
       void fetchDynamicIcons({});
     } else {
-      void fetchDynamicIcons({ query: searchText, limit: 500 });
+      void fetchDynamicIcons({ query: searchText });
     }
   }, [fetchDynamicIcons, searchText, showAllIcons]);
 
@@ -95,10 +95,13 @@ const QuestionIconPicker = ({
           </div>
         </>
       )}
+      {!isLoading && (searchText.length > 0 || showAllIcons) && (
+        <div className="text-sm">{results.length} ícones encontrados</div>
+      )}
 
-      <div className="h-56 rounded border border-gray-200">
+      <div className="flex h-56 items-center justify-center rounded border border-gray-200">
         {isLoading ?
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center">
             <CircularProgress />
           </div>
         : results.length === 0 ?
@@ -106,7 +109,7 @@ const QuestionIconPicker = ({
             Nenhum icone encontrado.
           </div>
         : <VirtuosoGrid
-            className="h-full"
+            className="h-full w-full"
             listClassName="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3"
             totalCount={results.length}
             overscan={200}

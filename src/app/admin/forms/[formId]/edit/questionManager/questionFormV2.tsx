@@ -1,5 +1,7 @@
 "use client";
 
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
@@ -10,7 +12,6 @@ import {
   QuestionPickerQuestionToEdit,
 } from "@customTypes/forms/formCreation";
 import { CircularProgress, Divider } from "@mui/material";
-import { CategoriesWithQuestions } from "@queries/category";
 import { IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -40,7 +41,7 @@ const QuestionFormV2 = ({
   addQuestion,
   reloadCategories,
 }: {
-  categories: CategoriesWithQuestions;
+  categories: FetchCategoriesWithSubcategoriesReponse["categories"];
   formQuestionsIds: number[];
   showTitle: boolean;
   isLoadingCategories: boolean;
@@ -178,8 +179,16 @@ const QuestionFormV2 = ({
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
     )?.subcategory || [];
 
+  if (isLoadingCategories) {
+    return (
+      <div className="flex flex-col gap-2 overflow-auto bg-white py-8 text-black sm:px-3">
+        <CLinearProgress label="Carregando.." />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-2 overflow-auto bg-white text-black sm:px-3">
+    <div className="flex flex-col gap-2 overflow-auto bg-white py-2 text-black sm:px-3">
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
