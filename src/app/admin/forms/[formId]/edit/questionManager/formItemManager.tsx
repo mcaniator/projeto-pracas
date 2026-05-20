@@ -1,6 +1,6 @@
+import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
-import { CategoriesWithQuestions } from "@queries/category";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,7 +17,7 @@ const FormItemManager = ({
   reloadCategories,
   setSelectedCategoryAndSubcategoryId,
 }: {
-  categories: CategoriesWithQuestions;
+  categories: FetchCategoriesWithSubcategoriesReponse["categories"];
   selectedCategoryAndSubcategoryId: {
     categoryId: number | undefined;
     subcategoryId: number | null;

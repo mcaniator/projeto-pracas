@@ -4,7 +4,8 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
-import { _getCategoriesWithSubcategories } from "@apiCalls/category";
+import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
+import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
@@ -18,7 +19,6 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { CategoriesWithQuestions } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
@@ -101,7 +101,7 @@ const ClientV2 = ({
 }) => {
   const userContext = useUserContext();
   const router = useRouter();
-  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
+  const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
     form.formTree.finalized ||
@@ -120,22 +120,22 @@ const ClientV2 = ({
   const [openFormPreviewDialog, setOpenFormPreviewDialog] = useState(false);
   const [openSaveFormDialog, setOpenSaveFormDialog] = useState(false);
   const [saveAsDone, setSaveAsDone] = useState(false);
-  const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categories, setCategories] = useState<
+    FetchCategoriesWithSubcategoriesReponse["categories"]
+  >([]);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoadingCategories(true);
-    setLoadingOverlay({ show: true, message: "Carregando categorias..." });
-    const response = await _getCategoriesWithSubcategories();
-    helperCardProcessResponse(response.responseInfo);
-    setCategories(response.categories);
-    setLoadingOverlay({ show: false });
-    setIsLoadingCategories(false);
-  }, [helperCardProcessResponse, setLoadingOverlay]);
+  const [fetchCategories, isLoadingCategories] =
+    useFetchCategoriesWithSubcategories({
+      callbacks: {
+        onSuccess: (response) => {
+          setCategories(response.data?.categories ?? []);
+        },
+      },
+    });
 
   const reloadCategories = useCallback(() => {
-    void fetchCategories();
+    void fetchCategories({});
   }, [fetchCategories]);
 
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
@@ -269,7 +269,7 @@ const ClientV2 = ({
 
   useEffect(() => {
     if (isFinalized) return;
-    void fetchCategories();
+    void fetchCategories({});
   }, [fetchCategories, isFinalized]);
 
   useEffect(() => {
