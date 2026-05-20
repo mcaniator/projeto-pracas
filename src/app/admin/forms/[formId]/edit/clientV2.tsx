@@ -411,7 +411,7 @@ const ClientV2 = ({
               )}
             </div>
             {isMobileView && (
-              <div className="ml-2 mt-2 flex items-center gap-2">
+              <div className="ml-2 mt-2 flex flex-wrap items-center gap-2">
                 {!isFinalized && (
                   <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
                     <CButton
