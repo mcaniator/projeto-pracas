@@ -769,79 +769,6 @@ const fetchPublicAssessmentTree = async (params: {
       });
     });
 
-    const selectedQuestionIds = new Set(
-      categories.flatMap((category) =>
-        category.categoryChildren.flatMap((child) =>
-          FormItemUtils.isSubcategoryType(child) ?
-            child.questions.map((question) => question.questionId)
-          : [child.questionId],
-        ),
-      ),
-    );
-
-    const geometries = rawGeometries
-      .filter((fetchedGeometry) =>
-        selectedQuestionIds.has(fetchedGeometry.questionId),
-      )
-      .map((fetchedGeometry) => {
-        const { questionId, geometry } = fetchedGeometry;
-        if (!geometry) {
-          return { questionId, geometries: [] };
-        }
-        const geometries: ResponseGeometry[] = [];
-        const geometriesWithoutCollection = geometry
-          .replace("GEOMETRYCOLLECTION(", "")
-          .slice(0, -1);
-        const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-        const geometriesStrs = geometriesWithoutCollection.match(regex);
-        if (geometriesStrs) {
-          for (const geometry of geometriesStrs) {
-            if (geometry.startsWith("POINT")) {
-              const geometryPointsStr = geometry
-                .replace("POINT(", "")
-                .replace(")", "");
-              const geometryPoints = geometryPointsStr.split(" ");
-              const geometryPointsNumber: number[] = [];
-              for (const geo of geometryPoints) {
-                geometryPointsNumber.push(Number(geo));
-              }
-              geometries.push({
-                type: "Point",
-                coordinates: geometryPointsNumber,
-              });
-            } else if (geometry.startsWith("POLYGON")) {
-              const geometryRingsStr = geometry
-                .replace("POLYGON(", " ")
-                .slice(0, -1);
-              const ringsStrs = geometryRingsStr.split("),(");
-              const ringsCoordinates: Coordinate[][] = [];
-              for (const ring of ringsStrs) {
-                const geometryPointsStr = ring.split(",");
-                const geometryPointsCoordinates: Coordinate[] = [];
-                for (const point of geometryPointsStr) {
-                  const pointClean = point
-                    .replace("(", "")
-                    .replace(")", "")
-                    .trim();
-                  const geometryPoints = pointClean.split(" ");
-                  const geometryPointsNumber: number[] = [];
-                  for (const geo of geometryPoints) {
-                    geometryPointsNumber.push(Number(geo));
-                  }
-                  geometryPointsCoordinates.push(geometryPointsNumber);
-                }
-                ringsCoordinates.push(geometryPointsCoordinates);
-              }
-              geometries.push({
-                type: "Polygon",
-                coordinates: ringsCoordinates,
-              });
-            }
-          }
-        }
-
-        return { questionId, geometries: geometries };
-      });
     return {
       responseInfo: {
         statusCode: 200,
@@ -863,7 +790,6 @@ const fetchPublicAssessmentTree = async (params: {
           },
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
-          geometries: geometries,
           categories: categories,
         },
       },

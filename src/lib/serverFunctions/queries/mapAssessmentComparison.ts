@@ -1,4 +1,4 @@
-import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+import { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
