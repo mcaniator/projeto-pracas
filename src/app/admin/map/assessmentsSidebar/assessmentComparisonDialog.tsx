@@ -16,17 +16,22 @@ import {
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { resolveAssessmentQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
-import { Chip } from "@mui/material";
 import { IconCalendar, IconChartBar } from "@tabler/icons-react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import {
+  type CSSProperties,
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type ComparisonAssessmentTree =
   FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number]["assessmentTrees"][number];
 
 const LOCATION_COLORS: [string, ...string[]] = [
   "#2563EB",
-  "#16A34A",
   "#DC2626",
+  "#16A34A",
   "#D97706",
   "#7C3AED",
   "#0891B2",
@@ -34,8 +39,34 @@ const LOCATION_COLORS: [string, ...string[]] = [
   "#4D7C0F",
 ];
 
+const CATEGORY_COLORS: [string, ...string[]] = [
+  "#64748B",
+  "#5F766E",
+  "#7A6A53",
+  "#7C6F8E",
+  "#6F7D5C",
+  "#776C76",
+  "#60747C",
+  "#7B6B63",
+];
+
 const getLocationColor = (index: number): string => {
   return LOCATION_COLORS[index % LOCATION_COLORS.length] ?? LOCATION_COLORS[0];
+};
+
+const getCategoryColor = (index: number): string => {
+  return CATEGORY_COLORS[index % CATEGORY_COLORS.length] ?? CATEGORY_COLORS[0];
+};
+
+const getSubcategoryColor = (
+  categoryIndex: number,
+  subcategoryIndex: number,
+): string => {
+  return (
+    CATEGORY_COLORS[
+      (categoryIndex + subcategoryIndex + 1) % CATEGORY_COLORS.length
+    ] ?? CATEGORY_COLORS[0]
+  );
 };
 
 const alphaColor = (hexColor: string, alpha: number) => {
@@ -45,6 +76,57 @@ const alphaColor = (hexColor: string, alpha: number) => {
   const blue = parseInt(normalizedHex.slice(4, 6), 16);
 
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+};
+
+const buildCategoryLoopStyle = ({
+  color,
+  isFirstColumn,
+  isFirstRow,
+  isLastColumn,
+  isLastRow,
+}: {
+  color: string;
+  isFirstColumn: boolean;
+  isFirstRow: boolean;
+  isLastColumn: boolean;
+  isLastRow: boolean;
+}): CSSProperties => {
+  const shadows = [
+    isFirstRow ? `inset 0 2px 0 ${color}` : null,
+    isLastRow ? `inset 0 -2px 0 ${color}` : null,
+    isFirstColumn ? `inset 2px 0 0 ${color}` : null,
+    isLastColumn ? `inset -2px 0 0 ${color}` : null,
+  ].filter((shadow): shadow is string => shadow !== null);
+
+  return shadows.length > 0 ? { boxShadow: shadows.join(", ") } : {};
+};
+
+const buildSubcategoryLoopStyle = ({
+  color,
+  isFirstColumn,
+  isFirstRow,
+  isLastColumn,
+  isLastRow,
+}: {
+  color: string;
+  isFirstColumn: boolean;
+  isFirstRow: boolean;
+  isLastColumn: boolean;
+  isLastRow: boolean;
+}): CSSProperties => ({
+  borderTop: isFirstRow ? `2px dashed ${color}` : undefined,
+  borderBottom: isLastRow ? `2px dashed ${color}` : undefined,
+  borderLeft: isFirstColumn ? `2px dashed ${color}` : undefined,
+  borderRight: isLastColumn ? `2px dashed ${color}` : undefined,
+});
+
+const mergeCellStyles = (
+  ...styles: (CSSProperties | undefined)[]
+): CSSProperties => {
+  return styles.reduce<CSSProperties>(
+    (mergedStyle, style) => ({ ...mergedStyle, ...style }),
+    {},
+  );
 };
 
 const isAssessmentSubcategoryItem = (
@@ -179,17 +261,6 @@ const LocationAssessmentSelector = ({
         </span>
         <div className="min-w-0">
           <div className="truncate font-semibold">{location.name}</div>
-          {selectedAssessment && (
-            <div className="mt-1">
-              <Chip
-                size="small"
-                icon={<IconCalendar />}
-                label={dateFormatter.format(
-                  new Date(selectedAssessment.startDate),
-                )}
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -221,9 +292,11 @@ type ComparisonLocation = {
 };
 
 const QuestionComparisonCell = ({
+  cellStyle,
   comparisonLocation,
   question,
 }: {
+  cellStyle?: CSSProperties;
   comparisonLocation: ComparisonLocation;
   question: AssessmentQuestionItem;
 }) => {
@@ -234,7 +307,10 @@ const QuestionComparisonCell = ({
   return (
     <td
       className="min-w-56 border-b border-l border-gray-200 p-3 align-middle"
-      style={{ backgroundColor: alphaColor(comparisonLocation.color, 0.1) }}
+      style={mergeCellStyles(
+        { backgroundColor: alphaColor(comparisonLocation.color, 0.1) },
+        cellStyle,
+      )}
     >
       {!assessmentQuestion || !comparisonLocation.selectedAssessment ?
         <span className="text-sm italic text-gray-600">(Não avaliado)</span>
@@ -389,9 +465,7 @@ const AssessmentComparisonDialog = ({
               <table className="w-full min-w-[900px] border-separate border-spacing-0 text-sm">
                 <thead>
                   <tr>
-                    <th className="sticky left-0 top-0 z-30 w-72 min-w-72 border-b bg-white p-3 text-left font-semibold">
-                      Estrutura
-                    </th>
+                    <th className="sticky left-0 top-0 z-30 w-72 min-w-72 border-b bg-white p-3 text-left font-semibold"></th>
                     {comparisonTableLocations.map((comparisonLocation) => (
                       <th
                         key={comparisonLocation.location.id}
@@ -433,76 +507,252 @@ const AssessmentComparisonDialog = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonCategories.map((category) => (
-                    <Fragment key={`category-${category.categoryId}`}>
-                      <tr>
-                        <td className="sticky left-0 z-10 border-b bg-gray-300 p-3 font-semibold">
-                          <div className="flex items-center gap-2">
-                            <IconChartBar size={18} />
-                            {category.name}
-                          </div>
-                        </td>
-                        {comparisonTableLocations.map((comparisonLocation) => (
-                          <td
-                            key={`${category.categoryId}-${comparisonLocation.location.id}`}
-                            className="border-b border-l border-gray-200 bg-gray-300 p-3"
-                          />
-                        ))}
-                      </tr>
+                  {comparisonCategories.map((category, categoryIndex) => {
+                    const categoryColor = getCategoryColor(categoryIndex);
+                    const categoryHasChildren =
+                      category.categoryChildren.length > 0;
 
-                      {category.categoryChildren.map((child) =>
-                        isAssessmentSubcategoryItem(child) ?
-                          <Fragment key={`subcategory-${child.subcategoryId}`}>
-                            <tr>
-                              <td className="sticky left-0 z-10 border-b bg-gray-200 p-3 pl-8 font-medium">
-                                {child.name}
+                    return (
+                      <Fragment key={`category-${category.categoryId}`}>
+                        <tr>
+                          <td
+                            className="sticky left-0 z-10 border-b bg-gray-300 p-3 font-semibold"
+                            style={buildCategoryLoopStyle({
+                              color: categoryColor,
+                              isFirstColumn: true,
+                              isFirstRow: true,
+                              isLastColumn:
+                                comparisonTableLocations.length === 0,
+                              isLastRow: !categoryHasChildren,
+                            })}
+                          >
+                            <div className="flex items-center gap-2">
+                              <IconChartBar size={18} />
+                              {category.name}
+                            </div>
+                          </td>
+                          {comparisonTableLocations.map(
+                            (comparisonLocation, locationIndex) => (
+                              <td
+                                key={`${category.categoryId}-${comparisonLocation.location.id}`}
+                                className="border-b border-l border-gray-200 bg-gray-300 p-3"
+                                style={buildCategoryLoopStyle({
+                                  color: categoryColor,
+                                  isFirstColumn: false,
+                                  isFirstRow: true,
+                                  isLastColumn:
+                                    locationIndex ===
+                                    comparisonTableLocations.length - 1,
+                                  isLastRow: !categoryHasChildren,
+                                })}
+                              />
+                            ),
+                          )}
+                        </tr>
+
+                        {category.categoryChildren.map((child, childIndex) => {
+                          const isLastCategoryChild =
+                            childIndex === category.categoryChildren.length - 1;
+
+                          if (isAssessmentSubcategoryItem(child)) {
+                            const subcategoryColor = getSubcategoryColor(
+                              categoryIndex,
+                              childIndex,
+                            );
+                            const subcategoryHasQuestions =
+                              child.questions.length > 0;
+
+                            return (
+                              <Fragment
+                                key={`subcategory-${child.subcategoryId}`}
+                              >
+                                <tr>
+                                  <td
+                                    className="sticky left-0 z-10 border-b bg-gray-200 p-3 pl-8 font-medium"
+                                    style={mergeCellStyles(
+                                      buildCategoryLoopStyle({
+                                        color: categoryColor,
+                                        isFirstColumn: true,
+                                        isFirstRow: false,
+                                        isLastColumn:
+                                          comparisonTableLocations.length === 0,
+                                        isLastRow:
+                                          isLastCategoryChild &&
+                                          !subcategoryHasQuestions,
+                                      }),
+                                      buildSubcategoryLoopStyle({
+                                        color: subcategoryColor,
+                                        isFirstColumn: true,
+                                        isFirstRow: true,
+                                        isLastColumn:
+                                          comparisonTableLocations.length === 0,
+                                        isLastRow: !subcategoryHasQuestions,
+                                      }),
+                                    )}
+                                  >
+                                    {child.name}
+                                  </td>
+                                  {comparisonTableLocations.map(
+                                    (comparisonLocation, locationIndex) => (
+                                      <td
+                                        key={`${child.subcategoryId}-${comparisonLocation.location.id}`}
+                                        className="border-b border-l border-gray-200 bg-gray-200 p-3"
+                                        style={mergeCellStyles(
+                                          buildCategoryLoopStyle({
+                                            color: categoryColor,
+                                            isFirstColumn: false,
+                                            isFirstRow: false,
+                                            isLastColumn:
+                                              locationIndex ===
+                                              comparisonTableLocations.length -
+                                                1,
+                                            isLastRow:
+                                              isLastCategoryChild &&
+                                              !subcategoryHasQuestions,
+                                          }),
+                                          buildSubcategoryLoopStyle({
+                                            color: subcategoryColor,
+                                            isFirstColumn: false,
+                                            isFirstRow: true,
+                                            isLastColumn:
+                                              locationIndex ===
+                                              comparisonTableLocations.length -
+                                                1,
+                                            isLastRow: !subcategoryHasQuestions,
+                                          }),
+                                        )}
+                                      />
+                                    ),
+                                  )}
+                                </tr>
+
+                                {child.questions.map(
+                                  (question, questionIndex) => {
+                                    const isLastSubcategoryQuestion =
+                                      questionIndex ===
+                                      child.questions.length - 1;
+                                    const isLastCategoryRow =
+                                      isLastCategoryChild &&
+                                      isLastSubcategoryQuestion;
+                                    const labelCellStyle = mergeCellStyles(
+                                      buildCategoryLoopStyle({
+                                        color: categoryColor,
+                                        isFirstColumn: true,
+                                        isFirstRow: false,
+                                        isLastColumn:
+                                          comparisonTableLocations.length === 0,
+                                        isLastRow: isLastCategoryRow,
+                                      }),
+                                      buildSubcategoryLoopStyle({
+                                        color: subcategoryColor,
+                                        isFirstColumn: true,
+                                        isFirstRow: false,
+                                        isLastColumn:
+                                          comparisonTableLocations.length === 0,
+                                        isLastRow: isLastSubcategoryQuestion,
+                                      }),
+                                    );
+
+                                    return (
+                                      <tr
+                                        key={`question-${question.questionId}`}
+                                      >
+                                        <td
+                                          className="sticky left-0 z-10 border-b bg-white p-3 pl-12"
+                                          style={labelCellStyle}
+                                        >
+                                          <span className="break-words">
+                                            {question.name}
+                                          </span>
+                                        </td>
+                                        {comparisonTableLocations.map(
+                                          (
+                                            comparisonLocation,
+                                            locationIndex,
+                                          ) => (
+                                            <QuestionComparisonCell
+                                              key={`${question.questionId}-${comparisonLocation.location.id}`}
+                                              cellStyle={mergeCellStyles(
+                                                buildCategoryLoopStyle({
+                                                  color: categoryColor,
+                                                  isFirstColumn: false,
+                                                  isFirstRow: false,
+                                                  isLastColumn:
+                                                    locationIndex ===
+                                                    comparisonTableLocations.length -
+                                                      1,
+                                                  isLastRow: isLastCategoryRow,
+                                                }),
+                                                buildSubcategoryLoopStyle({
+                                                  color: subcategoryColor,
+                                                  isFirstColumn: false,
+                                                  isFirstRow: false,
+                                                  isLastColumn:
+                                                    locationIndex ===
+                                                    comparisonTableLocations.length -
+                                                      1,
+                                                  isLastRow:
+                                                    isLastSubcategoryQuestion,
+                                                }),
+                                              )}
+                                              comparisonLocation={
+                                                comparisonLocation
+                                              }
+                                              question={question}
+                                            />
+                                          ),
+                                        )}
+                                      </tr>
+                                    );
+                                  },
+                                )}
+                              </Fragment>
+                            );
+                          }
+
+                          const isLastCategoryRow = isLastCategoryChild;
+
+                          return (
+                            <tr key={`question-${child.questionId}`}>
+                              <td
+                                className="sticky left-0 z-10 border-b bg-white p-3 pl-8"
+                                style={buildCategoryLoopStyle({
+                                  color: categoryColor,
+                                  isFirstColumn: true,
+                                  isFirstRow: false,
+                                  isLastColumn:
+                                    comparisonTableLocations.length === 0,
+                                  isLastRow: isLastCategoryRow,
+                                })}
+                              >
+                                <span className="break-words">
+                                  {child.name}
+                                </span>
                               </td>
                               {comparisonTableLocations.map(
-                                (comparisonLocation) => (
-                                  <td
-                                    key={`${child.subcategoryId}-${comparisonLocation.location.id}`}
-                                    className="border-b border-l border-gray-200 bg-gray-200 p-3"
+                                (comparisonLocation, locationIndex) => (
+                                  <QuestionComparisonCell
+                                    key={`${child.questionId}-${comparisonLocation.location.id}`}
+                                    cellStyle={buildCategoryLoopStyle({
+                                      color: categoryColor,
+                                      isFirstColumn: false,
+                                      isFirstRow: false,
+                                      isLastColumn:
+                                        locationIndex ===
+                                        comparisonTableLocations.length - 1,
+                                      isLastRow: isLastCategoryRow,
+                                    })}
+                                    comparisonLocation={comparisonLocation}
+                                    question={child}
                                   />
                                 ),
                               )}
                             </tr>
-
-                            {child.questions.map((question) => (
-                              <tr key={`question-${question.questionId}`}>
-                                <td className="sticky left-0 z-10 border-b bg-white p-3 pl-12">
-                                  <span className="break-words">
-                                    {question.name}
-                                  </span>
-                                </td>
-                                {comparisonTableLocations.map(
-                                  (comparisonLocation) => (
-                                    <QuestionComparisonCell
-                                      key={`${question.questionId}-${comparisonLocation.location.id}`}
-                                      comparisonLocation={comparisonLocation}
-                                      question={question}
-                                    />
-                                  ),
-                                )}
-                              </tr>
-                            ))}
-                          </Fragment>
-                        : <tr key={`question-${child.questionId}`}>
-                            <td className="sticky left-0 z-10 border-b bg-white p-3 pl-8">
-                              <span className="break-words">{child.name}</span>
-                            </td>
-                            {comparisonTableLocations.map(
-                              (comparisonLocation) => (
-                                <QuestionComparisonCell
-                                  key={`${child.questionId}-${comparisonLocation.location.id}`}
-                                  comparisonLocation={comparisonLocation}
-                                  question={child}
-                                />
-                              ),
-                            )}
-                          </tr>,
-                      )}
-                    </Fragment>
-                  ))}
+                          );
+                        })}
+                      </Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
