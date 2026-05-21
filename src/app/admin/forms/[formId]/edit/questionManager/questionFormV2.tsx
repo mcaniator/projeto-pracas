@@ -1,5 +1,7 @@
 "use client";
 
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
@@ -7,16 +9,28 @@ import { useHelperCard } from "@context/helperCardContext";
 import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
+  QuestionPickerQuestionToEdit,
 } from "@customTypes/forms/formCreation";
 import { CircularProgress, Divider } from "@mui/material";
-import { CategoriesWithQuestions } from "@queries/category";
 import { IconX } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import CategoriesListV2 from "./categoriesList";
 import FormItemManager from "./formItemManager";
-import QuestionEditDialog from "./questionEditDialog";
+import QuestionCreation from "./questionCreation";
 import SearchQuestionByCategoryAndSubcategory from "./searchQuestionByCategoryAndSubcategory";
+
+const SEARCH_METHODS = {
+  CATEGORY: 0,
+  NAME: 1,
+  REGISTER: 2,
+};
+
+const SEARCH_METHODS_OPTIONS = [
+  { id: SEARCH_METHODS.CATEGORY, label: "Categorias" },
+  { id: SEARCH_METHODS.NAME, label: "Nome" },
+  { id: SEARCH_METHODS.REGISTER, label: "Cadastro" },
+];
 
 const QuestionFormV2 = ({
   categories,
@@ -27,7 +41,7 @@ const QuestionFormV2 = ({
   addQuestion,
   reloadCategories,
 }: {
-  categories: CategoriesWithQuestions;
+  categories: FetchCategoriesWithSubcategoriesReponse["categories"];
   formQuestionsIds: number[];
   showTitle: boolean;
   isLoadingCategories: boolean;
@@ -46,7 +60,7 @@ const QuestionFormV2 = ({
     CategoryForQuestionPicker[]
   >([]);
   const [currentSearchMethod, setCurrentSearchMethod] = useState(0);
-
+  const lastSearchMethod = useRef(0);
   const [searchedName, setSearchedName] = useState("");
 
   const [showAllQuestions, setShowAllQuestions] = useState(
@@ -66,15 +80,8 @@ const QuestionFormV2 = ({
     verifySubcategoryNullness: false,
   });
 
-  const [questionToEdit, setQuestionToEdit] = useState<{
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    notes: string | null;
-    categoryName: string;
-    subcategoryName: string | null;
-  } | null>(null);
+  const [questionToEdit, setQuestionToEdit] =
+    useState<QuestionPickerQuestionToEdit | null>(null);
 
   const [fetchQuestionsByCategoryAndSubcategory, loadingQuestions] =
     useFetchQuestionsByCategoryAndSubcategory({
@@ -92,15 +99,11 @@ const QuestionFormV2 = ({
 
   const searchByName = useCallback(async () => {
     if (!searchedName || searchedName.length === 0) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Digite um nome para fazer a pesquisa!</>,
-      });
+      setCategoriesList([]);
       return;
     }
     await fetchQuestionsByCategoryAndSubcategory({ name: searchedName });
-  }, [searchedName, fetchQuestionsByCategoryAndSubcategory, setHelperCard]);
+  }, [searchedName, fetchQuestionsByCategoryAndSubcategory]);
 
   const searchByCategoryAndSubcateogory = useCallback(async () => {
     if (isLoadingCategories || !selectedCategoryAndSubcategoryId.categoryId)
@@ -119,51 +122,28 @@ const QuestionFormV2 = ({
   ]);
 
   const searchQuestions = useCallback(() => {
-    setCategoriesList([]);
     if (!selectedCategoryAndSubcategoryId.categoryId) {
       setQuestionsListState("LOADED");
     }
-    if (currentSearchMethod === 1) {
+    if (currentSearchMethod === SEARCH_METHODS.CATEGORY) {
       setShowAllQuestions(false);
-    } else if (currentSearchMethod === 0) {
+    }
+    if (currentSearchMethod === SEARCH_METHODS.NAME) {
       setShowAllQuestions(false);
-      void searchByCategoryAndSubcateogory();
-    } else if (currentSearchMethod === 2) {
-      /*setSelectedCategoryAndSubcategoryId((prev) => ({
-        ...prev,
-        verifySubcategoryNullness: true,
-      }));*/
+    } else if (currentSearchMethod === SEARCH_METHODS.REGISTER) {
       setShowAllQuestions(true);
+    }
+
+    // Fetch questions if needed
+    if (lastSearchMethod.current === SEARCH_METHODS.NAME) {
       void searchByCategoryAndSubcateogory();
+    } else if (currentSearchMethod === SEARCH_METHODS.NAME) {
+      setCategoriesList([]);
     }
   }, [currentSearchMethod]);
 
-  const handleOpenQuestionEdit = ({
-    questionId,
-    questionName,
-    iconKey,
-    isPublic,
-    notes,
-    categoryName,
-    subcategoryName,
-  }: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    notes: string | null;
-    categoryName: string;
-    subcategoryName: string | null;
-  }) => {
-    setQuestionToEdit({
-      questionId,
-      questionName,
-      iconKey,
-      isPublic,
-      notes,
-      categoryName,
-      subcategoryName,
-    });
+  const handleOpenQuestionEdit = (question: QuestionPickerQuestionToEdit) => {
+    setQuestionToEdit(question);
   };
 
   useEffect(() => {
@@ -190,31 +170,40 @@ const QuestionFormV2 = ({
     searchQuestions();
   }, [searchQuestions]);
 
+  useEffect(() => {
+    void searchByName();
+  }, [searchByName]);
+
   const subcategoriesOptions =
     categories.find(
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
     )?.subcategory || [];
 
+  if (isLoadingCategories) {
+    return (
+      <div className="flex flex-col gap-2 overflow-auto bg-white py-8 text-black sm:px-3">
+        <CLinearProgress label="Carregando.." />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-2 overflow-auto bg-white text-black sm:px-3">
+    <div className="flex flex-col gap-2 overflow-auto bg-white py-2 text-black sm:px-3">
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
       <CToggleButtonGroup
-        options={[
-          { id: 0, label: "Categorias" },
-          { id: 1, label: "Nome" },
-          { id: 2, label: "Cadastro" },
-        ]}
+        options={SEARCH_METHODS_OPTIONS}
         getLabel={(i) => i.label}
         getValue={(i) => i.id}
         value={currentSearchMethod}
         onChange={(e, newVal) => {
+          lastSearchMethod.current = currentSearchMethod;
           setCurrentSearchMethod(newVal.id);
         }}
       />
 
-      {currentSearchMethod === 0 && (
+      {currentSearchMethod === SEARCH_METHODS.CATEGORY && (
         <SearchQuestionByCategoryAndSubcategory
           categories={categories}
           subcategories={subcategoriesOptions}
@@ -224,27 +213,24 @@ const QuestionFormV2 = ({
           }
         />
       )}
-      {currentSearchMethod === 1 && (
+      {currentSearchMethod === SEARCH_METHODS.NAME && (
         <div className="mb-2 flex flex-col gap-2 overflow-auto">
           <h4>Buscar por nome: </h4>
           <CTextField
             label="Nome"
             value={searchedName}
+            debounce={500}
             isSearch
             clearable
-            onSearch={() => {
-              void searchByName();
-            }}
             onChange={(e) => {
               setSearchedName(e.target.value);
             }}
           />
-          {(!searchedName || searchedName.length === 0) && (
-            <div>Digite um nome e pressione enter para realizar uma busca</div>
-          )}
+
+          <div>Digite um nome para realizar a busca</div>
         </div>
       )}
-      {currentSearchMethod == 2 && (
+      {currentSearchMethod == SEARCH_METHODS.REGISTER && (
         <>
           <FormItemManager
             categories={categories}
@@ -271,6 +257,9 @@ const QuestionFormV2 = ({
             categories={categoriesList}
             formQuestionsIds={formQuestionsIds}
             showAllQuestions={showAllQuestions}
+            disableNoQuestionsLeftMessage={
+              currentSearchMethod === 1 && !searchedName
+            }
             addQuestion={addQuestion}
             editQuestion={(val) => {
               handleOpenQuestionEdit(val);
@@ -282,21 +271,18 @@ const QuestionFormV2 = ({
           <IconX className="h-32 w-32 text-2xl" />
         </div>
       }
-      <QuestionEditDialog
+      <QuestionCreation
         open={!!questionToEdit}
-        questionId={questionToEdit?.questionId ?? -1}
-        questionName={questionToEdit?.questionName ?? ""}
-        iconKey={questionToEdit?.iconKey ?? ""}
-        isPublic={questionToEdit?.isPublic ?? false}
-        notes={questionToEdit?.notes ?? null}
-        categoryName={questionToEdit?.categoryName ?? ""}
-        subcategoryName={questionToEdit?.subcategoryName ?? ""}
+        question={questionToEdit}
+        categoryId={questionToEdit?.categoryId}
+        subcategoryId={questionToEdit?.subcategoryId ?? undefined}
+        categoryName={questionToEdit?.categoryName}
+        subcategoryName={questionToEdit?.subcategoryName ?? undefined}
         onClose={() => {
           setQuestionToEdit(null);
         }}
-        reloadCategories={() => {
+        fetchCategoriesAfterCreation={() => {
           reloadCategories();
-          searchQuestions();
         }}
       />
     </div>

@@ -117,6 +117,14 @@ const FormsClient = () => {
       ),
     },
     {
+      field: "assessmentsCount",
+      headerName: "Avaliações",
+      width: 100,
+      align: "center",
+      renderCell: (params: GridRenderCellParams<FormRow>) =>
+        params.row._count.assessment,
+    },
+    {
       field: "updatedAt",
       headerName: "Última edição",
       width: 180,
@@ -171,7 +179,7 @@ const FormsClient = () => {
                     </>
                   : <>
                       <IconTrashX />
-                      Arquivar
+                      Excluir
                     </>
                   }
                 </div>

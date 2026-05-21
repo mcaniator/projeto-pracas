@@ -82,6 +82,7 @@ const SubcategoryCreationDialog = ({
         />
         <CTextField
           resetOnFormSubmit
+          multiline
           defaultValue={notes}
           id="notes"
           name="notes"

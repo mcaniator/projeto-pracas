@@ -23,21 +23,31 @@ const createCatalogEntry = (
   aliases,
 });
 
-const catalogEntries = iconModules.flatMap((module) => {
-  const libraryId = `${module.prefix}` as DynamicIconPackId;
-  return Object.keys(module.icons).map((iconName) => {
-    const aliases = Object.entries(module.aliases)
-      .filter(([, data]) => data.parent === iconName)
-      .map(([alias]) => alias);
+const dynamicIconCatalog = iconModules
+  .flatMap((module) => {
+    const libraryId = `${module.prefix}` as DynamicIconPackId;
+    const aliasesByParent = Object.entries(module.aliases ?? {}).reduce(
+      (aliasesByParent, [alias, data]) => {
+        const aliases = aliasesByParent.get(data.parent) ?? [];
+        aliases.push(alias);
+        aliasesByParent.set(data.parent, aliases);
 
-    return createCatalogEntry(libraryId, iconName, aliases);
-  });
-});
+        return aliasesByParent;
+      },
+      new Map<string, string[]>(),
+    );
 
-const dynamicIconCatalog = [...catalogEntries];
+    return Object.keys(module.icons).map((iconName) => {
+      const aliases = aliasesByParent.get(iconName);
+
+      return createCatalogEntry(libraryId, iconName, aliases);
+    });
+  })
+  .sort((a, b) => a.iconName.localeCompare(b.iconName));
+
 const dynamicIconFuse = new Fuse(dynamicIconCatalog, {
   keys: ["iconName", "aliases"],
-  threshold: 0.1,
+  threshold: 0.2,
   ignoreLocation: true,
 });
 const dynamicIconByKey = new Map(
@@ -47,15 +57,27 @@ const dynamicIconByKey = new Map(
 const searchDynamicIcons = ({ query, limit }: FetchDynamicIconsParams) => {
   const trimmedQuery = query?.trim().replace(" ", "-") ?? "";
 
-  if (limit) {
+  if (trimmedQuery && limit) {
     return dynamicIconFuse.search(trimmedQuery, { limit }).map((result) => ({
       key: result.item.key,
       iconName: result.item.iconName,
     }));
   }
-  return dynamicIconFuse.search(trimmedQuery).map((result) => ({
-    key: result.item.key,
-    iconName: result.item.iconName,
+  if (trimmedQuery) {
+    return dynamicIconFuse.search(trimmedQuery).map((result) => ({
+      key: result.item.key,
+      iconName: result.item.iconName,
+    }));
+  }
+  if (limit) {
+    return dynamicIconCatalog.slice(0, limit).map((entry) => ({
+      key: entry.key,
+      iconName: entry.iconName,
+    }));
+  }
+  return dynamicIconCatalog.map((entry) => ({
+    key: entry.key,
+    iconName: entry.iconName,
   }));
 };
 

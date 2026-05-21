@@ -1,5 +1,5 @@
-import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
+import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
@@ -225,7 +225,9 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
       },
     });
     if (!assessment) throw new Error("Assessment not found");
-    const [locationPolygon] = await prisma.$queryRaw<Array<AssessmentLocationPolygon>>`
+    const [locationPolygon] = await prisma.$queryRaw<
+      Array<AssessmentLocationPolygon>
+    >`
       SELECT
         CASE
           WHEN ST_IsEmpty(l.polygon) THEN NULL
@@ -495,101 +497,100 @@ const fetchPublicAssessmentTree = async (params: {
   categoryId?: number;
 }) => {
   try {
-    const [assessment, rawGeometries] = await Promise.all([
-      prisma.assessment.findUnique({
-        where: { id: params.assessmentId, isPublic: true },
-        select: {
-          id: true,
-          endDate: true,
-          isFinalized: true,
-          startDate: true,
-          user: {
-            select: {
-              username: true,
-              id: true,
-            },
+    const assessment = await prisma.assessment.findUnique({
+      where: { id: params.assessmentId, isPublic: true },
+      select: {
+        id: true,
+        endDate: true,
+        isFinalized: true,
+        startDate: true,
+        user: {
+          select: {
+            username: true,
+            id: true,
           },
-          location: {
-            select: {
-              id: true,
-              name: true,
-            },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
           },
-          form: {
-            select: {
-              id: true,
-              name: true,
-              calculations: {
-                select: {
-                  expression: true,
-                  targetQuestionId: true,
-                },
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
+            calculations: {
+              select: {
+                expression: true,
+                targetQuestionId: true,
               },
-              formItems: {
-                where:
-                  params.categoryId ? { categoryId: params.categoryId } : {},
-                orderBy: { position: "asc" },
-                include: {
-                  category: {
-                    select: {
-                      id: true,
-                      name: true,
-                      notes: true,
-                    },
+            },
+            formItems: {
+              where: {
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
+              },
+              orderBy: { position: "asc" },
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
                   },
-                  subcategory: {
-                    select: {
-                      id: true,
-                      name: true,
-                      notes: true,
-                      categoryId: true,
-                    },
+                },
+                subcategory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    notes: true,
+                    categoryId: true,
                   },
-                  question: {
-                    where: {
-                      isPublic: true,
+                },
+                question: {
+                  where: {
+                    isPublic: true,
+                  },
+                  select: {
+                    id: true,
+                    name: true,
+                    iconKey: true,
+                    isPublic: true,
+                    scaleConfig: true,
+                    notes: true,
+                    questionType: true,
+                    characterType: true,
+                    optionType: true,
+                    options: { select: { text: true, id: true } },
+                    categoryId: true,
+                    subcategoryId: true,
+                    geometryTypes: true,
+                    response: {
+                      where: {
+                        assessmentId: params.assessmentId,
+                      },
+                      select: {
+                        response: true,
+                      },
                     },
-                    select: {
-                      id: true,
-                      name: true,
-                      iconKey: true,
-                      isPublic: true,
-                      scaleConfig: true,
-                      notes: true,
-                      questionType: true,
-                      characterType: true,
-                      optionType: true,
-                      options: { select: { text: true, id: true } },
-                      categoryId: true,
-                      subcategoryId: true,
-                      geometryTypes: true,
-                      response: {
-                        where: {
-                          assessmentId: params.assessmentId,
-                        },
-                        select: {
-                          response: true,
-                        },
+                    booleanResponses: {
+                      where: {
+                        assessmentId: params.assessmentId,
                       },
-                      booleanResponses: {
-                        where: {
-                          assessmentId: params.assessmentId,
-                        },
-                        select: {
-                          checked: true,
-                        },
+                      select: {
+                        checked: true,
                       },
-                      ResponseOption: {
-                        where: {
-                          assessmentId: params.assessmentId,
-                          optionId: { not: null },
-                        },
-                        select: {
-                          id: true,
-                          option: {
-                            select: {
-                              id: true,
-                            },
+                    },
+                    ResponseOption: {
+                      where: {
+                        assessmentId: params.assessmentId,
+                        optionId: { not: null },
+                      },
+                      select: {
+                        id: true,
+                        option: {
+                          select: {
+                            id: true,
                           },
                         },
                       },
@@ -600,9 +601,8 @@ const fetchPublicAssessmentTree = async (params: {
             },
           },
         },
-      }),
-      fetchAssessmentGeometries(params.assessmentId),
-    ]);
+      },
+    });
     if (!assessment) {
       return {
         responseInfo: {
@@ -784,61 +784,64 @@ const fetchPublicAssessmentTree = async (params: {
         selectedQuestionIds.has(fetchedGeometry.questionId),
       )
       .map((fetchedGeometry) => {
-      const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
+        const { questionId, geometry } = fetchedGeometry;
+        if (!geometry) {
+          return { questionId, geometries: [] };
+        }
+        const geometries: ResponseGeometry[] = [];
+        const geometriesWithoutCollection = geometry
+          .replace("GEOMETRYCOLLECTION(", "")
+          .slice(0, -1);
+        const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
+        const geometriesStrs = geometriesWithoutCollection.match(regex);
+        if (geometriesStrs) {
+          for (const geometry of geometriesStrs) {
+            if (geometry.startsWith("POINT")) {
+              const geometryPointsStr = geometry
+                .replace("POINT(", "")
+                .replace(")", "");
+              const geometryPoints = geometryPointsStr.split(" ");
+              const geometryPointsNumber: number[] = [];
+              for (const geo of geometryPoints) {
+                geometryPointsNumber.push(Number(geo));
               }
-              ringsCoordinates.push(geometryPointsCoordinates);
+              geometries.push({
+                type: "Point",
+                coordinates: geometryPointsNumber,
+              });
+            } else if (geometry.startsWith("POLYGON")) {
+              const geometryRingsStr = geometry
+                .replace("POLYGON(", " ")
+                .slice(0, -1);
+              const ringsStrs = geometryRingsStr.split("),(");
+              const ringsCoordinates: Coordinate[][] = [];
+              for (const ring of ringsStrs) {
+                const geometryPointsStr = ring.split(",");
+                const geometryPointsCoordinates: Coordinate[] = [];
+                for (const point of geometryPointsStr) {
+                  const pointClean = point
+                    .replace("(", "")
+                    .replace(")", "")
+                    .trim();
+                  const geometryPoints = pointClean.split(" ");
+                  const geometryPointsNumber: number[] = [];
+                  for (const geo of geometryPoints) {
+                    geometryPointsNumber.push(Number(geo));
+                  }
+                  geometryPointsCoordinates.push(geometryPointsNumber);
+                }
+                ringsCoordinates.push(geometryPointsCoordinates);
+              }
+              geometries.push({
+                type: "Polygon",
+                coordinates: ringsCoordinates,
+              });
             }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
           }
         }
-      }
 
-      return { questionId, geometries: geometries };
-    });
+        return { questionId, geometries: geometries };
+      });
     return {
       responseInfo: {
         statusCode: 200,
@@ -869,6 +872,7 @@ const fetchPublicAssessmentTree = async (params: {
     return {
       responseInfo: {
         statusCode: 500,
+        message: "Erro ao buscar avaliação",
       } as APIResponseInfo,
       data: null,
     };

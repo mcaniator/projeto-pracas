@@ -42,7 +42,7 @@ const CNotesChip = ({ notes, name, sx }: NotesChipProps) => {
         }}
         disableDialogActions
       >
-        <div className="p-2">{notes}</div>
+        <div className="whitespace-pre-wrap p-2">{notes}</div>
       </CDialog>
     </>
   );

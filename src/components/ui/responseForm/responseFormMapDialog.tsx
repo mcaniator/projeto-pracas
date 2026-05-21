@@ -7,11 +7,14 @@ import { IconCheck, IconTrash } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 
-const MapProvider = dynamic(() => import("./MapProvider"), {
-  ssr: false,
-});
+const ResponseFormMapProvider = dynamic(
+  () => import("./responseFormMapProvider"),
+  {
+    ssr: false,
+  },
+);
 
-const MapDialog = ({
+const ResponseFormMapDialog = ({
   openMapDialog,
   onClose,
   questionId,
@@ -74,7 +77,7 @@ const MapDialog = ({
       cancelChildren={isInSelectMode ? <IconTrash /> : undefined}
     >
       <div className="flex h-full flex-col">
-        <MapProvider
+        <ResponseFormMapProvider
           geometryType={geometryType}
           questionId={questionId}
           locationPolygonGeoJson={locationPolygonGeoJson}
@@ -89,4 +92,4 @@ const MapDialog = ({
   );
 };
 
-export default MapDialog;
+export default ResponseFormMapDialog;

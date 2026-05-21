@@ -14,8 +14,13 @@ type FormQuestionWithCategoryAndSubcategory = {
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: [QuestionGeometryTypes];
   category: {
     id: number;
@@ -38,8 +43,13 @@ type QuestionForQuestionPicker = {
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: QuestionGeometryTypes[];
 };
 
@@ -62,10 +72,17 @@ type QuestionPickerQuestionToAdd = QuestionForQuestionPicker & {
   categoryId: number;
   subcategoryId: number | null;
 };
+
+type QuestionPickerQuestionToEdit = QuestionPickerQuestionToAdd & {
+  categoryName: string;
+  subcategoryName: string | null;
+};
+
 export {
   type FormQuestionWithCategoryAndSubcategory,
   type CategoryForQuestionPicker,
   type SubCategoryForQuestionPicker,
   type QuestionForQuestionPicker,
   type QuestionPickerQuestionToAdd,
+  type QuestionPickerQuestionToEdit,
 };

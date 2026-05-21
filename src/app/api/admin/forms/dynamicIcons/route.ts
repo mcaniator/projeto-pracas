@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const iconSearchQuerySchema = z.object({
   query: z.string().optional().nullish(),
-  limit: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().nullish(),
 });
 
 export type FetchDynamicIconsParams = z.infer<typeof iconSearchQuerySchema>;

@@ -259,7 +259,7 @@ const FeatureList = ({
           {isEdition ? "Salvar e fechar" : "Confirmar"}
         </CButton>
       )}
-      {(features.length > 0 || isEdition) && (
+      {isEdition && (
         <CButton
           onClick={() => {
             openRegisterFormDialog();

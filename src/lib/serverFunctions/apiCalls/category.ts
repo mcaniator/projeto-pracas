@@ -1,47 +1,16 @@
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import {
-  CategoriesWithQuestions,
-  CategoriesWithQuestionsAndStatusCode,
-} from "../queries/category";
+import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-const _getCategoriesWithSubcategories = async () => {
-  const url = "/api/admin/forms/categoriesWithSubcategories";
+import { UseFetchAPIParams } from "../../types/backendCalls/APIResponse";
+import { FetchCategoriesWithSubcategoriesReponse } from "../queries/category";
 
-  const response = await fetch(url, {
-    method: "GET",
-    next: { tags: ["category", "form", "database"] },
-  });
-
-  if (!response.ok) {
-    return {
-      responseInfo: {
-        statusCode: response.status,
-        message: "Erro ao obter categorias",
-      },
-      categories: [],
-    } as { responseInfo: APIResponseInfo; categories: CategoriesWithQuestions };
-  }
-
-  const categories =
-    (await response.json()) as CategoriesWithQuestionsAndStatusCode;
-
-  if (categories.statusCode !== 200) {
-    return {
-      responseInfo: {
-        statusCode: response.status,
-        message: "Erro ao obter categorias",
-      },
-      categories: categories.categories,
-    } as { responseInfo: APIResponseInfo; categories: CategoriesWithQuestions };
-  }
-
-  return {
-    responseInfo: {
-      statusCode: response.status,
-      message: "Categorias carregadas!",
+export const useFetchCategoriesWithSubcategories = (
+  params?: UseFetchAPIParams<FetchCategoriesWithSubcategoriesReponse>,
+) => {
+  return useFetchAPI<FetchCategoriesWithSubcategoriesReponse>({
+    url: "/api/admin/forms/categoriesWithSubcategories",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
     },
-    categories: categories.categories,
-  } as { responseInfo: APIResponseInfo; categories: CategoriesWithQuestions };
+  });
 };
-
-export { _getCategoriesWithSubcategories };

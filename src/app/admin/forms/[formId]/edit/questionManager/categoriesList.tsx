@@ -12,6 +12,7 @@ import {
   CategoryForQuestionPicker,
   QuestionForQuestionPicker,
   QuestionPickerQuestionToAdd,
+  QuestionPickerQuestionToEdit,
   SubCategoryForQuestionPicker,
 } from "@customTypes/forms/formCreation";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -27,22 +28,16 @@ const CategoriesListV2 = ({
   categories,
   showAllQuestions,
   formQuestionsIds,
+  disableNoQuestionsLeftMessage,
   addQuestion,
   editQuestion,
 }: {
   categories: CategoryForQuestionPicker[];
   formQuestionsIds: number[];
   showAllQuestions: boolean;
+  disableNoQuestionsLeftMessage: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   const searchHasRemainingQuestions = categories.some(
     (cat) =>
@@ -51,14 +46,15 @@ const CategoriesListV2 = ({
         sub.question.some((q) => !formQuestionsIds.includes(q.id)),
       ),
   );
-  if (!searchHasRemainingQuestions) {
+  if (
+    !disableNoQuestionsLeftMessage &&
+    !searchHasRemainingQuestions &&
+    !showAllQuestions
+  ) {
     return (
       <div className="p-1">
         <div>
-          {showAllQuestions ?
-            "Não há questões para os parâmetros de busca selecionados!"
-          : "Não há questões restantes para os parâmetros de busca selecionados!"
-          }
+          Não há questões restantes para os parâmetros de busca selecionados!
         </div>
       </div>
     );
@@ -112,8 +108,10 @@ const CategoriesListV2 = ({
                       editQuestion={editQuestion}
                     />
                   )}
-                  {cat.question.filter((q) => !formQuestionsIds.includes(q.id))
-                    .length > 0 && (
+                  {((showAllQuestions && cat.question.length > 0) ||
+                    cat.question.some(
+                      (q) => !formQuestionsIds.includes(q.id),
+                    )) && (
                     <QuestionListV2
                       questions={cat.question}
                       formQuestionsIds={formQuestionsIds}
@@ -150,15 +148,7 @@ const SubcategoriesListV2 = ({
   showAllQuestions: boolean;
   categoryName: string;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   return (
     <div className="p-1">
@@ -224,15 +214,7 @@ const QuestionListV2 = ({
   categoryName: string;
   subcategoryName: string | null;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   const filteredQuestions =
     showAllQuestions ? questions : (
@@ -259,6 +241,7 @@ const QuestionListV2 = ({
           questionType={question.questionType}
           optionType={question.optionType}
           options={question.options}
+          scaleConfig={question.scaleConfig}
           geometryTypes={question.geometryTypes}
           addQuestion={addQuestion}
           categoryId={categoryId}
@@ -286,6 +269,7 @@ const QuestionComponentV2 = ({
   optionType,
   options,
   geometryTypes,
+  scaleConfig,
   categoryId,
   subcategoryId,
   showAllQuestions,
@@ -304,22 +288,18 @@ const QuestionComponentV2 = ({
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
   geometryTypes: QuestionGeometryTypes[];
-  options: { text: string }[];
+  options: { id: number; text: string }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   categoryId: number;
   categoryName: string;
   subcategoryId?: number | null;
   subcategoryName: string | null;
   showAllQuestions: boolean;
   isInCurrentForm: boolean;
-  editQuestion?: (question: {
-    questionId: number;
-    questionName: string;
-    iconKey: string;
-    isPublic: boolean;
-    categoryName: string;
-    notes: string | null;
-    subcategoryName: string | null;
-  }) => void;
+  editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
   return (
     <div
@@ -353,13 +333,21 @@ const QuestionComponentV2 = ({
           }
           onClick={() => {
             editQuestion?.({
-              questionId: questionId,
-              questionName: name,
-              categoryName: categoryName,
-              subcategoryName: subcategoryName,
-              iconKey: iconKey,
-              isPublic: isPublic,
-              notes: notes,
+              id: questionId,
+              name,
+              iconKey,
+              isPublic,
+              notes,
+              questionType,
+              optionType,
+              options,
+              scaleConfig,
+              geometryTypes,
+              categoryId,
+              subcategoryId: subcategoryId ?? null,
+              characterType,
+              categoryName,
+              subcategoryName,
             });
           }}
         >
@@ -378,6 +366,7 @@ const QuestionComponentV2 = ({
               questionType,
               optionType,
               options,
+              scaleConfig,
               geometryTypes,
               categoryId,
               subcategoryId: subcategoryId ?? null,

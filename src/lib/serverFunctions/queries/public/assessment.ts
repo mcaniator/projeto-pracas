@@ -1,5 +1,5 @@
-import { FormValues } from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
 import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
+import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { prisma } from "@/lib/prisma";
 import {
   AssessmentCategoryItem,
@@ -91,6 +91,9 @@ export const publicFetchPublicAssessmentTree = async (params: {
               },
             },
             formItems: {
+              where: {
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
+              },
               orderBy: { position: "asc" },
               include: {
                 category: {
@@ -416,6 +419,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
     return {
       responseInfo: {
         statusCode: 500,
+        message: "Erro ao consultar avaliação!",
       } as APIResponseInfo,
       data: null,
     };

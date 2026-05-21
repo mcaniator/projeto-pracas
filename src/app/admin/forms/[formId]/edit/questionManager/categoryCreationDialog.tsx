@@ -69,6 +69,7 @@ const CategoryCreationDialog = ({
           label="Nome"
         />
         <CTextField
+          multiline
           resetOnFormSubmit
           defaultValue={notes}
           id="notes"

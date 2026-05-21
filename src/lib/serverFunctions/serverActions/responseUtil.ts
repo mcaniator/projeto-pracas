@@ -1,9 +1,9 @@
 "use server";
 
-import {
+import type {
   FormValues,
   ResponseFormGeometry,
-} from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+} from "@/components/ui/responseForm/responseFormTypes";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";

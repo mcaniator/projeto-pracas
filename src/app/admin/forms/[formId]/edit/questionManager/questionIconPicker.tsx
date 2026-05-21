@@ -1,12 +1,14 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
+import CSwitch from "@/components/ui/cSwtich";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import { type FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { useFetchDynamicIcons } from "@apiCalls/questionIcon";
 import CTextField from "@components/ui/cTextField";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
+import { VirtuosoGrid } from "react-virtuoso";
 
 const DEFAULT_QUESTION_ICONS = [
   { key: "mdi:cctv", iconName: "cctv" },
@@ -20,6 +22,10 @@ const DEFAULT_QUESTION_ICONS = [
   { key: "mdi:slide", iconName: "slide" },
   { key: "mdi:wheelchair-accessibility", iconName: "wheelchair-accessibility" },
   { key: "tabler:letter-a", iconName: "letter-a" },
+  { key: "ri:sketching", iconName: "sketching" },
+  { key: "mdi:bus-marker", iconName: "bus-marker" },
+  { key: "mdi:calendar", iconName: "calendar" },
+  { key: "mdi:wrench", iconName: "wrench" },
 ];
 
 type QuestionIconPickerProps = {
@@ -35,6 +41,7 @@ const QuestionIconPicker = ({
   const [results, setResults] = useState<
     FetchDynamicIconsResponse["icons"][number][]
   >([]);
+  const [showAllIcons, setShowAllIcons] = useState(false);
 
   const [fetchDynamicIcons, isLoading] = useFetchDynamicIcons({
     callbacks: {
@@ -48,46 +55,70 @@ const QuestionIconPicker = ({
   });
 
   useEffect(() => {
-    if (searchText.length === 0) {
+    if (searchText.length === 0 && !showAllIcons) {
       setResults(DEFAULT_QUESTION_ICONS);
       return;
     }
-    void fetchDynamicIcons({ query: searchText, limit: 500 });
-  }, [fetchDynamicIcons, searchText]);
+    if (showAllIcons) {
+      void fetchDynamicIcons({});
+    } else {
+      void fetchDynamicIcons({ query: searchText });
+    }
+  }, [fetchDynamicIcons, searchText, showAllIcons]);
 
   return (
     <div className="flex flex-col gap-2 rounded border border-gray-300 p-2">
       <h6 className="text-sm font-semibold">Ícone da questão *</h6>
-      <CTextField
-        label="Buscar ícone"
-        value={searchText}
-        clearable
-        debounce={250}
-        placeholder="Ex.: bench, trash, letter b..."
-        onChange={(e) => {
-          setSearchText(e.target.value);
+      <CSwitch
+        label="Mostrar todos os ícones"
+        onChange={(_, checked) => {
+          setShowAllIcons(checked);
+          if (checked) setSearchText("");
         }}
+        checked={showAllIcons}
       />
+      {!showAllIcons && (
+        <>
+          <CTextField
+            label="Buscar ícone"
+            value={searchText}
+            clearable
+            debounce={500}
+            placeholder="Ex.: bench, trash, letter b..."
+            onChange={(e) => {
+              setSearchText(e.target.value);
+            }}
+          />
 
-      <div className="text-xs text-gray-600">
-        Busque pelo nome do ícone em inglês.
-      </div>
+          <div className="text-xs text-gray-600">
+            Busque pelo nome do ícone em inglês.
+          </div>
+        </>
+      )}
+      {!isLoading && (searchText.length > 0 || showAllIcons) && (
+        <div className="text-sm">{results.length} ícones encontrados</div>
+      )}
 
-      <div className="max-h-56 overflow-auto rounded border border-gray-200 p-2">
+      <div className="flex h-56 items-center justify-center rounded border border-gray-200">
         {isLoading ?
-          <div className="flex justify-center py-4">
+          <div className="flex justify-center">
             <CircularProgress />
           </div>
         : results.length === 0 ?
           <div className="py-2 text-center text-sm text-gray-600">
             Nenhum icone encontrado.
           </div>
-        : <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {results.map((icon) => {
+        : <VirtuosoGrid
+            className="h-full w-full"
+            listClassName="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3"
+            totalCount={results.length}
+            overscan={200}
+            itemContent={(index) => {
+              const icon = results[index];
+              if (!icon) return null;
               const isSelected = selectedIconKey === icon.key;
               return (
                 <CButton
-                  key={icon.key}
                   type="button"
                   variant="outlined"
                   sx={{
@@ -107,8 +138,8 @@ const QuestionIconPicker = ({
                   <span className="truncate">{icon.iconName}</span>
                 </CButton>
               );
-            })}
-          </div>
+            }}
+          />
         }
       </div>
 

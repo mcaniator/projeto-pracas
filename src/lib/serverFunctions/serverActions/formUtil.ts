@@ -402,18 +402,13 @@ const _updateFormArchiveStatus = async (
     const dbForm = await prisma.form.findUniqueOrThrow({
       where: { id: formId },
       select: {
-        finalized: true,
+        name: true,
       },
     });
 
-    if (!dbForm.finalized) {
-      // Forms in construction are permanently deleted
-      await prisma.$transaction(async (tx) => {
-        await tx.formItem.deleteMany({ where: { formId: formId } });
-        await tx.calculation.deleteMany({ where: { formId: formId } });
-        await tx.form.delete({ where: { id: formId } });
-      });
-    } else {
+    let archivedDueToAssessments = false;
+
+    if (!archived) {
       await prisma.form.update({
         where: {
           id: formId,
@@ -422,6 +417,28 @@ const _updateFormArchiveStatus = async (
           archived,
         },
       });
+    } else {
+      const assessmentsCount = await prisma.assessment.count({
+        where: { formId },
+      });
+
+      if (assessmentsCount > 0) {
+        archivedDueToAssessments = true;
+        await prisma.form.update({
+          where: {
+            id: formId,
+          },
+          data: {
+            archived: true,
+          },
+        });
+      } else {
+        await prisma.$transaction(async (tx) => {
+          await tx.formItem.deleteMany({ where: { formId: formId } });
+          await tx.calculation.deleteMany({ where: { formId: formId } });
+          await tx.form.delete({ where: { id: formId } });
+        });
+      }
     }
 
     return {
@@ -430,16 +447,20 @@ const _updateFormArchiveStatus = async (
         showSuccessCard: true,
         message:
           archived ?
-            `Formulário ${dbForm.finalized ? "arquivado" : "excluído"} com sucesso!`
-          : "Formulário desarquivado com sucesso!",
+            archivedDueToAssessments ?
+              `Formulário "${dbForm.name}" arquivado com sucesso!`
+            : `Formulário "${dbForm.name}" excluído com sucesso!`
+          : "Formulário restaurado com sucesso!",
       } as APIResponseInfo,
+      data: null,
     };
   } catch (e) {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao arquivar formulário!",
+        message: "Erro ao atualizar formulário!",
       } as APIResponseInfo,
+      data: null,
     };
   }
 };

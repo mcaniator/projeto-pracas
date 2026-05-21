@@ -59,7 +59,18 @@ export const fetchForms = async (params: FetchFormParams) => {
         ...(params?.finalizedOnly && { finalized: true }),
         ...(!params?.includeArchived && { archived: false }),
       },
+      select: {
+        id: true,
+        name: true,
+        finalized: true,
+        archived: true,
+        updatedAt: true,
+        _count: { select: { assessment: true } },
+      },
       orderBy: [
+        {
+          archived: "asc",
+        },
         {
           updatedAt: "desc",
         },
@@ -115,7 +126,13 @@ const getFormTree = async (params: { formId: number }) => {
                 characterType: true,
                 isPublic: true,
                 optionType: true,
-                options: { select: { text: true } },
+                options: { select: { id: true, text: true } },
+                scaleConfig: {
+                  select: {
+                    minValue: true,
+                    maxValue: true,
+                  },
+                },
                 categoryId: true,
                 subcategoryId: true,
                 geometryTypes: true,
@@ -215,6 +232,7 @@ const getFormTree = async (params: { formId: number }) => {
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
           options: dbQuestion.options,
+          scaleConfig: dbQuestion.scaleConfig,
           geometryTypes: dbQuestion.geometryTypes,
           categoryName: dbQuestion.category.name,
           subcategoryName: dbQuestion.subcategory?.name ?? null,

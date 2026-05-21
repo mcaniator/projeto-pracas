@@ -4,7 +4,8 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
-import { _getCategoriesWithSubcategories } from "@apiCalls/category";
+import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
+import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
@@ -18,13 +19,13 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { CategoriesWithQuestions } from "@queries/category";
 import { _updateFormV2 } from "@serverActions/formUtil";
-import { IconCalculator } from "@tabler/icons-react";
+import { IconCalculator, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import FormPreviewDialog from "./FormPreviewDialog";
 import CalculationDialog, {
   CalculationParams,
 } from "./calculations/calculationDialog";
@@ -61,8 +62,13 @@ export type QuestionItem = {
   categoryName: string;
   subcategoryName: string | null;
   options?: {
+    id: number;
     text: string;
   }[];
+  scaleConfig: {
+    minValue: number;
+    maxValue: number;
+  } | null;
   geometryTypes: QuestionGeometryTypes[];
 };
 
@@ -95,7 +101,7 @@ const ClientV2 = ({
 }) => {
   const userContext = useUserContext();
   const router = useRouter();
-  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
+  const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
     form.formTree.finalized ||
@@ -111,24 +117,25 @@ const ClientV2 = ({
     useState<CalculationParams[]>(dbCalculations);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
+  const [openFormPreviewDialog, setOpenFormPreviewDialog] = useState(false);
   const [openSaveFormDialog, setOpenSaveFormDialog] = useState(false);
   const [saveAsDone, setSaveAsDone] = useState(false);
-  const [categories, setCategories] = useState<CategoriesWithQuestions>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categories, setCategories] = useState<
+    FetchCategoriesWithSubcategoriesReponse["categories"]
+  >([]);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoadingCategories(true);
-    setLoadingOverlay({ show: true, message: "Carregando categorias..." });
-    const response = await _getCategoriesWithSubcategories();
-    helperCardProcessResponse(response.responseInfo);
-    setCategories(response.categories);
-    setLoadingOverlay({ show: false });
-    setIsLoadingCategories(false);
-  }, [helperCardProcessResponse, setLoadingOverlay]);
+  const [fetchCategories, isLoadingCategories] =
+    useFetchCategoriesWithSubcategories({
+      callbacks: {
+        onSuccess: (response) => {
+          setCategories(response.data?.categories ?? []);
+        },
+      },
+    });
 
   const reloadCategories = useCallback(() => {
-    void fetchCategories();
+    void fetchCategories({});
   }, [fetchCategories]);
 
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
@@ -201,6 +208,7 @@ const ClientV2 = ({
               characterType: question.characterType,
               optionType: question.optionType,
               options: question.options,
+              scaleConfig: question.scaleConfig,
               geometryTypes: question.geometryTypes,
               categoryName: category.name,
               subcategoryName: subItem.name,
@@ -233,6 +241,7 @@ const ClientV2 = ({
           characterType: question.characterType,
           optionType: question.optionType,
           options: question.options,
+          scaleConfig: question.scaleConfig,
           geometryTypes: question.geometryTypes,
           position: newCategory.categoryChildren.length + 1,
           categoryName: category.name,
@@ -260,7 +269,7 @@ const ClientV2 = ({
 
   useEffect(() => {
     if (isFinalized) return;
-    void fetchCategories();
+    void fetchCategories({});
   }, [fetchCategories, isFinalized]);
 
   useEffect(() => {
@@ -377,6 +386,15 @@ const ClientV2 = ({
                   >
                     <IconCalculator />
                   </CButton>
+                  <CButton
+                    tooltip="Prévia"
+                    disableMinWidth
+                    onClick={() => {
+                      setOpenFormPreviewDialog(true);
+                    }}
+                  >
+                    <IconEye />
+                  </CButton>
                   {!isFinalized && (
                     <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
                       <CButton
@@ -393,14 +411,19 @@ const ClientV2 = ({
               )}
             </div>
             {isMobileView && (
-              <div className="flex items-center gap-2">
-                <CButton
-                  onClick={() => {
-                    setOpenQuestionFormModal(true);
-                  }}
-                >
-                  Questões
-                </CButton>
+              <div className="ml-2 mt-2 flex flex-wrap items-center gap-2">
+                {!isFinalized && (
+                  <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                    <CButton
+                      onClick={() => {
+                        setOpenQuestionFormModal(true);
+                      }}
+                    >
+                      Questões
+                    </CButton>
+                  </PermissionGuard>
+                )}
+
                 <CButton
                   enableTopLeftChip
                   disableMinWidth
@@ -410,6 +433,15 @@ const ClientV2 = ({
                   }}
                 >
                   <IconCalculator />
+                </CButton>
+                <CButton
+                  tooltip="Prévia"
+                  disableMinWidth
+                  onClick={() => {
+                    setOpenFormPreviewDialog(true);
+                  }}
+                >
+                  <IconEye />
                 </CButton>
                 {!isFinalized && (
                   <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
@@ -460,6 +492,7 @@ const ClientV2 = ({
         <CDialog
           fullScreen
           title="Adicionar questões"
+          keepMounted
           open={openQuestionFormModal}
           onClose={() => {
             setOpenQuestionFormModal(false);
@@ -486,6 +519,12 @@ const ClientV2 = ({
         isFinalized={isFinalized}
         setOpenCalculationModal={setOpenCalculationDialog}
         setFormCalculations={setFormCalculations}
+      />
+      <FormPreviewDialog
+        open={openFormPreviewDialog}
+        onClose={() => setOpenFormPreviewDialog(false)}
+        formTree={formTree}
+        formCalculations={formCalculations}
       />
       <SaveFormDialog
         openSaveFormDialog={openSaveFormDialog}
