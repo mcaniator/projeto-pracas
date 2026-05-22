@@ -69,6 +69,9 @@ enum QuestionResponseCharacterTypes {
   BOOLEAN
   PERCENTAGE
   SCALE
+  DATE
+  TIME
+  DATETIME
 
   @@map("question_response_character_types")
 }

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { TextFieldProps } from "@mui/material/TextField";
-import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconChevronDown, IconChevronUp, IconX } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
@@ -27,6 +27,7 @@ type CNumberFieldSx = Extract<
 type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   errorMessage?: string;
   readOnly?: boolean;
+  clearable?: boolean;
   debounce?: number;
   minValue?: number;
   maxValue?: number;
@@ -112,6 +113,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
       value,
       disabled,
       readOnly,
+      clearable = false,
       label,
       minValue,
       maxValue,
@@ -173,6 +175,21 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         return;
       }
       debouncedOnChange?.(nextValue);
+    };
+
+    const handleClear = () => {
+      if (disabled || readOnly) return;
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setOptimisticValue(null);
+      if (required) {
+        setIsValid(false);
+        onRequiredCheck?.(false);
+      }
+      onChange?.(null);
     };
 
     useEffect(() => {
@@ -343,6 +360,16 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                         </Typography>
                       : endAdornment}
                     </div>
+                    {clearable && !disabled && !readOnly && optimisticValue !== null ?
+                      <IconButton
+                        edge="end"
+                        size="small"
+                        onClick={handleClear}
+                        sx={{ p: 0.25 }}
+                      >
+                        <IconX size={16} />
+                      </IconButton>
+                    : null}
                     {!disabled && !readOnly ?
                       <div
                         style={{

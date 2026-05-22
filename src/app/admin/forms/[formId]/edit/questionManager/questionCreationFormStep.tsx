@@ -28,6 +28,9 @@ const characterTypeOptions: {
   { value: "NUMBER", label: "Numérico" },
   { value: "PERCENTAGE", label: "Porcentagem" },
   { value: "SCALE", label: "Escala" },
+  { value: "DATE", label: "Data" },
+  { value: "TIME", label: "Hora" },
+  { value: "DATETIME", label: "Data e Hora" },
 ];
 
 const scaleOptionModeOptions: { value: ScaleOptionMode; label: string }[] = [

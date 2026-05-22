@@ -1,9 +1,13 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { type ResolvedQuestionValue } from "@/components/ui/assessment/questionResponseRenderer";
+import type {
+  FormValues,
+  ResponseQuestionValue,
+} from "@/components/ui/responseForm/responseFormTypes";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
 } from "@/lib/serverFunctions/queries/assessment";
+import dayjs from "dayjs";
 
 export type AssessmentTree = {
   categories: AssessmentCategoryItem[];
@@ -25,7 +29,7 @@ const getQuestionOptionTextMap = (question: AssessmentQuestionItem) => {
 
 const resolveSelectedOptionTexts = (
   question: AssessmentQuestionItem,
-  rawValue: string | number | number[] | boolean | null | undefined,
+  rawValue: ResponseQuestionValue | undefined,
 ) => {
   const optionTextMap = getQuestionOptionTextMap(question);
 
@@ -63,9 +67,16 @@ const resolveSelectedOptionTexts = (
 
 export const resolveQuestionValue = (
   question: AssessmentQuestionItem,
-  rawValue: string | number | number[] | boolean | null | undefined,
+  rawValue: ResponseQuestionValue | undefined,
 ): ResolvedQuestionValue => {
-  if (rawValue === null || rawValue === undefined) {
+  //dayjs value should only happen for for written date questions in preview, as the value is stored as a dayjs object in the form state.
+  //For options date questions, the value is stored as a string of format DD/MM/YYYY in the form state.
+  //For assessments, the value is stored as a string of format DD/MM/YYYY in the database. TODO: CHECK IF THIS IS CORRECT AFTER IMPLEMENTATION
+  if (
+    rawValue === null ||
+    rawValue === undefined ||
+    (dayjs.isDayjs(rawValue) && !rawValue.isValid())
+  ) {
     return { kind: "none" };
   }
 
@@ -130,6 +141,10 @@ export const resolveQuestionValue = (
     return { kind: "text", values: [trimmedValue] };
   }
 
+  if (dayjs.isDayjs(rawValue)) {
+    return { kind: "text", values: [rawValue.format("DD/MM/YYYY")] };
+  }
+
   return { kind: "none" };
 };
 
@@ -137,5 +152,8 @@ export const resolveAssessmentQuestionValue = (
   assessment: AssessmentTree,
   question: AssessmentQuestionItem,
 ): ResolvedQuestionValue => {
-  return resolveQuestionValue(question, getQuestionRawValue(assessment, question));
+  return resolveQuestionValue(
+    question,
+    getQuestionRawValue(assessment, question),
+  );
 };

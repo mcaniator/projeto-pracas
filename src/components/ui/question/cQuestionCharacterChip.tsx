@@ -3,6 +3,9 @@ import { IconButtonOwnProps } from "@mui/material";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 import {
   IconArrowAutofitRight,
+  IconCalendarClock,
+  IconCalendarEvent,
+  IconClock,
   IconLetterCase,
   IconNumber123,
   IconPercentage,
@@ -20,20 +23,37 @@ const CQuestionCharacterTypeChip = ({
   let icon;
   let tooltip;
 
-  if (characterType === "NUMBER") {
-    icon = <IconNumber123 />;
-    tooltip = "Resposta numérica";
-  } else if (characterType === "PERCENTAGE") {
-    icon = <IconPercentage />;
-    tooltip = "Resposta em porcentagem";
-  } else if (characterType === "TEXT") {
-    icon = <IconLetterCase />;
-    tooltip = "Resposta em texto";
-  } else if (characterType === "SCALE") {
-    icon = <IconArrowAutofitRight />;
-    tooltip = "Resposta em escala";
-  } else if (characterType === "BOOLEAN") {
-    return null;
+  switch (characterType) {
+    case "NUMBER":
+      icon = <IconNumber123 />;
+      tooltip = "Resposta numérica";
+      break;
+    case "PERCENTAGE":
+      icon = <IconPercentage />;
+      tooltip = "Resposta em porcentagem";
+      break;
+    case "TEXT":
+      icon = <IconLetterCase />;
+      tooltip = "Resposta em texto";
+      break;
+    case "SCALE":
+      icon = <IconArrowAutofitRight />;
+      tooltip = "Resposta em escala";
+      break;
+    case "DATE":
+      icon = <IconCalendarEvent />;
+      tooltip = "Resposta em data";
+      break;
+    case "TIME":
+      icon = <IconClock />;
+      tooltip = "Resposta em hora";
+      break;
+    case "DATETIME":
+      icon = <IconCalendarClock />;
+      tooltip = "Resposta em data e hora";
+      break;
+    case "BOOLEAN":
+      return null;
   }
 
   return <CIconChip icon={icon} tooltip={tooltip} sx={sx} />;

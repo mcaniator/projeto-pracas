@@ -1,4 +1,5 @@
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import { Dayjs } from "dayjs";
 
 export type FormValues = {
   [key: string]: string | number | number[] | boolean | null;
@@ -19,4 +20,5 @@ export type ResponseQuestionValue =
   | number
   | number[]
   | boolean
+  | Dayjs
   | null;

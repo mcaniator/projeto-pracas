@@ -5,6 +5,7 @@ import {
   PickerChangeHandlerContext,
 } from "@mui/x-date-pickers";
 import { PickerValue } from "@mui/x-date-pickers/internals";
+import dayjs from "dayjs";
 import React, { useCallback } from "react";
 
 type CDatePickerProps = MobileDatePickerProps & {
@@ -16,8 +17,17 @@ type CDatePickerProps = MobileDatePickerProps & {
 
 const CDatePicker = React.forwardRef<HTMLInputElement, CDatePickerProps>(
   (props, ref) => {
-    const { debounce, clearable, helperText, onAccept, onChange, ...rest } =
-      props;
+    const {
+      value,
+      debounce,
+      clearable,
+      helperText,
+      minDate = dayjs("0100-01-01"),
+      maxDate = dayjs("9999-12-31"),
+      onAccept,
+      onChange,
+      ...rest
+    } = props;
 
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -40,6 +50,12 @@ const CDatePicker = React.forwardRef<HTMLInputElement, CDatePickerProps>(
       },
       [onChange, debounce],
     );
+
+    const handleBlur = useCallback(() => {
+      if (!dayjs(value).isValid()) {
+        onChange?.(null, { validationError: null });
+      }
+    }, [value, onChange]);
 
     const handleAccept = useCallback(
       (
@@ -76,8 +92,11 @@ const CDatePicker = React.forwardRef<HTMLInputElement, CDatePickerProps>(
     return (
       <MobileDatePicker
         ref={ref}
+        value={value}
         onChange={handleChange}
         onAccept={handleAccept}
+        minDate={minDate}
+        maxDate={maxDate}
         slotProps={{
           field: {
             clearable: clearable,
@@ -85,6 +104,7 @@ const CDatePicker = React.forwardRef<HTMLInputElement, CDatePickerProps>(
           textField: {
             helperText: helperText,
             InputLabelProps: { shrink: true },
+            onBlur: handleBlur,
             sx: {
               mt: "8px",
               "& .MuiPickersOutlinedInput-root": {
