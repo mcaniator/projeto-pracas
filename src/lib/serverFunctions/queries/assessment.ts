@@ -1,5 +1,8 @@
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type {
+  FormValues,
+  SerializedFormValues,
+} from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
@@ -250,7 +253,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
     });
 
     let totalQuestions = 0;
-    const responsesFormValues: FormValues = {};
+    const responsesFormValues: SerializedFormValues = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY

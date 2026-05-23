@@ -5,15 +5,27 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
-import dayjs, { Dayjs } from "dayjs";
-import { useRouter } from "next-nprogress-bar";
-import { useEffect, useState } from "react";
-
 import type {
   FormValues,
   ResponseFormGeometry,
+  SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
+import dayjs from "@/lib/dayjs";
+import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
+import { Dayjs } from "dayjs";
+import { useRouter } from "next-nprogress-bar";
+import { useEffect, useState } from "react";
+
+const serializeResponseFormValues = (
+  values: FormValues,
+): SerializedFormValues => {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      key,
+      dayjs.isDayjs(value) ? value.format("DD/MM/YYYY") : value,
+    ]),
+  ) as SerializedFormValues;
+};
 
 const SaveAssessmentDialog = ({
   open,
@@ -52,9 +64,10 @@ const SaveAssessmentDialog = ({
     }
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
     try {
+      const serializedFormValues = serializeResponseFormValues(formValues);
       const response = await _addResponsesV2({
         assessmentId,
-        responses: formValues,
+        responses: serializedFormValues,
         geometries: geometries,
         startDate: startDate.toDate(),
         endDate: dateTime?.toDate() ?? null,
@@ -89,7 +102,7 @@ const SaveAssessmentDialog = ({
       finalizationDateTime: dateTime ?? null,
       isFinalized: isFinalized,
       assessmentId: assessmentId,
-      responses: formValues,
+      responses: serializeResponseFormValues(formValues),
       geometries: geometries,
       driveFolderUrl: driveFolderUrl,
     };

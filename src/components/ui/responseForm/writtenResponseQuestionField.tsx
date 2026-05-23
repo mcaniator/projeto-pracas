@@ -57,7 +57,6 @@ const WrittenResponseQuestionField = ({
         <CDatePicker
           clearable
           readOnly={readOnly}
-          debounce={debounce}
           value={dayjs.isDayjs(value) ? value : null}
           onChange={(nextValue) => {
             if (nextValue === null) {

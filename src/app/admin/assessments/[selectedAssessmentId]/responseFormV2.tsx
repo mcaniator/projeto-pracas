@@ -14,8 +14,10 @@ import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSu
 import type {
   FormValues,
   ResponseFormGeometry,
+  SerializedFormValues,
   SimpleMention,
 } from "@/components/ui/responseForm/responseFormTypes";
+import dayjs from "@/lib/dayjs";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import {
   AssessmentCategoryItem,
@@ -31,23 +33,69 @@ import {
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
-import dayjs, { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useState } from "react";
+import { Dayjs } from "dayjs";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { type Control, useForm, useWatch } from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
-const isAssessmentSubcategoryItem = (
+export const isAssessmentSubcategoryItem = (
   item: AssessmentQuestionItem | AssessmentSubcategoryItem,
 ): item is AssessmentSubcategoryItem => {
   return "questions" in item;
 };
 
-const isAssessmentQuestionItem = (
+export const isAssessmentQuestionItem = (
   item: AssessmentQuestionItem | AssessmentSubcategoryItem,
 ): item is AssessmentQuestionItem => {
   return "questionId" in item && item.questionId !== null;
+};
+
+const formatResponseFormValues = (
+  values: SerializedFormValues,
+  categories: AssessmentCategoryItem[],
+): FormValues => {
+  const dateQuestionIds = new Set<string>();
+
+  categories.forEach((category) => {
+    category.categoryChildren.forEach((child) => {
+      if (isAssessmentSubcategoryItem(child)) {
+        child.questions.forEach((question) => {
+          if (
+            question.questionType === "WRITTEN" &&
+            question.characterType === "DATE"
+          ) {
+            dateQuestionIds.add(String(question.questionId));
+          }
+        });
+        return;
+      }
+
+      if (
+        isAssessmentQuestionItem(child) &&
+        child.questionType === "WRITTEN" &&
+        child.characterType === "DATE"
+      ) {
+        dateQuestionIds.add(String(child.questionId));
+      }
+    });
+  });
+
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => {
+      if (!dateQuestionIds.has(key) || value === null || dayjs.isDayjs(value)) {
+        return [key, value];
+      }
+
+      if (typeof value !== "string") {
+        return [key, null];
+      }
+
+      const dateValue = dayjs(value);
+      return [key, dateValue.isValid() ? dateValue : null];
+    }),
+  ) as FormValues;
 };
 
 const ResponseFormV2 = ({
@@ -71,7 +119,7 @@ const ResponseFormV2 = ({
     isFinalized: boolean;
     formName: string;
     totalQuestions: number;
-    responsesFormValues: FormValues;
+    responsesFormValues: SerializedFormValues;
     geometries: ResponseFormGeometry[];
     categories: AssessmentCategoryItem[];
     driveFolderUrl: string | null;
@@ -83,9 +131,17 @@ const ResponseFormV2 = ({
   onGeometriesChange?: (geometries: ResponseFormGeometry[]) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
+  const defaultResponseFormValues = useMemo(
+    () =>
+      formatResponseFormValues(
+        assessmentTree.responsesFormValues,
+        assessmentTree.categories,
+      ),
+    [assessmentTree.categories, assessmentTree.responsesFormValues],
+  );
   const { control, handleSubmit, reset } = useForm<FormValues>({
     mode: "onChange",
-    defaultValues: assessmentTree.responsesFormValues,
+    defaultValues: defaultResponseFormValues,
   });
   const [numericResponses, setNumericResponses] = useState(
     new Map<number, number>(),
@@ -190,7 +246,7 @@ const ResponseFormV2 = ({
 
       const importedData = parsed as {
         assessmentId: number;
-        responses: FormValues;
+        responses: SerializedFormValues;
         geometries?: ResponseFormGeometry[];
         endDateTime?: string | null;
         finalizationDateTime?: string | null;
@@ -200,7 +256,12 @@ const ResponseFormV2 = ({
       };
 
       if (importedData.responses) {
-        reset(importedData.responses);
+        reset(
+          formatResponseFormValues(
+            importedData.responses,
+            assessmentTree.categories,
+          ),
+        );
       }
 
       const incomingGeoms = importedData.geometries ?? [];

@@ -1,9 +1,10 @@
 "use server";
 
 import type {
-  FormValues,
   ResponseFormGeometry,
+  SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
+import dayjs from "@/lib/dayjs";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";
@@ -23,7 +24,7 @@ const _addResponsesV2 = async ({
   driveFolderUrl,
 }: {
   assessmentId: number;
-  responses: FormValues;
+  responses: SerializedFormValues;
   geometries: ResponseFormGeometry[];
   startDate: Date;
   endDate: Date | null;
@@ -93,6 +94,7 @@ const _addResponsesV2 = async ({
       select: {
         id: true,
         questionType: true,
+        characterType: true,
       },
     });
 
@@ -106,7 +108,7 @@ const _addResponsesV2 = async ({
       if (!Object.keys(responses).includes(String(q.id))) {
         throw new Error("Resposta não enviada para uma ou mais questões!");
       }
-      const response = responses[q.id];
+      let response = responses[q.id];
       if (q.questionType === "WRITTEN") {
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
@@ -114,6 +116,20 @@ const _addResponsesV2 = async ({
         if (typeof response === "boolean") {
           throw new Error("Resposta em booleana enviada para questão escrita!");
         }
+
+        //Date validation
+        if (q.characterType === "DATE") {
+          response =
+            dayjs(response, "DD/MM/YYYY", true).isValid() ? response : null;
+        } else if (q.characterType === "TIME") {
+          response = dayjs(response, "HH:mm", true).isValid() ? response : null;
+        } else if (q.characterType === "DATETIME") {
+          response =
+            dayjs(response, "DD/MM/YYYY HH:mm", true).isValid() ?
+              response
+            : null;
+        }
+
         writtenResponses.push({ questionId: q.id, value: response ?? null });
       } else if (q.questionType === "OPTIONS") {
         if (!Array.isArray(response)) {

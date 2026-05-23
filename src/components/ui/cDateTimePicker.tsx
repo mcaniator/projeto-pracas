@@ -5,6 +5,7 @@ import {
   PickerChangeHandlerContext,
 } from "@mui/x-date-pickers";
 import { PickerValue } from "@mui/x-date-pickers/internals";
+import dayjs from "dayjs";
 import React, { useCallback } from "react";
 
 type CDateTimePickerProps = MobileDateTimePickerProps & {
@@ -23,6 +24,8 @@ const CDateTimePicker = React.forwardRef<
     debounce,
     clearable,
     helperText,
+    minDate = dayjs("0100-01-01"),
+    maxDate = dayjs("9999-12-31"),
     onAccept,
     onChange,
     ...rest
@@ -88,6 +91,8 @@ const CDateTimePicker = React.forwardRef<
       ampm={ampm}
       onChange={handleChange}
       onAccept={handleAccept}
+      minDate={minDate}
+      maxDate={maxDate}
       slotProps={{
         field: {
           clearable: clearable,
