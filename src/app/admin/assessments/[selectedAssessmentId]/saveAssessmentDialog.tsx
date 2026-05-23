@@ -20,13 +20,7 @@ import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
 
-const getDateTimeResponseFormat = (
-  question: AssessmentQuestionItem,
-): string | null => {
-  if (question.questionType !== "WRITTEN") {
-    return null;
-  }
-
+const getDateTimeResponseFormat = (question: AssessmentQuestionItem) => {
   switch (question.characterType) {
     case "DATE":
       return "DD/MM/YYYY";
@@ -35,11 +29,11 @@ const getDateTimeResponseFormat = (
     case "DATETIME":
       return "DD/MM/YYYY HH:mm";
     default:
-      return null;
+      throw new Error("Tried to get date format for non-date question");
   }
 };
 
-const buildDateTimeResponseFormatByQuestionId = (
+const buildDateResponseFormatByQuestionId = (
   categories: AssessmentCategoryItem[],
 ) => {
   const formatByQuestionId = new Map<string, string>();
@@ -48,18 +42,26 @@ const buildDateTimeResponseFormatByQuestionId = (
     category.categoryChildren.forEach((child) => {
       if ("questions" in child) {
         child.questions.forEach((question) => {
-          const format = getDateTimeResponseFormat(question);
+          if (
+            question.questionType === "WRITTEN" &&
+            (question.characterType === "DATE" ||
+              question.characterType === "TIME" ||
+              question.characterType === "DATETIME")
+          ) {
+            const format = getDateTimeResponseFormat(question);
 
-          if (format) {
             formatByQuestionId.set(String(question.questionId), format);
           }
         });
         return;
       }
-
-      const format = getDateTimeResponseFormat(child);
-
-      if (format) {
+      if (
+        child.questionType === "WRITTEN" &&
+        (child.characterType === "DATE" ||
+          child.characterType === "TIME" ||
+          child.characterType === "DATETIME")
+      ) {
+        const format = getDateTimeResponseFormat(child);
         formatByQuestionId.set(String(child.questionId), format);
       }
     });
@@ -71,8 +73,9 @@ const buildDateTimeResponseFormatByQuestionId = (
 const serializeResponseFormValues = (
   values: FormValues,
   categories: AssessmentCategoryItem[],
-): SerializedFormValues => {
-  const formatByQuestionId = buildDateTimeResponseFormatByQuestionId(categories);
+) => {
+  const dateFormatByQuestionId =
+    buildDateResponseFormatByQuestionId(categories);
 
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => {
@@ -80,7 +83,7 @@ const serializeResponseFormValues = (
         return [key, value];
       }
 
-      const format = formatByQuestionId.get(key);
+      const format = dateFormatByQuestionId.get(key);
 
       return [key, format && value.isValid() ? value.format(format) : null];
     }),

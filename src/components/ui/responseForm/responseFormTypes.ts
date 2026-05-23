@@ -23,11 +23,11 @@ export type SerializedResponseQuestionValue = Exclude<
   ResponseQuestionValue,
   Dayjs
 >;
-
+// Each key is a question id. react-hook-form expects the key to be a string
 export type FormValues = {
   [key: string]: ResponseQuestionValue;
 };
-
+// Each key is a question id. Serialized values are not use with react-hook-form, but we mantain the same structure
 export type SerializedFormValues = {
   [key: string]: SerializedResponseQuestionValue;
 };

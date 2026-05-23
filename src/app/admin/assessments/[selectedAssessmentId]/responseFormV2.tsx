@@ -59,7 +59,7 @@ const deserializeResponseFormValues = (
   values: SerializedFormValues,
   categories: AssessmentCategoryItem[],
 ): FormValues => {
-  //We need to map all date questions to construct their dayjs objects based on their seriealized values
+  //We need to map all date questions to construct their dayjs objects based on their serialized values
   const dateQuestionsMap = new Map<number, QuestionResponseCharacterTypes>();
 
   categories.forEach((category) => {
