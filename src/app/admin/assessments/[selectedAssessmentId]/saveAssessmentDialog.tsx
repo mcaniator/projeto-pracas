@@ -11,19 +11,79 @@ import type {
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import type {
+  AssessmentCategoryItem,
+  AssessmentQuestionItem,
+} from "@/lib/serverFunctions/queries/assessment";
 import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
 import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
 
+const getDateTimeResponseFormat = (
+  question: AssessmentQuestionItem,
+): string | null => {
+  if (question.questionType !== "WRITTEN") {
+    return null;
+  }
+
+  switch (question.characterType) {
+    case "DATE":
+      return "DD/MM/YYYY";
+    case "TIME":
+      return "HH:mm";
+    case "DATETIME":
+      return "DD/MM/YYYY HH:mm";
+    default:
+      return null;
+  }
+};
+
+const buildDateTimeResponseFormatByQuestionId = (
+  categories: AssessmentCategoryItem[],
+) => {
+  const formatByQuestionId = new Map<string, string>();
+
+  categories.forEach((category) => {
+    category.categoryChildren.forEach((child) => {
+      if ("questions" in child) {
+        child.questions.forEach((question) => {
+          const format = getDateTimeResponseFormat(question);
+
+          if (format) {
+            formatByQuestionId.set(String(question.questionId), format);
+          }
+        });
+        return;
+      }
+
+      const format = getDateTimeResponseFormat(child);
+
+      if (format) {
+        formatByQuestionId.set(String(child.questionId), format);
+      }
+    });
+  });
+
+  return formatByQuestionId;
+};
+
 const serializeResponseFormValues = (
   values: FormValues,
+  categories: AssessmentCategoryItem[],
 ): SerializedFormValues => {
+  const formatByQuestionId = buildDateTimeResponseFormatByQuestionId(categories);
+
   return Object.fromEntries(
-    Object.entries(values).map(([key, value]) => [
-      key,
-      dayjs.isDayjs(value) ? value.format("DD/MM/YYYY") : value,
-    ]),
+    Object.entries(values).map(([key, value]) => {
+      if (!dayjs.isDayjs(value)) {
+        return [key, value];
+      }
+
+      const format = formatByQuestionId.get(key);
+
+      return [key, format && value.isValid() ? value.format(format) : null];
+    }),
   ) as SerializedFormValues;
 };
 
@@ -37,6 +97,7 @@ const SaveAssessmentDialog = ({
   importedIsFinalized,
   startDate,
   driveFolderUrl,
+  categories,
   onClose,
 }: {
   open: boolean;
@@ -48,6 +109,7 @@ const SaveAssessmentDialog = ({
   importedIsFinalized: boolean;
   startDate: Dayjs;
   driveFolderUrl: string | null;
+  categories: AssessmentCategoryItem[];
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -64,7 +126,10 @@ const SaveAssessmentDialog = ({
     }
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
     try {
-      const serializedFormValues = serializeResponseFormValues(formValues);
+      const serializedFormValues = serializeResponseFormValues(
+        formValues,
+        categories,
+      );
       const response = await _addResponsesV2({
         assessmentId,
         responses: serializedFormValues,
@@ -102,7 +167,7 @@ const SaveAssessmentDialog = ({
       finalizationDateTime: dateTime ?? null,
       isFinalized: isFinalized,
       assessmentId: assessmentId,
-      responses: serializeResponseFormValues(formValues),
+      responses: serializeResponseFormValues(formValues, categories),
       geometries: geometries,
       driveFolderUrl: driveFolderUrl,
     };

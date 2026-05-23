@@ -43,7 +43,10 @@ const QuestionResponseRenderer = ({
   }
 
   if (
-    (question.characterType === "TEXT" || question.characterType === "DATE") &&
+    (question.characterType === "TEXT" ||
+      question.characterType === "DATE" ||
+      question.characterType === "TIME" ||
+      question.characterType === "DATETIME") &&
     resolvedValue.kind === "text"
   ) {
     return (

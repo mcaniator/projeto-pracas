@@ -25,9 +25,12 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import { Typography } from "@mui/material";
+import { Chip } from "@mui/material";
+import { QuestionResponseCharacterTypes } from "@prisma/client";
 import {
+  IconAlertTriangle,
   IconBrandGoogleDrive,
+  IconCheck,
   IconDeviceFloppy,
   IconPencil,
   IconTrash,
@@ -52,11 +55,12 @@ export const isAssessmentQuestionItem = (
   return "questionId" in item && item.questionId !== null;
 };
 
-const formatResponseFormValues = (
+const deserializeResponseFormValues = (
   values: SerializedFormValues,
   categories: AssessmentCategoryItem[],
 ): FormValues => {
-  const dateQuestionIds = new Set<string>();
+  //We need to map all date questions to construct their dayjs objects based on their seriealized values
+  const dateQuestionsMap = new Map<number, QuestionResponseCharacterTypes>();
 
   categories.forEach((category) => {
     category.categoryChildren.forEach((child) => {
@@ -64,9 +68,11 @@ const formatResponseFormValues = (
         child.questions.forEach((question) => {
           if (
             question.questionType === "WRITTEN" &&
-            question.characterType === "DATE"
+            (question.characterType === "DATE" ||
+              question.characterType === "TIME" ||
+              question.characterType === "DATETIME")
           ) {
-            dateQuestionIds.add(String(question.questionId));
+            dateQuestionsMap.set(question.questionId, question.characterType);
           }
         });
         return;
@@ -75,16 +81,19 @@ const formatResponseFormValues = (
       if (
         isAssessmentQuestionItem(child) &&
         child.questionType === "WRITTEN" &&
-        child.characterType === "DATE"
+        (child.characterType === "DATE" ||
+          child.characterType === "TIME" ||
+          child.characterType === "DATETIME")
       ) {
-        dateQuestionIds.add(String(child.questionId));
+        dateQuestionsMap.set(child.questionId, child.characterType);
       }
     });
   });
 
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => {
-      if (!dateQuestionIds.has(key) || value === null || dayjs.isDayjs(value)) {
+      const questionDateType = dateQuestionsMap.get(Number(key));
+      if (!questionDateType || value === null) {
         return [key, value];
       }
 
@@ -92,8 +101,21 @@ const formatResponseFormValues = (
         return [key, null];
       }
 
-      const dateValue = dayjs(value);
-      return [key, dateValue.isValid() ? dateValue : null];
+      if (questionDateType === "DATE") {
+        const dateValue = dayjs(value, "DD/MM/YYYY", true);
+        return [key, dateValue.isValid() ? dateValue : null];
+      }
+      if (questionDateType === "TIME") {
+        const dateValue = dayjs(value, "HH:mm", true);
+        return [key, dateValue.isValid() ? dateValue : null];
+      }
+
+      if (questionDateType === "DATETIME") {
+        const dateValue = dayjs(value, "DD/MM/YYYY HH:mm", true);
+        return [key, dateValue.isValid() ? dateValue : null];
+      }
+
+      throw new Error("Untreatable value found");
     }),
   ) as FormValues;
 };
@@ -133,7 +155,7 @@ const ResponseFormV2 = ({
   const { setHelperCard } = useHelperCard();
   const defaultResponseFormValues = useMemo(
     () =>
-      formatResponseFormValues(
+      deserializeResponseFormValues(
         assessmentTree.responsesFormValues,
         assessmentTree.categories,
       ),
@@ -257,7 +279,7 @@ const ResponseFormV2 = ({
 
       if (importedData.responses) {
         reset(
-          formatResponseFormValues(
+          deserializeResponseFormValues(
             importedData.responses,
             assessmentTree.categories,
           ),
@@ -305,7 +327,6 @@ const ResponseFormV2 = ({
         value === undefined ? null : value,
       ]),
     ) as FormValues;
-
     Object.entries(normalizedValues).forEach(([key, val]) => {
       if (typeof val === "number") {
         numericResponses.set(Number(key), val);
@@ -313,7 +334,8 @@ const ResponseFormV2 = ({
       if (
         val != null &&
         val !== "" &&
-        (!(val instanceof Array) || val.length > 0)
+        (!(val instanceof Array) || val.length > 0) &&
+        (!dayjs.isDayjs(val) || val.isValid())
       ) {
         filledFieldsCounter++;
       }
@@ -471,9 +493,14 @@ const ResponseFormV2 = ({
         />
       ))}
 
-      <Typography mt={2} className="text-black">
-        Campos preenchidos: {filledCount} / {totalQuestions}
-      </Typography>
+      <Chip
+        label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
+        icon={
+          filledCount < totalQuestions ? <IconAlertTriangle /> : <IconCheck />
+        }
+        color={filledCount < totalQuestions ? "warning" : "success"}
+      />
+
       {isFilling && !isPreview && (
         <div className="flew-row flex justify-center gap-1">
           <CButton type="submit">
@@ -495,6 +522,7 @@ const ResponseFormV2 = ({
             importedIsFinalized={importedIsFinalized}
             startDate={startDate}
             driveFolderUrl={driveFolderUrl}
+            categories={assessmentTree.categories}
             onClose={() => {
               setOpenSaveDialog(false);
             }}

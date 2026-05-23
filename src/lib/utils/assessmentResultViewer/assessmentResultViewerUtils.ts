@@ -142,7 +142,14 @@ export const resolveQuestionValue = (
   }
 
   if (dayjs.isDayjs(rawValue)) {
-    return { kind: "text", values: [rawValue.format("DD/MM/YYYY")] };
+    switch (question.characterType) {
+      case "DATE":
+        return { kind: "text", values: [rawValue.format("DD/MM/YYYY")] };
+      case "TIME":
+        return { kind: "text", values: [rawValue.format("HH:mm")] };
+      case "DATETIME":
+        return { kind: "text", values: [rawValue.format("DD/MM/YYYY HH:mm")] };
+    }
   }
 
   return { kind: "none" };

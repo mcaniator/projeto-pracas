@@ -1,6 +1,8 @@
 import CDatePicker from "@/components/ui/cDatePicker";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
 import CTextField from "@/components/ui/cTextField";
+import CTimePicker from "@/components/ui/cTimePicker";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import dayjs from "dayjs";
 
@@ -55,6 +57,36 @@ const WrittenResponseQuestionField = ({
     case "DATE":
       return (
         <CDatePicker
+          clearable
+          readOnly={readOnly}
+          value={dayjs.isDayjs(value) ? value : null}
+          onChange={(nextValue) => {
+            if (nextValue === null) {
+              onChange(dayjs(""));
+            } else {
+              onChange(nextValue);
+            }
+          }}
+        />
+      );
+    case "TIME":
+      return (
+        <CTimePicker
+          clearable
+          readOnly={readOnly}
+          value={dayjs.isDayjs(value) ? value : null}
+          onChange={(nextValue) => {
+            if (nextValue === null) {
+              onChange(dayjs(""));
+            } else {
+              onChange(nextValue);
+            }
+          }}
+        />
+      );
+    case "DATETIME":
+      return (
+        <CDateTimePicker
           clearable
           readOnly={readOnly}
           value={dayjs.isDayjs(value) ? value : null}
