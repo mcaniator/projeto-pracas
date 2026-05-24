@@ -148,7 +148,19 @@ const QuestionCreation = ({
           { text: "Ótimo" },
         ]);
         break;
+      case "WEEKDAY":
+        setAddedOptions([
+          { text: "Domingo" },
+          { text: "Segunda-feira" },
+          { text: "Terça-feira" },
+          { text: "Quarta-feira" },
+          { text: "Quinta-feira" },
+          { text: "Sexta-feira" },
+          { text: "Sábado" },
+        ]);
+        break;
       default:
+        setAddedOptions([]);
         break;
     }
     setQuestionTemplate(template);

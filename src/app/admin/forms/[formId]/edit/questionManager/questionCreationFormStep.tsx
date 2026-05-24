@@ -1,4 +1,7 @@
+import CDatePicker from "@/components/ui/cDatePicker";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CIconChip from "@/components/ui/cIconChip";
+import CTimePicker from "@/components/ui/cTimePicker";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import { shouldShowScaleOptionsSection } from "@/lib/utils/questionCreationUtils";
 import CButton from "@components/ui/cButton";
@@ -252,6 +255,7 @@ const QuestionCreationFormStep = ({
             options={characterTypeOptions}
             value={characterType}
             onChange={(e) => {
+              onAddedOptionsChange([]);
               onCharacterTypeChange(e);
             }}
             getOptionValue={(i) => i.value}
@@ -316,7 +320,10 @@ const QuestionCreationFormStep = ({
                   ((
                     characterType === "SCALE" ||
                     characterType === "PERCENTAGE" ||
-                    characterType === "NUMBER"
+                    characterType === "NUMBER" ||
+                    characterType === "DATE" ||
+                    characterType === "TIME" ||
+                    characterType === "DATETIME"
                   ) ?
                     <input type="hidden" value="FREE" />
                   : <CRadioGroup
@@ -331,13 +338,23 @@ const QuestionCreationFormStep = ({
                       }}
                       options={
                         selectionType === "CHECKBOX" ?
-                          [{ value: "FREE", label: "Livre" }]
+                          [
+                            { value: "FREE", label: "Livre" },
+                            {
+                              value: "WEEKDAY",
+                              label: "Dias da semana",
+                            },
+                          ]
                         : [
                             { value: "FREE", label: "Livre" },
                             { value: "YES_NO", label: "Sim ou não" },
                             {
                               value: "QUALITY_SCALE",
                               label: "Escala de qualidade",
+                            },
+                            {
+                              value: "WEEKDAY",
+                              label: "Dias da semana",
                             },
                           ]
                       }
@@ -425,13 +442,11 @@ const QuestionCreationFormStep = ({
                           Digite as opções:
                         </div>
                         <div className="flex w-full items-center">
-                          {(
-                            characterType === "NUMBER" ||
+                          {(characterType === "NUMBER" ||
                             characterType === "PERCENTAGE" ||
-                            characterType === "SCALE"
-                          ) ?
+                            characterType === "SCALE") && (
                             <CNumberField
-                              className="w-full"
+                              fullWidth
                               endAdornment={
                                 characterType === "PERCENTAGE" ? "%" : ""
                               }
@@ -446,14 +461,45 @@ const QuestionCreationFormStep = ({
                                 );
                               }}
                             />
-                          : <CTextField
+                          )}
+                          {characterType === "DATE" && (
+                            <CDatePicker
                               className="w-full"
+                              onChange={(e) => {
+                                onCurrentOptionChange(
+                                  e?.format("DD/MM/YYYY") ?? "",
+                                );
+                              }}
+                            />
+                          )}
+                          {characterType === "TIME" && (
+                            <CTimePicker
+                              className="w-full"
+                              onChange={(e) => {
+                                onCurrentOptionChange(e?.format("HH:mm") ?? "");
+                              }}
+                            />
+                          )}
+                          {characterType === "DATETIME" && (
+                            <CDateTimePicker
+                              className="w-full"
+                              onChange={(e) => {
+                                onCurrentOptionChange(
+                                  e?.format("DD/MM/YYYY HH:mm") ?? "",
+                                );
+                              }}
+                            />
+                          )}
+                          {characterType === "TEXT" && (
+                            <CTextField
+                              fullWidth
                               value={currentOption}
                               onChange={(e) => {
                                 onCurrentOptionChange(e.target.value);
                               }}
                             />
-                          }
+                          )}
+
                           <CButton
                             sx={{ ml: "4px" }}
                             square
@@ -512,7 +558,8 @@ const QuestionCreationFormStep = ({
                       return (
                         <li
                           key={option.text}
-                          className="flex items-center rounded-md bg-white p-2 outline outline-1 outline-black"
+                          className="flex items-center rounded-md bg-white px-2 outline outline-1 outline-black"
+                          style={{ height: "52px" }}
                         >
                           {(
                             characterType === "NUMBER" ||
@@ -523,18 +570,19 @@ const QuestionCreationFormStep = ({
                             `${characterType === "PERCENTAGE" ? "%" : ""}`
                           : option.text}
 
-                          <CButton
-                            className="ml-auto"
-                            square
-                            color="error"
-                            variant="text"
-                            disabled={
-                              questionTemplate !== "FREE" || isQuestionUsed
-                            }
-                            onClick={() => onRemoveOption(option.text)}
-                          >
-                            <IconTrash />
-                          </CButton>
+                          {questionTemplate === "FREE" && (
+                            <CButton
+                              className="ml-auto"
+                              square
+                              color="error"
+                              variant="text"
+                              disabled={isQuestionUsed}
+                              onClick={() => onRemoveOption(option.text)}
+                            >
+                              <IconTrash />
+                            </CButton>
+                          )}
+
                           <input
                             type="hidden"
                             name="options"
