@@ -237,14 +237,20 @@ const QuestionCreation = ({
   }, [open, question, fetchQuestionUses]);
 
   useEffect(() => {
-    if (
-      type === "OPTIONS" &&
-      (characterType === "SCALE" ||
+    if (type === "OPTIONS") {
+      if (
+        characterType === "SCALE" ||
         characterType === "NUMBER" ||
-        characterType === "PERCENTAGE")
-    ) {
-      setSelectionType("RADIO");
-      setQuestionTemplate("FREE");
+        characterType === "PERCENTAGE" ||
+        characterType === "DATE" ||
+        characterType === "TIME" ||
+        characterType === "DATETIME"
+      ) {
+        setQuestionTemplate("FREE");
+      }
+      if (characterType === "SCALE") {
+        setSelectionType("RADIO");
+      }
     }
   }, [type, characterType]);
 

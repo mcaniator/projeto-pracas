@@ -18,7 +18,8 @@ import {
   IconPlus,
   IconTrash,
 } from "@tabler/icons-react";
-import { ReactNode } from "react";
+import { Dayjs } from "dayjs";
+import { ReactNode, useState } from "react";
 
 import type { ScaleOptionMode } from "./questionCreationTypes";
 import QuestionIconPicker from "./questionIconPicker";
@@ -126,6 +127,7 @@ const QuestionCreationFormStep = ({
   onScaleStepChange: (value: number | null) => void;
   showError: (content: ReactNode) => void;
 }) => {
+  const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(null);
   return (
     <div className="flex w-full flex-col rounded-l">
       <h5 className="text-base font-semibold sm:text-xl">
@@ -256,6 +258,7 @@ const QuestionCreationFormStep = ({
             value={characterType}
             onChange={(e) => {
               onAddedOptionsChange([]);
+              onSelectionTypeChange(null);
               onCharacterTypeChange(e);
             }}
             getOptionValue={(i) => i.value}
@@ -435,116 +438,132 @@ const QuestionCreationFormStep = ({
                           </CButton>
                         </div>
                       )}
-                    {(characterType !== "SCALE" ||
-                      scaleOptionMode === "MANUAL") && (
-                      <>
-                        <div className="mt-1 font-semibold">
-                          Digite as opções:
-                        </div>
-                        <div className="flex w-full items-center">
-                          {(characterType === "NUMBER" ||
-                            characterType === "PERCENTAGE" ||
-                            characterType === "SCALE") && (
-                            <CNumberField
-                              fullWidth
-                              endAdornment={
-                                characterType === "PERCENTAGE" ? "%" : ""
-                              }
-                              value={
-                                currentOption.length > 0 ?
-                                  Number(currentOption)
-                                : null
-                              }
-                              onChange={(val) => {
-                                onCurrentOptionChange(
-                                  val != null ? String(val) : "",
-                                );
-                              }}
-                            />
-                          )}
-                          {characterType === "DATE" && (
-                            <CDatePicker
-                              className="w-full"
-                              onChange={(e) => {
-                                onCurrentOptionChange(
-                                  e?.format("DD/MM/YYYY") ?? "",
-                                );
-                              }}
-                            />
-                          )}
-                          {characterType === "TIME" && (
-                            <CTimePicker
-                              className="w-full"
-                              onChange={(e) => {
-                                onCurrentOptionChange(e?.format("HH:mm") ?? "");
-                              }}
-                            />
-                          )}
-                          {characterType === "DATETIME" && (
-                            <CDateTimePicker
-                              className="w-full"
-                              onChange={(e) => {
-                                onCurrentOptionChange(
-                                  e?.format("DD/MM/YYYY HH:mm") ?? "",
-                                );
-                              }}
-                            />
-                          )}
-                          {characterType === "TEXT" && (
-                            <CTextField
-                              fullWidth
-                              value={currentOption}
-                              onChange={(e) => {
-                                onCurrentOptionChange(e.target.value);
-                              }}
-                            />
-                          )}
+                    {!!selectionType &&
+                      (characterType !== "SCALE" ||
+                        scaleOptionMode === "MANUAL") && (
+                        <>
+                          <div className="mt-1 font-semibold">
+                            Digite as opções:
+                          </div>
+                          <div className="flex w-full items-center">
+                            {(characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE" ||
+                              characterType === "SCALE") && (
+                              <CNumberField
+                                fullWidth
+                                clearable
+                                endAdornment={
+                                  characterType === "PERCENTAGE" ? "%" : ""
+                                }
+                                value={
+                                  currentOption.length > 0 ?
+                                    Number(currentOption)
+                                  : null
+                                }
+                                onChange={(val) => {
+                                  onCurrentOptionChange(
+                                    val != null ? String(val) : "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "DATE" && (
+                              <CDatePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("DD/MM/YYYY") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "TIME" && (
+                              <CTimePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("HH:mm") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "DATETIME" && (
+                              <CDateTimePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("DD/MM/YYYY HH:mm") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "TEXT" && (
+                              <CTextField
+                                fullWidth
+                                clearable
+                                value={currentOption}
+                                onChange={(e) => {
+                                  onCurrentOptionChange(e.target.value);
+                                }}
+                              />
+                            )}
 
-                          <CButton
-                            sx={{ ml: "4px" }}
-                            square
-                            disabled={currentOption === ""}
-                            onClick={() => {
-                              const parsed = Number(currentOption);
-                              if (
-                                characterType === "SCALE" &&
-                                (Number.isNaN(parsed) ||
-                                  minValue === null ||
-                                  maxValue === null ||
-                                  parsed < minValue ||
-                                  parsed > maxValue)
-                              ) {
-                                showError(
-                                  <>
-                                    Informe um número dentro do intervalo da
-                                    escala.
-                                  </>,
-                                );
-                                return;
-                              }
-                              if (addedOptions != undefined) {
+                            <CButton
+                              sx={{ ml: "4px" }}
+                              square
+                              disabled={currentOption === ""}
+                              onClick={() => {
+                                const parsed = Number(currentOption);
                                 if (
-                                  !addedOptions.some(
-                                    (opt) => opt.text === currentOption,
-                                  )
+                                  characterType === "SCALE" &&
+                                  (Number.isNaN(parsed) ||
+                                    minValue === null ||
+                                    maxValue === null ||
+                                    parsed < minValue ||
+                                    parsed > maxValue)
                                 ) {
+                                  showError(
+                                    <>
+                                      Informe um número dentro do intervalo da
+                                      escala.
+                                    </>,
+                                  );
+                                  return;
+                                }
+                                if (addedOptions != undefined) {
+                                  if (
+                                    !addedOptions.some(
+                                      (opt) => opt.text === currentOption,
+                                    )
+                                  ) {
+                                    onAddedOptionsChange([
+                                      ...addedOptions,
+                                      { text: currentOption },
+                                    ]);
+                                  }
+                                } else {
                                   onAddedOptionsChange([
-                                    ...addedOptions,
                                     { text: currentOption },
                                   ]);
                                 }
-                              } else {
-                                onAddedOptionsChange([{ text: currentOption }]);
-                              }
-
-                              onCurrentOptionChange("");
-                            }}
-                          >
-                            <IconPlus />
-                          </CButton>
-                        </div>
-                      </>
-                    )}
+                                setDatePickerValue(null);
+                                onCurrentOptionChange("");
+                              }}
+                            >
+                              <IconPlus />
+                            </CButton>
+                          </div>
+                        </>
+                      )}
                   </>
                 )}
 
