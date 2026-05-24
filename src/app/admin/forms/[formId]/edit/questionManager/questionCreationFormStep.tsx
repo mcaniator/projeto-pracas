@@ -42,6 +42,19 @@ const scaleOptionModeOptions: { value: ScaleOptionMode; label: string }[] = [
   { value: "STEP", label: "Gerar por passo" },
 ];
 
+const usesFreeOptionsOnly = (
+  characterType: QuestionResponseCharacterTypes | null,
+) => {
+  return (
+    characterType === "SCALE" ||
+    characterType === "PERCENTAGE" ||
+    characterType === "NUMBER" ||
+    characterType === "DATE" ||
+    characterType === "TIME" ||
+    characterType === "DATETIME"
+  );
+};
+
 const QuestionCreationFormStep = ({
   categoryId,
   categoryName,
@@ -256,10 +269,24 @@ const QuestionCreationFormStep = ({
             readOnly={isQuestionUsed}
             options={characterTypeOptions}
             value={characterType}
-            onChange={(e) => {
+            onChange={(nextCharacterType) => {
               onAddedOptionsChange([]);
-              onSelectionTypeChange(null);
-              onCharacterTypeChange(e);
+              onCurrentOptionChange("");
+              setDatePickerValue(null);
+              if (type === "OPTIONS") {
+                if (usesFreeOptionsOnly(nextCharacterType)) {
+                  onQuestionTemplateChange("FREE");
+                } else {
+                  onQuestionTemplateChange("");
+                }
+
+                if (nextCharacterType === "SCALE") {
+                  onSelectionTypeChange("RADIO");
+                } else {
+                  onSelectionTypeChange(null);
+                }
+              }
+              onCharacterTypeChange(nextCharacterType);
             }}
             getOptionValue={(i) => i.value}
             getOptionLabel={(i) => i.label}
@@ -312,7 +339,13 @@ const QuestionCreationFormStep = ({
                     ]
                 }
                 value={selectionType}
-                onChange={onSelectionTypeChange}
+                onChange={(value) => {
+                  onSelectionTypeChange(value);
+
+                  if (value && usesFreeOptionsOnly(characterType)) {
+                    onQuestionTemplateChange("FREE");
+                  }
+                }}
                 getOptionValue={(i) => i.value}
                 getOptionLabel={(i) => i.label}
               />
@@ -320,16 +353,8 @@ const QuestionCreationFormStep = ({
               <div className="flex flex-col">
                 {selectionType &&
                   selectionType.length > 0 &&
-                  ((
-                    characterType === "SCALE" ||
-                    characterType === "PERCENTAGE" ||
-                    characterType === "NUMBER" ||
-                    characterType === "DATE" ||
-                    characterType === "TIME" ||
-                    characterType === "DATETIME"
-                  ) ?
-                    <input type="hidden" value="FREE" />
-                  : <CRadioGroup
+                  !usesFreeOptionsOnly(characterType) && (
+                    <CRadioGroup
                       label="Tipo de opções"
                       value={questionTemplate}
                       readOnly={isQuestionUsed}
@@ -363,7 +388,8 @@ const QuestionCreationFormStep = ({
                       }
                       getOptionLabel={(i) => i.label}
                       getOptionValue={(i) => i.value}
-                    />)}
+                    />
+                  )}
 
                 {questionTemplate === "FREE" && !isQuestionUsed && (
                   <>
@@ -438,7 +464,7 @@ const QuestionCreationFormStep = ({
                           </CButton>
                         </div>
                       )}
-                    {!!selectionType &&
+                    {selectionType !== null &&
                       (characterType !== "SCALE" ||
                         scaleOptionMode === "MANUAL") && (
                         <>

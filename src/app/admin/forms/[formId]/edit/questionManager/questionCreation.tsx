@@ -236,24 +236,6 @@ const QuestionCreation = ({
     setReloadOnClose(false);
   }, [open, question, fetchQuestionUses]);
 
-  useEffect(() => {
-    if (type === "OPTIONS") {
-      if (
-        characterType === "SCALE" ||
-        characterType === "NUMBER" ||
-        characterType === "PERCENTAGE" ||
-        characterType === "DATE" ||
-        characterType === "TIME" ||
-        characterType === "DATETIME"
-      ) {
-        setQuestionTemplate("FREE");
-      }
-      if (characterType === "SCALE") {
-        setSelectionType("RADIO");
-      }
-    }
-  }, [type, characterType]);
-
   const showError = (content: ReactNode) => {
     setHelperCard({
       show: true,
