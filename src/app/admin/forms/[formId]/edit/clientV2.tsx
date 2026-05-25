@@ -11,7 +11,10 @@ import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
-import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
+import {
+  OptionForQuestionPicker,
+  QuestionPickerQuestionToAdd,
+} from "@customTypes/forms/formCreation";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import {
   OptionTypes,
@@ -61,10 +64,7 @@ export type QuestionItem = {
   optionType?: OptionTypes | null;
   categoryName: string;
   subcategoryName: string | null;
-  options?: {
-    id: number;
-    text: string;
-  }[];
+  options?: OptionForQuestionPicker[];
   scaleConfig: {
     minValue: number;
     maxValue: number;

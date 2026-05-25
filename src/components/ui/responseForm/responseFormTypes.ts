@@ -1,4 +1,5 @@
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
 import { Dayjs } from "dayjs";
 
 export type ResponseFormGeometry = {
@@ -14,15 +15,24 @@ export type SimpleMention = {
 export type ResponseQuestionValue =
   | string
   | number
-  | number[]
+  | AssessmentOptionValueWithOverride
+  | AssessmentOptionValueWithOverride[]
   | boolean
   | Dayjs
   | null;
 
-export type SerializedResponseQuestionValue = Exclude<
-  ResponseQuestionValue,
-  Dayjs
->;
+export type SerializedOptionValueWithOverride = {
+  value: number;
+  override: string | null;
+};
+
+export type SerializedResponseQuestionValue =
+  | string
+  | number
+  | AssessmentOptionValueWithOverride
+  | SerializedOptionValueWithOverride[]
+  | boolean
+  | null;
 // Each key is a question id. react-hook-form expects the key to be a string
 export type FormValues = {
   [key: string]: ResponseQuestionValue;
@@ -31,3 +41,23 @@ export type FormValues = {
 export type SerializedFormValues = {
   [key: string]: SerializedResponseQuestionValue;
 };
+
+export function isAssessmentOptionValueWithOverride(
+  rawValue: ResponseQuestionValue | undefined,
+): rawValue is AssessmentOptionValueWithOverride {
+  return (
+    rawValue !== undefined &&
+    rawValue !== null &&
+    typeof rawValue === "object" &&
+    "value" in rawValue &&
+    "override" in rawValue
+  );
+}
+
+export function isAssessmentOptionValueWithOverrideArray(
+  value: unknown,
+): value is AssessmentOptionValueWithOverride[] {
+  return (
+    Array.isArray(value) && value.every(isAssessmentOptionValueWithOverride)
+  );
+}

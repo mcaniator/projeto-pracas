@@ -8,6 +8,21 @@ import { ZodError } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
+const parseQuestionOptions = (formData: FormData, questionId: number) => {
+  const optionTexts = formData.getAll("options");
+  const isOverridableValues = formData.getAll("optionIsOverridable");
+
+  return optionTexts.map((optionText, index) => {
+    const isOverridable = isOverridableValues[index] === "true";
+
+    return {
+      text: String(optionText),
+      questionId,
+      isOverridable,
+    };
+  });
+};
+
 const _questionSubmit = async (
   prevState: {
     responseInfo: APIResponseInfo;
@@ -211,9 +226,9 @@ const _questionSubmit = async (
           };
         }
 
-        const rawOptions = formData.getAll("options");
+        const rawOptions = parseQuestionOptions(formData, 0);
         if (questionCharacterType === "SCALE" && scaleBounds) {
-          const parsedOptions = rawOptions.map((value) => Number(value));
+          const parsedOptions = rawOptions.map((option) => Number(option.text));
           if (parsedOptions.some((value) => !Number.isFinite(value))) {
             return {
               responseInfo: {
@@ -233,6 +248,17 @@ const _questionSubmit = async (
               responseInfo: {
                 statusCode: 400,
                 message: "Dados inválidos para registrar questão!",
+              },
+              data: null,
+            };
+          }
+        }
+        if (questionCharacterType !== "TEXT") {
+          if (rawOptions.some((o) => o.isOverridable)) {
+            return {
+              responseInfo: {
+                statusCode: 400,
+                message: "Sobrescrita de valor usar em questão não textual!",
               },
               data: null,
             };
@@ -264,8 +290,8 @@ const _questionSubmit = async (
             });
           }
 
-          const options = rawOptions.map((value) => ({
-            text: value,
+          const options = rawOptions.map((option) => ({
+            ...option,
             questionId: newQuestion.id,
           }));
 
@@ -327,10 +353,7 @@ const _questionUpdate = async (
     const notes = (formData.get("notes") as string | null) ?? "";
     const iconKey = formData.get("iconKey");
     const isPublic = formData.get("isPublic") === "true";
-    const rawOptions = formData.getAll("options").map((option) => ({
-      text: String(option),
-      questionId,
-    }));
+    const rawOptions = parseQuestionOptions(formData, questionId);
     const scaleBounds =
       questionCharacterType === "SCALE" ?
         {

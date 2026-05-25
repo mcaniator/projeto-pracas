@@ -1,7 +1,9 @@
 import { type ResolvedQuestionValue } from "@/components/ui/assessment/questionResponseRenderer";
-import type {
-  FormValues,
-  ResponseQuestionValue,
+import {
+  type FormValues,
+  type ResponseQuestionValue,
+  isAssessmentOptionValueWithOverride,
+  isAssessmentOptionValueWithOverrideArray,
 } from "@/components/ui/responseForm/responseFormTypes";
 import {
   AssessmentCategoryItem,
@@ -30,38 +32,31 @@ const getQuestionOptionTextMap = (question: AssessmentQuestionItem) => {
 const resolveSelectedOptionTexts = (
   question: AssessmentQuestionItem,
   rawValue: ResponseQuestionValue | undefined,
-) => {
+): string[] => {
   const optionTextMap = getQuestionOptionTextMap(question);
-
   if (question.optionType === "RADIO") {
-    if (rawValue === null || rawValue === undefined) {
-      return [];
+    if (isAssessmentOptionValueWithOverride(rawValue)) {
+      const computedValue =
+        rawValue.override !== null && rawValue.override.length > 0 ?
+          rawValue.override
+        : (optionTextMap.get(rawValue.value) ?? null);
+      return computedValue ? [computedValue] : [];
     }
-
-    const optionId = Number(rawValue);
-    if (Number.isNaN(optionId)) {
-      return [];
+    return [];
+  } else if (question.optionType === "CHECKBOX") {
+    if (isAssessmentOptionValueWithOverrideArray(rawValue)) {
+      return rawValue
+        .map((opt) => {
+          const computedValue =
+            opt.override !== null && opt.override.length > 0 ?
+              opt.override
+            : (optionTextMap.get(opt.value) ?? null);
+          return computedValue;
+        })
+        .filter((o) => o !== null);
     }
-
-    const optionText = optionTextMap.get(optionId);
-    return optionText !== undefined && optionText.trim().length > 0 ?
-        [optionText]
-      : [];
+    return [];
   }
-
-  if (question.optionType === "CHECKBOX") {
-    if (!Array.isArray(rawValue)) {
-      return [];
-    }
-
-    return rawValue
-      .map((optionId) => optionTextMap.get(optionId))
-      .filter(
-        (optionText): optionText is string =>
-          optionText !== undefined && optionText.trim().length > 0,
-      );
-  }
-
   return [];
 };
 
@@ -71,7 +66,7 @@ export const resolveQuestionValue = (
 ): ResolvedQuestionValue => {
   //dayjs value should only happen for for written date questions in preview, as the value is stored as a dayjs object in the form state.
   //For options date questions, the value is stored as a string of format DD/MM/YYYY in the form state.
-  //For assessments, the value is stored as a string of format DD/MM/YYYY in the database. TODO: CHECK IF THIS IS CORRECT AFTER IMPLEMENTATION
+  //For assessments, the value is stored as a string of format DD/MM/YYYY in the database.
   if (
     rawValue === null ||
     rawValue === undefined ||

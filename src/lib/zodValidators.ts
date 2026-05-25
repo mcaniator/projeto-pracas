@@ -210,6 +210,7 @@ const optionsQuestionSchema = z
 const optionSchema = z
   .object({
     text: z.string().trim().min(1).max(255),
+    isOverridable: z.boolean(),
 
     questionId: z.coerce.number().int().finite().nonnegative(),
   })

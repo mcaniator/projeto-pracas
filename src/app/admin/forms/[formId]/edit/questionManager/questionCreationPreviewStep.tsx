@@ -30,6 +30,7 @@ const buildPreviewQuestion = ({
       draft.options.map((option, index) => ({
         id: -(index + 1),
         text: option.text,
+        isOverridable: option.isOverridable,
       }))
     : [];
 

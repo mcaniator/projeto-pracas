@@ -3,6 +3,7 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CIconChip from "@/components/ui/cIconChip";
 import CTimePicker from "@/components/ui/cTimePicker";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
+import type { OptionForQuestionPicker } from "@/lib/types/forms/formCreation";
 import { shouldShowScaleOptionsSection } from "@/lib/utils/questionCreationUtils";
 import CButton from "@components/ui/cButton";
 import CCheckboxGroup from "@components/ui/cCheckboxGroup";
@@ -54,6 +55,13 @@ const usesFreeOptionsOnly = (
     characterType === "DATETIME"
   );
 };
+
+const buildDefaultOption = (
+  text: string,
+): Omit<OptionForQuestionPicker, "id"> => ({
+  text,
+  isOverridable: false,
+});
 
 const QuestionCreationFormStep = ({
   categoryId,
@@ -109,7 +117,7 @@ const QuestionCreationFormStep = ({
   hasAssociatedGeometry: boolean | null;
   geometryTypes: string[];
   currentOption: string;
-  addedOptions: { text: string }[] | undefined;
+  addedOptions: Omit<OptionForQuestionPicker, "id">[] | undefined;
   selectionType: string | null;
   minumumOptionsError: boolean;
   questionTemplate: string | null;
@@ -129,7 +137,7 @@ const QuestionCreationFormStep = ({
   onHasAssociatedGeometryChange: (value: boolean | null) => void;
   onGeometryTypesChange: (value: string[]) => void;
   onCurrentOptionChange: (value: string) => void;
-  onAddedOptionsChange: (value: { text: string }[]) => void;
+  onAddedOptionsChange: (value: Omit<OptionForQuestionPicker, "id">[]) => void;
   onSelectionTypeChange: (value: string | null) => void;
   onMinimumOptionsErrorChange: (value: boolean) => void;
   onSelectedIconKeyChange: (value: string | null) => void;
@@ -141,6 +149,25 @@ const QuestionCreationFormStep = ({
   showError: (content: ReactNode) => void;
 }) => {
   const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(null);
+
+  const handleOptionChange = (
+    optionText: string,
+    nextOption: Partial<Omit<OptionForQuestionPicker, "id" | "text">>,
+  ) => {
+    onAddedOptionsChange(
+      (addedOptions ?? []).map((option) => {
+        if (option.text !== optionText) {
+          return option;
+        }
+
+        return {
+          ...option,
+          ...nextOption,
+        };
+      }),
+    );
+  };
+
   return (
     <div className="flex w-full flex-col rounded-l">
       <h5 className="text-base font-semibold sm:text-xl">
@@ -440,7 +467,10 @@ const QuestionCreationFormStep = ({
                               }
                               const decimals =
                                 scaleStep.toString().split(".")[1]?.length ?? 0;
-                              const nextOptions: { text: string }[] = [];
+                              const nextOptions: Omit<
+                                OptionForQuestionPicker,
+                                "id"
+                              >[] = [];
                               const epsilon =
                                 Math.pow(10, -Math.max(decimals, 6)) / 2;
                               let current = minValue;
@@ -452,7 +482,9 @@ const QuestionCreationFormStep = ({
                                 const normalized = Number(
                                   current.toFixed(decimals),
                                 );
-                                nextOptions.push({ text: String(normalized) });
+                                nextOptions.push(
+                                  buildDefaultOption(String(normalized)),
+                                );
                                 current += scaleStep;
                                 guard += 1;
                               }
@@ -573,12 +605,12 @@ const QuestionCreationFormStep = ({
                                   ) {
                                     onAddedOptionsChange([
                                       ...addedOptions,
-                                      { text: currentOption },
+                                      buildDefaultOption(currentOption),
                                     ]);
                                   }
                                 } else {
                                   onAddedOptionsChange([
-                                    { text: currentOption },
+                                    buildDefaultOption(currentOption),
                                   ]);
                                 }
                                 setDatePickerValue(null);
@@ -603,35 +635,61 @@ const QuestionCreationFormStep = ({
                       return (
                         <li
                           key={option.text}
-                          className="flex items-center rounded-md bg-white px-2 outline outline-1 outline-black"
-                          style={{ height: "52px" }}
+                          className="flex flex-col rounded-md bg-white px-2 outline outline-1 outline-black"
                         >
-                          {(
-                            characterType === "NUMBER" ||
-                            characterType === "PERCENTAGE" ||
-                            characterType === "SCALE"
-                          ) ?
-                            localeNumberFormatter.format(Number(option.text)) +
-                            `${characterType === "PERCENTAGE" ? "%" : ""}`
-                          : option.text}
+                          <div className="flex items-center">
+                            {(
+                              characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE" ||
+                              characterType === "SCALE"
+                            ) ?
+                              localeNumberFormatter.format(
+                                Number(option.text),
+                              ) + `${characterType === "PERCENTAGE" ? "%" : ""}`
+                            : option.text}
 
-                          {questionTemplate === "FREE" && (
-                            <CButton
-                              className="ml-auto"
-                              square
-                              color="error"
-                              variant="text"
-                              disabled={isQuestionUsed}
-                              onClick={() => onRemoveOption(option.text)}
-                            >
-                              <IconTrash />
-                            </CButton>
+                            {questionTemplate === "FREE" && (
+                              <CButton
+                                className="ml-auto"
+                                square
+                                color="error"
+                                variant="text"
+                                disabled={isQuestionUsed}
+                                onClick={() => onRemoveOption(option.text)}
+                              >
+                                <IconTrash />
+                              </CButton>
+                            )}
+
+                            <input
+                              type="hidden"
+                              name="options"
+                              value={option.text}
+                            />
+                          </div>
+                          {characterType === "TEXT" && (
+                            <div className="flex items-center">
+                              <CSwitch
+                                checked={option.isOverridable}
+                                label="Permite sobrescrita de valor"
+                                readOnly={isQuestionUsed}
+                                onChange={(event) => {
+                                  handleOptionChange(option.text, {
+                                    isOverridable: event.target.checked,
+                                  });
+                                }}
+                              />
+                              <CIconChip
+                                icon={<IconHelp />}
+                                tooltip="Quando esta opção for selecionada, aparecerá um campo para o avaliador escrever. Caso preenchido, o valor será considerado a resposta da questão."
+                              />
+                            </div>
                           )}
 
                           <input
                             type="hidden"
-                            name="options"
-                            value={option.text}
+                            name="optionIsOverridable"
+                            value={option.isOverridable ? "true" : "false"}
                           />
                         </li>
                       );

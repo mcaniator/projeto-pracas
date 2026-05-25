@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
@@ -8,7 +8,10 @@ import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
-import type { QuestionPickerQuestionToEdit } from "@customTypes/forms/formCreation";
+import type {
+  OptionForQuestionPicker,
+  QuestionPickerQuestionToEdit,
+} from "@customTypes/forms/formCreation";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import type {
   OptionTypes,
@@ -76,7 +79,8 @@ const QuestionCreation = ({
   >(null);
   const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [currentOption, setCurrentOption] = useState("");
-  const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
+  const [addedOptions, setAddedOptions] =
+    useState<Omit<OptionForQuestionPicker, "id">[]>();
   const [selectionType, setSelectionType] = useState<string | null>(null);
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
@@ -138,25 +142,67 @@ const QuestionCreation = ({
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
       case "YES_NO":
-        setAddedOptions([{ text: "Sim" }, { text: "Não" }]);
+        setAddedOptions([
+          {
+            text: "Sim",
+            isOverridable: false,
+          },
+          {
+            text: "Não",
+            isOverridable: false,
+          },
+        ]);
         break;
       case "QUALITY_SCALE":
         setAddedOptions([
-          { text: "Péssimo" },
-          { text: "Ruim" },
-          { text: "Bom" },
-          { text: "Ótimo" },
+          {
+            text: "Péssimo",
+            isOverridable: false,
+          },
+          {
+            text: "Ruim",
+            isOverridable: false,
+          },
+          {
+            text: "Bom",
+            isOverridable: false,
+          },
+          {
+            text: "Ótimo",
+            isOverridable: false,
+          },
         ]);
         break;
       case "WEEKDAY":
         setAddedOptions([
-          { text: "Domingo" },
-          { text: "Segunda-feira" },
-          { text: "Terça-feira" },
-          { text: "Quarta-feira" },
-          { text: "Quinta-feira" },
-          { text: "Sexta-feira" },
-          { text: "Sábado" },
+          {
+            text: "Domingo",
+            isOverridable: false,
+          },
+          {
+            text: "Segunda-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Terça-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Quarta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Quinta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Sexta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Sábado",
+            isOverridable: false,
+          },
         ]);
         break;
       default:
@@ -218,7 +264,12 @@ const QuestionCreation = ({
     setSelectionType(question.optionType);
     setCurrentOption("");
     setHasAssociatedGeometry(question.geometryTypes.length > 0);
-    setAddedOptions(question.options.map((option) => ({ text: option.text })));
+    setAddedOptions(
+      question.options.map((option) => ({
+        text: option.text,
+        isOverridable: option.isOverridable,
+      })),
+    );
     setQuestionTemplate(question.questionType === "OPTIONS" ? "FREE" : null);
     setGeometryTypes(question.geometryTypes);
     setSelectedIconKey(question.iconKey);
@@ -256,7 +307,7 @@ const QuestionCreation = ({
         return false;
       }
       if (minValue >= maxValue) {
-        showError(<>O valor mÍnimo deve ser menor que o mÁximo.</>);
+        showError(<>O valor mínimo deve ser menor que o máximo.</>);
         return false;
       }
     }
