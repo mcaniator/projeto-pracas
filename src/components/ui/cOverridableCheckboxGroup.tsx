@@ -3,8 +3,9 @@
 import dayjs from "@/lib/dayjs";
 import type {
   CheckboxOverrideOption,
-  CheckboxOverrideValue,
   CheckboxValueWithOverride,
+  OverrideType,
+  OverrideValueByType,
 } from "@/lib/types/overridableOptionsComponents";
 import {
   Box,
@@ -14,7 +15,6 @@ import {
   FormLabel,
   IconButton,
 } from "@mui/material";
-import type { QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
 import type { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -30,30 +30,32 @@ import CTimePicker from "./cTimePicker";
 type COverridableCheckboxGroupProps<
   T,
   V extends string | number | boolean = string,
+  O extends OverrideType = "TEXT",
 > = {
   label?: string;
   options: Array<T & CheckboxOverrideOption>;
-  overrideType: QuestionResponseCharacterTypes;
+  overrideType: O;
   minValue?: number | null;
   maxValue?: number | null;
-  value?: Array<CheckboxValueWithOverride<V>>;
+  value?: Array<CheckboxValueWithOverride<V, OverrideValueByType[O]>>;
   clearable?: boolean;
   disableBorder?: boolean;
   name?: string;
   readOnly?: boolean;
   getOptionLabel: (option: T & CheckboxOverrideOption) => string;
   getOptionValue: (option: T & CheckboxOverrideOption) => V;
-  onChange?: (value: CheckboxValueWithOverride<V>[]) => void;
+  onChange?: (
+    value: CheckboxValueWithOverride<V, OverrideValueByType[O]>[],
+  ) => void;
 };
-//TODO: Change override type accordingly to overrideType
+
 function COverridableCheckboxGroup<
   T,
   V extends string | number | boolean = string,
+  O extends OverrideType = "TEXT",
 >({
   options,
   overrideType,
-  minValue,
-  maxValue,
   value = [],
   label,
   clearable,
@@ -63,10 +65,10 @@ function COverridableCheckboxGroup<
   onChange,
   getOptionLabel,
   getOptionValue,
-}: COverridableCheckboxGroupProps<T, V>) {
-  const [localValue, setLocalValue] = useState<CheckboxValueWithOverride<V>[]>(
-    [],
-  );
+}: COverridableCheckboxGroupProps<T, V, O>) {
+  const [localValue, setLocalValue] = useState<
+    CheckboxValueWithOverride<V, OverrideValueByType[O]>[]
+  >([]);
 
   const borderSx =
     disableBorder ?
@@ -86,7 +88,9 @@ function COverridableCheckboxGroup<
     return localValue.find((item) => item.value === val);
   };
 
-  const emitChange = (nextValue: CheckboxValueWithOverride<V>[]) => {
+  const emitChange = (
+    nextValue: CheckboxValueWithOverride<V, OverrideValueByType[O]>[],
+  ) => {
     setLocalValue(nextValue);
     onChange?.(nextValue);
   };
@@ -97,16 +101,24 @@ function COverridableCheckboxGroup<
     const newValue =
       isChecked ?
         localValue.filter((item) => item.value !== val)
-      : [...localValue, { value: val, override: null }];
+      : [
+          ...localValue,
+          { value: val, override: null as OverrideValueByType[O] },
+        ];
 
     emitChange(newValue);
   };
 
-  const handleOverrideChange = (val: V, override: CheckboxOverrideValue) => {
+  const handleOverrideChange = (
+    val: V,
+    override: OverrideValueByType[OverrideType],
+  ) => {
     if (readOnly) return;
 
     const nextValue = localValue.map((item) =>
-      item.value === val ? { ...item, override } : item,
+      item.value === val ?
+        { ...item, override: override as OverrideValueByType[O] }
+      : item,
     );
 
     emitChange(nextValue);
@@ -128,35 +140,11 @@ function COverridableCheckboxGroup<
 
     switch (overrideType) {
       case "NUMBER":
-      case "SCALE":
         return (
           <CNumberField
             fullWidth
             clearable
             readOnly={readOnly}
-            minValue={
-              overrideType === "SCALE" ? (minValue ?? undefined) : undefined
-            }
-            maxValue={
-              overrideType === "SCALE" ? (maxValue ?? undefined) : undefined
-            }
-            value={
-              typeof selectedItem.override === "number" ?
-                selectedItem.override
-              : null
-            }
-            onChange={(nextValue) =>
-              handleOverrideChange(optionValue, nextValue)
-            }
-          />
-        );
-      case "PERCENTAGE":
-        return (
-          <CNumberField
-            fullWidth
-            clearable
-            readOnly={readOnly}
-            endAdornment="%"
             value={
               typeof selectedItem.override === "number" ?
                 selectedItem.override

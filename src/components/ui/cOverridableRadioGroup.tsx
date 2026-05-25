@@ -2,8 +2,9 @@
 
 import dayjs from "@/lib/dayjs";
 import type {
+  OverrideType,
+  OverrideValueByType,
   RadioOverrideOption,
-  RadioOverrideValue,
   RadioValueWithOverride,
 } from "@/lib/types/overridableOptionsComponents";
 import {
@@ -16,7 +17,6 @@ import {
   RadioGroup,
   RadioGroupProps,
 } from "@mui/material";
-import type { QuestionResponseCharacterTypes } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
 import type { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -28,34 +28,33 @@ import CSwitch from "./cSwtich";
 import CTextField from "./cTextField";
 import CTimePicker from "./cTimePicker";
 
-//TODO: Change override type accordingly to overrideType
 type COverridableRadioGroupProps<
   T,
   V extends string | number | boolean = string,
+  O extends OverrideType = "TEXT",
 > = Omit<RadioGroupProps, "value" | "onChange"> & {
   label?: string;
   options: Array<T & RadioOverrideOption>;
-  overrideType: QuestionResponseCharacterTypes;
-  minValue?: number | null;
-  maxValue?: number | null;
-  value?: RadioValueWithOverride<V> | null;
+  overrideType: O;
+  value?: RadioValueWithOverride<V, OverrideValueByType[O]> | null;
   clearable?: boolean;
   disableBorder?: boolean;
   readOnly?: boolean;
   name?: string;
   getOptionLabel: (option: T & RadioOverrideOption) => string;
   getOptionValue: (option: T & RadioOverrideOption) => V;
-  onChange?: (value: RadioValueWithOverride<V> | null) => void;
+  onChange?: (
+    value: RadioValueWithOverride<V, OverrideValueByType[O]> | null,
+  ) => void;
 };
 
 function COverridableRadioGroup<
   T,
   V extends string | number | boolean = string,
+  O extends OverrideType = "TEXT",
 >({
   options,
   overrideType,
-  minValue,
-  maxValue,
   value,
   label,
   clearable,
@@ -66,9 +65,11 @@ function COverridableRadioGroup<
   getOptionLabel,
   getOptionValue,
   ...props
-}: COverridableRadioGroupProps<T, V>) {
-  const [localValue, setLocalValue] =
-    useState<RadioValueWithOverride<V> | null>(null);
+}: COverridableRadioGroupProps<T, V, O>) {
+  const [localValue, setLocalValue] = useState<RadioValueWithOverride<
+    V,
+    OverrideValueByType[O]
+  > | null>(null);
 
   const borderSx =
     disableBorder ?
@@ -84,7 +85,9 @@ function COverridableRadioGroup<
     onChange?.(null);
   };
 
-  const emitChange = (nextValue: RadioValueWithOverride<V> | null) => {
+  const emitChange = (
+    nextValue: RadioValueWithOverride<V, OverrideValueByType[O]> | null,
+  ) => {
     setLocalValue(nextValue);
     onChange?.(nextValue);
   };
@@ -100,13 +103,21 @@ function COverridableRadioGroup<
 
     if (!selectedOption) return;
 
-    emitChange({ value: getOptionValue(selectedOption), override: null });
+    emitChange({
+      value: getOptionValue(selectedOption),
+      override: null as OverrideValueByType[O],
+    });
   };
 
-  const handleOverrideChange = (override: RadioOverrideValue) => {
+  const handleOverrideChange = (
+    override: OverrideValueByType[OverrideType],
+  ) => {
     if (readOnly || !localValue) return;
 
-    emitChange({ ...localValue, override });
+    emitChange({
+      ...localValue,
+      override: override as OverrideValueByType[O],
+    });
   };
 
   const renderOverrideField = (
@@ -119,33 +130,11 @@ function COverridableRadioGroup<
 
     switch (overrideType) {
       case "NUMBER":
-      case "SCALE":
         return (
           <CNumberField
             fullWidth
             clearable
             readOnly={readOnly}
-            minValue={
-              overrideType === "SCALE" ? (minValue ?? undefined) : undefined
-            }
-            maxValue={
-              overrideType === "SCALE" ? (maxValue ?? undefined) : undefined
-            }
-            value={
-              typeof localValue.override === "number" ?
-                localValue.override
-              : null
-            }
-            onChange={handleOverrideChange}
-          />
-        );
-      case "PERCENTAGE":
-        return (
-          <CNumberField
-            fullWidth
-            clearable
-            readOnly={readOnly}
-            endAdornment="%"
             value={
               typeof localValue.override === "number" ?
                 localValue.override
