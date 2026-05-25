@@ -126,7 +126,13 @@ const getFormTree = async (params: { formId: number }) => {
                 characterType: true,
                 isPublic: true,
                 optionType: true,
-                options: { select: { id: true, text: true } },
+                options: {
+                  select: {
+                    id: true,
+                    text: true,
+                    isOverridable: true,
+                  },
+                },
                 scaleConfig: {
                   select: {
                     minValue: true,
@@ -231,7 +237,11 @@ const getFormTree = async (params: { formId: number }) => {
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           scaleConfig: dbQuestion.scaleConfig,
           geometryTypes: dbQuestion.geometryTypes,
           categoryName: dbQuestion.category.name,

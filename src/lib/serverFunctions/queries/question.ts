@@ -47,7 +47,8 @@ const buildQuestionsByCategoryQuery = ({
                 SELECT json_agg(
                   json_build_object(
                     'id', o.id,
-                    'text', o.text
+                    'text', o.text,
+                    'isOverridable', o."is_overridable"
                   ) ORDER BY o.id ASC
                 )
                 FROM "option" o
@@ -99,7 +100,8 @@ const buildQuestionsByCategoryQuery = ({
                         SELECT json_agg(
                           json_build_object(
                             'id', so.id,
-                            'text', so.text
+                            'text', so.text,
+                            'isOverridable', so."is_overridable"
                           ) ORDER BY so.id ASC
                         )
                         FROM "option" so

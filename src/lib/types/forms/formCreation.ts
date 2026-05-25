@@ -5,32 +5,10 @@ import {
   QuestionTypes,
 } from "@prisma/client";
 
-type FormQuestionWithCategoryAndSubcategory = {
+type OptionForQuestionPicker = {
   id: number;
-  name: string;
-  iconKey: string;
-  notes: string | null;
-  questionType: QuestionTypes;
-  characterType: QuestionResponseCharacterTypes;
-  optionType: OptionTypes | null;
-  options: {
-    id: number;
-    text: string;
-  }[];
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
-  geometryTypes: [QuestionGeometryTypes];
-  category: {
-    id: number;
-    name: string;
-  };
-  subcategory: {
-    id: number;
-    name: string;
-    categoryId: number;
-  } | null;
+  text: string;
+  isOverridable: boolean;
 };
 
 type QuestionForQuestionPicker = {
@@ -42,10 +20,7 @@ type QuestionForQuestionPicker = {
   notes: string | null;
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
-  options: {
-    id: number;
-    text: string;
-  }[];
+  options: OptionForQuestionPicker[];
   scaleConfig: {
     minValue: number;
     maxValue: number;
@@ -79,7 +54,7 @@ type QuestionPickerQuestionToEdit = QuestionPickerQuestionToAdd & {
 };
 
 export {
-  type FormQuestionWithCategoryAndSubcategory,
+  type OptionForQuestionPicker,
   type CategoryForQuestionPicker,
   type SubCategoryForQuestionPicker,
   type QuestionForQuestionPicker,

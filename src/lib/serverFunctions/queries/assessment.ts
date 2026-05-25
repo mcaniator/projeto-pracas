@@ -23,11 +23,13 @@ export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   options?: {
     id: number;
     text: string;
+    isOverridable: boolean;
   }[];
   response?: {
     text: string;
   };
   ResponseOption?: {
+    overrideValue: string | null;
     option: {
       id: number;
     };
@@ -179,7 +181,13 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -212,6 +220,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                       },
                       select: {
                         id: true,
+                        overrideValue: true,
                         option: {
                           select: {
                             id: true,
@@ -328,10 +337,15 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         } else if (dbQuestion.questionType === "OPTIONS") {
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
-              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+              dbQuestion.ResponseOption[0]?.option?.id ?
+                {
+                  value: dbQuestion.ResponseOption[0].option.id,
+                  override: dbQuestion.ResponseOption[0].overrideValue,
+                }
+              : null;
           } else if (dbQuestion.optionType === "CHECKBOX") {
             responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
-              (r) => r.option!.id,
+              (r) => ({ value: r.option!.id, override: r.overrideValue }),
             );
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
@@ -354,7 +368,11 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
           categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found
@@ -561,7 +579,13 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -588,6 +612,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                       },
                       select: {
                         id: true,
+                        overrideValue: true,
                         option: {
                           select: {
                             id: true,
@@ -701,10 +726,15 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
         } else if (dbQuestion.questionType === "OPTIONS") {
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
-              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+              dbQuestion.ResponseOption[0]?.option?.id ?
+                {
+                  value: dbQuestion.ResponseOption[0].option.id,
+                  override: dbQuestion.ResponseOption[0].overrideValue,
+                }
+              : null;
           } else if (dbQuestion.optionType === "CHECKBOX") {
             responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
-              (r) => r.option!.id,
+              (r) => ({ value: r.option!.id, override: r.overrideValue }),
             );
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
@@ -727,7 +757,11 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
           categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found

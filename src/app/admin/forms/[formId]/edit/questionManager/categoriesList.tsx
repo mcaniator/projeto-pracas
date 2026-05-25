@@ -10,6 +10,7 @@ import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip
 import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   CategoryForQuestionPicker,
+  OptionForQuestionPicker,
   QuestionForQuestionPicker,
   QuestionPickerQuestionToAdd,
   QuestionPickerQuestionToEdit,
@@ -288,7 +289,7 @@ const QuestionComponentV2 = ({
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
   geometryTypes: QuestionGeometryTypes[];
-  options: { id: number; text: string }[];
+  options: OptionForQuestionPicker[];
   scaleConfig: {
     minValue: number;
     maxValue: number;
