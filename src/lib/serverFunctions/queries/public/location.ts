@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PublicLocationForMap } from "@/lib/types/location/location";
 import { buildImageUrl } from "@/lib/utils/image";
+import { Prisma } from "@prisma/client";
 
 export type PublicFetchLocationsResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchLocations>>["data"]
@@ -62,16 +63,19 @@ export const publicFetchLocations = async (
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
   LEFT JOIN city c ON c.id = l.city_id
-  LEFT JOIN LATERAL (
-    SELECT a2.id
+  LEFT JOIN (
+    SELECT DISTINCT ON (a2.location_id)
+      a2.id,
+      a2.location_id
     FROM assessment a2
-    WHERE a2.location_id = l.id AND a2.is_public = ${true}
-    ORDER BY a2.created_at DESC
-    LIMIT 1
-  ) latest_assessment ON true
+    JOIN location l2 ON l2.id = a2.location_id
+    WHERE a2.is_public = true
+    ${params.cityId != null ? Prisma.sql`AND l2.city_id = ${params.cityId}` : Prisma.empty}
+    ORDER BY a2.location_id, a2.created_at DESC, a2.id DESC
+  ) latest_assessment ON latest_assessment.location_id = l.id
   WHERE l.is_public = ${true} 
-  AND l.id = COALESCE(${params.locationId}, l.id) 
-  AND l.city_id = COALESCE(${params.cityId}, l.city_id)
+  ${params.locationId != null ? Prisma.sql`AND l.id = ${params.locationId}` : Prisma.empty}
+  ${params.cityId != null ? Prisma.sql`AND l.city_id = ${params.cityId}` : Prisma.empty}
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
