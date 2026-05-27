@@ -74,9 +74,8 @@ const QuestionCreation = ({
   const [type, setType] = useState("");
   const [characterType, setCharacterType] =
     useState<QuestionResponseCharacterTypes | null>(null);
-  const [hasAssociatedGeometry, setHasAssociatedGeometry] = useState<
-    boolean | null
-  >(null);
+  const [hasAssociatedGeometry, setHasAssociatedGeometry] =
+    useState<boolean>(false);
   const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [currentOption, setCurrentOption] = useState("");
   const [addedOptions, setAddedOptions] =
@@ -86,6 +85,8 @@ const QuestionCreation = ({
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(true);
+  const [allowResponseImages, setAllowResponseImages] =
+    useState<boolean>(false);
   const [minValue, setMinValue] = useState<number | null>(null);
   const [maxValue, setMaxValue] = useState<number | null>(null);
   const [scaleOptionMode, setScaleOptionMode] =
@@ -217,7 +218,8 @@ const QuestionCreation = ({
     setCharacterType(null);
     setSelectionType(null);
     setCurrentOption("");
-    setHasAssociatedGeometry(null);
+    setAllowResponseImages(false);
+    setHasAssociatedGeometry(false);
     setAddedOptions(undefined);
     setQuestionTemplate(null);
     setGeometryTypes([]);
@@ -271,6 +273,7 @@ const QuestionCreation = ({
       })),
     );
     setQuestionTemplate(question.questionType === "OPTIONS" ? "FREE" : null);
+    setAllowResponseImages(question.allowResponseImages);
     setGeometryTypes(question.geometryTypes);
     setSelectedIconKey(question.iconKey);
     setPageState("FORM");
@@ -350,6 +353,7 @@ const QuestionCreation = ({
       optionType:
         type === "OPTIONS" ? (selectionType as OptionTypes | null) : null,
       options: addedOptions ?? [],
+      allowResponseImages: allowResponseImages,
       hasAssociatedGeometry: hasAssociatedGeometry === true,
       geometryTypes:
         hasAssociatedGeometry === true ?
@@ -480,6 +484,7 @@ const QuestionCreation = ({
             questionTemplate={questionTemplate}
             selectedIconKey={selectedIconKey}
             isPublic={isPublic}
+            allowResponseImages={allowResponseImages}
             minValue={minValue}
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
@@ -499,6 +504,7 @@ const QuestionCreation = ({
             onMinimumOptionsErrorChange={setMinimumOptionsError}
             onSelectedIconKeyChange={setSelectedIconKey}
             onIsPublicChange={setIsPublic}
+            onAllowResponseImagesChange={setAllowResponseImages}
             onMinValueChange={setMinValue}
             onMaxValueChange={setMaxValue}
             onScaleOptionModeChange={setScaleOptionMode}

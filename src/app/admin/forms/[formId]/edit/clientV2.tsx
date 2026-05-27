@@ -69,6 +69,7 @@ export type QuestionItem = {
     minValue: number;
     maxValue: number;
   } | null;
+  allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
 };
 
@@ -209,6 +210,7 @@ const ClientV2 = ({
               optionType: question.optionType,
               options: question.options,
               scaleConfig: question.scaleConfig,
+              allowResponseImages: question.allowResponseImages,
               geometryTypes: question.geometryTypes,
               categoryName: category.name,
               subcategoryName: subItem.name,
@@ -243,6 +245,7 @@ const ClientV2 = ({
           options: question.options,
           scaleConfig: question.scaleConfig,
           geometryTypes: question.geometryTypes,
+          allowResponseImages: question.allowResponseImages,
           position: newCategory.categoryChildren.length + 1,
           categoryName: category.name,
           subcategoryName: null,

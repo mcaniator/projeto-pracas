@@ -81,6 +81,7 @@ const QuestionCreationFormStep = ({
   questionTemplate,
   selectedIconKey,
   isPublic,
+  allowResponseImages,
   minValue,
   maxValue,
   scaleOptionMode,
@@ -100,6 +101,7 @@ const QuestionCreationFormStep = ({
   onMinimumOptionsErrorChange,
   onSelectedIconKeyChange,
   onIsPublicChange,
+  onAllowResponseImagesChange,
   onMinValueChange,
   onMaxValueChange,
   onScaleOptionModeChange,
@@ -114,7 +116,7 @@ const QuestionCreationFormStep = ({
   notes: string | null;
   type: string;
   characterType: QuestionResponseCharacterTypes | null;
-  hasAssociatedGeometry: boolean | null;
+  hasAssociatedGeometry: boolean;
   geometryTypes: string[];
   currentOption: string;
   addedOptions: Omit<OptionForQuestionPicker, "id">[] | undefined;
@@ -123,6 +125,7 @@ const QuestionCreationFormStep = ({
   questionTemplate: string | null;
   selectedIconKey: string | null;
   isPublic: boolean;
+  allowResponseImages: boolean;
   minValue: number | null;
   maxValue: number | null;
   scaleOptionMode: ScaleOptionMode;
@@ -134,7 +137,7 @@ const QuestionCreationFormStep = ({
   onNotesChange: (value: string | null) => void;
   onTypeChange: (value: string) => void;
   onCharacterTypeChange: (value: QuestionResponseCharacterTypes | null) => void;
-  onHasAssociatedGeometryChange: (value: boolean | null) => void;
+  onHasAssociatedGeometryChange: (value: boolean) => void;
   onGeometryTypesChange: (value: string[]) => void;
   onCurrentOptionChange: (value: string) => void;
   onAddedOptionsChange: (value: Omit<OptionForQuestionPicker, "id">[]) => void;
@@ -142,6 +145,7 @@ const QuestionCreationFormStep = ({
   onMinimumOptionsErrorChange: (value: boolean) => void;
   onSelectedIconKeyChange: (value: string | null) => void;
   onIsPublicChange: (value: boolean) => void;
+  onAllowResponseImagesChange: (value: boolean) => void;
   onMinValueChange: (value: number | null) => void;
   onMaxValueChange: (value: number | null) => void;
   onScaleOptionModeChange: (value: ScaleOptionMode) => void;
@@ -709,20 +713,30 @@ const QuestionCreationFormStep = ({
           (type === "OPTIONS" ?
             addedOptions && addedOptions.length > 0
           : true) && (
-            <CRadioGroup
-              label="Possui geometria associada?"
-              name="hasAssociatedGeometry"
-              id="hasAssociatedGeometry"
-              readOnly={isQuestionUsed}
-              options={[
-                { value: true, label: "Sim" },
-                { value: false, label: "Não" },
-              ]}
-              value={hasAssociatedGeometry}
-              onChange={onHasAssociatedGeometryChange}
-              getOptionValue={(i) => i.value}
-              getOptionLabel={(i) => i.label}
-            />
+            <>
+              <CSwitch
+                value={allowResponseImages}
+                checked={allowResponseImages ?? false}
+                readOnly={isQuestionUsed}
+                name="allowResponseImages"
+                id="allowResponseImages"
+                label="Permite anexar à resposta imagens do Google Drive"
+                onChange={(e) => {
+                  onAllowResponseImagesChange(e.target.checked);
+                }}
+              />
+              <CSwitch
+                label="Permite anexar à resposta geometrias no mapa"
+                name="hasAssociatedGeometry"
+                id="hasAssociatedGeometry"
+                readOnly={isQuestionUsed}
+                checked={hasAssociatedGeometry}
+                value={hasAssociatedGeometry}
+                onChange={(e) => {
+                  onHasAssociatedGeometryChange(e.target.checked);
+                }}
+              />
+            </>
           )}
 
         {hasAssociatedGeometry && (

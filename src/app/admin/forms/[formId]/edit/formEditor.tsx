@@ -1,14 +1,11 @@
 "use client";
 
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
+import CQuestionDescriptionChips from "@/components/ui/question/cQuestionDescriptionChips";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
 import CNotesChip from "@components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   DndContext,
   DragEndEvent,
@@ -598,16 +595,7 @@ const SortableFormItem = ({
             </div>
           )}
 
-          <CQuestionTypeChip
-            questionType={formItem.questionType}
-            optionType={formItem.optionType}
-            options={formItem.options?.map((o) => o.text)}
-            name={formItem.name}
-          />
-          <CQuestionCharacterTypeChip characterType={formItem.characterType} />
-          <CQuestionGeometryChip geometryTypes={formItem.geometryTypes} />
-          <CQuestionVisibilityChip isPublic={formItem.isPublic} />
-          <CNotesChip notes={formItem.notes} name={formItem.name} />
+          <CQuestionDescriptionChips question={formItem} />
         </div>
         <span
           className={`flex items-center gap-2 break-all ${isFinalized ? "ml-2" : ""}`}

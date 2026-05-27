@@ -59,6 +59,7 @@ export const uploadImage: (file: File) => Promise<Image> = async (
       fileUid: parsedJson.fileId,
       relativePath: parsedJson.filePath,
       size: parsedJson.size,
+      host: "IMAGEKIT",
     },
   });
 

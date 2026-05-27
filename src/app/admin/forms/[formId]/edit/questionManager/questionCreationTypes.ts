@@ -1,10 +1,10 @@
+import type { OptionForQuestionPicker } from "@customTypes/forms/formCreation";
 import type {
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import type { OptionForQuestionPicker } from "@customTypes/forms/formCreation";
 
 export type ScaleOptionMode = "MANUAL" | "STEP";
 
@@ -18,6 +18,7 @@ export type QuestionCreationDraft = {
   optionType: OptionTypes | null;
   options: Omit<OptionForQuestionPicker, "id">[];
   hasAssociatedGeometry: boolean;
+  allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
   scaleConfig: { minValue: number; maxValue: number } | null;
 };

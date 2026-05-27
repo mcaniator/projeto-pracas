@@ -32,6 +32,7 @@ const buildQuestionsByCategoryQuery = ({
             'notes', q.notes,
             'characterType', q."character_type",
             'optionType', q."option_type",
+            'allowResponseImages', q."allow_response_images",
             'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
             'scaleConfig',
               (
@@ -84,6 +85,7 @@ const buildQuestionsByCategoryQuery = ({
                     'questionType', sq."question_type",
                     'notes', sq.notes,
                     'characterType', sq."character_type",
+                    'allowResponseImages', sq."allow_response_images",
                     'optionType', sq."option_type",
                     'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
                     'scaleConfig',

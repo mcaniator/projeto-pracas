@@ -95,6 +95,13 @@ enum WeatherConditions {
   @@map("weather_conditions")
 }
 
+enum ImageHosts {
+  IMAGEKIT
+  DRIVE
+
+  @@map("image_hosts")
+}
+
 // #endregion
 
 // #region Auth
@@ -253,16 +260,17 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name             String                         @db.VarChar(255)
-  iconKey          String                         @map("icon_key") @db.VarChar(255)
-  notes            String?                        @db.Text
-  isPublic         Boolean                        @map("is_public")
-  questionType     QuestionTypes                  @map("question_type")
-  characterType    QuestionResponseCharacterTypes @map("character_type")
-  response         Response[]
-  booleanResponses BooleanResponse[]
-  optionType       OptionTypes?                   @map("option_type")
-  geometryTypes    QuestionGeometryTypes[]        @map("geometry_types")
+  name                String                         @db.VarChar(255)
+  iconKey             String                         @map("icon_key") @db.VarChar(255)
+  notes               String?                        @db.Text
+  isPublic            Boolean                        @map("is_public")
+  allowResponseImages Boolean                        @map("allow_response_images")
+  questionType        QuestionTypes                  @map("question_type")
+  characterType       QuestionResponseCharacterTypes @map("character_type")
+  response            Response[]
+  booleanResponses    BooleanResponse[]
+  optionType          OptionTypes?                   @map("option_type")
+  geometryTypes       QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 
@@ -276,6 +284,8 @@ model Question {
   ResponseOption ResponseOption[]
 
   geometries QuestionGeometry[]
+
+  imageResponses ImageResponse[]
 
   formItems FormItem[]
 
@@ -300,6 +310,19 @@ model QuestionGeometry {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("question_geometry")
+}
+
+model ImageResponse {
+  id Int @id @default(autoincrement())
+
+  questionId   Int        @map("question_id")
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  assessmentId Int        @map("assessment_id")
+  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  imageId      Int        @unique @map("image_id")
+  image        Image      @relation(name: "image_response_image", fields: [imageId], references: [imageId])
+
+  @@map("image_response")
 }
 
 model QuestionScaleConfig {
@@ -370,9 +393,9 @@ model Option {
 
   text String @db.VarChar(255)
 
-  questionId            Int                             @map("question_id")
-  question              Question                        @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  isOverridable         Boolean                         @map("is_overridable")
+  questionId    Int      @map("question_id")
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  isOverridable Boolean  @map("is_overridable")
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
@@ -604,6 +627,8 @@ model Assessment {
 
   geometries QuestionGeometry[]
 
+  imageResponses ImageResponse[]
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -658,13 +683,14 @@ model Tally {
 //  Imagens
 //  ------------------------------------------------------------------------------------------------------------
 model Image {
-  imageId      Int    @id @default(autoincrement()) @map("image_id")
-  fileUid      String @unique() @map("file_uid")
-  relativePath String @map("relative_path")
-  size         Int
-
-  mainOfLocation Location? @relation("location_main_image_relation")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  imageId        Int            @id @default(autoincrement()) @map("image_id")
+  fileUid        String         @unique() @map("file_uid")
+  relativePath   String         @map("relative_path")
+  size           Int?
+  host           ImageHosts     @map("host")
+  mainOfLocation Location?      @relation("location_main_image_relation")
+  imageResponse  ImageResponse? @relation("image_response_image")
+  createdAt      DateTime       @default(now()) @map("created_at")
 
   @@map("image")
 }

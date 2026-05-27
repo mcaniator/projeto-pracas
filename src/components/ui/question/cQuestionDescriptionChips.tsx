@@ -1,23 +1,31 @@
-import CCalculationChip from "@/components/ui/question/cCalculationChip";
+import { QuestionItem } from "@/app/admin/forms/[formId]/edit/clientV2";
 import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionAllowResponseImagesChip from "@/components/ui/question/cQuestionAllowResponseImagesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 
-import type { SimpleMention } from "./responseFormTypes";
+type QuestionDescriptionChipsQuestion = Pick<
+  QuestionItem,
+  | "allowResponseImages"
+  | "characterType"
+  | "geometryTypes"
+  | "isPublic"
+  | "name"
+  | "notes"
+  | "optionType"
+  | "options"
+  | "questionType"
+>;
 
-const ResponseFormQuestionDescriptors = ({
+const CQuestionDescriptionChips = ({
   question,
-  questionsForMention,
 }: {
-  question: AssessmentQuestionItem;
-  questionsForMention: SimpleMention[];
+  question: QuestionDescriptionChipsQuestion;
 }) => {
   return (
-    <div className="flex flex-row items-center gap-1">
+    <div className="flex w-fit flex-wrap items-center gap-1">
       <CQuestionTypeChip
         questionType={question.questionType}
         optionType={question.optionType}
@@ -31,13 +39,8 @@ const ResponseFormQuestionDescriptors = ({
         allowResponseImages={question.allowResponseImages}
       />
       <CNotesChip notes={question.notes} name={question.name} />
-      <CCalculationChip
-        name={question.name}
-        expression={question.calculationExpression}
-        questions={questionsForMention}
-      />
     </div>
   );
 };
 
-export default ResponseFormQuestionDescriptors;
+export default CQuestionDescriptionChips;

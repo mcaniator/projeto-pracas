@@ -25,6 +25,7 @@ type QuestionForQuestionPicker = {
     minValue: number;
     maxValue: number;
   } | null;
+  allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
 };
 

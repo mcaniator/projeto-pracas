@@ -48,6 +48,7 @@ const buildPreviewQuestion = ({
     categoryName: categoryName ?? "",
     subcategoryName: subcategoryName ?? null,
     options,
+    allowResponseImages: draft.allowResponseImages,
     geometryTypes: draft.hasAssociatedGeometry ? draft.geometryTypes : [],
     scaleConfig: draft.scaleConfig,
     calculationExpression: undefined,

@@ -81,6 +81,7 @@ const _questionSubmit = async (
             Number(formData.get("subcategoryId")) > 0 ?
               formData.get("subcategoryId")
             : undefined,
+          allowResponseImages: formData.get("allowResponseImages") === "true",
           geometryTypes:
             (
               formData.getAll("geometryTypes").length > 0 &&
@@ -195,7 +196,7 @@ const _questionSubmit = async (
           categoryId,
           subcategoryId,
           isPublic: isPublic,
-
+          allowResponseImages: formData.get("allowResponseImages") === "true",
           geometryTypes:
             (
               formData.getAll("geometryTypes").length > 0 &&
@@ -275,6 +276,7 @@ const _questionSubmit = async (
               categoryId: optionsQuestionParsed.categoryId,
               subcategoryId: optionsQuestionParsed.subcategoryId,
               optionType: optionsQuestionParsed.optionType,
+              allowResponseImages: optionsQuestionParsed.allowResponseImages,
               geometryTypes: optionsQuestionParsed.geometryTypes,
               isPublic: optionsQuestionParsed.isPublic,
             },
@@ -380,6 +382,7 @@ const _questionUpdate = async (
         : undefined,
       optionType:
         questionType === "OPTIONS" ? formData.get("optionType") : undefined,
+      allowResponseImages: formData.get("allowResponseImages") === "true",
       geometryTypes:
         (
           formData.getAll("geometryTypes").length > 0 &&
@@ -442,6 +445,7 @@ const _questionUpdate = async (
             parsedQuestion.questionType === "OPTIONS" ?
               parsedQuestion.optionType
             : null,
+          allowResponseImages: parsedQuestion.allowResponseImages,
           geometryTypes: parsedQuestion.geometryTypes ?? [],
           categoryId: parsedQuestion.categoryId,
           subcategoryId: parsedQuestion.subcategoryId ?? null,
