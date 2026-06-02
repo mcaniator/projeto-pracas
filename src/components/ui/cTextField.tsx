@@ -11,6 +11,7 @@ import React, {
 
 import { readOnlyTextFieldSx } from "../../lib/theme/customSx";
 import { createDebouncedFunction } from "../../lib/utils/ui";
+import CButton from "./cButton";
 
 type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   errorMessage?: string;
@@ -21,6 +22,7 @@ type CTextFieldProps = Omit<TextFieldProps, "autoComplete"> & {
   autoComplete?: boolean;
   resetOnFormSubmit?: boolean;
   appendIconButton?: React.ReactNode;
+  suffixButtonChildren?: React.ReactNode;
   maxCharacters?: number;
   debounce?: number;
   onRequiredCheck?: (filled: boolean) => void;
@@ -45,6 +47,7 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
       isAutocompleteInput = false,
       resetOnFormSubmit,
       appendIconButton,
+      suffixButtonChildren,
       maxCharacters,
       readOnly,
       slotProps,
@@ -257,43 +260,64 @@ const CTextField = React.forwardRef<HTMLInputElement, CTextFieldProps>(
     };
 
     return (
-      <Box
-        className="flex w-full flex-col"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          mt: label ? "8px" : "0px",
-        }}
-      >
-        <TextField
-          ref={ref}
-          label={label}
-          inputRef={inputRef}
-          variant={variant}
-          value={localValue}
-          margin={margin}
-          size={size}
-          autoComplete={autoComplete ? "on" : "off"}
-          error={(required && !isValid) || error}
-          helperText={
-            (required && !isValid) || error ? errorMessage : helperText
-          }
-          sx={{ ...sx, ...defaultSx, ...readOnlySx }}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          required={required}
-          slotProps={{
-            ...slotProps,
-            ...(!isAutocompleteInput ? inputProps : {}),
+      <Box className="flex w-full items-start gap-1">
+        <Box
+          className="flex w-full flex-col"
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            mt: label ? "8px" : "0px",
           }}
-          {...rest}
-        />
-        {maxCharacters && (
-          <Box sx={{ ml: "8px", color: "text.secondary" }}>
-            {characterCount}/{maxCharacters}
-          </Box>
+        >
+          <TextField
+            ref={ref}
+            label={label}
+            inputRef={inputRef}
+            variant={variant}
+            value={localValue}
+            margin={margin}
+            size={size}
+            autoComplete={autoComplete ? "on" : "off"}
+            error={(required && !isValid) || error}
+            helperText={
+              (required && !isValid) || error ? errorMessage : helperText
+            }
+            sx={{ ...sx, ...defaultSx, ...readOnlySx }}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            required={required}
+            slotProps={{
+              ...slotProps,
+              ...(!isAutocompleteInput ? inputProps : {}),
+            }}
+            {...rest}
+          />
+          {maxCharacters && (
+            <Box sx={{ ml: "8px", color: "text.secondary" }}>
+              {characterCount}/{maxCharacters}
+            </Box>
+          )}
+        </Box>
+        {suffixButtonChildren && (
+          <CButton
+            square
+            onClick={handleAppendIconButtonClick}
+            sx={{
+              mt: label ? "8px" : "0px",
+              height: {
+                xs: 32.5,
+                sm: 39.5,
+              },
+              width: {
+                xs: 32.5,
+                sm: 39.5,
+              },
+            }}
+          >
+            {suffixButtonChildren}
+          </CButton>
         )}
       </Box>
     );

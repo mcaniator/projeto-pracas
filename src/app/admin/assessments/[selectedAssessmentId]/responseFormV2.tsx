@@ -10,10 +10,12 @@ import ControlledResponseQuestionField from "@/components/ui/responseForm/contro
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
+import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import type {
   FormValues,
   ResponseFormGeometry,
+  ResponseFormImages,
   SerializedFormValues,
   SimpleMention,
 } from "@/components/ui/responseForm/responseFormTypes";
@@ -130,6 +132,7 @@ const ResponseFormV2 = ({
   isPreview = false,
   onValuesChange,
   onGeometriesChange,
+  onImagesChange,
 }: {
   locationId: number;
   locationName: string;
@@ -143,6 +146,7 @@ const ResponseFormV2 = ({
     totalQuestions: number;
     responsesFormValues: SerializedFormValues;
     geometries: ResponseFormGeometry[];
+    responseImages: ResponseFormImages;
     categories: AssessmentCategoryItem[];
     driveFolderUrl: string | null;
   };
@@ -151,6 +155,7 @@ const ResponseFormV2 = ({
   isPreview?: boolean;
   onValuesChange?: (values: FormValues) => void;
   onGeometriesChange?: (geometries: ResponseFormGeometry[]) => void;
+  onImagesChange?: (images: ResponseFormImages) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
   const defaultResponseFormValues = useMemo(
@@ -216,6 +221,9 @@ const ResponseFormV2 = ({
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     assessmentTree.geometries,
   );
+  const [responseImages, setResponseImages] = useState<ResponseFormImages>(
+    assessmentTree.responseImages,
+  );
   const [formValues, setFormValues] = useState<FormValues>({});
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
@@ -249,6 +257,13 @@ const ResponseFormV2 = ({
     });
   };
 
+  const handleQuestionImagesChange = (questionId: number, images: string[]) => {
+    setResponseImages((prev) => ({
+      ...prev,
+      [questionId]: images,
+    }));
+  };
+
   const onSubmit = (data: FormValues) => {
     setFormValues(data);
     setOpenSaveDialog(true);
@@ -270,6 +285,7 @@ const ResponseFormV2 = ({
         assessmentId: number;
         responses: SerializedFormValues;
         geometries?: ResponseFormGeometry[];
+        responseImages?: ResponseFormImages;
         endDateTime?: string | null;
         finalizationDateTime?: string | null;
         isFinalized?: boolean;
@@ -288,6 +304,7 @@ const ResponseFormV2 = ({
 
       const incomingGeoms = importedData.geometries ?? [];
       setGeometries(incomingGeoms);
+      setResponseImages(importedData.responseImages ?? {});
 
       const startDate = dayjs(importedData.startDate);
       setStartDate(startDate);
@@ -348,6 +365,10 @@ const ResponseFormV2 = ({
   useEffect(() => {
     onGeometriesChange?.(geometries);
   }, [geometries, onGeometriesChange]);
+
+  useEffect(() => {
+    onImagesChange?.(responseImages);
+  }, [responseImages, onImagesChange]);
 
   return (
     <form
@@ -485,10 +506,12 @@ const ResponseFormV2 = ({
           category={cat}
           numericResponses={numericResponses}
           geometries={geometries}
+          responseImages={responseImages}
           questionsForMention={questionsForMention}
           finalized={!isFilling}
           locationPolygonGeoJson={locationPolygonGeoJson}
           handleQuestionGeometryChange={handleQuestionGeometryChange}
+          handleQuestionImagesChange={handleQuestionImagesChange}
           control={control}
         />
       ))}
@@ -518,6 +541,7 @@ const ResponseFormV2 = ({
             open={openSaveDialog}
             formValues={formValues}
             geometries={geometries}
+            responseImages={responseImages}
             importedEndDatetime={importedFinalizationDatetime}
             importedIsFinalized={importedIsFinalized}
             startDate={startDate}
@@ -552,18 +576,22 @@ const Category = ({
   category,
   numericResponses,
   geometries,
+  responseImages,
   questionsForMention,
   locationPolygonGeoJson,
   handleQuestionGeometryChange,
+  handleQuestionImagesChange,
   control,
   finalized,
 }: {
   category: AssessmentCategoryItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
+  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
@@ -578,10 +606,12 @@ const Category = ({
                 subcategory={child}
                 numericResponses={numericResponses}
                 geometries={geometries}
+                responseImages={responseImages}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
                 locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
+                handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
               />
             );
@@ -592,10 +622,12 @@ const Category = ({
                 question={child}
                 numericResponses={numericResponses}
                 geometries={geometries}
+                responseImages={responseImages}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
                 locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
+                handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
               />
             );
@@ -610,18 +642,22 @@ const Subcategory = ({
   subcategory,
   numericResponses,
   geometries,
+  responseImages,
   questionsForMention,
   locationPolygonGeoJson,
   handleQuestionGeometryChange,
+  handleQuestionImagesChange,
   control,
   finalized,
 }: {
   subcategory: AssessmentSubcategoryItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
+  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
@@ -634,10 +670,12 @@ const Subcategory = ({
             question={question}
             numericResponses={numericResponses}
             geometries={geometries}
+            responseImages={responseImages}
             questionsForMention={questionsForMention}
             finalized={finalized}
             locationPolygonGeoJson={locationPolygonGeoJson}
             handleQuestionGeometryChange={handleQuestionGeometryChange}
+            handleQuestionImagesChange={handleQuestionImagesChange}
             control={control}
           />
         ))}
@@ -650,18 +688,22 @@ const Question = ({
   question,
   numericResponses,
   geometries,
+  responseImages,
   questionsForMention,
   locationPolygonGeoJson,
   handleQuestionGeometryChange,
+  handleQuestionImagesChange,
   control,
   finalized,
 }: {
   question: AssessmentQuestionItem;
   numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
+  responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
+  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
@@ -669,14 +711,22 @@ const Question = ({
     <ResponseFormQuestionCard
       question={question}
       questionsForMention={questionsForMention}
-      geometryControls={
-        <ResponseFormQuestionGeometryControls
-          question={question}
-          geometries={geometries}
-          locationPolygonGeoJson={locationPolygonGeoJson}
-          finalized={finalized}
-          handleQuestionGeometryChange={handleQuestionGeometryChange}
-        />
+      questionControls={
+        <>
+          <ResponseFormQuestionGeometryControls
+            question={question}
+            geometries={geometries}
+            locationPolygonGeoJson={locationPolygonGeoJson}
+            finalized={finalized}
+            handleQuestionGeometryChange={handleQuestionGeometryChange}
+          />
+          <ResponseFormQuestionImageControls
+            question={question}
+            responseImages={responseImages}
+            finalized={finalized}
+            onQuestionImagesChange={handleQuestionImagesChange}
+          />
+        </>
       }
     >
       <ControlledResponseQuestionField

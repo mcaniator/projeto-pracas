@@ -1,5 +1,8 @@
 import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type {
+  FormValues,
+  ResponseFormImages,
+} from "@/components/ui/responseForm/responseFormTypes";
 import { prisma } from "@/lib/prisma";
 import {
   AssessmentCategoryItem,
@@ -120,6 +123,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     scaleConfig: true,
                     notes: true,
                     questionType: true,
@@ -166,6 +170,18 @@ export const publicFetchPublicAssessmentTree = async (params: {
                         },
                       },
                     },
+                    imageResponses: {
+                      where: {
+                        assessmentId: params.assessmentId,
+                      },
+                      select: {
+                        image: {
+                          select: {
+                            relativePath: true,
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -198,6 +214,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
 
     let totalQuestions = 0;
     const responsesFormValues: FormValues = {};
+    const responseImages: ResponseFormImages = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -291,6 +308,9 @@ export const publicFetchPublicAssessmentTree = async (params: {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
+        responseImages[dbQuestion.id] = dbQuestion.imageResponses.map(
+          (imageResponse) => imageResponse.image.relativePath,
+        );
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -298,6 +318,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
@@ -427,6 +448,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
           geometries: geometries,
+          responseImages,
           categories: categories,
         },
       },

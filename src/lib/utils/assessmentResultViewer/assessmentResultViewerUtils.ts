@@ -5,6 +5,7 @@ import {
   isAssessmentOptionValueWithOverride,
   isAssessmentOptionValueWithOverrideArray,
 } from "@/components/ui/responseForm/responseFormTypes";
+import type { ResponseFormImages } from "@/components/ui/responseForm/responseFormTypes";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -14,6 +15,7 @@ import dayjs from "dayjs";
 export type AssessmentTree = {
   categories: AssessmentCategoryItem[];
   responsesFormValues: FormValues;
+  responseImages?: ResponseFormImages;
 };
 
 const getQuestionRawValue = (

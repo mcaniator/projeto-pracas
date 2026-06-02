@@ -7,6 +7,8 @@ export type ResponseFormGeometry = {
   geometries: ResponseGeometry[];
 };
 
+export type ResponseFormImages = Record<number, string[]>;
+
 export type SimpleMention = {
   id: string;
   display: string;

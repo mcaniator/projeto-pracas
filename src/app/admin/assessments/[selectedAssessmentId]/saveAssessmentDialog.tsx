@@ -8,6 +8,7 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import type {
   FormValues,
   ResponseFormGeometry,
+  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
@@ -96,6 +97,7 @@ const SaveAssessmentDialog = ({
   assessmentId,
   formValues,
   geometries,
+  responseImages,
   importedEndDatetime,
   importedIsFinalized,
   startDate,
@@ -108,6 +110,7 @@ const SaveAssessmentDialog = ({
   assessmentId: number;
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
+  responseImages: ResponseFormImages;
   importedEndDatetime: Dayjs | null;
   importedIsFinalized: boolean;
   startDate: Dayjs;
@@ -137,6 +140,7 @@ const SaveAssessmentDialog = ({
         assessmentId,
         responses: serializedFormValues,
         geometries: geometries,
+        responseImages,
         startDate: startDate.toDate(),
         endDate: dateTime?.toDate() ?? null,
         isFinalized: isFinalized,
@@ -172,6 +176,7 @@ const SaveAssessmentDialog = ({
       assessmentId: assessmentId,
       responses: serializeResponseFormValues(formValues, categories),
       geometries: geometries,
+      responseImages,
       driveFolderUrl: driveFolderUrl,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {

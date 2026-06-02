@@ -2,11 +2,13 @@
 
 import type {
   ResponseFormGeometry,
+  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import { prisma } from "@/lib/prisma";
 import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
+import { getGoogleDriveImageUid } from "@/lib/utils/image";
 import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
@@ -58,6 +60,7 @@ const _addResponsesV2 = async ({
   assessmentId,
   responses,
   geometries,
+  responseImages,
   startDate,
   endDate,
   isFinalized,
@@ -66,6 +69,7 @@ const _addResponsesV2 = async ({
   assessmentId: number;
   responses: SerializedFormValues;
   geometries: ResponseFormGeometry[];
+  responseImages: ResponseFormImages;
   startDate: Date;
   endDate: Date | null;
   isFinalized: boolean;
@@ -404,6 +408,85 @@ const _addResponsesV2 = async ({
     `;
 
       transactions.push(prisma.$executeRaw(geometryQuery));
+    }
+
+    // DRIVE IMAGES
+    const previousImageResponses = await prisma.imageResponse.findMany({
+      where: {
+        assessmentId,
+      },
+      select: {
+        imageId: true,
+      },
+    });
+    const previousImageIds = previousImageResponses.map(
+      (response) => response.imageId,
+    );
+
+    transactions.push(
+      prisma.imageResponse.deleteMany({
+        where: {
+          assessmentId,
+        },
+      }),
+    );
+
+    if (previousImageIds.length > 0) {
+      transactions.push(
+        prisma.image.deleteMany({
+          where: {
+            imageId: {
+              in: previousImageIds,
+            },
+            host: "DRIVE",
+          },
+        }),
+      );
+    }
+
+    const parsedDriveImages = Object.entries(responseImages)
+      .flatMap(([questionId, urls]) =>
+        urls.map((url) => ({
+          questionId: Number(questionId),
+          url: url.trim(),
+        })),
+      )
+      .filter((image) => image.url.length > 0)
+      .map((image) => ({
+        ...image,
+        uid: getGoogleDriveImageUid({ sharingUrl: image.url }),
+      }))
+      .filter(
+        (image): image is { questionId: number; url: string; uid: string } =>
+          image.uid !== null,
+      );
+    const driveImages = Array.from(
+      new Map(parsedDriveImages.map((image) => [image.uid, image])).values(),
+    );
+
+    if (driveImages.length > 0) {
+      const driveImageValues = driveImages.map(
+        ({ questionId, uid, url }) =>
+          Prisma.sql`(${questionId}, ${uid}, ${url}, NULL, 'DRIVE'::image_hosts)`,
+      );
+
+      const driveImageQuery = Prisma.sql`
+      WITH new_images(question_id, file_uid, relative_path, size, host) AS (
+        VALUES ${Prisma.join(driveImageValues, ",")}
+      ),
+      inserted_images AS (
+        INSERT INTO image (file_uid, relative_path, size, host)
+        SELECT file_uid, relative_path, size::integer, host
+        FROM new_images
+        RETURNING image_id, file_uid
+      )
+      INSERT INTO image_response (question_id, assessment_id, image_id)
+      SELECT new_images.question_id, ${assessmentId}, inserted_images.image_id
+      FROM new_images
+      JOIN inserted_images ON inserted_images.file_uid = new_images.file_uid
+    `;
+
+      transactions.push(prisma.$executeRaw(driveImageQuery));
     }
     await prisma.$transaction(transactions);
     return {
