@@ -79,6 +79,14 @@
   z-index: 1300 !important;
 }
 
+.picker-dialog-bg {
+  z-index: 1999 !important;
+}
+
+.picker-dialog {
+  z-index: 2000 !important;
+}
+
 @keyframes map-bg-pulse {
   0% {
     background-color: #e5e7eb; /* gray-200 */
