@@ -15,6 +15,7 @@ import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSu
 import type {
   FormValues,
   ResponseFormGeometry,
+  ResponseFormImage,
   ResponseFormImages,
   SerializedFormValues,
   SimpleMention,
@@ -146,7 +147,6 @@ const ResponseFormV2 = ({
     totalQuestions: number;
     responsesFormValues: SerializedFormValues;
     geometries: ResponseFormGeometry[];
-    responseImages: ResponseFormImages;
     categories: AssessmentCategoryItem[];
     driveFolderUrl: string | null;
   };
@@ -221,9 +221,7 @@ const ResponseFormV2 = ({
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     assessmentTree.geometries,
   );
-  const [responseImages, setResponseImages] = useState<ResponseFormImages>(
-    assessmentTree.responseImages,
-  );
+  const [responseImages, setResponseImages] = useState<ResponseFormImages>({});
   const [formValues, setFormValues] = useState<FormValues>({});
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
@@ -257,10 +255,25 @@ const ResponseFormV2 = ({
     });
   };
 
-  const handleQuestionImagesChange = (questionId: number, images: string[]) => {
+  const handleQuestionImagesChange = (
+    questionId: number,
+    images: ResponseFormImage[],
+  ) => {
     setResponseImages((prev) => ({
       ...prev,
       [questionId]: images,
+    }));
+  };
+
+  const handleQuestionImageSynced = (
+    questionId: number,
+    imageIndex: number,
+  ) => {
+    setResponseImages((prev) => ({
+      ...prev,
+      [questionId]: (prev[questionId] ?? []).map((image, index) =>
+        index === imageIndex ? { ...image, status: "SYNCED" } : image,
+      ),
     }));
   };
 
@@ -541,12 +554,13 @@ const ResponseFormV2 = ({
             open={openSaveDialog}
             formValues={formValues}
             geometries={geometries}
-            responseImages={responseImages}
             importedEndDatetime={importedFinalizationDatetime}
             importedIsFinalized={importedIsFinalized}
             startDate={startDate}
             driveFolderUrl={driveFolderUrl}
+            responseImages={responseImages}
             categories={assessmentTree.categories}
+            onResponseImageSynced={handleQuestionImageSynced}
             onClose={() => {
               setOpenSaveDialog(false);
             }}
@@ -591,7 +605,10 @@ const Category = ({
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
-  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
+  handleQuestionImagesChange: (
+    questionId: number,
+    images: ResponseFormImage[],
+  ) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
@@ -657,7 +674,10 @@ const Subcategory = ({
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
-  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
+  handleQuestionImagesChange: (
+    questionId: number,
+    images: ResponseFormImage[],
+  ) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
@@ -703,7 +723,10 @@ const Question = ({
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
-  handleQuestionImagesChange: (questionId: number, images: string[]) => void;
+  handleQuestionImagesChange: (
+    questionId: number,
+    images: ResponseFormImage[],
+  ) => void;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {

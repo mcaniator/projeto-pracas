@@ -7,7 +7,15 @@ export type ResponseFormGeometry = {
   geometries: ResponseGeometry[];
 };
 
-export type ResponseFormImages = Record<number, string[]>;
+export type ResponseFormImageSyncStatus = "SYNCED" | "UNSYNCED";
+
+export type ResponseFormImage = {
+  file?: File;
+  url?: string;
+  status: ResponseFormImageSyncStatus;
+};
+
+export type ResponseFormImages = Record<number, ResponseFormImage[]>;
 
 export type SimpleMention = {
   id: string;

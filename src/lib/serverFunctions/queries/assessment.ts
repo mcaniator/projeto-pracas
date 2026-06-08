@@ -1,7 +1,6 @@
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
 import type {
   FormValues,
-  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
@@ -230,18 +229,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                         },
                       },
                     },
-                    imageResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        image: {
-                          select: {
-                            relativePath: true,
-                          },
-                        },
-                      },
-                    },
                   },
                 },
               },
@@ -277,7 +264,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
 
     let totalQuestions = 0;
     const responsesFormValues: SerializedFormValues = {};
-    const responseImages: ResponseFormImages = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -371,9 +357,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
-        responseImages[dbQuestion.id] = dbQuestion.imageResponses.map(
-          (imageResponse) => imageResponse.image.relativePath,
-        );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -514,7 +498,6 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
           geometries: geometries,
-          responseImages,
           categories: categories,
         },
       },
@@ -641,18 +624,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                         },
                       },
                     },
-                    imageResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        image: {
-                          select: {
-                            relativePath: true,
-                          },
-                        },
-                      },
-                    },
                   },
                 },
               },
@@ -685,7 +656,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
 
     let totalQuestions = 0;
     const responsesFormValues: FormValues = {};
-    const responseImages: ResponseFormImages = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -778,9 +748,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
 
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
-        );
-        responseImages[dbQuestion.id] = dbQuestion.imageResponses.map(
-          (imageResponse) => imageResponse.image.relativePath,
         );
         const question: AssessmentQuestionItem = {
           id: item.id,
@@ -920,7 +887,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
           geometries: geometries,
-          responseImages,
           categories: categories,
         },
       },

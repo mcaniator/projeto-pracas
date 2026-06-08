@@ -1,6 +1,5 @@
 "use client";
 
-import CImage from "@/components/ui/CImage";
 import QuestionResponseRenderer from "@/components/ui/assessment/questionResponseRenderer";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialogTrigger from "@/components/ui/dialog/cDialogTrigger";
@@ -10,7 +9,6 @@ import {
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
-import { buildGoogleDriveThumbnailImageUrl } from "@/lib/utils/image";
 import { Divider } from "@mui/material";
 import { IconInfoCircle } from "@tabler/icons-react";
 import {
@@ -135,7 +133,7 @@ const QuestionValues = ({
   question: AssessmentQuestionItem;
 }) => {
   const resolvedValue = resolveAssessmentQuestionValue(assessment, question);
-  const images = assessment.responseImages?.[question.questionId] ?? [];
+  //TODO: Add images
 
   return (
     <div className="flex flex-row items-center gap-1">
@@ -143,26 +141,6 @@ const QuestionValues = ({
         question={question}
         resolvedValue={resolvedValue}
       />
-      {images.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {images.map((url, index) => {
-            const directUrl = buildGoogleDriveThumbnailImageUrl({
-              sharingUrl: url,
-            });
-
-            return (
-              <CImage
-                key={index}
-                src={directUrl}
-                width={100}
-                height={100}
-                alt={`${question.name} - imagem ${index + 1}`}
-                className="aspect-[4/3] w-32 rounded object-cover"
-              />
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 };

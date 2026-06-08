@@ -1,54 +1,48 @@
 "use client";
 
 import CImage from "@/components/ui/CImage";
+import CImageInput from "@/components/ui/CImageInput";
 import CButton from "@/components/ui/cButton";
-import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { ResponseFormImages } from "@/components/ui/responseForm/responseFormTypes";
+import type {
+  ResponseFormImage,
+  ResponseFormImages,
+} from "@/components/ui/responseForm/responseFormTypes";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import {
-  buildGoogleDriveDirectImageUrl,
-  buildGoogleDriveThumbnailImageUrl,
-  getGoogleDriveImageUid,
-} from "@/lib/utils/image";
-import { IconPhoto, IconPlus, IconX } from "@tabler/icons-react";
-import { useState } from "react";
+import { IconPhoto, IconX } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 
 const getQuestionImages = (images: ResponseFormImages, questionId: number) =>
   images[questionId] ?? [];
 
 const ResponseImagePreview = ({
-  url,
+  image,
   alt,
   canRemove,
   onRemove,
 }: {
-  url: string;
+  image: ResponseFormImage;
   alt: string;
   canRemove: boolean;
   onRemove: () => void;
 }) => {
-  const directUrl = buildGoogleDriveDirectImageUrl({ sharingUrl: url });
+  const [fileUrl, setFileUrl] = useState("");
 
-  if (!directUrl) {
-    return (
-      <div className="flex items-center justify-between gap-2 rounded border border-gray-300 p-2">
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer"
-          className="break-all text-sm underline"
-        >
-          {url}
-        </a>
-        {canRemove && (
-          <CButton square color="error" onClick={onRemove}>
-            <IconX />
-          </CButton>
-        )}
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (image.url || !image.file) {
+      setFileUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(image.file);
+    setFileUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [image.file, image.url]);
+
+  const directUrl = image.url ?? fileUrl;
 
   return (
     <div className="relative w-fit pb-2">
@@ -88,31 +82,11 @@ const ResponseFormQuestionImagesDialog = ({
 }: {
   open: boolean;
   question: AssessmentQuestionItem;
-  images: string[];
+  images: ResponseFormImage[];
   finalized: boolean;
   onClose: () => void;
-  onImagesChange: (images: string[]) => void;
+  onImagesChange: (images: ResponseFormImage[]) => void;
 }) => {
-  const [url, setUrl] = useState("");
-
-  const addImage = () => {
-    const nextUrl = url.trim();
-    if (nextUrl.length === 0) {
-      return;
-    }
-    const nextUid = getGoogleDriveImageUid({ sharingUrl: nextUrl });
-    const alreadyAdded = images.some(
-      (image) => getGoogleDriveImageUid({ sharingUrl: image }) === nextUid,
-    );
-    if (alreadyAdded) {
-      setUrl("");
-      return;
-    }
-
-    onImagesChange([...images, nextUrl]);
-    setUrl("");
-  };
-
   return (
     <CDialog
       fullScreen
@@ -124,21 +98,23 @@ const ResponseFormQuestionImagesDialog = ({
     >
       <div className="flex w-full flex-col gap-3">
         {!finalized && (
-          <CTextField
-            label="URL de compartilhamento do Google Drive"
-            value={url}
-            suffixButtonChildren={<IconPlus />}
-            onChange={(event) => setUrl(event.target.value)}
-            onAppendIconButtonClick={addImage}
-            onEnterDown={addImage}
+          <CImageInput
+            label="Adicionar imagens"
+            multiple={true}
+            emitFiles={(e) => {
+              const newImages = e.map(
+                (file) => ({ file, status: "UNSYNCED" }) as ResponseFormImage,
+              );
+              onImagesChange([...images, ...newImages]);
+            }}
           />
         )}
 
         <div className="flex flex-wrap gap-2">
-          {images.map((imageUrl, index) => (
+          {images.map((image, index) => (
             <ResponseImagePreview
-              key={`${imageUrl}-${index}`}
-              url={imageUrl}
+              key={`${image.url}-${index}`}
+              image={image}
               alt={`${question.name} - imagem ${index + 1}`}
               canRemove={!finalized}
               onRemove={() => {
@@ -161,16 +137,13 @@ const ResponseFormQuestionImageControls = ({
   question: AssessmentQuestionItem;
   responseImages: ResponseFormImages;
   finalized: boolean;
-  onQuestionImagesChange: (questionId: number, images: string[]) => void;
+  onQuestionImagesChange: (
+    questionId: number,
+    images: ResponseFormImage[],
+  ) => void;
 }) => {
   const [openImagesDialog, setOpenImagesDialog] = useState(false);
   const images = getQuestionImages(responseImages, question.questionId);
-  const firstImageUrl = images[0] ?? null;
-  const firstImageThumbnailUrl =
-    firstImageUrl ?
-      buildGoogleDriveThumbnailImageUrl({ sharingUrl: firstImageUrl })
-    : null;
-  const remainingImagesCount = Math.max(images.length - 1, 0);
 
   if (!question.allowResponseImages) {
     return null;
@@ -189,32 +162,6 @@ const ResponseFormQuestionImageControls = ({
         >
           <IconPhoto />
         </CButton>
-
-        {firstImageUrl && (
-          <button
-            type="button"
-            className="relative w-fit"
-            onClick={() => setOpenImagesDialog(true)}
-          >
-            {remainingImagesCount > 0 && (
-              <span className="absolute right-2 top-2 z-10 min-h-5 min-w-6 rounded-full bg-black p-1 text-xs text-white">
-                +{remainingImagesCount}
-              </span>
-            )}
-            {firstImageThumbnailUrl ?
-              <CImage
-                src={firstImageThumbnailUrl}
-                alt={`Primeira imagem de ${question.name}`}
-                className="aspect-[4/3] w-28 rounded object-cover"
-                width={60}
-                height={60}
-              />
-            : <span className="block max-w-28 break-all rounded border border-gray-300 p-1 text-xs underline">
-                {firstImageUrl}
-              </span>
-            }
-          </button>
-        )}
       </div>
 
       <ResponseFormQuestionImagesDialog

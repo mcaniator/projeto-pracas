@@ -12,6 +12,7 @@ import type {
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
 import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -97,12 +98,13 @@ const SaveAssessmentDialog = ({
   assessmentId,
   formValues,
   geometries,
-  responseImages,
   importedEndDatetime,
   importedIsFinalized,
   startDate,
   driveFolderUrl,
+  responseImages,
   categories,
+  onResponseImageSynced,
   onClose,
 }: {
   open: boolean;
@@ -110,12 +112,13 @@ const SaveAssessmentDialog = ({
   assessmentId: number;
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
-  responseImages: ResponseFormImages;
   importedEndDatetime: Dayjs | null;
   importedIsFinalized: boolean;
   startDate: Dayjs;
   driveFolderUrl: string | null;
+  responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
+  onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -125,13 +128,45 @@ const SaveAssessmentDialog = ({
   const [dateTime, setDateTime] = useState<Dayjs | null>(importedEndDatetime);
   const { setLoadingOverlay } = useLoadingOverlay();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
+  const [uploadImage] = useUploadImageResponse();
+  const saveResponseImages = async (responseImages: ResponseFormImages) => {
+    await Promise.all(
+      Object.entries(responseImages).flatMap(([questionId, images]) =>
+        images.flatMap((image, imageIndex) => {
+          if (!image.file || image.status !== "UNSYNCED") {
+            return [];
+          }
+
+          return uploadImage({
+            image: image.file,
+            folderId: "",
+          }).then((response) => {
+            if (
+              response.responseInfo.statusCode < 200 ||
+              response.responseInfo.statusCode >= 300
+            ) {
+              throw new Error(
+                response.responseInfo.message ??
+                  "Erro ao enviar imagem ao Google Drive!",
+              );
+            }
+
+            onResponseImageSynced(Number(questionId), imageIndex);
+          });
+        }),
+      ),
+    );
+  };
   const save = async () => {
     if (isFinalized && !dateTime) {
       setShowDatePickerError(true);
       return;
     }
+
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
+
     try {
+      await saveResponseImages(responseImages);
       const serializedFormValues = serializeResponseFormValues(
         formValues,
         categories,
@@ -140,7 +175,6 @@ const SaveAssessmentDialog = ({
         assessmentId,
         responses: serializedFormValues,
         geometries: geometries,
-        responseImages,
         startDate: startDate.toDate(),
         endDate: dateTime?.toDate() ?? null,
         isFinalized: isFinalized,
@@ -176,7 +210,6 @@ const SaveAssessmentDialog = ({
       assessmentId: assessmentId,
       responses: serializeResponseFormValues(formValues, categories),
       geometries: geometries,
-      responseImages,
       driveFolderUrl: driveFolderUrl,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {

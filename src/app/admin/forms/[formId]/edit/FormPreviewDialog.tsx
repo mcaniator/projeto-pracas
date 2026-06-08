@@ -12,7 +12,6 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import type {
   FormValues,
   ResponseFormGeometry,
-  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import type {
@@ -243,7 +242,6 @@ const buildPreviewAssessmentTree = ({
     totalQuestions: countQuestions(formTree),
     responsesFormValues,
     geometries: [],
-    responseImages: {},
     categories: formTree.categories.map((category) =>
       toAssessmentCategory({
         category,
@@ -278,14 +276,10 @@ const FormPreviewDialog = ({
   const [previewGeometries, setPreviewGeometries] = useState<
     ResponseFormGeometry[]
   >(assessmentTree.geometries);
-  const [previewImages, setPreviewImages] = useState<ResponseFormImages>(
-    assessmentTree.responseImages,
-  );
 
   useEffect(() => {
     setPreviewValues(assessmentTree.responsesFormValues);
     setPreviewGeometries(assessmentTree.geometries);
-    setPreviewImages(assessmentTree.responseImages);
     setViewMode("form");
     setShowOnlyPublicQuestions(false);
   }, [assessmentTree]);
@@ -301,10 +295,6 @@ const FormPreviewDialog = ({
     [],
   );
 
-  const handleImagesChange = useCallback((images: ResponseFormImages) => {
-    setPreviewImages(images);
-  }, []);
-
   const resultAssessmentTree = useMemo(
     () => ({
       ...assessmentTree,
@@ -313,9 +303,8 @@ const FormPreviewDialog = ({
         values: previewValues,
       }),
       geometries: previewGeometries,
-      responseImages: previewImages,
     }),
-    [assessmentTree, previewGeometries, previewImages, previewValues],
+    [assessmentTree, previewGeometries, previewValues],
   );
 
   return (
@@ -354,7 +343,6 @@ const FormPreviewDialog = ({
           isPreview
           onValuesChange={handleValuesChange}
           onGeometriesChange={handleGeometriesChange}
-          onImagesChange={handleImagesChange}
         />
       </div>
 

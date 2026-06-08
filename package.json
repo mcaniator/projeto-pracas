@@ -38,6 +38,7 @@
     "cmdk": "^1.0.4",
     "dayjs": "^1.11.18",
     "fuse.js": "^7.0.0",
+    "googleapis": "^173.0.0",
     "mathjs": "^14.7.0",
     "next-auth": "5.0.0-beta.25",
     "next-nprogress-bar": "2.3.15",
