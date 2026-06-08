@@ -125,6 +125,7 @@ const getFormTree = async (params: { formId: number }) => {
                 questionType: true,
                 characterType: true,
                 isPublic: true,
+                allowResponseImages: true,
                 optionType: true,
                 options: {
                   select: {
@@ -233,6 +234,7 @@ const getFormTree = async (params: { formId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,

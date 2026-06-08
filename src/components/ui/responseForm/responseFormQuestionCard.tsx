@@ -2,18 +2,19 @@ import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import { Box } from "@mui/material";
 import type { ReactNode } from "react";
+
 import ResponseFormQuestionDescriptors from "./responseFormQuestionDescriptors";
 import type { SimpleMention } from "./responseFormTypes";
 
 const ResponseFormQuestionCard = ({
   question,
   questionsForMention,
-  geometryControls,
+  questionControls,
   children,
 }: {
   question: AssessmentQuestionItem;
   questionsForMention: SimpleMention[];
-  geometryControls?: ReactNode;
+  questionControls?: ReactNode;
   children: ReactNode;
 }) => {
   return (
@@ -29,10 +30,10 @@ const ResponseFormQuestionCard = ({
         <CDynamicIcon iconKey={question.iconKey} />
         {question.name}
       </div>
-      <div className="mb-1 flex flex-wrap justify-start gap-1">
-        {geometryControls}
-      </div>
       {children}
+      <div className="mt-1 flex flex-wrap items-start justify-start gap-2">
+        {questionControls}
+      </div>
     </Box>
   );
 };

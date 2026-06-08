@@ -91,8 +91,12 @@ const CImageInput = ({
     setIsCompressingImages(false);
 
     props.handleFileInput?.(e);
-    if (multiple && Array.isArray(files)) {
-      props.emitFiles?.([...files, ...compressedFiles]);
+    if (multiple) {
+      if (Array.isArray(files)) {
+        props.emitFiles?.([...files, ...compressedFiles]);
+      } else {
+        props.emitFiles?.(compressedFiles);
+      }
     } else if (!multiple) {
       props.emitFiles?.(compressedFiles);
     }
@@ -137,7 +141,7 @@ const CImageInput = ({
   return (
     <Box sx={borderSx} className="flex flex-col items-start rounded-lg">
       <div>{props.label}</div>
-      <div className="flex w-full justify-between gap-1">
+      <div className="flex w-full gap-1">
         <CButtonFilePicker
           fileAccept="image/*"
           onFileInput={(e) => {

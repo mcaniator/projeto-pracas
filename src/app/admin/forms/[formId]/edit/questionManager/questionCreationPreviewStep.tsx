@@ -4,9 +4,11 @@ import QuestionResponseRenderer from "@/components/ui/assessment/questionRespons
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
+import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import {
   ResponseFormGeometry,
+  ResponseFormImages,
   ResponseQuestionValue,
 } from "@/components/ui/responseForm/responseFormTypes";
 import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
@@ -70,6 +72,7 @@ const QuestionCreationPreviewStep = ({
   );
   const [value, setValue] = useState<ResponseQuestionValue>(null);
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>([]);
+  const [responseImages, setResponseImages] = useState<ResponseFormImages>({});
 
   useEffect(() => {
     // Prevents boolean question from being unfilled, as this does not happens in ResponseForm
@@ -83,30 +86,44 @@ const QuestionCreationPreviewStep = ({
     <ResponseFormQuestionCard
       question={previewQuestion}
       questionsForMention={[]}
-      geometryControls={
-        <ResponseFormQuestionGeometryControls
-          question={previewQuestion}
-          geometries={geometries}
-          locationPolygonGeoJson={null}
-          finalized={false}
-          handleQuestionGeometryChange={(nextGeometry) => {
-            setGeometries((prev) => {
-              if (
-                prev.some(
-                  (geometry) => geometry.questionId === nextGeometry.questionId,
-                )
-              ) {
-                return prev.map((geometry) =>
-                  geometry.questionId === nextGeometry.questionId ?
-                    nextGeometry
-                  : geometry,
-                );
-              }
+      questionControls={
+        <>
+          <ResponseFormQuestionGeometryControls
+            question={previewQuestion}
+            geometries={geometries}
+            locationPolygonGeoJson={null}
+            finalized={false}
+            handleQuestionGeometryChange={(nextGeometry) => {
+              setGeometries((prev) => {
+                if (
+                  prev.some(
+                    (geometry) =>
+                      geometry.questionId === nextGeometry.questionId,
+                  )
+                ) {
+                  return prev.map((geometry) =>
+                    geometry.questionId === nextGeometry.questionId ?
+                      nextGeometry
+                    : geometry,
+                  );
+                }
 
-              return [...prev, nextGeometry];
-            });
-          }}
-        />
+                return [...prev, nextGeometry];
+              });
+            }}
+          />
+          <ResponseFormQuestionImageControls
+            question={previewQuestion}
+            responseImages={responseImages}
+            finalized={false}
+            onQuestionImagesChange={(questionId, images) => {
+              setResponseImages((prev) => ({
+                ...prev,
+                [questionId]: images,
+              }));
+            }}
+          />
+        </>
       }
     >
       <ResponseQuestionFieldRenderer

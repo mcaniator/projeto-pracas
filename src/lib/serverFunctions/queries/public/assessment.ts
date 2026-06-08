@@ -120,6 +120,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     scaleConfig: true,
                     notes: true,
                     questionType: true,
@@ -291,6 +292,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -298,6 +300,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,

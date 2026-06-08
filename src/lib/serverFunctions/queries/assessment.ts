@@ -177,6 +177,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -356,6 +357,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -363,6 +365,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
@@ -574,6 +577,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     scaleConfig: true,
                     notes: true,
                     questionType: true,
@@ -752,6 +756,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,

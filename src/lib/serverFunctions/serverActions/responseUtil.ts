@@ -405,6 +405,7 @@ const _addResponsesV2 = async ({
 
       transactions.push(prisma.$executeRaw(geometryQuery));
     }
+
     await prisma.$transaction(transactions);
     return {
       responseInfo: {

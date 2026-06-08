@@ -8,9 +8,11 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import type {
   FormValues,
   ResponseFormGeometry,
+  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
 import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -100,7 +102,9 @@ const SaveAssessmentDialog = ({
   importedIsFinalized,
   startDate,
   driveFolderUrl,
+  responseImages,
   categories,
+  onResponseImageSynced,
   onClose,
 }: {
   open: boolean;
@@ -112,7 +116,9 @@ const SaveAssessmentDialog = ({
   importedIsFinalized: boolean;
   startDate: Dayjs;
   driveFolderUrl: string | null;
+  responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
+  onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -122,13 +128,45 @@ const SaveAssessmentDialog = ({
   const [dateTime, setDateTime] = useState<Dayjs | null>(importedEndDatetime);
   const { setLoadingOverlay } = useLoadingOverlay();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
+  const [uploadImage] = useUploadImageResponse();
+  const saveResponseImages = async (responseImages: ResponseFormImages) => {
+    await Promise.all(
+      Object.entries(responseImages).flatMap(([questionId, images]) =>
+        images.flatMap((image, imageIndex) => {
+          if (!image.file || image.status !== "UNSYNCED") {
+            return [];
+          }
+
+          return uploadImage({
+            image: image.file,
+            folderId: "",
+          }).then((response) => {
+            if (
+              response.responseInfo.statusCode < 200 ||
+              response.responseInfo.statusCode >= 300
+            ) {
+              throw new Error(
+                response.responseInfo.message ??
+                  "Erro ao enviar imagem ao Google Drive!",
+              );
+            }
+
+            onResponseImageSynced(Number(questionId), imageIndex);
+          });
+        }),
+      ),
+    );
+  };
   const save = async () => {
     if (isFinalized && !dateTime) {
       setShowDatePickerError(true);
       return;
     }
+
     setLoadingOverlay({ show: true, message: "Salvando avaliação" });
+
     try {
+      await saveResponseImages(responseImages);
       const serializedFormValues = serializeResponseFormValues(
         formValues,
         categories,

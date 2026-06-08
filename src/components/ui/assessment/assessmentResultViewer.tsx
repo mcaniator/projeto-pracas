@@ -133,12 +133,15 @@ const QuestionValues = ({
   question: AssessmentQuestionItem;
 }) => {
   const resolvedValue = resolveAssessmentQuestionValue(assessment, question);
+  //TODO: Add images
 
   return (
-    <QuestionResponseRenderer
-      question={question}
-      resolvedValue={resolvedValue}
-    />
+    <div className="flex flex-row items-center gap-1">
+      <QuestionResponseRenderer
+        question={question}
+        resolvedValue={resolvedValue}
+      />
+    </div>
   );
 };
 
