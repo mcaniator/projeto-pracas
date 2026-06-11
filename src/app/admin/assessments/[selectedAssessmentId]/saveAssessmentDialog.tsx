@@ -11,6 +11,7 @@ import type {
   ResponseFormImages,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { dexieDb } from "@/lib/dexie/dexie";
 import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
@@ -113,6 +114,7 @@ const SaveAssessmentDialog = ({
       if (response.responseInfo.statusCode !== 201) {
         setEnableJsonSaving(true);
       } else {
+        await dexieDb.assessments.delete(assessmentId);
         setEnableJsonSaving(false);
         if (response.data?.savedAsFinalized) {
           router.push(`/admin/assessments`);

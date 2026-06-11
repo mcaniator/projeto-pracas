@@ -361,10 +361,10 @@ const ResponseFormV2 = ({
       void dexieDb.assessments.put({
         id: assessmentTree.id,
         serverUpdatedAt: assessmentTree.updatedAt,
+        localUpdatedAt: new Date(),
         responseFormValues: serializedFormValuesRef.current,
         geometries: geometriesRef.current,
         responseImages: responseImagesRef.current,
-        localUpdatedAt: new Date(),
       });
     }, 500);
 
