@@ -13,6 +13,8 @@ interface DexieAssessment {
   responseFormValues: SerializedFormValues;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
+  userId: string;
+  username: string;
 }
 
 const dexieDb = new Dexie("PracasLocal") as Dexie & {
@@ -25,7 +27,7 @@ const dexieDb = new Dexie("PracasLocal") as Dexie & {
 // Schema declaration:
 dexieDb.version(1).stores({
   assessments:
-    "id, serverUpdatedAt, localUpdatedAt, responseFormValues, geometries, responseImages",
+    "id, serverUpdatedAt, localUpdatedAt, responseFormValues, geometries, responseImages, userId, username",
 });
 
 export type { DexieAssessment };

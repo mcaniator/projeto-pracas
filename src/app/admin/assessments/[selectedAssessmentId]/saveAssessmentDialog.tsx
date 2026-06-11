@@ -34,6 +34,7 @@ const SaveAssessmentDialog = ({
   responseImages,
   categories,
   onResponseImageSynced,
+  onSaveSuccess,
   onClose,
 }: {
   open: boolean;
@@ -48,6 +49,7 @@ const SaveAssessmentDialog = ({
   responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
+  onSaveSuccess: () => void;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -92,10 +94,11 @@ const SaveAssessmentDialog = ({
     action: _addResponsesV2,
     callbacks: {
       onSuccess: (response) => {
+        setEnableJsonSaving(false);
+        onSaveSuccess();
         dexieDb.assessments
           .delete(assessmentId)
           .then(() => {
-            setEnableJsonSaving(false);
             if (response.data?.savedAsFinalized) {
               router.push(`/admin/assessments`);
             }

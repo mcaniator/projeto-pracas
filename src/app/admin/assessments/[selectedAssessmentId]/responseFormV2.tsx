@@ -1,6 +1,8 @@
 "use client";
 
+import ChooseResponsesSourceDialog from "@/app/admin/assessments/[selectedAssessmentId]/chooseResponsesSourceDialog";
 import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
+import { useUserContext } from "@/components/context/UserContext";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
@@ -23,6 +25,7 @@ import type {
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
+import type { DexieAssessment } from "@/lib/dexie/dexie";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import {
   buildDateResponseFormatByQuestionId,
@@ -39,13 +42,21 @@ import {
   IconAlertTriangle,
   IconBrandGoogleDrive,
   IconCheck,
+  IconCloudExclamation,
   IconDeviceFloppy,
   IconPencil,
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { type Control, useForm, useWatch } from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
@@ -83,6 +94,10 @@ const ResponseFormV2 = ({
     startDate: Date;
     endDate: Date | null;
     updatedAt: Date;
+    user: {
+      username: string;
+      id: string;
+    };
     isFinalized: boolean;
     formName: string;
     totalQuestions: number;
@@ -99,6 +114,7 @@ const ResponseFormV2 = ({
   onImagesChange?: (images: ResponseFormImages) => void;
 }) => {
   const { setHelperCard } = useHelperCard();
+  const { user } = useUserContext();
   const defaultResponseFormValues = useMemo(
     () =>
       deserializeResponseFormValues(
@@ -176,14 +192,54 @@ const ResponseFormV2 = ({
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
+  const [pendingLocalAssessmentChoice, setPendingLocalAssessmentChoice] =
+    useState<DexieAssessment>();
   const [filledCount, setFilledCount] = useState(0);
+  const [pendingServerSave, setPendingServerSave] = useState(false);
   const geometriesRef = useRef(geometries);
   const responseImagesRef = useRef(responseImages);
   const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
+  const attachmentsIsDirtyRef = useRef(false);
 
   const allValues = useWatch({ control });
 
   const totalQuestions = assessmentTree.totalQuestions;
+
+  const applyLocalAssessmentValues = useCallback(
+    (localAssessment: DexieAssessment) => {
+      const localFormValues = deserializeResponseFormValues(
+        localAssessment.responseFormValues,
+        assessmentTree.categories,
+      );
+
+      reset(localFormValues);
+      setGeometries(localAssessment.geometries);
+      setResponseImages(localAssessment.responseImages);
+      serializedFormValuesRef.current = localAssessment.responseFormValues;
+      geometriesRef.current = localAssessment.geometries;
+      responseImagesRef.current = localAssessment.responseImages;
+      attachmentsIsDirtyRef.current = false;
+      setPendingLocalAssessmentChoice(undefined);
+      setPendingServerSave(true);
+    },
+    [assessmentTree.categories, reset],
+  );
+
+  const applyServerAssessmentValues = useCallback(() => {
+    reset(defaultResponseFormValues);
+    setGeometries(assessmentTree.geometries);
+    setResponseImages({});
+    serializedFormValuesRef.current = assessmentTree.responsesFormValues;
+    geometriesRef.current = assessmentTree.geometries;
+    responseImagesRef.current = {};
+    attachmentsIsDirtyRef.current = false;
+    setPendingLocalAssessmentChoice(undefined);
+  }, [
+    assessmentTree.geometries,
+    assessmentTree.responsesFormValues,
+    defaultResponseFormValues,
+    reset,
+  ]);
 
   const handleQuestionGeometryChange = ({
     questionId,
@@ -192,6 +248,7 @@ const ResponseFormV2 = ({
     questionId: number;
     geometries: ResponseGeometry[];
   }) => {
+    attachmentsIsDirtyRef.current = true;
     setGeometries((prev) => {
       if (prev.some((p) => p.questionId === questionId)) {
         return prev.map((p) => {
@@ -212,6 +269,7 @@ const ResponseFormV2 = ({
     questionId: number,
     images: ResponseFormImage[],
   ) => {
+    attachmentsIsDirtyRef.current = true;
     setResponseImages((prev) => ({
       ...prev,
       [questionId]: images,
@@ -269,6 +327,7 @@ const ResponseFormV2 = ({
       }
 
       const incomingGeoms = importedData.geometries ?? [];
+      attachmentsIsDirtyRef.current = true;
       setGeometries(incomingGeoms);
       setResponseImages(importedData.responseImages ?? {});
 
@@ -300,6 +359,44 @@ const ResponseFormV2 = ({
       });
     }
   };
+
+  useEffect(() => {
+    if (isPreview) return;
+
+    let ignore = false;
+
+    const loadLocalAssessment = async () => {
+      const localAssessment = await dexieDb.assessments.get(assessmentTree.id);
+
+      if (ignore || !localAssessment) {
+        return;
+      }
+
+      const localServerUpdatedAt = new Date(
+        localAssessment.serverUpdatedAt,
+      ).getTime();
+      const serverUpdatedAt = new Date(assessmentTree.updatedAt).getTime();
+
+      if (serverUpdatedAt <= localServerUpdatedAt) {
+        applyLocalAssessmentValues(localAssessment);
+        return;
+      }
+
+      setPendingLocalAssessmentChoice(localAssessment);
+    };
+
+    void loadLocalAssessment();
+
+    // Guard in case user leaves the page before the local assessment is loaded
+    return () => {
+      ignore = true;
+    };
+  }, [
+    applyLocalAssessmentValues,
+    assessmentTree.id,
+    assessmentTree.updatedAt,
+    isPreview,
+  ]);
 
   useEffect(() => {
     // This useEffect is called when the form values change.
@@ -355,7 +452,8 @@ const ResponseFormV2 = ({
   }, [responseImages, onImagesChange]);
 
   useEffect(() => {
-    if (isPreview || !isDirty) return;
+    if (isPreview || (!isDirty && !attachmentsIsDirtyRef.current)) return;
+    setPendingServerSave(true);
 
     const timeoutId = window.setTimeout(() => {
       void dexieDb.assessments.put({
@@ -365,6 +463,8 @@ const ResponseFormV2 = ({
         responseFormValues: serializedFormValuesRef.current,
         geometries: geometriesRef.current,
         responseImages: responseImagesRef.current,
+        userId: user.id,
+        username: user.username,
       });
     }, 500);
 
@@ -377,6 +477,7 @@ const ResponseFormV2 = ({
     geometries,
     isDirty,
     isPreview,
+    user,
     responseImages,
   ]);
 
@@ -535,7 +636,14 @@ const ResponseFormV2 = ({
       />
 
       {isFilling && !isPreview && (
-        <div className="flew-row flex justify-center gap-1">
+        <div className="flex flex-col justify-center gap-4">
+          {pendingServerSave && (
+            <Chip
+              label="Respostas não enviadas!"
+              color="error"
+              icon={<IconCloudExclamation />}
+            />
+          )}
           <CButton type="submit">
             <IconDeviceFloppy />
             Salvar
@@ -558,6 +666,9 @@ const ResponseFormV2 = ({
             responseImages={responseImages}
             categories={assessmentTree.categories}
             onResponseImageSynced={handleQuestionImageSynced}
+            onSaveSuccess={() => {
+              setPendingServerSave(false);
+            }}
             onClose={() => {
               setOpenSaveDialog(false);
             }}
@@ -579,6 +690,22 @@ const ResponseFormV2 = ({
         onClose={() => setOpenDriveFolderUrlDialog(false)}
         onConfirm={(url) => setDriveFolderUrl(url)}
       />
+      {!!pendingLocalAssessmentChoice && (
+        <ChooseResponsesSourceDialog
+          serverSource={{
+            updatedAt: assessmentTree.updatedAt,
+            username: assessmentTree.user.username,
+          }}
+          localSource={{
+            updatedAt: pendingLocalAssessmentChoice?.localUpdatedAt,
+            username: pendingLocalAssessmentChoice?.username,
+          }}
+          applyServerAssessmentValues={applyServerAssessmentValues}
+          applyLocalAssessmentValues={() => {
+            applyLocalAssessmentValues(pendingLocalAssessmentChoice);
+          }}
+        />
+      )}
     </form>
   );
 };

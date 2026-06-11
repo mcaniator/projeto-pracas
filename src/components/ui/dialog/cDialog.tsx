@@ -40,7 +40,7 @@ export type CDialogProps = DialogProps & {
   removeCloseButton?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
-  onClose: () => void;
+  onClose?: () => void;
   action?: (formData: FormData) => void;
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
@@ -251,7 +251,9 @@ const CDialog = ({
           }}
         >
           <CDialogHeader
-            close={onClose}
+            close={() => {
+              onClose?.();
+            }}
             title={title}
             subtitle={subtitle}
             removeCloseButton={removeCloseButton}
@@ -315,7 +317,9 @@ const CDialog = ({
         }}
       >
         <CDialogHeader
-          close={onClose}
+          close={() => {
+            onClose?.();
+          }}
           title={title}
           subtitle={subtitle}
           removeCloseButton={removeCloseButton}

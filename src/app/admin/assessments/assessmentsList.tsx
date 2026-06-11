@@ -88,7 +88,7 @@ const AssessmentsList = ({
                       <span className="flex items-center text-base sm:text-xl">
                         <Chip
                           icon={<IconCloudExclamation />}
-                          label="Avaliação não enviada!"
+                          label="Respostas não enviadas!"
                           color="error"
                         />
                       </span>
