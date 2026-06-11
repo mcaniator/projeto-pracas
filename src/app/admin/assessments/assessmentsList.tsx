@@ -8,6 +8,7 @@ import {
   IconCalendar,
   IconCheck,
   IconClipboard,
+  IconCloudExclamation,
   IconExternalLink,
   IconFilePencil,
   IconUser,
@@ -17,13 +18,13 @@ import { Virtuoso } from "react-virtuoso";
 
 import CIconChip from "../../../components/ui/cIconChip";
 import { dateTimeFormatter } from "../../../lib/formatters/dateFormatters";
-import { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
+import type { AssessmentWithSyncStatus } from "./assessmentsClient";
 
 const AssessmentsList = ({
   assessments,
   handleVisibilityChange,
 }: {
-  assessments: FetchAssessmentsResponse["assessments"];
+  assessments: AssessmentWithSyncStatus[];
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
 }) => {
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
@@ -77,11 +78,23 @@ const AssessmentsList = ({
                     {`${a.location.name} - ${a.id} `}
                     <Chip
                       sx={{ ml: 2 }}
-                      color={a.isFinalized ? "secondary" : "error"}
+                      color={a.isFinalized ? "secondary" : "warning"}
                       label={a.isFinalized ? "Finalizado" : "Em progresso"}
                     />
                   </span>
                   <Divider />
+                  {a.hasUnsyncedFilling && (
+                    <>
+                      <span className="flex items-center text-base sm:text-xl">
+                        <Chip
+                          icon={<IconCloudExclamation />}
+                          label="Avaliação não enviada!"
+                          color="error"
+                        />
+                      </span>
+                      <Divider />
+                    </>
+                  )}
                   <span className="flex items-center text-base sm:text-xl">
                     <CIconChip icon={<IconClipboard />} tooltip="Fomulário" />
                     {a.form.name}

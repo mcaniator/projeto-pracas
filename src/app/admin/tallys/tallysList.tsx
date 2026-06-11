@@ -39,7 +39,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                     {`${a.location.name} - ${a.id} `}
                     <Chip
                       sx={{ ml: 2 }}
-                      color={a.isFinalized ? "secondary" : "error"}
+                      color={a.isFinalized ? "secondary" : "warning"}
                       label={a.isFinalized ? "Finalizado" : "Em progresso"}
                     />
                   </span>
