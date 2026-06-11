@@ -34,7 +34,7 @@ const CreateInviteDialog = ({
         onClose();
       },
       onError(response) {
-        if (response.responseInfo.statusCode === 400) {
+        if (response?.responseInfo.statusCode === 400) {
           setParkRoleWarning(true);
         }
       },

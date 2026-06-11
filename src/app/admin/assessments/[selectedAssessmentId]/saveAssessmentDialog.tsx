@@ -16,6 +16,7 @@ import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
 import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
+import { useServerAction } from "@/lib/utils/useServerAction";
 import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ const SaveAssessmentDialog = ({
   const [isFinalized, setIsFinalized] = useState(importedIsFinalized);
   const [dateTime, setDateTime] = useState<Dayjs | null>(importedEndDatetime);
   const { setLoadingOverlay } = useLoadingOverlay();
-  const { helperCardProcessResponse, setHelperCard } = useHelperCard();
+  const { setHelperCard } = useHelperCard();
   const [uploadImage] = useUploadImageResponse();
   const saveResponseImages = async (responseImages: ResponseFormImages) => {
     //Unused because of problems with the Google API
@@ -87,6 +88,33 @@ const SaveAssessmentDialog = ({
       ),
     );
   };
+  const [saveResponses] = useServerAction({
+    action: _addResponsesV2,
+    callbacks: {
+      onSuccess: (response) => {
+        dexieDb.assessments
+          .delete(assessmentId)
+          .then(() => {
+            setEnableJsonSaving(false);
+            if (response.data?.savedAsFinalized) {
+              router.push(`/admin/assessments`);
+            }
+          })
+          .catch(() => {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: (
+                <>Avaliação salva, mas falha ao excluir do dispositivo!</>
+              ),
+            });
+          });
+      },
+      onError: () => {
+        setEnableJsonSaving(true);
+      },
+    },
+  });
   const save = async () => {
     if (isFinalized && !dateTime) {
       setShowDatePickerError(true);
@@ -101,7 +129,7 @@ const SaveAssessmentDialog = ({
         formValues,
         categories,
       );
-      const response = await _addResponsesV2({
+      await saveResponses({
         assessmentId,
         responses: serializedFormValues,
         geometries: geometries,
@@ -110,16 +138,6 @@ const SaveAssessmentDialog = ({
         isFinalized: isFinalized,
         driveFolderUrl: driveFolderUrl,
       });
-      helperCardProcessResponse(response.responseInfo);
-      if (response.responseInfo.statusCode !== 201) {
-        setEnableJsonSaving(true);
-      } else {
-        await dexieDb.assessments.delete(assessmentId);
-        setEnableJsonSaving(false);
-        if (response.data?.savedAsFinalized) {
-          router.push(`/admin/assessments`);
-        }
-      }
     } catch (e) {
       setHelperCard({
         show: true,
