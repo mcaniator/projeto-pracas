@@ -18,10 +18,16 @@ import type {
   ResponseFormImage,
   ResponseFormImages,
   SerializedFormValues,
+  SerializedResponseQuestionValue,
   SimpleMention,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { dexieDb } from "@/lib/dexie/dexie";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import {
+  buildDateResponseFormatByQuestionId,
+  deserializeResponseFormValues,
+} from "@/lib/responseForm/responseForm";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -29,7 +35,6 @@ import {
 } from "@/lib/serverFunctions/queries/assessment";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import { Chip } from "@mui/material";
-import { QuestionResponseCharacterTypes } from "@prisma/client";
 import {
   IconAlertTriangle,
   IconBrandGoogleDrive,
@@ -40,7 +45,7 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { type Control, useForm, useWatch } from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
@@ -56,71 +61,6 @@ export const isAssessmentQuestionItem = (
   item: AssessmentQuestionItem | AssessmentSubcategoryItem,
 ): item is AssessmentQuestionItem => {
   return "questionId" in item && item.questionId !== null;
-};
-
-const deserializeResponseFormValues = (
-  values: SerializedFormValues,
-  categories: AssessmentCategoryItem[],
-): FormValues => {
-  //We need to map all date questions to construct their dayjs objects based on their serialized values
-  const dateQuestionsMap = new Map<number, QuestionResponseCharacterTypes>();
-
-  categories.forEach((category) => {
-    category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
-        child.questions.forEach((question) => {
-          if (
-            question.questionType === "WRITTEN" &&
-            (question.characterType === "DATE" ||
-              question.characterType === "TIME" ||
-              question.characterType === "DATETIME")
-          ) {
-            dateQuestionsMap.set(question.questionId, question.characterType);
-          }
-        });
-        return;
-      }
-
-      if (
-        isAssessmentQuestionItem(child) &&
-        child.questionType === "WRITTEN" &&
-        (child.characterType === "DATE" ||
-          child.characterType === "TIME" ||
-          child.characterType === "DATETIME")
-      ) {
-        dateQuestionsMap.set(child.questionId, child.characterType);
-      }
-    });
-  });
-
-  return Object.fromEntries(
-    Object.entries(values).map(([key, value]) => {
-      const questionDateType = dateQuestionsMap.get(Number(key));
-      if (!questionDateType || value === null) {
-        return [key, value];
-      }
-
-      if (typeof value !== "string") {
-        return [key, null];
-      }
-
-      if (questionDateType === "DATE") {
-        const dateValue = dayjs(value, "DD/MM/YYYY", true);
-        return [key, dateValue.isValid() ? dateValue : null];
-      }
-      if (questionDateType === "TIME") {
-        const dateValue = dayjs(value, "HH:mm", true);
-        return [key, dateValue.isValid() ? dateValue : null];
-      }
-
-      if (questionDateType === "DATETIME") {
-        const dateValue = dayjs(value, "DD/MM/YYYY HH:mm", true);
-        return [key, dateValue.isValid() ? dateValue : null];
-      }
-
-      throw new Error("Untreatable value found");
-    }),
-  ) as FormValues;
 };
 
 const ResponseFormV2 = ({
@@ -142,6 +82,7 @@ const ResponseFormV2 = ({
     id: number;
     startDate: Date;
     endDate: Date | null;
+    updatedAt: Date;
     isFinalized: boolean;
     formName: string;
     totalQuestions: number;
@@ -166,7 +107,16 @@ const ResponseFormV2 = ({
       ),
     [assessmentTree.categories, assessmentTree.responsesFormValues],
   );
-  const { control, handleSubmit, reset } = useForm<FormValues>({
+  const dateFormatByQuestionId = useMemo(
+    () => buildDateResponseFormatByQuestionId(assessmentTree.categories),
+    [assessmentTree.categories],
+  );
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = useForm<FormValues>({
     mode: "onChange",
     defaultValues: defaultResponseFormValues,
   });
@@ -227,6 +177,9 @@ const ResponseFormV2 = ({
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
   const [filledCount, setFilledCount] = useState(0);
+  const geometriesRef = useRef(geometries);
+  const responseImagesRef = useRef(responseImages);
+  const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
 
   const allValues = useWatch({ control });
 
@@ -349,18 +302,21 @@ const ResponseFormV2 = ({
   };
 
   useEffect(() => {
+    // This useEffect is called when the form values change.
+    // It updates the numeric responses, the filled fields counter, calls the onValuesChange callback for the preview and updates the local database.
     const numericResponses = new Map<number, number>();
     let filledFieldsCounter = 0;
-    const normalizedValues = Object.fromEntries(
-      Object.entries(allValues).map(([key, value]) => [
-        key,
-        value === undefined ? null : value,
-      ]),
-    ) as FormValues;
-    Object.entries(normalizedValues).forEach(([key, val]) => {
+    const normalizedValues: FormValues = {};
+    const serializedValues: SerializedFormValues = {};
+
+    Object.entries(allValues).forEach(([key, value]) => {
+      const val = value === undefined ? null : value;
+      normalizedValues[key] = val as FormValues[string];
+
       if (typeof val === "number") {
         numericResponses.set(Number(key), val);
       }
+
       if (
         val != null &&
         val !== "" &&
@@ -369,19 +325,60 @@ const ResponseFormV2 = ({
       ) {
         filledFieldsCounter++;
       }
+
+      // Here we are serializing the values. We don't use "serializeResponseFormValues" because we can use the current loop.
+      let serializedValue: SerializedResponseQuestionValue;
+      if (dayjs.isDayjs(val)) {
+        const format = dateFormatByQuestionId.get(key);
+        serializedValue = format && val.isValid() ? val.format(format) : null;
+      } else {
+        serializedValue = val as SerializedResponseQuestionValue;
+      }
+
+      serializedValues[key] = serializedValue;
     });
+
+    serializedFormValuesRef.current = serializedValues;
     setNumericResponses(numericResponses);
     setFilledCount(filledFieldsCounter);
     onValuesChange?.(normalizedValues);
-  }, [allValues, onValuesChange]);
+  }, [allValues, dateFormatByQuestionId, onValuesChange]);
 
   useEffect(() => {
+    geometriesRef.current = geometries;
     onGeometriesChange?.(geometries);
   }, [geometries, onGeometriesChange]);
 
   useEffect(() => {
+    responseImagesRef.current = responseImages;
     onImagesChange?.(responseImages);
   }, [responseImages, onImagesChange]);
+
+  useEffect(() => {
+    if (isPreview || !isDirty) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void dexieDb.assessments.put({
+        id: assessmentTree.id,
+        serverUpdatedAt: assessmentTree.updatedAt,
+        responseFormValues: serializedFormValuesRef.current,
+        geometries: geometriesRef.current,
+        responseImages: responseImagesRef.current,
+        localUpdatedAt: new Date(),
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    allValues,
+    assessmentTree.id,
+    assessmentTree.startDate,
+    assessmentTree.updatedAt,
+    geometries,
+    isDirty,
+    isPreview,
+    responseImages,
+  ]);
 
   return (
     <form

@@ -240,6 +240,7 @@ const buildPreviewAssessmentTree = ({
     isFinalized: false,
     formName: formTree.name,
     totalQuestions: countQuestions(formTree),
+    updatedAt: new Date(),
     responsesFormValues,
     geometries: [],
     categories: formTree.categories.map((category) =>

@@ -9,88 +9,15 @@ import type {
   FormValues,
   ResponseFormGeometry,
   ResponseFormImages,
-  SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
-import type {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-} from "@/lib/serverFunctions/queries/assessment";
+import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
 import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
 import { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
-
-const getDateTimeResponseFormat = (question: AssessmentQuestionItem) => {
-  switch (question.characterType) {
-    case "DATE":
-      return "DD/MM/YYYY";
-    case "TIME":
-      return "HH:mm";
-    case "DATETIME":
-      return "DD/MM/YYYY HH:mm";
-    default:
-      throw new Error("Tried to get date format for non-date question");
-  }
-};
-
-const buildDateResponseFormatByQuestionId = (
-  categories: AssessmentCategoryItem[],
-) => {
-  const formatByQuestionId = new Map<string, string>();
-
-  categories.forEach((category) => {
-    category.categoryChildren.forEach((child) => {
-      if ("questions" in child) {
-        child.questions.forEach((question) => {
-          if (
-            question.questionType === "WRITTEN" &&
-            (question.characterType === "DATE" ||
-              question.characterType === "TIME" ||
-              question.characterType === "DATETIME")
-          ) {
-            const format = getDateTimeResponseFormat(question);
-
-            formatByQuestionId.set(String(question.questionId), format);
-          }
-        });
-        return;
-      }
-      if (
-        child.questionType === "WRITTEN" &&
-        (child.characterType === "DATE" ||
-          child.characterType === "TIME" ||
-          child.characterType === "DATETIME")
-      ) {
-        const format = getDateTimeResponseFormat(child);
-        formatByQuestionId.set(String(child.questionId), format);
-      }
-    });
-  });
-
-  return formatByQuestionId;
-};
-
-const serializeResponseFormValues = (
-  values: FormValues,
-  categories: AssessmentCategoryItem[],
-) => {
-  const dateFormatByQuestionId =
-    buildDateResponseFormatByQuestionId(categories);
-
-  return Object.fromEntries(
-    Object.entries(values).map(([key, value]) => {
-      if (!dayjs.isDayjs(value)) {
-        return [key, value];
-      }
-
-      const format = dateFormatByQuestionId.get(key);
-
-      return [key, format && value.isValid() ? value.format(format) : null];
-    }),
-  ) as SerializedFormValues;
-};
 
 const SaveAssessmentDialog = ({
   open,
@@ -130,6 +57,8 @@ const SaveAssessmentDialog = ({
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [uploadImage] = useUploadImageResponse();
   const saveResponseImages = async (responseImages: ResponseFormImages) => {
+    //Unused because of problems with the Google API
+    return;
     await Promise.all(
       Object.entries(responseImages).flatMap(([questionId, images]) =>
         images.flatMap((image, imageIndex) => {
