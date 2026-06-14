@@ -49,7 +49,7 @@ const SaveAssessmentDialog = ({
   responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
-  onSaveSuccess: () => void;
+  onSaveSuccess: (newServerUpdatedAt: Date) => void;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
@@ -94,8 +94,6 @@ const SaveAssessmentDialog = ({
     action: _addResponsesV2,
     callbacks: {
       onSuccess: (response) => {
-        setEnableJsonSaving(false);
-        onSaveSuccess();
         dexieDb.assessments
           .delete(assessmentId)
           .then(() => {
@@ -111,6 +109,15 @@ const SaveAssessmentDialog = ({
                 <>Avaliação salva, mas falha ao excluir do dispositivo!</>
               ),
             });
+          })
+          .finally(() => {
+            setEnableJsonSaving(false);
+            if (!response.data) {
+              throw new Error(
+                "Avaliação salva, mas a data de atualização não foi retornada!",
+              );
+            }
+            onSaveSuccess(response.data.updatedAt);
           });
       },
       onError: () => {

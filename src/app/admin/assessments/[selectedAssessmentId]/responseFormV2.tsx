@@ -136,6 +136,9 @@ const ResponseFormV2 = ({
     mode: "onChange",
     defaultValues: defaultResponseFormValues,
   });
+  //TODO: update once server save is completed
+  //serverUpdatedAtRef is used to save the serverUpdatedAt in the local database
+  const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
   const [numericResponses, setNumericResponses] = useState(
     new Map<number, number>(),
   );
@@ -375,7 +378,7 @@ const ResponseFormV2 = ({
       const localServerUpdatedAt = new Date(
         localAssessment.serverUpdatedAt,
       ).getTime();
-      const serverUpdatedAt = new Date(assessmentTree.updatedAt).getTime();
+      const serverUpdatedAt = assessmentTree.updatedAt.getTime();
 
       if (serverUpdatedAt <= localServerUpdatedAt) {
         applyLocalAssessmentValues(localAssessment);
@@ -458,7 +461,7 @@ const ResponseFormV2 = ({
     const timeoutId = window.setTimeout(() => {
       void dexieDb.assessments.put({
         id: assessmentTree.id,
-        serverUpdatedAt: assessmentTree.updatedAt,
+        serverUpdatedAt: serverUpdatedAtRef.current,
         localUpdatedAt: new Date(),
         responseFormValues: serializedFormValuesRef.current,
         geometries: geometriesRef.current,
@@ -666,7 +669,8 @@ const ResponseFormV2 = ({
             responseImages={responseImages}
             categories={assessmentTree.categories}
             onResponseImageSynced={handleQuestionImageSynced}
-            onSaveSuccess={() => {
+            onSaveSuccess={(newUpdatedAt) => {
+              serverUpdatedAtRef.current = newUpdatedAt;
               setPendingServerSave(false);
             }}
             onClose={() => {

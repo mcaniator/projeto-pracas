@@ -9,7 +9,6 @@ import { prisma } from "@/lib/prisma";
 import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
 import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
 
@@ -231,6 +230,10 @@ const _addResponsesV2 = async ({
       where: {
         id: assessmentId,
       },
+      select: {
+        updatedAt: true,
+        isFinalized: true,
+      },
       data: {
         startDate,
         endDate,
@@ -239,26 +242,10 @@ const _addResponsesV2 = async ({
       },
     });
 
-    const transactions: Array<
-      | Prisma.PrismaPromise<number>
-      | Prisma.Prisma__AssessmentClient<
-          {
-            id: number;
-            startDate: Date;
-            endDate: Date | null;
-            isFinalized: boolean;
-            userId: string;
-            locationId: number;
-            formId: number;
-            createdAt: Date;
-            updatedAt: Date;
-          },
-          never,
-          DefaultArgs
-        >
-    > = [];
-
-    transactions.push(assessmentUpdate);
+    const transactions: [
+      typeof assessmentUpdate,
+      ...Prisma.PrismaPromise<number>[],
+    ] = [assessmentUpdate];
 
     const writtenResponsesSQLValues = writtenResponses.map(
       (r) =>
@@ -406,7 +393,8 @@ const _addResponsesV2 = async ({
       transactions.push(prisma.$executeRaw(geometryQuery));
     }
 
-    await prisma.$transaction(transactions);
+    const [updatedAssessment] = await prisma.$transaction(transactions);
+
     return {
       responseInfo: {
         statusCode: 201,
@@ -414,7 +402,8 @@ const _addResponsesV2 = async ({
         showSuccessCard: true,
       } as APIResponseInfo,
       data: {
-        savedAsFinalized: isFinalized,
+        savedAsFinalized: updatedAssessment.isFinalized,
+        updatedAt: updatedAssessment.updatedAt,
       },
     };
   } catch (e) {
