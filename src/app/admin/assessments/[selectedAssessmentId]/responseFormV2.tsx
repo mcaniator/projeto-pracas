@@ -136,17 +136,23 @@ const ResponseFormV2 = ({
     mode: "onChange",
     defaultValues: defaultResponseFormValues,
   });
-  //TODO: update once server save is completed
   //serverUpdatedAtRef is used to save the serverUpdatedAt in the local database
   const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
   const [numericResponses, setNumericResponses] = useState(
     new Map<number, number>(),
   );
-  const [isFilling, setIsFilling] = useState(
-    finalized ? false
-    : userCanEdit ? true
-    : false,
+
+  const getNewIsFillingValue = useCallback(
+    (isFinalized: boolean) => {
+      return (
+        isFinalized ? false
+        : userCanEdit ? true
+        : false
+      );
+    },
+    [userCanEdit],
   );
+
   const [questionsForMention] = useState(() => {
     const questions: SimpleMention[] = [];
     assessmentTree.categories.forEach((c) => {
@@ -169,13 +175,18 @@ const ResponseFormV2 = ({
     return questions;
   });
 
-  const [importedFinalizationDatetime, setImportedFinalizationDatetime] =
-    useState<Dayjs | null>(
-      assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
-    );
-  const [importedIsFinalized, setImportedIsFinalized] = useState(
-    assessmentTree.isFinalized,
+  const [isFinalized, setIsFinalized] = useState(finalized);
+
+  const [isFilling, setIsFilling] = useState(
+    isFinalized ? false
+    : userCanEdit ? true
+    : false,
   );
+
+  const [endDate, setEndDate] = useState<Dayjs | null>(
+    assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+  );
+
   const [startDate, setStartDate] = useState<Dayjs>(
     dayjs(assessmentTree.startDate),
   );
@@ -202,7 +213,7 @@ const ResponseFormV2 = ({
   const geometriesRef = useRef(geometries);
   const responseImagesRef = useRef(responseImages);
   const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
-  const attachmentsIsDirtyRef = useRef(false);
+  const nonResponseItemsIsDirtyRef = useRef(false);
 
   const allValues = useWatch({ control });
 
@@ -216,16 +227,22 @@ const ResponseFormV2 = ({
       );
 
       reset(localFormValues);
+      setIsFinalized(localAssessment.isFinalized);
+      setIsFilling(getNewIsFillingValue(localAssessment.isFinalized));
+      setEndDate(
+        localAssessment.endDate ? dayjs(localAssessment.endDate) : null,
+      );
+      setDriveFolderUrl(localAssessment.driveFolderUrl);
       setGeometries(localAssessment.geometries);
       setResponseImages(localAssessment.responseImages);
       serializedFormValuesRef.current = localAssessment.responseFormValues;
       geometriesRef.current = localAssessment.geometries;
       responseImagesRef.current = localAssessment.responseImages;
-      attachmentsIsDirtyRef.current = false;
+      nonResponseItemsIsDirtyRef.current = false;
       setPendingLocalAssessmentChoice(undefined);
       setPendingServerSave(true);
     },
-    [assessmentTree.categories, reset],
+    [assessmentTree.categories, getNewIsFillingValue, reset],
   );
 
   const applyServerAssessmentValues = useCallback(() => {
@@ -235,7 +252,7 @@ const ResponseFormV2 = ({
     serializedFormValuesRef.current = assessmentTree.responsesFormValues;
     geometriesRef.current = assessmentTree.geometries;
     responseImagesRef.current = {};
-    attachmentsIsDirtyRef.current = false;
+    nonResponseItemsIsDirtyRef.current = false;
     setPendingLocalAssessmentChoice(undefined);
   }, [
     assessmentTree.geometries,
@@ -251,7 +268,7 @@ const ResponseFormV2 = ({
     questionId: number;
     geometries: ResponseGeometry[];
   }) => {
-    attachmentsIsDirtyRef.current = true;
+    nonResponseItemsIsDirtyRef.current = true;
     setGeometries((prev) => {
       if (prev.some((p) => p.questionId === questionId)) {
         return prev.map((p) => {
@@ -272,7 +289,7 @@ const ResponseFormV2 = ({
     questionId: number,
     images: ResponseFormImage[],
   ) => {
-    attachmentsIsDirtyRef.current = true;
+    nonResponseItemsIsDirtyRef.current = true;
     setResponseImages((prev) => ({
       ...prev,
       [questionId]: images,
@@ -330,7 +347,7 @@ const ResponseFormV2 = ({
       }
 
       const incomingGeoms = importedData.geometries ?? [];
-      attachmentsIsDirtyRef.current = true;
+      nonResponseItemsIsDirtyRef.current = true;
       setGeometries(incomingGeoms);
       setResponseImages(importedData.responseImages ?? {});
 
@@ -340,11 +357,14 @@ const ResponseFormV2 = ({
       const endDateTime = dayjs(
         importedData.endDateTime ?? importedData.finalizationDateTime,
       );
-      setImportedFinalizationDatetime(
-        endDateTime.isValid() ? endDateTime : null,
-      );
-      setImportedIsFinalized(
+      setEndDate(endDateTime.isValid() ? endDateTime : null);
+      setIsFinalized(
         importedData.isFinalized ?? !!importedData.finalizationDateTime,
+      );
+      setIsFilling(
+        getNewIsFillingValue(
+          importedData.isFinalized ?? !!importedData.finalizationDateTime,
+        ),
       );
 
       setDriveFolderUrl(importedData.driveFolderUrl);
@@ -455,19 +475,22 @@ const ResponseFormV2 = ({
   }, [responseImages, onImagesChange]);
 
   useEffect(() => {
-    if (isPreview || (!isDirty && !attachmentsIsDirtyRef.current)) return;
+    if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current)) return;
     setPendingServerSave(true);
-
     const timeoutId = window.setTimeout(() => {
       void dexieDb.assessments.put({
         id: assessmentTree.id,
+        userId: user.id,
+        username: user.username,
         serverUpdatedAt: serverUpdatedAtRef.current,
         localUpdatedAt: new Date(),
+        isFinalized: isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        driveFolderUrl: driveFolderUrl,
         responseFormValues: serializedFormValuesRef.current,
         geometries: geometriesRef.current,
         responseImages: responseImagesRef.current,
-        userId: user.id,
-        username: user.username,
       });
     }, 500);
 
@@ -477,6 +500,10 @@ const ResponseFormV2 = ({
     assessmentTree.id,
     assessmentTree.startDate,
     assessmentTree.updatedAt,
+    isFinalized,
+    startDate,
+    endDate,
+    driveFolderUrl,
     geometries,
     isDirty,
     isPreview,
@@ -535,6 +562,7 @@ const ResponseFormV2 = ({
             value={startDate}
             onChange={(e) => {
               if (!e) return;
+              nonResponseItemsIsDirtyRef.current = true;
               setStartDate(e);
             }}
           />
@@ -662,8 +690,8 @@ const ResponseFormV2 = ({
             open={openSaveDialog}
             formValues={formValues}
             geometries={geometries}
-            importedEndDatetime={importedFinalizationDatetime}
-            importedIsFinalized={importedIsFinalized}
+            endDate={endDate}
+            isFinalized={isFinalized}
             startDate={startDate}
             driveFolderUrl={driveFolderUrl}
             responseImages={responseImages}
@@ -675,6 +703,15 @@ const ResponseFormV2 = ({
             }}
             onClose={() => {
               setOpenSaveDialog(false);
+            }}
+            onIsFinalizedChange={(v) => {
+              nonResponseItemsIsDirtyRef.current = true;
+              setIsFinalized(v);
+              setIsFilling(getNewIsFillingValue(v));
+            }}
+            onEndDateChange={(v) => {
+              nonResponseItemsIsDirtyRef.current = true;
+              setEndDate(v);
             }}
           />
           <DeleteAssessmentDialog
@@ -692,7 +729,10 @@ const ResponseFormV2 = ({
         driveFolderUrl={driveFolderUrl}
         isFilling={isFilling}
         onClose={() => setOpenDriveFolderUrlDialog(false)}
-        onConfirm={(url) => setDriveFolderUrl(url)}
+        onConfirm={(url) => {
+          nonResponseItemsIsDirtyRef.current = true;
+          setDriveFolderUrl(url);
+        }}
       />
       {!!pendingLocalAssessmentChoice && (
         <ChooseResponsesSourceDialog

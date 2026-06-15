@@ -27,14 +27,16 @@ const SaveAssessmentDialog = ({
   assessmentId,
   formValues,
   geometries,
-  importedEndDatetime,
-  importedIsFinalized,
+  isFinalized,
+  endDate,
   startDate,
   driveFolderUrl,
   responseImages,
   categories,
   onResponseImageSynced,
   onSaveSuccess,
+  onIsFinalizedChange,
+  onEndDateChange,
   onClose,
 }: {
   open: boolean;
@@ -42,21 +44,21 @@ const SaveAssessmentDialog = ({
   assessmentId: number;
   formValues: FormValues;
   geometries: ResponseFormGeometry[];
-  importedEndDatetime: Dayjs | null;
-  importedIsFinalized: boolean;
+  isFinalized: boolean;
+  endDate: Dayjs | null;
   startDate: Dayjs;
   driveFolderUrl: string | null;
   responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onSaveSuccess: (newServerUpdatedAt: Date) => void;
+  onIsFinalizedChange: (newIsFinalized: boolean) => void;
+  onEndDateChange: (newEndDate: Dayjs | null) => void;
   onClose: () => void;
 }) => {
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
   const router = useRouter();
-  const [isFinalized, setIsFinalized] = useState(importedIsFinalized);
-  const [dateTime, setDateTime] = useState<Dayjs | null>(importedEndDatetime);
   const { setLoadingOverlay } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
   const [uploadImage] = useUploadImageResponse();
@@ -126,7 +128,7 @@ const SaveAssessmentDialog = ({
     },
   });
   const save = async () => {
-    if (isFinalized && !dateTime) {
+    if (isFinalized && !endDate) {
       setShowDatePickerError(true);
       return;
     }
@@ -144,7 +146,7 @@ const SaveAssessmentDialog = ({
         responses: serializedFormValues,
         geometries: geometries,
         startDate: startDate.toDate(),
-        endDate: dateTime?.toDate() ?? null,
+        endDate: endDate?.toDate() ?? null,
         isFinalized: isFinalized,
         driveFolderUrl: driveFolderUrl,
       });
@@ -163,8 +165,8 @@ const SaveAssessmentDialog = ({
   const generateExport = () => {
     const data = {
       startDate: startDate,
-      endDateTime: dateTime ?? null,
-      finalizationDateTime: dateTime ?? null,
+      endDateTime: endDate ?? null,
+      finalizationDateTime: endDate ?? null,
       isFinalized: isFinalized,
       assessmentId: assessmentId,
       responses: serializeResponseFormValues(formValues, categories),
@@ -183,15 +185,10 @@ const SaveAssessmentDialog = ({
   };
 
   useEffect(() => {
-    setDateTime(importedEndDatetime);
-    setIsFinalized(importedIsFinalized);
-  }, [importedEndDatetime, importedIsFinalized]);
-
-  useEffect(() => {
-    if (isFinalized) {
-      setDateTime((prev) => prev ?? dayjs(new Date()));
+    if (isFinalized && !endDate) {
+      onEndDateChange(dayjs(new Date()));
     }
-  }, [isFinalized]);
+  }, [isFinalized, endDate, onEndDateChange]);
 
   return (
     <CDialog
@@ -231,16 +228,16 @@ const SaveAssessmentDialog = ({
           checked={isFinalized}
           label="Salvar como finalizado"
           onChange={(e) => {
-            setIsFinalized(e.target.checked);
+            onIsFinalizedChange(e.target.checked);
           }}
         />
         <CDateTimePicker
-          value={dateTime}
+          value={endDate}
           error={showDatePickerError}
           clearable
           onChange={(e) => {
             setShowDatePickerError(false);
-            setDateTime(e);
+            onEndDateChange(e);
           }}
           label="Data final"
         />
