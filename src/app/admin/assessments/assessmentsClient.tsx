@@ -57,9 +57,9 @@ const AssessmentsClient = ({
     null,
   );
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
-  const [assessments, setAssessments] = useState<
-    AssessmentWithSyncStatus[]
-  >([]);
+  const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
+    [],
+  );
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
@@ -257,12 +257,44 @@ const AssessmentsClient = ({
         });
         helperCardProcessResponse(response.responseInfo);
         const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
-        setAssessments(
-          (response.data?.assessments ?? []).map((assessment) => ({
-            ...assessment,
-            hasUnsyncedFilling: unsyncedAssessmentIds.has(assessment.id),
-          })),
+        const formattedAssessmentsPromises = response.data?.assessments.map(
+          async (assessment) => {
+            if (unsyncedAssessmentIds.has(assessment.id)) {
+              //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
+              const localAssessment = await dexieDb.assessments.get(
+                assessment.id,
+              );
+              if (!localAssessment) {
+                //This should never happen
+                return {
+                  ...assessment,
+                  hasUnsyncedFilling: false,
+                };
+              }
+
+              return {
+                ...assessment,
+                startDate: localAssessment.startDate,
+                endDate: localAssessment.endDate,
+                isFinalized: localAssessment.isFinalized,
+                hasUnsyncedFilling: true,
+              };
+            } else {
+              return {
+                ...assessment,
+                hasUnsyncedFilling: false,
+              };
+            }
+          },
         );
+        if (formattedAssessmentsPromises) {
+          const formattedAssessments = await Promise.all(
+            formattedAssessmentsPromises,
+          );
+          setAssessments(formattedAssessments);
+        } else {
+          setAssessments([]);
+        }
       } catch (e) {
         setHelperCard({
           show: true,

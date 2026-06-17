@@ -229,6 +229,7 @@ const ResponseFormV2 = ({
       reset(localFormValues);
       setIsFinalized(localAssessment.isFinalized);
       setIsFilling(getNewIsFillingValue(localAssessment.isFinalized));
+      setStartDate(dayjs(localAssessment.startDate));
       setEndDate(
         localAssessment.endDate ? dayjs(localAssessment.endDate) : null,
       );
