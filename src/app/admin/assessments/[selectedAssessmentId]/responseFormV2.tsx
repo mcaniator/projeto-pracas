@@ -37,6 +37,7 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import { Calculation } from "@/lib/utils/calculationUtils";
 import { Chip } from "@mui/material";
 import {
   IconAlertTriangle,
@@ -57,7 +58,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { type Control, useForm, useWatch } from "react-hook-form";
+import {
+  type Control,
+  type UseFormSetValue,
+  useForm,
+  useWatch,
+} from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
@@ -131,6 +137,7 @@ const ResponseFormV2 = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { isDirty },
   } = useForm<FormValues>({
     mode: "onChange",
@@ -138,9 +145,6 @@ const ResponseFormV2 = ({
   });
   //serverUpdatedAtRef is used to save the serverUpdatedAt in the local database
   const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
-  const [numericResponses, setNumericResponses] = useState(
-    new Map<number, number>(),
-  );
 
   const getNewIsFillingValue = useCallback(
     (isFinalized: boolean) => {
@@ -216,6 +220,45 @@ const ResponseFormV2 = ({
   const nonResponseItemsIsDirtyRef = useRef(false);
 
   const allValues = useWatch({ control });
+
+  const calculationDependencyIds = useMemo(() => {
+    const ids = new Set<number>();
+
+    const addCalculationDependencies = (question: AssessmentQuestionItem) => {
+      if (!question.calculationExpression) return;
+
+      const calc = new Calculation(question.calculationExpression);
+      calc.getExpressionQuestionIds().forEach((id) => ids.add(id));
+    };
+
+    assessmentTree.categories.forEach((category) => {
+      category.categoryChildren.forEach((child) => {
+        if (isAssessmentSubcategoryItem(child)) {
+          child.questions.forEach(addCalculationDependencies);
+          return;
+        }
+
+        if (isAssessmentQuestionItem(child)) {
+          addCalculationDependencies(child);
+        }
+      });
+    });
+
+    return ids;
+  }, [assessmentTree.categories]);
+
+  const numericResponses = useMemo(() => {
+    const responses = new Map<number, number>();
+
+    calculationDependencyIds.forEach((questionId) => {
+      const value = allValues[String(questionId)];
+      if (typeof value === "number") {
+        responses.set(questionId, value);
+      }
+    });
+
+    return responses;
+  }, [allValues, calculationDependencyIds]);
 
   const totalQuestions = assessmentTree.totalQuestions;
 
@@ -425,7 +468,6 @@ const ResponseFormV2 = ({
   useEffect(() => {
     // This useEffect is called when the form values change.
     // It updates the numeric responses, the filled fields counter, calls the onValuesChange callback for the preview and updates the local database.
-    const numericResponses = new Map<number, number>();
     let filledFieldsCounter = 0;
     const normalizedValues: FormValues = {};
     const serializedValues: SerializedFormValues = {};
@@ -433,10 +475,6 @@ const ResponseFormV2 = ({
     Object.entries(allValues).forEach(([key, value]) => {
       const val = value === undefined ? null : value;
       normalizedValues[key] = val as FormValues[string];
-
-      if (typeof val === "number") {
-        numericResponses.set(Number(key), val);
-      }
 
       if (
         val != null &&
@@ -460,7 +498,6 @@ const ResponseFormV2 = ({
     });
 
     serializedFormValuesRef.current = serializedValues;
-    setNumericResponses(numericResponses);
     setFilledCount(filledFieldsCounter);
     onValuesChange?.(normalizedValues);
   }, [allValues, dateFormatByQuestionId, onValuesChange]);
@@ -656,6 +693,7 @@ const ResponseFormV2 = ({
           handleQuestionGeometryChange={handleQuestionGeometryChange}
           handleQuestionImagesChange={handleQuestionImagesChange}
           control={control}
+          setValue={setValue}
         />
       ))}
 
@@ -765,6 +803,7 @@ const Category = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
+  setValue,
   finalized,
 }: {
   category: AssessmentCategoryItem;
@@ -779,6 +818,7 @@ const Category = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
+  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   return (
@@ -799,6 +839,7 @@ const Category = ({
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
+                setValue={setValue}
               />
             );
           } else if (isAssessmentQuestionItem(child)) {
@@ -815,6 +856,7 @@ const Category = ({
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
+                setValue={setValue}
               />
             );
           }
@@ -834,6 +876,7 @@ const Subcategory = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
+  setValue,
   finalized,
 }: {
   subcategory: AssessmentSubcategoryItem;
@@ -848,6 +891,7 @@ const Subcategory = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
+  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   return (
@@ -866,6 +910,7 @@ const Subcategory = ({
             handleQuestionGeometryChange={handleQuestionGeometryChange}
             handleQuestionImagesChange={handleQuestionImagesChange}
             control={control}
+            setValue={setValue}
           />
         ))}
       </>
@@ -883,6 +928,7 @@ const Question = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
+  setValue,
   finalized,
 }: {
   question: AssessmentQuestionItem;
@@ -897,6 +943,7 @@ const Question = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
+  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   return (
@@ -925,6 +972,7 @@ const Question = ({
         question={question}
         numericResponses={numericResponses}
         control={control}
+        setValue={setValue}
         finalized={finalized}
       />
     </ResponseFormQuestionCard>

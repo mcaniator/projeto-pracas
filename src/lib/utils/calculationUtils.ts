@@ -44,7 +44,7 @@ class Calculation {
         return null;
       }
       const evaluated = Number(MathEvaluate(replacedValues));
-      return Number.isNaN(evaluated) ? null : evaluated;
+      return Number.isNaN(evaluated) ? null : Number(evaluated.toFixed(8));
     } catch (e) {
       return null;
     }
