@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth/auth";
 import { getUserAuthInfo } from "@/lib/serverFunctions/queries/user";
-import { getAssessmentTree } from "@queries/assessment";
+import { fetchAssessmentTree } from "@queries/assessment";
 import { IconClipboard, IconMapPin, IconUser } from "@tabler/icons-react";
 import { redirect } from "next/navigation";
 
@@ -13,7 +13,7 @@ const Responses = async (props: {
 }) => {
   const params = await props.params;
 
-  const assessment = await getAssessmentTree({
+  const assessment = await fetchAssessmentTree({
     assessmentId: Number(params.selectedAssessmentId),
   });
   if (!assessment || !assessment.data?.assessmentTree) redirect("/error");

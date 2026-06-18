@@ -1,3 +1,4 @@
+import { CButtonProps } from "@/components/ui/cButton";
 import {
   ButtonProps,
   Dialog,
@@ -37,6 +38,8 @@ export type CDialogProps = DialogProps & {
   confirmLoading?: boolean;
   cancelLoading?: boolean;
   mobileFullScreen?: boolean;
+  confirmProps?: CButtonProps;
+  cancelProps?: CButtonProps;
   removeCloseButton?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
@@ -76,6 +79,8 @@ const CDialog = ({
   disableBackdropClose,
   confirmLoading,
   cancelLoading,
+  confirmProps,
+  cancelProps,
   removeCloseButton,
   action,
   onCancel,
@@ -282,6 +287,8 @@ const CDialog = ({
               isForm={isForm}
               confirmLoading={confirmLoading}
               cancelLoading={cancelLoading}
+              confirmProps={confirmProps}
+              cancelProps={cancelProps}
               onCancel={onCancel}
               onConfirm={onConfirm}
             />
@@ -345,6 +352,8 @@ const CDialog = ({
             cancelColor={cancelColor}
             confirmLoading={confirmLoading}
             cancelLoading={cancelLoading}
+            confirmProps={confirmProps}
+            cancelProps={cancelProps}
             onCancel={onCancel}
             onConfirm={onConfirm}
           />

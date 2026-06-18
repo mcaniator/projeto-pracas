@@ -114,14 +114,14 @@ const fetchRecentlyCompletedAssessments = async () => {
 };
 
 export type FetchAssessmentTreeResponse = NonNullable<
-  Awaited<ReturnType<typeof getAssessmentTree>>["data"]
+  Awaited<ReturnType<typeof fetchAssessmentTree>>["data"]
 >;
 
 type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const getAssessmentTree = async (params: { assessmentId: number }) => {
+const fetchAssessmentTree = async (params: { assessmentId: number }) => {
   try {
     const assessment = await prisma.assessment.findUnique({
       where: { id: params.assessmentId },
@@ -1024,7 +1024,7 @@ export const fetchPublicAssessments = async (
 
 export {
   fetchRecentlyCompletedAssessments,
-  getAssessmentTree,
+  fetchAssessmentTree,
   fetchAssessments,
   fetchPublicAssessmentTree,
 };

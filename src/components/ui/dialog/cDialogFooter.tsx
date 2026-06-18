@@ -1,4 +1,4 @@
-import CButton from "@components/ui/cButton";
+import CButton, { CButtonProps } from "@components/ui/cButton";
 import { ButtonProps } from "@mui/material";
 import { ReactNode } from "react";
 
@@ -15,6 +15,8 @@ const CDialogFooter = ({
   cancelColor,
   confirmLoading,
   cancelLoading,
+  confirmProps,
+  cancelProps,
   isForm,
   onCancel,
   onConfirm,
@@ -31,6 +33,8 @@ const CDialogFooter = ({
   cancelColor?: ButtonProps["color"];
   confirmLoading?: boolean;
   cancelLoading?: boolean;
+  confirmProps?: CButtonProps;
+  cancelProps?: CButtonProps;
   isForm?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
@@ -49,6 +53,7 @@ const CDialogFooter = ({
           sx={cancelSx}
           loading={cancelLoading}
           onClick={onCancel}
+          {...cancelProps}
         >
           {cancelChildren}
         </CButton>
@@ -62,6 +67,7 @@ const CDialogFooter = ({
           sx={confirmSx}
           loading={confirmLoading}
           onClick={onConfirm}
+          {...confirmProps}
         >
           {confirmChildren}
         </CButton>

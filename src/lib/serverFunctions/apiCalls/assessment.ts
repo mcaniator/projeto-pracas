@@ -8,8 +8,8 @@ import { useCallback } from "react";
 import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
 import { fetchAPI } from "../../utils/apiCall";
 import {
+  FetchAssessmentTreeResponse,
   FetchAssessmentsResponse,
-  FetchPublicAssessmentTreeResponse,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
 import type { UploadImageResponseData } from "../storage/drive/assessment";
@@ -58,15 +58,12 @@ export const useFetchPublicAssessments = (
   });
 };
 
-export const useFetchPublicAssessmentTree = ({
+export const useFetchAssessmentTree = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchPublicAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
-  return useFetchAPI<
-    FetchPublicAssessmentTreeResponse,
-    FetchAssessmentTreeParams
-  >({
+  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
     url: "/api/admin/assessments/:assessmentId",
     callbacks: params?.callbacks,
     options: {

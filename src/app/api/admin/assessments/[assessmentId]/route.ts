@@ -1,4 +1,4 @@
-import { fetchPublicAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
+import { fetchAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -17,13 +17,13 @@ export async function GET(
 ) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
     const params = await props.params;
     const assessmentId = z.coerce.number().parse(params.assessmentId);
-    const assessments = await fetchPublicAssessmentTree({ assessmentId });
+    const assessments = await fetchAssessmentTree({ assessmentId });
     return new Response(JSON.stringify(assessments), {
       status: 200,
       headers: {

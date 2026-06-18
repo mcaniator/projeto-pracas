@@ -243,6 +243,10 @@ const buildPreviewAssessmentTree = ({
     updatedAt: new Date(),
     responsesFormValues,
     geometries: [],
+    user: {
+      username: "",
+      id: "",
+    },
     categories: formTree.categories.map((category) =>
       toAssessmentCategory({
         category,

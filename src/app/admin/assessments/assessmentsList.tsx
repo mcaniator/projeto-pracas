@@ -1,3 +1,4 @@
+import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDialog";
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -10,6 +11,7 @@ import {
   IconClipboard,
   IconCloudExclamation,
   IconExternalLink,
+  IconEye,
   IconFilePencil,
   IconUser,
 } from "@tabler/icons-react";
@@ -32,6 +34,9 @@ const AssessmentsList = ({
     locationName: string;
     isPublic: boolean;
   }>();
+
+  const [selectedAssessmentToView, setSelectedAssessmentToView] =
+    useState<AssessmentWithSyncStatus | null>(null);
 
   const [updateVisibility, updatingVisibility] = useServerAction({
     action: _updateAssessmentVisibility,
@@ -73,9 +78,9 @@ const AssessmentsList = ({
                   <span className="flex flex-wrap items-center break-all text-lg font-semibold sm:text-2xl">
                     <CIconChip
                       icon={<IconFilePencil />}
-                      tooltip="Praça - Avaliação"
+                      tooltip="Avaliação - Praça"
                     />
-                    {`${a.location.name} - ${a.id} `}
+                    {`${a.id} - ${a.location.name} `}
                     <Chip
                       sx={{ ml: 2 }}
                       color={a.isFinalized ? "secondary" : "warning"}
@@ -114,14 +119,25 @@ const AssessmentsList = ({
                   </span>
                   <Divider />
                   <span className="flex items-center gap-2 text-base sm:text-xl">
-                    <CButton
-                      square
-                      loadingOnClick
-                      href={`/admin/assessments/${a.id}`}
-                    >
-                      <IconExternalLink />
-                      Acessar
-                    </CButton>
+                    {!a.hasUnsyncedFilling && a.isFinalized ?
+                      <CButton
+                        square
+                        onClick={() => {
+                          setSelectedAssessmentToView(a);
+                        }}
+                      >
+                        <IconEye /> Resultados
+                      </CButton>
+                    : <CButton
+                        square
+                        loadingOnClick
+                        href={`/admin/assessments/${a.id}`}
+                      >
+                        <IconExternalLink />
+                        Acessar
+                      </CButton>
+                    }
+
                     <Divider orientation="vertical" />
                     <CSwitch
                       checked={
@@ -167,6 +183,11 @@ const AssessmentsList = ({
         </div>
         <div className="font-semibold">{`${pendingVisibilityChange?.locationName} - ${pendingVisibilityChange?.id}`}</div>
       </CDialog>
+      <AssessmentResultDialog
+        open={!!selectedAssessmentToView}
+        onClose={() => setSelectedAssessmentToView(null)}
+        assessment={selectedAssessmentToView}
+      />
     </div>
   );
 };
