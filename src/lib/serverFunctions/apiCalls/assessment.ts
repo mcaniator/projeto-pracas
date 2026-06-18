@@ -73,6 +73,21 @@ export const useFetchAssessmentTree = ({
   });
 };
 
+export const useFetchPublicAssessmentTree = ({
+  params,
+}: {
+  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+}) => {
+  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+    url: "/api/admin/assessments/public/:assessmentId",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["assessment", "database"] },
+    },
+  });
+};
+
 export const useUploadImageResponse = (
   params?: UseFetchAPIParams<UploadImageResponseData>,
 ) => {

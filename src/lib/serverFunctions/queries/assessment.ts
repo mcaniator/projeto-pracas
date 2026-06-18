@@ -121,10 +121,13 @@ type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const fetchAssessmentTree = async (params: { assessmentId: number }) => {
+const fetchAssessmentTree = async (params: {
+  assessmentId: number;
+  isPublic?: boolean;
+}) => {
   try {
     const assessment = await prisma.assessment.findUnique({
-      where: { id: params.assessmentId },
+      where: { id: params.assessmentId, isPublic: params.isPublic },
       select: {
         id: true,
         endDate: true,

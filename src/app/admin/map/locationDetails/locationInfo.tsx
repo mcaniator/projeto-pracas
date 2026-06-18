@@ -6,9 +6,9 @@ import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { PublicFetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
@@ -35,10 +35,10 @@ const LocationInfo = ({
     null,
   );
   const [latestAssessment, setLatestAssessment] =
-    useState<PublicFetchPublicAssessmentTreeResponse["assessmentTree"]>();
+    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
 
   const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
-    usePublicFetchPublicAssessmentTree({
+    useFetchPublicAssessmentTree({
       params: {
         callbacks: {
           onSuccess: (response) => {
