@@ -7,13 +7,11 @@ type CChipProps = ChipProps & {
 
 const CChip = ({ tooltipProps, tooltip, ...rest }: CChipProps) => {
   const resolvedTooltipProps = {
-    enterTouchDelay: 0,
     title: tooltip,
-    arrow: true,
     ...tooltipProps,
   };
   const component = <Chip {...rest} />;
-  if (!resolvedTooltipProps) return component;
+  if (!tooltip) return component;
 
   return (
     <Tooltip {...resolvedTooltipProps}>

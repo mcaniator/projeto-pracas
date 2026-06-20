@@ -63,6 +63,7 @@ const AssessmentClient = ({
         append={
           <CButton
             square={isMobileView}
+            tooltip="Importar dados"
             onClick={() => {
               setOpenAssessmentImportDialog(true);
             }}

@@ -137,6 +137,24 @@ const muiTheme = createTheme(
           },
         },
       },
+      MuiTooltip: {
+        defaultProps: {
+          arrow: true,
+          enterTouchDelay: 0,
+          slotProps: {
+            popper: {
+              modifiers: [
+                {
+                  name: "offset",
+                  options: {
+                    offset: [0, -5],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
     },
   },
   ptBRCore,

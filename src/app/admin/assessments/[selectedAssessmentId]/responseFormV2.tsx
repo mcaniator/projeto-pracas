@@ -693,6 +693,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   {!isPreview && (
                     <CButton
                       square
+                      tooltip="Excluir avaliação"
                       color="error"
                       onClick={() => {
                         setOpenDeleteAssessmentDialog(true);
