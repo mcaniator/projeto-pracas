@@ -140,6 +140,7 @@ const fetchOngoingTallyById = async (tallyId: number) => {
         },
         startDate: true,
         endDate: true,
+        updatedAt: true,
         isFinalized: true,
         user: {
           select: {

@@ -190,9 +190,12 @@ const _saveOngoingTallyData = async ({
     };
   }
   try {
-    await prisma.tally.update({
+    const updatedTally = await prisma.tally.update({
       where: {
         id: tallyId,
+      },
+      select: {
+        updatedAt: true,
       },
       data: {
         temperature: weatherStats.temperature,
@@ -214,6 +217,7 @@ const _saveOngoingTallyData = async ({
       } as APIResponseInfo,
       data: {
         savedAsFinalized: isFinalized,
+        updatedAt: updatedTally.updatedAt,
       },
     };
   } catch (error) {

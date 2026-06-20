@@ -17,16 +17,19 @@ import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CNumberField from "@/components/ui/cNumberField";
+import { dexieDb } from "@/lib/dexie/dexie";
+import type { DexieTally } from "@/lib/dexie/dexie";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import { AgeGroupType, GenderType } from "@/lib/types/tallys/person";
 import { useUserContext } from "@components/context/UserContext";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
-import { Paper } from "@mui/material";
+import { Chip, Paper } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
   IconChartBar,
   IconClipboardData,
+  IconCloudExclamation,
   IconDeviceFloppy,
   IconMoodDollar,
   IconPlus,
@@ -36,7 +39,7 @@ import {
 import { CommercialActivity, OngoingTally } from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { GrGroup } from "react-icons/gr";
@@ -93,6 +96,54 @@ const defaultCommercialActivitiesOptions = [
   },
   { value: "Outros", label: "Outros" },
 ];
+
+const buildTallyMapFromTally = (tally: OngoingTally) => {
+  const tallyMap = new Map<string, number>();
+  if (tally.tallyPerson) {
+    for (const tallyPerson of tally.tallyPerson) {
+      const gender = tallyPerson.person.gender;
+      const ageGroup = tallyPerson.person.ageGroup;
+      const activity = tallyPerson.person.activity;
+      const isTraversing = tallyPerson.person.isTraversing;
+      const isPersonWithImpairment = tallyPerson.person.isPersonWithImpairment;
+      const isInApparentIllicitActivity =
+        tallyPerson.person.isInApparentIllicitActivity;
+      const isPersonWithoutHousing = tallyPerson.person.isPersonWithoutHousing;
+      tallyMap.set(
+        `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
+        tallyPerson.quantity,
+      );
+    }
+  }
+
+  return tallyMap;
+};
+
+const buildCommercialActivitiesOptions = (
+  commercialActivities: CommercialActivity | null,
+) => {
+  if (!commercialActivities) return defaultCommercialActivitiesOptions;
+
+  const customOptions = Object.keys(commercialActivities)
+    .filter(
+      (activity) =>
+        activity !== "Alimentos" &&
+        activity !== "Produtos" &&
+        activity !== "Pula-pula (ou outra ativ. infantil)" &&
+        activity !== "Mesas de bares do entorno" &&
+        activity !== "Outros" &&
+        activity !== "Criar nova atividade",
+    )
+    .map((activity) => ({ value: activity, label: activity }));
+
+  return [...defaultCommercialActivitiesOptions, ...customOptions];
+};
+
+const serializeTallyMap = (tallyMap: Map<string, number>) =>
+  Object.fromEntries(
+    [...tallyMap.entries()].sort(([a], [b]) => a.localeCompare(b)),
+  );
+
 const TallyInProgressPage = ({
   tallyId,
   locationName,
@@ -113,6 +164,8 @@ const TallyInProgressPage = ({
     }
   }
   const { setHelperCard } = useHelperCard();
+  const serverUpdatedAtRef = useRef(tally.updatedAt);
+  const localSaveReadyRef = useRef(false);
   const [
     openCommercialActivityCreationDialog,
     setOpenCommercialActivityCreationDialog,
@@ -125,27 +178,7 @@ const TallyInProgressPage = ({
   );
   const [isFinalized, setIsFinalized] = useState(finalizedTally);
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
-    const tallyMap = new Map();
-    if (tally.tallyPerson) {
-      for (const tallyPerson of tally.tallyPerson) {
-        const gender = tallyPerson.person.gender;
-        const ageGroup = tallyPerson.person.ageGroup;
-        const activity = tallyPerson.person.activity;
-        const isTraversing = tallyPerson.person.isTraversing;
-        const isPersonWithImpairment =
-          tallyPerson.person.isPersonWithImpairment;
-        const isInApparentIllicitActivity =
-          tallyPerson.person.isInApparentIllicitActivity;
-        const isPersonWithoutHousing =
-          tallyPerson.person.isPersonWithoutHousing;
-        tallyMap.set(
-          `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
-          tallyPerson.quantity,
-        );
-      }
-    }
-
-    return tallyMap;
+    return buildTallyMapFromTally(tally);
   });
   const [commercialActivities, setCommercialActivities] =
     useState<CommercialActivity>(() => {
@@ -156,22 +189,7 @@ const TallyInProgressPage = ({
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
     useState(() => {
-      if (!tally.commercialActivities)
-        return defaultCommercialActivitiesOptions;
-
-      const customOptions = Object.keys(tally.commercialActivities)
-        .filter(
-          (activity) =>
-            activity !== "Alimentos" &&
-            activity !== "Produtos" &&
-            activity !== "Pula-pula (ou outra ativ. infantil)" &&
-            activity !== "Mesas de bares do entorno" &&
-            activity !== "Outros" &&
-            activity !== "Criar nova atividade",
-        )
-        .map((activity) => ({ value: activity, label: activity }));
-
-      return [...defaultCommercialActivitiesOptions, ...customOptions];
+      return buildCommercialActivitiesOptions(tally.commercialActivities);
     });
 
   const [weatherStats, setWeatherStats] = useState<WeatherStats>({
@@ -185,6 +203,87 @@ const TallyInProgressPage = ({
     animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
     groupsAmount: tally.groups ? tally.groups : 0,
   });
+  const [pendingServerSave, setPendingServerSave] = useState(false);
+
+  const applyLocalTallyValues = (localTally: DexieTally) => {
+    setStartDate(dayjs(localTally.startDate));
+    setEndDate(localTally.endDate ? dayjs(localTally.endDate) : null);
+    setIsFinalized(localTally.isFinalized);
+    setWeatherStats(localTally.weatherStats);
+    setTallyMap(new Map(Object.entries(localTally.tallyMap)));
+    setCommercialActivities(localTally.commercialActivities);
+    setCommercialActivitiesOptions(
+      buildCommercialActivitiesOptions(localTally.commercialActivities),
+    );
+    setComplementaryData(localTally.complementaryData);
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadLocalTally = async () => {
+      const localTally = await dexieDb.tallys.get(tallyId);
+      if (ignore) return;
+
+      if (!localTally) {
+        localSaveReadyRef.current = true;
+        return;
+      }
+
+      const localServerUpdatedAt = new Date(
+        localTally.serverUpdatedAt,
+      ).getTime();
+      const serverUpdatedAt = serverUpdatedAtRef.current.getTime();
+
+      if (serverUpdatedAt <= localServerUpdatedAt) {
+        applyLocalTallyValues(localTally);
+        setPendingServerSave(true);
+      }
+
+      localSaveReadyRef.current = true;
+    };
+
+    void loadLocalTally();
+
+    return () => {
+      ignore = true;
+    };
+  }, [tallyId]);
+
+  useEffect(() => {
+    if (!localSaveReadyRef.current) return;
+
+    setPendingServerSave(true);
+    const timeoutId = window.setTimeout(() => {
+      void dexieDb.tallys.put({
+        id: tallyId,
+        userId: user.id,
+        username: user.username ?? "",
+        serverUpdatedAt: serverUpdatedAtRef.current,
+        localUpdatedAt: new Date(),
+        isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        weatherStats,
+        tallyMap: serializeTallyMap(tallyMap),
+        commercialActivities,
+        complementaryData,
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    commercialActivities,
+    complementaryData,
+    endDate,
+    isFinalized,
+    startDate,
+    tallyId,
+    tallyMap,
+    user.id,
+    user.username,
+    weatherStats,
+  ]);
   const buildPersonKey = (
     gender: GenderType,
     ageGroup: AgeGroupType,
@@ -302,14 +401,6 @@ const TallyInProgressPage = ({
                   }}
                 >
                   <IconChartBar />
-                </CButton>
-                <CButton
-                  square
-                  onClick={() => {
-                    setOpenSaveDialog(true);
-                  }}
-                >
-                  <IconDeviceFloppy />
                 </CButton>
               </div>
             }
@@ -573,6 +664,23 @@ const TallyInProgressPage = ({
                 </div>
               </CAccordionDetails>
             </CAccordion>
+            {pendingServerSave && (
+              <Chip
+                label="Contagem não enviada!"
+                color="error"
+                icon={<IconCloudExclamation />}
+              />
+            )}
+            <div className="xl:hidden">
+              <CButton
+                onClick={() => {
+                  setOpenSaveDialog(true);
+                }}
+              >
+                <IconDeviceFloppy />
+                Salvar
+              </CButton>
+            </div>
           </div>
         </div>
         <Paper
@@ -586,6 +694,7 @@ const TallyInProgressPage = ({
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
             startDate={startDate}
+            pendingServerSave={pendingServerSave}
             setStartDate={setStartDate}
             onOpenSaveDialog={() => setOpenSaveDialog(true)}
           />
@@ -647,9 +756,17 @@ const TallyInProgressPage = ({
         tallyMap={tallyMap}
         startDate={startDate}
         endDate={endDate}
-        finalizedTally={isFinalized}
-        setEndDate={setEndDate}
-        setIsFinalized={setIsFinalized}
+        isFinalized={isFinalized}
+        onEndDateChange={(v) => {
+          setEndDate(v);
+        }}
+        onIsFinalizedChange={(v) => {
+          setIsFinalized(v);
+        }}
+        onSaveSuccess={(newUpdatedAt) => {
+          serverUpdatedAtRef.current = newUpdatedAt;
+          setPendingServerSave(false);
+        }}
       />
     </div>
   );

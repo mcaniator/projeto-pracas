@@ -2,21 +2,31 @@
 
 import CButton from "@/components/ui/cButton";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
-import { IconDeviceFloppy } from "@tabler/icons-react";
+import { Chip } from "@mui/material";
+import { IconCloudExclamation, IconDeviceFloppy } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
 import React from "react";
 
 const TallyInProgressDatabaseOptions = ({
   startDate,
+  pendingServerSave,
   setStartDate,
   onOpenSaveDialog,
 }: {
   startDate: Dayjs;
+  pendingServerSave: boolean;
   setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
   onOpenSaveDialog: () => void;
 }) => {
   return (
     <div className="flex flex-col gap-3 overflow-auto py-1">
+      {pendingServerSave && (
+        <Chip
+          icon={<IconCloudExclamation />}
+          label="Contagem não enviada!"
+          color="error"
+        />
+      )}
       <CDateTimePicker
         label="Inicio da contagem em:"
         value={startDate}

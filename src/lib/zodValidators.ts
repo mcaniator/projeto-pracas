@@ -394,6 +394,7 @@ const commercialActivitySchema = z.record(
 const ongoingTallySchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  updatedAt: z.coerce.date(),
   isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),

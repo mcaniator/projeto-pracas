@@ -5,6 +5,7 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { dexieDb } from "@/lib/dexie/dexie";
 import { _saveOngoingTallyData } from "@/lib/serverFunctions/serverActions/tallyUtil";
 import { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import { CommercialActivity } from "@/lib/zodValidators";
@@ -23,9 +24,10 @@ const TallyInProgressSaveDialog = ({
   tallyMap,
   startDate,
   endDate,
-  finalizedTally,
-  setEndDate,
-  setIsFinalized,
+  isFinalized,
+  onEndDateChange,
+  onIsFinalizedChange,
+  onSaveSuccess,
 }: {
   open: boolean;
   onClose: () => void;
@@ -40,20 +42,19 @@ const TallyInProgressSaveDialog = ({
   tallyMap: Map<string, number>;
   startDate: Dayjs;
   endDate: Dayjs | null;
-  finalizedTally: boolean;
-  setEndDate: React.Dispatch<React.SetStateAction<Dayjs | null>>;
-  setIsFinalized: React.Dispatch<React.SetStateAction<boolean>>;
+  isFinalized: boolean;
+  onEndDateChange: (date: Dayjs | null) => void;
+  onIsFinalizedChange: (isFinalized: boolean) => void;
+  onSaveSuccess?: (newServerUpdatedAt: Date) => void;
 }) => {
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [enableJsonSaving, setEnableJsonSaving] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
-  const [dateTime, setDateTime] = useState<Dayjs | null>(endDate);
-  const [isFinalized, updateIsFinalized] = useState(finalizedTally);
 
   const save = async () => {
-    if (isFinalized && !dateTime) {
+    if (isFinalized && !endDate) {
       setShowDatePickerError(true);
       return;
     }
@@ -66,7 +67,7 @@ const TallyInProgressSaveDialog = ({
         commercialActivities,
         complementaryData,
         startDate: startDate.toDate(),
-        endDate: dateTime?.toDate() ?? null,
+        endDate: endDate?.toDate() ?? null,
         isFinalized,
       });
       helperCardProcessResponse(response.responseInfo);
@@ -74,8 +75,10 @@ const TallyInProgressSaveDialog = ({
         setEnableJsonSaving(true);
       } else {
         setEnableJsonSaving(false);
-        setEndDate(dateTime);
-        setIsFinalized(isFinalized);
+        await dexieDb.tallys.delete(tallyId);
+        if (response.data?.updatedAt) {
+          onSaveSuccess?.(response.data.updatedAt);
+        }
         onClose();
         if (response.data?.savedAsFinalized) {
           router.push(`/admin/tallys`);
@@ -99,7 +102,7 @@ const TallyInProgressSaveDialog = ({
       commercialActivities,
       complementaryData,
       startDate: startDate.toDate(),
-      endDate: dateTime?.toDate() ?? null,
+      endDate: endDate?.toDate() ?? null,
       isFinalized,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -114,17 +117,15 @@ const TallyInProgressSaveDialog = ({
   };
 
   useEffect(() => {
-    setDateTime(endDate);
-    updateIsFinalized(finalizedTally);
     setEnableJsonSaving(false);
     setShowDatePickerError(false);
-  }, [endDate, finalizedTally, open]);
+  }, [open]);
 
   useEffect(() => {
-    if (isFinalized) {
-      setDateTime((prev) => prev ?? dayjs(new Date()));
+    if (isFinalized && !endDate) {
+      onEndDateChange(dayjs(new Date()));
     }
-  }, [isFinalized]);
+  }, [isFinalized, onEndDateChange, endDate]);
 
   return (
     <CDialog
@@ -163,16 +164,16 @@ const TallyInProgressSaveDialog = ({
           checked={isFinalized}
           label="Salvar como finalizado"
           onChange={(e) => {
-            updateIsFinalized(e.target.checked);
+            onIsFinalizedChange(e.target.checked);
           }}
         />
         <CDateTimePicker
-          value={dateTime}
+          value={endDate}
           error={showDatePickerError}
           clearable
           onChange={(e) => {
             setShowDatePickerError(false);
-            setDateTime(e);
+            onEndDateChange(e);
           }}
           label="Data final"
         />

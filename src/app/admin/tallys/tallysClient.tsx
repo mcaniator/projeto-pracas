@@ -3,6 +3,7 @@
 import TallyCreationDialog from "@/app/admin/tallys/tallyCreation/tallyCreationDialog";
 import TallysFilterSidebar from "@/app/admin/tallys/tallysFilterSidebar";
 import TallysList from "@/app/admin/tallys/tallysList";
+import { dexieDb } from "@/lib/dexie/dexie";
 import { useFetchTallys } from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
 import { IconFilter, IconPlus } from "@tabler/icons-react";
@@ -33,6 +34,10 @@ export type TallysFilterType =
   | "CITY_ID"
   | "FINALIZATION_STATUS";
 
+export type TallyWithSyncStatus = FetchTallysResponse["tallys"][number] & {
+  hasUnsyncedFilling: boolean;
+};
+
 const TallysClient = ({
   usersPromise,
 }: {
@@ -43,7 +48,8 @@ const TallysClient = ({
   const [params] = useState(useSearchParams());
   const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const [tallys, setTallys] = useState<FetchTallysResponse["tallys"]>([]);
+  const unsyncedTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(null);
+  const [tallys, setTallys] = useState<TallyWithSyncStatus[]>([]);
 
   const [openTallyCreationDialog, setOpenTallyCreationDialog] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
@@ -65,6 +71,23 @@ const TallysClient = ({
   }, []);
 
   const [_fetchTallys] = useFetchTallys();
+
+  const getUnsyncedTallyIds = useCallback(() => {
+    if (!unsyncedTallyIdsPromiseRef.current) {
+      unsyncedTallyIdsPromiseRef.current = dexieDb.tallys
+        .toArray()
+        .then(
+          (dexieTallys) =>
+            new Set(
+              dexieTallys
+                .filter((tally) => tally.localUpdatedAt > tally.serverUpdatedAt)
+                .map((tally) => tally.id),
+            ),
+        );
+    }
+
+    return unsyncedTallyIdsPromiseRef.current;
+  }, []);
 
   const handleFilterChange = ({
     type,
@@ -195,12 +218,46 @@ const TallysClient = ({
         narrowUnitId,
         finalizationStatus,
       });
-      setTallys(response.data?.tallys ?? []);
+      const unsyncedTallyIds = await getUnsyncedTallyIds();
+      const formattedTallysPromises = response.data?.tallys.map(
+        async (tally) => {
+          if (unsyncedTallyIds.has(tally.id)) {
+            const localTally = await dexieDb.tallys.get(tally.id);
+            if (!localTally) {
+              return {
+                ...tally,
+                hasUnsyncedFilling: false,
+              };
+            }
+
+            return {
+              ...tally,
+              startDate: localTally.startDate,
+              endDate: localTally.endDate,
+              isFinalized: localTally.isFinalized,
+              hasUnsyncedFilling: true,
+            };
+          }
+
+          return {
+            ...tally,
+            hasUnsyncedFilling: false,
+          };
+        },
+      );
+
+      if (formattedTallysPromises) {
+        const formattedTallys = await Promise.all(formattedTallysPromises);
+        setTallys(formattedTallys);
+      } else {
+        setTallys([]);
+      }
 
       setIsLoading(false);
     },
     [
       _fetchTallys,
+      getUnsyncedTallyIds,
       locationId,
       formId,
       startDate,
@@ -213,6 +270,10 @@ const TallysClient = ({
       finalizationStatus,
     ],
   );
+
+  useEffect(() => {
+    void getUnsyncedTallyIds();
+  }, [getUnsyncedTallyIds]);
 
   useEffect(() => {
     const fetch = async () => {

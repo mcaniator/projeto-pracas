@@ -25,6 +25,7 @@ const TallyInProgressReview = ({
   commercialActivities,
   tallyMap,
   startDate,
+  pendingServerSave,
   setStartDate,
   onOpenSaveDialog,
 }: {
@@ -37,6 +38,7 @@ const TallyInProgressReview = ({
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
   startDate: Dayjs;
+  pendingServerSave: boolean;
   setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
   onOpenSaveDialog: () => void;
 }) => {
@@ -70,6 +72,7 @@ const TallyInProgressReview = ({
       {assistBarState === "SAVE" && (
         <TallyInProgressDatabaseOptions
           startDate={startDate}
+          pendingServerSave={pendingServerSave}
           setStartDate={setStartDate}
           onOpenSaveDialog={onOpenSaveDialog}
         />
