@@ -165,8 +165,7 @@ const SaveAssessmentDialog = ({
   const generateExport = () => {
     const data = {
       startDate: startDate,
-      endDateTime: endDate ?? null,
-      finalizationDateTime: endDate ?? null,
+      endDate: endDate ?? null,
       isFinalized: isFinalized,
       assessmentId: assessmentId,
       responses: serializeResponseFormValues(formValues, categories),

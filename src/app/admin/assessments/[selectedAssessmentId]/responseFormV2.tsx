@@ -391,9 +391,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           responses: SerializedFormValues;
           geometries?: ResponseFormGeometry[];
           responseImages?: ResponseFormImages;
-          endDateTime?: string | null;
-          finalizationDateTime?: string | null;
-          isFinalized?: boolean;
+          endDate: string | null;
+          isFinalized: boolean;
           startDate: string;
           driveFolderUrl: string | null;
         };
@@ -415,18 +414,13 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         const startDate = dayjs(importedData.startDate);
         setStartDate(startDate);
 
-        const endDateTime = dayjs(
-          importedData.endDateTime ?? importedData.finalizationDateTime,
+        setEndDate(
+          importedData.endDate && dayjs(importedData.endDate).isValid() ?
+            dayjs(importedData.endDate)
+          : null,
         );
-        setEndDate(endDateTime.isValid() ? endDateTime : null);
-        setIsFinalized(
-          importedData.isFinalized ?? !!importedData.finalizationDateTime,
-        );
-        setIsFilling(
-          getNewIsFillingValue(
-            importedData.isFinalized ?? !!importedData.finalizationDateTime,
-          ),
-        );
+        setIsFinalized(importedData.isFinalized);
+        setIsFilling(getNewIsFillingValue(importedData.isFinalized));
 
         setDriveFolderUrl(importedData.driveFolderUrl);
 

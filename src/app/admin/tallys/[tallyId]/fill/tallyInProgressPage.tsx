@@ -374,7 +374,11 @@ const TallyInProgressPage = ({
       setCommercialActivities(importedData.commercialActivities);
       setComplementaryData(importedData.complementaryData);
       setStartDate(dayjs(importedData.startDate));
-      setEndDate(dayjs(importedData.endDate ? importedData.endDate : null));
+      setEndDate(
+        importedData.endDate && dayjs(importedData.endDate).isValid() ?
+          dayjs(importedData.endDate)
+        : null,
+      );
       setIsFinalized(importedData.isFinalized ?? !!importedData.endDate);
 
       setHelperCard({
