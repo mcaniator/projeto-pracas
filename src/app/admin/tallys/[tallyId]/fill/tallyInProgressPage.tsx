@@ -141,11 +141,6 @@ const buildCommercialActivitiesOptions = (
   return [...defaultCommercialActivitiesOptions, ...customOptions];
 };
 
-const serializeTallyMap = (tallyMap: Map<string, number>) =>
-  Object.fromEntries(
-    [...tallyMap.entries()].sort(([a], [b]) => a.localeCompare(b)),
-  );
-
 const TallyInProgressPage = ({
   tallyId,
   locationName,
@@ -271,7 +266,7 @@ const TallyInProgressPage = ({
         startDate: startDate.toDate(),
         endDate: endDate?.toDate() ?? null,
         weatherStats,
-        tallyMap: serializeTallyMap(tallyMap),
+        tallyMap: Object.fromEntries([...tallyMap.entries()]),
         commercialActivities,
         complementaryData,
       });
@@ -771,6 +766,7 @@ const TallyInProgressPage = ({
         startDate={startDate}
         endDate={endDate}
         isFinalized={isFinalized}
+        serverUpdatedAtRef={serverUpdatedAtRef}
         onEndDateChange={(v) => {
           setEndDate(v);
         }}

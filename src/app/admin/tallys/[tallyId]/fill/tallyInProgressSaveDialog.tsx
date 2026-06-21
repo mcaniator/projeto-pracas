@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserContext } from "@/components/context/UserContext";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
@@ -25,6 +26,7 @@ const TallyInProgressSaveDialog = ({
   startDate,
   endDate,
   isFinalized,
+  serverUpdatedAtRef,
   onEndDateChange,
   onIsFinalizedChange,
   onSaveSuccess,
@@ -43,6 +45,7 @@ const TallyInProgressSaveDialog = ({
   startDate: Dayjs;
   endDate: Dayjs | null;
   isFinalized: boolean;
+  serverUpdatedAtRef: React.MutableRefObject<Date>;
   onEndDateChange: (date: Dayjs | null) => void;
   onIsFinalizedChange: (isFinalized: boolean) => void;
   onSaveSuccess?: (newServerUpdatedAt: Date) => void;
@@ -50,7 +53,9 @@ const TallyInProgressSaveDialog = ({
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
-  const [enableJsonSaving, setEnableJsonSaving] = useState(false);
+  const { user } = useUserContext();
+  const [errorOnServerSave, setErrorOnServerSave] = useState(false);
+  const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
 
   const save = async () => {
@@ -59,6 +64,27 @@ const TallyInProgressSaveDialog = ({
       return;
     }
     setLoadingOverlay({ show: true, message: "Salvando contagem" });
+    dexieDb.tallys
+      .put({
+        id: tallyId,
+        userId: user.id,
+        username: user.username ?? "",
+        serverUpdatedAt: serverUpdatedAtRef.current,
+        localUpdatedAt: new Date(),
+        isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        weatherStats,
+        tallyMap: Object.fromEntries([...tallyMap.entries()]),
+        commercialActivities,
+        complementaryData,
+      })
+      .then(() => {
+        setErrorOnLocalSave(false);
+      })
+      .catch(() => {
+        setErrorOnLocalSave(true);
+      });
     try {
       const response = await _saveOngoingTallyData({
         tallyId,
@@ -72,9 +98,9 @@ const TallyInProgressSaveDialog = ({
       });
       helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 200) {
-        setEnableJsonSaving(true);
+        setErrorOnServerSave(true);
       } else {
-        setEnableJsonSaving(false);
+        setErrorOnServerSave(false);
         await dexieDb.tallys.delete(tallyId);
         if (response.data?.updatedAt) {
           onSaveSuccess?.(response.data.updatedAt);
@@ -90,7 +116,7 @@ const TallyInProgressSaveDialog = ({
         helperCardType: "ERROR",
         content: <>Erro ao salvar contagem!</>,
       });
-      setEnableJsonSaving(true);
+      setErrorOnServerSave(true);
     }
     setLoadingOverlay({ show: false });
   };
@@ -117,8 +143,10 @@ const TallyInProgressSaveDialog = ({
   };
 
   useEffect(() => {
-    setEnableJsonSaving(false);
-    setShowDatePickerError(false);
+    if (open) {
+      setErrorOnServerSave(false);
+      setShowDatePickerError(false);
+    }
   }, [open]);
 
   useEffect(() => {
@@ -132,31 +160,37 @@ const TallyInProgressSaveDialog = ({
       open={open}
       onClose={onClose}
       title="Salvar contagem"
-      cancelChildren={enableJsonSaving ? <>Tentar novamente</> : undefined}
-      confirmChildren={enableJsonSaving ? <>Salvar offline</> : <>Salvar</>}
+      cancelChildren={"Exportar"}
+      confirmChildren={errorOnServerSave ? "Tentar novamente" : "Salvar"}
       onConfirm={() => {
-        if (enableJsonSaving) {
-          generateExport();
-        } else {
-          void save();
-        }
+        void save();
       }}
       onCancel={() => {
-        void save();
+        generateExport();
       }}
     >
       <div className="flex w-full flex-col gap-1">
-        {enableJsonSaving && (
+        {errorOnServerSave && (
           <div className="flex w-full flex-col gap-1">
-            <p>{"Ocorreu um erro ao salvar a contagem."}</p>
+            <p className="text-red-500">
+              {"Ocorreu um erro ao salvar a contagem no servidor."}
+            </p>
+            {errorOnLocalSave ?
+              <p className="text-red-500">
+                {
+                  "Os dados da avaliação não foram salvos neste navegador. Exporte a contagem para não perder os dados."
+                }
+              </p>
+            : <p>
+                {
+                  "Os dados da avaliação foram salvos neste navegador. Ao acessar esta contagem novamente por este navegador, os dados serão carregados."
+                }
+              </p>
+            }
             <p>
               {
-                'Clique em "Salvar offline" para salvar a contagem em seu dispositivo.'
+                ' Caso deseje tentar novamente, clique em "Tentar novamente". Caso deseje exportar os dados desta contagem, clique em "Exportar".'
               }
-            </p>
-            <p>
-              {" "}
-              {"Com este arquivo, e possivel enviar a contagem posteriormente."}
             </p>
           </div>
         )}
