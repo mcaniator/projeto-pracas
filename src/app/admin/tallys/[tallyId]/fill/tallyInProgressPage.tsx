@@ -2,6 +2,7 @@
 
 import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/commercialActivityCreationDialog";
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
+import TallyImportDataDialog from "@/app/admin/tallys/[tallyId]/fill/tallyImportDataDialog";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
 import TallyPersonActions, {
@@ -9,13 +10,14 @@ import TallyPersonActions, {
   SharedCharacteristics,
 } from "@/app/admin/tallys/[tallyId]/fill/tallyPersonActions";
 import { useHelperCard } from "@/components/context/helperCardContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
-import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
 import { dexieDb } from "@/lib/dexie/dexie";
 import type { DexieTally } from "@/lib/dexie/dexie";
@@ -24,17 +26,17 @@ import { AgeGroupType, GenderType } from "@/lib/types/tallys/person";
 import { useUserContext } from "@components/context/UserContext";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
-import { Chip, Paper } from "@mui/material";
+import { Chip, Paper, useMediaQuery, useTheme } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
   IconChartBar,
   IconClipboardData,
   IconCloudExclamation,
   IconDeviceFloppy,
+  IconFileUpload,
   IconMoodDollar,
   IconPlus,
-  IconTrashX,
-  IconUpload,
+  IconTrash,
 } from "@tabler/icons-react";
 import { CommercialActivity, OngoingTally } from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
@@ -155,6 +157,8 @@ const TallyInProgressPage = ({
   tally: OngoingTally;
   finalizedTally: boolean;
 }) => {
+  const theme = useTheme();
+  const isMobileView = useMediaQuery(theme.breakpoints.down("xl"));
   const { user } = useUserContext();
   if (user.id !== tally.user.id) {
     if (
@@ -164,6 +168,7 @@ const TallyInProgressPage = ({
     }
   }
   const { setHelperCard } = useHelperCard();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const serverUpdatedAtRef = useRef(tally.updatedAt);
   const localSaveReadyRef = useRef(false);
   const [
@@ -172,6 +177,7 @@ const TallyInProgressPage = ({
   ] = useState(false);
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [openTallyImportDialog, setOpenTallyImportDialog] = useState(false);
   const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
   const [endDate, setEndDate] = useState<Dayjs | null>(
     tally.endDate ? dayjs(tally.endDate) : null,
@@ -392,31 +398,44 @@ const TallyInProgressPage = ({
           <CAdminHeader
             titleIcon={<GrGroup size={28} />}
             title={`Contagem em ${tally?.location.name}`}
-            below={
-              <div className="flex items-center gap-1 xl:hidden">
+            append={
+              <CButton
+                square={isMobileView}
+                tooltip="Importar dados"
+                onClick={() => {
+                  setOpenTallyImportDialog(true);
+                }}
+              >
+                <IconFileUpload /> {isMobileView ? "" : "Importar"}
+              </CButton>
+            }
+          />
+
+          <div className="flex flex-col gap-2 xl:overflow-auto">
+            <div className="flex flex-wrap items-center justify-between">
+              <CDateTimePicker
+                label="Início da contagem"
+                value={startDate}
+                onChange={(v) => {
+                  if (v) setStartDate(v);
+                }}
+              />
+              <div className="flex items-center gap-1">
                 <CButton
                   square
+                  tooltip="Acompanhamento"
                   onClick={() => {
                     setOpenReviewDialog(true);
                   }}
                 >
                   <IconChartBar />
                 </CButton>
+                <CButton square color="error" tooltip="Excluir contagem">
+                  <IconTrash />
+                </CButton>
               </div>
-            }
-          />
+            </div>
 
-          <div className="flex flex-col gap-2 xl:overflow-auto">
-            <CButtonFilePicker
-              fileAccept="application/json"
-              className="w-fit"
-              onFileInput={(e) => {
-                void importData(e);
-              }}
-            >
-              <IconUpload />
-              Importar
-            </CButtonFilePicker>
             <div className="flex flex-col gap-1">
               <CAccordion>
                 <CAccordionSummary>
@@ -593,7 +612,7 @@ const TallyInProgressPage = ({
                           (d) => d.value === selectedCommercialActivity,
                         )
                       ) ?
-                        <IconTrashX />
+                        <IconTrash />
                       : undefined
                     }
                     onAppendIconButtonClick={() => {
@@ -671,16 +690,15 @@ const TallyInProgressPage = ({
                 icon={<IconCloudExclamation />}
               />
             )}
-            <div className="xl:hidden">
-              <CButton
-                onClick={() => {
-                  setOpenSaveDialog(true);
-                }}
-              >
-                <IconDeviceFloppy />
-                Salvar
-              </CButton>
-            </div>
+
+            <CButton
+              onClick={() => {
+                setOpenSaveDialog(true);
+              }}
+            >
+              <IconDeviceFloppy />
+              Salvar
+            </CButton>
           </div>
         </div>
         <Paper
@@ -693,10 +711,6 @@ const TallyInProgressPage = ({
             complementaryData={complementaryData}
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
-            startDate={startDate}
-            pendingServerSave={pendingServerSave}
-            setStartDate={setStartDate}
-            onOpenSaveDialog={() => setOpenSaveDialog(true)}
           />
         </Paper>
       </div>
@@ -766,6 +780,25 @@ const TallyInProgressPage = ({
         onSaveSuccess={(newUpdatedAt) => {
           serverUpdatedAtRef.current = newUpdatedAt;
           setPendingServerSave(false);
+        }}
+      />
+      <TallyImportDataDialog
+        open={openTallyImportDialog}
+        onClose={() => setOpenTallyImportDialog(false)}
+        onFileInput={(e) => {
+          setLoadingOverlay({ show: true, message: "Importando dados..." });
+          importData(e)
+            .catch(() => {
+              setHelperCard({
+                show: true,
+                helperCardType: "ERROR",
+                content: <>Erro ao importar dados!</>,
+              });
+            })
+            .finally(() => {
+              setLoadingOverlay({ show: false });
+            });
+          setOpenTallyImportDialog(false);
         }}
       />
     </div>

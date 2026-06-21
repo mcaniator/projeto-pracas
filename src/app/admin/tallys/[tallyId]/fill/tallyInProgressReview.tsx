@@ -3,19 +3,16 @@ import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { CommercialActivity, OngoingTally } from "@lib/zodValidators";
 import { WeatherConditions } from "@prisma/client";
-import { Dayjs } from "dayjs";
 import { useState } from "react";
 
 import { TallyInProgressCharts } from "./tallyInProgressCharts";
-import { TallyInProgressDatabaseOptions } from "./tallyInProgressDatabaseOptions";
 import { TallyInProgressTextualData } from "./tallyInProgressTextualData";
 
-type AssistBarStates = "TEXTUAL_DATA" | "CHARTS" | "SAVE";
+type AssistBarStates = "TEXTUAL_DATA" | "CHARTS";
 
 const assistBarOptions: { label: string; value: AssistBarStates }[] = [
   { label: "Dados textuais", value: "TEXTUAL_DATA" },
   { label: "Graficos", value: "CHARTS" },
-  { label: "Salvar", value: "SAVE" },
 ];
 
 const TallyInProgressReview = ({
@@ -24,10 +21,7 @@ const TallyInProgressReview = ({
   complementaryData,
   commercialActivities,
   tallyMap,
-  startDate,
-  pendingServerSave,
-  setStartDate,
-  onOpenSaveDialog,
+  isInDialog,
 }: {
   tally: OngoingTally;
   weatherStats: WeatherStats;
@@ -37,16 +31,14 @@ const TallyInProgressReview = ({
   };
   commercialActivities: CommercialActivity;
   tallyMap: Map<string, number>;
-  startDate: Dayjs;
-  pendingServerSave: boolean;
-  setStartDate: React.Dispatch<React.SetStateAction<Dayjs>>;
-  onOpenSaveDialog: () => void;
+  isInDialog?: boolean;
 }) => {
   const [assistBarState, setAssistBarState] =
     useState<AssistBarStates>("TEXTUAL_DATA");
   return (
-    <div className="flex h-full flex-col gap-1 p-3">
-      <h4 className="text-xl font-semibold">Acompanhamento</h4>
+    <div className={`flex h-full flex-col gap-1 ${isInDialog ? "" : "p-3"}`}>
+      {!isInDialog && <h4 className="text-xl font-semibold">Acompanhamento</h4>}
+
       <CToggleButtonGroup
         options={assistBarOptions}
         value={assistBarState}
@@ -67,15 +59,7 @@ const TallyInProgressReview = ({
         />
       )}
       {assistBarState === "CHARTS" && (
-        <TallyInProgressCharts tallyMap={tallyMap} isOnModal={false} />
-      )}
-      {assistBarState === "SAVE" && (
-        <TallyInProgressDatabaseOptions
-          startDate={startDate}
-          pendingServerSave={pendingServerSave}
-          setStartDate={setStartDate}
-          onOpenSaveDialog={onOpenSaveDialog}
-        />
+        <TallyInProgressCharts tallyMap={tallyMap} isInDialog={isInDialog} />
       )}
     </div>
   );

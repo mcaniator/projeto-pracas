@@ -1,6 +1,7 @@
 "use client";
 
 import CIconChip from "@/components/ui/cIconChip";
+import { Divider } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
   IconBinocularsFilled,
@@ -29,7 +30,7 @@ const TallyInProgressTextualData = ({
   commercialActivities: CommercialActivitiesObject;
 }) => {
   return (
-    <div className="flex flex-col overflow-auto py-1">
+    <div className="flex flex-col gap-1 overflow-auto py-1">
       <p>
         <CIconChip icon={<IconBinocularsFilled />} tooltip="Observador" />
         {`${tally.user.username}`}
@@ -53,7 +54,8 @@ const TallyInProgressTextualData = ({
         <CIconChip icon={<FaPeopleGroup />} tooltip="Grupos" />
         {`${complementaryData.groupsAmount}`}
       </p>
-      <div className="w-full overflow-auto rounded-3xl bg-gray-400/20 p-3 shadow-inner">
+      <Divider sx={{ my: 1 }} />
+      <div className="w-full overflow-auto">
         <CIconChip
           icon={<IconMoodDollar />}
           tooltip="Atividades comerciais itinerantes"
