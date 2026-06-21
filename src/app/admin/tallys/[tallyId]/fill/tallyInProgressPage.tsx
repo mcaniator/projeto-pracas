@@ -18,6 +18,7 @@ import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
+import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
 import { dexieDb } from "@/lib/dexie/dexie";
@@ -38,6 +39,7 @@ import {
   IconMoodDollar,
   IconPlus,
   IconTrash,
+  IconUser,
 } from "@tabler/icons-react";
 import { CommercialActivity, OngoingTally } from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
@@ -409,6 +411,16 @@ const TallyInProgressPage = ({
           />
 
           <div className="flex flex-col gap-2 xl:overflow-auto">
+            {isMobileView && (
+              <CChip
+                label={user.username}
+                icon={<IconUser />}
+                sx={{ fontSize: 16 }}
+                tooltip="Observador"
+                className="w-fit"
+              />
+            )}
+
             <div className="flex flex-wrap items-center justify-between">
               <CDateTimePicker
                 label="Início da contagem"

@@ -4,10 +4,10 @@ import CIconChip from "@/components/ui/cIconChip";
 import { Divider } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
-  IconBinocularsFilled,
   IconDog,
   IconMoodDollar,
   IconTemperature,
+  IconUser,
 } from "@tabler/icons-react";
 import { OngoingTally } from "@zodValidators";
 import { FaPeopleGroup } from "react-icons/fa6";
@@ -32,7 +32,7 @@ const TallyInProgressTextualData = ({
   return (
     <div className="flex flex-col gap-1 overflow-auto py-1">
       <p>
-        <CIconChip icon={<IconBinocularsFilled />} tooltip="Observador" />
+        <CIconChip icon={<IconUser />} tooltip="Observador" />
         {`${tally.user.username}`}
       </p>
       <p>
