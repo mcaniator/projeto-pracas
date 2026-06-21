@@ -3,6 +3,7 @@
 import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/commercialActivityCreationDialog";
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
 import TallyImportDataDialog from "@/app/admin/tallys/[tallyId]/fill/tallyImportDataDialog";
+import TallyInProgressDeleteDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressDeleteDialog";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
 import TallyPersonActions, {
@@ -172,6 +173,7 @@ const TallyInProgressPage = ({
   ] = useState(false);
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [openDeleteTallyDialog, setOpenDeleteTallyDialog] = useState(false);
   const [openTallyImportDialog, setOpenTallyImportDialog] = useState(false);
   const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
   const [endDate, setEndDate] = useState<Dayjs | null>(
@@ -425,7 +427,14 @@ const TallyInProgressPage = ({
                 >
                   <IconChartBar />
                 </CButton>
-                <CButton square color="error" tooltip="Excluir contagem">
+                <CButton
+                  square
+                  color="error"
+                  tooltip="Excluir contagem"
+                  onClick={() => {
+                    setOpenDeleteTallyDialog(true);
+                  }}
+                >
                   <IconTrash />
                 </CButton>
               </div>
@@ -777,6 +786,11 @@ const TallyInProgressPage = ({
           serverUpdatedAtRef.current = newUpdatedAt;
           setPendingServerSave(false);
         }}
+      />
+      <TallyInProgressDeleteDialog
+        open={openDeleteTallyDialog}
+        onClose={() => setOpenDeleteTallyDialog(false)}
+        tallyId={tallyId}
       />
       <TallyImportDataDialog
         open={openTallyImportDialog}
