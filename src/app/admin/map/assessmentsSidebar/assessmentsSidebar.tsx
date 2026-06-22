@@ -404,10 +404,17 @@ const AssessmentsSidebar = ({
                   </div>
                 }
 
-                <div className="absolute left-2 top-2 z-20 rounded-md bg-white/95 px-1 text-black shadow">
+                <div className="absolute left-2 top-2 z-20 rounded-md bg-white/95 text-black shadow">
                   <CCheckbox
                     checked={isSelected}
                     disabled={!isComparable}
+                    formControlLabelSx={{
+                      margin: 0,
+                    }}
+                    sx={{
+                      margin: 0,
+                      padding: 0,
+                    }}
                     onClick={(event) => event.stopPropagation()}
                     onChange={() => toggleLocation(location)}
                   />

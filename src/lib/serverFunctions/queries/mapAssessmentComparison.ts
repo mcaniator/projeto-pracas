@@ -262,16 +262,27 @@ type MapAssessmentComparisonAssessmentQueryResult = {
         questionType: AssessmentQuestionItem["questionType"];
         characterType: AssessmentQuestionItem["characterType"];
         optionType: AssessmentQuestionItem["optionType"];
-        options: { id: number; text: string }[];
+        options: { id: number; text: string; isOverridable: boolean }[];
         categoryId: number;
         subcategoryId: number | null;
         geometryTypes: AssessmentQuestionItem["geometryTypes"];
+        allowResponseImages: boolean;
+        response: {
+          assessmentId: number;
+          response: string | null;
+        }[];
+        booleanResponses: {
+          assessmentId: number;
+          checked: boolean;
+        }[];
+        ResponseOption: {
+          assessmentId: number;
+          overrideValue: string | null;
+          option: { id: number } | null;
+        }[];
       } | null;
     }[];
   };
-  response: { questionId: number; response: string | null }[];
-  booleanResponses: { questionId: number; checked: boolean }[];
-  responseOption: { questionId: number; option: { id: number } | null }[];
 };
 
 export const fetchMapAssessmentComparisonAssessmentTrees = async ({
@@ -282,18 +293,29 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
   locationIds: number[];
 }) => {
   try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        isPublic: true,
-        locationId: {
-          in: locationIds,
-        },
-        form: {
-          formItems: {
-            some: {
-              categoryId,
+    const assessmentIds = (
+      await prisma.assessment.findMany({
+        where: {
+          isPublic: true,
+          locationId: {
+            in: locationIds,
+          },
+          form: {
+            formItems: {
+              some: {
+                categoryId,
+              },
             },
           },
+        },
+        select: { id: true },
+      })
+    ).map((assessment) => assessment.id);
+
+    const assessments = await prisma.assessment.findMany({
+      where: {
+        id: {
+          in: assessmentIds,
         },
       },
       orderBy: [{ location: { name: "asc" } }, { startDate: "desc" }],
@@ -304,46 +326,6 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
           select: {
             id: true,
             name: true,
-          },
-        },
-        response: {
-          where: {
-            question: {
-              categoryId,
-            },
-          },
-          select: {
-            questionId: true,
-            response: true,
-          },
-        },
-        booleanResponses: {
-          where: {
-            question: {
-              categoryId,
-            },
-          },
-          select: {
-            questionId: true,
-            checked: true,
-          },
-        },
-        responseOption: {
-          where: {
-            optionId: {
-              not: null,
-            },
-            question: {
-              categoryId,
-            },
-          },
-          select: {
-            questionId: true,
-            option: {
-              select: {
-                id: true,
-              },
-            },
           },
         },
         form: {
@@ -391,10 +373,50 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
+                    allowResponseImages: true,
+                    response: {
+                      where: {
+                        assessmentId: { in: assessmentIds },
+                      },
+                      select: {
+                        assessmentId: true,
+                        response: true,
+                      },
+                    },
+                    booleanResponses: {
+                      where: {
+                        assessmentId: { in: assessmentIds },
+                      },
+                      select: {
+                        assessmentId: true,
+                        checked: true,
+                      },
+                    },
+                    ResponseOption: {
+                      where: {
+                        assessmentId: { in: assessmentIds },
+                        optionId: { not: null },
+                      },
+                      select: {
+                        assessmentId: true,
+                        overrideValue: true,
+                        option: {
+                          select: {
+                            id: true,
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -459,26 +481,6 @@ const buildMapAssessmentComparisonAssessmentTree = ({
   const categories: AssessmentCategoryItem[] = [];
   const responsesFormValues: FormValues = {};
 
-  const textResponseByQuestionId = new Map(
-    assessment.response.map((response) => [
-      response.questionId,
-      response.response,
-    ]),
-  );
-  const booleanResponseByQuestionId = new Map(
-    assessment.booleanResponses.map((response) => [
-      response.questionId,
-      response.checked,
-    ]),
-  );
-  const optionResponsesByQuestionId = new Map<number, number[]>();
-  assessment.responseOption.forEach((response) => {
-    if (!response.option) return;
-    const options = optionResponsesByQuestionId.get(response.questionId) ?? [];
-    options.push(response.option.id);
-    optionResponsesByQuestionId.set(response.questionId, options);
-  });
-
   const sortedFormItems = assessment.form.formItems.sort((a, b) => {
     const rankDiff =
       FormItemUtils.getItemRankForSorting(a) -
@@ -540,7 +542,9 @@ const buildMapAssessmentComparisonAssessmentTree = ({
       if (!dbQuestion) continue;
 
       if (dbQuestion.questionType === "WRITTEN") {
-        const response = textResponseByQuestionId.get(dbQuestion.id);
+        const response = dbQuestion.response.find(
+          (response) => response.assessmentId === assessment.id,
+        )?.response;
         if (
           dbQuestion.characterType === "NUMBER" ||
           dbQuestion.characterType === "PERCENTAGE" ||
@@ -552,15 +556,31 @@ const buildMapAssessmentComparisonAssessmentTree = ({
           responsesFormValues[dbQuestion.id] = response ?? null;
         }
       } else if (dbQuestion.questionType === "OPTIONS") {
-        const options = optionResponsesByQuestionId.get(dbQuestion.id) ?? [];
+        const optionResponses = dbQuestion.ResponseOption.filter(
+          (response) => response.assessmentId === assessment.id,
+        );
         if (dbQuestion.optionType === "RADIO") {
-          responsesFormValues[dbQuestion.id] = options[0] ?? null;
+          const response = optionResponses[0];
+          responsesFormValues[dbQuestion.id] =
+            response?.option?.id ?
+              {
+                value: response.option.id,
+                override: response.overrideValue,
+              }
+            : null;
         } else if (dbQuestion.optionType === "CHECKBOX") {
-          responsesFormValues[dbQuestion.id] = options;
+          responsesFormValues[dbQuestion.id] = optionResponses.map(
+            (response) => ({
+              value: response.option!.id,
+              override: response.overrideValue,
+            }),
+          );
         }
       } else if (dbQuestion.questionType === "BOOLEAN") {
         responsesFormValues[dbQuestion.id] =
-          booleanResponseByQuestionId.get(dbQuestion.id) ?? false;
+          dbQuestion.booleanResponses.find(
+            (response) => response.assessmentId === assessment.id,
+          )?.checked ?? false;
       }
 
       const relatedCalculation = assessment.form.calculations.find(
@@ -573,6 +593,7 @@ const buildMapAssessmentComparisonAssessmentTree = ({
         name: dbQuestion.name,
         iconKey: dbQuestion.iconKey,
         isPublic: dbQuestion.isPublic,
+        allowResponseImages: dbQuestion.allowResponseImages,
         scaleConfig: dbQuestion.scaleConfig,
         notes: dbQuestion.notes,
         questionType: dbQuestion.questionType,
