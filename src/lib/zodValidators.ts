@@ -471,6 +471,27 @@ const locationArrayExportDailyTallysSchema = z.array(
   locationExportDailyTallysSchema,
 );
 
+const tallyImportDateSchema = z
+  .string()
+  .datetime()
+  .transform((date) => new Date(date));
+
+const tallyImportDataSchema = z.object({
+  weatherStats: z.object({
+    temperature: z.number().finite().nullable(),
+    weather: z.nativeEnum(WeatherConditions),
+  }),
+  tallyMap: z.record(z.number().int().finite().nonnegative()),
+  commercialActivities: commercialActivitySchema,
+  complementaryData: z.object({
+    animalsAmount: z.number().int().finite().nonnegative(),
+    groupsAmount: z.number().int().finite().nonnegative(),
+  }),
+  startDate: tallyImportDateSchema,
+  endDate: tallyImportDateSchema.nullable(),
+  isFinalized: z.boolean().optional(),
+});
+
 type Tally = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type TallyPerson = z.infer<typeof tallyPersonSchema>;
@@ -490,6 +511,7 @@ export {
   locationArrayExportDailyTallysSchema,
   tallysExportIndividualTallysSchema,
   finalizedTallyArraySchema,
+  tallyImportDataSchema,
 };
 export type {
   personType,

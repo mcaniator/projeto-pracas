@@ -41,7 +41,11 @@ import {
   IconTrash,
   IconUser,
 } from "@tabler/icons-react";
-import { CommercialActivity, OngoingTally } from "@zodValidators";
+import {
+  CommercialActivity,
+  OngoingTally,
+  tallyImportDataSchema,
+} from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -342,43 +346,19 @@ const TallyInProgressPage = ({
   };
 
   const importData = async (e: ChangeEvent<HTMLInputElement>) => {
-    //TODO: Add validation with Zod
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as unknown;
-
-      if (!parsed || typeof parsed !== "object") {
-        throw new Error();
-      }
-
-      const importedData = parsed as {
-        weatherStats: {
-          temperature: number | null;
-          weather: WeatherConditions;
-        };
-        tallyMap: Record<string, number>;
-        commercialActivities: Record<string, number>;
-        complementaryData: {
-          animalsAmount: number;
-          groupsAmount: number;
-        };
-        startDate: string;
-        endDate: string | null;
-        isFinalized?: boolean;
-      };
+      const importedData = tallyImportDataSchema.parse(parsed);
 
       setWeatherStats(importedData.weatherStats);
       setTallyMap(new Map(Object.entries(importedData.tallyMap)));
       setCommercialActivities(importedData.commercialActivities);
       setComplementaryData(importedData.complementaryData);
       setStartDate(dayjs(importedData.startDate));
-      setEndDate(
-        importedData.endDate && dayjs(importedData.endDate).isValid() ?
-          dayjs(importedData.endDate)
-        : null,
-      );
+      setEndDate(importedData.endDate ? dayjs(importedData.endDate) : null);
       setIsFinalized(importedData.isFinalized ?? !!importedData.endDate);
 
       setHelperCard({
@@ -791,7 +771,7 @@ const TallyInProgressPage = ({
         startDate={startDate}
         endDate={endDate}
         isFinalized={isFinalized}
-        serverUpdatedAtRef={serverUpdatedAtRef}
+        serverUpdatedAt={serverUpdatedAtRef.current}
         onEndDateChange={(v) => {
           setEndDate(v);
         }}

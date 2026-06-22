@@ -26,7 +26,7 @@ const TallyInProgressSaveDialog = ({
   startDate,
   endDate,
   isFinalized,
-  serverUpdatedAtRef,
+  serverUpdatedAt,
   onEndDateChange,
   onIsFinalizedChange,
   onSaveSuccess,
@@ -45,7 +45,7 @@ const TallyInProgressSaveDialog = ({
   startDate: Dayjs;
   endDate: Dayjs | null;
   isFinalized: boolean;
-  serverUpdatedAtRef: React.MutableRefObject<Date>;
+  serverUpdatedAt: Date;
   onEndDateChange: (date: Dayjs | null) => void;
   onIsFinalizedChange: (isFinalized: boolean) => void;
   onSaveSuccess?: (newServerUpdatedAt: Date) => void;
@@ -69,7 +69,7 @@ const TallyInProgressSaveDialog = ({
         id: tallyId,
         userId: user.id,
         username: user.username ?? "",
-        serverUpdatedAt: serverUpdatedAtRef.current,
+        serverUpdatedAt: serverUpdatedAt,
         localUpdatedAt: new Date(),
         isFinalized,
         startDate: startDate.toDate(),
