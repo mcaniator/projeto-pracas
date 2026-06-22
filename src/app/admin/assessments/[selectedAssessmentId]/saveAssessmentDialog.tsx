@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserContext } from "@/components/context/UserContext";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
@@ -111,6 +112,7 @@ const SaveAssessmentDialog = ({
   driveFolderUrl,
   responseImages,
   categories,
+  serverUpdatedAt,
   onResponseImageSynced,
   onSaveSuccess,
   onIsFinalizedChange,
@@ -128,17 +130,20 @@ const SaveAssessmentDialog = ({
   driveFolderUrl: string | null;
   responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
+  serverUpdatedAt: Date;
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onSaveSuccess: (newServerUpdatedAt: Date) => void;
   onIsFinalizedChange: (newIsFinalized: boolean) => void;
   onEndDateChange: (newEndDate: Dayjs | null) => void;
   onClose: () => void;
 }) => {
-  const [enableJsonSaving, setEnableJsonSaving] = useState(false);
+  const [errorOnServerSave, setErrorOnServerSave] = useState(false);
+  const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
+  const { user } = useUserContext();
   const [uploadImage] = useUploadImageResponse();
   const saveResponseImages = async (responseImages: ResponseFormImages) => {
     //Unused because of problems with the Google API
@@ -174,6 +179,7 @@ const SaveAssessmentDialog = ({
     action: _addResponsesV2,
     callbacks: {
       onSuccess: (response) => {
+        // Delete local data, as it is no longer need
         dexieDb.assessments
           .delete(assessmentId)
           .then(() => {
@@ -191,7 +197,7 @@ const SaveAssessmentDialog = ({
             });
           })
           .finally(() => {
-            setEnableJsonSaving(false);
+            setErrorOnServerSave(false);
             if (!response.data) {
               throw new Error(
                 "Avaliação salva, mas a data de atualização não foi retornada!",
@@ -201,7 +207,7 @@ const SaveAssessmentDialog = ({
           });
       },
       onError: () => {
-        setEnableJsonSaving(true);
+        setErrorOnServerSave(true);
       },
     },
   });
@@ -211,14 +217,43 @@ const SaveAssessmentDialog = ({
       return;
     }
 
-    setLoadingOverlay({ show: true, message: "Salvando avaliação" });
+    setLoadingOverlay({ show: true, message: "Salvando avaliação..." });
+    const serializedFormValues = serializeResponseFormValues(
+      formValues,
+      categories,
+    );
+
+    try {
+      // Save locally, to not lose data if something goes wrong in the server
+      await dexieDb.assessments.put({
+        id: assessmentId,
+        userId: user.id,
+        username: user.username,
+        serverUpdatedAt: serverUpdatedAt,
+        localUpdatedAt: new Date(),
+        isFinalized: isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        driveFolderUrl: driveFolderUrl,
+        responseFormValues: serializedFormValues,
+        geometries: geometries,
+        responseImages: responseImages,
+      });
+      setErrorOnLocalSave(false);
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        content: "Erro ao salvar dados locais!",
+        helperCardType: "ERROR",
+      });
+      setErrorOnLocalSave(true);
+      setLoadingOverlay({ show: false });
+      return;
+    }
 
     try {
       await saveResponseImages(responseImages);
-      const serializedFormValues = serializeResponseFormValues(
-        formValues,
-        categories,
-      );
+
       await saveResponses({
         assessmentId,
         responses: serializedFormValues,
@@ -228,83 +263,92 @@ const SaveAssessmentDialog = ({
         isFinalized: isFinalized,
         driveFolderUrl: driveFolderUrl,
       });
-    } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar avaliação!</>,
-      });
-      setEnableJsonSaving(true);
+    } finally {
+      setLoadingOverlay({ show: false });
     }
-
-    setLoadingOverlay({ show: false });
   };
 
   const generateExport = async () => {
     setLoadingOverlay({ show: true, message: "Gerando arquivo da avaliação" });
+    try {
+      const zip = new JSZip();
+      const questionFolderNameById = buildQuestionFolderNameById(categories);
+      const exportedImages = Object.fromEntries(
+        Object.entries(responseImages).map(
+          ([questionId, images]) =>
+            [
+              questionId,
+              images.map((image, imageIndex) => {
+                const fallbackName = `imagem-${imageIndex + 1}`;
+                const name = ensureImageFileExtension(
+                  image.file?.name || fallbackName,
+                  image.file?.type ?? "",
+                );
+                const safeName = normalizeImageFileName(name);
+                const questionFolderName =
+                  questionFolderNameById.get(Number(questionId)) ??
+                  `questao_${questionId}`;
+                const path =
+                  image.file ?
+                    `images/${questionId}_${questionFolderName}/${imageIndex}-${safeName}`
+                  : undefined;
 
-    const zip = new JSZip();
-    const questionFolderNameById = buildQuestionFolderNameById(categories);
-    const exportedImages = Object.fromEntries(
-      Object.entries(responseImages).map(
-        ([questionId, images]) =>
-          [
-            questionId,
-            images.map((image, imageIndex) => {
-              const fallbackName = `imagem-${imageIndex + 1}`;
-              const name = ensureImageFileExtension(
-                image.file?.name || fallbackName,
-                image.file?.type ?? "",
-              );
-              const safeName = normalizeImageFileName(name);
-              const questionFolderName =
-                questionFolderNameById.get(Number(questionId)) ??
-                `questao_${questionId}`;
-              const path =
-                image.file ?
-                  `images/${questionId}_${questionFolderName}/${imageIndex}-${safeName}`
-                : undefined;
+                if (image.file && path) {
+                  zip.file(path, image.file);
+                }
 
-              if (image.file && path) {
-                zip.file(path, image.file);
-              }
+                return {
+                  path,
+                  name,
+                  type: image.file?.type ?? "",
+                  lastModified: image.file?.lastModified ?? 0,
+                  url: image.url,
+                  status: image.status,
+                };
+              }),
+            ] as const,
+        ),
+      );
 
-              return {
-                path,
-                name,
-                type: image.file?.type ?? "",
-                lastModified: image.file?.lastModified ?? 0,
-                url: image.url,
-                status: image.status,
-              };
-            }),
-          ] as const,
-      ),
-    );
+      const data = {
+        startDate: startDate.toISOString(),
+        endDate: endDate?.toISOString() ?? null,
+        isFinalized: isFinalized,
+        assessmentId: assessmentId,
+        responses: serializeResponseFormValues(formValues, categories),
+        geometries: geometries,
+        driveFolderUrl: driveFolderUrl,
+        responseImages: exportedImages,
+      };
 
-    const data = {
-      startDate: startDate.toISOString(),
-      endDate: endDate?.toISOString() ?? null,
-      isFinalized: isFinalized,
-      assessmentId: assessmentId,
-      responses: serializeResponseFormValues(formValues, categories),
-      geometries: geometries,
-      driveFolderUrl: driveFolderUrl,
-      responseImages: exportedImages,
-    };
-
-    zip.file("assessment.json", JSON.stringify(data, null, 2));
-    const blob = await zip.generateAsync({
-      type: "blob",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `avaliação_${locationName}_${new Date().toISOString()}.zip`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setLoadingOverlay({ show: false });
+      zip.file("assessment.json", JSON.stringify(data, null, 2));
+      const blob = await zip.generateAsync({
+        type: "blob",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `avaliação_${locationName}_${new Date().toISOString()}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        content: "Erro ao gerar arquivo da avaliação!",
+        helperCardType: "ERROR",
+      });
+    } finally {
+      setLoadingOverlay({ show: false });
+    }
   };
+
+  useEffect(() => {
+    if (open) {
+      setErrorOnServerSave(false);
+      setErrorOnLocalSave(false);
+      setShowDatePickerError(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (isFinalized && !endDate) {
@@ -317,38 +361,36 @@ const SaveAssessmentDialog = ({
       open={open}
       onClose={onClose}
       title={"Salvar avaliação"}
-      cancelChildren={enableJsonSaving ? <>Tentar novamente</> : undefined}
-      confirmChildren={enableJsonSaving ? <>Salvar offline</> : <>Salvar</>}
+      cancelChildren={"Exportar"}
+      confirmChildren={errorOnServerSave ? "Tentar novamente" : "Salvar"}
       onConfirm={() => {
-        if (enableJsonSaving) {
-          void generateExport().catch(() => {
-            setLoadingOverlay({ show: false });
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Erro ao gerar arquivo da avaliação!</>,
-            });
-          });
-        } else {
-          void save();
-        }
+        void save();
       }}
       onCancel={() => {
-        void save();
+        void generateExport();
       }}
     >
       <div className="flex w-full flex-col gap-1">
-        {enableJsonSaving && (
+        {(errorOnServerSave || errorOnLocalSave) && (
           <div className="flex w-full flex-col gap-1">
-            <p>{"Ocorreu um erro ao salvar a avaliação."}</p>
-            <p>
-              {
-                'Clique em "SALVAR OFFLINE" para salvar a avaliação em seu dispositivo.'
-              }
+            <p className="text-red-500">
+              {"Ocorreu um erro ao salvar a avaliação no servidor."}
             </p>
+            {errorOnLocalSave ?
+              <p className="text-red-500">
+                {
+                  "Os dados da avaliação não foram salvos neste navegador. Exporte a avaliação para não perder os dados."
+                }
+              </p>
+            : <p>
+                {
+                  "Os dados da avaliação foram salvos neste navegador. Ao acessar esta avaliação novamente por este navegador, os dados serão carregados."
+                }
+              </p>
+            }
             <p>
               {
-                "Com este arquivo, é possível enviar a avaliação posteriormente."
+                ' Caso deseje tentar novamente, clique em "Tentar novamente". Caso deseje exportar os dados desta avaliação, clique em "Exportar".'
               }
             </p>
           </div>

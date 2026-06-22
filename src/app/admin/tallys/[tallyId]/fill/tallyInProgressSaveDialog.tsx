@@ -63,9 +63,10 @@ const TallyInProgressSaveDialog = ({
       setShowDatePickerError(true);
       return;
     }
-    setLoadingOverlay({ show: true, message: "Salvando contagem" });
-    dexieDb.tallys
-      .put({
+    setLoadingOverlay({ show: true, message: "Salvando contagem..." });
+    try {
+      // Save locally, to not lose data if something goes wrong in the server
+      await dexieDb.tallys.put({
         id: tallyId,
         userId: user.id,
         username: user.username ?? "",
@@ -78,13 +79,19 @@ const TallyInProgressSaveDialog = ({
         tallyMap: Object.fromEntries([...tallyMap.entries()]),
         commercialActivities,
         complementaryData,
-      })
-      .then(() => {
-        setErrorOnLocalSave(false);
-      })
-      .catch(() => {
-        setErrorOnLocalSave(true);
       });
+      setErrorOnLocalSave(false);
+    } catch (e) {
+      setHelperCard({
+        show: true,
+        content: "Erro ao salvar dados locais!",
+        helperCardType: "ERROR",
+      });
+      setErrorOnLocalSave(true);
+      setLoadingOverlay({ show: false });
+      return;
+    }
+
     try {
       const response = await _saveOngoingTallyData({
         tallyId,
@@ -101,7 +108,17 @@ const TallyInProgressSaveDialog = ({
         setErrorOnServerSave(true);
       } else {
         setErrorOnServerSave(false);
-        await dexieDb.tallys.delete(tallyId);
+        try {
+          // Delete local data, as it is no longer needed
+          await dexieDb.tallys.delete(tallyId);
+        } catch (e) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Avaliação salva, mas falha ao excluir do dispositivo!</>,
+          });
+        }
+
         if (response.data?.updatedAt) {
           onSaveSuccess?.(response.data.updatedAt);
         }
@@ -117,8 +134,9 @@ const TallyInProgressSaveDialog = ({
         content: <>Erro ao salvar contagem!</>,
       });
       setErrorOnServerSave(true);
+    } finally {
+      setLoadingOverlay({ show: false });
     }
-    setLoadingOverlay({ show: false });
   };
 
   const generateExport = () => {
@@ -145,6 +163,7 @@ const TallyInProgressSaveDialog = ({
   useEffect(() => {
     if (open) {
       setErrorOnServerSave(false);
+      setErrorOnLocalSave(false);
       setShowDatePickerError(false);
     }
   }, [open]);
@@ -170,7 +189,7 @@ const TallyInProgressSaveDialog = ({
       }}
     >
       <div className="flex w-full flex-col gap-1">
-        {errorOnServerSave && (
+        {(errorOnServerSave || errorOnLocalSave) && (
           <div className="flex w-full flex-col gap-1">
             <p className="text-red-500">
               {"Ocorreu um erro ao salvar a contagem no servidor."}

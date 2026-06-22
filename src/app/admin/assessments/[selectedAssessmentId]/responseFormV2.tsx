@@ -4,6 +4,7 @@ import ChooseResponsesSourceDialog from "@/app/admin/assessments/[selectedAssess
 import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
 import { useUserContext } from "@/components/context/UserContext";
 import { useHelperCard } from "@/components/context/helperCardContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
@@ -138,6 +139,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
   ) => {
     const { setHelperCard } = useHelperCard();
     const { user } = useUserContext();
+    const { setLoadingOverlay } = useLoadingOverlay();
     const defaultResponseFormValues = useMemo(
       () =>
         deserializeResponseFormValues(
@@ -162,17 +164,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     });
     //serverUpdatedAtRef is used to save the serverUpdatedAt in the local database
     const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
-
-    const getNewIsFillingValue = useCallback(
-      (isFinalized: boolean) => {
-        return (
-          isFinalized ? false
-          : userCanEdit ? true
-          : false
-        );
-      },
-      [userCanEdit],
-    );
 
     const [questionsForMention] = useState(() => {
       const questions: SimpleMention[] = [];
@@ -290,7 +281,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
         reset(localFormValues);
         setIsFinalized(localAssessment.isFinalized);
-        setIsFilling(getNewIsFillingValue(localAssessment.isFinalized));
+        setIsFilling(true);
         setStartDate(dayjs(localAssessment.startDate));
         setEndDate(
           localAssessment.endDate ? dayjs(localAssessment.endDate) : null,
@@ -305,23 +296,47 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setPendingLocalAssessmentChoice(undefined);
         setPendingServerSave(true);
       },
-      [assessmentTree.categories, getNewIsFillingValue, reset],
+      [assessmentTree.categories, reset],
     );
 
     const applyServerAssessmentValues = useCallback(() => {
-      reset(defaultResponseFormValues);
-      setGeometries(assessmentTree.geometries);
-      setResponseImages({});
-      serializedFormValuesRef.current = assessmentTree.responsesFormValues;
-      geometriesRef.current = assessmentTree.geometries;
-      responseImagesRef.current = {};
-      nonResponseItemsIsDirtyRef.current = false;
-      setPendingLocalAssessmentChoice(undefined);
+      const applyServerValuesAndDeleteLocalValues = async () => {
+        setLoadingOverlay({ show: true, message: "Carregando..." });
+        reset(defaultResponseFormValues);
+        setIsFinalized(assessmentTree.isFinalized);
+        setIsFilling(assessmentTree.isFinalized);
+        setStartDate(dayjs(assessmentTree.startDate));
+        setEndDate(
+          assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+        );
+        setDriveFolderUrl(assessmentTree.driveFolderUrl);
+        setGeometries(assessmentTree.geometries);
+        setResponseImages({}); //TODO
+        serializedFormValuesRef.current = assessmentTree.responsesFormValues;
+        geometriesRef.current = assessmentTree.geometries;
+        responseImagesRef.current = {};
+        nonResponseItemsIsDirtyRef.current = false;
+        setPendingLocalAssessmentChoice(undefined);
+        try {
+          await dexieDb.assessments.delete(assessmentTree.id);
+        } catch (e) {
+          setHelperCard({
+            show: true,
+            content: "Erro ao remover dados locais!",
+            helperCardType: "ERROR",
+          });
+        } finally {
+          setLoadingOverlay({ show: false });
+        }
+      };
+
+      void applyServerValuesAndDeleteLocalValues();
     }, [
-      assessmentTree.geometries,
-      assessmentTree.responsesFormValues,
+      assessmentTree,
       defaultResponseFormValues,
       reset,
+      setHelperCard,
+      setLoadingOverlay,
     ]);
 
     const handleQuestionGeometryChange = ({
@@ -445,7 +460,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           : null,
         );
         setIsFinalized(importedData.isFinalized);
-        setIsFilling(getNewIsFillingValue(importedData.isFinalized));
 
         setDriveFolderUrl(importedData.driveFolderUrl);
 
@@ -784,6 +798,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               driveFolderUrl={driveFolderUrl}
               responseImages={responseImages}
               categories={assessmentTree.categories}
+              serverUpdatedAt={serverUpdatedAtRef.current}
               onResponseImageSynced={handleQuestionImageSynced}
               onSaveSuccess={(newUpdatedAt) => {
                 serverUpdatedAtRef.current = newUpdatedAt;
@@ -795,7 +810,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               onIsFinalizedChange={(v) => {
                 nonResponseItemsIsDirtyRef.current = true;
                 setIsFinalized(v);
-                setIsFilling(getNewIsFillingValue(v));
               }}
               onEndDateChange={(v) => {
                 nonResponseItemsIsDirtyRef.current = true;
