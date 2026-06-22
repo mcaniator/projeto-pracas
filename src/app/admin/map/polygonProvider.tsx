@@ -25,6 +25,11 @@ import {
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
 import { MapContext } from "./mapProvider";
 
+type PolygonProviderLocation = Pick<
+  FetchLocationsResponse["locations"][number],
+  "id" | "name" | "st_asgeojson"
+>;
+
 type PolygonProviderContextType = {
   vectorSource: VectorSource<Feature<Geometry>>;
   setVisible: (visible: boolean) => void;
@@ -36,13 +41,17 @@ const PolygonProviderContext = createContext<PolygonProviderContextType | null>(
 const PolygonProvider = ({
   fullLocations,
   selectedLocation,
+  selectedLocations,
+  disabledLocationIds,
   children,
   isMobileView,
   disableAutoFitAfterLocationsLoad,
   handleSelectLocation,
 }: {
-  fullLocations: FetchLocationsResponse["locations"];
-  selectedLocation: FetchLocationsResponse["locations"][number] | null;
+  fullLocations: PolygonProviderLocation[];
+  selectedLocation?: PolygonProviderLocation | null;
+  selectedLocations?: PolygonProviderLocation[];
+  disabledLocationIds?: number[];
   children: ReactNode;
   isMobileView: boolean;
   disableAutoFitAfterLocationsLoad?: boolean;
@@ -50,6 +59,16 @@ const PolygonProvider = ({
 }) => {
   const map = useContext(MapContext);
   const view = map?.getView();
+  const selectedLocationIds = useMemo(() => {
+    return new Set(
+      selectedLocations?.map((location) => location.id) ??
+        (selectedLocation ? [selectedLocation.id] : []),
+    );
+  }, [selectedLocation, selectedLocations]);
+  const disabledLocationIdsSet = useMemo(
+    () => new Set(disabledLocationIds ?? []),
+    [disabledLocationIds],
+  );
   const polygonsVectorSource = useMemo(
     () => new VectorSource({ wrapX: true }),
     [],
@@ -57,18 +76,19 @@ const PolygonProvider = ({
 
   const styleFunction = useCallback(
     (feature: FeatureLike) => {
+      const disabled = !!feature.getGeometry()?.get("disabled");
       const style = new Style({
         fill: new Fill({
-          color: "#1B28DE4D",
+          color: disabled ? "#6B728080" : "#1B28DE4D",
         }),
         stroke: new Stroke({
-          color: "#0079AB",
+          color: disabled ? "#374151" : "#0079AB",
           lineCap: "butt",
-          width: 3,
+          width: disabled ? 2 : 3,
         }),
         text: new Text({
           fill: new Fill({
-            color: "#FFFFFF",
+            color: disabled ? "#D1D5DB" : "#FFFFFF",
           }),
           scale: 3,
           stroke: new Stroke({
@@ -118,6 +138,7 @@ const PolygonProvider = ({
         geometry.set("name", polygonName ?? "");
 
         geometry.set("id", location.id);
+        geometry.set("disabled", disabledLocationIdsSet.has(location.id));
 
         const feature = new Feature(geometry);
         feature.setId(location.id);
@@ -168,6 +189,7 @@ const PolygonProvider = ({
 
     const selectInteraction = new Select({
       condition: click,
+      filter: (feature) => !feature.getGeometry()?.get("disabled"),
       hitTolerance: 10,
       style: selectStyleFunction,
     });
@@ -176,12 +198,17 @@ const PolygonProvider = ({
 
     map?.on("singleclick", (evt) => {
       map?.forEachFeatureAtPixel(evt.pixel, (feature) => {
-        handleSelectLocation(Number(feature.getId()));
+        const locationId = Number(feature.getId());
+        if (disabledLocationIdsSet.has(locationId)) return;
+        handleSelectLocation(locationId);
       });
     });
 
     map?.on("pointermove", (evt) => {
-      const hit = map?.hasFeatureAtPixel(evt.pixel);
+      const hit = map?.forEachFeatureAtPixel(evt.pixel, (feature) => {
+        if (feature.getGeometry()?.get("disabled")) return false;
+        return true;
+      });
 
       map.getTargetElement().style.cursor = hit ? "pointer" : "default";
     });
@@ -189,19 +216,27 @@ const PolygonProvider = ({
       polygonsVectorSource.removeFeatures(featureArray);
       map?.removeLayer(polygonsLayer);
     };
-  }, [map, fullLocations, polygonsVectorSource, polygonsLayer, view]); //Do not pass handleSelectLocation in the dependency array. It will trigger this useEffect after every location selection.
+  }, [
+    map,
+    fullLocations,
+    polygonsVectorSource,
+    polygonsLayer,
+    view,
+    disabledLocationIdsSet,
+  ]); //Do not pass handleSelectLocation in the dependency array. It will trigger this useEffect after every location selection.
 
   useEffect(() => {
     //Foco no local selecionado
-    if (!selectedLocation) return;
     for (const interaction of map?.getInteractions().getArray() ?? []) {
       if (interaction instanceof Select) {
-        const features = polygonsVectorSource.getFeatures();
-        const selectedFeature = features.find(
-          (feature) => feature.getId() === selectedLocation?.id,
-        );
         interaction.getFeatures().clear();
-        if (!selectedFeature || !checkIfValidLocationFeature(selectedFeature)) {
+        if (selectedLocationIds.size === 0) return;
+
+        const features = polygonsVectorSource.getFeatures();
+        const selectedFeatures = features.filter((feature) =>
+          selectedLocationIds.has(Number(feature.getId())),
+        );
+        if (!selectedFeatures.length) {
           if (isMobileView) {
             return;
           }
@@ -218,19 +253,28 @@ const PolygonProvider = ({
           }
           return;
         }
-        interaction.getFeatures().push(selectedFeature);
-        const geometry = selectedFeature.getGeometry();
-        if (geometry !== undefined && geometry instanceof SimpleGeometry) {
-          const view = map?.getView();
-          view?.fit(geometry, {
-            duration: 500,
+        selectedFeatures.forEach((feature) => {
+          if (checkIfValidLocationFeature(feature)) {
+            interaction.getFeatures().push(feature);
+          }
+        });
+        const extent = selectedFeatures.reduce((extent, feature) => {
+          const geometry = feature.getGeometry();
+          if (geometry instanceof SimpleGeometry) {
+            extend(extent, geometry.getExtent());
+          }
+          return extent;
+        }, createEmpty());
+        if (!isEmpty(extent)) {
+          view?.fit(extent, {
             padding: [100, 100, 100, isMobileView ? 100 : 800],
+            duration: 500,
           });
         }
         break;
       }
     }
-  }, [selectedLocation, isMobileView, map, polygonsVectorSource]);
+  }, [selectedLocationIds, isMobileView, map, polygonsVectorSource, view]);
 
   return (
     <PolygonProviderContext.Provider

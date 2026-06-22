@@ -8,9 +8,14 @@ import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchLocations } from "@/lib/serverFunctions/apiCalls/location";
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
+import { useFetchMapAssessmentComparisonResults } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import {
+  FetchMapAssessmentComparisonResultsResponse,
+  MapAssessmentComparisonCategory,
+} from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import {
   LAST_SELECTED_LOCATION_KEY,
   getStoredLocationSelection,
@@ -32,7 +37,10 @@ import CButton from "../../../components/ui/cButton";
 import { FetchLocationsResponse } from "../../../lib/serverFunctions/queries/location";
 import PolygonProvider from "./polygonProvider";
 import RegisterMenu from "./register/registerMenu";
-import Sidebar from "./sidebar/sidebar";
+import MapSidebarShell, {
+  SidebarMode,
+  sidebarModes,
+} from "./sidebar/mapSidebarShell";
 
 export type LocationsMapClientFilter = {
   broadAdministrativeUnitId: number | null;
@@ -51,16 +59,36 @@ const PolygonsAndClientContainer = () => {
   const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
   const isUserLocationLoading = !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
-  const [locationsWithPolygon, setLocationsWithPolygon] = useState<
-    FetchLocationsResponse["locations"]
-  >([]);
+  const [
+    locationsModeLocationsWithPolygon,
+    setLocationsModeLocationsWithPolygon,
+  ] = useState<FetchLocationsResponse["locations"]>([]);
 
-  const [filteredLocationsWithPolygon, setFilteredLocationsWithPolygon] =
-    useState<FetchLocationsResponse["locations"]>([]);
+  const [
+    filteredLocationsModeLocationsWithPolygon,
+    setFilteredLocationsModeLocationsWithPolygon,
+  ] = useState<FetchLocationsResponse["locations"]>([]);
+  const [
+    assessmentsModeLocationsWithPolygon,
+    setAssessmentsModeLocationsWithPolygon,
+  ] = useState<FetchMapAssessmentComparisonResultsResponse["locations"]>([]);
+  const [
+    filteredAssessmentsModeLocationsWithPolygon,
+    setFilteredAssessmentsModeLocationsWithPolygon,
+  ] = useState<FetchMapAssessmentComparisonResultsResponse["locations"]>([]);
 
-  const [selectedLocation, setSelectedLocation] = useState<
-    FetchLocationsResponse["locations"][number] | null
-  >(null);
+  const [selectedLocationsModeLocation, setSelectedLocationsModeLocation] =
+    useState<FetchLocationsResponse["locations"][number] | null>(null);
+  const [
+    selectedAssessmentsModeLocationIds,
+    setSelectedAssessmentsModeLocationIds,
+  ] = useState<Set<number>>(() => new Set());
+  const [selectedAssessmentsModeCategory, setSelectedAssessmentsModeCategory] =
+    useState<MapAssessmentComparisonCategory | null>(null);
+  const [
+    loadingAssessmentsModeCategories,
+    setLoadingAssessmentsModeCategories,
+  ] = useState(false);
 
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
@@ -110,14 +138,18 @@ const PolygonsAndClientContainer = () => {
   >(null);
 
   const [sidebarDialogOpen, setSidebarDialogOpen] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>(
+    sidebarModes.LOCATIONS,
+  );
 
-  const [_fetchLocations, loadingLocations] = useFetchLocations({
-    callbacks: {
-      onSuccess: (response) => {
-        setLocationsWithPolygon(response.data?.locations ?? []);
+  const [_fetchLocationsModeLocations, loadingLocationsModeLocations] =
+    useFetchLocations({
+      callbacks: {
+        onSuccess: (response) => {
+          setLocationsModeLocationsWithPolygon(response.data?.locations ?? []);
+        },
       },
-    },
-  });
+    });
   const [_fetchCities, loadingCities] = useFetchCities({
     callbacks: {
       onSuccess: (response) => {
@@ -140,22 +172,33 @@ const PolygonsAndClientContainer = () => {
       },
     },
   });
-  const [_fetchLocationCategories, loadingCategories] =
+  const [_fetchLocationCategories, loadingLocationCategories] =
     useFetchLocationCategories({
       callbacks: {
         onSuccess: (response) =>
           setLocationCategories(response.data?.categories ?? []),
       },
     });
-  const [_fetchLocationTypes, loadingTypes] = useFetchLocationTypes({
+  const [_fetchLocationTypes, loadingLocationTypes] = useFetchLocationTypes({
     callbacks: {
       onSuccess: (response) => setLocationTypes(response.data?.types ?? []),
     },
   });
+  const [fetchAssessmentsModeLocations, loadingAssessmentsModeLocations] =
+    useFetchMapAssessmentComparisonResults({
+      callbacks: {
+        onSuccess: (response) => {
+          setAssessmentsModeLocationsWithPolygon(
+            response.data?.locations ?? [],
+          );
+          setSelectedAssessmentsModeLocationIds(new Set());
+        },
+      },
+    });
 
-  const applyFilter = useCallback(() => {
+  const applyLocationsModeFilter = useCallback(() => {
     const result: FetchLocationsResponse["locations"] = [];
-    locationsWithPolygon.forEach((location) => {
+    locationsModeLocationsWithPolygon.forEach((location) => {
       if (
         filter.broadAdministrativeUnitId &&
         location.broadAdministrativeUnitId !== filter.broadAdministrativeUnitId
@@ -199,26 +242,81 @@ const PolygonsAndClientContainer = () => {
       keys: ["name", "popularName"],
     });
 
-    setSelectedLocation(null);
+    setSelectedLocationsModeLocation(null);
 
     if (filter.name) {
       const resultFilteredByName = fuseHaystack.search(filter.name);
-      setFilteredLocationsWithPolygon(
+      setFilteredLocationsModeLocationsWithPolygon(
         resultFilteredByName.map((result) => result.item),
       );
     } else {
-      setFilteredLocationsWithPolygon(result);
+      setFilteredLocationsModeLocationsWithPolygon(result);
     }
 
     setTimeout(() => setDisableAutoFitAfterLocationsLoad(false), 500);
-  }, [filter, locationsWithPolygon]);
+  }, [filter, locationsModeLocationsWithPolygon]);
+
+  const applyAssessmentsModeFilter = useCallback(() => {
+    const result: FetchMapAssessmentComparisonResultsResponse["locations"] = [];
+    assessmentsModeLocationsWithPolygon.forEach((location) => {
+      if (
+        filter.broadAdministrativeUnitId &&
+        location.broadAdministrativeUnitId !== filter.broadAdministrativeUnitId
+      ) {
+        if (filter.broadAdministrativeUnitId !== -1) return;
+        if (location.broadAdministrativeUnitId !== null) return;
+      }
+
+      if (
+        filter.intermediateAdministrativeUnitId &&
+        location.intermediateAdministrativeUnitId !==
+          filter.intermediateAdministrativeUnitId
+      ) {
+        if (filter.intermediateAdministrativeUnitId !== -1) return;
+        if (location.intermediateAdministrativeUnitId !== null) return;
+      }
+      if (
+        filter.narrowAdministrativeUnitId &&
+        location.narrowAdministrativeUnitId !==
+          filter.narrowAdministrativeUnitId
+      ) {
+        if (filter.narrowAdministrativeUnitId !== -1) return;
+        if (location.narrowAdministrativeUnitId !== null) return;
+      }
+
+      if (filter.categoryId && location.categoryId !== filter.categoryId) {
+        if (filter.categoryId !== -1) return;
+        if (location.categoryId !== null) return;
+      }
+
+      if (filter.typeId && location.typeId !== filter.typeId) {
+        if (filter.typeId !== -1) return;
+        if (location.typeId !== null) return;
+      }
+      if (filter.onlyPublic && !location.isPublic) return;
+
+      result.push(location);
+    });
+
+    const fuseHaystack = new Fuse(result, {
+      keys: ["name", "popularName"],
+    });
+
+    const filteredResult =
+      filter.name ?
+        fuseHaystack.search(filter.name).map((result) => result.item)
+      : result;
+
+    setFilteredAssessmentsModeLocationsWithPolygon(filteredResult);
+  }, [assessmentsModeLocationsWithPolygon, filter]);
 
   const loadLocations = useCallback(async () => {
+    if (sidebarMode !== sidebarModes.LOCATIONS) return;
     if (!selectedCity) {
-      setLocationsWithPolygon([]);
+      setLocationsModeLocationsWithPolygon([]);
       return;
     }
-    await _fetchLocations(
+    await _fetchLocationsModeLocations(
       {
         cityId: selectedCity?.id,
       },
@@ -226,7 +324,23 @@ const PolygonsAndClientContainer = () => {
         cache: "reload",
       },
     );
-  }, [_fetchLocations, selectedCity]);
+  }, [_fetchLocationsModeLocations, selectedCity, sidebarMode]);
+
+  const loadAssessmentsModeLocations = useCallback(async () => {
+    if (sidebarMode !== sidebarModes.ASSESSMENTS) return;
+    setAssessmentsModeLocationsWithPolygon([]);
+    setSelectedAssessmentsModeLocationIds(new Set());
+    if (!selectedCity || !selectedAssessmentsModeCategory) return;
+    await fetchAssessmentsModeLocations({
+      cityId: selectedCity.id,
+      categoryId: selectedAssessmentsModeCategory.id,
+    });
+  }, [
+    fetchAssessmentsModeLocations,
+    selectedAssessmentsModeCategory,
+    selectedCity,
+    sidebarMode,
+  ]);
 
   const loadCitiesOptions = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
@@ -284,8 +398,16 @@ const PolygonsAndClientContainer = () => {
   }, [loadLocations]);
 
   useEffect(() => {
-    applyFilter();
-  }, [applyFilter]);
+    void loadAssessmentsModeLocations();
+  }, [loadAssessmentsModeLocations]);
+
+  useEffect(() => {
+    applyLocationsModeFilter();
+  }, [applyLocationsModeFilter]);
+
+  useEffect(() => {
+    applyAssessmentsModeFilter();
+  }, [applyAssessmentsModeFilter]);
 
   useEffect(() => {
     if (!selectedCity || selectedCity.state !== state) return;
@@ -299,15 +421,56 @@ const PolygonsAndClientContainer = () => {
   }, [state, selectedCity]);
 
   const selectLocation = (locationId: number | null) => {
-    if (locationId === null || locationId === selectedLocation?.id) {
-      setSelectedLocation(null);
+    if (
+      locationId === null ||
+      locationId === selectedLocationsModeLocation?.id
+    ) {
+      setSelectedLocationsModeLocation(null);
       return;
     }
     const location =
-      filteredLocationsWithPolygon.find((loc) => loc.id === locationId) || null;
+      filteredLocationsModeLocationsWithPolygon.find(
+        (loc) => loc.id === locationId,
+      ) || null;
     if (!location) return;
-    setSelectedLocation(location);
+    setSelectedLocationsModeLocation(location);
   };
+
+  const selectAssessmentLocation = (locationId: number | null) => {
+    if (locationId === null) return;
+    const location = filteredAssessmentsModeLocationsWithPolygon.find(
+      (loc) => loc.id === locationId,
+    );
+    if (!location?.hasAssessmentsForSelectedCategory) return;
+    setSelectedAssessmentsModeLocationIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(locationId)) {
+        next.delete(locationId);
+      } else {
+        next.add(locationId);
+      }
+      return next;
+    });
+  };
+
+  const selectedAssessmentLocations = useMemo(() => {
+    return filteredAssessmentsModeLocationsWithPolygon.filter(
+      (location) =>
+        selectedAssessmentsModeLocationIds.has(location.id) &&
+        location.hasAssessmentsForSelectedCategory,
+    );
+  }, [
+    filteredAssessmentsModeLocationsWithPolygon,
+    selectedAssessmentsModeLocationIds,
+  ]);
+
+  const disabledAssessmentLocationIds = useMemo(() => {
+    return filteredAssessmentsModeLocationsWithPolygon
+      .filter((location) => !location.hasAssessmentsForSelectedCategory)
+      .map((location) => location.id);
+  }, [filteredAssessmentsModeLocationsWithPolygon]);
+
+  const isLocationsMode = sidebarMode === sidebarModes.LOCATIONS;
 
   //Detecção de largura da tela
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
@@ -326,9 +489,21 @@ const PolygonsAndClientContainer = () => {
 
   return (
     <PolygonProvider
-      fullLocations={filteredLocationsWithPolygon}
-      handleSelectLocation={selectLocation}
-      selectedLocation={selectedLocation}
+      fullLocations={
+        isLocationsMode ?
+          filteredLocationsModeLocationsWithPolygon
+        : filteredAssessmentsModeLocationsWithPolygon
+      }
+      handleSelectLocation={
+        isLocationsMode ? selectLocation : selectAssessmentLocation
+      }
+      selectedLocation={isLocationsMode ? selectedLocationsModeLocation : null}
+      selectedLocations={
+        isLocationsMode ? undefined : selectedAssessmentLocations
+      }
+      disabledLocationIds={
+        isLocationsMode ? undefined : disabledAssessmentLocationIds
+      }
       disableAutoFitAfterLocationsLoad={disableAutoFitAfterLocationsLoad}
       isMobileView={isMobileView}
     >
@@ -338,40 +513,63 @@ const PolygonsAndClientContainer = () => {
         <div
           className={`flex max-h-full shrink-0 justify-between overflow-auto ${isMobileView ? "h-fit w-full p-3" : "h-full w-fit p-4"}`}
         >
-          <Sidebar
-            loadingLocations={loadingLocations}
-            loadingCities={loadingCities}
-            loadingCategories={loadingCategories}
-            loadingTypes={loadingTypes}
-            locations={filteredLocationsWithPolygon}
-            locationCategories={locationCategories}
-            locationTypes={locationTypes}
-            citiesOptions={citiesOptions}
-            selectedCity={selectedCity}
-            selectedLocationId={selectedLocation?.id ?? null}
-            setCity={setSelectedCity}
-            setState={setState}
-            selectLocation={selectLocation}
-            state={state}
-            filter={filter}
-            isMobileView={isMobileView}
-            numberOfActiveFilters={numberOfActiveFilters}
-            setFilter={setFilter}
-            sidebarDialogOpen={sidebarDialogOpen}
-            setSidebarDialogOpen={setSidebarDialogOpen}
+          <MapSidebarShell
+            assessmentsSidebarProps={{
+              citiesOptions,
+              filter,
+              loadingCities,
+              loadingLocations: loadingAssessmentsModeLocations,
+              locationCategories,
+              locations: filteredAssessmentsModeLocationsWithPolygon,
+              locationTypes,
+              selectedCity,
+              selectedCategory: selectedAssessmentsModeCategory,
+              selectedLocationIds: selectedAssessmentsModeLocationIds,
+              setCity: setSelectedCity,
+              setFilter,
+              setLoadingCategories: setLoadingAssessmentsModeCategories,
+              setSelectedCategory: setSelectedAssessmentsModeCategory,
+              setSelectedLocationIds: setSelectedAssessmentsModeLocationIds,
+              setState,
+              state,
+            }}
+            mode={sidebarMode}
+            locationsSidebarProps={{
+              loadingLocations: loadingLocationsModeLocations,
+              loadingCities,
+              loadingCategories: loadingLocationCategories,
+              loadingTypes: loadingLocationTypes,
+              locations: filteredLocationsModeLocationsWithPolygon,
+              locationCategories,
+              locationTypes,
+              citiesOptions,
+              selectedCity,
+              selectedLocationId: selectedLocationsModeLocation?.id ?? null,
+              setCity: setSelectedCity,
+              setState,
+              selectLocation,
+              state,
+              filter,
+              isMobileView,
+              numberOfActiveFilters,
+              setFilter,
+              sidebarDialogOpen,
+              setSidebarDialogOpen,
+            }}
+            setMode={setSidebarMode}
           />
         </div>
-        {selectedLocation && (
+        {isLocationsMode && selectedLocationsModeLocation && (
           <div className="flex max-h-full w-full py-4">
             <div className="pointer-events-auto h-full shrink-0">
               <LocationDetails
-                location={selectedLocation}
+                location={selectedLocationsModeLocation}
                 isMobileView={isMobileView}
                 closeLocationDetails={() => {
                   if (isEditingLocation) {
                     return;
                   }
-                  setSelectedLocation(null);
+                  setSelectedLocationsModeLocation(null);
                 }}
                 enableLocationEdition={() => {
                   setIsEditingLocation(true);
@@ -383,7 +581,7 @@ const PolygonsAndClientContainer = () => {
               />
             </div>
 
-            {!selectedLocation.st_asgeojson && (
+            {!selectedLocationsModeLocation.st_asgeojson && (
               <div className="ml-1 flex flex-1 items-center justify-center">
                 <Chip
                   icon={<IconAlertTriangle />}
@@ -395,7 +593,10 @@ const PolygonsAndClientContainer = () => {
           </div>
         )}
       </div>
-      {(!!loadingLocations || !!loadingCities) && (
+      {(!!loadingLocationsModeLocations ||
+        !!loadingCities ||
+        !!loadingAssessmentsModeLocations ||
+        !!loadingAssessmentsModeCategories) && (
         <div
           className={`absolute z-50 h-fit w-fit ${isMobileView ? "bottom-12 left-4" : "bottom-0 right-12"}`}
         >
@@ -475,11 +676,11 @@ const PolygonsAndClientContainer = () => {
           <div className="flex max-h-full w-fit justify-between overflow-auto p-4">
             <RegisterMenu
               isEdition={isEditingLocation}
-              locationToEdit={selectedLocation}
+              locationToEdit={selectedLocationsModeLocation}
               close={() => {
                 setIsCreating(false);
                 setIsEditingLocation(false);
-                setSelectedLocation(null);
+                setSelectedLocationsModeLocation(null);
               }}
               reloadLocations={() => {
                 setDisableAutoFitAfterLocationsLoad(true);
