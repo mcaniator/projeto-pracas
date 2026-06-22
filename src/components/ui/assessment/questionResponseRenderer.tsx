@@ -1,4 +1,5 @@
 import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+
 import { AssessmentBooleanValueRenderer } from "./assessmentBooleanValueRenderer";
 import { AssessmentNumericValueRenderer } from "./assessmentNumericValueRenderer";
 import { AssessmentPercentageValueRenderer } from "./assessmentPercentageValueRenderer";
@@ -41,7 +42,13 @@ const QuestionResponseRenderer = ({
     );
   }
 
-  if (question.characterType === "TEXT" && resolvedValue.kind === "text") {
+  if (
+    (question.characterType === "TEXT" ||
+      question.characterType === "DATE" ||
+      question.characterType === "TIME" ||
+      question.characterType === "DATETIME") &&
+    resolvedValue.kind === "text"
+  ) {
     return (
       <div className="flex flex-wrap gap-4">
         {resolvedValue.values.map((value, index) => (

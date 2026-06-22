@@ -11,7 +11,7 @@ export function useServerAction<T, P>({
   action: (payload: P) => Promise<APIResponse<T>>;
   callbacks?: {
     onSuccess?: (response: APIResponse<T>) => void;
-    onError?: (response: APIResponse<T>) => void;
+    onError?: (response?: APIResponse<T>) => void;
     onCallFailed?: () => void;
   };
   options?: {
@@ -46,6 +46,7 @@ export function useServerAction<T, P>({
         return result;
       } catch (e) {
         callbacks?.onCallFailed?.();
+        callbacks?.onError?.();
         setHelperCard({
           show: true,
           helperCardType: "ERROR",

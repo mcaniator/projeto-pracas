@@ -1,15 +1,13 @@
 import CButton from "@/components/ui/cButton";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
+import CQuestionDescriptionChips from "@/components/ui/question/cQuestionDescriptionChips";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
 import CNotesChip from "@components/ui/question/cNotesChip";
-import CQuestionCharacterTypeChip from "@components/ui/question/cQuestionCharacterChip";
-import CQuestionGeometryChip from "@components/ui/question/cQuestionGeometryChip";
-import CQuestionTypeChip from "@components/ui/question/cQuestionTypeChip";
 import {
   CategoryForQuestionPicker,
+  OptionForQuestionPicker,
   QuestionForQuestionPicker,
   QuestionPickerQuestionToAdd,
   QuestionPickerQuestionToEdit,
@@ -242,6 +240,7 @@ const QuestionListV2 = ({
           optionType={question.optionType}
           options={question.options}
           scaleConfig={question.scaleConfig}
+          allowResponseImages={question.allowResponseImages}
           geometryTypes={question.geometryTypes}
           addQuestion={addQuestion}
           categoryId={categoryId}
@@ -268,6 +267,7 @@ const QuestionComponentV2 = ({
   questionType,
   optionType,
   options,
+  allowResponseImages,
   geometryTypes,
   scaleConfig,
   categoryId,
@@ -287,8 +287,9 @@ const QuestionComponentV2 = ({
   notes: string | null;
   questionType: QuestionTypes;
   optionType: OptionTypes | null;
+  allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
-  options: { id: number; text: string }[];
+  options: OptionForQuestionPicker[];
   scaleConfig: {
     minValue: number;
     maxValue: number;
@@ -306,17 +307,20 @@ const QuestionComponentV2 = ({
       key={questionId}
       className="mb-2 flex flex-col items-center justify-center rounded bg-white p-2 text-black outline outline-1 outline-gray-600 sm:flex-row sm:justify-between"
     >
-      <div className="mr-2 flex flex-wrap gap-1">
-        <CQuestionTypeChip
-          questionType={questionType}
-          optionType={optionType}
-          options={options.map((o) => o.text)}
-          name={name}
+      <div className="mr-2">
+        <CQuestionDescriptionChips
+          question={{
+            questionType,
+            optionType,
+            options,
+            name,
+            characterType,
+            geometryTypes,
+            isPublic,
+            allowResponseImages,
+            notes,
+          }}
         />
-        <CQuestionCharacterTypeChip characterType={characterType} />
-        <CQuestionGeometryChip geometryTypes={geometryTypes} />
-        <CQuestionVisibilityChip isPublic={isPublic} />
-        <CNotesChip notes={notes} name={name} />
       </div>
       <div className="flex max-w-full items-center gap-2 break-all">
         <CDynamicIcon iconKey={iconKey} />
@@ -342,6 +346,7 @@ const QuestionComponentV2 = ({
               optionType,
               options,
               scaleConfig,
+              allowResponseImages,
               geometryTypes,
               categoryId,
               subcategoryId: subcategoryId ?? null,
@@ -367,6 +372,7 @@ const QuestionComponentV2 = ({
               optionType,
               options,
               scaleConfig,
+              allowResponseImages,
               geometryTypes,
               categoryId,
               subcategoryId: subcategoryId ?? null,

@@ -153,6 +153,7 @@ const questionSchema = z.object({
   questionType: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   optionType: z.nativeEnum(OptionTypes).optional(),
+  allowResponseImages: booleanFromString,
   geometryTypes: z.array(z.nativeEnum(QuestionGeometryTypes)).optional(),
 
   categoryId: z.coerce.number().int().finite().nonnegative(),
@@ -210,6 +211,7 @@ const optionsQuestionSchema = z
 const optionSchema = z
   .object({
     text: z.string().trim().min(1).max(255),
+    isOverridable: z.boolean(),
 
     questionId: z.coerce.number().int().finite().nonnegative(),
   })
@@ -392,6 +394,7 @@ const commercialActivitySchema = z.record(
 const ongoingTallySchema = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
+  updatedAt: z.coerce.date(),
   isFinalized: z.coerce.boolean(),
   animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
   temperature: z.coerce.number().finite().nullable(),
@@ -468,6 +471,86 @@ const locationArrayExportDailyTallysSchema = z.array(
   locationExportDailyTallysSchema,
 );
 
+const tallyImportDateSchema = z
+  .string()
+  .datetime()
+  .transform((date) => new Date(date));
+
+const tallyImportDataSchema = z.object({
+  weatherStats: z.object({
+    temperature: z.number().finite().nullable(),
+    weather: z.nativeEnum(WeatherConditions),
+  }),
+  tallyMap: z.record(z.number().int().finite().nonnegative()),
+  commercialActivities: commercialActivitySchema,
+  complementaryData: z.object({
+    animalsAmount: z.number().int().finite().nonnegative(),
+    groupsAmount: z.number().int().finite().nonnegative(),
+  }),
+  startDate: tallyImportDateSchema,
+  endDate: tallyImportDateSchema.nullable(),
+  isFinalized: z.boolean().optional(),
+});
+
+const serializedAssessmentResponseSchema = z.union([
+  z.string(),
+  z.number().finite(),
+  z.boolean(),
+  z.null(),
+  z.object({
+    value: z.number().finite(),
+    override: z.string().nullable(),
+  }),
+  z.array(
+    z.object({
+      value: z.number().finite(),
+      override: z.string().nullable(),
+    }),
+  ),
+]);
+
+const assessmentExportImageSchema = z
+  .object({
+    path: z.string().min(1).optional(),
+    name: z.string().min(1),
+    type: z.string(),
+    lastModified: z.number().int().nonnegative(),
+    url: z.string().optional(),
+    status: z.enum(["SYNCED", "UNSYNCED"]),
+  })
+  .refine((image) => image.path || image.url, {
+    message: "A imagem deve possuir um arquivo ou URL",
+  });
+
+const assessmentImportDataSchema = z.object({
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime().nullable(),
+  isFinalized: z.boolean(),
+  assessmentId: z.number().int().positive(),
+  responses: z.record(serializedAssessmentResponseSchema),
+  geometries: z.array(
+    z.object({
+      questionId: z.number().int().positive(),
+      geometries: z.array(
+        z.union([
+          z.object({
+            type: z.literal("Point"),
+            coordinates: z.array(z.number().finite()).min(2),
+          }),
+          z.object({
+            type: z.literal("Polygon"),
+            coordinates: z.array(
+              z.array(z.array(z.number().finite()).min(2)).min(1),
+            ),
+          }),
+        ]),
+      ),
+    }),
+  ),
+  driveFolderUrl: z.string().nullable(),
+  responseImages: z.record(z.array(assessmentExportImageSchema)),
+});
+
 type Tally = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type TallyPerson = z.infer<typeof tallyPersonSchema>;
@@ -487,6 +570,8 @@ export {
   locationArrayExportDailyTallysSchema,
   tallysExportIndividualTallysSchema,
   finalizedTallyArraySchema,
+  tallyImportDataSchema,
+  assessmentImportDataSchema,
 };
 export type {
   personType,

@@ -1,17 +1,57 @@
 "use server";
 
 import type {
-  FormValues,
   ResponseFormGeometry,
+  SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
+import dayjs from "@/lib/dayjs";
 import { prisma } from "@/lib/prisma";
+import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
 import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+
+const isSerializedOptionValueWithOverride = (
+  response: unknown,
+): response is {
+  value: number;
+  override: string | number | boolean | null;
+} => {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "value" in response &&
+    typeof response.value === "number" &&
+    "override" in response
+  );
+};
+
+const toOptionResponseValue = (
+  response: unknown,
+): AssessmentOptionValueWithOverride | null => {
+  const optionValue =
+    isSerializedOptionValueWithOverride(response) ?
+      response.value
+    : Number(response);
+
+  if (!Number.isFinite(optionValue)) {
+    return null;
+  }
+
+  return {
+    value: optionValue,
+    override:
+      (
+        isSerializedOptionValueWithOverride(response) &&
+        response.override !== null
+      ) ?
+        String(response.override)
+      : null,
+  };
+};
 
 const _addResponsesV2 = async ({
   assessmentId,
@@ -23,7 +63,7 @@ const _addResponsesV2 = async ({
   driveFolderUrl,
 }: {
   assessmentId: number;
-  responses: FormValues;
+  responses: SerializedFormValues;
   geometries: ResponseFormGeometry[];
   startDate: Date;
   endDate: Date | null;
@@ -93,6 +133,7 @@ const _addResponsesV2 = async ({
       select: {
         id: true,
         questionType: true,
+        characterType: true,
       },
     });
 
@@ -100,7 +141,10 @@ const _addResponsesV2 = async ({
       questionId: number;
       value: string | number | null;
     }[] = [];
-    const optionsResponses: { questionId: number; value: number[] }[] = [];
+    const optionsResponses: {
+      questionId: number;
+      value: AssessmentOptionValueWithOverride[];
+    }[] = [];
     const booleanResponses: { questionId: number; value: boolean }[] = [];
     questions.forEach((q) => {
       if (!Object.keys(responses).includes(String(q.id))) {
@@ -111,18 +155,66 @@ const _addResponsesV2 = async ({
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
+        if (typeof response === "object" && response !== null) {
+          throw new Error("Resposta em objeto enviada para questao escrita!");
+        }
         if (typeof response === "boolean") {
           throw new Error("Resposta em booleana enviada para questão escrita!");
         }
-        writtenResponses.push({ questionId: q.id, value: response ?? null });
+
+        let writtenResponse = response;
+
+        //Date validation
+        if (q.characterType === "DATE") {
+          writtenResponse =
+            (
+              typeof writtenResponse === "string" &&
+              dayjs(writtenResponse, "DD/MM/YYYY", true).isValid()
+            ) ?
+              writtenResponse
+            : null;
+        } else if (q.characterType === "TIME") {
+          writtenResponse =
+            (
+              typeof writtenResponse === "string" &&
+              dayjs(writtenResponse, "HH:mm", true).isValid()
+            ) ?
+              writtenResponse
+            : null;
+        } else if (q.characterType === "DATETIME") {
+          writtenResponse =
+            (
+              typeof writtenResponse === "string" &&
+              dayjs(writtenResponse, "DD/MM/YYYY HH:mm", true).isValid()
+            ) ?
+              writtenResponse
+            : null;
+        }
+
+        writtenResponses.push({
+          questionId: q.id,
+          value: writtenResponse ?? null,
+        });
       } else if (q.questionType === "OPTIONS") {
         if (!Array.isArray(response)) {
+          const optionResponseValue = toOptionResponseValue(response);
           optionsResponses.push({
             questionId: q.id,
-            value: response == null ? [] : [Number(response)],
+            value:
+              response == null || optionResponseValue === null ?
+                []
+              : [optionResponseValue],
           });
         } else {
-          optionsResponses.push({ questionId: q.id, value: response });
+          optionsResponses.push({
+            questionId: q.id,
+            value: response
+              .map(toOptionResponseValue)
+              .filter(
+                (item): item is AssessmentOptionValueWithOverride =>
+                  item !== null,
+              ),
+          });
         }
       } else if (q.questionType === "BOOLEAN") {
         if (typeof response !== "boolean") {
@@ -138,6 +230,10 @@ const _addResponsesV2 = async ({
       where: {
         id: assessmentId,
       },
+      select: {
+        updatedAt: true,
+        isFinalized: true,
+      },
       data: {
         startDate,
         endDate,
@@ -146,26 +242,10 @@ const _addResponsesV2 = async ({
       },
     });
 
-    const transactions: Array<
-      | Prisma.PrismaPromise<number>
-      | Prisma.Prisma__AssessmentClient<
-          {
-            id: number;
-            startDate: Date;
-            endDate: Date | null;
-            isFinalized: boolean;
-            userId: string;
-            locationId: number;
-            formId: number;
-            createdAt: Date;
-            updatedAt: Date;
-          },
-          never,
-          DefaultArgs
-        >
-    > = [];
-
-    transactions.push(assessmentUpdate);
+    const transactions: [
+      typeof assessmentUpdate,
+      ...Prisma.PrismaPromise<number>[],
+    ] = [assessmentUpdate];
 
     const writtenResponsesSQLValues = writtenResponses.map(
       (r) =>
@@ -208,7 +288,8 @@ const _addResponsesV2 = async ({
     }, {});
 
     const responseOptionIds: number[] = [];
-    const caseStatements: Prisma.Sql[] = [];
+    const optionCaseStatements: Prisma.Sql[] = [];
+    const overrideCaseStatements: Prisma.Sql[] = [];
 
     for (const { questionId, value } of optionsResponses) {
       const opts = value;
@@ -221,18 +302,27 @@ const _addResponsesV2 = async ({
         const option = responseOptions[i];
         if (!option) continue;
         const id = option.id;
-        const newOpt = i < opts.length ? opts[i] : null;
+        const newOpt = i < opts.length ? (opts[i]?.value ?? null) : null;
+        const newOverride =
+          i < opts.length ? (opts[i]?.override ?? null) : null;
         responseOptionIds.push(id);
-        caseStatements.push(Prisma.sql`WHEN id = ${id} THEN ${newOpt}`);
+        optionCaseStatements.push(Prisma.sql`WHEN id = ${id} THEN ${newOpt}`);
+        overrideCaseStatements.push(
+          Prisma.sql`WHEN id = ${id} THEN ${newOverride}`,
+        );
       }
     }
 
-    if (responseOptionIds.length > 0 && caseStatements.length > 0) {
+    if (responseOptionIds.length > 0 && optionCaseStatements.length > 0) {
       const responseOptionUpdate = Prisma.sql`
     UPDATE response_option
     SET option_id = CASE
-      ${Prisma.join(caseStatements, "\n")}
+      ${Prisma.join(optionCaseStatements, "\n")}
       ELSE option_id
+    END,
+    override_value = CASE
+      ${Prisma.join(overrideCaseStatements, "\n")}
+      ELSE override_value
     END,
     updated_at = NOW(),
     user_id = ${user.id}
@@ -254,12 +344,12 @@ const _addResponsesV2 = async ({
         const option = opts[i];
         if (!option) continue;
         insertValues.push(
-          Prisma.sql`(${user.id}, ${assessmentId}, ${questionId}, ${option}, NOW())`,
+          Prisma.sql`(${user.id}, ${assessmentId}, ${questionId}, ${option.value}, ${option.override}, NOW())`,
         );
       }
     }
     if (insertValues.length > 0) {
-      const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "assessment_id", "question_id", "option_id", "updated_at")
+      const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "assessment_id", "question_id", "option_id", "override_value", "updated_at")
       VALUES ${Prisma.join(insertValues, ",")}`;
       transactions.push(prisma.$executeRaw(responseOptionInsert));
     }
@@ -302,14 +392,9 @@ const _addResponsesV2 = async ({
 
       transactions.push(prisma.$executeRaw(geometryQuery));
     }
-    await prisma.$transaction(transactions);
-    await prisma.assessment.findUnique({
-      where: { id: assessmentId },
-      select: {
-        endDate: true,
-        isFinalized: true,
-      },
-    });
+
+    const [updatedAssessment] = await prisma.$transaction(transactions);
+
     return {
       responseInfo: {
         statusCode: 201,
@@ -317,7 +402,8 @@ const _addResponsesV2 = async ({
         showSuccessCard: true,
       } as APIResponseInfo,
       data: {
-        savedAsFinalized: isFinalized,
+        savedAsFinalized: updatedAssessment.isFinalized,
+        updatedAt: updatedAssessment.updatedAt,
       },
     };
   } catch (e) {

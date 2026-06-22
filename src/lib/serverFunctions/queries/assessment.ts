@@ -1,5 +1,8 @@
 import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type {
+  FormValues,
+  SerializedFormValues,
+} from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
@@ -20,11 +23,13 @@ export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   options?: {
     id: number;
     text: string;
+    isOverridable: boolean;
   }[];
   response?: {
     text: string;
   };
   ResponseOption?: {
+    overrideValue: string | null;
     option: {
       id: number;
     };
@@ -109,22 +114,26 @@ const fetchRecentlyCompletedAssessments = async () => {
 };
 
 export type FetchAssessmentTreeResponse = NonNullable<
-  Awaited<ReturnType<typeof getAssessmentTree>>["data"]
+  Awaited<ReturnType<typeof fetchAssessmentTree>>["data"]
 >;
 
 type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const getAssessmentTree = async (params: { assessmentId: number }) => {
+const fetchAssessmentTree = async (params: {
+  assessmentId: number;
+  isPublic?: boolean;
+}) => {
   try {
     const assessment = await prisma.assessment.findUnique({
-      where: { id: params.assessmentId },
+      where: { id: params.assessmentId, isPublic: params.isPublic },
       select: {
         id: true,
         endDate: true,
         isFinalized: true,
         startDate: true,
+        updatedAt: true,
         driveFolderUrl: true,
         user: {
           select: {
@@ -172,11 +181,18 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -209,6 +225,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
                       },
                       select: {
                         id: true,
+                        overrideValue: true,
                         option: {
                           select: {
                             id: true,
@@ -250,7 +267,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
     });
 
     let totalQuestions = 0;
-    const responsesFormValues: FormValues = {};
+    const responsesFormValues: SerializedFormValues = {};
 
     for (const item of sortedFormItems) {
       // CATEGORY
@@ -325,10 +342,15 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         } else if (dbQuestion.questionType === "OPTIONS") {
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
-              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+              dbQuestion.ResponseOption[0]?.option?.id ?
+                {
+                  value: dbQuestion.ResponseOption[0].option.id,
+                  override: dbQuestion.ResponseOption[0].overrideValue,
+                }
+              : null;
           } else if (dbQuestion.optionType === "CHECKBOX") {
             responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
-              (r) => r.option!.id,
+              (r) => ({ value: r.option!.id, override: r.overrideValue }),
             );
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
@@ -339,6 +361,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -346,12 +369,17 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
           categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found
@@ -460,6 +488,7 @@ const getAssessmentTree = async (params: { assessmentId: number }) => {
           startDate: assessment.startDate,
           endDate: assessment.endDate,
           isFinalized: assessment.isFinalized,
+          updatedAt: assessment.updatedAt,
           driveFolderUrl: assessment.driveFolderUrl,
           formName: assessment.form.name,
           location: {
@@ -553,12 +582,19 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     scaleConfig: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -585,6 +621,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                       },
                       select: {
                         id: true,
+                        overrideValue: true,
                         option: {
                           select: {
                             id: true,
@@ -698,10 +735,15 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
         } else if (dbQuestion.questionType === "OPTIONS") {
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
-              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+              dbQuestion.ResponseOption[0]?.option?.id ?
+                {
+                  value: dbQuestion.ResponseOption[0].option.id,
+                  override: dbQuestion.ResponseOption[0].overrideValue,
+                }
+              : null;
           } else if (dbQuestion.optionType === "CHECKBOX") {
             responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
-              (r) => r.option!.id,
+              (r) => ({ value: r.option!.id, override: r.overrideValue }),
             );
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
@@ -719,12 +761,17 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
           categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found
@@ -980,7 +1027,7 @@ export const fetchPublicAssessments = async (
 
 export {
   fetchRecentlyCompletedAssessments,
-  getAssessmentTree,
+  fetchAssessmentTree,
   fetchAssessments,
   fetchPublicAssessmentTree,
 };

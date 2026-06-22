@@ -1,5 +1,9 @@
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import { Controller, type Control } from "react-hook-form";
+import {
+  Controller,
+  type Control,
+  type UseFormSetValue,
+} from "react-hook-form";
 import CalculationResponseQuestionField from "./calculationResponseQuestionField";
 import ResponseQuestionFieldRenderer from "./responseQuestionFieldRenderer";
 import type { FormValues, ResponseQuestionValue } from "./responseFormTypes";
@@ -8,11 +12,13 @@ const ControlledResponseQuestionField = ({
   question,
   numericResponses,
   control,
+  setValue,
   finalized,
 }: {
   question: AssessmentQuestionItem;
   numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
+  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   if (question.calculationExpression) {
@@ -21,6 +27,7 @@ const ControlledResponseQuestionField = ({
         question={question}
         numericResponses={numericResponses}
         control={control}
+        setValue={setValue}
       />
     );
   }

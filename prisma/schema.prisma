@@ -69,6 +69,9 @@ enum QuestionResponseCharacterTypes {
   BOOLEAN
   PERCENTAGE
   SCALE
+  DATE
+  TIME
+  DATETIME
 
   @@map("question_response_character_types")
 }
@@ -90,6 +93,13 @@ enum WeatherConditions {
   SUNNY
 
   @@map("weather_conditions")
+}
+
+enum ImageHosts {
+  IMAGEKIT
+  DRIVE
+
+  @@map("image_hosts")
 }
 
 // #endregion
@@ -250,16 +260,17 @@ model Subcategory {
 model Question {
   id Int @id @default(autoincrement())
 
-  name             String                         @db.VarChar(255)
-  iconKey          String                         @map("icon_key") @db.VarChar(255)
-  notes            String?                        @db.Text
-  isPublic         Boolean                        @map("is_public")
-  questionType     QuestionTypes                  @map("question_type")
-  characterType    QuestionResponseCharacterTypes @map("character_type")
-  response         Response[]
-  booleanResponses BooleanResponse[]
-  optionType       OptionTypes?                   @map("option_type")
-  geometryTypes    QuestionGeometryTypes[]        @map("geometry_types")
+  name                String                         @db.VarChar(255)
+  iconKey             String                         @map("icon_key") @db.VarChar(255)
+  notes               String?                        @db.Text
+  isPublic            Boolean                        @map("is_public")
+  allowResponseImages Boolean                        @map("allow_response_images")
+  questionType        QuestionTypes                  @map("question_type")
+  characterType       QuestionResponseCharacterTypes @map("character_type")
+  response            Response[]
+  booleanResponses    BooleanResponse[]
+  optionType          OptionTypes?                   @map("option_type")
+  geometryTypes       QuestionGeometryTypes[]        @map("geometry_types")
 
   assessment Assessment[]
 
@@ -367,8 +378,9 @@ model Option {
 
   text String @db.VarChar(255)
 
-  questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId    Int      @map("question_id")
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  isOverridable Boolean  @map("is_overridable")
 
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
@@ -389,8 +401,9 @@ model ResponseOption {
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
 
-  optionId Int?    @map("option_id")
-  option   Option? @relation(fields: [optionId], references: [id])
+  optionId      Int?    @map("option_id")
+  option        Option? @relation(fields: [optionId], references: [id])
+  overrideValue String? @map("override_value") @db.VarChar(255)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -640,8 +653,8 @@ model Tally {
 
   tallyPerson Json[] @map("tally_person")
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("tally")
 }
@@ -653,13 +666,13 @@ model Tally {
 //  Imagens
 //  ------------------------------------------------------------------------------------------------------------
 model Image {
-  imageId      Int    @id @default(autoincrement()) @map("image_id")
-  fileUid      String @unique() @map("file_uid")
-  relativePath String @map("relative_path")
-  size         Int
-
-  mainOfLocation Location? @relation("location_main_image_relation")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  imageId        Int        @id @default(autoincrement()) @map("image_id")
+  fileUid        String     @unique() @map("file_uid")
+  relativePath   String     @map("relative_path")
+  size           Int?
+  host           ImageHosts @map("host")
+  mainOfLocation Location?  @relation("location_main_image_relation")
+  createdAt      DateTime   @default(now()) @map("created_at")
 
   @@map("image")
 }

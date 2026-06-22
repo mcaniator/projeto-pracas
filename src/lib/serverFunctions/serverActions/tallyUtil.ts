@@ -190,9 +190,12 @@ const _saveOngoingTallyData = async ({
     };
   }
   try {
-    await prisma.tally.update({
+    const updatedTally = await prisma.tally.update({
       where: {
         id: tallyId,
+      },
+      select: {
+        updatedAt: true,
       },
       data: {
         temperature: weatherStats.temperature,
@@ -214,6 +217,7 @@ const _saveOngoingTallyData = async ({
       } as APIResponseInfo,
       data: {
         savedAsFinalized: isFinalized,
+        updatedAt: updatedTally.updatedAt,
       },
     };
   } catch (error) {
@@ -221,6 +225,68 @@ const _saveOngoingTallyData = async ({
       responseInfo: {
         statusCode: 500,
         message: "Erro ao salvar contagem!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
+const _deleteTally = async ({ tallyId }: { tallyId: number }) => {
+  try {
+    await checkIfLoggedInUserHasAnyPermission({
+      roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
+    });
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 403,
+        message: "Sem permissão para excluir esta contagem!",
+      } as APIResponseInfo,
+    };
+  }
+  const userId = await getSessionUserId();
+  const tally = await prisma.tally.findUnique({
+    where: {
+      id: tallyId,
+    },
+  });
+  if (!tally) {
+    return {
+      responseInfo: {
+        statusCode: 404,
+        message: "Contagem não encontrada!",
+      } as APIResponseInfo,
+    };
+  }
+  if (tally.userId !== userId) {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+    } catch (e) {
+      return {
+        responseInfo: {
+          statusCode: 403,
+          message: "Sem permissão para excluir esta contagem!",
+        } as APIResponseInfo,
+      };
+    }
+  }
+  try {
+    await prisma.tally.delete({
+      where: {
+        id: tallyId,
+      },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Contagem excluída!",
+        showSuccessCard: true,
+      } as APIResponseInfo,
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir contagem!",
       } as APIResponseInfo,
     };
   }
@@ -266,4 +332,4 @@ const _deleteTallys = async (tallysIds: number[]) => {
   }
 };
 
-export { _saveOngoingTallyData, _deleteTallys };
+export { _saveOngoingTallyData, _deleteTallys, _deleteTally };

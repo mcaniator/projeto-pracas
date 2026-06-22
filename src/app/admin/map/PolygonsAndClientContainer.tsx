@@ -49,8 +49,7 @@ const PolygonsAndClientContainer = () => {
   const view = map?.getView();
   const centerOnUserLocation = useCenterOnUserLocation();
   const { cachedUserCoordinates, isReadingUserLocation } = useGeolocation();
-  const isUserLocationLoading =
-    !cachedUserCoordinates && isReadingUserLocation;
+  const isUserLocationLoading = !cachedUserCoordinates && isReadingUserLocation;
   //const locationsWithPolygon = use(locationsWithPolygonPromise);
   const [locationsWithPolygon, setLocationsWithPolygon] = useState<
     FetchLocationsResponse["locations"]
@@ -214,27 +213,20 @@ const PolygonsAndClientContainer = () => {
     setTimeout(() => setDisableAutoFitAfterLocationsLoad(false), 500);
   }, [filter, locationsWithPolygon]);
 
-  const loadLocations = useCallback(
-    async ({
-      invalidateCache,
-    }: {
-      invalidateCache?: boolean;
-    } = {}) => {
-      if (!selectedCity) {
-        setLocationsWithPolygon([]);
-        return;
-      }
-      await _fetchLocations(
-        {
-          cityId: selectedCity?.id,
-        },
-        {
-          cache: invalidateCache ? "reload" : "default",
-        },
-      );
-    },
-    [_fetchLocations, selectedCity],
-  );
+  const loadLocations = useCallback(async () => {
+    if (!selectedCity) {
+      setLocationsWithPolygon([]);
+      return;
+    }
+    await _fetchLocations(
+      {
+        cityId: selectedCity?.id,
+      },
+      {
+        cache: "reload",
+      },
+    );
+  }, [_fetchLocations, selectedCity]);
 
   const loadCitiesOptions = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
@@ -386,7 +378,7 @@ const PolygonsAndClientContainer = () => {
                   setSidebarDialogOpen(false);
                 }}
                 reloadLocations={() => {
-                  void loadLocations({ invalidateCache: true });
+                  void loadLocations();
                 }}
               />
             </div>
@@ -491,7 +483,7 @@ const PolygonsAndClientContainer = () => {
               }}
               reloadLocations={() => {
                 setDisableAutoFitAfterLocationsLoad(true);
-                void loadLocations({ invalidateCache: true });
+                void loadLocations();
               }}
               reloadLocationTypes={() => {
                 // We don't need to invalidate cache here, as location types have already been fetched and cached in the register dialog, if there were edits.

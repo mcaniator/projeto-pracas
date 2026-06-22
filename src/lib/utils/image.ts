@@ -59,6 +59,7 @@ export const uploadImage: (file: File) => Promise<Image> = async (
       fileUid: parsedJson.fileId,
       relativePath: parsedJson.filePath,
       size: parsedJson.size,
+      host: "IMAGEKIT",
     },
   });
 
@@ -93,6 +94,68 @@ export const buildImageUrl = (path: string | null) => {
     return null;
   }
   return `${process.env.IMAGE_CDN_IMAGE_BASE_URL}/${path}`;
+};
+
+export const getGoogleDriveImageUid = ({
+  uid,
+  sharingUrl,
+}: {
+  uid?: string | null;
+  sharingUrl?: string | null;
+}) => {
+  if (uid && uid.trim().length > 0) {
+    return uid.trim();
+  }
+
+  if (!sharingUrl) {
+    return null;
+  }
+
+  const value = sharingUrl.trim();
+  if (value.length === 0) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+    const idParam = url.searchParams.get("id");
+    if (idParam) {
+      return idParam;
+    }
+
+    const fileMatch = url.pathname.match(/\/file\/d\/([^/]+)/);
+    if (fileMatch?.[1]) {
+      return fileMatch[1];
+    }
+  } catch {
+    return value;
+  }
+
+  return value;
+};
+
+export const buildGoogleDriveDirectImageUrl = (params: {
+  uid?: string | null;
+  sharingUrl?: string | null;
+}) => {
+  const driveUid = getGoogleDriveImageUid(params);
+  if (!driveUid) {
+    return null;
+  }
+
+  return `https://lh3.googleusercontent.com/d/${encodeURIComponent(driveUid)}`;
+};
+
+export const buildGoogleDriveThumbnailImageUrl = (params: {
+  uid?: string | null;
+  sharingUrl?: string | null;
+}) => {
+  const driveUid = getGoogleDriveImageUid(params);
+  if (!driveUid) {
+    return null;
+  }
+
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveUid)}`;
 };
 
 export async function getImageFromUrl(url: string, fileName?: string) {

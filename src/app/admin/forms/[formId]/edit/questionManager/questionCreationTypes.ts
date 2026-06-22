@@ -1,3 +1,4 @@
+import type { OptionForQuestionPicker } from "@customTypes/forms/formCreation";
 import type {
   OptionTypes,
   QuestionGeometryTypes,
@@ -15,8 +16,9 @@ export type QuestionCreationDraft = {
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
-  options: { text: string }[];
+  options: Omit<OptionForQuestionPicker, "id">[];
   hasAssociatedGeometry: boolean;
+  allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
   scaleConfig: { minValue: number; maxValue: number } | null;
 };

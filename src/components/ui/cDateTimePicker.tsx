@@ -5,7 +5,8 @@ import {
   PickerChangeHandlerContext,
 } from "@mui/x-date-pickers";
 import { PickerValue } from "@mui/x-date-pickers/internals";
-import React, { useCallback } from "react";
+import dayjs from "dayjs";
+import React, { useCallback, useState } from "react";
 
 type CDateTimePickerProps = MobileDateTimePickerProps & {
   error?: boolean;
@@ -23,12 +24,17 @@ const CDateTimePicker = React.forwardRef<
     debounce,
     clearable,
     helperText,
+    minDate = dayjs("1900-01-01"),
+    maxDate = dayjs("2100-12-31"),
     onAccept,
     onChange,
+    onError,
     ...rest
   } = props;
 
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [validationError, setValidationError] =
+    useState<DateTimeValidationError | null>(null);
 
   const handleChange = useCallback(
     (
@@ -70,14 +76,28 @@ const CDateTimePicker = React.forwardRef<
     [onAccept, debounce],
   );
 
+  const handleError = useCallback(
+    (error: DateTimeValidationError, value: PickerValue) => {
+      setValidationError(error);
+      onError?.(error, value);
+    },
+    [onError],
+  );
+  //This is a workaround for field showing error when validation error is "minDate" or "maxDate". Increasing date range will fix the issue, but impact on performance during value picking.
+  const shouldShowValidationError =
+    validationError !== null &&
+    validationError !== "minDate" &&
+    validationError !== "maxDate";
+  const shouldShowError = props.error || shouldShowValidationError;
+
   const fieldsetSx =
-    props.error ?
+    shouldShowError ?
       {
         borderColor: "error.main",
       }
     : {};
   const labelSx =
-    props.error ?
+    shouldShowError ?
       {
         color: "error.main",
       }
@@ -88,11 +108,15 @@ const CDateTimePicker = React.forwardRef<
       ampm={ampm}
       onChange={handleChange}
       onAccept={handleAccept}
+      onError={handleError}
+      minDate={minDate}
+      maxDate={maxDate}
       slotProps={{
         field: {
           clearable: clearable,
         },
         textField: {
+          error: shouldShowError,
           helperText: helperText,
           InputLabelProps: { shrink: true },
           sx: {

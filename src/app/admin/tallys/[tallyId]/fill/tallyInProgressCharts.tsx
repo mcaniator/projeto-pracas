@@ -104,10 +104,10 @@ const calculateBooleanCharacteristicsArray = (
 };
 const TallyInProgressCharts = ({
   tallyMap,
-  isOnModal,
+  isInDialog,
 }: {
   tallyMap: Map<string, number>;
-  isOnModal: boolean;
+  isInDialog?: boolean;
 }) => {
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
@@ -120,7 +120,7 @@ const TallyInProgressCharts = ({
     };
   }, []);
   const options = {
-    indexAxis: `${isOnModal ? "x" : "y"}` as const,
+    indexAxis: `${isInDialog ? "x" : "y"}` as const,
     responsive: true,
     plugins: {
       legend: {
@@ -170,7 +170,7 @@ const TallyInProgressCharts = ({
         },
       },
     },
-    barThickness: isOnModal ? 10 : 20,
+    barThickness: isInDialog ? 10 : 20,
   };
 
   const activityData = {
@@ -241,7 +241,7 @@ const TallyInProgressCharts = ({
   return (
     <div
       style={{
-        height: isOnModal ? "full" : "full",
+        height: isInDialog ? "full" : "full",
       }}
       className="flex w-full flex-col overflow-auto"
     >

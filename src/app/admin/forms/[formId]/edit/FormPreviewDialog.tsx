@@ -12,6 +12,7 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import type {
   FormValues,
   ResponseFormGeometry,
+  SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import type {
   AssessmentCategoryItem,
@@ -47,7 +48,9 @@ const previewViewModes: { label: string; value: PreviewViewMode }[] = [
   { label: "Resultado", value: "result" },
 ];
 
-const getInitialQuestionValue = (question: QuestionItem) => {
+const getInitialQuestionValue = (
+  question: QuestionItem,
+): SerializedFormValues[string] => {
   if (question.questionType === "OPTIONS") {
     return question.optionType === OptionTypes.CHECKBOX ? [] : null;
   }
@@ -78,7 +81,11 @@ const toAssessmentQuestion = ({
     ...question,
     id: question.questionId,
     scaleConfig: question.scaleConfig,
-    options: question.options,
+    options: question.options?.map((option) => ({
+      id: option.id,
+      text: option.text,
+      isOverridable: option.isOverridable ?? false,
+    })),
     calculationExpression,
   };
 };
@@ -90,7 +97,7 @@ const toAssessmentSubcategory = ({
 }: {
   subcategory: SubcategoryItem;
   calculationByQuestionId: Map<number, CalculationParams>;
-  responsesFormValues: FormValues;
+  responsesFormValues: SerializedFormValues;
 }): PublicAssessmentSubcategoryItem => ({
   ...subcategory,
   id: subcategory.subcategoryId,
@@ -113,7 +120,7 @@ const toAssessmentCategory = ({
 }: {
   category: CategoryItem;
   calculationByQuestionId: Map<number, CalculationParams>;
-  responsesFormValues: FormValues;
+  responsesFormValues: SerializedFormValues;
 }): PublicAssessmentCategoryItem => ({
   ...category,
   id: category.categoryId,
@@ -218,7 +225,7 @@ const buildPreviewAssessmentTree = ({
   formTree: FormEditorTree;
   formCalculations: CalculationParams[];
 }) => {
-  const responsesFormValues: FormValues = {};
+  const responsesFormValues: SerializedFormValues = {};
   const calculationByQuestionId = new Map(
     formCalculations.map((calculation) => [
       calculation.targetQuestionId,
@@ -233,8 +240,13 @@ const buildPreviewAssessmentTree = ({
     isFinalized: false,
     formName: formTree.name,
     totalQuestions: countQuestions(formTree),
+    updatedAt: new Date(),
     responsesFormValues,
     geometries: [],
+    user: {
+      username: "",
+      id: "",
+    },
     categories: formTree.categories.map((category) =>
       toAssessmentCategory({
         category,

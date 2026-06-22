@@ -1,5 +1,9 @@
+import CDatePicker from "@/components/ui/cDatePicker";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CIconChip from "@/components/ui/cIconChip";
+import CTimePicker from "@/components/ui/cTimePicker";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
+import type { OptionForQuestionPicker } from "@/lib/types/forms/formCreation";
 import { shouldShowScaleOptionsSection } from "@/lib/utils/questionCreationUtils";
 import CButton from "@components/ui/cButton";
 import CCheckboxGroup from "@components/ui/cCheckboxGroup";
@@ -15,7 +19,8 @@ import {
   IconPlus,
   IconTrash,
 } from "@tabler/icons-react";
-import { ReactNode } from "react";
+import { Dayjs } from "dayjs";
+import { ReactNode, useState } from "react";
 
 import type { ScaleOptionMode } from "./questionCreationTypes";
 import QuestionIconPicker from "./questionIconPicker";
@@ -28,12 +33,35 @@ const characterTypeOptions: {
   { value: "NUMBER", label: "Numérico" },
   { value: "PERCENTAGE", label: "Porcentagem" },
   { value: "SCALE", label: "Escala" },
+  { value: "DATE", label: "Data" },
+  { value: "TIME", label: "Hora" },
+  { value: "DATETIME", label: "Data e Hora" },
 ];
 
 const scaleOptionModeOptions: { value: ScaleOptionMode; label: string }[] = [
   { value: "MANUAL", label: "Manual" },
   { value: "STEP", label: "Gerar por passo" },
 ];
+
+const usesFreeOptionsOnly = (
+  characterType: QuestionResponseCharacterTypes | null,
+) => {
+  return (
+    characterType === "SCALE" ||
+    characterType === "PERCENTAGE" ||
+    characterType === "NUMBER" ||
+    characterType === "DATE" ||
+    characterType === "TIME" ||
+    characterType === "DATETIME"
+  );
+};
+
+const buildDefaultOption = (
+  text: string,
+): Omit<OptionForQuestionPicker, "id"> => ({
+  text,
+  isOverridable: false,
+});
 
 const QuestionCreationFormStep = ({
   categoryId,
@@ -53,6 +81,7 @@ const QuestionCreationFormStep = ({
   questionTemplate,
   selectedIconKey,
   isPublic,
+  allowResponseImages,
   minValue,
   maxValue,
   scaleOptionMode,
@@ -72,6 +101,7 @@ const QuestionCreationFormStep = ({
   onMinimumOptionsErrorChange,
   onSelectedIconKeyChange,
   onIsPublicChange,
+  onAllowResponseImagesChange,
   onMinValueChange,
   onMaxValueChange,
   onScaleOptionModeChange,
@@ -86,15 +116,16 @@ const QuestionCreationFormStep = ({
   notes: string | null;
   type: string;
   characterType: QuestionResponseCharacterTypes | null;
-  hasAssociatedGeometry: boolean | null;
+  hasAssociatedGeometry: boolean;
   geometryTypes: string[];
   currentOption: string;
-  addedOptions: { text: string }[] | undefined;
+  addedOptions: Omit<OptionForQuestionPicker, "id">[] | undefined;
   selectionType: string | null;
   minumumOptionsError: boolean;
   questionTemplate: string | null;
   selectedIconKey: string | null;
   isPublic: boolean;
+  allowResponseImages: boolean;
   minValue: number | null;
   maxValue: number | null;
   scaleOptionMode: ScaleOptionMode;
@@ -106,20 +137,41 @@ const QuestionCreationFormStep = ({
   onNotesChange: (value: string | null) => void;
   onTypeChange: (value: string) => void;
   onCharacterTypeChange: (value: QuestionResponseCharacterTypes | null) => void;
-  onHasAssociatedGeometryChange: (value: boolean | null) => void;
+  onHasAssociatedGeometryChange: (value: boolean) => void;
   onGeometryTypesChange: (value: string[]) => void;
   onCurrentOptionChange: (value: string) => void;
-  onAddedOptionsChange: (value: { text: string }[]) => void;
+  onAddedOptionsChange: (value: Omit<OptionForQuestionPicker, "id">[]) => void;
   onSelectionTypeChange: (value: string | null) => void;
   onMinimumOptionsErrorChange: (value: boolean) => void;
   onSelectedIconKeyChange: (value: string | null) => void;
   onIsPublicChange: (value: boolean) => void;
+  onAllowResponseImagesChange: (value: boolean) => void;
   onMinValueChange: (value: number | null) => void;
   onMaxValueChange: (value: number | null) => void;
   onScaleOptionModeChange: (value: ScaleOptionMode) => void;
   onScaleStepChange: (value: number | null) => void;
   showError: (content: ReactNode) => void;
 }) => {
+  const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(null);
+
+  const handleOptionChange = (
+    optionText: string,
+    nextOption: Partial<Omit<OptionForQuestionPicker, "id" | "text">>,
+  ) => {
+    onAddedOptionsChange(
+      (addedOptions ?? []).map((option) => {
+        if (option.text !== optionText) {
+          return option;
+        }
+
+        return {
+          ...option,
+          ...nextOption,
+        };
+      }),
+    );
+  };
+
   return (
     <div className="flex w-full flex-col rounded-l">
       <h5 className="text-base font-semibold sm:text-xl">
@@ -248,8 +300,24 @@ const QuestionCreationFormStep = ({
             readOnly={isQuestionUsed}
             options={characterTypeOptions}
             value={characterType}
-            onChange={(e) => {
-              onCharacterTypeChange(e);
+            onChange={(nextCharacterType) => {
+              onAddedOptionsChange([]);
+              onCurrentOptionChange("");
+              setDatePickerValue(null);
+              if (type === "OPTIONS") {
+                if (usesFreeOptionsOnly(nextCharacterType)) {
+                  onQuestionTemplateChange("FREE");
+                } else {
+                  onQuestionTemplateChange("");
+                }
+
+                if (nextCharacterType === "SCALE") {
+                  onSelectionTypeChange("RADIO");
+                } else {
+                  onSelectionTypeChange(null);
+                }
+              }
+              onCharacterTypeChange(nextCharacterType);
             }}
             getOptionValue={(i) => i.value}
             getOptionLabel={(i) => i.label}
@@ -302,7 +370,13 @@ const QuestionCreationFormStep = ({
                     ]
                 }
                 value={selectionType}
-                onChange={onSelectionTypeChange}
+                onChange={(value) => {
+                  onSelectionTypeChange(value);
+
+                  if (value && usesFreeOptionsOnly(characterType)) {
+                    onQuestionTemplateChange("FREE");
+                  }
+                }}
                 getOptionValue={(i) => i.value}
                 getOptionLabel={(i) => i.label}
               />
@@ -310,13 +384,8 @@ const QuestionCreationFormStep = ({
               <div className="flex flex-col">
                 {selectionType &&
                   selectionType.length > 0 &&
-                  ((
-                    characterType === "SCALE" ||
-                    characterType === "PERCENTAGE" ||
-                    characterType === "NUMBER"
-                  ) ?
-                    <input type="hidden" value="FREE" />
-                  : <CRadioGroup
+                  !usesFreeOptionsOnly(characterType) && (
+                    <CRadioGroup
                       label="Tipo de opções"
                       value={questionTemplate}
                       readOnly={isQuestionUsed}
@@ -328,7 +397,13 @@ const QuestionCreationFormStep = ({
                       }}
                       options={
                         selectionType === "CHECKBOX" ?
-                          [{ value: "FREE", label: "Livre" }]
+                          [
+                            { value: "FREE", label: "Livre" },
+                            {
+                              value: "WEEKDAY",
+                              label: "Dias da semana",
+                            },
+                          ]
                         : [
                             { value: "FREE", label: "Livre" },
                             { value: "YES_NO", label: "Sim ou não" },
@@ -336,11 +411,16 @@ const QuestionCreationFormStep = ({
                               value: "QUALITY_SCALE",
                               label: "Escala de qualidade",
                             },
+                            {
+                              value: "WEEKDAY",
+                              label: "Dias da semana",
+                            },
                           ]
                       }
                       getOptionLabel={(i) => i.label}
                       getOptionValue={(i) => i.value}
-                    />)}
+                    />
+                  )}
 
                 {questionTemplate === "FREE" && !isQuestionUsed && (
                   <>
@@ -391,7 +471,10 @@ const QuestionCreationFormStep = ({
                               }
                               const decimals =
                                 scaleStep.toString().split(".")[1]?.length ?? 0;
-                              const nextOptions: { text: string }[] = [];
+                              const nextOptions: Omit<
+                                OptionForQuestionPicker,
+                                "id"
+                              >[] = [];
                               const epsilon =
                                 Math.pow(10, -Math.max(decimals, 6)) / 2;
                               let current = minValue;
@@ -403,7 +486,9 @@ const QuestionCreationFormStep = ({
                                 const normalized = Number(
                                   current.toFixed(decimals),
                                 );
-                                nextOptions.push({ text: String(normalized) });
+                                nextOptions.push(
+                                  buildDefaultOption(String(normalized)),
+                                );
                                 current += scaleStep;
                                 guard += 1;
                               }
@@ -415,87 +500,132 @@ const QuestionCreationFormStep = ({
                           </CButton>
                         </div>
                       )}
-                    {(characterType !== "SCALE" ||
-                      scaleOptionMode === "MANUAL") && (
-                      <>
-                        <div className="mt-1 font-semibold">
-                          Digite as opções:
-                        </div>
-                        <div className="flex w-full items-center">
-                          {(
-                            characterType === "NUMBER" ||
-                            characterType === "PERCENTAGE" ||
-                            characterType === "SCALE"
-                          ) ?
-                            <CNumberField
-                              className="w-full"
-                              endAdornment={
-                                characterType === "PERCENTAGE" ? "%" : ""
-                              }
-                              value={
-                                currentOption.length > 0 ?
-                                  Number(currentOption)
-                                : null
-                              }
-                              onChange={(val) => {
-                                onCurrentOptionChange(
-                                  val != null ? String(val) : "",
-                                );
-                              }}
-                            />
-                          : <CTextField
-                              className="w-full"
-                              value={currentOption}
-                              onChange={(e) => {
-                                onCurrentOptionChange(e.target.value);
-                              }}
-                            />
-                          }
-                          <CButton
-                            sx={{ ml: "4px" }}
-                            square
-                            disabled={currentOption === ""}
-                            onClick={() => {
-                              const parsed = Number(currentOption);
-                              if (
-                                characterType === "SCALE" &&
-                                (Number.isNaN(parsed) ||
-                                  minValue === null ||
-                                  maxValue === null ||
-                                  parsed < minValue ||
-                                  parsed > maxValue)
-                              ) {
-                                showError(
-                                  <>
-                                    Informe um número dentro do intervalo da
-                                    escala.
-                                  </>,
-                                );
-                                return;
-                              }
-                              if (addedOptions != undefined) {
+                    {selectionType !== null &&
+                      (characterType !== "SCALE" ||
+                        scaleOptionMode === "MANUAL") && (
+                        <>
+                          <div className="mt-1 font-semibold">
+                            Digite as opções:
+                          </div>
+                          <div className="flex w-full items-center">
+                            {(characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE" ||
+                              characterType === "SCALE") && (
+                              <CNumberField
+                                fullWidth
+                                clearable
+                                endAdornment={
+                                  characterType === "PERCENTAGE" ? "%" : ""
+                                }
+                                value={
+                                  currentOption.length > 0 ?
+                                    Number(currentOption)
+                                  : null
+                                }
+                                onChange={(val) => {
+                                  onCurrentOptionChange(
+                                    val != null ? String(val) : "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "DATE" && (
+                              <CDatePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("DD/MM/YYYY") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "TIME" && (
+                              <CTimePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("HH:mm") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "DATETIME" && (
+                              <CDateTimePicker
+                                className="w-full"
+                                value={datePickerValue}
+                                clearable
+                                onChange={(e) => {
+                                  setDatePickerValue(e);
+                                  onCurrentOptionChange(
+                                    e?.format("DD/MM/YYYY HH:mm") ?? "",
+                                  );
+                                }}
+                              />
+                            )}
+                            {characterType === "TEXT" && (
+                              <CTextField
+                                fullWidth
+                                clearable
+                                value={currentOption}
+                                onChange={(e) => {
+                                  onCurrentOptionChange(e.target.value);
+                                }}
+                              />
+                            )}
+
+                            <CButton
+                              sx={{ ml: "4px" }}
+                              square
+                              disabled={currentOption === ""}
+                              onClick={() => {
+                                const parsed = Number(currentOption);
                                 if (
-                                  !addedOptions.some(
-                                    (opt) => opt.text === currentOption,
-                                  )
+                                  characterType === "SCALE" &&
+                                  (Number.isNaN(parsed) ||
+                                    minValue === null ||
+                                    maxValue === null ||
+                                    parsed < minValue ||
+                                    parsed > maxValue)
                                 ) {
+                                  showError(
+                                    <>
+                                      Informe um número dentro do intervalo da
+                                      escala.
+                                    </>,
+                                  );
+                                  return;
+                                }
+                                if (addedOptions != undefined) {
+                                  if (
+                                    !addedOptions.some(
+                                      (opt) => opt.text === currentOption,
+                                    )
+                                  ) {
+                                    onAddedOptionsChange([
+                                      ...addedOptions,
+                                      buildDefaultOption(currentOption),
+                                    ]);
+                                  }
+                                } else {
                                   onAddedOptionsChange([
-                                    ...addedOptions,
-                                    { text: currentOption },
+                                    buildDefaultOption(currentOption),
                                   ]);
                                 }
-                              } else {
-                                onAddedOptionsChange([{ text: currentOption }]);
-                              }
-
-                              onCurrentOptionChange("");
-                            }}
-                          >
-                            <IconPlus />
-                          </CButton>
-                        </div>
-                      </>
-                    )}
+                                setDatePickerValue(null);
+                                onCurrentOptionChange("");
+                              }}
+                            >
+                              <IconPlus />
+                            </CButton>
+                          </div>
+                        </>
+                      )}
                   </>
                 )}
 
@@ -509,33 +639,61 @@ const QuestionCreationFormStep = ({
                       return (
                         <li
                           key={option.text}
-                          className="flex items-center rounded-md bg-white p-2 outline outline-1 outline-black"
+                          className="flex flex-col rounded-md bg-white px-2 outline outline-1 outline-black"
                         >
-                          {(
-                            characterType === "NUMBER" ||
-                            characterType === "PERCENTAGE" ||
-                            characterType === "SCALE"
-                          ) ?
-                            localeNumberFormatter.format(Number(option.text)) +
-                            `${characterType === "PERCENTAGE" ? "%" : ""}`
-                          : option.text}
+                          <div className="flex items-center">
+                            {(
+                              characterType === "NUMBER" ||
+                              characterType === "PERCENTAGE" ||
+                              characterType === "SCALE"
+                            ) ?
+                              localeNumberFormatter.format(
+                                Number(option.text),
+                              ) + `${characterType === "PERCENTAGE" ? "%" : ""}`
+                            : option.text}
 
-                          <CButton
-                            className="ml-auto"
-                            square
-                            color="error"
-                            variant="text"
-                            disabled={
-                              questionTemplate !== "FREE" || isQuestionUsed
-                            }
-                            onClick={() => onRemoveOption(option.text)}
-                          >
-                            <IconTrash />
-                          </CButton>
+                            {questionTemplate === "FREE" && (
+                              <CButton
+                                className="ml-auto"
+                                square
+                                color="error"
+                                variant="text"
+                                disabled={isQuestionUsed}
+                                onClick={() => onRemoveOption(option.text)}
+                              >
+                                <IconTrash />
+                              </CButton>
+                            )}
+
+                            <input
+                              type="hidden"
+                              name="options"
+                              value={option.text}
+                            />
+                          </div>
+                          {characterType === "TEXT" && (
+                            <div className="flex items-center">
+                              <CSwitch
+                                checked={option.isOverridable}
+                                label="Permite sobrescrita de valor"
+                                readOnly={isQuestionUsed}
+                                onChange={(event) => {
+                                  handleOptionChange(option.text, {
+                                    isOverridable: event.target.checked,
+                                  });
+                                }}
+                              />
+                              <CIconChip
+                                icon={<IconHelp />}
+                                tooltip="Quando esta opção for selecionada, aparecerá um campo para o avaliador escrever. Caso preenchido, o valor será considerado a resposta da questão."
+                              />
+                            </div>
+                          )}
+
                           <input
                             type="hidden"
-                            name="options"
-                            value={option.text}
+                            name="optionIsOverridable"
+                            value={option.isOverridable ? "true" : "false"}
                           />
                         </li>
                       );
@@ -555,20 +713,30 @@ const QuestionCreationFormStep = ({
           (type === "OPTIONS" ?
             addedOptions && addedOptions.length > 0
           : true) && (
-            <CRadioGroup
-              label="Possui geometria associada?"
-              name="hasAssociatedGeometry"
-              id="hasAssociatedGeometry"
-              readOnly={isQuestionUsed}
-              options={[
-                { value: true, label: "Sim" },
-                { value: false, label: "Não" },
-              ]}
-              value={hasAssociatedGeometry}
-              onChange={onHasAssociatedGeometryChange}
-              getOptionValue={(i) => i.value}
-              getOptionLabel={(i) => i.label}
-            />
+            <>
+              <CSwitch
+                value={allowResponseImages}
+                checked={allowResponseImages ?? false}
+                readOnly={isQuestionUsed}
+                name="allowResponseImages"
+                id="allowResponseImages"
+                label="Permite anexar à resposta imagens do Google Drive"
+                onChange={(e) => {
+                  onAllowResponseImagesChange(e.target.checked);
+                }}
+              />
+              <CSwitch
+                label="Permite anexar à resposta geometrias no mapa"
+                name="hasAssociatedGeometry"
+                id="hasAssociatedGeometry"
+                readOnly={isQuestionUsed}
+                checked={hasAssociatedGeometry}
+                value={hasAssociatedGeometry}
+                onChange={(e) => {
+                  onHasAssociatedGeometryChange(e.target.checked);
+                }}
+              />
+            </>
           )}
 
         {hasAssociatedGeometry && (

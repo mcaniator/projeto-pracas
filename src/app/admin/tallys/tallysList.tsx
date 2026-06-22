@@ -1,8 +1,8 @@
 import CButton from "@/components/ui/cButton";
-import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
 import { Chip, Divider } from "@mui/material";
 import {
   IconCalendar,
+  IconCloudExclamation,
   IconExternalLink,
   IconFilePencil,
   IconUser,
@@ -11,8 +11,9 @@ import { Virtuoso } from "react-virtuoso";
 
 import CIconChip from "../../../components/ui/cIconChip";
 import { dateTimeFormatter } from "../../../lib/formatters/dateFormatters";
+import type { TallyWithSyncStatus } from "./tallysClient";
 
-const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
+const TallysList = ({ tallys }: { tallys: TallyWithSyncStatus[] }) => {
   return (
     <div className="flex h-full flex-col gap-1">
       {tallys.length === 0 && (
@@ -39,11 +40,23 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                     {`${a.location.name} - ${a.id} `}
                     <Chip
                       sx={{ ml: 2 }}
-                      color={a.isFinalized ? "secondary" : "error"}
+                      color={a.isFinalized ? "secondary" : "warning"}
                       label={a.isFinalized ? "Finalizado" : "Em progresso"}
                     />
                   </span>
                   <Divider />
+                  {a.hasUnsyncedFilling && (
+                    <>
+                      <span className="flex items-center text-base sm:text-xl">
+                        <Chip
+                          icon={<IconCloudExclamation />}
+                          label="Contagem não enviada!"
+                          color="error"
+                        />
+                      </span>
+                      <Divider />
+                    </>
+                  )}
                   <span className="flex items-center text-base sm:text-xl">
                     <CIconChip
                       icon={<IconCalendar />}
@@ -62,7 +75,7 @@ const TallysList = ({ tallys }: { tallys: FetchTallysResponse["tallys"] }) => {
                       square
                       loadingOnClick
                       href={
-                        a.isFinalized ?
+                        !a.hasUnsyncedFilling && a.isFinalized ?
                           `/admin/tallys/result/${a.id}`
                         : `/admin/tallys/${a.id}/fill`
                       }

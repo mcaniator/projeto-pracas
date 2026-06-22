@@ -11,7 +11,7 @@ import {
 
 type UserData = {
   id: string;
-  username: string | null;
+  username: string;
   email: string;
   image: string | null;
   roles: Role[];

@@ -2,6 +2,8 @@
 
 import CommercialActivityCreationDialog from "@/app/admin/tallys/[tallyId]/fill/commercialActivityCreationDialog";
 import CounterButtonGroup from "@/app/admin/tallys/[tallyId]/fill/counterButtonGroup";
+import TallyImportDataDialog from "@/app/admin/tallys/[tallyId]/fill/tallyImportDataDialog";
+import TallyInProgressDeleteDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressDeleteDialog";
 import TallyInProgressReviewDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressReviewDialog";
 import TallyInProgressSaveDialog from "@/app/admin/tallys/[tallyId]/fill/tallyInProgressSaveDialog";
 import TallyPersonActions, {
@@ -9,34 +11,44 @@ import TallyPersonActions, {
   SharedCharacteristics,
 } from "@/app/admin/tallys/[tallyId]/fill/tallyPersonActions";
 import { useHelperCard } from "@/components/context/helperCardContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
-import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import CChip from "@/components/ui/cChip";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
+import { dexieDb } from "@/lib/dexie/dexie";
+import type { DexieTally } from "@/lib/dexie/dexie";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import { AgeGroupType, GenderType } from "@/lib/types/tallys/person";
 import { useUserContext } from "@components/context/UserContext";
 import { WeatherStats } from "@customTypes/tallys/ongoingTally";
 import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
-import { Paper } from "@mui/material";
+import { Chip, Paper, useMediaQuery, useTheme } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
   IconChartBar,
   IconClipboardData,
+  IconCloudExclamation,
   IconDeviceFloppy,
+  IconFileUpload,
   IconMoodDollar,
   IconPlus,
-  IconTrashX,
-  IconUpload,
+  IconTrash,
+  IconUser,
 } from "@tabler/icons-react";
-import { CommercialActivity, OngoingTally } from "@zodValidators";
+import {
+  CommercialActivity,
+  OngoingTally,
+  tallyImportDataSchema,
+} from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
 import { redirect } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { GrGroup } from "react-icons/gr";
@@ -93,6 +105,49 @@ const defaultCommercialActivitiesOptions = [
   },
   { value: "Outros", label: "Outros" },
 ];
+
+const buildTallyMapFromTally = (tally: OngoingTally) => {
+  const tallyMap = new Map<string, number>();
+  if (tally.tallyPerson) {
+    for (const tallyPerson of tally.tallyPerson) {
+      const gender = tallyPerson.person.gender;
+      const ageGroup = tallyPerson.person.ageGroup;
+      const activity = tallyPerson.person.activity;
+      const isTraversing = tallyPerson.person.isTraversing;
+      const isPersonWithImpairment = tallyPerson.person.isPersonWithImpairment;
+      const isInApparentIllicitActivity =
+        tallyPerson.person.isInApparentIllicitActivity;
+      const isPersonWithoutHousing = tallyPerson.person.isPersonWithoutHousing;
+      tallyMap.set(
+        `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
+        tallyPerson.quantity,
+      );
+    }
+  }
+
+  return tallyMap;
+};
+
+const buildCommercialActivitiesOptions = (
+  commercialActivities: CommercialActivity | null,
+) => {
+  if (!commercialActivities) return defaultCommercialActivitiesOptions;
+
+  const customOptions = Object.keys(commercialActivities)
+    .filter(
+      (activity) =>
+        activity !== "Alimentos" &&
+        activity !== "Produtos" &&
+        activity !== "Pula-pula (ou outra ativ. infantil)" &&
+        activity !== "Mesas de bares do entorno" &&
+        activity !== "Outros" &&
+        activity !== "Criar nova atividade",
+    )
+    .map((activity) => ({ value: activity, label: activity }));
+
+  return [...defaultCommercialActivitiesOptions, ...customOptions];
+};
+
 const TallyInProgressPage = ({
   tallyId,
   locationName,
@@ -104,6 +159,8 @@ const TallyInProgressPage = ({
   tally: OngoingTally;
   finalizedTally: boolean;
 }) => {
+  const theme = useTheme();
+  const isMobileView = useMediaQuery(theme.breakpoints.down("xl"));
   const { user } = useUserContext();
   if (user.id !== tally.user.id) {
     if (
@@ -113,39 +170,24 @@ const TallyInProgressPage = ({
     }
   }
   const { setHelperCard } = useHelperCard();
+  const { setLoadingOverlay } = useLoadingOverlay();
+  const serverUpdatedAtRef = useRef(tally.updatedAt);
+  const localSaveReadyRef = useRef(false);
   const [
     openCommercialActivityCreationDialog,
     setOpenCommercialActivityCreationDialog,
   ] = useState(false);
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
+  const [openDeleteTallyDialog, setOpenDeleteTallyDialog] = useState(false);
+  const [openTallyImportDialog, setOpenTallyImportDialog] = useState(false);
   const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
   const [endDate, setEndDate] = useState<Dayjs | null>(
     tally.endDate ? dayjs(tally.endDate) : null,
   );
   const [isFinalized, setIsFinalized] = useState(finalizedTally);
   const [tallyMap, setTallyMap] = useState<Map<string, number>>(() => {
-    const tallyMap = new Map();
-    if (tally.tallyPerson) {
-      for (const tallyPerson of tally.tallyPerson) {
-        const gender = tallyPerson.person.gender;
-        const ageGroup = tallyPerson.person.ageGroup;
-        const activity = tallyPerson.person.activity;
-        const isTraversing = tallyPerson.person.isTraversing;
-        const isPersonWithImpairment =
-          tallyPerson.person.isPersonWithImpairment;
-        const isInApparentIllicitActivity =
-          tallyPerson.person.isInApparentIllicitActivity;
-        const isPersonWithoutHousing =
-          tallyPerson.person.isPersonWithoutHousing;
-        tallyMap.set(
-          `${gender}-${ageGroup}-${activity}-${isTraversing}-${isPersonWithImpairment}-${isInApparentIllicitActivity}-${isPersonWithoutHousing}`,
-          tallyPerson.quantity,
-        );
-      }
-    }
-
-    return tallyMap;
+    return buildTallyMapFromTally(tally);
   });
   const [commercialActivities, setCommercialActivities] =
     useState<CommercialActivity>(() => {
@@ -156,22 +198,7 @@ const TallyInProgressPage = ({
     useState("Alimentos");
   const [commercialActivitiesOptions, setCommercialActivitiesOptions] =
     useState(() => {
-      if (!tally.commercialActivities)
-        return defaultCommercialActivitiesOptions;
-
-      const customOptions = Object.keys(tally.commercialActivities)
-        .filter(
-          (activity) =>
-            activity !== "Alimentos" &&
-            activity !== "Produtos" &&
-            activity !== "Pula-pula (ou outra ativ. infantil)" &&
-            activity !== "Mesas de bares do entorno" &&
-            activity !== "Outros" &&
-            activity !== "Criar nova atividade",
-        )
-        .map((activity) => ({ value: activity, label: activity }));
-
-      return [...defaultCommercialActivitiesOptions, ...customOptions];
+      return buildCommercialActivitiesOptions(tally.commercialActivities);
     });
 
   const [weatherStats, setWeatherStats] = useState<WeatherStats>({
@@ -185,6 +212,87 @@ const TallyInProgressPage = ({
     animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
     groupsAmount: tally.groups ? tally.groups : 0,
   });
+  const [pendingServerSave, setPendingServerSave] = useState(false);
+
+  const applyLocalTallyValues = (localTally: DexieTally) => {
+    setStartDate(dayjs(localTally.startDate));
+    setEndDate(localTally.endDate ? dayjs(localTally.endDate) : null);
+    setIsFinalized(localTally.isFinalized);
+    setWeatherStats(localTally.weatherStats);
+    setTallyMap(new Map(Object.entries(localTally.tallyMap)));
+    setCommercialActivities(localTally.commercialActivities);
+    setCommercialActivitiesOptions(
+      buildCommercialActivitiesOptions(localTally.commercialActivities),
+    );
+    setComplementaryData(localTally.complementaryData);
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadLocalTally = async () => {
+      const localTally = await dexieDb.tallys.get(tallyId);
+      if (ignore) return;
+
+      if (!localTally) {
+        localSaveReadyRef.current = true;
+        return;
+      }
+
+      const localServerUpdatedAt = new Date(
+        localTally.serverUpdatedAt,
+      ).getTime();
+      const serverUpdatedAt = serverUpdatedAtRef.current.getTime();
+
+      if (serverUpdatedAt <= localServerUpdatedAt) {
+        applyLocalTallyValues(localTally);
+        setPendingServerSave(true);
+      }
+
+      localSaveReadyRef.current = true;
+    };
+
+    void loadLocalTally();
+
+    return () => {
+      ignore = true;
+    };
+  }, [tallyId]);
+
+  useEffect(() => {
+    if (!localSaveReadyRef.current) return;
+
+    setPendingServerSave(true);
+    const timeoutId = window.setTimeout(() => {
+      void dexieDb.tallys.put({
+        id: tallyId,
+        userId: user.id,
+        username: user.username ?? "",
+        serverUpdatedAt: serverUpdatedAtRef.current,
+        localUpdatedAt: new Date(),
+        isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        weatherStats,
+        tallyMap: Object.fromEntries([...tallyMap.entries()]),
+        commercialActivities,
+        complementaryData,
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    commercialActivities,
+    complementaryData,
+    endDate,
+    isFinalized,
+    startDate,
+    tallyId,
+    tallyMap,
+    user.id,
+    user.username,
+    weatherStats,
+  ]);
   const buildPersonKey = (
     gender: GenderType,
     ageGroup: AgeGroupType,
@@ -238,39 +346,19 @@ const TallyInProgressPage = ({
   };
 
   const importData = async (e: ChangeEvent<HTMLInputElement>) => {
-    //TODO: Add validation with Zod
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as unknown;
-
-      if (!parsed || typeof parsed !== "object") {
-        throw new Error();
-      }
-
-      const importedData = parsed as {
-        weatherStats: {
-          temperature: number | null;
-          weather: WeatherConditions;
-        };
-        tallyMap: Record<string, number>;
-        commercialActivities: Record<string, number>;
-        complementaryData: {
-          animalsAmount: number;
-          groupsAmount: number;
-        };
-        startDate: string;
-        endDate: string | null;
-        isFinalized?: boolean;
-      };
+      const importedData = tallyImportDataSchema.parse(parsed);
 
       setWeatherStats(importedData.weatherStats);
       setTallyMap(new Map(Object.entries(importedData.tallyMap)));
       setCommercialActivities(importedData.commercialActivities);
       setComplementaryData(importedData.complementaryData);
       setStartDate(dayjs(importedData.startDate));
-      setEndDate(dayjs(importedData.endDate ? importedData.endDate : null));
+      setEndDate(importedData.endDate ? dayjs(importedData.endDate) : null);
       setIsFinalized(importedData.isFinalized ?? !!importedData.endDate);
 
       setHelperCard({
@@ -293,10 +381,42 @@ const TallyInProgressPage = ({
           <CAdminHeader
             titleIcon={<GrGroup size={28} />}
             title={`Contagem em ${tally?.location.name}`}
-            below={
-              <div className="flex items-center gap-1 xl:hidden">
+            append={
+              <CButton
+                square={isMobileView}
+                tooltip="Importar dados"
+                onClick={() => {
+                  setOpenTallyImportDialog(true);
+                }}
+              >
+                <IconFileUpload /> {isMobileView ? "" : "Importar"}
+              </CButton>
+            }
+          />
+
+          <div className="flex flex-col gap-2 xl:overflow-auto">
+            {isMobileView && (
+              <CChip
+                label={user.username}
+                icon={<IconUser />}
+                sx={{ fontSize: 16 }}
+                tooltip="Observador"
+                className="w-fit"
+              />
+            )}
+
+            <div className="flex flex-wrap items-center justify-between">
+              <CDateTimePicker
+                label="Início da contagem"
+                value={startDate}
+                onChange={(v) => {
+                  if (v) setStartDate(v);
+                }}
+              />
+              <div className="flex items-center gap-1">
                 <CButton
                   square
+                  tooltip="Acompanhamento"
                   onClick={() => {
                     setOpenReviewDialog(true);
                   }}
@@ -305,27 +425,17 @@ const TallyInProgressPage = ({
                 </CButton>
                 <CButton
                   square
+                  color="error"
+                  tooltip="Excluir contagem"
                   onClick={() => {
-                    setOpenSaveDialog(true);
+                    setOpenDeleteTallyDialog(true);
                   }}
                 >
-                  <IconDeviceFloppy />
+                  <IconTrash />
                 </CButton>
               </div>
-            }
-          />
+            </div>
 
-          <div className="flex flex-col gap-2 xl:overflow-auto">
-            <CButtonFilePicker
-              fileAccept="application/json"
-              className="w-fit"
-              onFileInput={(e) => {
-                void importData(e);
-              }}
-            >
-              <IconUpload />
-              Importar
-            </CButtonFilePicker>
             <div className="flex flex-col gap-1">
               <CAccordion>
                 <CAccordionSummary>
@@ -502,7 +612,7 @@ const TallyInProgressPage = ({
                           (d) => d.value === selectedCommercialActivity,
                         )
                       ) ?
-                        <IconTrashX />
+                        <IconTrash />
                       : undefined
                     }
                     onAppendIconButtonClick={() => {
@@ -573,6 +683,22 @@ const TallyInProgressPage = ({
                 </div>
               </CAccordionDetails>
             </CAccordion>
+            {pendingServerSave && (
+              <Chip
+                label="Contagem não enviada!"
+                color="error"
+                icon={<IconCloudExclamation />}
+              />
+            )}
+
+            <CButton
+              onClick={() => {
+                setOpenSaveDialog(true);
+              }}
+            >
+              <IconDeviceFloppy />
+              Salvar
+            </CButton>
           </div>
         </div>
         <Paper
@@ -585,9 +711,6 @@ const TallyInProgressPage = ({
             complementaryData={complementaryData}
             commercialActivities={commercialActivities}
             tallyMap={tallyMap}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            onOpenSaveDialog={() => setOpenSaveDialog(true)}
           />
         </Paper>
       </div>
@@ -647,9 +770,42 @@ const TallyInProgressPage = ({
         tallyMap={tallyMap}
         startDate={startDate}
         endDate={endDate}
-        finalizedTally={isFinalized}
-        setEndDate={setEndDate}
-        setIsFinalized={setIsFinalized}
+        isFinalized={isFinalized}
+        serverUpdatedAt={serverUpdatedAtRef.current}
+        onEndDateChange={(v) => {
+          setEndDate(v);
+        }}
+        onIsFinalizedChange={(v) => {
+          setIsFinalized(v);
+        }}
+        onSaveSuccess={(newUpdatedAt) => {
+          serverUpdatedAtRef.current = newUpdatedAt;
+          setPendingServerSave(false);
+        }}
+      />
+      <TallyInProgressDeleteDialog
+        open={openDeleteTallyDialog}
+        onClose={() => setOpenDeleteTallyDialog(false)}
+        tallyId={tallyId}
+      />
+      <TallyImportDataDialog
+        open={openTallyImportDialog}
+        onClose={() => setOpenTallyImportDialog(false)}
+        onFileInput={(e) => {
+          setLoadingOverlay({ show: true, message: "Importando dados..." });
+          importData(e)
+            .catch(() => {
+              setHelperCard({
+                show: true,
+                helperCardType: "ERROR",
+                content: <>Erro ao importar dados!</>,
+              });
+            })
+            .finally(() => {
+              setLoadingOverlay({ show: false });
+            });
+          setOpenTallyImportDialog(false);
+        }}
       />
     </div>
   );

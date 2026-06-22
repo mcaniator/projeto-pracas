@@ -1,8 +1,7 @@
 "use client";
 
+import { CircularProgress } from "@mui/material";
 import React, { ReactNode, createContext, useContext, useState } from "react";
-
-import LoadingIcon from "../LoadingIcon";
 
 type LoadingOverlayType = {
   setLoadingOverlayVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,7 +43,11 @@ export const LoadingOverlayProvider = ({
     >
       {visible && (
         <div className="fixed z-[9999] flex h-screen w-screen flex-col items-center justify-center bg-black/50">
-          <LoadingIcon className="text-white" size={72} />
+          <CircularProgress
+            size={72}
+            sx={{ color: "white" }}
+            aria-label="Carregando..."
+          />
           <div className="text-md font-semibold text-white">{message}</div>
         </div>
       )}

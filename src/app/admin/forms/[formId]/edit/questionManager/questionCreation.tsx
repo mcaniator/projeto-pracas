@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
@@ -8,7 +8,10 @@ import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
-import type { QuestionPickerQuestionToEdit } from "@customTypes/forms/formCreation";
+import type {
+  OptionForQuestionPicker,
+  QuestionPickerQuestionToEdit,
+} from "@customTypes/forms/formCreation";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import type {
   OptionTypes,
@@ -71,17 +74,19 @@ const QuestionCreation = ({
   const [type, setType] = useState("");
   const [characterType, setCharacterType] =
     useState<QuestionResponseCharacterTypes | null>(null);
-  const [hasAssociatedGeometry, setHasAssociatedGeometry] = useState<
-    boolean | null
-  >(null);
+  const [hasAssociatedGeometry, setHasAssociatedGeometry] =
+    useState<boolean>(false);
   const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [currentOption, setCurrentOption] = useState("");
-  const [addedOptions, setAddedOptions] = useState<{ text: string }[]>();
+  const [addedOptions, setAddedOptions] =
+    useState<Omit<OptionForQuestionPicker, "id">[]>();
   const [selectionType, setSelectionType] = useState<string | null>(null);
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(true);
+  const [allowResponseImages, setAllowResponseImages] =
+    useState<boolean>(false);
   const [minValue, setMinValue] = useState<number | null>(null);
   const [maxValue, setMaxValue] = useState<number | null>(null);
   const [scaleOptionMode, setScaleOptionMode] =
@@ -138,17 +143,71 @@ const QuestionCreation = ({
   const handleQuestionTemplate = (template: string) => {
     switch (template) {
       case "YES_NO":
-        setAddedOptions([{ text: "Sim" }, { text: "Não" }]);
+        setAddedOptions([
+          {
+            text: "Sim",
+            isOverridable: false,
+          },
+          {
+            text: "Não",
+            isOverridable: false,
+          },
+        ]);
         break;
       case "QUALITY_SCALE":
         setAddedOptions([
-          { text: "Péssimo" },
-          { text: "Ruim" },
-          { text: "Bom" },
-          { text: "Ótimo" },
+          {
+            text: "Péssimo",
+            isOverridable: false,
+          },
+          {
+            text: "Ruim",
+            isOverridable: false,
+          },
+          {
+            text: "Bom",
+            isOverridable: false,
+          },
+          {
+            text: "Ótimo",
+            isOverridable: false,
+          },
+        ]);
+        break;
+      case "WEEKDAY":
+        setAddedOptions([
+          {
+            text: "Domingo",
+            isOverridable: false,
+          },
+          {
+            text: "Segunda-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Terça-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Quarta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Quinta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Sexta-feira",
+            isOverridable: false,
+          },
+          {
+            text: "Sábado",
+            isOverridable: false,
+          },
         ]);
         break;
       default:
+        setAddedOptions([]);
         break;
     }
     setQuestionTemplate(template);
@@ -159,7 +218,8 @@ const QuestionCreation = ({
     setCharacterType(null);
     setSelectionType(null);
     setCurrentOption("");
-    setHasAssociatedGeometry(null);
+    setAllowResponseImages(false);
+    setHasAssociatedGeometry(false);
     setAddedOptions(undefined);
     setQuestionTemplate(null);
     setGeometryTypes([]);
@@ -206,8 +266,14 @@ const QuestionCreation = ({
     setSelectionType(question.optionType);
     setCurrentOption("");
     setHasAssociatedGeometry(question.geometryTypes.length > 0);
-    setAddedOptions(question.options.map((option) => ({ text: option.text })));
+    setAddedOptions(
+      question.options.map((option) => ({
+        text: option.text,
+        isOverridable: option.isOverridable,
+      })),
+    );
     setQuestionTemplate(question.questionType === "OPTIONS" ? "FREE" : null);
+    setAllowResponseImages(question.allowResponseImages);
     setGeometryTypes(question.geometryTypes);
     setSelectedIconKey(question.iconKey);
     setPageState("FORM");
@@ -223,18 +289,6 @@ const QuestionCreation = ({
     setPreviewDraft(null);
     setReloadOnClose(false);
   }, [open, question, fetchQuestionUses]);
-
-  useEffect(() => {
-    if (
-      type === "OPTIONS" &&
-      (characterType === "SCALE" ||
-        characterType === "NUMBER" ||
-        characterType === "PERCENTAGE")
-    ) {
-      setSelectionType("RADIO");
-      setQuestionTemplate("FREE");
-    }
-  }, [type, characterType]);
 
   const showError = (content: ReactNode) => {
     setHelperCard({
@@ -256,7 +310,7 @@ const QuestionCreation = ({
         return false;
       }
       if (minValue >= maxValue) {
-        showError(<>O valor mÍnimo deve ser menor que o mÁximo.</>);
+        showError(<>O valor mínimo deve ser menor que o máximo.</>);
         return false;
       }
     }
@@ -299,6 +353,7 @@ const QuestionCreation = ({
       optionType:
         type === "OPTIONS" ? (selectionType as OptionTypes | null) : null,
       options: addedOptions ?? [],
+      allowResponseImages: allowResponseImages,
       hasAssociatedGeometry: hasAssociatedGeometry === true,
       geometryTypes:
         hasAssociatedGeometry === true ?
@@ -429,6 +484,7 @@ const QuestionCreation = ({
             questionTemplate={questionTemplate}
             selectedIconKey={selectedIconKey}
             isPublic={isPublic}
+            allowResponseImages={allowResponseImages}
             minValue={minValue}
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
@@ -448,6 +504,7 @@ const QuestionCreation = ({
             onMinimumOptionsErrorChange={setMinimumOptionsError}
             onSelectedIconKeyChange={setSelectedIconKey}
             onIsPublicChange={setIsPublic}
+            onAllowResponseImagesChange={setAllowResponseImages}
             onMinValueChange={setMinValue}
             onMaxValueChange={setMaxValue}
             onScaleOptionModeChange={setScaleOptionMode}

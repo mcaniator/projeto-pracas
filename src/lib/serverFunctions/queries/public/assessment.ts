@@ -120,12 +120,19 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     name: true,
                     iconKey: true,
                     isPublic: true,
+                    allowResponseImages: true,
                     scaleConfig: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
                     optionType: true,
-                    options: { select: { text: true, id: true } },
+                    options: {
+                      select: {
+                        text: true,
+                        id: true,
+                        isOverridable: true,
+                      },
+                    },
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
@@ -152,6 +159,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
                       },
                       select: {
                         id: true,
+                        overrideValue: true,
                         option: {
                           select: {
                             id: true,
@@ -265,10 +273,15 @@ export const publicFetchPublicAssessmentTree = async (params: {
         } else if (dbQuestion.questionType === "OPTIONS") {
           if (dbQuestion.optionType === "RADIO") {
             responsesFormValues[dbQuestion.id] =
-              dbQuestion.ResponseOption[0]?.option?.id ?? null;
+              dbQuestion.ResponseOption[0]?.option?.id ?
+                {
+                  value: dbQuestion.ResponseOption[0].option.id,
+                  override: dbQuestion.ResponseOption[0].overrideValue,
+                }
+              : null;
           } else if (dbQuestion.optionType === "CHECKBOX") {
             responsesFormValues[dbQuestion.id] = dbQuestion.ResponseOption.map(
-              (r) => r.option!.id,
+              (r) => ({ value: r.option!.id, override: r.overrideValue }),
             );
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
@@ -279,6 +292,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
         const relatedCalculation = form.calculations.find(
           (calc) => calc.targetQuestionId === item.questionId,
         );
+
         const question: AssessmentQuestionItem = {
           id: item.id,
           position: item.position,
@@ -286,12 +300,17 @@ export const publicFetchPublicAssessmentTree = async (params: {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          allowResponseImages: dbQuestion.allowResponseImages,
           scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
           optionType: dbQuestion.optionType,
-          options: dbQuestion.options,
+          options: dbQuestion.options.map((option) => ({
+            id: option.id,
+            text: option.text,
+            isOverridable: option.isOverridable,
+          })),
           geometryTypes: dbQuestion.geometryTypes,
           calculationExpression: relatedCalculation?.expression,
           categoryName: "placeholder", //Placeholder to be filled once the corresponding category is found

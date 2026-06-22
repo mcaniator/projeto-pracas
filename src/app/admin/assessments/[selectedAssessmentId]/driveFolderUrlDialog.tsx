@@ -37,8 +37,8 @@ const DriveFolderUrlDialog = ({
   };
   return (
     <CDialog
-      title="Drive"
-      subtitle="Pasta no drive com fotos e vídeos"
+      title="Google Drive"
+      subtitle="Pasta no Google Drive arquivos relacionados a esta avaliação"
       open={open}
       onClose={onClose}
       confirmChildren={isFilling ? <IconCheck /> : undefined}

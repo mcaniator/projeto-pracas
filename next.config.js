@@ -17,6 +17,12 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "drive.google.com",
+        port: "",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
         hostname: "ik.imagekit.io",
         port: "",
         pathname: "/**",

@@ -18,8 +18,9 @@ import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
+import { dexieDb } from "../../../lib/dexie/dexie";
 import { _fetchAssessments } from "../../../lib/serverFunctions/apiCalls/assessment";
-import { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
+import type { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
 
@@ -35,6 +36,11 @@ export type AssessmentsFilterType =
   | "CITY_ID"
   | "FINALIZATION_STATUS";
 
+export type AssessmentWithSyncStatus =
+  FetchAssessmentsResponse["assessments"][number] & {
+    hasUnsyncedFilling: boolean;
+  };
+
 const AssessmentsClient = ({
   formsPromise,
   usersPromise,
@@ -47,10 +53,13 @@ const AssessmentsClient = ({
   const [params] = useState(useSearchParams());
   const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
+  const unsyncedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
+    null,
+  );
   const { helperCardProcessResponse, setHelperCard } = useHelperCard();
-  const [assessments, setAssessments] = useState<
-    FetchAssessmentsResponse["assessments"]
-  >([]);
+  const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
+    [],
+  );
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
@@ -70,6 +79,26 @@ const AssessmentsClient = ({
 
   const onNoCitiesFound = useCallback(() => {
     setIsLoading(false);
+  }, []);
+
+  const getUnsyncedAssessmentIds = useCallback(() => {
+    if (!unsyncedAssessmentIdsPromiseRef.current) {
+      unsyncedAssessmentIdsPromiseRef.current = dexieDb.assessments
+        .toArray()
+        .then(
+          (dexieAssessments) =>
+            new Set(
+              dexieAssessments
+                .filter(
+                  (assessment) =>
+                    assessment.localUpdatedAt > assessment.serverUpdatedAt,
+                )
+                .map((assessment) => assessment.id),
+            ),
+        );
+    }
+
+    return unsyncedAssessmentIdsPromiseRef.current;
   }, []);
 
   const handleFilterChange = ({
@@ -227,7 +256,45 @@ const AssessmentsClient = ({
           finalizationStatus: finalizationStatus,
         });
         helperCardProcessResponse(response.responseInfo);
-        setAssessments(response.data?.assessments ?? []);
+        const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
+        const formattedAssessmentsPromises = response.data?.assessments.map(
+          async (assessment) => {
+            if (unsyncedAssessmentIds.has(assessment.id)) {
+              //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
+              const localAssessment = await dexieDb.assessments.get(
+                assessment.id,
+              );
+              if (!localAssessment) {
+                //This should never happen
+                return {
+                  ...assessment,
+                  hasUnsyncedFilling: false,
+                };
+              }
+
+              return {
+                ...assessment,
+                startDate: localAssessment.startDate,
+                endDate: localAssessment.endDate,
+                isFinalized: localAssessment.isFinalized,
+                hasUnsyncedFilling: true,
+              };
+            } else {
+              return {
+                ...assessment,
+                hasUnsyncedFilling: false,
+              };
+            }
+          },
+        );
+        if (formattedAssessmentsPromises) {
+          const formattedAssessments = await Promise.all(
+            formattedAssessmentsPromises,
+          );
+          setAssessments(formattedAssessments);
+        } else {
+          setAssessments([]);
+        }
       } catch (e) {
         setHelperCard({
           show: true,
@@ -240,6 +307,7 @@ const AssessmentsClient = ({
     },
     [
       helperCardProcessResponse,
+      getUnsyncedAssessmentIds,
       setHelperCard,
       locationId,
       formId,
@@ -253,6 +321,10 @@ const AssessmentsClient = ({
       finalizationStatus,
     ],
   );
+
+  useEffect(() => {
+    void getUnsyncedAssessmentIds();
+  }, [getUnsyncedAssessmentIds]);
 
   useEffect(() => {
     const fetch = async () => {

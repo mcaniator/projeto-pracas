@@ -1,9 +1,15 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { type ResolvedQuestionValue } from "@/components/ui/assessment/questionResponseRenderer";
+import {
+  type FormValues,
+  type ResponseQuestionValue,
+  isAssessmentOptionValueWithOverride,
+  isAssessmentOptionValueWithOverrideArray,
+} from "@/components/ui/responseForm/responseFormTypes";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
 } from "@/lib/serverFunctions/queries/assessment";
+import dayjs from "dayjs";
 
 export type AssessmentTree = {
   categories: AssessmentCategoryItem[];
@@ -25,47 +31,47 @@ const getQuestionOptionTextMap = (question: AssessmentQuestionItem) => {
 
 const resolveSelectedOptionTexts = (
   question: AssessmentQuestionItem,
-  rawValue: string | number | number[] | boolean | null | undefined,
-) => {
+  rawValue: ResponseQuestionValue | undefined,
+): string[] => {
   const optionTextMap = getQuestionOptionTextMap(question);
-
   if (question.optionType === "RADIO") {
-    if (rawValue === null || rawValue === undefined) {
-      return [];
+    if (isAssessmentOptionValueWithOverride(rawValue)) {
+      const computedValue =
+        rawValue.override !== null && rawValue.override.length > 0 ?
+          rawValue.override
+        : (optionTextMap.get(rawValue.value) ?? null);
+      return computedValue ? [computedValue] : [];
     }
-
-    const optionId = Number(rawValue);
-    if (Number.isNaN(optionId)) {
-      return [];
+    return [];
+  } else if (question.optionType === "CHECKBOX") {
+    if (isAssessmentOptionValueWithOverrideArray(rawValue)) {
+      return rawValue
+        .map((opt) => {
+          const computedValue =
+            opt.override !== null && opt.override.length > 0 ?
+              opt.override
+            : (optionTextMap.get(opt.value) ?? null);
+          return computedValue;
+        })
+        .filter((o) => o !== null);
     }
-
-    const optionText = optionTextMap.get(optionId);
-    return optionText !== undefined && optionText.trim().length > 0 ?
-        [optionText]
-      : [];
+    return [];
   }
-
-  if (question.optionType === "CHECKBOX") {
-    if (!Array.isArray(rawValue)) {
-      return [];
-    }
-
-    return rawValue
-      .map((optionId) => optionTextMap.get(optionId))
-      .filter(
-        (optionText): optionText is string =>
-          optionText !== undefined && optionText.trim().length > 0,
-      );
-  }
-
   return [];
 };
 
 export const resolveQuestionValue = (
   question: AssessmentQuestionItem,
-  rawValue: string | number | number[] | boolean | null | undefined,
+  rawValue: ResponseQuestionValue | undefined,
 ): ResolvedQuestionValue => {
-  if (rawValue === null || rawValue === undefined) {
+  //dayjs value should only happen for for written date questions in preview, as the value is stored as a dayjs object in the form state.
+  //For options date questions, the value is stored as a string of format DD/MM/YYYY in the form state.
+  //For assessments, the value is stored as a string of format DD/MM/YYYY in the database.
+  if (
+    rawValue === null ||
+    rawValue === undefined ||
+    (dayjs.isDayjs(rawValue) && !rawValue.isValid())
+  ) {
     return { kind: "none" };
   }
 
@@ -130,6 +136,17 @@ export const resolveQuestionValue = (
     return { kind: "text", values: [trimmedValue] };
   }
 
+  if (dayjs.isDayjs(rawValue)) {
+    switch (question.characterType) {
+      case "DATE":
+        return { kind: "text", values: [rawValue.format("DD/MM/YYYY")] };
+      case "TIME":
+        return { kind: "text", values: [rawValue.format("HH:mm")] };
+      case "DATETIME":
+        return { kind: "text", values: [rawValue.format("DD/MM/YYYY HH:mm")] };
+    }
+  }
+
   return { kind: "none" };
 };
 
@@ -137,5 +154,8 @@ export const resolveAssessmentQuestionValue = (
   assessment: AssessmentTree,
   question: AssessmentQuestionItem,
 ): ResolvedQuestionValue => {
-  return resolveQuestionValue(question, getQuestionRawValue(assessment, question));
+  return resolveQuestionValue(
+    question,
+    getQuestionRawValue(assessment, question),
+  );
 };
