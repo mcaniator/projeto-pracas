@@ -52,7 +52,9 @@ import {
   IconTrash,
   IconUser,
 } from "@tabler/icons-react";
+import { assessmentImportDataSchema } from "@zodValidators";
 import { Dayjs } from "dayjs";
+import JSZip from "jszip";
 import {
   ChangeEvent,
   forwardRef,
@@ -375,41 +377,64 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     };
 
     const importData = async (e: ChangeEvent<HTMLInputElement>) => {
-      //TODO: Add validation with Zod
       const file = e.target.files?.[0];
       if (!file) return;
       try {
-        const text = await file.text();
-        const parsed = JSON.parse(text) as unknown;
+        const zip = await JSZip.loadAsync(file);
+        const manifestFile = zip.file("assessment.json");
+        if (!manifestFile) throw new Error("Manifesto não encontrado");
+        const manifest = await manifestFile.async("string");
 
-        if (!parsed || typeof parsed !== "object") {
-          throw new Error();
-        }
+        const importedData = assessmentImportDataSchema.parse(
+          JSON.parse(manifest),
+        );
+        const importedImages: ResponseFormImages = Object.fromEntries(
+          await Promise.all(
+            Object.entries(importedData.responseImages).map(
+              async ([questionId, images]) =>
+                [
+                  questionId,
+                  await Promise.all(
+                    images.map(async (image) => {
+                      const imageEntry =
+                        image.path ? zip.file(image.path) : null;
+                      if (image.path && !imageEntry) {
+                        throw new Error(`Imagem ausente: ${image.path}`);
+                      }
+                      const imageBytes = await imageEntry?.async("arraybuffer");
 
-        const importedData = parsed as {
-          assessmentId: number;
-          responses: SerializedFormValues;
-          geometries?: ResponseFormGeometry[];
-          responseImages?: ResponseFormImages;
-          endDate: string | null;
-          isFinalized: boolean;
-          startDate: string;
-          driveFolderUrl: string | null;
-        };
-
-        if (importedData.responses) {
-          reset(
-            deserializeResponseFormValues(
-              importedData.responses,
-              assessmentTree.categories,
+                      return {
+                        file:
+                          imageBytes ?
+                            new File([imageBytes], image.name, {
+                              type: image.type,
+                              lastModified: image.lastModified,
+                            })
+                          : undefined,
+                        url: image.url,
+                        status: image.status,
+                      };
+                    }),
+                  ),
+                ] as const,
             ),
-          );
-        }
+          ),
+        );
 
-        const incomingGeoms = importedData.geometries ?? [];
+        reset(
+          deserializeResponseFormValues(
+            importedData.responses,
+            assessmentTree.categories,
+          ),
+        );
+
+        const incomingGeoms = importedData.geometries;
         nonResponseItemsIsDirtyRef.current = true;
         setGeometries(incomingGeoms);
-        setResponseImages(importedData.responseImages ?? {});
+        setResponseImages(importedImages);
+        geometriesRef.current = incomingGeoms;
+        responseImagesRef.current = importedImages;
+        serializedFormValuesRef.current = importedData.responses;
 
         const startDate = dayjs(importedData.startDate);
         setStartDate(startDate);
@@ -435,6 +460,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           helperCardType: "ERROR",
           content: <>Arquivo inválido!</>,
         });
+      } finally {
+        e.target.value = "";
       }
     };
 

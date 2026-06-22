@@ -492,6 +492,65 @@ const tallyImportDataSchema = z.object({
   isFinalized: z.boolean().optional(),
 });
 
+const serializedAssessmentResponseSchema = z.union([
+  z.string(),
+  z.number().finite(),
+  z.boolean(),
+  z.null(),
+  z.object({
+    value: z.number().finite(),
+    override: z.string().nullable(),
+  }),
+  z.array(
+    z.object({
+      value: z.number().finite(),
+      override: z.string().nullable(),
+    }),
+  ),
+]);
+
+const assessmentExportImageSchema = z
+  .object({
+    path: z.string().min(1).optional(),
+    name: z.string().min(1),
+    type: z.string(),
+    lastModified: z.number().int().nonnegative(),
+    url: z.string().optional(),
+    status: z.enum(["SYNCED", "UNSYNCED"]),
+  })
+  .refine((image) => image.path || image.url, {
+    message: "A imagem deve possuir um arquivo ou URL",
+  });
+
+const assessmentImportDataSchema = z.object({
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime().nullable(),
+  isFinalized: z.boolean(),
+  assessmentId: z.number().int().positive(),
+  responses: z.record(serializedAssessmentResponseSchema),
+  geometries: z.array(
+    z.object({
+      questionId: z.number().int().positive(),
+      geometries: z.array(
+        z.union([
+          z.object({
+            type: z.literal("Point"),
+            coordinates: z.array(z.number().finite()).min(2),
+          }),
+          z.object({
+            type: z.literal("Polygon"),
+            coordinates: z.array(
+              z.array(z.array(z.number().finite()).min(2)).min(1),
+            ),
+          }),
+        ]),
+      ),
+    }),
+  ),
+  driveFolderUrl: z.string().nullable(),
+  responseImages: z.record(z.array(assessmentExportImageSchema)),
+});
+
 type Tally = z.infer<typeof tallySchema>;
 type personType = z.infer<typeof personSchema>;
 type TallyPerson = z.infer<typeof tallyPersonSchema>;
@@ -512,6 +571,7 @@ export {
   tallysExportIndividualTallysSchema,
   finalizedTallyArraySchema,
   tallyImportDataSchema,
+  assessmentImportDataSchema,
 };
 export type {
   personType,

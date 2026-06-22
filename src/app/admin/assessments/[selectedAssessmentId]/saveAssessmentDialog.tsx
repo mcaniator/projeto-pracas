@@ -18,8 +18,86 @@ import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/asses
 import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
 import { useServerAction } from "@/lib/utils/useServerAction";
 import { Dayjs } from "dayjs";
+import JSZip from "jszip";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
+
+const imageExtensionsByMimeType: Record<string, readonly string[]> = {
+  "image/avif": ["avif"],
+  "image/bmp": ["bmp"],
+  "image/gif": ["gif"],
+  "image/heic": ["heic"],
+  "image/heif": ["heif"],
+  "image/jpeg": ["jpg", "jpeg", "jfif"],
+  "image/jpg": ["jpg", "jpeg"],
+  "image/png": ["png"],
+  "image/svg+xml": ["svg"],
+  "image/tiff": ["tif", "tiff"],
+  "image/webp": ["webp"],
+};
+
+const ensureImageFileExtension = (name: string, mimeType: string) => {
+  const validExtensions = imageExtensionsByMimeType[mimeType.toLowerCase()];
+  if (!validExtensions) return name;
+
+  const currentExtension = name.match(/\.([^.]+)$/)?.[1]?.toLowerCase();
+  if (currentExtension && validExtensions.includes(currentExtension)) {
+    return name;
+  }
+
+  const nameWithoutExtension =
+    currentExtension ? name.slice(0, -currentExtension.length - 1) : name;
+  return `${nameWithoutExtension}.${validExtensions[0]}`;
+};
+
+const normalizeToSnakeCase = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const normalizeImageFileName = (name: string) => {
+  const extensionStart = name.lastIndexOf(".");
+  const extension = name
+    .slice(extensionStart + 1)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  if (extensionStart <= 0) return normalizeToSnakeCase(name) || "imagem";
+
+  const normalizedName = normalizeToSnakeCase(name.slice(0, extensionStart));
+
+  return extension ?
+      `${normalizedName || "imagem"}.${extension}`
+    : normalizedName;
+};
+
+const normalizeQuestionFolderName = (name: string, questionId: number) => {
+  const normalizedName = normalizeToSnakeCase(name)
+    .slice(0, 20)
+    .replace(/_+$/g, "");
+
+  return normalizedName || `questao_${questionId}`;
+};
+
+const buildQuestionFolderNameById = (categories: AssessmentCategoryItem[]) => {
+  const folderNameById = new Map<number, string>();
+
+  categories.forEach((category) => {
+    category.categoryChildren.forEach((child) => {
+      const questions = "questions" in child ? child.questions : [child];
+      questions.forEach((question) => {
+        folderNameById.set(
+          question.questionId,
+          normalizeQuestionFolderName(question.name, question.questionId),
+        );
+      });
+    });
+  });
+
+  return folderNameById;
+};
 
 const SaveAssessmentDialog = ({
   open,
@@ -162,25 +240,70 @@ const SaveAssessmentDialog = ({
     setLoadingOverlay({ show: false });
   };
 
-  const generateExport = () => {
+  const generateExport = async () => {
+    setLoadingOverlay({ show: true, message: "Gerando arquivo da avaliação" });
+
+    const zip = new JSZip();
+    const questionFolderNameById = buildQuestionFolderNameById(categories);
+    const exportedImages = Object.fromEntries(
+      Object.entries(responseImages).map(
+        ([questionId, images]) =>
+          [
+            questionId,
+            images.map((image, imageIndex) => {
+              const fallbackName = `imagem-${imageIndex + 1}`;
+              const name = ensureImageFileExtension(
+                image.file?.name || fallbackName,
+                image.file?.type ?? "",
+              );
+              const safeName = normalizeImageFileName(name);
+              const questionFolderName =
+                questionFolderNameById.get(Number(questionId)) ??
+                `questao_${questionId}`;
+              const path =
+                image.file ?
+                  `images/${questionId}_${questionFolderName}/${imageIndex}-${safeName}`
+                : undefined;
+
+              if (image.file && path) {
+                zip.file(path, image.file);
+              }
+
+              return {
+                path,
+                name,
+                type: image.file?.type ?? "",
+                lastModified: image.file?.lastModified ?? 0,
+                url: image.url,
+                status: image.status,
+              };
+            }),
+          ] as const,
+      ),
+    );
+
     const data = {
-      startDate: startDate,
-      endDate: endDate ?? null,
+      startDate: startDate.toISOString(),
+      endDate: endDate?.toISOString() ?? null,
       isFinalized: isFinalized,
       assessmentId: assessmentId,
       responses: serializeResponseFormValues(formValues, categories),
       geometries: geometries,
       driveFolderUrl: driveFolderUrl,
+      responseImages: exportedImages,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
+
+    zip.file("assessment.json", JSON.stringify(data, null, 2));
+    const blob = await zip.generateAsync({
+      type: "blob",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `avaliação_${locationName}_${new Date().toISOString()}.json`;
+    a.download = `avaliação_${locationName}_${new Date().toISOString()}.zip`;
     a.click();
     URL.revokeObjectURL(url);
+    setLoadingOverlay({ show: false });
   };
 
   useEffect(() => {
@@ -198,7 +321,14 @@ const SaveAssessmentDialog = ({
       confirmChildren={enableJsonSaving ? <>Salvar offline</> : <>Salvar</>}
       onConfirm={() => {
         if (enableJsonSaving) {
-          generateExport();
+          void generateExport().catch(() => {
+            setLoadingOverlay({ show: false });
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Erro ao gerar arquivo da avaliação!</>,
+            });
+          });
         } else {
           void save();
         }

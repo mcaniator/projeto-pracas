@@ -40,6 +40,7 @@
     "dexie": "^4.4.3",
     "fuse.js": "^7.0.0",
     "googleapis": "^173.0.0",
+    "jszip": "^3.10.1",
     "mathjs": "^14.7.0",
     "next-auth": "5.0.0-beta.25",
     "next-nprogress-bar": "2.3.15",

@@ -15,7 +15,7 @@ const AssessmentImportDataDialog = ({
     <CDialog title="Importar avaliação" open={open} onClose={onClose}>
       <p>Importar dados da avaliação a partir de um arquivo</p>
       <CButtonFilePicker
-        fileAccept="application/json"
+        fileAccept=".zip,application/zip"
         onFileInput={onFileInput}
       >
         <IconFileUpload /> Importar

@@ -25,6 +25,9 @@ export const uploadImageResponse = async ({
   responseInfo: APIResponseInfo;
   data?: UploadImageResponseData | null;
 }> => {
+  //Unused because of problems with the Google API.
+  //We cannot use the Google Drive API because it refresh of OAuth token.
+  //TODO: Save the image locally.
   try {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
