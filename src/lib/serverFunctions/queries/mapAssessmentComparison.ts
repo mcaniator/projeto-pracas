@@ -391,6 +391,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
             formItems: {
               where: {
                 categoryId,
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
               },
               orderBy: {
                 position: "asc",

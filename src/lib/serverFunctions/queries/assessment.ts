@@ -158,6 +158,15 @@ const fetchAssessmentTree = async (params: {
               },
             },
             formItems: {
+              where:
+                params.isPublic ?
+                  {
+                    OR: [
+                      { questionId: null },
+                      { question: { isPublic: params.isPublic } },
+                    ],
+                  }
+                : {},
               orderBy: { position: "asc" },
               include: {
                 category: {
@@ -176,6 +185,9 @@ const fetchAssessmentTree = async (params: {
                   },
                 },
                 question: {
+                  where: {
+                    isPublic: params.isPublic,
+                  },
                   select: {
                     id: true,
                     name: true,
