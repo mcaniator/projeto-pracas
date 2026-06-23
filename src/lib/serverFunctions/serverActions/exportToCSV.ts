@@ -239,6 +239,7 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         id: true,
         questionId: true,
         assessmentId: true,
+        overrideValue: true,
         option: {
           select: {
             id: true,
@@ -468,10 +469,14 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                           r.questionId === question.questionId,
                       )
                       .map((r) => {
+                        const resolvedValue =
+                          r.overrideValue && r.overrideValue.length > 0 ?
+                            r.overrideValue
+                          : r.option?.text;
                         if (question.characterType === "PERCENTAGE") {
-                          return r.option?.text + "%";
+                          return resolvedValue + "%";
                         }
-                        return r.option?.text;
+                        return resolvedValue;
                       })
                       .join(" / ") || "";
                 } else if (question.questionType === "BOOLEAN") {
@@ -510,10 +515,14 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                         r.questionId === child.questionId,
                     )
                     .map((r) => {
+                      const resolvedValue =
+                        r.overrideValue && r.overrideValue.length > 0 ?
+                          r.overrideValue
+                        : r.option?.text;
                       if (child.characterType === "PERCENTAGE") {
-                        return r.option?.text + "%";
+                        return resolvedValue + "%";
                       }
-                      return r.option?.text;
+                      return resolvedValue;
                     })
                     .join(" / ") || "";
               } else if (child.questionType === "BOOLEAN") {

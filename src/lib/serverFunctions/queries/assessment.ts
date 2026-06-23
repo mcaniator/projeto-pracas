@@ -55,6 +55,19 @@ export type AssessmentCategoryItem = {
   categoryChildren: (AssessmentQuestionItem | AssessmentSubcategoryItem)[];
 };
 
+export const filterEmptyAssessmentCategories = (
+  categories: AssessmentCategoryItem[],
+): AssessmentCategoryItem[] =>
+  categories
+    .map((category) => ({
+      ...category,
+      categoryChildren: category.categoryChildren.filter(
+        (child) =>
+          !FormItemUtils.isSubcategoryType(child) || child.questions.length > 0,
+      ),
+    }))
+    .filter((category) => category.categoryChildren.length > 0);
+
 export type FetchRecentlyCompletedAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchRecentlyCompletedAssessments>>["data"]
 >;
@@ -158,6 +171,15 @@ const fetchAssessmentTree = async (params: {
               },
             },
             formItems: {
+              where:
+                params.isPublic ?
+                  {
+                    OR: [
+                      { questionId: null },
+                      { question: { isPublic: params.isPublic } },
+                    ],
+                  }
+                : {},
               orderBy: { position: "asc" },
               include: {
                 category: {
@@ -176,6 +198,9 @@ const fetchAssessmentTree = async (params: {
                   },
                 },
                 question: {
+                  where: {
+                    isPublic: params.isPublic,
+                  },
                   select: {
                     id: true,
                     name: true,
@@ -420,6 +445,7 @@ const fetchAssessmentTree = async (params: {
           child.questions.sort((a, b) => a.position - b.position);
       });
     });
+    const nonEmptyCategories = filterEmptyAssessmentCategories(categories);
 
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
@@ -503,7 +529,7 @@ const fetchAssessmentTree = async (params: {
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
           geometries: geometries,
-          categories: categories,
+          categories: nonEmptyCategories,
         },
       },
     };
@@ -812,6 +838,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           child.questions.sort((a, b) => a.position - b.position);
       });
     });
+    const nonEmptyCategories = filterEmptyAssessmentCategories(categories);
 
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
@@ -892,7 +919,7 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           totalQuestions: totalQuestions,
           responsesFormValues: responsesFormValues,
           geometries: geometries,
-          categories: categories,
+          categories: nonEmptyCategories,
         },
       },
     };

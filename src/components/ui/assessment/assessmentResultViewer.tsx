@@ -13,6 +13,7 @@ import { Divider } from "@mui/material";
 import { IconInfoCircle } from "@tabler/icons-react";
 import {
   type AssessmentTree,
+  resolveAssessmentQuestionGeometries,
   resolveAssessmentQuestionValue,
 } from "@utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { useMemo } from "react";
@@ -140,6 +141,8 @@ const QuestionValues = ({
       <QuestionResponseRenderer
         question={question}
         resolvedValue={resolvedValue}
+        geometries={resolveAssessmentQuestionGeometries(assessment, question)}
+        locationPolygonGeoJson={assessment.location?.st_asgeojson ?? null}
       />
     </div>
   );

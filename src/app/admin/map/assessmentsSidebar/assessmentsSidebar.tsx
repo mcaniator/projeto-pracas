@@ -1,0 +1,472 @@
+"use client";
+
+import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
+import CImage from "@/components/ui/CImage";
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import CAccordion from "@/components/ui/accordion/CAccordion";
+import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
+import CAutocomplete from "@/components/ui/cAutoComplete";
+import CButton from "@/components/ui/cButton";
+import CCheckbox from "@/components/ui/cCheckbox";
+import CSwitch from "@/components/ui/cSwtich";
+import CTextField from "@/components/ui/cTextField";
+import { useFetchMapAssessmentComparisonCategories } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
+import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
+import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import {
+  FetchMapAssessmentComparisonCategoriesResponse,
+  FetchMapAssessmentComparisonResultsResponse,
+  MapAssessmentComparisonCategory,
+  MapAssessmentComparisonLocation,
+} from "@/lib/serverFunctions/queries/mapAssessmentComparison";
+import { Chip, Divider } from "@mui/material";
+import { BrazilianStates } from "@prisma/client";
+import {
+  IconAlertTriangle,
+  IconChartBar,
+  IconFilter,
+  IconTree,
+} from "@tabler/icons-react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
+
+import AssessmentComparisonDialog from "./assessmentComparisonDialog";
+
+export type AssessmentsSidebarProps = {
+  citiesOptions: FetchCitiesResponse["cities"] | null;
+  filter: LocationsMapClientFilter;
+  loadingCities: boolean;
+  loadingLocations: boolean;
+  locationCategories: FetchLocationCategoriesResponse["categories"];
+  locations: FetchMapAssessmentComparisonResultsResponse["locations"];
+  locationTypes: FetchLocationTypesResponse["types"];
+  selectedCity: FetchCitiesResponse["cities"][number] | null;
+  selectedCategory: MapAssessmentComparisonCategory | null;
+  selectedLocationIds: Set<number>;
+  setCity: Dispatch<
+    SetStateAction<FetchCitiesResponse["cities"][number] | null>
+  >;
+  setFilter: Dispatch<SetStateAction<LocationsMapClientFilter>>;
+  setLoadingCategories: Dispatch<SetStateAction<boolean>>;
+  setSelectedCategory: Dispatch<
+    SetStateAction<MapAssessmentComparisonCategory | null>
+  >;
+  setSelectedLocationIds: Dispatch<SetStateAction<Set<number>>>;
+  setState: Dispatch<SetStateAction<BrazilianStates>>;
+  state: BrazilianStates;
+};
+
+const AssessmentsSidebar = ({
+  citiesOptions,
+  loadingCities,
+  locationCategories,
+  locations,
+  locationTypes,
+  selectedCity,
+  selectedCategory,
+  loadingLocations,
+  selectedLocationIds,
+  setCity,
+  setFilter,
+  setLoadingCategories,
+  setSelectedCategory,
+  setSelectedLocationIds,
+  setState,
+  state,
+  filter,
+}: AssessmentsSidebarProps) => {
+  const [categories, setCategories] = useState<
+    FetchMapAssessmentComparisonCategoriesResponse["categories"]
+  >([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const [fetchCategories, fetchingCategories] =
+    useFetchMapAssessmentComparisonCategories({
+      callbacks: {
+        onSuccess: (response) => {
+          const nextCategories = response.data?.categories ?? [];
+          setCategories(nextCategories);
+          setSelectedCategory(
+            (current) => current ?? nextCategories[0] ?? null,
+          );
+        },
+      },
+    });
+
+  useEffect(() => {
+    void fetchCategories({});
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    setLoadingCategories(fetchingCategories);
+  }, [fetchingCategories, setLoadingCategories]);
+
+  useEffect(() => {
+    return () => setLoadingCategories(false);
+  }, [setLoadingCategories]);
+
+  const broadUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.broadAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.broadAdministrativeUnit]);
+  const intermediateUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.intermediateAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.intermediateAdministrativeUnit]);
+  const narrowUnits = useMemo(() => {
+    return [
+      ...(selectedCity?.narrowAdministrativeUnit ?? []),
+      { id: -1, name: "NENHUMA" },
+    ];
+  }, [selectedCity?.narrowAdministrativeUnit]);
+
+  const locationCategoriesOptions = useMemo(() => {
+    return [...locationCategories, { id: -1, name: "NENHUMA" }];
+  }, [locationCategories]);
+  const locationTypesOptions = useMemo(() => {
+    return [...locationTypes, { id: -1, name: "NENHUMA" }];
+  }, [locationTypes]);
+
+  const hasAnyResult = locations.some(
+    (location) => location.hasAssessmentsForSelectedCategory,
+  );
+
+  const selectedLocations = useMemo(() => {
+    return locations.filter(
+      (location) =>
+        selectedLocationIds.has(location.id) &&
+        location.hasAssessmentsForSelectedCategory,
+    );
+  }, [locations, selectedLocationIds]);
+
+  const toggleLocation = (location: MapAssessmentComparisonLocation) => {
+    if (!location.hasAssessmentsForSelectedCategory) return;
+    setSelectedLocationIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(location.id)) {
+        next.delete(location.id);
+      } else {
+        next.add(location.id);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div className="flex h-full max-h-full flex-col gap-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex">
+        <CAutocomplete
+          className="w-32"
+          label="Estado"
+          disableClearable
+          options={Object.values(BrazilianStates)}
+          value={state}
+          onChange={(_, v) => setState(v)}
+        />
+        <CAutocomplete
+          className="w-full"
+          label="Cidade"
+          loading={loadingCities}
+          value={
+            citiesOptions?.find((c) => c.id === selectedCity?.id) ?? {
+              id: -1,
+              name: "Nenhuma cidade selecionada",
+              state,
+              broadAdministrativeUnit: [],
+              intermediateAdministrativeUnit: [],
+              narrowAdministrativeUnit: [],
+              broadAdministrativeUnitTitle: null,
+              intermediateAdministrativeUnitTitle: null,
+              narrowAdministrativeUnitTitle: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+          }
+          disableClearable
+          options={citiesOptions ?? []}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          getOptionLabel={(option) => option.name}
+          onChange={(_, v) => setCity(v)}
+        />
+      </div>
+
+      <CAutocomplete
+        label="Categoria de avaliação"
+        loading={fetchingCategories}
+        options={categories}
+        value={selectedCategory}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        getOptionLabel={(option) => option.name}
+        onChange={(_, value) => setSelectedCategory(value)}
+      />
+
+      <CAccordion
+        sx={{
+          "&.Mui-expanded": {
+            margin: 0,
+          },
+        }}
+      >
+        <CAccordionSummary>
+          <div className="flex flex-row items-center">
+            <IconFilter /> Filtros
+          </div>
+        </CAccordionSummary>
+        <CAccordionDetails>
+          <div className="flex flex-col gap-1">
+            {!!selectedCity?.broadAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity.broadAdministrativeUnitTitle}
+                options={broadUnits}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  broadUnits.find(
+                    (unit) => unit.id === filter.broadAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, value) =>
+                  setFilter((prev) => ({
+                    ...prev,
+                    broadAdministrativeUnitId: value?.id ?? null,
+                  }))
+                }
+              />
+            )}
+            {!!selectedCity?.intermediateAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity.intermediateAdministrativeUnitTitle}
+                options={intermediateUnits}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  intermediateUnits.find(
+                    (unit) =>
+                      unit.id === filter.intermediateAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, value) =>
+                  setFilter((prev) => ({
+                    ...prev,
+                    intermediateAdministrativeUnitId: value?.id ?? null,
+                  }))
+                }
+              />
+            )}
+            {!!selectedCity?.narrowAdministrativeUnitTitle && (
+              <CAutocomplete
+                label={selectedCity.narrowAdministrativeUnitTitle}
+                options={narrowUnits}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                loading={loadingCities}
+                value={
+                  narrowUnits.find(
+                    (unit) => unit.id === filter.narrowAdministrativeUnitId,
+                  ) ?? null
+                }
+                onChange={(_, value) =>
+                  setFilter((prev) => ({
+                    ...prev,
+                    narrowAdministrativeUnitId: value?.id ?? null,
+                  }))
+                }
+              />
+            )}
+            <CAutocomplete
+              label="Categoria da praça"
+              options={locationCategoriesOptions}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              getOptionLabel={(option) => option.name}
+              value={
+                locationCategoriesOptions.find(
+                  (category) => category.id === filter.categoryId,
+                ) ?? null
+              }
+              onChange={(_, value) =>
+                setFilter((prev) => ({
+                  ...prev,
+                  categoryId: value?.id ?? null,
+                }))
+              }
+            />
+            <CAutocomplete
+              label="Tipo"
+              options={locationTypesOptions}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              getOptionLabel={(option) => option.name}
+              value={
+                locationTypesOptions.find(
+                  (type) => type.id === filter.typeId,
+                ) ?? null
+              }
+              onChange={(_, value) =>
+                setFilter((prev) => ({
+                  ...prev,
+                  typeId: value?.id ?? null,
+                }))
+              }
+            />
+            <CSwitch
+              label="Apenas visibilidade pública"
+              checked={filter.onlyPublic}
+              onChange={(_, checked) =>
+                setFilter((prev) => ({ ...prev, onlyPublic: checked }))
+              }
+            />
+          </div>
+        </CAccordionDetails>
+      </CAccordion>
+
+      <CTextField
+        label="Nome"
+        value={filter.name}
+        clearable
+        debounce={500}
+        onChange={(event) => {
+          setFilter((prev) => ({ ...prev, name: event.target.value }));
+        }}
+      />
+
+      {(loadingLocations || fetchingCategories) && (
+        <div className="flex w-full flex-col justify-center text-lg">
+          <CLinearProgress
+            label={
+              fetchingCategories ?
+                "Carregando categorias..."
+              : "Carregando praças..."
+            }
+          />
+        </div>
+      )}
+
+      {selectedCategory &&
+        !loadingLocations &&
+        locations.length > 0 &&
+        !hasAnyResult && (
+          <Chip
+            color="warning"
+            icon={<IconAlertTriangle />}
+            label="Nenhuma praça filtrada foi avaliada nesta categoria."
+          />
+        )}
+
+      {!selectedCategory && !fetchingCategories && (
+        <div className="rounded border border-dashed border-gray-300 p-3 text-sm text-gray-600">
+          Nenhuma categoria de avaliação pública encontrada.
+        </div>
+      )}
+      <Divider />
+      <Virtuoso
+        data={locations}
+        components={{
+          EmptyPlaceholder: () => {
+            if (loadingLocations || fetchingCategories) {
+              return;
+            }
+            return <div>Nenhuma praça encontrada!</div>;
+          },
+        }}
+        style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
+        itemContent={(_, location) => {
+          const isSelected = selectedLocationIds.has(location.id);
+          const isComparable = location.hasAssessmentsForSelectedCategory;
+
+          return (
+            <div className="pb-2">
+              <div
+                onClick={() => toggleLocation(location)}
+                className={`relative flex h-24 shrink-0 items-end overflow-hidden rounded-xl border shadow-sm transition ${
+                  isComparable ?
+                    "cursor-pointer hover:scale-[1.02] hover:shadow-md"
+                  : "cursor-not-allowed opacity-75"
+                }`}
+              >
+                {location.mainImage ?
+                  <CImage
+                    src={location.mainImage}
+                    alt={location.name}
+                    fill
+                    className="absolute inset-0 h-full w-full scale-110 object-cover blur-sm"
+                  />
+                : <div className="absolute inset-0 bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400">
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                      <IconTree size={48} />
+                    </div>
+                  </div>
+                }
+
+                <div className="absolute left-2 top-2 z-20 rounded-md bg-white/95 text-black shadow">
+                  <CCheckbox
+                    checked={isSelected}
+                    disabled={!isComparable}
+                    formControlLabelSx={{
+                      margin: 0,
+                    }}
+                    sx={{
+                      margin: 0,
+                      padding: 0,
+                    }}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={() => toggleLocation(location)}
+                  />
+                </div>
+
+                {!isComparable && (
+                  <div className="absolute right-2 top-2 z-20">
+                    <Chip color="warning" size="small" label="Sem avaliação" />
+                  </div>
+                )}
+
+                <div
+                  className={`absolute inset-0 ${
+                    isSelected ? "bg-black/30" : "bg-black/50"
+                  }`}
+                />
+
+                <div className="relative z-10 p-3 text-white">
+                  <div className="text-sm font-semibold leading-tight">
+                    {location.name}
+                  </div>
+                  <div className="text-xs text-white/80">
+                    {location.popularName}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }}
+      />
+      <Divider />
+      <div className="flex w-full items-center justify-center pt-2">
+        <div className="w-fit">
+          <CButton
+            disabled={selectedLocations.length === 0}
+            onClick={() => setDialogOpen(true)}
+            enableTopLeftChip
+            topLeftChipLabel={selectedLocations.length}
+          >
+            <IconChartBar /> Comparar
+          </CButton>
+        </div>
+      </div>
+
+      <AssessmentComparisonDialog
+        category={selectedCategory}
+        locations={selectedLocations}
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+      />
+    </div>
+  );
+};
+
+export default AssessmentsSidebar;

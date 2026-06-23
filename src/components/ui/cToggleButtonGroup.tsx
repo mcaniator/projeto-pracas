@@ -1,4 +1,4 @@
-import { SxProps, Theme, Tooltip } from "@mui/material";
+import { SxProps, Theme, Tooltip, TooltipProps } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup, {
   ToggleButtonGroupProps,
@@ -14,6 +14,7 @@ type CToggleButtonGroupProps<T> = Omit<
   mapValues?: boolean;
   toggleButtonSx?: SxProps<Theme>;
   toggleButtonColor?: string;
+  tooltipPlacement?: TooltipProps["placement"];
   getLabel?: (option: T) => React.ReactNode;
   getValue?: (option: T) => string | number;
   getTooltip?: (option: T) => string;
@@ -25,6 +26,7 @@ function CToggleButtonGroup<T>({
   mapValues = true,
   toggleButtonSx,
   toggleButtonColor,
+  tooltipPlacement,
   getLabel,
   getValue,
   onChange,
@@ -72,7 +74,11 @@ function CToggleButtonGroup<T>({
         {options.map((option, index) => (
           <>
             {getTooltip ?
-              <Tooltip key={index} title={getTooltip(option)}>
+              <Tooltip
+                key={index}
+                placement={tooltipPlacement}
+                title={getTooltip(option)}
+              >
                 <ToggleButton
                   value={String(option)}
                   sx={computedToggleButtonSx}
@@ -110,7 +116,12 @@ function CToggleButtonGroup<T>({
       >
         {options.map((option, index) =>
           getTooltip ?
-            <Tooltip key={index} title={getTooltip(option)} enterTouchDelay={0}>
+            <Tooltip
+              key={index}
+              title={getTooltip(option)}
+              placement={tooltipPlacement}
+              enterTouchDelay={0}
+            >
               <ToggleButton
                 key={String(getValue(option))}
                 value={getValue(option)}
