@@ -9,11 +9,21 @@ import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
 } from "@/lib/serverFunctions/queries/assessment";
+import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import dayjs from "dayjs";
 
 export type AssessmentTree = {
   categories: AssessmentCategoryItem[];
   responsesFormValues: FormValues;
+  location?: {
+    id: number;
+    name: string;
+    st_asgeojson?: string | null;
+  };
+  geometries: {
+    questionId: number;
+    geometries: ResponseGeometry[];
+  }[];
 };
 
 const getQuestionRawValue = (
@@ -157,5 +167,15 @@ export const resolveAssessmentQuestionValue = (
   return resolveQuestionValue(
     question,
     getQuestionRawValue(assessment, question),
+  );
+};
+
+export const resolveAssessmentQuestionGeometries = (
+  assessment: AssessmentTree,
+  question: AssessmentQuestionItem,
+): ResponseGeometry[] => {
+  return (
+    assessment.geometries.find((g) => g.questionId === question.questionId)
+      ?.geometries ?? []
   );
 };

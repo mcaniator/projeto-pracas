@@ -6,16 +6,19 @@ import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { Pie } from "react-chartjs-2";
 
 import AssessmentQuestionIcon from "./assessmentQuestionIcon";
+import type { AssessmentQuestionIconGeometryProps } from "./assessmentQuestionIcon";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const AssessmentPercentageValueRenderer = ({
   question,
   value,
+  hasGeometries,
+  onMapChipClick,
 }: {
   question: AssessmentQuestionItem;
   value: number;
-}) => {
+} & AssessmentQuestionIconGeometryProps) => {
   const boundedValue = Math.max(0, Math.min(100, value));
   const percentageData = {
     labels: [`${question.name}`, ``],
@@ -30,7 +33,12 @@ export const AssessmentPercentageValueRenderer = ({
 
   return (
     <div className="flex items-center gap-1">
-      <AssessmentQuestionIcon question={question} hasValue={value !== 0} />
+      <AssessmentQuestionIcon
+        question={question}
+        hasValue={value !== 0}
+        hasGeometries={hasGeometries}
+        onMapChipClick={onMapChipClick}
+      />
       <Box
         sx={{
           width: 128,

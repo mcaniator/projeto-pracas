@@ -1,4 +1,7 @@
-import { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
+import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { Coordinate } from "ol/coordinate";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
@@ -221,6 +224,55 @@ export type MapAssessmentComparisonAssessmentTree = {
   startDate: Date;
   categories: AssessmentCategoryItem[];
   responsesFormValues: FormValues;
+  geometries: { questionId: number; geometries: ResponseGeometry[] }[];
+};
+
+const parseAssessmentGeometries = (
+  geometry: string | null,
+): ResponseGeometry[] => {
+  if (!geometry) return [];
+
+  const parsedGeometries: ResponseGeometry[] = [];
+  const geometriesWithoutCollection = geometry
+    .replace("GEOMETRYCOLLECTION(", "")
+    .slice(0, -1);
+  const geometriesWkt = geometriesWithoutCollection.match(
+    /(?:POINT|POLYGON)\([^)]*\)+/g,
+  );
+
+  geometriesWkt?.forEach((geometryWkt) => {
+    if (geometryWkt.startsWith("POINT")) {
+      parsedGeometries.push({
+        type: "Point",
+        coordinates: geometryWkt
+          .replace("POINT(", "")
+          .replace(")", "")
+          .split(" ")
+          .map(Number),
+      });
+      return;
+    }
+
+    const rings: Coordinate[][] = geometryWkt
+      .replace("POLYGON(", " ")
+      .slice(0, -1)
+      .split("),(")
+      .map((ring) =>
+        ring
+          .split(",")
+          .map((point) =>
+            point
+              .replace("(", "")
+              .replace(")", "")
+              .trim()
+              .split(" ")
+              .map(Number),
+          ),
+      );
+    parsedGeometries.push({ type: "Polygon", coordinates: rings });
+  });
+
+  return parsedGeometries;
 };
 
 export type FetchMapAssessmentComparisonAssessmentTreesResponse = NonNullable<
@@ -427,6 +479,22 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
     });
 
     const locationsById = new Map<number, { id: number; name: string }>();
+    const rawGeometries = (
+      await fetchAssessmentsGeometries(assessmentIds)
+    ).flat();
+    const geometriesByAssessmentId = new Map<
+      number,
+      { questionId: number; geometries: ResponseGeometry[] }[]
+    >();
+    rawGeometries.forEach((geometry) => {
+      const assessmentGeometries =
+        geometriesByAssessmentId.get(geometry.assessmentId) ?? [];
+      assessmentGeometries.push({
+        questionId: geometry.questionId,
+        geometries: parseAssessmentGeometries(geometry.geometry),
+      });
+      geometriesByAssessmentId.set(geometry.assessmentId, assessmentGeometries);
+    });
     const assessmentTreesByLocationId = new Map<
       number,
       MapAssessmentComparisonAssessmentTree[]
@@ -436,6 +504,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
       locationsById.set(assessment.location.id, assessment.location);
       const assessmentTree = buildMapAssessmentComparisonAssessmentTree({
         assessment,
+        geometries: geometriesByAssessmentId.get(assessment.id) ?? [],
       });
       const locationAssessmentTrees =
         assessmentTreesByLocationId.get(assessment.location.id) ?? [];
@@ -475,8 +544,10 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
 
 const buildMapAssessmentComparisonAssessmentTree = ({
   assessment,
+  geometries,
 }: {
   assessment: MapAssessmentComparisonAssessmentQueryResult;
+  geometries: { questionId: number; geometries: ResponseGeometry[] }[];
 }): MapAssessmentComparisonAssessmentTree => {
   const categories: AssessmentCategoryItem[] = [];
   const responsesFormValues: FormValues = {};
@@ -644,5 +715,6 @@ const buildMapAssessmentComparisonAssessmentTree = ({
     startDate: assessment.startDate,
     categories,
     responsesFormValues,
+    geometries,
   };
 };

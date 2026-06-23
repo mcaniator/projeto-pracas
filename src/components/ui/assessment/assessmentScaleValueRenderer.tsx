@@ -1,15 +1,19 @@
 import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import { Box } from "@mui/material";
 import { IconChevronDown } from "@tabler/icons-react";
+
 import AssessmentQuestionIcon from "./assessmentQuestionIcon";
+import type { AssessmentQuestionIconGeometryProps } from "./assessmentQuestionIcon";
 
 export const AssessmentScaleValueRenderer = ({
   question,
   value,
+  hasGeometries,
+  onMapChipClick,
 }: {
   question: AssessmentQuestionItem;
   value: number;
-}) => {
+} & AssessmentQuestionIconGeometryProps) => {
   if (!question.scaleConfig) return null;
   const { minValue, maxValue } = question.scaleConfig;
 
@@ -20,7 +24,12 @@ export const AssessmentScaleValueRenderer = ({
 
   return (
     <div className="flex w-full items-center gap-3">
-      <AssessmentQuestionIcon question={question} hasValue={true} />
+      <AssessmentQuestionIcon
+        question={question}
+        hasValue={true}
+        hasGeometries={hasGeometries}
+        onMapChipClick={onMapChipClick}
+      />
 
       <div className="relative w-full">
         <Box

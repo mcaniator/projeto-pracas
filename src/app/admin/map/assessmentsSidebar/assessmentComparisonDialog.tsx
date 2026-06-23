@@ -15,7 +15,10 @@ import {
   FetchMapAssessmentComparisonAssessmentTreesResponse,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
-import { resolveAssessmentQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
+import {
+  resolveAssessmentQuestionGeometries,
+  resolveAssessmentQuestionValue,
+} from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { IconCalendar, IconChartBar } from "@tabler/icons-react";
 import {
   type CSSProperties,
@@ -287,6 +290,7 @@ type ComparisonLocation = {
   color: string;
   location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
   locationNumber: number;
+  locationPolygonGeoJson: string | null;
   questionMap: Map<number, AssessmentQuestionItem>;
   selectedAssessment: ComparisonAssessmentTree | null;
 };
@@ -320,6 +324,11 @@ const QuestionComparisonCell = ({
             comparisonLocation.selectedAssessment,
             assessmentQuestion,
           )}
+          geometries={resolveAssessmentQuestionGeometries(
+            comparisonLocation.selectedAssessment,
+            assessmentQuestion,
+          )}
+          locationPolygonGeoJson={comparisonLocation.locationPolygonGeoJson}
         />
       }
     </td>
@@ -411,11 +420,14 @@ const AssessmentComparisonDialog = ({
         color: getLocationColor(index),
         location,
         locationNumber: index + 1,
+        locationPolygonGeoJson:
+          locations.find((item) => item.id === location.id)?.st_asgeojson ??
+          null,
         questionMap: buildQuestionMap(selectedAssessment),
         selectedAssessment,
       };
     });
-  }, [comparisonLocations, selectedAssessmentIds]);
+  }, [comparisonLocations, locations, selectedAssessmentIds]);
 
   const comparisonCategories = useMemo(
     () =>
