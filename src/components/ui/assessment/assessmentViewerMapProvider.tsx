@@ -121,8 +121,9 @@ const AssessmentViewerMapProvider = ({
     lastAppliedInitialViewKeyRef.current = initialViewTargetKey;
 
     view.fit(initialViewTarget.extent, {
-      padding: [48, 48, 48, 48],
+      padding: [50, 50, 50, 50],
       duration: 0,
+      maxZoom: 20,
     });
   }, [geometries, locationPolygonGeoJson, view]);
 
