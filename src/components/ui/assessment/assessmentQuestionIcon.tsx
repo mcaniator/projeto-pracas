@@ -25,7 +25,7 @@ const AssessmentQuestionIcon = ({
           aria-label={`Visualizar geometrias de ${question.name}`}
           label={<IconMap size={12} />}
           size="small"
-          color="primary"
+          color="warning"
           onClick={(event) => {
             event.stopPropagation();
             onMapChipClick?.();
@@ -44,8 +44,6 @@ const AssessmentQuestionIcon = ({
         icon={<CDynamicIcon iconKey={question.iconKey} />}
         tooltip={question.name}
         variant={hasValue ? "emphasis" : "disabled"}
-        clickable={hasGeometries}
-        onClick={hasGeometries ? onMapChipClick : undefined}
       />
     </div>
   );
