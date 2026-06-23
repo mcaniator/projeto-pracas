@@ -1,18 +1,8 @@
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
-import { Role } from "@prisma/client";
 
-const getUserAuthInfo = async (
-  userId: string | undefined | null,
-): Promise<{
-  image: string | null;
-  id: string;
-  email: string;
-  username: string | null;
-  active: boolean;
-  roles: Role[];
-} | null> => {
+const getUserAuthInfo = async (userId: string | undefined | null) => {
   if (!userId) return null;
   const sessionUser = await getSessionUser();
   if (!sessionUser || sessionUser.id !== userId) return null;
