@@ -1,7 +1,7 @@
 import CIconChip from "@/components/ui/cIconChip";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import { Chip } from "@mui/material";
+import { Box, Chip } from "@mui/material";
 import { IconMap } from "@tabler/icons-react";
 
 export type AssessmentQuestionIconGeometryProps = {
@@ -34,17 +34,19 @@ const AssessmentQuestionIcon = ({
             marginRight: "-6px",
             marginTop: "-4px",
             height: 20,
-            minWidth: 24,
+            width: 24,
             zIndex: 1,
             "& .MuiChip-labelSmall": { px: "6px" },
           }}
         />
       )}
-      <CIconChip
-        icon={<CDynamicIcon iconKey={question.iconKey} />}
-        tooltip={question.name}
-        variant={hasValue ? "emphasis" : "disabled"}
-      />
+      <Box sx={{ marginLeft: hasGeometries ? "0px" : "18px" }}>
+        <CIconChip
+          icon={<CDynamicIcon iconKey={question.iconKey} />}
+          tooltip={question.name}
+          variant={hasValue ? "emphasis" : "disabled"}
+        />
+      </Box>
     </div>
   );
 };

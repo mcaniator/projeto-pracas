@@ -11,6 +11,7 @@ import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
+  filterEmptyAssessmentCategories,
 } from "./assessment";
 import {
   MapAssessmentComparisonCategory,
@@ -34,6 +35,12 @@ export const fetchMapAssessmentComparisonCategories = async () => {
       where: {
         formItems: {
           some: {
+            questionId: {
+              not: null,
+            },
+            question: {
+              isPublic: true,
+            },
             form: {
               assessment: {
                 some: {
@@ -136,6 +143,12 @@ export const fetchMapAssessmentComparisonResults = async ({
               formItems: {
                 some: {
                   categoryId,
+                  questionId: {
+                    not: null,
+                  },
+                  question: {
+                    isPublic: true,
+                  },
                 },
               },
             },
@@ -714,7 +727,7 @@ const buildMapAssessmentComparisonAssessmentTree = ({
   return {
     id: assessment.id,
     startDate: assessment.startDate,
-    categories,
+    categories: filterEmptyAssessmentCategories(categories),
     responsesFormValues,
     geometries,
   };
