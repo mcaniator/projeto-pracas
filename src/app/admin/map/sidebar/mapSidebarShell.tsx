@@ -80,7 +80,7 @@ const MapSidebarShell = ({
       orientation={isMobileView ? "horizontal" : "vertical"}
       options={sidebarModeOptions}
       value={mode}
-      tooltipPlacement="right"
+      tooltipPlacement={isMobileView ? "bottom" : "right"}
       getValue={(option) => option.value}
       getLabel={(option) => (isMobileView ? option.mobileLabel : option.label)}
       getTooltip={(option) => option.tooltip}
