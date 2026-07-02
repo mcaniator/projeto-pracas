@@ -5,20 +5,16 @@ import ButtonLink from "@/components/ui/buttonLink";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Chip } from "@mui/material";
 import {
-  IconContrast,
-  IconContrastOff,
   IconInfoSquareRounded,
   IconLogin2,
   IconMapSearch,
   IconMenu2,
-  IconSettings,
   IconTree,
-  IconUser,
   IconX,
 } from "@tabler/icons-react";
 import { signOut } from "next-auth/react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   HTMLAttributes,
@@ -29,6 +25,7 @@ import {
   useState,
 } from "react";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
+import { GrUserAdmin } from "react-icons/gr";
 
 type HeaderVariant = "public" | "admin";
 type HeaderPosition = "static" | "box";
@@ -140,7 +137,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                 </Button>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex h-full flex-col gap-1">
                 {sidebarOptions.map((option) => (
                   <ButtonLink
                     href={option.path}
@@ -152,6 +149,15 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                     <span className="-mb-1">{option.name}</span>
                   </ButtonLink>
                 ))}
+                <ButtonLink
+                  href={"/admin"}
+                  key={"/admin"}
+                  variant={"ghost"}
+                  className="mt-auto w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+                >
+                  <GrUserAdmin size={24} />
+                  <span className="-mb-1">{"Pesquisador"}</span>
+                </ButtonLink>
               </div>
             </nav>
           </>
@@ -192,16 +198,12 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                   <span className="hidden text-xl md:inline">
                     {user.username ?? user.email}
                   </span>
-                  {user.image ?
-                    <Image
-                      src={user.image}
-                      alt="img"
-                      width={32}
-                      height={32}
-                      className="rounded-lg transition hover:cursor-pointer hover:brightness-125"
-                    />
-                  : <IconUser className="h-8 w-8 rounded-lg hover:bg-off-white hover:text-black" />
-                  }
+                  <Chip
+                    label="Painel"
+                    color="secondary"
+                    icon={<GrUserAdmin size={18} />}
+                    className="ml-2"
+                  />
                 </div>
               </Button>
               <Popover
@@ -245,13 +247,11 @@ const UserInfo = ({
 }: {
   user: { username: string | null; email: string };
 }) => {
-  const [highContrast, setHighContrat] = useState(false);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="flex flex-col gap-1">
-          <span className="-mb-1 text-base font-semibold sm:text-xl">
+          <span className="-mb-1 text-base font-semibold text-black sm:text-xl">
             {user.username ?? "(usuário)"}
           </span>
           <span className="-mb-1 text-xs text-gray-500 sm:text-sm">
@@ -259,36 +259,9 @@ const UserInfo = ({
           </span>
         </div>
       </div>
-      <div className="my-3 flex gap-4">
-        <Link href="/admin/map">
-          <Button
-            type={"button"}
-            className="w-full text-white"
-            use={"link"}
-            onPress={() => (window.location.href = "/admin")}
-          >
-            <span className="-mb-1">Painel</span>
-          </Button>
-        </Link>
-      </div>
       <div className="flex w-full items-center">
-        <Button variant={"ghost"} size={"icon"}>
-          <IconSettings className="text-black" />
-        </Button>
-        <Button
-          variant={"ghost"}
-          size={"icon"}
-          onPress={() => {
-            setHighContrat(!highContrast);
-          }}
-        >
-          {highContrast ?
-            <IconContrastOff className="text-black" />
-          : <IconContrast className="text-black" />}
-        </Button>
         <div className="ml-auto">
           <Button
-            className={"hover:bg-redwood/20"}
             variant={"ghost"}
             type="submit"
             onPress={() => {
@@ -296,7 +269,7 @@ const UserInfo = ({
             }}
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">
-              <IconLogin2 strokeWidth={3} /> Sair
+              <IconLogin2 strokeWidth={3} /> Log out
             </span>
           </Button>
         </div>
