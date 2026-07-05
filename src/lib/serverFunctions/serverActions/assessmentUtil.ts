@@ -100,11 +100,13 @@ const _updateAssessmentVisibility = async ({
     };
   }
   try {
-    await prisma.assessment.update({
-      where: { id: assessmentId },
+    const updatedAssessment = await prisma.assessment.update({
+      where: { id: assessmentId, isFinalized: isPublic ? true : undefined },
       data: { isPublic: isPublic },
     });
-    revalidateTag("assessemnt");
+    if (!updatedAssessment) {
+      throw new Error();
+    }
     return {
       responseInfo: {
         statusCode: 200,

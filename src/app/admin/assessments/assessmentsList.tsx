@@ -145,6 +145,14 @@ const AssessmentsList = ({
                           pendingVisibilityChange.isPublic
                         : a.isPublic
                       }
+                      disabled={a.hasUnsyncedFilling || !a.isFinalized}
+                      tooltip={
+                        a.hasUnsyncedFilling ?
+                          "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
+                        : !a.isFinalized ?
+                          "A avaliação ainda nao foi finalizada!"
+                        : ""
+                      }
                       label="Visível publicamente"
                       onChange={(e) => {
                         setPendingVisibilityChange({

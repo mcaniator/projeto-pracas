@@ -99,6 +99,7 @@ const _addResponsesV2 = async ({
       },
       select: {
         userId: true,
+        isPublic: true,
       },
     });
     if (!assessment) {
@@ -238,6 +239,7 @@ const _addResponsesV2 = async ({
         startDate,
         endDate,
         isFinalized,
+        isPublic: !isFinalized ? false : assessment.isPublic, // If the assessment is not finalized, set isPublic to false
         driveFolderUrl: driveFolderUrl,
       },
     });
