@@ -86,12 +86,24 @@ const getValueWithInsertedText = (
   )}`;
 };
 
-const normalizeNumberFieldInputValue = (value: string) => {
+const normalizeNumberFieldInputValue = (
+  value: string,
+  { decimalPointIndex }: { decimalPointIndex?: number } = {},
+) => {
+  if (decimalPointIndex != null && value[decimalPointIndex] === ".") {
+    if (value.includes(",")) {
+      return `${value.slice(0, decimalPointIndex)}${value.slice(decimalPointIndex + 1)}`;
+    }
+
+    const valueWithDecimalComma = `${value.slice(0, decimalPointIndex)},${value.slice(decimalPointIndex + 1)}`;
+    return valueWithDecimalComma.replaceAll(".", "");
+  }
+
   if (value.includes(",")) {
     return value.replaceAll(".", "");
   }
 
-  return value.replace(".", ",");
+  return value;
 };
 
 const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
@@ -285,6 +297,10 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
 
                   const normalizedValue = normalizeNumberFieldInputValue(
                     getValueWithInsertedText(event.currentTarget, event.key),
+                    {
+                      decimalPointIndex:
+                        event.currentTarget.selectionStart ?? undefined,
+                    },
                   );
                   const caretPosition =
                     event.currentTarget.selectionStart == null ?
@@ -310,8 +326,15 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               }}
               onKeyUp={inputProps.onKeyUp}
               onChange={(event) => {
+                const nativeEvent = event.nativeEvent as InputEvent;
+                const decimalPointIndex =
+                  nativeEvent.data === "." &&
+                  event.currentTarget.selectionStart != null ?
+                    event.currentTarget.selectionStart - 1
+                  : undefined;
                 const normalizedValue = normalizeNumberFieldInputValue(
                   event.currentTarget.value,
+                  { decimalPointIndex },
                 );
                 if (normalizedValue !== event.currentTarget.value) {
                   setNativeInputValue(event.currentTarget, normalizedValue);
