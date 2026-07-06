@@ -1,5 +1,10 @@
 import { Theme } from "@emotion/react";
-import { FormControlLabel, SxProps } from "@mui/material";
+import {
+  FormControlLabel,
+  SxProps,
+  Tooltip,
+  TooltipProps,
+} from "@mui/material";
 import Switch, { SwitchProps } from "@mui/material/Switch";
 import React from "react";
 
@@ -7,6 +12,8 @@ type CSwtichProps = SwitchProps & {
   label?: string;
   formControlSx?: SxProps<Theme>;
   labelPosition?: "left" | "right";
+  tooltip?: string;
+  tooltipProps?: TooltipProps;
 };
 
 const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
@@ -19,6 +26,8 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
       onChange,
       inputProps,
       sx,
+      tooltip,
+      tooltipProps,
       ...rest
     } = props;
 
@@ -49,7 +58,12 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
         }
       : {};
 
-    return (
+    const resolvedTooltipProps = {
+      title: tooltip,
+      ...tooltipProps,
+    };
+
+    const component = (
       <FormControlLabel
         sx={formControlSx}
         control={
@@ -73,6 +87,12 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
         labelPlacement={labelPosition === "left" ? "start" : "end"}
       />
     );
+
+    if (!tooltip) {
+      return component;
+    }
+
+    return <Tooltip {...resolvedTooltipProps}>{component}</Tooltip>;
   },
 );
 

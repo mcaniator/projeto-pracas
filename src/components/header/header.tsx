@@ -195,9 +195,6 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                 className="z-[50] ml-auto flex items-center px-3 py-6 pl-2"
               >
                 <div className="flex items-center gap-2">
-                  <span className="hidden text-xl md:inline">
-                    {user.username ?? user.email}
-                  </span>
                   <Chip
                     label="Painel"
                     color="secondary"

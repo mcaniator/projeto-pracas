@@ -42,6 +42,7 @@ import { Calculation } from "@/lib/utils/calculationUtils";
 import { Chip } from "@mui/material";
 import {
   IconAlertTriangle,
+  IconArrowBackUp,
   IconBrandGoogleDrive,
   IconCheck,
   IconClipboard,
@@ -74,6 +75,7 @@ import {
 } from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
+import RevertLocalAssessmentDialog from "./revertLocalAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
 export const isAssessmentSubcategoryItem = (
@@ -164,6 +166,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     });
     //serverUpdatedAtRef is used to save the serverUpdatedAt in the local database
     const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
+    //serverUpdatedAtState is used to render the latest serverUpdatedAt
+    const [serverUpdatedAtState, setServerUpdatedAtState] = useState(
+      assessmentTree.updatedAt,
+    );
 
     const [questionsForMention] = useState(() => {
       const questions: SimpleMention[] = [];
@@ -220,8 +226,14 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const [openSaveDialog, setOpenSaveDialog] = useState(false);
     const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
       useState(false);
+    const [
+      openRevertLocalAssessmentDialog,
+      setOpenRevertLocalAssessmentDialog,
+    ] = useState(false);
     const [pendingLocalAssessmentChoice, setPendingLocalAssessmentChoice] =
       useState<DexieAssessment>();
+    const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
+      useState<Date>();
     const [filledCount, setFilledCount] = useState(0);
     const [pendingServerSave, setPendingServerSave] = useState(false);
     const geometriesRef = useRef(geometries);
@@ -304,7 +316,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setLoadingOverlay({ show: true, message: "Carregando..." });
         reset(defaultResponseFormValues);
         setIsFinalized(assessmentTree.isFinalized);
-        setIsFilling(assessmentTree.isFinalized);
+        setIsFilling(!assessmentTree.isFinalized);
         setStartDate(dayjs(assessmentTree.startDate));
         setEndDate(
           assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
@@ -319,6 +331,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setPendingLocalAssessmentChoice(undefined);
         try {
           await dexieDb.assessments.delete(assessmentTree.id);
+          setPendingServerSave(false);
+          setLocalAssessmentUpdatedAt(undefined);
         } catch (e) {
           setHelperCard({
             show: true,
@@ -326,6 +340,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             helperCardType: "ERROR",
           });
         } finally {
+          if (assessmentTree.isFinalized) {
+            setIsFilling(false);
+          }
           setLoadingOverlay({ show: false });
         }
       };
@@ -487,25 +504,40 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       let ignore = false;
 
       const loadLocalAssessment = async () => {
-        const localAssessment = await dexieDb.assessments.get(
-          assessmentTree.id,
-        );
+        try {
+          setLoadingOverlay({
+            show: true,
+            message: "Carregando respostas locais...",
+          });
+          const localAssessment = await dexieDb.assessments.get(
+            assessmentTree.id,
+          );
 
-        if (ignore || !localAssessment) {
-          return;
+          if (ignore || !localAssessment) {
+            return;
+          }
+          setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
+
+          const localServerUpdatedAt = new Date(
+            localAssessment.serverUpdatedAt,
+          ).getTime();
+          const serverUpdatedAt = assessmentTree.updatedAt.getTime();
+
+          if (serverUpdatedAt <= localServerUpdatedAt) {
+            applyLocalAssessmentValues(localAssessment);
+            return;
+          }
+
+          setPendingLocalAssessmentChoice(localAssessment);
+        } catch (e) {
+          setHelperCard({
+            show: true,
+            helperCardType: "ERROR",
+            content: <>Erro ao respostas locais!</>,
+          });
+        } finally {
+          setLoadingOverlay({ show: false });
         }
-
-        const localServerUpdatedAt = new Date(
-          localAssessment.serverUpdatedAt,
-        ).getTime();
-        const serverUpdatedAt = assessmentTree.updatedAt.getTime();
-
-        if (serverUpdatedAt <= localServerUpdatedAt) {
-          applyLocalAssessmentValues(localAssessment);
-          return;
-        }
-
-        setPendingLocalAssessmentChoice(localAssessment);
       };
 
       void loadLocalAssessment();
@@ -515,6 +547,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         ignore = true;
       };
     }, [
+      setHelperCard,
+      setLoadingOverlay,
       applyLocalAssessmentValues,
       assessmentTree.id,
       assessmentTree.updatedAt,
@@ -573,7 +607,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         return;
       setPendingServerSave(true);
       const timeoutId = window.setTimeout(() => {
-        void dexieDb.assessments.put({
+        const localAssessment: DexieAssessment = {
           id: assessmentTree.id,
           userId: user.id,
           username: user.username,
@@ -586,7 +620,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           responseFormValues: serializedFormValuesRef.current,
           geometries: geometriesRef.current,
           responseImages: responseImagesRef.current,
-        });
+        };
+
+        void dexieDb.assessments.put(localAssessment);
+        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
       }, 500);
 
       return () => window.clearTimeout(timeoutId);
@@ -685,7 +722,18 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                       </CButton>
                     </>
                   )}
-
+                  <CButton
+                    topLeftChipLabel={"!"}
+                    enableTopLeftChip={pendingServerSave}
+                    tooltip="Reverter alterações locais"
+                    square
+                    disabled={!pendingServerSave}
+                    onClick={() => {
+                      setOpenRevertLocalAssessmentDialog(true);
+                    }}
+                  >
+                    <IconArrowBackUp />
+                  </CButton>
                   <CButton
                     square
                     tooltip="Drive"
@@ -724,6 +772,19 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                     }}
                   >
                     <IconBrandGoogleDrive />
+                  </CButton>
+                  <CButton
+                    topLeftChipLabel={"!"}
+                    enableTopLeftChip={pendingServerSave}
+                    tooltip="Reverter alterações locais"
+                    square
+                    color="warning"
+                    disabled={!pendingServerSave}
+                    onClick={() => {
+                      setOpenRevertLocalAssessmentDialog(true);
+                    }}
+                  >
+                    <IconArrowBackUp />
                   </CButton>
                   {!isPreview && (
                     <CButton
@@ -802,6 +863,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               onResponseImageSynced={handleQuestionImageSynced}
               onSaveSuccess={(newUpdatedAt) => {
                 serverUpdatedAtRef.current = newUpdatedAt;
+                setServerUpdatedAtState(newUpdatedAt);
                 setPendingServerSave(false);
               }}
               onClose={() => {
@@ -822,6 +884,19 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               locationId={locationId}
               onClose={() => {
                 setOpenDeleteAssessmentDialog(false);
+              }}
+            />
+
+            <RevertLocalAssessmentDialog
+              open={openRevertLocalAssessmentDialog}
+              localUpdatedAt={localAssessmentUpdatedAt}
+              serverUpdatedAt={serverUpdatedAtState}
+              onClose={() => {
+                setOpenRevertLocalAssessmentDialog(false);
+              }}
+              onConfirm={() => {
+                setOpenRevertLocalAssessmentDialog(false);
+                applyServerAssessmentValues();
               }}
             />
           </>

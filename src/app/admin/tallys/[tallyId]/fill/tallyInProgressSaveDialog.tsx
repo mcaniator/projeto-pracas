@@ -103,6 +103,7 @@ const TallyInProgressSaveDialog = ({
         endDate: endDate?.toDate() ?? null,
         isFinalized,
       });
+      // TODO: Refresh server data in TallyInProgressPage
       helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 200) {
         setErrorOnServerSave(true);

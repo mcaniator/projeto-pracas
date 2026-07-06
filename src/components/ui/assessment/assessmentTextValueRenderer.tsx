@@ -20,7 +20,7 @@ export const AssessmentTextValueRenderer = ({
         hasGeometries={hasGeometries}
         onMapChipClick={onMapChipClick}
       />
-      <span className="break-all">{value}</span>
+      <span className="break-words">{value}</span>
     </div>
   );
 };

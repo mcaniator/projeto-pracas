@@ -9,7 +9,6 @@ import {
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
-import { Divider } from "@mui/material";
 import { IconInfoCircle } from "@tabler/icons-react";
 import {
   type AssessmentTree,
@@ -104,16 +103,14 @@ const CAssessmentResultViewer = ({
     : assessment.categories;
 
   return (
-    <div className="flex flex-col gap-1">
-      {categories.map((category, index, arr) => {
-        const isLastItem = index === arr.length - 1;
-        return (
-          <div key={category.id} className="flex flex-col gap-2">
-            <Category assessment={assessment} category={category} />
-            {!isLastItem && <Divider />}
-          </div>
-        );
-      })}
+    <div className="flex flex-col gap-5">
+      {categories.map((category) => (
+        <Category
+          key={category.id}
+          assessment={assessment}
+          category={category}
+        />
+      ))}
     </div>
   );
 };
@@ -126,6 +123,12 @@ const getCategoryChildKey = (
     : `question-${child.id}`;
 };
 
+const COMPACT_GRID_CHARACTER_TYPES = new Set([
+  "BOOLEAN",
+  "PERCENTAGE",
+  "NUMBER",
+]);
+
 const QuestionValues = ({
   assessment,
   question,
@@ -137,7 +140,7 @@ const QuestionValues = ({
   //TODO: Add images
 
   return (
-    <div className="flex flex-row items-center gap-1">
+    <div className="flex min-h-14 items-center rounded border border-gray-200 bg-white px-3 py-2 shadow-sm">
       <QuestionResponseRenderer
         question={question}
         resolvedValue={resolvedValue}
@@ -155,8 +158,17 @@ const QuestionList = ({
   assessment: AssessmentTree;
   questions: AssessmentQuestionItem[];
 }) => {
+  const gridClassName = useMemo(() => {
+    const hasOnlyCompactQuestions = questions.every((question) =>
+      COMPACT_GRID_CHARACTER_TYPES.has(question.characterType),
+    );
+
+    return hasOnlyCompactQuestions ?
+        "grid grid-cols-[repeat(auto-fit,minmax(5rem,1fr))] gap-2"
+      : "grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-2";
+  }, [questions]);
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className={gridClassName}>
       {questions.map((question) => (
         <QuestionValues
           key={question.id}
@@ -176,8 +188,8 @@ const Subcategory = ({
   subcategory: AssessmentSubcategoryItem;
 }) => {
   return (
-    <div className="flex flex-col gap-2 p-1 outline-dashed outline-1 outline-gray-300">
-      <h5 className="font-medium">{subcategory.name}</h5>
+    <div className="flex flex-col gap-2 rounded border border-gray-200 bg-gray-50 p-3">
+      <h5 className="text-sm font-medium text-gray-700">{subcategory.name}</h5>
       <QuestionList assessment={assessment} questions={subcategory.questions} />
     </div>
   );
@@ -190,6 +202,31 @@ const Category = ({
   assessment: AssessmentTree;
   category: AssessmentCategoryItem;
 }) => {
+  // Each block is either a question group or a subcategory. Questions groups are separated by subcategories.
+  // Each block will have its own grid
+  const categoryContentBlocks = category.categoryChildren.reduce<
+    (
+      | { kind: "questions"; questions: AssessmentQuestionItem[] }
+      | { kind: "subcategory"; subcategory: AssessmentSubcategoryItem }
+    )[]
+  >((blocks, child) => {
+    if (isAssessmentSubcategoryItem(child)) {
+      blocks.push({ kind: "subcategory", subcategory: child });
+      return blocks;
+    }
+
+    // If the last block is a question block, add the question to it
+    const lastBlock = blocks[blocks.length - 1];
+    if (lastBlock?.kind === "questions") {
+      lastBlock.questions.push(child);
+      return blocks;
+    }
+
+    // Otherwise, create a new question block
+    blocks.push({ kind: "questions", questions: [child] });
+    return blocks;
+  }, []);
+
   const categoryIcons = useMemo(() => {
     const icons: { questionName: string; iconKey: string }[] = [];
     category.categoryChildren.forEach((child) => {
@@ -210,28 +247,32 @@ const Category = ({
     return icons;
   }, [category.categoryChildren]);
   return (
-    <div className="flex flex-col gap-2 pl-px">
-      <div className="flex items-center gap-2">
-        <h4 className="font-semibold">{category.name}</h4>
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center gap-1.5">
+        <h4 className="text-sm font-semibold uppercase text-gray-700">
+          {category.name}
+        </h4>
         <span>
           <IconsLegendDialog categoryIcons={categoryIcons} />
         </span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
-        {category.categoryChildren.map((child) =>
-          isAssessmentSubcategoryItem(child) ?
-            <div className="w-full" key={getCategoryChildKey(child)}>
-              <Subcategory assessment={assessment} subcategory={child} />
-            </div>
-          : <QuestionValues
-              key={getCategoryChildKey(child)}
+      <div className="flex flex-col gap-2">
+        {categoryContentBlocks.map((block, index) =>
+          block.kind === "questions" ?
+            <QuestionList
+              key={`questions-${index}`}
               assessment={assessment}
-              question={child}
+              questions={block.questions}
+            />
+          : <Subcategory
+              key={getCategoryChildKey(block.subcategory)}
+              assessment={assessment}
+              subcategory={block.subcategory}
             />,
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -247,7 +288,7 @@ const IconsLegendDialog = ({
     <CDialogTrigger
       title="Legenda"
       triggerProps={{ square: true, variant: "outlined" }}
-      triggerchildren={<IconInfoCircle />}
+      triggerchildren={<IconInfoCircle size={18} />}
     >
       {categoryIcons.map((icon, index) => (
         <div key={index} className="my-1 flex items-center">

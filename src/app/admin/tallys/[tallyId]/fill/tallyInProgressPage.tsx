@@ -31,6 +31,7 @@ import { checkIfRolesArrayContainsAll } from "@lib/auth/rolesUtil";
 import { Chip, Paper, useMediaQuery, useTheme } from "@mui/material";
 import { WeatherConditions } from "@prisma/client";
 import {
+  IconArrowBackUp,
   IconChartBar,
   IconClipboardData,
   IconCloudExclamation,
@@ -54,6 +55,8 @@ import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
 import { GrGroup } from "react-icons/gr";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 
+import ChooseTallySourceDialog from "./chooseTallySourceDialog";
+import RevertLocalTallyDialog from "./revertLocalTallyDialog";
 import TallyInProgressReview from "./tallyInProgressReview";
 
 const activityOptionsMale: ActivityOption[] = [
@@ -172,6 +175,9 @@ const TallyInProgressPage = ({
   const { setHelperCard } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const serverUpdatedAtRef = useRef(tally.updatedAt);
+  const [serverUpdatedAtState, setServerUpdatedAtState] = useState(
+    tally.updatedAt,
+  );
   const localSaveReadyRef = useRef(false);
   const [
     openCommercialActivityCreationDialog,
@@ -181,6 +187,10 @@ const TallyInProgressPage = ({
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteTallyDialog, setOpenDeleteTallyDialog] = useState(false);
   const [openTallyImportDialog, setOpenTallyImportDialog] = useState(false);
+  const [openRevertLocalTallyDialog, setOpenRevertLocalTallyDialog] =
+    useState(false);
+  const [pendingLocalTallyChoice, setPendingLocalTallyChoice] =
+    useState<DexieTally>();
   const [startDate, setStartDate] = useState<Dayjs>(dayjs(tally.startDate));
   const [endDate, setEndDate] = useState<Dayjs | null>(
     tally.endDate ? dayjs(tally.endDate) : null,
@@ -213,6 +223,8 @@ const TallyInProgressPage = ({
     groupsAmount: tally.groups ? tally.groups : 0,
   });
   const [pendingServerSave, setPendingServerSave] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [localTallyUpdatedAt, setLocalTallyUpdatedAt] = useState<Date>();
 
   const applyLocalTallyValues = (localTally: DexieTally) => {
     setStartDate(dayjs(localTally.startDate));
@@ -225,6 +237,48 @@ const TallyInProgressPage = ({
       buildCommercialActivitiesOptions(localTally.commercialActivities),
     );
     setComplementaryData(localTally.complementaryData);
+    setPendingLocalTallyChoice(undefined);
+    setPendingServerSave(true);
+    setIsDirty(false);
+  };
+
+  const applyServerTallyValues = () => {
+    const applyServerValuesAndDeleteLocalValues = async () => {
+      setLoadingOverlay({ show: true, message: "Carregando..." });
+      setStartDate(dayjs(tally.startDate));
+      setEndDate(tally.endDate ? dayjs(tally.endDate) : null);
+      setIsFinalized(tally.isFinalized);
+      setWeatherStats({
+        temperature: tally.temperature ? tally.temperature : null,
+        weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
+      });
+      setTallyMap(buildTallyMapFromTally(tally));
+      setCommercialActivities(tally.commercialActivities ?? {});
+      setCommercialActivitiesOptions(
+        buildCommercialActivitiesOptions(tally.commercialActivities),
+      );
+      setComplementaryData({
+        animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
+        groupsAmount: tally.groups ? tally.groups : 0,
+      });
+      setPendingLocalTallyChoice(undefined);
+      setIsDirty(false);
+      try {
+        await dexieDb.tallys.delete(tallyId);
+        setPendingServerSave(false);
+        setLocalTallyUpdatedAt(undefined);
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          content: "Erro ao remover dados locais!",
+          helperCardType: "ERROR",
+        });
+      } finally {
+        setLoadingOverlay({ show: false });
+      }
+    };
+
+    void applyServerValuesAndDeleteLocalValues();
   };
 
   useEffect(() => {
@@ -238,6 +292,7 @@ const TallyInProgressPage = ({
         localSaveReadyRef.current = true;
         return;
       }
+      setLocalTallyUpdatedAt(localTally.localUpdatedAt);
 
       const localServerUpdatedAt = new Date(
         localTally.serverUpdatedAt,
@@ -246,9 +301,11 @@ const TallyInProgressPage = ({
 
       if (serverUpdatedAt <= localServerUpdatedAt) {
         applyLocalTallyValues(localTally);
-        setPendingServerSave(true);
+        localSaveReadyRef.current = true;
+        return;
       }
 
+      setPendingLocalTallyChoice(localTally);
       localSaveReadyRef.current = true;
     };
 
@@ -261,10 +318,11 @@ const TallyInProgressPage = ({
 
   useEffect(() => {
     if (!localSaveReadyRef.current) return;
+    if (!isDirty) return;
 
     setPendingServerSave(true);
     const timeoutId = window.setTimeout(() => {
-      void dexieDb.tallys.put({
+      const localTally: DexieTally = {
         id: tallyId,
         userId: user.id,
         username: user.username ?? "",
@@ -277,7 +335,10 @@ const TallyInProgressPage = ({
         tallyMap: Object.fromEntries([...tallyMap.entries()]),
         commercialActivities,
         complementaryData,
-      });
+      };
+
+      void dexieDb.tallys.put(localTally);
+      setLocalTallyUpdatedAt(localTally.localUpdatedAt);
     }, 500);
 
     return () => window.clearTimeout(timeoutId);
@@ -286,6 +347,7 @@ const TallyInProgressPage = ({
     complementaryData,
     endDate,
     isFinalized,
+    isDirty,
     startDate,
     tallyId,
     tallyMap,
@@ -305,6 +367,7 @@ const TallyInProgressPage = ({
     ageGroup: AgeGroupType,
     characteristics: SharedCharacteristics,
   ) => {
+    setIsDirty(true);
     const key = buildPersonKey(gender, ageGroup, characteristics);
     setTallyMap((prev) => {
       const newMap = new Map(prev);
@@ -318,6 +381,7 @@ const TallyInProgressPage = ({
     ageGroup: AgeGroupType,
     characteristics: SharedCharacteristics,
   ) => {
+    setIsDirty(true);
     const key = buildPersonKey(gender, ageGroup, characteristics);
     setTallyMap((prev) => {
       const newMap = new Map(prev);
@@ -353,6 +417,7 @@ const TallyInProgressPage = ({
       const parsed = JSON.parse(text) as unknown;
       const importedData = tallyImportDataSchema.parse(parsed);
 
+      setIsDirty(true);
       setWeatherStats(importedData.weatherStats);
       setTallyMap(new Map(Object.entries(importedData.tallyMap)));
       setCommercialActivities(importedData.commercialActivities);
@@ -405,12 +470,15 @@ const TallyInProgressPage = ({
               />
             )}
 
-            <div className="flex flex-wrap items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between pt-1">
               <CDateTimePicker
                 label="Início da contagem"
                 value={startDate}
                 onChange={(v) => {
-                  if (v) setStartDate(v);
+                  if (v) {
+                    setIsDirty(true);
+                    setStartDate(v);
+                  }
                 }}
               />
               <div className="flex items-center gap-1">
@@ -422,6 +490,19 @@ const TallyInProgressPage = ({
                   }}
                 >
                   <IconChartBar />
+                </CButton>
+                <CButton
+                  topLeftChipLabel={"!"}
+                  enableTopLeftChip={pendingServerSave}
+                  tooltip="Reverter alterações locais"
+                  square
+                  color="warning"
+                  disabled={!pendingServerSave}
+                  onClick={() => {
+                    setOpenRevertLocalTallyDialog(true);
+                  }}
+                >
+                  <IconArrowBackUp />
                 </CButton>
                 <CButton
                   square
@@ -458,6 +539,7 @@ const TallyInProgressPage = ({
                         width: "11rem",
                       }}
                       onChange={(v) => {
+                        setIsDirty(true);
                         if (v === null) {
                           setWeatherStats((prev) => ({
                             ...prev,
@@ -480,12 +562,13 @@ const TallyInProgressPage = ({
                       getOptionLabel={(option) =>
                         weatherNameMap.get(option) || option
                       }
-                      onChange={(_, v) =>
+                      onChange={(_, v) => {
+                        setIsDirty(true);
                         setWeatherStats((prev) => ({
                           ...prev,
                           weather: v,
-                        }))
-                      }
+                        }));
+                      }}
                     />
                   </div>
                 </CAccordionDetails>
@@ -538,34 +621,40 @@ const TallyInProgressPage = ({
                     label="Pets"
                     count={complementaryData.animalsAmount}
                     onIncrement={() => {
+                      setIsDirty(true);
                       setComplementaryData((prev) => ({
                         ...prev,
                         animalsAmount: prev.animalsAmount + 1,
                       }));
                     }}
                     onDecrement={() => {
-                      if (complementaryData.animalsAmount !== 0)
+                      if (complementaryData.animalsAmount !== 0) {
+                        setIsDirty(true);
                         setComplementaryData((prev) => ({
                           ...prev,
                           animalsAmount: prev.animalsAmount - 1,
                         }));
+                      }
                     }}
                   />
                   <CounterButtonGroup
                     label="Grupos"
                     count={complementaryData.groupsAmount}
                     onIncrement={() => {
+                      setIsDirty(true);
                       setComplementaryData((prev) => ({
                         ...prev,
                         groupsAmount: prev.groupsAmount + 1,
                       }));
                     }}
                     onDecrement={() => {
-                      if (complementaryData.groupsAmount !== 0)
+                      if (complementaryData.groupsAmount !== 0) {
+                        setIsDirty(true);
                         setComplementaryData((prev) => ({
                           ...prev,
                           groupsAmount: prev.groupsAmount - 1,
                         }));
+                      }
                     }}
                   />
                 </div>
@@ -620,6 +709,7 @@ const TallyInProgressPage = ({
                         commercialActivities[selectedCommercialActivity] || 0;
 
                       if (!currentActivityCount || currentActivityCount === 0) {
+                        setIsDirty(true);
                         setCommercialActivitiesOptions((prev) => {
                           const newArray: { label: string; value: string }[] =
                             [];
@@ -660,6 +750,7 @@ const TallyInProgressPage = ({
                       commercialActivities[selectedCommercialActivity] || 0
                     }
                     onDecrement={() => {
+                      setIsDirty(true);
                       setCommercialActivities((prev) => {
                         const newObject = { ...prev };
                         if (newObject[selectedCommercialActivity]) {
@@ -669,6 +760,7 @@ const TallyInProgressPage = ({
                       });
                     }}
                     onIncrement={() => {
+                      setIsDirty(true);
                       setCommercialActivities((prev) => {
                         const newObject = { ...prev };
                         if (newObject[selectedCommercialActivity]) {
@@ -773,14 +865,19 @@ const TallyInProgressPage = ({
         isFinalized={isFinalized}
         serverUpdatedAt={serverUpdatedAtRef.current}
         onEndDateChange={(v) => {
+          setIsDirty(true);
           setEndDate(v);
         }}
         onIsFinalizedChange={(v) => {
+          setIsDirty(true);
           setIsFinalized(v);
         }}
         onSaveSuccess={(newUpdatedAt) => {
           serverUpdatedAtRef.current = newUpdatedAt;
+          setServerUpdatedAtState(newUpdatedAt);
           setPendingServerSave(false);
+          setLocalTallyUpdatedAt(undefined);
+          setIsDirty(false);
         }}
       />
       <TallyInProgressDeleteDialog
@@ -807,6 +904,34 @@ const TallyInProgressPage = ({
           setOpenTallyImportDialog(false);
         }}
       />
+      <RevertLocalTallyDialog
+        open={openRevertLocalTallyDialog}
+        localUpdatedAt={localTallyUpdatedAt}
+        serverUpdatedAt={serverUpdatedAtState}
+        onClose={() => {
+          setOpenRevertLocalTallyDialog(false);
+        }}
+        onConfirm={() => {
+          setOpenRevertLocalTallyDialog(false);
+          applyServerTallyValues();
+        }}
+      />
+      {!!pendingLocalTallyChoice && (
+        <ChooseTallySourceDialog
+          serverSource={{
+            updatedAt: tally.updatedAt,
+            username: tally.user.username ?? "",
+          }}
+          localSource={{
+            updatedAt: pendingLocalTallyChoice.localUpdatedAt,
+            username: pendingLocalTallyChoice.username,
+          }}
+          applyServerTallyValues={applyServerTallyValues}
+          applyLocalTallyValues={() => {
+            applyLocalTallyValues(pendingLocalTallyChoice);
+          }}
+        />
+      )}
     </div>
   );
 };
