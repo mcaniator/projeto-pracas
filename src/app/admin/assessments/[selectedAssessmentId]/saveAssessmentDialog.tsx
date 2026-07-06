@@ -180,6 +180,7 @@ const SaveAssessmentDialog = ({
     callbacks: {
       onSuccess: (response) => {
         // Delete local data, as it is no longer need
+        // TODO: Refresh server data in ResponseFormV2
         dexieDb.assessments
           .delete(assessmentId)
           .then(() => {
