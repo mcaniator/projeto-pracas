@@ -1,13 +1,22 @@
 /** @type {import('next').NextConfig} */
+const isStaticExport = process.env.NEXT_OUTPUT_EXPORT === "true";
+
 const nextConfig = {
   reactStrictMode: true,
+  output: isStaticExport ? "export" : undefined,
+  pageExtensions: isStaticExport ? ["tsx", "jsx"] : undefined,
   experimental: {
-    reactCompiler: true,
-    serverActions: {
-      bodySizeLimit: "2mb",
-    },
+    reactCompiler: !isStaticExport,
+    ...(isStaticExport ?
+      {}
+    : {
+        serverActions: {
+          bodySizeLimit: "2mb",
+        },
+      }),
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

@@ -9,8 +9,9 @@ import {
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
