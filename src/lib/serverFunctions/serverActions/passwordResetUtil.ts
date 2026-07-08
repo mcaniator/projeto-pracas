@@ -9,10 +9,7 @@ import bcrypt from "bcryptjs";
 import * as crypto from "crypto";
 import { ZodError, z } from "zod";
 
-const _createPasswordReset = async (
-  prevState: { statusCode: number } | null,
-  formData: FormData,
-) => {
+const _createPasswordReset = async (formData: FormData) => {
   if (process.env.ENABLE_SYSTEM_EMAILS === "false") {
     return { statusCode: 503 };
   }
@@ -92,10 +89,7 @@ const _createPasswordReset = async (
   }
 };
 
-const _resetPassword = async (
-  prevState: { statusCode: number; errorMessage: string | null } | null,
-  formData: FormData,
-) => {
+const _resetPassword = async (formData: FormData) => {
   try {
     const passwordReset = passwordResetSchema.parse({
       password: formData.get("password"),

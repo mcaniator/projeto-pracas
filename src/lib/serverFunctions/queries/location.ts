@@ -3,7 +3,7 @@ import { LocationForMap } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
 
-import { FetchLocationsParams } from "../../../app/api/admin/locations/route";
+import type { FetchLocationsParams } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 export type FetchLocationsResponse = NonNullable<

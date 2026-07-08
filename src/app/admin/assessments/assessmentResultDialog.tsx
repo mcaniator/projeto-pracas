@@ -37,7 +37,9 @@ const AssessmentResultDialog = ({
   useEffect(() => {
     if (!assessment) return;
     void fetchAssessmentTree({
-      assessmentId: String(assessment?.id),
+      params: {
+        assessmentId: String(assessment?.id),
+      },
     });
   }, [assessment, fetchAssessmentTree]);
   if (!assessment) {
@@ -56,7 +58,7 @@ const AssessmentResultDialog = ({
         </>
       }
       confirmProps={{
-        href: `/admin/assessments/${assessment.id}`,
+        href: `/admin/assessments/details?assessmentId=${assessment.id}`,
         loadingOnClick: true,
       }}
     >

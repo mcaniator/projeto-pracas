@@ -37,10 +37,7 @@ interface PersonWithQuantity {
   quantity: number;
 }
 
-export const _createTallyV2 = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+export const _createTallyV2 = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["TALLY_EDITOR", "TALLY_MANAGER"],

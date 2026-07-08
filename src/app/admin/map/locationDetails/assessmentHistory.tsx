@@ -31,7 +31,7 @@ const AssessmentHistory = ({
     },
   });
   useEffect(() => {
-    void fetchPublicAssessments({ locationId });
+    void fetchPublicAssessments({ params: { locationId } });
   }, [locationId, fetchPublicAssessments]);
   if (loading) {
     return <CLinearProgress label="Carregando..." />;

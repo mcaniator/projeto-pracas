@@ -1,14 +1,7 @@
+import type { PublicFetchPublicAssessmentTreeParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import { publicFetchPublicAssessmentTree } from "@/lib/serverFunctions/queries/public/assessment";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-
-const paramsSchema = z.object({
-  assessmentId: z.string().min(1),
-});
-
-export type PublicFetchPublicAssessmentTreeParams = z.infer<
-  typeof paramsSchema
->;
 
 export async function GET(
   request: NextRequest,

@@ -11,16 +11,6 @@ import { userUpdateUsernameSchema } from "@zodValidators";
 import { ZodError } from "zod";
 
 const _updateUserUsername = async (
-  prevState: {
-    statusCode: number;
-    username: string | null;
-    errors:
-      | {
-          message: string | null;
-          element: string | null;
-        }[]
-      | null;
-  } | null,
   formData: FormData,
 ): Promise<{
   statusCode: number;

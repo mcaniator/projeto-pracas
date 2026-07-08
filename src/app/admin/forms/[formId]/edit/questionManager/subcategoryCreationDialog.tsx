@@ -1,7 +1,7 @@
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useSubcategorySubmit } from "@/lib/serverFunctions/apiCalls/category";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import { _subcategorySubmit } from "@serverActions/categoryServerActions";
+import { FormEventHandler } from "react";
 
 const SubcategoryCreationDialog = ({
   categoryId,
@@ -24,24 +24,28 @@ const SubcategoryCreationDialog = ({
   reloadCategories: () => void;
   openSubcategoryDeletionDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _subcategorySubmit,
+  const [subcategorySubmit, isPending] = useSubcategorySubmit({
     callbacks: {
       onSuccess: () => {
         reloadCategories();
       },
     },
-    options: {
-      loadingMessage: "Salvando subcategoria...",
-    },
   });
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void subcategorySubmit({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Salvando subcategoria..." },
+    });
+  };
+
   return (
     <CDialog
       title={subcategoryId ? "Editar subcategoria" : "Criar subcategoria"}
       open={open}
       onClose={onClose}
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       onCancel={openSubcategoryDeletionDialog}
       confirmChildren={subcategoryId ? <>Editar</> : <>Criar</>}
       cancelChildren={subcategoryId ? <>Excluir</> : undefined}

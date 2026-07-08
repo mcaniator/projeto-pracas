@@ -17,7 +17,7 @@ import React, { ReactNode, useEffect, useMemo, useRef } from "react";
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
 
-export type CDialogProps = DialogProps & {
+export type CDialogProps = Omit<DialogProps, "onClose" | "onSubmit"> & {
   title?: string;
   subtitle?: string;
   children?: ReactNode;
@@ -44,6 +44,15 @@ export type CDialogProps = DialogProps & {
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose?: () => void;
+  action?: (formData: FormData) => void;
+  onSubmit?: React.FormEventHandler<HTMLFormElement>;
+};
+
+type FormPaperProps = Omit<
+  PaperProps,
+  "action" | "component" | "onSubmit"
+> & {
+  component: "form";
   action?: (formData: FormData) => void;
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
@@ -222,17 +231,16 @@ const CDialog = ({
     : { px: { xs: "4px", sm: "12px" }, py: "4px" };
   //TODO: Study ways to remove code duplication
   if (isForm) {
-    const formPaperProps: PaperProps & React.ComponentPropsWithoutRef<"form"> =
-      {
-        component: "form",
-        sx: {
-          borderRadius: memoFullScreen ? "0px" : "12px",
-          py: { xs: "4px", sm: "16px" },
-          overflow: "hidden",
-        },
-        action,
-        onSubmit,
-      };
+    const formPaperProps: FormPaperProps = {
+      component: "form",
+      sx: {
+        borderRadius: memoFullScreen ? "0px" : "12px",
+        py: { xs: "4px", sm: "16px" },
+        overflow: "hidden",
+      },
+      action,
+      onSubmit,
+    };
 
     return (
       <Dialog

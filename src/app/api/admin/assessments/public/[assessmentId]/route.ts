@@ -1,13 +1,8 @@
+import type { FetchAssessmentTreeParams } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
 import { fetchAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-
-const paramsSchema = z.object({
-  assessmentId: z.string().min(1),
-});
-
-export type FetchAssessmentTreeParams = z.infer<typeof paramsSchema>;
 
 export async function GET(
   request: NextRequest,

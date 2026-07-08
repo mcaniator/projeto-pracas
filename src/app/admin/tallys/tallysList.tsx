@@ -76,8 +76,8 @@ const TallysList = ({ tallys }: { tallys: TallyWithSyncStatus[] }) => {
                       loadingOnClick
                       href={
                         !a.hasUnsyncedFilling && a.isFinalized ?
-                          `/admin/tallys/result/${a.id}`
-                        : `/admin/tallys/${a.id}/fill`
+                          `/admin/tallys/result?tallyIds=${a.id}`
+                        : `/admin/tallys/fill?tallyId=${a.id}`
                       }
                     >
                       <IconExternalLink />

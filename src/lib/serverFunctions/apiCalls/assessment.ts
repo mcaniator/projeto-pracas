@@ -1,18 +1,48 @@
-import { FetchAssessmentTreeParams } from "@/app/api/admin/assessments/[assessmentId]/route";
-import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
-import type { UploadImageResponseParams } from "@/app/api/admin/uploadImageResponse/route";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
 
-import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
 import { fetchAPI } from "../../utils/apiCall";
-import {
+import type {
+  AddResponsesData,
+  CreateAssessmentData,
+  DeleteAssessmentData,
+  FetchAssessmentsParams,
+  FetchAssessmentTreeParams,
+  FetchPublicAssessmentsParams,
+  UpdateAssessmentVisibilityData,
+  UploadImageResponseParams,
+} from "./assessmentParamsSchemas";
+import type {
   FetchAssessmentTreeResponse,
   FetchAssessmentsResponse,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
 import type { UploadImageResponseData } from "../storage/drive/assessment";
+
+export type {
+  AddResponsesData,
+  CreateAssessmentData,
+  DeleteAssessmentData,
+  FetchAssessmentsParams,
+  FetchAssessmentTreeParams,
+  FetchPublicAssessmentsParams,
+  UpdateAssessmentVisibilityData,
+  UploadImageResponseParams,
+} from "./assessmentParamsSchemas";
+
+export type FetchAssessmentUsersResponse = {
+  users: { id: string; username: string }[];
+};
+
+export type CreateAssessmentResponse = {
+  assessmentId: number;
+};
+
+export type AddResponsesResponse = {
+  savedAsFinalized: boolean;
+  updatedAt: string;
+};
 
 export const _fetchAssessments = async (params: FetchAssessmentsParams) => {
   const url = `/api/admin/assessments`;
@@ -38,6 +68,73 @@ export const useFetchAssessments = (
     options: {
       method: "GET",
       next: { tags: ["assessment", "database"] },
+    },
+  });
+};
+
+export const useFetchAssessmentUsers = (
+  params?: UseFetchAPIParams<FetchAssessmentUsersResponse>,
+) => {
+  return useFetchAPI<FetchAssessmentUsersResponse, Record<string, never>>({
+    url: "/api/admin/assessments/users",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+      next: { tags: ["assessment", "user", "database"] },
+    },
+  });
+};
+
+export const useCreateAssessment = (
+  params?: UseFetchAPIParams<CreateAssessmentResponse>,
+) => {
+  return useFetchAPI<
+    CreateAssessmentResponse,
+    Record<string, never>,
+    CreateAssessmentData
+  >({
+    url: "/api/admin/assessments/create",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useDeleteAssessment = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, DeleteAssessmentData>({
+    url: "/api/admin/assessments/delete",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useUpdateAssessmentVisibility = (
+  params?: UseFetchAPIParams<null>,
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    UpdateAssessmentVisibilityData
+  >({
+    url: "/api/admin/assessments/visibility",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useAddResponses = (
+  params?: UseFetchAPIParams<AddResponsesResponse>,
+) => {
+  return useFetchAPI<AddResponsesResponse, Record<string, never>, AddResponsesData>({
+    url: "/api/admin/assessments/responses",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
     },
   });
 };
@@ -105,20 +202,19 @@ export const useUploadImageResponse = (
   const uploadImageResponse = useCallback(
     (
       { folderId, image }: UploadImageResponseParams,
-      functionOptions?: Parameters<typeof uploadImageResponseFetch>[1],
+      projectOptions?: NonNullable<
+        Parameters<typeof uploadImageResponseFetch>[0]
+      >["projectOptions"],
     ) => {
       const formData = new FormData();
       //formData.append("folderId", folderId);
       formData.append("folderId", folderId);
       formData.append("image", image);
 
-      return uploadImageResponseFetch(
-        {},
-        {
-          ...functionOptions,
-          body: formData,
-        },
-      );
+      return uploadImageResponseFetch({
+        data: formData,
+        projectOptions,
+      });
     },
     [uploadImageResponseFetch],
   );

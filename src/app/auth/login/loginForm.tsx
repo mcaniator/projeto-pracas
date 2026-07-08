@@ -6,14 +6,30 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
-import _login from "@serverActions/login";
-import { useActionState, useEffect } from "react";
+import { useLogin } from "@/lib/serverFunctions/apiCalls/auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(_login, null);
+  const router = useRouter();
+  const [login, isPending] = useLogin();
+  const [state, setState] = useState<{ statusCode: number } | null>(null);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const response = await login({
+      data: formData,
+      projectOptions: { silent: true },
+    });
+    setState({ statusCode: response.responseInfo.statusCode });
+    if (response.responseInfo.statusCode === 200) {
+      router.push("/admin/map");
+    }
+  }
 
   useEffect(() => {
     if (!state) return;
@@ -35,7 +51,7 @@ const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
       {isPending && <LoadingIcon className="h-32 w-32" />}
       {!isPending && (
         <>
-          <form action={formAction} className="w-full max-w-xs">
+          <form onSubmit={handleSubmit} className="w-full max-w-xs">
             <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Login</h2>
               <div className="text-left">

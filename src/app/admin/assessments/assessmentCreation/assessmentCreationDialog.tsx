@@ -2,14 +2,13 @@ import FormsDataGrid from "@/app/admin/assessments/assessmentCreation/formsDataG
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useCreateAssessment } from "@/lib/serverFunctions/apiCalls/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { _createAssessmentV2 } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { Divider, LinearProgress } from "@mui/material";
 import { IconCheck } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
-import { startTransition, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const AssessmentCreationDialog = ({
   open,
@@ -30,15 +29,16 @@ const AssessmentCreationDialog = ({
 
   const [selectedForm, setSelectedForm] = useState<{ id: number } | null>(null);
 
-  const [formAction, isSaving] = useResettableActionState({
-    action: _createAssessmentV2,
+  const [createAssessment, isSaving] = useCreateAssessment({
     callbacks: {
       onSuccess: (response) => {
         if (!response.data?.assessmentId) {
           return;
         }
         setIsRedirecting(true);
-        router.push(`/admin/assessments/${response.data.assessmentId}`);
+        router.push(
+          `/admin/assessments/details?assessmentId=${response.data.assessmentId}`,
+        );
       },
     },
   });
@@ -49,7 +49,7 @@ const AssessmentCreationDialog = ({
     formData.append("locationId", selectedLocation.id.toString());
     formData.append("startDate", selectedDateTime.toDate().toISOString());
     formData.append("formId", selectedForm.id.toString());
-    startTransition(() => formAction(formData));
+    void createAssessment({ data: formData });
   };
 
   const enableSaveButton = useMemo(() => {

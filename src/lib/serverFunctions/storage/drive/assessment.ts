@@ -1,4 +1,4 @@
-import { UploadImageResponseParams } from "@/app/api/admin/uploadImageResponse/route";
+import type { UploadImageResponseParams } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
 import type { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import {
   buildGoogleDriveDirectImageUrl,

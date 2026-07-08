@@ -1,4 +1,4 @@
-import { FetchFormParams } from "@/app/api/admin/forms/route";
+import type { FetchFormParams } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { sleep } from "@/lib/utils/sleep";
 import { prisma } from "@lib/prisma";
@@ -344,6 +344,11 @@ const getCalculationByFormId = async (formId: number) => {
   } catch (e) {
     return { statusCode: 500, calculations: [] };
   }
+};
+
+export type FetchFormEditorResponse = {
+  form: Awaited<ReturnType<typeof getFormTree>>;
+  calculations: Awaited<ReturnType<typeof getCalculationByFormId>>["calculations"];
 };
 
 export {

@@ -115,6 +115,30 @@ export const replaceRouteParams = <P extends Record<string, unknown>>(
   };
 };
 
+export const getApiBaseUrl = () => {
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "";
+};
+
+export const buildApiUrl = (url: string) => {
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+
+  const baseUrl = getApiBaseUrl();
+  const path = url.startsWith("/") ? url : `/${url}`;
+
+  return `${baseUrl}${path}`;
+};
+
 export async function fetchAPI<T>({
   url,
   params,
@@ -125,8 +149,12 @@ export async function fetchAPI<T>({
   options?: RequestInit & { next?: { tags?: string[] } };
 }): Promise<{ responseInfo: APIResponseInfo; data: T | null | undefined }> {
   const queryString = params ? generateQueryString(params) : "";
-  const fullUrl = queryString ? `${url}?${queryString}` : url;
-  const response = await fetch(fullUrl, options);
+  const parsedUrl = buildApiUrl(url);
+  const fullUrl = queryString ? `${parsedUrl}?${queryString}` : parsedUrl;
+  const response = await fetch(fullUrl, {
+    ...options,
+    credentials: options?.credentials ?? "include",
+  });
 
   if (!response.ok) {
     const message = await response.text();

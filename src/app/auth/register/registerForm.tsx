@@ -6,16 +6,10 @@ import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import GoogleRegisterButton from "@components/singleUse/auth/googleRegisterButton";
 import { Input } from "@components/ui/input";
-import _register from "@serverActions/register";
+import { useRegister } from "@/lib/serverFunctions/apiCalls/auth";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import Link from "next/link";
-import {
-  startTransition,
-  useActionState,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
@@ -28,7 +22,16 @@ const RegisterForm = ({
 }) => {
   const { setLoadingOverlayVisible } = useLoadingOverlay();
   const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(_register, null);
+  const [register, isPending] = useRegister();
+  const [state, setState] = useState<{
+    statusCode: number;
+    errors:
+      | {
+          message: string | null;
+          element: string | null;
+        }[]
+      | null;
+  } | null>(null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPasswordError: false,
@@ -87,10 +90,17 @@ const RegisterForm = ({
     [errors],
   );
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    startTransition(() => formAction(formData));
+    const response = await register({
+      data: formData,
+      projectOptions: { silent: true },
+    });
+    setState({
+      statusCode: response.responseInfo.statusCode,
+      errors: response.data?.errors ?? null,
+    });
   }
 
   return (

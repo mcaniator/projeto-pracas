@@ -8,10 +8,7 @@ import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveCity = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+export const _saveCity = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
@@ -132,15 +129,7 @@ export const _saveCity = async (
   }
 };
 
-export const _deleteCity = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: {
-      numberOfLocations: number;
-    } | null;
-  },
-  formData: FormData,
-) => {
+export const _deleteCity = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {

@@ -3,14 +3,19 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import {
   APIResponse,
   APIResponseInfo,
-  FetchAPIOptions,
+  FetchFunctionArgs,
 } from "@/lib/types/backendCalls/APIResponse";
-import { generateQueryString, replaceRouteParams } from "@/lib/utils/apiCall";
-import { useCallback, useState } from "react";
+import {
+  buildApiUrl,
+  generateQueryString,
+  replaceRouteParams,
+} from "@/lib/utils/apiCall";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useFetchAPI<
   T,
   P extends Record<string, unknown> = Record<string, unknown>,
+  D = unknown,
 >({
   url,
   callbacks,
@@ -27,34 +32,74 @@ export function useFetchAPI<
   };
 }): [
   (
-    params: P,
-    functionOptions?: FetchAPIOptions,
+    args?: FetchFunctionArgs<P, D>,
   ) => Promise<{ responseInfo: APIResponseInfo; data?: T | null }>,
   boolean,
 ] {
   const { helperCardProcessResponse } = useHelperCard();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isLoading, setIsLoading] = useState(false);
+  const callbacksRef = useRef(callbacks);
+  const optionsRef = useRef(options);
+
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  }, [callbacks]);
+
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const fetchFunction = useCallback(
-    async (params: P, functionOptions?: FetchAPIOptions) => {
+    async (args?: FetchFunctionArgs<P, D>) => {
       setIsLoading(true);
-      if (
-        functionOptions?.loadingMessage ||
-        functionOptions?.showLoadingOverlay
-      ) {
+      const params = args?.params ?? ({} as P);
+      const data = args?.data;
+      const projectOptions = args?.projectOptions;
+      const requestOptions = args?.requestOptions;
+      const loadingMessage = projectOptions?.loadingMessage;
+      const showLoadingOverlay = projectOptions?.showLoadingOverlay;
+      const silent = projectOptions?.silent;
+
+      if (loadingMessage || showLoadingOverlay) {
         setLoadingOverlay({
           show: true,
-          message: functionOptions?.loadingMessage ?? "",
+          message: loadingMessage ?? "",
         });
       }
       const { url: parsedUrl, queryParams } = replaceRouteParams(url, params);
       const queryString = generateQueryString(queryParams);
-      const fullUrl = queryString ? `${parsedUrl}?${queryString}` : parsedUrl;
+      const absoluteUrl = buildApiUrl(parsedUrl);
+      const fullUrl =
+        queryString ? `${absoluteUrl}?${queryString}` : absoluteUrl;
       try {
+        const currentOptions = optionsRef.current;
+        const currentCallbacks = callbacksRef.current;
+        const headers = new Headers(currentOptions.headers);
+        new Headers(requestOptions?.headers).forEach((value, key) => {
+          headers.set(key, value);
+        });
+        const isFormData = data instanceof FormData;
+        const body =
+          data === undefined ?
+            requestOptions?.body
+          : isFormData ? data
+          : JSON.stringify(data);
+
+        if (data !== undefined && !isFormData && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json");
+        }
+
         const response = await fetch(fullUrl, {
-          method: options.method,
-          ...functionOptions,
+          ...currentOptions,
+          ...requestOptions,
+          body,
+          credentials:
+            requestOptions?.credentials ??
+            currentOptions.credentials ??
+            "include",
+          headers,
+          method: currentOptions.method,
         });
 
         if (!response.ok) {
@@ -63,11 +108,14 @@ export function useFetchAPI<
             statusCode: response.status,
             message: message ?? `Erro na requisição ao servidor!`,
           };
-          callbacks?.onCallFailed?.({
+          currentCallbacks?.onCallFailed?.({
             responseInfo: errorResponseInfo,
             data: null,
           });
-          helperCardProcessResponse(errorResponseInfo);
+          if (!silent) {
+            helperCardProcessResponse(errorResponseInfo);
+          }
+          setLoadingOverlay({ show: false });
           setIsLoading(false);
           return {
             responseInfo: errorResponseInfo,
@@ -80,11 +128,13 @@ export function useFetchAPI<
           json.responseInfo.statusCode >= 200 &&
           json.responseInfo.statusCode < 300
         ) {
-          callbacks?.onSuccess?.(json);
+          currentCallbacks?.onSuccess?.(json);
         } else {
-          callbacks?.onError?.(json);
+          currentCallbacks?.onError?.(json);
         }
-        helperCardProcessResponse(json.responseInfo);
+        if (!silent) {
+          helperCardProcessResponse(json.responseInfo);
+        }
         setLoadingOverlay({ show: false });
         setIsLoading(false);
         return {
@@ -96,15 +146,18 @@ export function useFetchAPI<
           statusCode: 500,
           message: `Erro na requisição ao servidor!`,
         };
-        callbacks?.onCallFailed?.({
+        callbacksRef.current?.onCallFailed?.({
           responseInfo: errorResponseInfo,
           data: null,
         });
-        callbacks?.onError?.({
+        callbacksRef.current?.onError?.({
           responseInfo: errorResponseInfo,
           data: null,
         });
-        helperCardProcessResponse(errorResponseInfo);
+        if (!silent) {
+          helperCardProcessResponse(errorResponseInfo);
+        }
+        setLoadingOverlay({ show: false });
         setIsLoading(false);
         return {
           responseInfo: errorResponseInfo,
@@ -112,7 +165,7 @@ export function useFetchAPI<
         };
       }
     },
-    [],
+    [helperCardProcessResponse, setLoadingOverlay, url],
   );
 
   return [fetchFunction, isLoading];

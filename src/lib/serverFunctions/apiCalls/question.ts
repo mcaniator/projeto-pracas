@@ -1,12 +1,26 @@
-import { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
-import {
+import type {
   FetchquestionUsesResponse,
   FetchquestionsByCategoryAndSubcategoryResponse,
 } from "@/lib/serverFunctions/queries/question";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+import type {
+  DeleteQuestionData,
+  FetchQuestionsByCategoryAndSubcategoryParams,
+  FetchQuestionUsesParams,
+  QuestionSubmitData,
+  QuestionUpdateData,
+} from "./questionParamsSchemas";
 
-import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
+import type { CategoryForQuestionPicker } from "../../types/forms/formCreation";
+
+export type {
+  DeleteQuestionData,
+  FetchQuestionsByCategoryAndSubcategoryParams,
+  FetchQuestionUsesParams,
+  QuestionSubmitData,
+  QuestionUpdateData,
+} from "./questionParamsSchemas";
 
 const _searchQuestionsByCategoryAndSubcategory = async ({
   name,
@@ -88,6 +102,36 @@ export const useFetchQuestionUses = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
+    },
+  });
+};
+
+export const useQuestionSubmit = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, QuestionSubmitData>({
+    url: "/api/admin/forms/fieldsCreation/question/save",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useQuestionUpdate = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, QuestionUpdateData>({
+    url: "/api/admin/forms/fieldsCreation/question/update",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useDeleteQuestion = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, DeleteQuestionData>({
+    url: "/api/admin/forms/fieldsCreation/question/delete",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
     },
   });
 };

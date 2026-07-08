@@ -104,7 +104,7 @@ const Sidebar = ({
     }
 
     await _fetchLocationCategories({
-      cityId: selectedCity.id,
+      params: { cityId: selectedCity.id },
     });
   }, [_fetchLocationCategories, selectedCity]);
   const loadTypes = useCallback(async () => {
@@ -114,7 +114,7 @@ const Sidebar = ({
     }
 
     await _fetchLocationTypes({
-      cityId: selectedCity.id,
+      params: { cityId: selectedCity.id },
     });
   }, [_fetchLocationTypes, selectedCity]);
 

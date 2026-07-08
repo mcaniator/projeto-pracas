@@ -1,17 +1,9 @@
+import { fetchFormParamsSchema } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
 import { fetchForms } from "@/lib/serverFunctions/queries/form";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import "@/lib/utils/bigIntInJson";
-import { booleanFromString } from "@/lib/zodValidators";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
-
-const paramsSchema = z.object({
-  finalizedOnly: booleanFromString.nullish(),
-  includeArchived: booleanFromString.nullish(),
-});
-
-export type FetchFormParams = z.infer<typeof paramsSchema>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +15,7 @@ export async function GET(request: NextRequest) {
       });
     }
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(paramsSchema, searchParams);
+    const params = parseQueryParams(fetchFormParamsSchema, searchParams);
     const forms = await fetchForms(params);
     return new Response(JSON.stringify(forms), {
       status: 200,

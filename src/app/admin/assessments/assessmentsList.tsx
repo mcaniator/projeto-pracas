@@ -2,8 +2,7 @@ import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDial
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _updateAssessmentVisibility } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
+import { useUpdateAssessmentVisibility } from "@/lib/serverFunctions/apiCalls/assessment";
 import { Chip, Divider } from "@mui/material";
 import {
   IconCalendar,
@@ -38,8 +37,7 @@ const AssessmentsList = ({
   const [selectedAssessmentToView, setSelectedAssessmentToView] =
     useState<AssessmentWithSyncStatus | null>(null);
 
-  const [updateVisibility, updatingVisibility] = useServerAction({
-    action: _updateAssessmentVisibility,
+  const [updateVisibility, updatingVisibility] = useUpdateAssessmentVisibility({
     callbacks: {
       onSuccess: () => {
         if (pendingVisibilityChange === undefined) {
@@ -131,7 +129,7 @@ const AssessmentsList = ({
                     : <CButton
                         square
                         loadingOnClick
-                        href={`/admin/assessments/${a.id}`}
+                        href={`/admin/assessments/details?assessmentId=${a.id}`}
                       >
                         <IconExternalLink />
                         Acessar
@@ -179,8 +177,10 @@ const AssessmentsList = ({
         confirmLoading={updatingVisibility}
         onConfirm={() => {
           void updateVisibility({
-            assessmentId: pendingVisibilityChange!.id,
-            isPublic: pendingVisibilityChange!.isPublic,
+            data: {
+              assessmentId: pendingVisibilityChange!.id,
+              isPublic: pendingVisibilityChange!.isPublic,
+            },
           });
         }}
       >

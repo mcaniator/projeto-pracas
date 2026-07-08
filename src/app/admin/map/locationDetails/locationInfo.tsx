@@ -7,10 +7,9 @@ import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { useUpdateLocationVisibility } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
 import {
   IconCheck,
@@ -49,8 +48,7 @@ const LocationInfo = ({
     });
 
   const [updateLocationVisibility, updateLocationVisibilityLoading] =
-    useServerAction({
-      action: _updateLocationVisibility,
+    useUpdateLocationVisibility({
       callbacks: {
         onSuccess: () => {
           if (pendingVisibility === null) {
@@ -73,7 +71,9 @@ const LocationInfo = ({
     setLatestAssessment(undefined);
     if (location.latestAssessmentId) {
       void fetchLatestAssessmentTree({
-        assessmentId: String(location.latestAssessmentId),
+        params: {
+          assessmentId: String(location.latestAssessmentId),
+        },
       });
     } else {
       setLatestAssessment(undefined);
@@ -193,8 +193,10 @@ const LocationInfo = ({
             return;
           }
           void updateLocationVisibility({
-            id: location.id,
-            isPublic: pendingVisibility,
+            data: {
+              id: location.id,
+              isPublic: pendingVisibility,
+            },
           });
         }}
       />

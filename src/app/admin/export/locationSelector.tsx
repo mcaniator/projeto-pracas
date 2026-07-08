@@ -158,14 +158,18 @@ const LocationSelector = ({
       return;
     }
     await _fetchLocations({
-      cityId: selectedCity?.id,
+      params: {
+        cityId: selectedCity?.id,
+      },
     });
   }, [_fetchLocations, selectedCity]);
 
   const loadCitiesOptions = useCallback(async () => {
     await _fetchCities({
-      state: state,
-      includeAdminstrativeRegions: true,
+      params: {
+        state: state,
+        includeAdminstrativeRegions: true,
+      },
     });
   }, [state, _fetchCities]);
 

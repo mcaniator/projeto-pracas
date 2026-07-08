@@ -1,25 +1,23 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
-import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import {
+  FetchAssessmentUsersResponse,
+  _fetchAssessments,
+  useFetchAssessmentUsers,
+} from "@/lib/serverFunctions/apiCalls/assessment";
+import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
+import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
 import { dexieDb } from "../../../lib/dexie/dexie";
-import { _fetchAssessments } from "../../../lib/serverFunctions/apiCalls/assessment";
 import type { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
@@ -41,13 +39,7 @@ export type AssessmentWithSyncStatus =
     hasUnsyncedFilling: boolean;
   };
 
-const AssessmentsClient = ({
-  formsPromise,
-  usersPromise,
-}: {
-  formsPromise: Promise<FetchFormsResponse["forms"]>;
-  usersPromise: Promise<{ id: string; username: string }[]>;
-}) => {
+const AssessmentsClient = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [params] = useState(useSearchParams());
@@ -64,6 +56,26 @@ const AssessmentsClient = ({
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
+  const [forms, setForms] = useState<FetchFormsResponse["forms"]>([]);
+  const [users, setUsers] = useState<FetchAssessmentUsersResponse["users"]>([]);
+  const [fetchForms, loadingForms] = useFetchForms({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        if (data) {
+          setForms(data.forms);
+        }
+      },
+    },
+  });
+  const [fetchAssessmentUsers, loadingUsers] = useFetchAssessmentUsers({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        if (data) {
+          setUsers(data.users);
+        }
+      },
+    },
+  });
   //Filters
   const [isLoading, setIsLoading] = useState(true);
   const [locationId, setLocationId] = useState<number | undefined>(undefined);
@@ -327,6 +339,13 @@ const AssessmentsClient = ({
   }, [getUnsyncedAssessmentIds]);
 
   useEffect(() => {
+    void fetchForms({
+      params: { finalizedOnly: true },
+    });
+    void fetchAssessmentUsers({});
+  }, [fetchAssessmentUsers, fetchForms]);
+
+  useEffect(() => {
     const fetch = async () => {
       await fetchAssessments();
     };
@@ -415,23 +434,22 @@ const AssessmentsClient = ({
           }
         </div>
 
-        <Suspense fallback={<CSkeletonGroup quantity={5} />}>
-          <AssessmentsFilterSidebar
-            openDialog={openFiltersDialog}
-            isDialog={isMobileView}
-            onNoCitiesFound={onNoCitiesFound}
-            onCloseDialog={() => setOpenFiltersDialog(false)}
-            defaultLocationId={
-              params.get("locationId") ?
-                Number(params.get("locationId"))
-              : undefined
-            }
-            selectedLocationId={locationId}
-            formsPromise={formsPromise}
-            usersPromise={usersPromise}
-            handleFilterChange={handleFilterChange}
-          />
-        </Suspense>
+        <AssessmentsFilterSidebar
+          openDialog={openFiltersDialog}
+          isDialog={isMobileView}
+          isLoading={loadingForms || loadingUsers}
+          onNoCitiesFound={onNoCitiesFound}
+          onCloseDialog={() => setOpenFiltersDialog(false)}
+          defaultLocationId={
+            params.get("locationId") ?
+              Number(params.get("locationId"))
+            : undefined
+          }
+          selectedLocationId={locationId}
+          forms={forms}
+          users={users}
+          handleFilterChange={handleFilterChange}
+        />
       </div>
       <AssessmentCreationDialog
         open={openAssessmentCreationDialog}

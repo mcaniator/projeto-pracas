@@ -1,7 +1,7 @@
 import { prisma } from "@lib/prisma";
 import { $Enums } from "@prisma/client";
 
-import { FetchCitiesParams } from "../../../app/api/admin/cities/route";
+import type { FetchCitiesParams } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 export type FetchCitiesResponse = Awaited<

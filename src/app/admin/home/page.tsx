@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-const AdminRoot = () => {
+const AdminRootContent = () => {
   const { setHelperCard } = useHelperCard();
   const params = useSearchParams();
 
@@ -99,6 +99,10 @@ const AdminRoot = () => {
       </div>
     </div>
   );
+};
+
+const AdminRoot = () => {
+  return <AdminRootContent />;
 };
 
 export default AdminRoot;

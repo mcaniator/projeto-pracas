@@ -4,10 +4,10 @@ import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
-import { _resetPassword } from "@serverActions/passwordResetUtil";
+import { useResetPassword } from "@/lib/serverFunctions/apiCalls/auth";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
@@ -20,16 +20,27 @@ const PasswordResetForm = ({
 }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const [state, formAction, isPending] = useActionState(_resetPassword, null);
+  const [resetPassword, isPending] = useResetPassword();
+  const [state, setState] = useState<{
+    statusCode: number;
+    errorMessage: string | null;
+  } | null>(null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPassword: false,
   });
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    startTransition(() => formAction(formData));
+    const response = await resetPassword({
+      data: formData,
+      projectOptions: { silent: true },
+    });
+    setState({
+      statusCode: response.responseInfo.statusCode,
+      errorMessage: response.data?.errorMessage ?? null,
+    });
   }
 
   useEffect(() => {

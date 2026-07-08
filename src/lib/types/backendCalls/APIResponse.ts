@@ -24,15 +24,32 @@ type UseFetchAPIParams<T> =
     }
   | undefined;
 
-type FetchAPIOptions = Omit<RequestInit, "method"> & {
-  next?: { tags?: string[] };
+type FetchAPIOptions = {
   loadingMessage?: string;
   showLoadingOverlay?: boolean;
+  silent?: boolean;
 };
+
+type FetchRequestOptions = Omit<RequestInit, "method"> & {
+  next?: { tags?: string[] };
+};
+
+type FetchFunctionArgs<
+  Params extends Record<string, unknown>,
+  Data = unknown,
+> = {
+  params?: Params;
+  data?: Data;
+  projectOptions?: FetchAPIOptions;
+  requestOptions?: FetchRequestOptions;
+};
+
 export type {
   APIResponseInfo,
   APIResponse,
   FetchCallbacks,
   UseFetchAPIParams,
   FetchAPIOptions,
+  FetchFunctionArgs,
+  FetchRequestOptions,
 };

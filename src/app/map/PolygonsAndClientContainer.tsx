@@ -191,29 +191,29 @@ const PolygonsAndClientContainer = () => {
         setLocationsWithPolygon([]);
         return;
       }
-      await _fetchLocations(
-        {
+      await _fetchLocations({
+        params: {
           cityId: selectedCity?.id,
         },
-        {
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchLocations, selectedCity],
   );
 
   const loadCitiesOptions = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchCities(
-        {
+      await _fetchCities({
+        params: {
           state: state,
           includeAdminstrativeRegions: true,
         },
-        {
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [state, _fetchCities],
   );

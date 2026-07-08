@@ -316,14 +316,14 @@ const PolygonsAndClientContainer = () => {
       setLocationsModeLocationsWithPolygon([]);
       return;
     }
-    await _fetchLocationsModeLocations(
-      {
+    await _fetchLocationsModeLocations({
+      params: {
         cityId: selectedCity?.id,
       },
-      {
+      requestOptions: {
         cache: "reload",
       },
-    );
+    });
   }, [_fetchLocationsModeLocations, selectedCity, sidebarMode]);
 
   const loadAssessmentsModeLocations = useCallback(async () => {
@@ -332,8 +332,10 @@ const PolygonsAndClientContainer = () => {
     setSelectedAssessmentsModeLocationIds(new Set());
     if (!selectedCity || !selectedAssessmentsModeCategory) return;
     await fetchAssessmentsModeLocations({
-      cityId: selectedCity.id,
-      categoryId: selectedAssessmentsModeCategory.id,
+      params: {
+        cityId: selectedCity.id,
+        categoryId: selectedAssessmentsModeCategory.id,
+      },
     });
   }, [
     fetchAssessmentsModeLocations,
@@ -344,39 +346,37 @@ const PolygonsAndClientContainer = () => {
 
   const loadCitiesOptions = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchCities(
-        {
+      await _fetchCities({
+        params: {
           state: state,
           includeAdminstrativeRegions: true,
         },
-        {
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [state, _fetchCities],
   );
 
   const loadCategories = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationCategories(
-        {},
-        {
+      await _fetchLocationCategories({
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchLocationCategories],
   );
 
   const loadTypes = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationTypes(
-        {},
-        {
+      await _fetchLocationTypes({
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchLocationTypes],
   );

@@ -58,7 +58,10 @@ const Client = ({
           <Virtuoso
             data={assessments}
             itemContent={(_, a) => (
-              <Link key={a.id} href={`/admin/assessments/${a.id}`}>
+              <Link
+                key={a.id}
+                href={`/admin/assessments/details?assessmentId=${a.id}`}
+              >
                 <div className="pb-4">
                   <div
                     key={a.id}
@@ -107,7 +110,7 @@ const Client = ({
                 href={
                   a.endDate ?
                     `/admin/parks/${a.location.id}/tallys/dataVisualization/${a.id}`
-                  : `/admin/tallys/${a.id}/fill`
+                  : `/admin/tallys/fill?tallyId=${a.id}`
                 }
               >
                 <div className="pb-4">

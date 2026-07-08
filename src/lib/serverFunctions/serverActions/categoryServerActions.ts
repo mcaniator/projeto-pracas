@@ -10,15 +10,7 @@ import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-const _categorySubmit = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: {
-      categoryName: string | null;
-    } | null;
-  },
-  formData: FormData,
-) => {
+const _categorySubmit = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {
@@ -93,23 +85,7 @@ const _categorySubmit = async (
   }
 };
 
-const _deleteCategory = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: {
-      formsWithQuestions: {
-        name: string;
-        formItems: {
-          question: {
-            id: number;
-            name: string;
-          } | null;
-        }[];
-      }[];
-    } | null;
-  } | null,
-  formData: FormData,
-): Promise<{
+const _deleteCategory = async (formData: FormData): Promise<{
   responseInfo: APIResponseInfo;
   data: {
     formsWithQuestions: {
@@ -223,23 +199,7 @@ const _deleteCategory = async (
   }
 };
 
-const _deleteSubcategory = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: {
-      formsWithQuestions: {
-        name: string;
-        formItems: {
-          question: {
-            id: number;
-            name: string;
-          } | null;
-        }[];
-      }[];
-    } | null;
-  } | null,
-  formData: FormData,
-): Promise<{
+const _deleteSubcategory = async (formData: FormData): Promise<{
   responseInfo: APIResponseInfo;
   data: {
     formsWithQuestions: {
@@ -349,15 +309,7 @@ const _deleteSubcategory = async (
   }
 };
 
-const _subcategorySubmit = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: {
-      subcategoryName: string | null;
-    } | null;
-  },
-  formData: FormData,
-) => {
+const _subcategorySubmit = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {

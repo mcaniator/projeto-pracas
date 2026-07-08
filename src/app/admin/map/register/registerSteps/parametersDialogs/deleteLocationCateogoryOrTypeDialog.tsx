@@ -2,10 +2,9 @@
 
 import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressStep";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _deleteLocationCategoryOrType } from "@/lib/serverFunctions/serverActions/locationCategory";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useDeleteLocationCategoryOrType } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
 
 const DeleteLocationCateogryOrTypeDialog = ({
   open,
@@ -24,8 +23,8 @@ const DeleteLocationCateogryOrTypeDialog = ({
   itemType: CategoryOrType;
 }) => {
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
-  const [formAction] = useResettableActionState({
-    action: _deleteLocationCategoryOrType,
+  const [deleteLocationCategoryOrType, isLoading] =
+    useDeleteLocationCategoryOrType({
     callbacks: {
       onSuccess() {
         reloadItems();
@@ -37,9 +36,6 @@ const DeleteLocationCateogryOrTypeDialog = ({
           setConflictingLocations(state.data?.conflictingItems ?? []);
         }
       },
-    },
-    options: {
-      loadingMessage: "Excluindo...",
     },
   });
   const [conflictingLocations, setConflictingLocations] = useState<
@@ -54,11 +50,19 @@ const DeleteLocationCateogryOrTypeDialog = ({
     setConflictingLocations([]);
     onClose();
   };
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteLocationCategoryOrType({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Excluindo..." },
+    });
+  };
 
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
+      confirmLoading={isLoading}
       open={open}
       onClose={handleClose}
       title={itemType === "CATEGORY" ? "Excluir categoria" : "Excluir tipo"}

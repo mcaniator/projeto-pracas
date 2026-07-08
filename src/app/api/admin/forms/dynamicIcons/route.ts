@@ -1,14 +1,7 @@
+import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/apiCalls/questionIconParamsSchemas";
 import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
-
-const iconSearchQuerySchema = z.object({
-  query: z.string().optional().nullish(),
-  limit: z.coerce.number().int().positive().nullish(),
-});
-
-export type FetchDynamicIconsParams = z.infer<typeof iconSearchQuerySchema>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +10,7 @@ export async function GET(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const parse = iconSearchQuerySchema.safeParse({
+  const parse = fetchDynamicIconsParamsSchema.safeParse({
     query: request.nextUrl.searchParams.get("query"),
     limit: request.nextUrl.searchParams.get("limit"),
   });

@@ -21,7 +21,7 @@ const weatherConditionsMap = new Map([
 const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
   const router = useRouter();
   const navigateToTallyFillingPage = (tallyId: number) => {
-    router.push(`/admin/tallys/${tallyId}/fill`);
+    router.push(`/admin/tallys/fill?tallyId=${tallyId}`);
   };
   return (
     <>

@@ -62,7 +62,7 @@ const QuestionIconPicker = ({
     if (showAllIcons) {
       void fetchDynamicIcons({});
     } else {
-      void fetchDynamicIcons({ query: searchText });
+      void fetchDynamicIcons({ params: { query: searchText } });
     }
   }, [fetchDynamicIcons, searchText, showAllIcons]);
 

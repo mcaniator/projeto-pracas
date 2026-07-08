@@ -7,7 +7,7 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dexieDb } from "@/lib/dexie/dexie";
-import { _saveOngoingTallyData } from "@/lib/serverFunctions/serverActions/tallyUtil";
+import { useSaveOngoingTallyData } from "@/lib/serverFunctions/apiCalls/tally";
 import { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import { CommercialActivity } from "@/lib/zodValidators";
 import dayjs, { Dayjs } from "dayjs";
@@ -57,6 +57,7 @@ const TallyInProgressSaveDialog = ({
   const [errorOnServerSave, setErrorOnServerSave] = useState(false);
   const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
+  const [saveOngoingTallyData] = useSaveOngoingTallyData();
 
   const save = async () => {
     if (isFinalized && !endDate) {
@@ -93,15 +94,17 @@ const TallyInProgressSaveDialog = ({
     }
 
     try {
-      const response = await _saveOngoingTallyData({
-        tallyId,
-        weatherStats,
-        tallyMap,
-        commercialActivities,
-        complementaryData,
-        startDate: startDate.toDate(),
-        endDate: endDate?.toDate() ?? null,
-        isFinalized,
+      const response = await saveOngoingTallyData({
+        data: {
+          tallyId,
+          weatherStats,
+          tallyMapEntries: [...tallyMap.entries()],
+          commercialActivities,
+          complementaryData,
+          startDate: startDate.toDate(),
+          endDate: endDate?.toDate() ?? null,
+          isFinalized,
+        },
       });
       // TODO: Refresh server data in TallyInProgressPage
       helperCardProcessResponse(response.responseInfo);
@@ -121,7 +124,7 @@ const TallyInProgressSaveDialog = ({
         }
 
         if (response.data?.updatedAt) {
-          onSaveSuccess?.(response.data.updatedAt);
+          onSaveSuccess?.(new Date(response.data.updatedAt));
         }
         onClose();
         if (response.data?.savedAsFinalized) {

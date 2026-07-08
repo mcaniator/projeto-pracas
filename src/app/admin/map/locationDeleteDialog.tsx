@@ -1,9 +1,9 @@
 "use client";
 
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _deleteLocation } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useDeleteLocation } from "@/lib/serverFunctions/apiCalls/location";
 import { IconTrash } from "@tabler/icons-react";
+import { FormEventHandler } from "react";
 
 const LocationDeleteDialog = ({
   open,
@@ -16,22 +16,28 @@ const LocationDeleteDialog = ({
   onDeletionSuccess: () => void;
   location: { id: number; name: string };
 }) => {
-  const [formAction] = useResettableActionState({
-    action: _deleteLocation,
+  const [deleteLocation, isLoading] = useDeleteLocation({
     callbacks: {
       onSuccess() {
         onDeletionSuccess();
       },
     },
-    options: {
-      loadingMessage: "Excluindo praça...",
-    },
   });
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteLocation({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Excluindo praca..." },
+    });
+  };
+
   return (
     <CDialog
       isForm
-      action={formAction}
-      title="Excluir praça"
+      onSubmit={handleSubmit}
+      confirmLoading={isLoading}
+      title="Excluir praca"
       subtitle={location.name}
       open={open}
       onClose={onClose}

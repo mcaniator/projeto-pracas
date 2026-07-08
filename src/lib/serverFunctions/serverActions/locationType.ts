@@ -7,10 +7,7 @@ import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveLocationType = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+export const _saveLocationType = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {

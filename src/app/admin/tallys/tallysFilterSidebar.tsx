@@ -1,9 +1,10 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import TallysFilter from "@/app/admin/tallys/tallysFilter";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { FetchTallyUsersResponse } from "@/lib/serverFunctions/apiCalls/tally";
 
 const TallysFilterSidebar = ({
-  usersPromise,
+  users,
   selectedLocationId,
   defaultLocationId,
   isDialog,
@@ -12,7 +13,7 @@ const TallysFilterSidebar = ({
   onCloseDialog,
   handleFilterChange,
 }: {
-  usersPromise: Promise<{ id: string; username: string }[]>;
+  users: FetchTallyUsersResponse["users"];
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   isDialog?: boolean;
@@ -29,7 +30,7 @@ const TallysFilterSidebar = ({
       <TallysFilter
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
-        usersPromise={usersPromise}
+        users={users}
         onNoCitiesFound={onNoCitiesFound}
         handleFilterChange={handleFilterChange}
       />

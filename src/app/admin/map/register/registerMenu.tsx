@@ -3,9 +3,8 @@
 import LocationRegisterDialog, {
   LocationRegisterDialogRef,
 } from "@/app/admin/map/register/locationRegisterDialog";
+import { useEditLocationPolygon } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { _editLocationPolygon } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Divider } from "@mui/material";
 import {
   IconMapOff,
@@ -40,17 +39,12 @@ const RegisterMenu = ({
   reloadCities: () => void;
 }) => {
   const dialogRef = useRef<LocationRegisterDialogRef>(null);
-  const [_updateLocationPolygon] = useServerAction({
-    action: _editLocationPolygon,
+  const [updateLocationPolygon] = useEditLocationPolygon({
     callbacks: {
       onSuccess: () => {
         reloadLocations();
         handleClose();
       },
-    },
-    options: {
-      showLoadingOverlay: true,
-      loadingMessage: "Salvando delimitação...",
     },
   });
 
@@ -96,7 +90,13 @@ const RegisterMenu = ({
       return;
     }
     const featuresGeoJson = convertFeaturesToGeoJson();
-    await _updateLocationPolygon({ id: locationToEdit?.id, featuresGeoJson });
+    await updateLocationPolygon({
+      data: { id: locationToEdit.id, featuresGeoJson },
+      projectOptions: {
+        showLoadingOverlay: true,
+        loadingMessage: "Salvando delimitacao...",
+      },
+    });
   };
   const handleOpenLocationRegisterFormDialog = () => {
     convertFeaturesToGeoJson(); //Converted features are used in register dialog.

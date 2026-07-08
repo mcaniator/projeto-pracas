@@ -4,7 +4,11 @@ import TallyCreationDialog from "@/app/admin/tallys/tallyCreation/tallyCreationD
 import TallysFilterSidebar from "@/app/admin/tallys/tallysFilterSidebar";
 import TallysList from "@/app/admin/tallys/tallysList";
 import { dexieDb } from "@/lib/dexie/dexie";
-import { useFetchTallys } from "@/lib/serverFunctions/apiCalls/tally";
+import {
+  FetchTallyUsersResponse,
+  useFetchTallyUsers,
+  useFetchTallys,
+} from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
 import { IconFilter, IconPlus } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -38,11 +42,7 @@ export type TallyWithSyncStatus = FetchTallysResponse["tallys"][number] & {
   hasUnsyncedFilling: boolean;
 };
 
-const TallysClient = ({
-  usersPromise,
-}: {
-  usersPromise: Promise<{ id: string; username: string }[]>;
-}) => {
+const TallysClient = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [params] = useState(useSearchParams());
@@ -50,6 +50,7 @@ const TallysClient = ({
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const unsyncedTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(null);
   const [tallys, setTallys] = useState<TallyWithSyncStatus[]>([]);
+  const [users, setUsers] = useState<FetchTallyUsersResponse["users"]>([]);
 
   const [openTallyCreationDialog, setOpenTallyCreationDialog] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
@@ -71,6 +72,11 @@ const TallysClient = ({
   }, []);
 
   const [_fetchTallys] = useFetchTallys();
+  const [fetchTallyUsers] = useFetchTallyUsers({
+    callbacks: {
+      onSuccess: (response) => setUsers(response.data?.users ?? []),
+    },
+  });
 
   const getUnsyncedTallyIds = useCallback(() => {
     if (!unsyncedTallyIdsPromiseRef.current) {
@@ -208,15 +214,17 @@ const TallysClient = ({
 
       lastFetchedLocationId.current = locationId;
       const response = await _fetchTallys({
-        locationId,
-        startDate,
-        endDate,
-        userId,
-        cityId,
-        broadUnitId,
-        intermediateUnitId,
-        narrowUnitId,
-        finalizationStatus,
+        params: {
+          locationId,
+          startDate,
+          endDate,
+          userId,
+          cityId,
+          broadUnitId,
+          intermediateUnitId,
+          narrowUnitId,
+          finalizationStatus,
+        },
       });
       const unsyncedTallyIds = await getUnsyncedTallyIds();
       const formattedTallysPromises = response.data?.tallys.map(
@@ -274,6 +282,10 @@ const TallysClient = ({
   useEffect(() => {
     void getUnsyncedTallyIds();
   }, [getUnsyncedTallyIds]);
+
+  useEffect(() => {
+    void fetchTallyUsers();
+  }, [fetchTallyUsers]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -373,7 +385,7 @@ const TallysClient = ({
               : undefined
             }
             selectedLocationId={locationId}
-            usersPromise={usersPromise}
+            users={users}
             handleFilterChange={handleFilterChange}
           />
         </Suspense>

@@ -1,6 +1,5 @@
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _deleteTally } from "@/lib/serverFunctions/serverActions/tallyUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
+import { useDeleteTally } from "@/lib/serverFunctions/apiCalls/tally";
 import { LinearProgress } from "@mui/material";
 import { IconAlertSquareRounded } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
@@ -17,16 +16,12 @@ const TallyInProgressDeleteDialog = ({
 }) => {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [deleteTally, isLoading] = useServerAction({
-    action: _deleteTally,
+  const [deleteTally, isLoading] = useDeleteTally({
     callbacks: {
       onSuccess: () => {
         setIsRedirecting(true);
         router.push("/admin/tallys");
       },
-    },
-    options: {
-      loadingMessage: "Excluindo contagem...",
     },
   });
   return (
@@ -38,7 +33,10 @@ const TallyInProgressDeleteDialog = ({
       confirmColor="error"
       confirmLoading={isLoading}
       onConfirm={() => {
-        void deleteTally({ tallyId });
+        void deleteTally({
+          data: { tallyId },
+          projectOptions: { loadingMessage: "Excluindo contagem..." },
+        });
       }}
     >
       <div className="flex flex-col items-center gap-1">

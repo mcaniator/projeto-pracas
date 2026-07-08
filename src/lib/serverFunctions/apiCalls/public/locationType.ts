@@ -1,7 +1,9 @@
-import { PublicFetchLocationTypesParams } from "@/app/api/public/locationTypes/route";
-import { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
+import type { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+import type { PublicFetchLocationTypesParams } from "./locationTypeParamsSchemas";
+
+export type { PublicFetchLocationTypesParams } from "./locationTypeParamsSchemas";
 
 export const usePublicFetchLocationTypes = (
   params?: UseFetchAPIParams<PublicFetchLocationTypesResponse>,

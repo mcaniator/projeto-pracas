@@ -2,9 +2,12 @@
 
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import { useFetchQuestionUses } from "@/lib/serverFunctions/apiCalls/question";
+import {
+  useFetchQuestionUses,
+  useQuestionSubmit,
+  useQuestionUpdate,
+} from "@/lib/serverFunctions/apiCalls/question";
 import { FetchquestionUsesResponse } from "@/lib/serverFunctions/queries/question";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useHelperCard } from "@context/helperCardContext";
@@ -19,7 +22,6 @@ import type {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { _questionSubmit, _questionUpdate } from "@serverActions/questionUtil";
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
@@ -28,7 +30,6 @@ import {
 import {
   type FormEventHandler,
   type ReactNode,
-  startTransition,
   useEffect,
   useState,
 } from "react";
@@ -107,8 +108,7 @@ const QuestionCreation = ({
     },
   });
 
-  const [createFormAction, isCreatePending] = useResettableActionState({
-    action: _questionSubmit,
+  const [createQuestion, isCreatePending] = useQuestionSubmit({
     callbacks: {
       onSuccess: () => {
         setReloadOnClose(true);
@@ -118,12 +118,8 @@ const QuestionCreation = ({
         setPageState("FORM");
       },
     },
-    options: {
-      loadingMessage: "Salvando questão...",
-    },
   });
-  const [updateFormAction, isUpdatePending] = useResettableActionState({
-    action: _questionUpdate,
+  const [updateQuestion, isUpdatePending] = useQuestionUpdate({
     callbacks: {
       onSuccess: () => {
         fetchCategoriesAfterCreation();
@@ -133,9 +129,6 @@ const QuestionCreation = ({
       onError: () => {
         setPageState("FORM");
       },
-    },
-    options: {
-      loadingMessage: "Salvando questão...",
     },
   });
   const isPending = isCreatePending || isUpdatePending;
@@ -260,7 +253,9 @@ const QuestionCreation = ({
     if (!open || !question) {
       return;
     }
-    void fetchQuestionUses({ questionId: question.id });
+    void fetchQuestionUses({
+      params: { questionId: question.id },
+    });
     setType(question.questionType);
     setCharacterType(question.characterType);
     setSelectionType(question.optionType);
@@ -396,12 +391,10 @@ const QuestionCreation = ({
       return;
     }
 
-    startTransition(() => {
-      if (isEditing) {
-        updateFormAction(pendingFormData);
-        return;
-      }
-      createFormAction(pendingFormData);
+    const submitQuestion = isEditing ? updateQuestion : createQuestion;
+    void submitQuestion({
+      data: pendingFormData,
+      projectOptions: { loadingMessage: "Salvando questao..." },
     });
   };
 

@@ -1,4 +1,4 @@
-import { PublicFetchCitiesParams } from "@/app/api/public/cities/route";
+import type { PublicFetchCitiesParams } from "@/lib/serverFunctions/apiCalls/public/cityParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { $Enums } from "@prisma/client";

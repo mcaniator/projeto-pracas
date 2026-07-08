@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@components/button";
-import { _googleRegister } from "@serverActions/googleLogin";
+import { signIn, signOut } from "next-auth/react";
 import { useState } from "react";
 import { BsGoogle } from "react-icons/bs";
 
@@ -10,9 +10,19 @@ const GoogleRegisterButton = ({ inviteToken }: { inviteToken: string }) => {
     null,
   );
   const register = async () => {
-    const res = await _googleRegister(inviteToken);
-    if (res) {
-      setErrorMessageGoogle(res.message);
+    try {
+      if (!inviteToken) {
+        setErrorMessageGoogle("Convite invalido!");
+        return;
+      }
+
+      document.cookie = `inviteToken=${encodeURIComponent(
+        inviteToken,
+      )}; path=/; max-age=3600; SameSite=Lax`;
+      await signOut({ redirect: false });
+      await signIn("google", { callbackUrl: "/admin/map" });
+    } catch (e) {
+      setErrorMessageGoogle("Erro ao registrar com Google!");
     }
   };
   return (

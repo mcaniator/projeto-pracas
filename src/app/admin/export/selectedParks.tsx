@@ -5,15 +5,15 @@ import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
+import {
+  useExportAssessments,
+  useExportDailyTallys,
+  useExportIndividualTallysToCSV,
+  useExportRegistrationData,
+} from "@/lib/serverFunctions/apiCalls/export";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useHelperCard } from "@components/context/helperCardContext";
 import { Divider } from "@mui/material";
-import {
-  _exportAssessments,
-  _exportDailyTallys,
-  _exportIndividualTallysToCSV,
-  _exportRegistrationData,
-} from "@serverActions/exportToCSV";
 import {
   IconMapPin,
   IconMinus,
@@ -55,10 +55,21 @@ const SelectedParks = ({
     tallys: false,
     dailyTallys: false,
   });
+  const [exportRegistrationData] = useExportRegistrationData();
+  const [exportAssessments] = useExportAssessments();
+  const [exportDailyTallys] = useExportDailyTallys();
+  const [exportIndividualTallysToCSV] = useExportIndividualTallysToCSV();
+
   const handleRegistrationDataExport = async () => {
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
     const locationsIds = selectedLocationsObjs.map((location) => location.id);
-    const response = await _exportRegistrationData(locationsIds);
+    const result = await exportRegistrationData({
+      data: { locationsIds },
+    });
+    const response = result.data ?? {
+      statusCode: result.responseInfo.statusCode,
+      CSVstring: null,
+    };
     if (response.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -99,11 +110,16 @@ const SelectedParks = ({
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessmentsIds.length > 0,
     );
-    const response = await _exportAssessments(
-      locationsToExportEvaluations
-        .map((location) => location.assessmentsIds)
-        .flat(),
-    );
+    const assessmentIds = locationsToExportEvaluations
+      .map((location) => location.assessmentsIds)
+      .flat();
+    const result = await exportAssessments({
+      data: { assessmentIds },
+    });
+    const response = result.data ?? {
+      statusCode: result.responseInfo.statusCode,
+      csvObjs: [],
+    };
     if (response.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -149,10 +165,17 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, dailyTallys: true }));
-    const response = await _exportDailyTallys(
-      locationsToExportTallys.map((location) => location.id),
-      tallysIds,
-    );
+    const result = await exportDailyTallys({
+      data: {
+        locationIds: locationsToExportTallys.map((location) => location.id),
+        tallysIds,
+      },
+    });
+    const response = result.data ?? {
+      statusCode: result.responseInfo.statusCode,
+      CSVstringWeekdays: [],
+      CSVstringWeekendDays: [],
+    };
     if (response.statusCode === 401) {
       setHelperCard({
         show: true,
@@ -222,7 +245,13 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, tallys: true }));
-    const response = await _exportIndividualTallysToCSV(tallysIds);
+    const result = await exportIndividualTallysToCSV({
+      data: { tallysIds },
+    });
+    const response = result.data ?? {
+      statusCode: result.responseInfo.statusCode,
+      CSVstring: null,
+    };
     if (response.statusCode === 401) {
       setHelperCard({
         show: true,

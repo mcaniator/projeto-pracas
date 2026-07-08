@@ -12,10 +12,7 @@ import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calcul
 import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
-const _createForm = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _createForm = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {
@@ -381,10 +378,7 @@ const _updateFormV2 = async ({
   }
 };
 
-const _updateFormArchiveStatus = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _updateFormArchiveStatus = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {

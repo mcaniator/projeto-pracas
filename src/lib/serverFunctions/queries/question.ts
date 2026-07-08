@@ -1,5 +1,7 @@
-import type { FetchQuestionUsesParams } from "@/app/api/admin/forms/fieldsCreation/question/questionUses/route";
-import type { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
+import type {
+  FetchQuestionUsesParams,
+  FetchQuestionsByCategoryAndSubcategoryParams,
+} from "@/lib/serverFunctions/apiCalls/questionParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";

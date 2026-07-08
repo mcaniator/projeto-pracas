@@ -1,4 +1,7 @@
-import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
+import type {
+  FetchAssessmentsParams,
+  FetchPublicAssessmentsParams,
+} from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
 import type {
   FormValues,
   SerializedFormValues,
@@ -9,7 +12,6 @@ import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { Coordinate } from "ol/coordinate";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
-import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
 import { ResponseGeometry } from "../../types/assessments/geometry";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";

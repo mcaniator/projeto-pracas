@@ -23,13 +23,7 @@ const parseQuestionOptions = (formData: FormData, questionId: number) => {
   });
 };
 
-const _questionSubmit = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-    data: null;
-  } | null,
-  formData: FormData,
-): Promise<{
+const _questionSubmit = async (formData: FormData): Promise<{
   responseInfo: APIResponseInfo;
   data: null;
 } | null> => {
@@ -334,7 +328,6 @@ const _questionSubmit = async (
 };
 
 const _questionUpdate = async (
-  prevState: { responseInfo: { statusCode: number } },
   formData: FormData,
 ): Promise<{ responseInfo: APIResponseInfo }> => {
   try {
@@ -510,10 +503,7 @@ const _questionUpdate = async (
   }
 };
 
-const _deleteQuestion = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _deleteQuestion = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
   } catch (e) {

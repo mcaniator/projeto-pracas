@@ -1,4 +1,4 @@
-import { FetchDynamicIconsParams } from "@/app/api/admin/forms/dynamicIcons/route";
+import type { FetchDynamicIconsParams } from "@/lib/serverFunctions/apiCalls/questionIconParamsSchemas";
 import { searchDynamicIcons } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 

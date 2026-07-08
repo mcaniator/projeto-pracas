@@ -102,7 +102,9 @@ const QuestionFormV2 = ({
       setCategoriesList([]);
       return;
     }
-    await fetchQuestionsByCategoryAndSubcategory({ name: searchedName });
+    await fetchQuestionsByCategoryAndSubcategory({
+      params: { name: searchedName },
+    });
   }, [searchedName, fetchQuestionsByCategoryAndSubcategory]);
 
   const searchByCategoryAndSubcateogory = useCallback(async () => {
@@ -110,10 +112,12 @@ const QuestionFormV2 = ({
       return;
 
     await fetchQuestionsByCategoryAndSubcategory({
-      categoryId: selectedCategoryAndSubcategoryId.categoryId,
-      subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
-      verifySubcategoryNullness:
-        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+      params: {
+        categoryId: selectedCategoryAndSubcategoryId.categoryId,
+        subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
+        verifySubcategoryNullness:
+          selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+      },
     });
   }, [
     selectedCategoryAndSubcategoryId,

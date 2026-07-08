@@ -1,10 +1,12 @@
 "use client";
 
 import { CategoryOrType } from "@/app/admin/map/register/registerSteps/addressStep";
-import { _saveLocationCategory } from "@/lib/serverFunctions/serverActions/locationCategory";
-import { _saveLocationType } from "@/lib/serverFunctions/serverActions/locationType";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import {
+  useSaveLocationCategory,
+} from "@/lib/serverFunctions/apiCalls/locationCategory";
+import { useSaveLocationType } from "@/lib/serverFunctions/apiCalls/locationType";
 import { IconTrash } from "@tabler/icons-react";
+import { FormEventHandler } from "react";
 
 import CTextField from "../../../../../../components/ui/cTextField";
 import CDialog from "../../../../../../components/ui/dialog/cDialog";
@@ -27,22 +29,32 @@ const LocationCategoryOrTypeSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: itemType === "CATEGORY" ? _saveLocationCategory : _saveLocationType,
-    callbacks: {
-      onSuccess() {
-        reloadItems();
-        onClose();
-      },
+  const mutationCallbacks = {
+    onSuccess() {
+      reloadItems();
+      onClose();
     },
+  };
+  const [saveLocationCategory, isSavingCategory] = useSaveLocationCategory({
+    callbacks: mutationCallbacks,
   });
+  const [saveLocationType, isSavingType] = useSaveLocationType({
+    callbacks: mutationCallbacks,
+  });
+  const isPending = isSavingCategory || isSavingType;
+  const saveItem =
+    itemType === "CATEGORY" ? saveLocationCategory : saveLocationType;
 
   const typeName = itemType === "CATEGORY" ? "Categoria" : "Tipo";
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void saveItem({ data: new FormData(event.currentTarget) });
+  };
 
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       open={open}
       confirmLoading={isPending}
       onClose={onClose}

@@ -4,6 +4,7 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
+import { useUpdateForm } from "@/lib/serverFunctions/apiCalls/form";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
@@ -22,7 +23,6 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
@@ -134,6 +134,7 @@ const ClientV2 = ({
         },
       },
     });
+  const [updateForm] = useUpdateForm();
 
   const reloadCategories = useCallback(() => {
     void fetchCategories({});
@@ -324,14 +325,16 @@ const ClientV2 = ({
   const handleUpdateForm = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
-      const response = await _updateFormV2({
-        formId: formId,
-        newFormName: formName,
-        formTree: formTree,
-        isFinalized: saveAsDone,
-        calculations: formCalculations,
+      const response = await updateForm({
+        data: {
+          formId: formId,
+          newFormName: formName,
+          formTree: formTree,
+          isFinalized: saveAsDone,
+          calculations: formCalculations,
+        },
       });
-      if (response?.statusCode !== 200) {
+      if (response.responseInfo.statusCode !== 200) {
         setHelperCard({
           show: true,
           helperCardType: "ERROR",

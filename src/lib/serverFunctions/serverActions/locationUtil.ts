@@ -10,10 +10,7 @@ import { addPolygon } from "@serverOnly/geometries";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-const _deleteLocation = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _deleteLocation = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
@@ -99,10 +96,7 @@ const _deleteLocation = async (
   }
 };
 
-const _updateLocation = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _updateLocation = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
@@ -226,10 +220,7 @@ const _updateLocation = async (
   }
 };
 
-const _createLocation = async (
-  _curStatus: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _createLocation = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {

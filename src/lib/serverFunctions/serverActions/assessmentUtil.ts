@@ -9,10 +9,7 @@ import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-const _createAssessmentV2 = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+const _createAssessmentV2 = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({
       roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],

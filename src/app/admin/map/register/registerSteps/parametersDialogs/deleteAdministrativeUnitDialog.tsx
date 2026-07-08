@@ -2,11 +2,10 @@
 
 import { AdministrativeUnitLevel } from "@/app/admin/map/register/registerSteps/addressStep";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useDeleteAdministrativeUnit } from "@/lib/serverFunctions/apiCalls/administrativeUnit";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
-import { _deleteAdministrativeUnit } from "@/lib/serverFunctions/serverActions/administrativeUnit";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
 
 const DeleteAdministrativeUnitDialog = ({
   open,
@@ -30,8 +29,7 @@ const DeleteAdministrativeUnitDialog = ({
     level === "NARROW" ? city?.narrowAdministrativeUnitTitle
     : level === "INTERMEDIATE" ? city?.intermediateAdministrativeUnitTitle
     : city?.broadAdministrativeUnitTitle;
-  const [formAction] = useResettableActionState({
-    action: _deleteAdministrativeUnit,
+  const [deleteAdministrativeUnit, isLoading] = useDeleteAdministrativeUnit({
     callbacks: {
       onSuccess() {
         reloadItems();
@@ -44,9 +42,6 @@ const DeleteAdministrativeUnitDialog = ({
         }
       },
     },
-    options: {
-      loadingMessage: `Excluindo ${levelName}...`,
-    },
   });
 
   const [conflictingLocations, setConflictingLocations] = useState<
@@ -56,11 +51,19 @@ const DeleteAdministrativeUnitDialog = ({
       locations: { name: string }[];
     }[]
   >([]);
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteAdministrativeUnit({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: `Excluindo ${levelName}...` },
+    });
+  };
 
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
+      confirmLoading={isLoading}
       open={open}
       onClose={onClose}
       title={"Excluir " + levelName}

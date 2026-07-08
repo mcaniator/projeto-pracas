@@ -1,4 +1,4 @@
-import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
+import type { PublicFetchPublicAssessmentsParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { prisma } from "@/lib/prisma";
 import {

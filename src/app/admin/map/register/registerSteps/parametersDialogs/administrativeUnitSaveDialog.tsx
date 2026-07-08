@@ -3,10 +3,10 @@
 import { AdministrativeUnitLevel } from "@/app/admin/map/register/registerSteps/addressStep";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useSaveAdministrativeUnit } from "@/lib/serverFunctions/apiCalls/administrativeUnit";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
-import { _saveAdministrativeUnit } from "@/lib/serverFunctions/serverActions/administrativeUnit";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { IconTrash } from "@tabler/icons-react";
+import { FormEventHandler } from "react";
 
 const AdministrativeUnitSaveDialog = ({
   open,
@@ -25,8 +25,7 @@ const AdministrativeUnitSaveDialog = ({
   reloadItems: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _saveAdministrativeUnit,
+  const [saveAdministrativeUnit, isPending] = useSaveAdministrativeUnit({
     callbacks: {
       onSuccess() {
         reloadItems();
@@ -37,11 +36,15 @@ const AdministrativeUnitSaveDialog = ({
     level === "NARROW" ? city?.narrowAdministrativeUnitTitle
     : level === "INTERMEDIATE" ? city?.intermediateAdministrativeUnitTitle
     : city?.broadAdministrativeUnitTitle;
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void saveAdministrativeUnit({ data: new FormData(event.currentTarget) });
+  };
 
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       open={open}
       onClose={onClose}
       confirmLoading={isPending}

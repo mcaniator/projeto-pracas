@@ -1,4 +1,4 @@
-import { FetchTallysParams } from "@/app/api/admin/tallys/route";
+import type { FetchTallysParams } from "@/lib/serverFunctions/apiCalls/tallyParamsSchemas";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
@@ -168,6 +168,10 @@ const fetchOngoingTallyById = async (tallyId: number) => {
   }
 };
 
+export type FetchOngoingTallyByIdResponse = Awaited<
+  ReturnType<typeof fetchOngoingTallyById>
+>;
+
 const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
   try {
     const tallys = await prisma.tally.findMany({
@@ -212,6 +216,10 @@ const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
     return { statusCode: 500, tallys: null, locationName: null };
   }
 };
+
+export type FetchFinalizedTallysToDataVisualizationResponse = Awaited<
+  ReturnType<typeof fetchFinalizedTallysToDataVisualization>
+>;
 
 export {
   fetchRecentlyCompletedTallys,

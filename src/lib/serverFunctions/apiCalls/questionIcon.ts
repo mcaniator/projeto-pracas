@@ -1,7 +1,9 @@
-import { FetchDynamicIconsParams } from "@/app/api/admin/forms/dynamicIcons/route";
-import { FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
+import type { FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+import type { FetchDynamicIconsParams } from "./questionIconParamsSchemas";
+
+export type { FetchDynamicIconsParams } from "./questionIconParamsSchemas";
 
 const useFetchDynamicIcons = (
   params?: UseFetchAPIParams<FetchDynamicIconsResponse>,

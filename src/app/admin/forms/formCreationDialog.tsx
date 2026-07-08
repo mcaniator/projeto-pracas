@@ -1,8 +1,8 @@
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _createForm } from "@/lib/serverFunctions/serverActions/formUtil";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useCreateForm } from "@/lib/serverFunctions/apiCalls/form";
 import { IconCheck } from "@tabler/icons-react";
+import { FormEventHandler } from "react";
 
 const FormCreationDialog = ({
   open,
@@ -15,8 +15,7 @@ const FormCreationDialog = ({
   onClose: () => void;
   reloadForms: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _createForm,
+  const [createForm, isPending] = useCreateForm({
     callbacks: {
       onSuccess() {
         reloadForms();
@@ -24,10 +23,16 @@ const FormCreationDialog = ({
       },
     },
   });
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void createForm({ data: new FormData(event.currentTarget) });
+  };
+
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       confirmLoading={isPending}
       title={cloneForm ? "Clonar formulário" : "Criar formulário"}
       subtitle={cloneForm?.name}

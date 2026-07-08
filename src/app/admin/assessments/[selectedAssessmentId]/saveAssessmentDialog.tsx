@@ -14,10 +14,11 @@ import type {
 import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
 import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
-import { useUploadImageResponse } from "@/lib/serverFunctions/apiCalls/assessment";
+import {
+  useAddResponses,
+  useUploadImageResponse,
+} from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
-import { _addResponsesV2 } from "@/lib/serverFunctions/serverActions/responseUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Dayjs } from "dayjs";
 import JSZip from "jszip";
 import { useRouter } from "next-nprogress-bar";
@@ -175,8 +176,7 @@ const SaveAssessmentDialog = ({
       ),
     );
   };
-  const [saveResponses] = useServerAction({
-    action: _addResponsesV2,
+  const [saveResponses] = useAddResponses({
     callbacks: {
       onSuccess: (response) => {
         // Delete local data, as it is no longer need
@@ -204,7 +204,7 @@ const SaveAssessmentDialog = ({
                 "Avaliação salva, mas a data de atualização não foi retornada!",
               );
             }
-            onSaveSuccess(response.data.updatedAt);
+            onSaveSuccess(new Date(response.data.updatedAt));
           });
       },
       onError: () => {
@@ -256,13 +256,15 @@ const SaveAssessmentDialog = ({
       await saveResponseImages(responseImages);
 
       await saveResponses({
-        assessmentId,
-        responses: serializedFormValues,
-        geometries: geometries,
-        startDate: startDate.toDate(),
-        endDate: endDate?.toDate() ?? null,
-        isFinalized: isFinalized,
-        driveFolderUrl: driveFolderUrl,
+        data: {
+          assessmentId,
+          responses: serializedFormValues,
+          geometries: geometries,
+          startDate: startDate.toDate(),
+          endDate: endDate?.toDate() ?? null,
+          isFinalized: isFinalized,
+          driveFolderUrl: driveFolderUrl,
+        },
       });
     } finally {
       setLoadingOverlay({ show: false });

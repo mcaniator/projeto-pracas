@@ -1,11 +1,18 @@
-import { PublicFetchPublicAssessmentTreeParams } from "@/app/api/public/publicAssessments/[assessmentId]/route";
-import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
-import {
+import type {
   PublicFetchPublicAssessmentTreeResponse,
   PublicFetchPublicAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/public/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+import type {
+  PublicFetchPublicAssessmentTreeParams,
+  PublicFetchPublicAssessmentsParams,
+} from "./assessmentParamsSchemas";
+
+export type {
+  PublicFetchPublicAssessmentTreeParams,
+  PublicFetchPublicAssessmentsParams,
+} from "./assessmentParamsSchemas";
 
 export const usePublicFetchPublicAssessments = (
   params?: UseFetchAPIParams<PublicFetchPublicAssessmentsResponse>,

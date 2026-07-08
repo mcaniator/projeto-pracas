@@ -7,7 +7,6 @@ import { AuthError } from "next-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 const _login = async (
-  prevState: { statusCode: number } | null,
   formData: FormData,
 ): Promise<{ statusCode: number } | null> => {
   try {

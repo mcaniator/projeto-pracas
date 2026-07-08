@@ -1,10 +1,11 @@
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/apiCalls/assessment";
+import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Divider } from "@mui/material";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
-import { Suspense, use, useState } from "react";
+import { useState } from "react";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
@@ -26,18 +27,18 @@ const statusOptions = [
 ];
 
 const FormSelector = ({
-  formsPromise,
+  forms,
+  isLoading,
   handleFilterChange,
 }: {
-  formsPromise: Promise<FetchFormsResponse["forms"]>;
+  forms: FetchFormsResponse["forms"];
+  isLoading?: boolean;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
   }) => void;
 }) => {
   const router = useRouter();
-  const forms = use(formsPromise);
-
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   return (
@@ -45,6 +46,7 @@ const FormSelector = ({
       label="Formulário"
       className="w-full"
       options={forms}
+      loading={isLoading}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       getOptionLabel={(i) => i.name}
       onChange={(_, a) =>
@@ -61,21 +63,22 @@ const FormSelector = ({
 };
 
 const UserSelector = ({
-  usersPromise,
+  users,
+  isLoading,
   handleFilterChange,
 }: {
-  usersPromise: Promise<{ id: string; username: string }[]>;
+  users: FetchAssessmentUsersResponse["users"];
+  isLoading?: boolean;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
   }) => void;
 }) => {
-  const users = use(usersPromise);
-
   return (
     <CAutocomplete
       label="Responsável"
       options={users}
+      loading={isLoading}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       getOptionLabel={(i) => i.username}
       onChange={(_, a) =>
@@ -86,15 +89,17 @@ const UserSelector = ({
 };
 
 const AssessmentsFilter = ({
-  formsPromise,
-  usersPromise,
+  forms,
+  users,
+  isLoading,
   selectedLocationId,
   defaultLocationId,
   onNoCitiesFound,
   handleFilterChange,
 }: {
-  formsPromise: Promise<FetchFormsResponse["forms"]>;
-  usersPromise: Promise<{ id: string; username: string }[]>;
+  forms: FetchFormsResponse["forms"];
+  users: FetchAssessmentUsersResponse["users"];
+  isLoading?: boolean;
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   onNoCitiesFound?: () => void;
@@ -137,21 +142,11 @@ const AssessmentsFilter = ({
       />
       <Divider />
       <h4>Formulário</h4>
-      <Suspense
-        fallback={
-          <CAutocomplete
-            label="Formulário"
-            className="w-full"
-            options={[]}
-            loading
-          />
-        }
-      >
-        <FormSelector
-          formsPromise={formsPromise}
-          handleFilterChange={handleFilterChange}
-        />
-      </Suspense>
+      <FormSelector
+        forms={forms}
+        isLoading={isLoading}
+        handleFilterChange={handleFilterChange}
+      />
       <Divider />
       <h4>Data inicial</h4>
       <CDateTimePicker
@@ -178,14 +173,11 @@ const AssessmentsFilter = ({
       />
       <Divider />
       <h4>Responsável</h4>
-      <Suspense
-        fallback={<CAutocomplete label="Responsável" options={[]} loading />}
-      >
-        <UserSelector
-          usersPromise={usersPromise}
-          handleFilterChange={handleFilterChange}
-        />
-      </Suspense>
+      <UserSelector
+        users={users}
+        isLoading={isLoading}
+        handleFilterChange={handleFilterChange}
+      />
       <Divider />
       <h4>Status</h4>
       <CAutocomplete

@@ -54,14 +54,14 @@ const LocationParamsDialog = ({
         requiredAnyRoleGroups: ["ASSESSMENT"],
       })
     ) {
-      void fetchAssessments({ locationId: location.id });
+      void fetchAssessments({ params: { locationId: location.id } });
     }
     if (
       userContext.checkIfLoggedInUserHasAccess({
         requiredAnyRoleGroups: ["TALLY"],
       })
     ) {
-      void fetchTallys({ locationId: location.id });
+      void fetchTallys({ params: { locationId: location.id } });
     }
 
     setLocalLocation(location);

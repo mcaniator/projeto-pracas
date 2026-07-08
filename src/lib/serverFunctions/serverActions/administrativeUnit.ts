@@ -7,12 +7,7 @@ import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
-export const _saveAdministrativeUnit = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-  },
-  formData: FormData,
-) => {
+export const _saveAdministrativeUnit = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
@@ -196,12 +191,7 @@ export const _saveAdministrativeUnit = async (
   }
 };
 
-export const _deleteAdministrativeUnit = async (
-  prevState: {
-    responseInfo: APIResponseInfo;
-  },
-  formData: FormData,
-) => {
+export const _deleteAdministrativeUnit = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {

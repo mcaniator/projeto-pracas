@@ -7,10 +7,7 @@ import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveLocationCategory = async (
-  prevState: { responseInfo: APIResponseInfo },
-  formData: FormData,
-) => {
+export const _saveLocationCategory = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {
@@ -100,21 +97,7 @@ export const _saveLocationCategory = async (
   }
 };
 
-export const _deleteLocationCategoryOrType = async (
-  prevState:
-    | {
-        responseInfo: APIResponseInfo;
-        data: {
-          conflictingItems: {
-            cityId: number;
-            cityName: string;
-            locations: { name: string }[];
-          }[];
-        } | null;
-      }
-    | undefined,
-  formData: FormData,
-) => {
+export const _deleteLocationCategoryOrType = async (formData: FormData) => {
   try {
     await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
   } catch (e) {

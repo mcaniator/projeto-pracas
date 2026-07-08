@@ -1,7 +1,7 @@
 import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _deleteAssessment } from "@/lib/serverFunctions/serverActions/assessmentUtil";
+import { useDeleteAssessment } from "@/lib/serverFunctions/apiCalls/assessment";
 import { LinearProgress } from "@mui/material";
 import { IconAlertSquareRounded } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
@@ -22,10 +22,13 @@ const DeleteAssessmentDialog = ({
   const { setLoadingOverlay } = useLoadingOverlay();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [deleteAssessment] = useDeleteAssessment();
   const handleDelete = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Excluindo avaliação..." });
-      const response = await _deleteAssessment(assessmentId);
+      const response = await deleteAssessment({
+        data: { assessmentId },
+      });
       helperCardProcessResponse(response.responseInfo);
       setIsRedirecting(true);
       if (response.responseInfo.statusCode === 200) {

@@ -1,4 +1,4 @@
-import { PublicFetchLocationTypesParams } from "@/app/api/public/locationTypes/route";
+import type { PublicFetchLocationTypesParams } from "@/lib/serverFunctions/apiCalls/public/locationTypeParamsSchemas";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 

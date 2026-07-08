@@ -35,7 +35,9 @@ const PublicAssessmentResultViewerDialog = ({
   useEffect(() => {
     if (!selectedAssessment) return;
     void fetchAssessmentTree({
-      assessmentId: String(selectedAssessment?.id),
+      params: {
+        assessmentId: String(selectedAssessment?.id),
+      },
     });
   }, [selectedAssessment, fetchAssessmentTree]);
   return (

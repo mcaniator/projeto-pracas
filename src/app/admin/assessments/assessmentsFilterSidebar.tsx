@@ -1,12 +1,13 @@
 import CDialog from "@/components/ui/dialog/cDialog";
-import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 
 import { AssessmentsFilterType } from "./assessmentsClient";
 import AssessmentsFilter from "./assessmentsFilter";
 
 const AssessmentsFilterSidebar = ({
-  formsPromise,
-  usersPromise,
+  forms,
+  users,
+  isLoading,
   selectedLocationId,
   defaultLocationId,
   isDialog,
@@ -15,8 +16,9 @@ const AssessmentsFilterSidebar = ({
   onCloseDialog,
   handleFilterChange,
 }: {
-  formsPromise: Promise<FetchFormsResponse["forms"]>;
-  usersPromise: Promise<{ id: string; username: string }[]>;
+  forms: FetchFormsResponse["forms"];
+  users: { id: string; username: string }[];
+  isLoading?: boolean;
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   isDialog?: boolean;
@@ -33,13 +35,15 @@ const AssessmentsFilterSidebar = ({
       <AssessmentsFilter
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
-        formsPromise={formsPromise}
-        usersPromise={usersPromise}
+        forms={forms}
+        users={users}
+        isLoading={isLoading}
         onNoCitiesFound={onNoCitiesFound}
         handleFilterChange={handleFilterChange}
       />
     </div>
   );
+
   if (isDialog) {
     return (
       <CDialog
@@ -55,6 +59,7 @@ const AssessmentsFilterSidebar = ({
       </CDialog>
     );
   }
+
   return <div className="basis-2/5">{innerComponent}</div>;
 };
 

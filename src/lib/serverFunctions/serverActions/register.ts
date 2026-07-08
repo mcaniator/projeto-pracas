@@ -10,15 +10,6 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ZodError, z } from "zod";
 
 const _register = async (
-  prevState: {
-    statusCode: number;
-    errors:
-      | {
-          message: string | null;
-          element: string | null;
-        }[]
-      | null;
-  } | null,
   formData: FormData,
 ): Promise<{
   statusCode: number;

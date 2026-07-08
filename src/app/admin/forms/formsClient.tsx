@@ -39,12 +39,12 @@ const FormsClient = () => {
 
   const loadForms = useCallback(
     ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      void _fetchForms(
-        { includeArchived: true },
-        {
+      void _fetchForms({
+        params: { includeArchived: true },
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchForms],
   );
@@ -152,7 +152,7 @@ const FormsClient = () => {
                     <IconPencil />
                     Editar
                   </div>,
-              href: `/admin/forms/${params.row.id}/edit`,
+              href: `/admin/forms/edit?formId=${params.row.id}`,
             },
             {
               label: (
