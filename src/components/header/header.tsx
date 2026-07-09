@@ -150,8 +150,8 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
                   </ButtonLink>
                 ))}
                 <ButtonLink
-                  href={"/admin"}
-                  key={"/admin"}
+                  href={"/admin/map"}
+                  key={"/admin/map"}
                   variant={"ghost"}
                   className="mt-auto w-full justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
                 >

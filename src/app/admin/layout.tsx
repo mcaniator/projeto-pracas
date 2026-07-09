@@ -1,6 +1,5 @@
 "use client";
 
-import LoadingIcon from "@/components/LoadingIcon";
 import { Header } from "@/components/header/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
 import AutoSignOut from "@components/auth/autoSignOut";
@@ -9,6 +8,7 @@ import {
   CurrentUser,
   useFetchCurrentUser,
 } from "@lib/serverFunctions/apiCalls/auth";
+import { CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -43,7 +43,7 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
   if (!user || user.roles.length === 0) {
     return (
       <div className="flex h-[100dvh] items-center justify-center bg-white">
-        <LoadingIcon size={128} />
+        <CircularProgress size={128} />
       </div>
     );
   }
