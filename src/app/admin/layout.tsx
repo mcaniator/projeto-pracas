@@ -9,7 +9,7 @@ import {
   useFetchCurrentUser,
 } from "@lib/serverFunctions/apiCalls/auth";
 import { CircularProgress } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 import { ReactNode, useEffect, useState } from "react";
 
 const AdminRoot = ({ children }: { children: ReactNode }) => {

@@ -1,12 +1,12 @@
 "use client";
 
-import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
-import { useLogin } from "@/lib/serverFunctions/apiCalls/auth";
+import { CircularProgress } from "@mui/material";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -15,19 +15,25 @@ import AuthPageShell from "../authPageShell";
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const [login, isPending] = useLogin();
+  const [isPending, setIsPending] = useState(false);
   const [state, setState] = useState<{ statusCode: number } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const response = await login({
-      data: formData,
-      projectOptions: { silent: true },
+    setIsPending(true);
+    const response = await signIn("credentials", {
+      email: String(formData.get("email") ?? ""),
+      password: String(formData.get("password") ?? ""),
+      redirect: false,
     });
-    setState({ statusCode: response.responseInfo.statusCode });
-    if (response.responseInfo.statusCode === 200) {
+
+    const statusCode = response?.error ? 401 : 200;
+    setState({ statusCode });
+    if (statusCode === 200) {
       router.push("/admin/map");
+    } else {
+      setIsPending(false);
     }
   }
 
@@ -48,10 +54,13 @@ const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
 
   return (
     <AuthPageShell showMobileWave>
-      {isPending && <LoadingIcon className="h-32 w-32" />}
+      {isPending && <CircularProgress size={72} sx={{ color: "white" }} />}
       {!isPending && (
         <>
-          <form onSubmit={handleSubmit} className="w-full max-w-xs">
+          <form
+            onSubmit={(e) => void handleSubmit(e)}
+            className="w-full max-w-xs"
+          >
             <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Login</h2>
               <div className="text-left">
