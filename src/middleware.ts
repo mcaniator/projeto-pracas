@@ -6,6 +6,8 @@ import authConfig from "./lib/auth/auth.config";
 const defaultAllowedOrigins = [
   "capacitor://localhost",
   "ionic://localhost",
+  "http://localhost:3000",
+  "https://localhost:3000",
   "http://localhost",
   "https://localhost",
   process.env.BASE_URL,
@@ -27,7 +29,6 @@ const isAllowedOrigin = (origin: string | null) => {
 
 const setCorsHeaders = (request: NextRequest, response: NextResponse) => {
   const origin = request.headers.get("origin");
-
   if (isAllowedOrigin(origin)) {
     // Allow the requesting origin to access the resource
     response.headers.set("Access-Control-Allow-Origin", origin as string);

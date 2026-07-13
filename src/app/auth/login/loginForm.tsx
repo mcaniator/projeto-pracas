@@ -1,12 +1,12 @@
 "use client";
 
+import { useLogin } from "@/lib/serverFunctions/apiCalls/auth";
 import { Button } from "@components/button";
 import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
 import { CircularProgress } from "@mui/material";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -15,25 +15,20 @@ import AuthPageShell from "../authPageShell";
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const [login, isPending] = useLogin();
   const [state, setState] = useState<{ statusCode: number } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    setIsPending(true);
-    const response = await signIn("credentials", {
-      email: String(formData.get("email") ?? ""),
-      password: String(formData.get("password") ?? ""),
-      redirect: false,
+    const response = await login({
+      data: formData,
+      projectOptions: { silent: true },
     });
 
-    const statusCode = response?.error ? 401 : 200;
-    setState({ statusCode });
-    if (statusCode === 200) {
+    setState({ statusCode: response.responseInfo.statusCode });
+    if (response.responseInfo.statusCode === 200) {
       router.push("/admin/map");
-    } else {
-      setIsPending(false);
     }
   }
 

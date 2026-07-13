@@ -9,6 +9,26 @@ export default {
     signIn: "/auth/login",
     signOut: "/auth/logout",
   },
+  cookies: {
+    sessionToken: {
+      name: "__Secure-authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        path: "/",
+      },
+    },
+    callbackUrl: {
+      name: "__Secure-authjs.callback-url",
+      options: {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+        path: "/",
+      },
+    },
+  },
   callbacks: {
     session({ token, session }) {
       return {

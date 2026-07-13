@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { signIn, signOut, auth } from "@auth/auth";
+import { auth, signIn, signOut } from "@auth/auth";
 import { userLoginSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
