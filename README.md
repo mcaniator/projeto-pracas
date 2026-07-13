@@ -396,7 +396,7 @@ BASE_URL="https://192.168.2.101:3000"
 NEXT_PUBLIC_BASE_URL="https://192.168.2.101:3000"
 ```
 
-# 11. Sincronizar o projeto Capacitor
+# 12. Sincronizar o projeto Capacitor
 
 ```bash
 npx cap sync android
@@ -404,7 +404,7 @@ npx cap sync android
 
 ---
 
-# 12. Executar o aplicativo
+# 13. Executar o aplicativo
 
 Abra o projeto Android:
 
