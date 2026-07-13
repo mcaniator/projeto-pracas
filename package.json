@@ -66,6 +66,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.1",
     "@react-email/render": "^1.1.2",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
