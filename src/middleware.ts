@@ -29,20 +29,26 @@ const setCorsHeaders = (request: NextRequest, response: NextResponse) => {
   const origin = request.headers.get("origin");
 
   if (isAllowedOrigin(origin)) {
+    // Allow the requesting origin to access the resource
     response.headers.set("Access-Control-Allow-Origin", origin as string);
+    // Allow cookies and auth credentials in cross-origin requests
     response.headers.set("Access-Control-Allow-Credentials", "true");
+    // Ensure caches vary the response by origin
     response.headers.set("Vary", "Origin");
   }
 
+  // Define which HTTP methods are allowed for CORS requests
   response.headers.set(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   );
+  // Define which headers are allowed in the request
   response.headers.set(
     "Access-Control-Allow-Headers",
     request.headers.get("access-control-request-headers") ??
       "Content-Type, Authorization, X-CSRF-Token, X-Requested-With",
   );
+  // Cache the preflight response for one day
   response.headers.set("Access-Control-Max-Age", "86400");
 
   return response;
