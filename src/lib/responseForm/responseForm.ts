@@ -1,7 +1,7 @@
 import {
   isAssessmentQuestionItem,
   isAssessmentSubcategoryItem,
-} from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+} from "@/app/admin/assessments/details/responseFormV2";
 import {
   FormValues,
   SerializedFormValues,

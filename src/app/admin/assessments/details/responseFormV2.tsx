@@ -1,7 +1,7 @@
 "use client";
 
-import ChooseResponsesSourceDialog from "@/app/admin/assessments/[selectedAssessmentId]/chooseResponsesSourceDialog";
-import DriveFolderUrlDialog from "@/app/admin/assessments/[selectedAssessmentId]/driveFolderUrlDialog";
+import ChooseResponsesSourceDialog from "@/app/admin/assessments/details/chooseResponsesSourceDialog";
+import DriveFolderUrlDialog from "@/app/admin/assessments/details/driveFolderUrlDialog";
 import { useUserContext } from "@/components/context/UserContext";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";

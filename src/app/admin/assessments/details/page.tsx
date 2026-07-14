@@ -8,7 +8,7 @@ import type { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
-import AssessmentClient from "../[selectedAssessmentId]/assessmentClient";
+import AssessmentClient from "./assessmentClient";
 
 const normalizeAssessmentTreeDates = (
   assessmentTree: FetchAssessmentTreeResponse["assessmentTree"],

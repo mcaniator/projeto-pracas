@@ -1,7 +1,14 @@
 "use client";
 
 import { CircularProgress } from "@mui/material";
-import React, { ReactNode, createContext, useContext, useState } from "react";
+import React, {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 type LoadingOverlayType = {
   setLoadingOverlayVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -23,24 +30,31 @@ export const LoadingOverlayProvider = ({
 }) => {
   const [visible, setLoadingOverlayVisible] = useState(false);
   const [message, setMessage] = useState<string | null | undefined>(null);
-  const setLoadingOverlay = ({
-    show,
-    message,
-  }: {
-    show: boolean;
-    message?: string | null | undefined;
-  }) => {
-    setLoadingOverlayVisible(show);
-    if (show) {
-      setMessage(message);
-    } else {
-      setMessage(null);
-    }
-  };
+  const setLoadingOverlay = useCallback(
+    ({
+      show,
+      message,
+    }: {
+      show: boolean;
+      message?: string | null | undefined;
+    }) => {
+      setLoadingOverlayVisible(show);
+      if (show) {
+        setMessage(message);
+      } else {
+        setMessage(null);
+      }
+    },
+    [],
+  );
+
+  const value = useMemo(
+    () => ({ setLoadingOverlayVisible, setLoadingOverlay }),
+    [setLoadingOverlay],
+  );
+
   return (
-    <LoadingOverlay.Provider
-      value={{ setLoadingOverlayVisible, setLoadingOverlay }}
-    >
+    <LoadingOverlay.Provider value={value}>
       {visible && (
         <div className="fixed z-[9999] flex h-screen w-screen flex-col items-center justify-center bg-black/50">
           <CircularProgress

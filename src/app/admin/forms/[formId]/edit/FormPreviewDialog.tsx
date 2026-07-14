@@ -34,7 +34,7 @@ import type {
 } from "./clientV2";
 
 const ResponseFormV2 = dynamic(
-  () => import("@/app/admin/assessments/[selectedAssessmentId]/responseFormV2"),
+  () => import("@/app/admin/assessments/details/responseFormV2"),
   {
     ssr: false,
     loading: () => <CLinearProgress label="Carregando prévia..." />,

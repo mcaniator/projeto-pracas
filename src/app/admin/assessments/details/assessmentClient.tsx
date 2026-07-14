@@ -1,9 +1,9 @@
 "use client";
 
-import AssessmentImportDataDialog from "@/app/admin/assessments/[selectedAssessmentId]/assessmentImportDataDialog";
+import AssessmentImportDataDialog from "@/app/admin/assessments/details/assessmentImportDataDialog";
 import ResponseFormV2, {
   type ResponseFormV2Handle,
-} from "@/app/admin/assessments/[selectedAssessmentId]/responseFormV2";
+} from "@/app/admin/assessments/details/responseFormV2";
 import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
