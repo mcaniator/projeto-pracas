@@ -1,5 +1,6 @@
 "use client";
 
+import CapacitorAppProvider from "@/components/context/capacitorAppProvider";
 import { GeolocationProvider } from "@/components/context/geolocationContext";
 import { HelperCardProvider } from "@/components/context/helperCardContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
@@ -13,27 +14,29 @@ import { ReactNode } from "react";
 
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
-    <OpenedDialogsCounterProvider>
-      <MuiThemeProvider>
-        <HelperCardProvider>
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            adapterLocale="pt-br"
-          >
-            <GeolocationProvider>
-              <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
-            </GeolocationProvider>
+    <CapacitorAppProvider>
+      <OpenedDialogsCounterProvider>
+        <MuiThemeProvider>
+          <HelperCardProvider>
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale="pt-br"
+            >
+              <GeolocationProvider>
+                <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+              </GeolocationProvider>
 
-            <ProgressBar
-              height="4px"
-              color="#F6FAF2"
-              options={{ showSpinner: true }}
-              shallowRouting
-            />
-          </LocalizationProvider>
-        </HelperCardProvider>
-      </MuiThemeProvider>
-    </OpenedDialogsCounterProvider>
+              <ProgressBar
+                height="4px"
+                color="#F6FAF2"
+                options={{ showSpinner: true }}
+                shallowRouting
+              />
+            </LocalizationProvider>
+          </HelperCardProvider>
+        </MuiThemeProvider>
+      </OpenedDialogsCounterProvider>
+    </CapacitorAppProvider>
   );
 };
 
