@@ -123,11 +123,7 @@ const getCategoryChildKey = (
     : `question-${child.id}`;
 };
 
-const COMPACT_GRID_CHARACTER_TYPES = new Set([
-  "BOOLEAN",
-  "PERCENTAGE",
-  "NUMBER",
-]);
+const COMPACT_GRID_CHARACTER_TYPES = new Set(["BOOLEAN", "NUMBER"]);
 
 const QuestionValues = ({
   assessment,

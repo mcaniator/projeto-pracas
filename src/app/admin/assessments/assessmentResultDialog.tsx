@@ -49,6 +49,7 @@ const AssessmentResultDialog = ({
     <CDialog
       open={open}
       onClose={onClose}
+      mobileFullScreen
       title={assessment.location.name}
       subtitle={`${dateTimeFormatter.format(new Date(assessment.startDate))} ${assessment.endDate ? `- ${dateTimeFormatter.format(new Date(assessment.endDate))}` : ""}`}
       confirmChildren={

@@ -81,6 +81,9 @@ export const AssessmentPercentageValueRenderer = ({
               mode: undefined,
             },
             plugins: {
+              datalabels: {
+                display: false,
+              },
               legend: {
                 display: false,
               },
