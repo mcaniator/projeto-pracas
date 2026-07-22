@@ -25,7 +25,10 @@ export const AssessmentPercentageValueRenderer = ({
     datasets: [
       {
         data: [boundedValue, 100 - boundedValue],
-        backgroundColor: ["#648547", "rgba(224, 224, 224, 0.9)"],
+        backgroundColor:
+          value > 100 ?
+            ["#ed6c02", "rgba(224, 224, 224, 0.9)"]
+          : ["#648547", "rgba(224, 224, 224, 0.9)"],
         borderWidth: 0,
       },
     ],
@@ -63,7 +66,7 @@ export const AssessmentPercentageValueRenderer = ({
                 ctx.textBaseline = "middle";
                 ctx.font = "12px sans-serif";
 
-                ctx.fillText(`${boundedValue}%`, centerX, centerY);
+                ctx.fillText(`${value}%`, centerX, centerY);
 
                 ctx.restore();
               },

@@ -4,7 +4,7 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
-import { IconPencil } from "@tabler/icons-react";
+import { IconEye } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 const AssessmentResultDialog = ({
@@ -54,8 +54,8 @@ const AssessmentResultDialog = ({
       subtitle={`${dateTimeFormatter.format(new Date(assessment.startDate))} ${assessment.endDate ? `- ${dateTimeFormatter.format(new Date(assessment.endDate))}` : ""}`}
       confirmChildren={
         <>
-          <IconPencil />
-          Editar
+          <IconEye />
+          Ver preenchimento
         </>
       }
       confirmProps={{
