@@ -5,6 +5,7 @@ import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
+import { downloadCSVFileFromText } from "@/lib/downloadFile";
 import {
   useExportAssessments,
   useExportDailyTallys,
@@ -89,14 +90,10 @@ const SelectedParks = ({
     }
     const csvString = response.CSVstring;
     if (csvString) {
-      const blob = new Blob([csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Informações-Cadastro.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await downloadCSVFileFromText({
+        filename: "Informações-Cadastro.csv",
+        content: csvString,
+      });
     }
     setHelperCard({
       show: true,
@@ -139,14 +136,10 @@ const SelectedParks = ({
     }
     const csvObjs = response.csvObjs;
     for (const csvObj of csvObjs) {
-      const blob = new Blob([csvObj.csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Avaliações - ${csvObj.formName}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await downloadCSVFileFromText({
+        filename: `Avaliações - ${csvObj.formName}.csv`,
+        content: csvObj.csvString,
+      });
     }
     setHelperCard({
       show: true,
@@ -201,14 +194,10 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
         const csvString = csvObj.CSVstringWeekdays[i];
         if (csvString) {
-          const blob = new Blob([csvString]);
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Contagem-Semana-Dia${i + 1}.csv`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          await downloadCSVFileFromText({
+            filename: `Contagem-Semana-Dia${i + 1}.csv`,
+            content: csvString,
+          });
         }
       }
     }
@@ -216,14 +205,10 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekendDays.length; i++) {
         const csvString = csvObj.CSVstringWeekendDays[i];
         if (csvString) {
-          const blob = new Blob([csvString]);
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Contagem-FimSemana-Dia${i + 1}.csv`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          await downloadCSVFileFromText({
+            filename: `Contagem-FimSemana-Dia${i + 1}.csv`,
+            content: csvString,
+          });
         }
       }
     }
@@ -272,14 +257,10 @@ const SelectedParks = ({
 
     const csvString = response.CSVstring;
     if (csvString) {
-      const blob = new Blob([csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Contagens individuais.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await downloadCSVFileFromText({
+        filename: "Contagens individuais.csv",
+        content: csvString,
+      });
     }
 
     setHelperCard({
