@@ -4,7 +4,6 @@ import CapacitorAppProvider from "@/components/context/capacitorAppProvider";
 import { GeolocationProvider } from "@/components/context/geolocationContext";
 import { HelperCardProvider } from "@/components/context/helperCardContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
-import { OpenedDialogsCounterProvider } from "@/components/context/openedDialogsCounterContext";
 import MuiThemeProvider from "@/components/theme/MuiThemeProvider";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -15,27 +14,25 @@ import { ReactNode } from "react";
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <CapacitorAppProvider>
-      <OpenedDialogsCounterProvider>
-        <MuiThemeProvider>
-          <HelperCardProvider>
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-            >
-              <GeolocationProvider>
-                <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
-              </GeolocationProvider>
+      <MuiThemeProvider>
+        <HelperCardProvider>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="pt-br"
+          >
+            <GeolocationProvider>
+              <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+            </GeolocationProvider>
 
-              <ProgressBar
-                height="4px"
-                color="#F6FAF2"
-                options={{ showSpinner: true }}
-                shallowRouting
-              />
-            </LocalizationProvider>
-          </HelperCardProvider>
-        </MuiThemeProvider>
-      </OpenedDialogsCounterProvider>
+            <ProgressBar
+              height="4px"
+              color="#F6FAF2"
+              options={{ showSpinner: true }}
+              shallowRouting
+            />
+          </LocalizationProvider>
+        </HelperCardProvider>
+      </MuiThemeProvider>
     </CapacitorAppProvider>
   );
 };

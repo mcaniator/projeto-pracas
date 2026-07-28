@@ -1,4 +1,5 @@
 import { CButtonProps } from "@/components/ui/cButton";
+import { Capacitor } from "@capacitor/core";
 import {
   ButtonProps,
   Dialog,
@@ -48,10 +49,7 @@ export type CDialogProps = Omit<DialogProps, "onClose" | "onSubmit"> & {
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
 
-type FormPaperProps = Omit<
-  PaperProps,
-  "action" | "component" | "onSubmit"
-> & {
+type FormPaperProps = Omit<PaperProps, "action" | "component" | "onSubmit"> & {
   component: "form";
   action?: (formData: FormData) => void;
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
@@ -108,65 +106,6 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
-  // This code is used to close the dialog when the user presses the navigation buttons.
-  // It is commented out because it breaks if the dialog is closed from the 'open' prop.
-  /*const onCloseRef = useRef(onClose);
-  const openDialogCounterContext = useOpenedDialogsCounterContext();
-  const dialogIndexRef = useRef(0);
-  const handlePopRef = useRef((forceBackNavigation?: boolean) => {
-    if (
-      openDialogCounterContext.openedDialogsCounterRef.current ===
-      dialogIndexRef.current
-    ) {
-      if (
-        !forceBackNavigation &&
-        !!openDialogCounterContext.timeoutRef.current
-      ) {
-        window.history.pushState(
-          { dialogIndex: dialogIndexRef.current - 1 },
-          "",
-        );
-      }
-      if (
-        forceBackNavigation &&
-        !!openDialogCounterContext.timeoutRef.current
-      ) {
-        window.history.back();
-      }
-      window.removeEventListener("popstate", () => {
-        handlePopRef.current();
-      });
-      openDialogCounterContext.closeDialog();
-      dialogIndexRef.current = 0;
-      onCloseRef.current();
-    }
-  });
-
-  const handleEventClose = (
-    event: object,
-    reason: "backdropClick" | "escapeKeyDown",
-  ) => {
-    if (disableBackdropClose && reason === "backdropClick") {
-      return;
-    }
-    handlePopRef.current(true);
-  };
-
-  useEffect(() => {
-    if (!props.open || dialogIndexRef.current !== 0) return;
-
-    dialogIndexRef.current = openDialogCounterContext.openDialog();
-
-    window.history.pushState({ dialogIndex: dialogIndexRef.current - 1 }, "");
-
-    window.addEventListener("popstate", () => {
-      handlePopRef.current();
-    });
-  }, [props.open]);
-
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);*/
 
   const handleEventClose = (
     event: object,
@@ -204,9 +143,13 @@ const CDialog = ({
         return;
       }
 
-      const shouldNavigate = window.confirm(
-        "Deseja sair desta página? Alteracoes não salvas serão perdidas.",
-      );
+      // When is native app, the dialog will close
+      let shouldNavigate = Capacitor.isNativePlatform();
+      if (!shouldNavigate) {
+        shouldNavigate = window.confirm(
+          "Deseja sair desta página? Alteracoes não salvas serão perdidas.",
+        );
+      }
 
       if (!shouldNavigate) {
         skipNextPopStateRef.current = true;
