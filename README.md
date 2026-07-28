@@ -234,11 +234,11 @@ mkcert localhost 127.0.0.1 ::1 192.168.2.101 192.168.2.102
 Esse comando gera arquivos semelhantes a:
 
 ```text
-localhost+3.pem
-localhost+3-key.pem
+localhost4.pem
+localhost+4-key.pem
 ```
 
-> O número (`+3`) depende da quantidade de nomes/IPs incluídos no certificado.
+> O número (`+4`) depende da quantidade de nomes/IPs incluídos no certificado.
 
 ---
 

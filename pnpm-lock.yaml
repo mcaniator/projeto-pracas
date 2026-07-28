@@ -127,6 +127,9 @@ importers:
       browser-image-compression:
         specifier: ^2.0.2
         version: 2.0.2
+      capacitor-save-as:
+        specifier: ^0.2.0
+        version: 0.2.0(@capacitor/core@8.4.1)
       chart.js:
         specifier: ^4.4.7
         version: 4.5.0
@@ -3313,6 +3316,11 @@ packages:
 
   caniuse-lite@1.0.30001726:
     resolution: {integrity: sha512-VQAUIUzBiZ/UnlM28fSp2CRF3ivUn1BWEvxMcVTNwpw91Py1pGbPIyIKtd+tzct9C3ouceCVdGAXxZOpZAsgdw==}
+
+  capacitor-save-as@0.2.0:
+    resolution: {integrity: sha512-esOKYfS8ajJ9VWeygokhYhFNh2vi2hXS8MjAwEoq9eahLOeAUqkdvxoAHrBQXSQbtb1Ez9ZpXn8YD4jDLXq94g==}
+    peerDependencies:
+      '@capacitor/core': '>=5.0.0'
 
   chalk@2.4.2:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
@@ -10023,6 +10031,10 @@ snapshots:
   camelcase@5.3.1: {}
 
   caniuse-lite@1.0.30001726: {}
+
+  capacitor-save-as@0.2.0(@capacitor/core@8.4.1):
+    dependencies:
+      '@capacitor/core': 8.4.1
 
   chalk@2.4.2:
     dependencies:

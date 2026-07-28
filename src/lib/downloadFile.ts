@@ -1,8 +1,19 @@
 "use client";
 
 import { Capacitor } from "@capacitor/core";
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
+import { SaveAs } from "capacitor-save-as";
+
+const textToBase64 = (text: string) => {
+  //toBase64() method of Uint8Array could be used, but it is not as widely supported
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+
+  return btoa(binary);
+};
 
 export const downloadCSVFileFromText = async ({
   filename,
@@ -12,21 +23,13 @@ export const downloadCSVFileFromText = async ({
   content: string;
 }) => {
   if (Capacitor.isNativePlatform()) {
-    const file = await Filesystem.writeFile({
-      path: filename,
-      data: content,
-      directory: Directory.Cache,
-      encoding: Encoding.UTF8,
+    await SaveAs.showSaveAsPicker({
+      filename,
+      mimeType: "text/csv",
+      data: textToBase64(content),
     });
 
-    await Share.share({
-      title: filename,
-      text: "Arquivo CSV exportado.",
-      files: [file.uri],
-      dialogTitle: "Salvar ou compartilhar arquivo",
-    });
-
-    return { saved: true, path: file.uri };
+    return { saved: true };
   }
 
   const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
