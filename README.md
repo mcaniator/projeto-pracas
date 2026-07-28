@@ -228,7 +228,7 @@ Inclua todos os endereços que poderão ser utilizados para acessar o servidor.
 Exemplo:
 
 ```powershell
-mkcert localhost 127.0.0.1 ::1 192.168.2.101
+mkcert localhost 127.0.0.1 ::1 192.168.2.101 192.168.2.102
 ```
 
 Esse comando gera arquivos semelhantes a:
@@ -244,13 +244,14 @@ localhost+3-key.pem
 
 # 6. Iniciar o Next.js utilizando o certificado
 
+É necessário rodar o terminal como administrador. <br>
 Exemplo:
 
 ```powershell
 pnpm next dev ^
   --experimental-https ^
-  --experimental-https-cert .\localhost+3.pem ^
-  --experimental-https-key .\localhost+3-key.pem ^
+  --experimental-https-cert .\localhost+4.pem ^
+  --experimental-https-key .\localhost+4-key.pem ^
   -H 0.0.0.0
 ```
 

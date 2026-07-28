@@ -2,6 +2,7 @@
 
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { ReactNode, useEffect } from "react";
 
 type CapacitorAppProviderProps = {
@@ -35,6 +36,17 @@ const CapacitorAppProvider = ({ children }: CapacitorAppProviderProps) => {
       listenerHandle = handle;
     };
 
+    const checkNotifcationPermissions = async () => {
+      const permissions = await LocalNotifications.checkPermissions();
+
+      if (permissions.display === "granted") {
+        return;
+      }
+
+      await LocalNotifications.requestPermissions();
+    };
+
+    void checkNotifcationPermissions();
     void registerListener();
 
     return () => {

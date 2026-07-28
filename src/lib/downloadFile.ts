@@ -2,6 +2,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 export const downloadCSVFileFromText = async ({
   filename,
@@ -11,14 +12,21 @@ export const downloadCSVFileFromText = async ({
   content: string;
 }) => {
   if (Capacitor.isNativePlatform()) {
-    await Filesystem.writeFile({
+    const file = await Filesystem.writeFile({
       path: filename,
       data: content,
-      directory: Directory.Documents,
+      directory: Directory.Cache,
       encoding: Encoding.UTF8,
     });
 
-    return { saved: true, path: filename };
+    await Share.share({
+      title: filename,
+      text: "Arquivo CSV exportado.",
+      files: [file.uri],
+      dialogTitle: "Salvar ou compartilhar arquivo",
+    });
+
+    return { saved: true, path: file.uri };
   }
 
   const blob = new Blob([content], { type: "text/csv;charset=utf-8" });

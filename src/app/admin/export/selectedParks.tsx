@@ -90,17 +90,27 @@ const SelectedParks = ({
     }
     const csvString = response.CSVstring;
     if (csvString) {
-      await downloadCSVFileFromText({
-        filename: "Informações-Cadastro.csv",
-        content: csvString,
-      });
+      try {
+        await downloadCSVFileFromText({
+          filename: "Informações-Cadastro.csv",
+          content: csvString,
+        });
+
+        setHelperCard({
+          show: true,
+          helperCardType: "CONFIRM",
+          content: <>Dados de praças exportados!</>,
+        });
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
+        });
+      } finally {
+        setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
+      }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Dados de praças exportados!</>,
-    });
-    setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
@@ -136,10 +146,20 @@ const SelectedParks = ({
     }
     const csvObjs = response.csvObjs;
     for (const csvObj of csvObjs) {
-      await downloadCSVFileFromText({
-        filename: `Avaliações - ${csvObj.formName}.csv`,
-        content: csvObj.csvString,
-      });
+      try {
+        await downloadCSVFileFromText({
+          filename: `Avaliações - ${csvObj.formName}.csv`,
+          content: csvObj.csvString,
+        });
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
+        });
+        setLoadingExport((prev) => ({ ...prev, evaluations: false }));
+        return;
+      }
     }
     setHelperCard({
       show: true,
@@ -194,10 +214,20 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
         const csvString = csvObj.CSVstringWeekdays[i];
         if (csvString) {
-          await downloadCSVFileFromText({
-            filename: `Contagem-Semana-Dia${i + 1}.csv`,
-            content: csvString,
-          });
+          try {
+            await downloadCSVFileFromText({
+              filename: `Contagem-Semana-Dia${i + 1}.csv`,
+              content: csvString,
+            });
+          } catch (e) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não foi possível salvar o arquivo no dispositivo!</>,
+            });
+            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
+            return;
+          }
         }
       }
     }
@@ -205,10 +235,20 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekendDays.length; i++) {
         const csvString = csvObj.CSVstringWeekendDays[i];
         if (csvString) {
-          await downloadCSVFileFromText({
-            filename: `Contagem-FimSemana-Dia${i + 1}.csv`,
-            content: csvString,
-          });
+          try {
+            await downloadCSVFileFromText({
+              filename: `Contagem-FimSemana-Dia${i + 1}.csv`,
+              content: csvString,
+            });
+          } catch (e) {
+            setHelperCard({
+              show: true,
+              helperCardType: "ERROR",
+              content: <>Não foi possível salvar o arquivo no dispositivo!</>,
+            });
+            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
+            return;
+          }
         }
       }
     }
@@ -257,10 +297,20 @@ const SelectedParks = ({
 
     const csvString = response.CSVstring;
     if (csvString) {
-      await downloadCSVFileFromText({
-        filename: "Contagens individuais.csv",
-        content: csvString,
-      });
+      try {
+        await downloadCSVFileFromText({
+          filename: "Contagens individuais.csv",
+          content: csvString,
+        });
+      } catch (e) {
+        setHelperCard({
+          show: true,
+          helperCardType: "ERROR",
+          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
+        });
+        setLoadingExport((prev) => ({ ...prev, tallys: false }));
+        return;
+      }
     }
 
     setHelperCard({
