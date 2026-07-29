@@ -15,20 +15,28 @@ import AuthPageShell from "../authPageShell";
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
   const { setHelperCard } = useHelperCard();
   const router = useRouter();
-  const [login, isPending] = useLogin();
+  const [login] = useLogin();
   const [state, setState] = useState<{ statusCode: number } | null>(null);
-
+  const [isPending, setIsPending] = useState(false);
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    setIsPending(true);
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const response = await login({
-      data: formData,
-      projectOptions: { silent: true },
-    });
+    try {
+      const response = await login({
+        data: formData,
+        projectOptions: { silent: true },
+      });
 
-    setState({ statusCode: response.responseInfo.statusCode });
-    if (response.responseInfo.statusCode === 200) {
-      router.push("/admin/map");
+      setState({ statusCode: response.responseInfo.statusCode });
+      if (response.responseInfo.statusCode === 200) {
+        router.push("/admin/map");
+      } else {
+        setIsPending(false);
+      }
+    } catch (e) {
+      setState({ statusCode: 500 });
+      setIsPending(false);
     }
   }
 
