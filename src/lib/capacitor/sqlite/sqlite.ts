@@ -1,3 +1,4 @@
+import { SQLiteMigration } from "@/lib/capacitor/sqlite/SQLiteMigration";
 import { Capacitor } from "@capacitor/core";
 import {
   SQLiteConnection,
@@ -30,7 +31,13 @@ class SQLite
    *
    * @param name SQLite database name, without the file extension.
    */
-  constructor(name: string) {
+  constructor({
+    name,
+    migrations,
+  }: {
+    name: string;
+    migrations: SQLiteMigration[];
+  }) {
     if (!Capacitor.isNativePlatform()) {
       throw new Error();
     }
@@ -39,6 +46,8 @@ class SQLite
     this.dbPromise = sqlite.createConnection(name);
     this.initializationPromise = this.dbPromise.then(async (db) => {
       await db.execute("PRAGMA foreign_keys = ON;");
+      const currentVersion = await db.getVersion();
+      await this.executeMigrations({ db, migrations, currentVersion });
       this.initialized = true;
     });
   }
@@ -63,7 +72,6 @@ class SQLite
   public async close(): Promise<void> {
     const db = await this.getDb();
     await db.close();
-    this.initialized = false;
   }
 
   /**
@@ -151,9 +159,24 @@ class SQLite
   public getDbName() {
     return this.name;
   }
+
+  private async executeMigrations({
+    db,
+    currentVersion,
+    migrations,
+  }: {
+    db: SQLiteDBConnection;
+    currentVersion: number;
+    migrations: SQLiteMigration[];
+  }) {
+    for (let i = currentVersion; i < migrations.length; i++) {
+      const migration = migrations[i];
+      if (!migration) {
+        throw new Error(`${i + 1}º migration for ${this.name} not found`);
+      }
+      await migration.execute({ dbName: this.name, db });
+    }
+  }
 }
 
-const sqlite = new SQLite("SQLitePracas");
-
-export default sqlite;
 export { SQLite };

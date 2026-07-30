@@ -1,9 +1,6 @@
 import { SQLiteDBConnection } from "@microbit/capacitor-sqlite-vanilla";
 
-import { SQLite } from "./sqlite";
-
 interface SQLiteMigrationI {
-  db: SQLite;
   version: number;
   date: Date;
   name: string;
@@ -13,27 +10,31 @@ interface SQLiteMigrationI {
 export { SQLiteMigration };
 
 class SQLiteMigration {
-  db: SQLite;
   version: number;
   date: Date;
   name: string;
   transaction: Parameters<SQLiteDBConnection["executeTransaction"]>[0];
-  constructor({ db, version, date, name, transaction }: SQLiteMigrationI) {
-    this.db = db;
+  constructor({ version, date, name, transaction }: SQLiteMigrationI) {
     this.version = version;
     this.date = date;
     this.name = name;
     this.transaction = transaction;
   }
 
-  public async execute() {
-    const currentVersion = await this.db.getVersion();
+  public async execute({
+    dbName,
+    db,
+  }: {
+    dbName: string;
+    db: SQLiteDBConnection;
+  }) {
+    const currentVersion = await db.getVersion();
     if (currentVersion >= this.version || this.version - currentVersion > 1) {
       throw new Error(
-        `Tried to migrate ${this.db.getDbName()} version ${this.version}, but current version is ${currentVersion}`,
+        `Tried to migrate ${dbName} to version ${this.version}, but current version is ${currentVersion}`,
       );
     }
-    await this.db.executeTransaction([
+    await db.executeTransaction([
       ...this.transaction,
       {
         statement:

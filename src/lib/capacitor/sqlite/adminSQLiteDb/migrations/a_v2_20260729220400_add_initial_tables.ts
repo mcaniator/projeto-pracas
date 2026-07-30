@@ -1,8 +1,6 @@
-import { SQLiteMigration } from "../migration";
-import sqlite from "../sqlite";
+import { SQLiteMigration } from "../../SQLiteMigration";
 
-const v2_20260729220400_add_initial_tables = new SQLiteMigration({
-  db: sqlite,
+const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
   version: 2,
   date: new Date("2026-07-29T21:04:00.000Z"),
   name: "add_initial_tables",
@@ -30,37 +28,46 @@ const v2_20260729220400_add_initial_tables = new SQLiteMigration({
         intermediate_administrative_unit_title TEXT,
         broad_administrative_unit_title TEXT,
         created_at TEXT,
-        updated_at TEXT
+        updated_at TEXT,
+        UNIQUE (name, state)
       )`,
     },
     {
       statement: `CREATE TABLE narrow_administrative_unit(
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        city_id INTEGER NOT NULL)`,
+        city_id INTEGER NOT NULL REFERENCES city(id),
+        UNIQUE (name, city_id)
+        )`,
     },
     {
       statement: `CREATE TABLE intermediate_administrative_unit(
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        city_id INTEGER NOT NULL)`,
+        city_id INTEGER NOT NULL REFERENCES city(id),
+        UNIQUE (name, city_id)
+        )`,
     },
     {
       statement: `CREATE TABLE broad_administrative_unit(
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        city_id INTEGER NOT NULL)`,
+        city_id INTEGER NOT NULL REFERENCES city(id),
+        UNIQUE (name, city_id)
+        )`,
     },
     {
       statement: `CREATE TABLE location_category (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        UNIQUE (name)
       )`,
     },
     {
       statement: `CREATE TABLE location_type (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        UNIQUE (name)
       )`,
     },
     {
@@ -73,7 +80,7 @@ const v2_20260729220400_add_initial_tables = new SQLiteMigration({
         third_street TEXT,
         fourth_street TEXT,
         notes TEXT,
-        city_id INTEGER NOT NULL,
+        city_id INTEGER NOT NULL REFERENCES city(id),
         creation_year INTEGER,
         last_maintenance_year INTEGER,
         legislation TEXT,
@@ -83,19 +90,22 @@ const v2_20260729220400_add_initial_tables = new SQLiteMigration({
         is_park INTEGER NOT NULL CHECK (is_park IN (0, 1)),
         inactive_not_found INTEGER NOT NULL CHECK (inactive_not_found IN (0, 1)),
         polygon_area REAL,
-        type_id INTEGER,
-        category_id INTEGER,
+        type_id INTEGER REFERENCES location_type(id),
+        category_id INTEGER REFERENCES location_category(id),
         polygon TEXT,
         is_public INTEGER NOT NULL CHECK (is_public IN (0, 1)),
         main_image_id INTEGER,
-        narrow_administrative_unit_id INTEGER,
-        intermediate_administrative_unit_id INTEGER,
-        broad_administrative_unit_id INTEGER,
+        narrow_administrative_unit_id INTEGER REFERENCES narrow_administrative_unit(id),
+        intermediate_administrative_unit_id INTEGER REFERENCES intermediate_administrative_unit(id),
+        broad_administrative_unit_id INTEGER REFERENCES broad_administrative_unit(id),
         created_at TEXT,
         updated_at TEXT
       )`,
     },
+    {
+      statement: `CREATE INDEX idx_location_city ON location (city_id);`,
+    },
   ],
 });
 
-export default v2_20260729220400_add_initial_tables;
+export default a_v2_20260729220400_add_initial_tables;
