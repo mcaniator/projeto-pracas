@@ -79,6 +79,9 @@ importers:
       '@jackstenglein/mui-mentions':
         specifier: ^0.1.11
         version: 0.1.11(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1))(@mui/material@7.3.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)
+      '@microbit/capacitor-sqlite-vanilla':
+        specifier: ^0.1.0
+        version: 0.1.0(@capacitor/core@8.4.1)
       '@mui/icons-material':
         specifier: ^7.3.1
         version: 7.3.1(@mui/material@7.3.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(types-react@19.0.0-rc.1))(react@19.1.1)(types-react@19.0.0-rc.1)
@@ -1265,6 +1268,11 @@ packages:
 
   '@kurkle/color@0.3.4':
     resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
+  '@microbit/capacitor-sqlite-vanilla@0.1.0':
+    resolution: {integrity: sha512-bnY5ws1rhVLC6ybXkVxLu8AiTggRJOKSknCl8a+elIu9rASpJHc9pNTPpo6ovR5rLDGscsz1ClJ0j+ReKj456A==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@mui/core-downloads-tracker@7.3.1':
     resolution: {integrity: sha512-+mIK1Z0BhOaQ0vCgOkT1mSrIpEHLo338h4/duuL4TBLXPvUMit732mnwJY3W40Avy30HdeSfwUAAGRkKmwRaEQ==}
@@ -7649,6 +7657,10 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.3
 
   '@kurkle/color@0.3.4': {}
+
+  '@microbit/capacitor-sqlite-vanilla@0.1.0(@capacitor/core@8.4.1)':
+    dependencies:
+      '@capacitor/core': 8.4.1
 
   '@mui/core-downloads-tracker@7.3.1': {}
 

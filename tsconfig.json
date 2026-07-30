@@ -38,7 +38,8 @@
       "@signedCookies/*": ["src/lib/signedCookies/*"],
       "@enums/*": ["src/lib/enums/*"],
       "@apiCalls/*": ["src/lib/serverFunctions/apiCalls/*"],
-      "@utils/*": ["src/lib/utils/*"]
+      "@utils/*": ["src/lib/utils/*"],
+      "@sqlite/*": ["src/lib/capacitor/sqlite/*"]
     }
   },
   "include": ["./next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

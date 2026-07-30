@@ -1,0 +1,101 @@
+import { SQLiteMigration } from "../migration";
+import sqlite from "../sqlite";
+
+const v2_20260729220400_add_initial_tables = new SQLiteMigration({
+  db: sqlite,
+  version: 2,
+  date: new Date("2026-07-29T21:04:00.000Z"),
+  name: "add_initial_tables",
+  transaction: [
+    {
+      statement: `CREATE TABLE "user" (
+          id TEXT PRIMARY KEY,
+          name TEXT,
+          email TEXT NOT NULL UNIQUE,
+          emailVerified TEXT,
+          image TEXT,
+          username TEXT NOT NULL UNIQUE,
+          roles TEXT NOT NULL DEFAULT '[]',
+          active INTEGER NOT NULL CHECK (active IN (0, 1)),
+          created_at TEXT NOT NULL,
+           updated_at TEXT NOT NULL
+          );`,
+    },
+    {
+      statement: `CREATE TABLE city (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        state TEXT NOT NULL,
+        narrow_administrative_unit_title TEXT,
+        intermediate_administrative_unit_title TEXT,
+        broad_administrative_unit_title TEXT,
+        created_at TEXT,
+        updated_at TEXT
+      )`,
+    },
+    {
+      statement: `CREATE TABLE narrow_administrative_unit(
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        city_id INTEGER NOT NULL)`,
+    },
+    {
+      statement: `CREATE TABLE intermediate_administrative_unit(
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        city_id INTEGER NOT NULL)`,
+    },
+    {
+      statement: `CREATE TABLE broad_administrative_unit(
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        city_id INTEGER NOT NULL)`,
+    },
+    {
+      statement: `CREATE TABLE location_category (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL
+      )`,
+    },
+    {
+      statement: `CREATE TABLE location_type (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL
+      )`,
+    },
+    {
+      statement: `CREATE TABLE location (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        popular_name TEXT,
+        first_street TEXT NOT NULL,
+        second_street TEXT,
+        third_street TEXT,
+        fourth_street TEXT,
+        notes TEXT,
+        city_id INTEGER NOT NULL,
+        creation_year INTEGER,
+        last_maintenance_year INTEGER,
+        legislation TEXT,
+        usable_area REAL,
+        legal_area REAL,
+        incline REAL,
+        is_park INTEGER NOT NULL CHECK (is_park IN (0, 1)),
+        inactive_not_found INTEGER NOT NULL CHECK (inactive_not_found IN (0, 1)),
+        polygon_area REAL,
+        type_id INTEGER,
+        category_id INTEGER,
+        polygon TEXT,
+        is_public INTEGER NOT NULL CHECK (is_public IN (0, 1)),
+        main_image_id INTEGER,
+        narrow_administrative_unit_id INTEGER,
+        intermediate_administrative_unit_id INTEGER,
+        broad_administrative_unit_id INTEGER,
+        created_at TEXT,
+        updated_at TEXT
+      )`,
+    },
+  ],
+});
+
+export default v2_20260729220400_add_initial_tables;
