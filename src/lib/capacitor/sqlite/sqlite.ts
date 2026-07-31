@@ -38,7 +38,10 @@ class SQLite
     name: string;
     migrations: SQLiteMigration[];
   }) {
-    if (!Capacitor.isNativePlatform()) {
+    if (
+      !Capacitor.isNativePlatform() &&
+      process.env.NEXT_PUBLIC_DEBUG !== "true"
+    ) {
       throw new Error();
     }
     const sqlite = new SQLiteConnection(SQLiteVanilla);

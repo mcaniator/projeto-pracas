@@ -76,6 +76,14 @@ export async function middleware(request: NextRequest) {
       const url = new URL("/admin/map", request.url);
       return Response.redirect(url);
     }
+
+    if (
+      pathname.startsWith("/admin/capacitor/") &&
+      process.env.NEXT_PUBLIC_DEBUG !== "true"
+    ) {
+      request.nextUrl.pathname = "/404";
+      return NextResponse.rewrite(request.nextUrl);
+    }
   }
   if (request.method === "OPTIONS") {
     return setCorsHeaders(request, new NextResponse(null, { status: 204 }));

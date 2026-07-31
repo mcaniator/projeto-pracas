@@ -11,20 +11,26 @@ export default {
   },
   cookies: {
     sessionToken: {
-      name: "__Secure-authjs.session-token",
+      name:
+        process.env.NEXT_PUBLIC_DEBUG === "true" ?
+          "authjs.session-token"
+        : "__Secure-authjs.session-token",
       options: {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
+        sameSite: process.env.NEXT_PUBLIC_DEBUG === "true" ? "lax" : "none",
+        secure: process.env.NEXT_PUBLIC_DEBUG === "true" ? false : true,
         path: "/",
       },
     },
     callbackUrl: {
-      name: "__Secure-authjs.callback-url",
+      name:
+        process.env.NEXT_PUBLIC_DEBUG === "true" ?
+          "authjs.callback-url"
+        : "__Secure-authjs.callback-url",
       options: {
         httpOnly: true,
-        sameSite: "none",
-        secure: true,
+        sameSite: process.env.NEXT_PUBLIC_DEBUG === "true" ? "lax" : "none",
+        secure: process.env.NEXT_PUBLIC_DEBUG === "true" ? false : true,
         path: "/",
       },
     },

@@ -14,5 +14,8 @@ project(':capacitor-local-notifications').projectDir = new File('../node_modules
 include ':capacitor-share'
 project(':capacitor-share').projectDir = new File('../node_modules/.pnpm/@capacitor+share@8.0.1_@capacitor+core@8.4.1/node_modules/@capacitor/share/android')
 
+include ':microbit-capacitor-sqlite-vanilla'
+project(':microbit-capacitor-sqlite-vanilla').projectDir = new File('../node_modules/.pnpm/@microbit+capacitor-sqlite-vanilla@0.1.0_@capacitor+core@8.4.1/node_modules/@microbit/capacitor-sqlite-vanilla/android')
+
 include ':capacitor-save-as'
 project(':capacitor-save-as').projectDir = new File('../node_modules/.pnpm/capacitor-save-as@0.2.0_@capacitor+core@8.4.1/node_modules/capacitor-save-as/android')
