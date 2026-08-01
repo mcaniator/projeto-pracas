@@ -1,4 +1,5 @@
 import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import type { PublicFetchPublicAssessmentsParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import {
@@ -145,14 +146,6 @@ export const publicFetchPublicAssessmentTree = async (params: {
                         response: true,
                       },
                     },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
-                      },
-                    },
                     ResponseOption: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -287,7 +280,8 @@ export const publicFetchPublicAssessmentTree = async (params: {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(

@@ -5,6 +5,7 @@ import type {
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
 import { getSessionUser } from "@auth/userUtil";
@@ -264,15 +265,14 @@ const _addResponsesV2 = async ({
 
     const booleanResponsesSQLValues = booleanResponses.map(
       (r) =>
-        Prisma.sql`(${r.value}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
+        Prisma.sql`(${r.value ? BooleanResponseValue.TRUE : BooleanResponseValue.FALSE}, ${user.id}, ${r.questionId}, ${assessmentId}, 'NOW()')`,
     );
 
     if (booleanResponsesSQLValues.length > 0) {
-      const booleanResponsesQuery = Prisma.sql`INSERT INTO "boolean_response" ("checked", "user_id", "question_id", "assessment_id", "updated_at")
+      const booleanResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "assessment_id", "updated_at")
     VALUES ${Prisma.join(booleanResponsesSQLValues, `,`)}
     ON CONFLICT ("assessment_id", "question_id")
-    DO UPDATE SET "checked" = EXCLUDED."checked", "user_id" = EXCLUDED."user_id" , "updated_at" = EXCLUDED."updated_at"`;
-
+    DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id" , "updated_at" = EXCLUDED."updated_at"`;
       transactions.push(prisma.$executeRaw(booleanResponsesQuery));
     }
 

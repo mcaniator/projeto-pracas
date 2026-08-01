@@ -191,11 +191,6 @@ const _deleteAssessment = async (assessmentId: number) => {
           assessmentId,
         },
       }),
-      prisma.booleanResponse.deleteMany({
-        where: {
-          assessmentId,
-        },
-      }),
       prisma.assessment.delete({
         where: {
           id: assessmentId,

@@ -1,4 +1,5 @@
 import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import type { Coordinate } from "ol/coordinate";
@@ -337,10 +338,6 @@ type MapAssessmentComparisonAssessmentQueryResult = {
           assessmentId: number;
           response: string | null;
         }[];
-        booleanResponses: {
-          assessmentId: number;
-          checked: boolean;
-        }[];
         ResponseOption: {
           assessmentId: number;
           overrideValue: string | null;
@@ -459,15 +456,6 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
                       select: {
                         assessmentId: true,
                         response: true,
-                      },
-                    },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: { in: assessmentIds },
-                      },
-                      select: {
-                        assessmentId: true,
-                        checked: true,
                       },
                     },
                     ResponseOption: {
@@ -665,9 +653,9 @@ const buildMapAssessmentComparisonAssessmentTree = ({
         }
       } else if (dbQuestion.questionType === "BOOLEAN") {
         responsesFormValues[dbQuestion.id] =
-          dbQuestion.booleanResponses.find(
+          dbQuestion.response.find(
             (response) => response.assessmentId === assessment.id,
-          )?.checked ?? false;
+          )?.response === BooleanResponseValue.TRUE ?? false;
       }
 
       const relatedCalculation = assessment.form.calculations.find(

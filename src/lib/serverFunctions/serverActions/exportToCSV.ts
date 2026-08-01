@@ -1,5 +1,6 @@
 "use server";
 
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import {
   dateFormatter,
   hourFormatter,
@@ -216,18 +217,6 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
         questionId: true,
         assessmentId: true,
         response: true,
-      },
-    });
-
-    const booleanResponses = await prisma.booleanResponse.findMany({
-      where: {
-        assessmentId: { in: assessmentIds },
-      },
-      select: {
-        id: true,
-        questionId: true,
-        assessmentId: true,
-        checked: true,
       },
     });
 
@@ -480,11 +469,12 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                       })
                       .join(" / ") || "";
                 } else if (question.questionType === "BOOLEAN") {
-                  const checked = booleanResponses.find(
-                    (r) =>
-                      r.assessmentId === assessment.id &&
-                      r.questionId === question.questionId,
-                  )?.checked;
+                  const checked =
+                    responses.find(
+                      (r) =>
+                        r.assessmentId === assessment.id &&
+                        r.questionId === question.questionId,
+                    )?.response === BooleanResponseValue.TRUE;
                   if (checked) {
                     responseValue = "Sim";
                   } else {
@@ -526,11 +516,12 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
                     })
                     .join(" / ") || "";
               } else if (child.questionType === "BOOLEAN") {
-                const checked = booleanResponses.find(
-                  (r) =>
-                    r.assessmentId === assessment.id &&
-                    r.questionId === child.questionId,
-                )?.checked;
+                const checked =
+                  responses.find(
+                    (r) =>
+                      r.assessmentId === assessment.id &&
+                      r.questionId === child.questionId,
+                  )?.response === BooleanResponseValue.TRUE;
                 if (checked) {
                   responseValue = "Sim";
                 } else {

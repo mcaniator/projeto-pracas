@@ -2,6 +2,7 @@ import type {
   FormValues,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   FetchAssessmentsParams,
@@ -229,14 +230,6 @@ const fetchAssessmentTree = async (params: {
                         response: true,
                       },
                     },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
-                      },
-                    },
                     ResponseOption: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -374,7 +367,8 @@ const fetchAssessmentTree = async (params: {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(
@@ -628,14 +622,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                         response: true,
                       },
                     },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
-                      },
-                    },
                     ResponseOption: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -770,7 +756,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(
