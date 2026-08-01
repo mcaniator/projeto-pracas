@@ -43,8 +43,8 @@ const WrittenResponseQuestionField = ({
           clearable
           readOnly={readOnly}
           debounce={debounce}
-          minValue={question.scaleConfig?.minValue ?? undefined}
-          maxValue={question.scaleConfig?.maxValue ?? undefined}
+          minValue={question.minValue ?? undefined}
+          maxValue={question.maxValue ?? undefined}
           endAdornment={
             question.characterType === "PERCENTAGE" ? "%" : undefined
           }

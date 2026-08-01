@@ -42,6 +42,8 @@ const buildPreviewQuestion = ({
     questionId: -1,
     name: draft.name || "Questão sem título",
     iconKey: draft.iconKey,
+    minValue: draft.minValue,
+    maxValue: draft.maxValue,
     isPublic: draft.isPublic,
     notes: draft.notes,
     questionType: draft.questionType,
@@ -52,7 +54,6 @@ const buildPreviewQuestion = ({
     options,
     allowResponseImages: draft.allowResponseImages,
     geometryTypes: draft.hasAssociatedGeometry ? draft.geometryTypes : [],
-    scaleConfig: draft.scaleConfig,
     calculationExpression: undefined,
   };
 };

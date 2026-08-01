@@ -125,6 +125,8 @@ const getFormTree = async (params: { formId: number }) => {
                 questionType: true,
                 characterType: true,
                 isPublic: true,
+                minValue: true,
+                maxValue: true,
                 allowResponseImages: true,
                 optionType: true,
                 options: {
@@ -132,12 +134,6 @@ const getFormTree = async (params: { formId: number }) => {
                     id: true,
                     text: true,
                     isOverridable: true,
-                  },
-                },
-                scaleConfig: {
-                  select: {
-                    minValue: true,
-                    maxValue: true,
                   },
                 },
                 categoryId: true,
@@ -234,6 +230,8 @@ const getFormTree = async (params: { formId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           allowResponseImages: dbQuestion.allowResponseImages,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
@@ -244,7 +242,6 @@ const getFormTree = async (params: { formId: number }) => {
             text: option.text,
             isOverridable: option.isOverridable,
           })),
-          scaleConfig: dbQuestion.scaleConfig,
           geometryTypes: dbQuestion.geometryTypes,
           categoryName: dbQuestion.category.name,
           subcategoryName: dbQuestion.subcategory?.name ?? null,
@@ -348,7 +345,9 @@ const getCalculationByFormId = async (formId: number) => {
 
 export type FetchFormEditorResponse = {
   form: Awaited<ReturnType<typeof getFormTree>>;
-  calculations: Awaited<ReturnType<typeof getCalculationByFormId>>["calculations"];
+  calculations: Awaited<
+    ReturnType<typeof getCalculationByFormId>
+  >["calculations"];
 };
 
 export {

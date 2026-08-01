@@ -65,10 +65,8 @@ export type QuestionItem = {
   categoryName: string;
   subcategoryName: string | null;
   options?: OptionForQuestionPicker[];
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
+  minValue: number | null;
+  maxValue: number | null;
   allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
 };
@@ -205,12 +203,13 @@ const ClientV2 = ({
               iconKey: question.iconKey,
               isPublic: question.isPublic,
               notes: question.notes,
+              minValue: question.minValue,
+              maxValue: question.maxValue,
               questionType: question.questionType,
               position: (subItem.questions?.length ?? 0) + 1,
               characterType: question.characterType,
               optionType: question.optionType,
               options: question.options,
-              scaleConfig: question.scaleConfig,
               allowResponseImages: question.allowResponseImages,
               geometryTypes: question.geometryTypes,
               categoryName: category.name,
@@ -240,11 +239,12 @@ const ClientV2 = ({
           iconKey: question.iconKey,
           isPublic: question.isPublic,
           notes: question.notes,
+          minValue: question.minValue,
+          maxValue: question.maxValue,
           questionType: question.questionType,
           characterType: question.characterType,
           optionType: question.optionType,
           options: question.options,
-          scaleConfig: question.scaleConfig,
           geometryTypes: question.geometryTypes,
           allowResponseImages: question.allowResponseImages,
           position: newCategory.categoryChildren.length + 1,

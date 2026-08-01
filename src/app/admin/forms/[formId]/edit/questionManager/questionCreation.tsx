@@ -272,8 +272,8 @@ const QuestionCreation = ({
     setGeometryTypes(question.geometryTypes);
     setSelectedIconKey(question.iconKey);
     setPageState("FORM");
-    setMinValue(question.scaleConfig?.minValue ?? null);
-    setMaxValue(question.scaleConfig?.maxValue ?? null);
+    setMinValue(question.minValue ?? null);
+    setMaxValue(question.maxValue ?? null);
     setScaleOptionMode("MANUAL");
     setScaleStep(null);
     setIsPublic(question.isPublic);
@@ -343,6 +343,8 @@ const QuestionCreation = ({
       notes: notes.length > 0 ? notes : null,
       iconKey: selectedIconKey ?? "",
       isPublic,
+      minValue: minValue ?? null,
+      maxValue: maxValue ?? null,
       questionType: type as QuestionTypes,
       characterType: characterType as QuestionResponseCharacterTypes,
       optionType:
@@ -354,10 +356,6 @@ const QuestionCreation = ({
         hasAssociatedGeometry === true ?
           (geometryTypes as QuestionGeometryTypes[])
         : [],
-      scaleConfig:
-        characterType === "SCALE" && minValue !== null && maxValue !== null ?
-          { minValue, maxValue }
-        : null,
     };
   };
 

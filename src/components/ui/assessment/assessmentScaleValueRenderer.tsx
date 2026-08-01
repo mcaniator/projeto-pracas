@@ -14,8 +14,8 @@ export const AssessmentScaleValueRenderer = ({
   question: AssessmentQuestionItem;
   value: number;
 } & AssessmentQuestionIconGeometryProps) => {
-  if (!question.scaleConfig) return null;
-  const { minValue, maxValue } = question.scaleConfig;
+  if (question.minValue == null || question.maxValue == null) return null;
+  const { minValue, maxValue } = question;
 
   const percentage =
     maxValue === minValue ? 0 : (
@@ -54,7 +54,7 @@ export const AssessmentScaleValueRenderer = ({
         />
 
         <div
-          className="absolute -top-3 flex flex-col items-center"
+          className={`absolute -top-3 flex flex-col ${Math.abs(value) < 10 && Number.isInteger(value) ? "items-center" : ""}`}
           style={{ left: `calc(${percentage}% - 8px)` }}
         >
           <span className="text-xs font-medium">{value}</span>

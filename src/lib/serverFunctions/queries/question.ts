@@ -36,15 +36,8 @@ const buildQuestionsByCategoryQuery = ({
             'optionType', q."option_type",
             'allowResponseImages', q."allow_response_images",
             'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
-            'scaleConfig',
-              (
-                SELECT json_build_object(
-                  'minValue', qsc."min_value",
-                  'maxValue', qsc."max_value"
-                )
-                FROM "question_scale_config" qsc
-                WHERE qsc."question_id" = q.id
-              ),
+            'minValue', q."min_value",
+            'maxValue', q."max_value",
             'options', COALESCE(
               (
                 SELECT json_agg(
@@ -90,15 +83,8 @@ const buildQuestionsByCategoryQuery = ({
                     'allowResponseImages', sq."allow_response_images",
                     'optionType', sq."option_type",
                     'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
-                    'scaleConfig',
-                      (
-                        SELECT json_build_object(
-                          'minValue', sqsc."min_value",
-                          'maxValue', sqsc."max_value"
-                        )
-                        FROM "question_scale_config" sqsc
-                        WHERE sqsc."question_id" = sq.id
-                      ),
+                    'minValue', sq."min_value",
+                    'maxValue', sq."max_value",
                     'options', COALESCE(
                       (
                         SELECT json_agg(

@@ -80,7 +80,6 @@ const toAssessmentQuestion = ({
   return {
     ...question,
     id: question.questionId,
-    scaleConfig: question.scaleConfig,
     options: question.options?.map((option) => ({
       id: option.id,
       text: option.text,

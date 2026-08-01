@@ -21,10 +21,8 @@ type QuestionForQuestionPicker = {
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
   options: OptionForQuestionPicker[];
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
+  minValue: number | null;
+  maxValue: number | null;
   allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
 };

@@ -239,7 +239,8 @@ const QuestionListV2 = ({
           questionType={question.questionType}
           optionType={question.optionType}
           options={question.options}
-          scaleConfig={question.scaleConfig}
+          minValue={question.minValue}
+          maxValue={question.maxValue}
           allowResponseImages={question.allowResponseImages}
           geometryTypes={question.geometryTypes}
           addQuestion={addQuestion}
@@ -269,7 +270,8 @@ const QuestionComponentV2 = ({
   options,
   allowResponseImages,
   geometryTypes,
-  scaleConfig,
+  minValue,
+  maxValue,
   categoryId,
   subcategoryId,
   showAllQuestions,
@@ -290,10 +292,8 @@ const QuestionComponentV2 = ({
   allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
   options: OptionForQuestionPicker[];
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
+  minValue: number | null;
+  maxValue: number | null;
   categoryId: number;
   categoryName: string;
   subcategoryId?: number | null;
@@ -345,7 +345,8 @@ const QuestionComponentV2 = ({
               questionType,
               optionType,
               options,
-              scaleConfig,
+              minValue,
+              maxValue,
               allowResponseImages,
               geometryTypes,
               categoryId,
@@ -371,7 +372,8 @@ const QuestionComponentV2 = ({
               questionType,
               optionType,
               options,
-              scaleConfig,
+              minValue,
+              maxValue,
               allowResponseImages,
               geometryTypes,
               categoryId,

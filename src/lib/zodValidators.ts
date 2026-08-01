@@ -150,6 +150,8 @@ const questionSchema = z.object({
   iconKey: z.string().trim(),
   notes: z.string().trim().optional().nullish(),
   isPublic: booleanFromString,
+  minValue: z.number().finite().nonnegative().nullable(),
+  maxValue: z.number().finite().nonnegative().nullable(),
   questionType: z.nativeEnum(QuestionTypes),
   characterType: z.nativeEnum(QuestionResponseCharacterTypes),
   optionType: z.nativeEnum(OptionTypes).optional(),

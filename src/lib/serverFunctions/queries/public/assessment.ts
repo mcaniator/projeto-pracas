@@ -1,6 +1,6 @@
-import type { PublicFetchPublicAssessmentsParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { prisma } from "@/lib/prisma";
+import type { PublicFetchPublicAssessmentsParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -121,7 +121,8 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     iconKey: true,
                     isPublic: true,
                     allowResponseImages: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -299,9 +300,10 @@ export const publicFetchPublicAssessmentTree = async (params: {
           questionId: item.questionId,
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,

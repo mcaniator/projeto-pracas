@@ -1,12 +1,12 @@
 import type {
-  FetchAssessmentsParams,
-  FetchPublicAssessmentsParams,
-} from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
-import type {
   FormValues,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+import type {
+  FetchAssessmentsParams,
+  FetchPublicAssessmentsParams,
+} from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { Coordinate } from "ol/coordinate";
@@ -18,10 +18,6 @@ import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
   options?: {
     id: number;
     text: string;
@@ -223,12 +219,8 @@ const fetchAssessmentTree = async (params: {
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
-                    scaleConfig: {
-                      select: {
-                        minValue: true,
-                        maxValue: true,
-                      },
-                    },
+                    minValue: true,
+                    maxValue: true,
                     response: {
                       where: {
                         assessmentId: params.assessmentId,
@@ -397,7 +389,8 @@ const fetchAssessmentTree = async (params: {
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -611,7 +604,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     iconKey: true,
                     isPublic: true,
                     allowResponseImages: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -790,7 +784,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,

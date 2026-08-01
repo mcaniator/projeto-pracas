@@ -161,7 +161,7 @@ const QuestionList = ({
 
     return hasOnlyCompactQuestions ?
         "grid grid-cols-[repeat(auto-fit,minmax(5rem,1fr))] gap-2"
-      : "grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-2";
+      : "grid grid-cols-[repeat(auto-fit,minmax(13.5rem,1fr))] gap-2";
   }, [questions]);
   return (
     <div className={gridClassName}>

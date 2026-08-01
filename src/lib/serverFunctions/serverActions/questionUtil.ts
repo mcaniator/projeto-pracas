@@ -23,7 +23,9 @@ const parseQuestionOptions = (formData: FormData, questionId: number) => {
   });
 };
 
-const _questionSubmit = async (formData: FormData): Promise<{
+const _questionSubmit = async (
+  formData: FormData,
+): Promise<{
   responseInfo: APIResponseInfo;
   data: null;
 } | null> => {
@@ -47,26 +49,28 @@ const _questionSubmit = async (formData: FormData): Promise<{
     const minValue = Number(formData.get("minValue"));
     const maxValue = Number(formData.get("maxValue"));
     if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
-      return null;
+      return { minValue: null, maxValue: null };
     }
     if (minValue >= maxValue) {
-      return null;
+      return { minValue: null, maxValue: null };
     }
     return { minValue, maxValue };
   };
+
+  const { minValue, maxValue } = parseScaleBounds();
 
   switch (questionType) {
     case "WRITTEN":
     case "BOOLEAN": {
       let writtenOrBooleanQuestionParsed;
-      const scaleBounds =
-        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
 
       try {
         writtenOrBooleanQuestionParsed = questionSchema.parse({
           name: formData.get("name"),
           iconKey: iconKey,
           notes: notes.length > 0 ? notes : null,
+          minValue: minValue,
+          maxValue: maxValue,
           questionType: questionType,
           characterType: questionCharacterType,
           categoryId: formData.get("categoryId"),
@@ -93,7 +97,7 @@ const _questionSubmit = async (formData: FormData): Promise<{
           data: null,
         };
       }
-      if (questionCharacterType === "SCALE" && !scaleBounds) {
+      if (questionCharacterType === "SCALE" && !minValue && !maxValue) {
         return {
           responseInfo: {
             statusCode: 400,
@@ -115,20 +119,10 @@ const _questionSubmit = async (formData: FormData): Promise<{
             data: null,
           };
         }
-
         await prisma.$transaction(async (prisma) => {
-          const question = await prisma.question.create({
+          await prisma.question.create({
             data: writtenOrBooleanQuestionParsed,
           });
-          if (questionCharacterType === "SCALE" && scaleBounds) {
-            await prisma.questionScaleConfig.create({
-              data: {
-                questionId: question.id,
-                minValue: scaleBounds.minValue,
-                maxValue: scaleBounds.maxValue,
-              },
-            });
-          }
         });
         return {
           responseInfo: {
@@ -151,14 +145,13 @@ const _questionSubmit = async (formData: FormData): Promise<{
       const optionType = formData.get("optionType");
       const name = formData.get("name");
       const categoryId = formData.get("categoryId");
-      const scaleBounds =
-        questionCharacterType === "SCALE" ? parseScaleBounds() : null;
+
       const subcategoryId =
         Number(formData.get("subcategoryId")) > 0 ?
           formData.get("subcategoryId")
         : undefined;
 
-      if (questionCharacterType === "SCALE" && !scaleBounds) {
+      if (questionCharacterType === "SCALE" && !minValue && !maxValue) {
         return {
           responseInfo: {
             statusCode: 400,
@@ -185,6 +178,8 @@ const _questionSubmit = async (formData: FormData): Promise<{
           name,
           iconKey,
           notes: notes.length > 0 ? notes : null,
+          minValue: minValue,
+          maxValue: maxValue,
           questionType: questionType,
           characterType: questionCharacterType,
           categoryId,
@@ -222,7 +217,11 @@ const _questionSubmit = async (formData: FormData): Promise<{
         }
 
         const rawOptions = parseQuestionOptions(formData, 0);
-        if (questionCharacterType === "SCALE" && scaleBounds) {
+        if (
+          questionCharacterType === "SCALE" &&
+          minValue != null &&
+          maxValue != null
+        ) {
           const parsedOptions = rawOptions.map((option) => Number(option.text));
           if (parsedOptions.some((value) => !Number.isFinite(value))) {
             return {
@@ -234,10 +233,7 @@ const _questionSubmit = async (formData: FormData): Promise<{
             };
           }
           if (
-            parsedOptions.some(
-              (value) =>
-                value < scaleBounds.minValue || value > scaleBounds.maxValue,
-            )
+            parsedOptions.some((value) => value < minValue || value > maxValue)
           ) {
             return {
               responseInfo: {
@@ -265,6 +261,8 @@ const _questionSubmit = async (formData: FormData): Promise<{
               name: optionsQuestionParsed.name,
               iconKey: optionsQuestionParsed.iconKey,
               notes: optionsQuestionParsed.notes,
+              minValue: optionsQuestionParsed.minValue,
+              maxValue: optionsQuestionParsed.maxValue,
               questionType: questionType,
               characterType: optionsQuestionParsed.characterType,
               categoryId: optionsQuestionParsed.categoryId,
@@ -275,16 +273,6 @@ const _questionSubmit = async (formData: FormData): Promise<{
               isPublic: optionsQuestionParsed.isPublic,
             },
           });
-
-          if (questionCharacterType === "SCALE" && scaleBounds) {
-            await prisma.questionScaleConfig.create({
-              data: {
-                questionId: newQuestion.id,
-                minValue: scaleBounds.minValue,
-                maxValue: scaleBounds.maxValue,
-              },
-            });
-          }
 
           const options = rawOptions.map((option) => ({
             ...option,
@@ -346,16 +334,11 @@ const _questionUpdate = async (
     const questionType = formData.get("questionType");
     const questionCharacterType = formData.get("characterType");
     const notes = (formData.get("notes") as string | null) ?? "";
+    const minValue = Number(formData.get("minValue"));
+    const maxValue = Number(formData.get("maxValue"));
     const iconKey = formData.get("iconKey");
     const isPublic = formData.get("isPublic") === "true";
     const rawOptions = parseQuestionOptions(formData, questionId);
-    const scaleBounds =
-      questionCharacterType === "SCALE" ?
-        {
-          minValue: Number(formData.get("minValue")),
-          maxValue: Number(formData.get("maxValue")),
-        }
-      : null;
 
     if (!Number.isInteger(questionId) || questionId <= 0) {
       return { responseInfo: { statusCode: 400, message: "Dados inválidos!" } };
@@ -365,6 +348,8 @@ const _questionUpdate = async (
       name: formData.get("name"),
       iconKey,
       notes: notes.length > 0 ? notes : null,
+      minValue,
+      maxValue,
       questionType,
       characterType: questionCharacterType,
       categoryId: formData.get("categoryId"),
@@ -432,6 +417,8 @@ const _questionUpdate = async (
           notes: parsedQuestion.notes,
           iconKey: parsedQuestion.iconKey,
           isPublic: parsedQuestion.isPublic,
+          minValue: parsedQuestion.minValue,
+          maxValue: parsedQuestion.maxValue,
           questionType: parsedQuestion.questionType,
           characterType: parsedQuestion.characterType,
           optionType:
@@ -447,29 +434,6 @@ const _questionUpdate = async (
           name: true,
         },
       });
-
-      if (parsedQuestion.characterType === "SCALE" && scaleBounds) {
-        await prisma.questionScaleConfig.upsert({
-          where: {
-            questionId,
-          },
-          create: {
-            questionId,
-            minValue: scaleBounds.minValue,
-            maxValue: scaleBounds.maxValue,
-          },
-          update: {
-            minValue: scaleBounds.minValue,
-            maxValue: scaleBounds.maxValue,
-          },
-        });
-      } else {
-        await prisma.questionScaleConfig.deleteMany({
-          where: {
-            questionId,
-          },
-        });
-      }
 
       await prisma.option.deleteMany({
         where: {

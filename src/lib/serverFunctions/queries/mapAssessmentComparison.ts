@@ -322,7 +322,8 @@ type MapAssessmentComparisonAssessmentQueryResult = {
         name: string;
         iconKey: string;
         isPublic: boolean;
-        scaleConfig: { minValue: number; maxValue: number } | null;
+        minValue: number | null;
+        maxValue: number | null;
         notes: string | null;
         questionType: AssessmentQuestionItem["questionType"];
         characterType: AssessmentQuestionItem["characterType"];
@@ -434,7 +435,8 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
                     name: true,
                     iconKey: true,
                     isPublic: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -677,9 +679,10 @@ const buildMapAssessmentComparisonAssessmentTree = ({
         questionId: item.questionId,
         name: dbQuestion.name,
         iconKey: dbQuestion.iconKey,
+        minValue: dbQuestion.minValue,
+        maxValue: dbQuestion.maxValue,
         isPublic: dbQuestion.isPublic,
         allowResponseImages: dbQuestion.allowResponseImages,
-        scaleConfig: dbQuestion.scaleConfig,
         notes: dbQuestion.notes,
         questionType: dbQuestion.questionType,
         characterType: dbQuestion.characterType,

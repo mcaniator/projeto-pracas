@@ -248,6 +248,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         defaultValue={defaultValue ?? undefined}
         min={minValue}
         max={maxValue}
+        step={"any"}
         disabled={disabled}
         readOnly={readOnly}
         required={required}
@@ -328,8 +329,10 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               onChange={(event) => {
                 const nativeEvent = event.nativeEvent as InputEvent;
                 const decimalPointIndex =
-                  nativeEvent.data === "." &&
-                  event.currentTarget.selectionStart != null ?
+                  (
+                    nativeEvent.data === "." &&
+                    event.currentTarget.selectionStart != null
+                  ) ?
                     event.currentTarget.selectionStart - 1
                   : undefined;
                 const normalizedValue = normalizeNumberFieldInputValue(
@@ -383,7 +386,12 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
                         </Typography>
                       : endAdornment}
                     </div>
-                    {clearable && !disabled && !readOnly && optimisticValue !== null ?
+                    {(
+                      clearable &&
+                      !disabled &&
+                      !readOnly &&
+                      optimisticValue !== null
+                    ) ?
                       <IconButton
                         edge="end"
                         size="small"

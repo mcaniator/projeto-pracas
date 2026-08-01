@@ -265,6 +265,8 @@ model Question {
   notes               String?                        @db.Text
   isPublic            Boolean                        @map("is_public")
   allowResponseImages Boolean                        @map("allow_response_images")
+  minValue            Float?                         @map("min_value") //setting for question with characterType "SCALE"
+  maxValue            Float?                         @map("max_value") //setting for question with characterType "SCALE"
   questionType        QuestionTypes                  @map("question_type")
   characterType       QuestionResponseCharacterTypes @map("character_type")
   response            Response[]
@@ -287,8 +289,6 @@ model Question {
 
   formItems FormItem[]
 
-  scaleConfig QuestionScaleConfig? //setting for question with characterType "SCALE"
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -308,16 +308,6 @@ model QuestionGeometry {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("question_geometry")
-}
-
-model QuestionScaleConfig {
-  minValue Float @map("min_value")
-  maxValue Float @map("max_value")
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_scale_config")
 }
 
 model Calculation {
