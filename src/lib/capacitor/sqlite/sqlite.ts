@@ -1,10 +1,16 @@
 import { SQLiteMigration } from "@/lib/capacitor/sqlite/SQLiteMigration";
+import v1_20260729212100_prepare_database from "@/lib/capacitor/sqlite/allDbMigrations/v1_20260729212100_prepare_database";
 import { Capacitor } from "@capacitor/core";
 import {
   SQLiteConnection,
   type SQLiteDBConnection,
   SQLiteVanilla,
 } from "@microbit/capacitor-sqlite-vanilla";
+
+export type SQLiteTransactionOperation = {
+  statement: string;
+  values?: unknown[];
+};
 
 class SQLite
   implements
@@ -16,15 +22,15 @@ class SQLite
       | "executeTransaction"
       | "getVersion"
       | "isOpen"
-      | "query"
       | "run"
     >
 {
   /** Holds the connection created when this instance is constructed. */
-  private dbPromise: Promise<SQLiteDBConnection>;
-  private initializationPromise: Promise<void>;
-  private name: string;
+  private dbPromise: Promise<SQLiteDBConnection> | undefined = undefined;
+  private initializationPromise: Promise<void> | undefined = undefined;
+  private name: string | undefined = undefined;
   private initialized = false;
+  private clearTransaction?: SQLiteTransactionOperation[];
 
   /**
    * Creates and opens a connection to the specified database file.
@@ -34,18 +40,18 @@ class SQLite
   constructor({
     name,
     migrations,
+    clearTransaction,
   }: {
     name: string;
     migrations: SQLiteMigration[];
+    clearTransaction?: SQLiteTransactionOperation[];
   }) {
-    if (
-      !Capacitor.isNativePlatform() &&
-      process.env.NEXT_PUBLIC_DEBUG !== "true"
-    ) {
-      throw new Error();
+    if (!Capacitor.isNativePlatform()) {
+      return;
     }
     const sqlite = new SQLiteConnection(SQLiteVanilla);
     this.name = name;
+    this.clearTransaction = clearTransaction;
     this.dbPromise = sqlite.createConnection(name);
     this.initializationPromise = this.dbPromise.then(async (db) => {
       await db.execute("PRAGMA foreign_keys = ON;");
@@ -59,6 +65,8 @@ class SQLite
    * Waits for connection initialization before returning the open database.
    */
   private async getDb(): Promise<SQLiteDBConnection> {
+    if (!this.dbPromise || !this.initializationPromise)
+      throw new Error("Database not initialized.");
     let tries = 0;
     while (!this.initialized) {
       await Promise.race([
@@ -131,7 +139,13 @@ class SQLite
    * @param statement SQL query, usually a `SELECT` statement.
    * @param values Values for the query's `?` parameters.
    */
-  public async query(statement: string, values?: unknown[]) {
+  public async query({
+    statement,
+    values,
+  }: {
+    statement: string;
+    values?: unknown[];
+  }) {
     const db = await this.getDb();
     return db.query(statement, values);
   }
@@ -163,6 +177,14 @@ class SQLite
     return this.name;
   }
 
+  public async clear() {
+    if (!this.clearTransaction) {
+      throw new Error(`No clear transaction for ${this.name}`);
+    }
+    const db = await this.getDb();
+    await db.executeTransaction(this.clearTransaction);
+  }
+
   private async executeMigrations({
     db,
     currentVersion,
@@ -172,7 +194,15 @@ class SQLite
     currentVersion: number;
     migrations: SQLiteMigration[];
   }) {
-    for (let i = currentVersion; i < migrations.length; i++) {
+    if (!this.name) throw new Error("Database name not set.");
+    if (currentVersion === 0) {
+      await v1_20260729212100_prepare_database.execute({
+        dbName: this.name,
+        db,
+      });
+      currentVersion = 1;
+    }
+    for (let i = currentVersion - 1; i < migrations.length; i++) {
       const migration = migrations[i];
       if (!migration) {
         throw new Error(`${i + 1}º migration for ${this.name} not found`);

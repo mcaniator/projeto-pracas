@@ -18,5 +18,5 @@ const config: CapacitorConfig = {
       }
     : undefined,
 };
-
+console.log("Capacitor config", config);
 export default config;

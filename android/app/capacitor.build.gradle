@@ -12,6 +12,7 @@ dependencies {
     implementation project(':capacitor-app')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-local-notifications')
+    implementation project(':capacitor-network')
     implementation project(':capacitor-share')
     implementation project(':microbit-capacitor-sqlite-vanilla')
     implementation project(':capacitor-save-as')

@@ -2,6 +2,9 @@
 
 import { Header } from "@/components/header/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
+import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
+import { Capacitor } from "@capacitor/core";
+import { Network } from "@capacitor/network";
 import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";
 import {
@@ -9,30 +12,98 @@ import {
   useFetchCurrentUser,
 } from "@lib/serverFunctions/apiCalls/auth";
 import { CircularProgress } from "@mui/material";
+import { Role } from "@prisma/client";
 import { useRouter } from "next-nprogress-bar";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
 const AdminRoot = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const [fetchCurrentUser] = useFetchCurrentUser();
   const [user, setUser] = useState<CurrentUser | null>();
 
+  const offlineLogin = useCallback(async () => {
+    const user = await adminSQLiteDb.query({
+      statement: `SELECT * FROM "current_user"`,
+    });
+    const SQLiteUserRaw = user.values[0];
+    if (!SQLiteUserRaw) {
+      setUser(null);
+      router.replace("/auth/login");
+      return;
+    }
+
+    const SQLiteUserParsed = {
+      id: SQLiteUserRaw.id,
+      email: SQLiteUserRaw.email,
+      image: SQLiteUserRaw.image,
+      username: SQLiteUserRaw.username,
+      roles: JSON.parse(String(SQLiteUserRaw.roles)) as Role[],
+      active: SQLiteUserRaw.active === 1,
+    } as CurrentUser;
+    setUser(SQLiteUserParsed);
+  }, [router]);
+
   useEffect(() => {
     const loadUser = async () => {
-      const response = await fetchCurrentUser({
-        projectOptions: { silent: true },
-      });
-      if (!response.data?.user) {
-        setUser(null);
-        router.replace("/auth/login");
-        return;
-      }
+      const capacitorNetWorkStatus = await Network.getStatus();
+      if (!Capacitor.isNativePlatform() || capacitorNetWorkStatus.connected) {
+        const response = await fetchCurrentUser({
+          projectOptions: { silent: true },
+        });
+        if (!response.data?.user) {
+          if (response.responseInfo.statusCode === 401) {
+            // API responded, but user is not logged in or not active
+            if (Capacitor.isNativePlatform()) {
+              await adminSQLiteDb.clear();
+              await adminSQLiteDb.executeTransaction([
+                {
+                  statement: `DELETE FROM "current_user";`,
+                },
+              ]);
+            }
 
-      setUser(response.data.user);
+            setUser(null);
+            router.replace("/auth/login");
+            return;
+          } else {
+            //Server malfunction
+            if (Capacitor.isNativePlatform()) {
+              void offlineLogin();
+            }
+
+            return;
+          }
+        }
+        if (Capacitor.isNativePlatform()) {
+          await adminSQLiteDb.executeTransaction([
+            {
+              statement: `DELETE FROM "current_user";`,
+            },
+            {
+              statement: `INSERT INTO "current_user" (id, email, image, username, roles, active) VALUES (?, ?, ?, ?, ?, ?);`,
+              values: [
+                response.data.user.id,
+                response.data.user.email,
+                response.data.user.image,
+                response.data.user.username,
+                JSON.stringify(response.data.user.roles),
+                response.data.user.active ? 1 : 0,
+              ],
+            },
+          ]);
+        }
+
+        setUser(response.data.user);
+      } else {
+        if (Capacitor.isNativePlatform()) {
+          // If offline, get user from SQLite
+          void offlineLogin();
+        }
+      }
     };
 
     void loadUser();
-  }, [router, fetchCurrentUser]);
+  }, [router, fetchCurrentUser, offlineLogin]);
 
   useEffect(() => {
     if (user && user.roles.length === 0) {

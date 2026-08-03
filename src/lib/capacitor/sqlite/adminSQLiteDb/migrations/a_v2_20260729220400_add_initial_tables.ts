@@ -6,6 +6,17 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
   name: "add_initial_tables",
   transaction: [
     {
+      //This table is used for the current logged in user access the admin panel while offline
+      statement: `CREATE TABLE "current_user" (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE,
+          image TEXT,
+          username TEXT NOT NULL UNIQUE,
+          roles TEXT NOT NULL DEFAULT '[]',
+          active INTEGER NOT NULL CHECK (active IN (0, 1))
+          );`,
+    },
+    {
       statement: `CREATE TABLE "user" (
           id TEXT PRIMARY KEY,
           name TEXT,
