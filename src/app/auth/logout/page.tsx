@@ -1,11 +1,21 @@
 "use client";
 
+import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
 import { Button } from "@components/button";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next-nprogress-bar";
 
 import AuthPageShell from "../authPageShell";
 
 const SignOutPage = () => {
+  const router = useRouter();
+  const [logout] = useLogout({
+    callbacks: {
+      onSuccess: () => {
+        router.replace("/");
+      },
+    },
+  });
+
   return (
     <AuthPageShell>
       <div className="flex w-full max-w-xs flex-col gap-4 text-white">
@@ -17,7 +27,7 @@ const SignOutPage = () => {
           variant={"destructive"}
           className="cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
           onPress={() => {
-            void signOut({ callbackUrl: "/", redirect: true });
+            void logout();
           }}
         >
           Sair

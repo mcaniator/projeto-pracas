@@ -18,6 +18,8 @@ export type FetchCurrentUserResponse = {
 
 export type LoginResponse = null;
 
+export type LogoutResponse = null;
+
 export type RegisterResponse = {
   errors:
     | {
@@ -48,6 +50,16 @@ export const useFetchCurrentUser = (
 export const useLogin = (params?: UseFetchAPIParams<LoginResponse>) => {
   return useFetchAPI<LoginResponse, Record<string, never>>({
     url: "/api/auth/login",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useLogout = (params?: UseFetchAPIParams<LogoutResponse>) => {
+  return useFetchAPI<LogoutResponse, Record<string, never>>({
+    url: "/api/auth/logout",
     callbacks: params?.callbacks,
     options: {
       method: "POST",

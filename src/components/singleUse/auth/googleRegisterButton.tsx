@@ -1,11 +1,13 @@
 "use client";
 
 import { Button } from "@components/button";
-import { signIn, signOut } from "next-auth/react";
+import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { BsGoogle } from "react-icons/bs";
 
 const GoogleRegisterButton = ({ inviteToken }: { inviteToken: string }) => {
+  const [logout] = useLogout();
   const [errorMessageGoogle, setErrorMessageGoogle] = useState<string | null>(
     null,
   );
@@ -19,7 +21,13 @@ const GoogleRegisterButton = ({ inviteToken }: { inviteToken: string }) => {
       document.cookie = `inviteToken=${encodeURIComponent(
         inviteToken,
       )}; path=/; max-age=3600; SameSite=Lax`;
-      await signOut({ redirect: false });
+      const response = await logout({ projectOptions: { silent: true } });
+      if (
+        response.responseInfo.statusCode < 200 ||
+        response.responseInfo.statusCode >= 300
+      ) {
+        throw new Error("Unable to sign out before Google registration.");
+      }
       await signIn("google", { callbackUrl: "/admin/map" });
     } catch (e) {
       setErrorMessageGoogle("Erro ao registrar com Google!");

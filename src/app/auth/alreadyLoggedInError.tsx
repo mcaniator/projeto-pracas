@@ -1,14 +1,20 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
-import { signOut } from "next-auth/react";
+import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
+import { useRouter } from "next-nprogress-bar";
 
 import AuthPageShell from "./authPageShell";
 
 const AlreadyLoggedInError = () => {
-  const handleLogout = async () => {
-    await signOut();
-  };
+  const router = useRouter();
+  const [logout] = useLogout({
+    callbacks: {
+      onSuccess: () => {
+        router.replace("/");
+      },
+    },
+  });
 
   return (
     <AuthPageShell>
@@ -19,7 +25,7 @@ const AlreadyLoggedInError = () => {
         </p>
         <CButton
           onClick={() => {
-            void handleLogout();
+            void logout();
           }}
           color="secondary"
           loadingOnClick

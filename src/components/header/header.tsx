@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/button";
 import ButtonLink from "@/components/ui/buttonLink";
+import CButton from "@/components/ui/cButton";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
+import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Chip } from "@mui/material";
 import {
@@ -14,8 +16,8 @@ import {
   IconTree,
   IconX,
 } from "@tabler/icons-react";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   HTMLAttributes,
   MouseEvent,
@@ -244,6 +246,15 @@ const UserInfo = ({
 }: {
   user: { username: string | null; email: string };
 }) => {
+  const router = useRouter();
+  const [logout, loggingOut] = useLogout({
+    callbacks: {
+      onSuccess: () => {
+        router.replace("/");
+      },
+    },
+  });
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -258,17 +269,17 @@ const UserInfo = ({
       </div>
       <div className="flex w-full items-center">
         <div className="ml-auto">
-          <Button
-            variant={"ghost"}
-            type="submit"
-            onPress={() => {
-              void signOut({ redirectTo: "/", redirect: true });
+          <CButton
+            variant={"text"}
+            loading={loggingOut}
+            onClick={() => {
+              void logout();
             }}
           >
             <span className="-mb-1 flex gap-1 font-bold text-black">
               <IconLogin2 strokeWidth={3} /> Log out
             </span>
-          </Button>
+          </CButton>
         </div>
       </div>
     </div>
