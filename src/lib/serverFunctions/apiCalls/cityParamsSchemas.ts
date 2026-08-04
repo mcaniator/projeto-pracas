@@ -5,6 +5,7 @@ export const fetchCitiesParamsSchema = z.object({
   state: z.nativeEnum(BrazilianStates),
   includeAdminstrativeRegions: z.coerce.boolean().optional(),
   includeUniqueAdminstrativeUnitsTitles: z.coerce.boolean().optional(),
+  noEmptyLocations: z.coerce.boolean().optional(),
 });
 
 export type FetchCitiesParams = z.infer<typeof fetchCitiesParamsSchema>;

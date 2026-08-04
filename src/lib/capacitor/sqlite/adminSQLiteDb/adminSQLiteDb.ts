@@ -6,6 +6,9 @@ import {
 
 const adminSQLiteDbClearTransaction: SQLiteTransactionOperation[] = [
   {
+    statement: `DELETE FROM "last_sync";`,
+  },
+  {
     statement: `DELETE FROM "location";`,
   },
   {

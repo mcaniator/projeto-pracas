@@ -6,6 +6,10 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
   name: "add_initial_tables",
   transaction: [
     {
+      statement:
+        "CREATE TABLE last_sync (timestamp TEXT PRIMARY KEY, city_id INTEGER, city_name TEXT);",
+    },
+    {
       //This table is used for the current logged in user access the admin panel while offline
       statement: `CREATE TABLE "current_user" (
           id TEXT PRIMARY KEY,

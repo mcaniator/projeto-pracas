@@ -10,9 +10,6 @@ const v1_20260729212100_prepare_database = new SQLiteMigration({
       statement:
         "CREATE TABLE migration_history (version INTEGER PRIMARY KEY, name TEXT, timestamp TEXT);",
     },
-    {
-      statement: "CREATE TABLE last_sync (timestamp TEXT);",
-    },
   ],
 });
 

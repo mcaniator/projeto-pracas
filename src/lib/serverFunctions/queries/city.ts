@@ -1,7 +1,7 @@
+import type { FetchCitiesParams } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
 import { prisma } from "@lib/prisma";
 import { $Enums } from "@prisma/client";
 
-import type { FetchCitiesParams } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
 export type FetchCitiesResponse = Awaited<
@@ -33,7 +33,10 @@ const fetchCities = async (params: FetchCitiesParams) => {
       createdAt: Date | null;
       updatedAt: Date | null;
     })[] = await prisma.city.findMany({
-      where: { state: params.state },
+      where: {
+        state: params.state,
+        ...(params.noEmptyLocations ? { locations: { some: {} } } : {}),
+      },
       ...(params.includeAdminstrativeRegions ?
         {
           include: {

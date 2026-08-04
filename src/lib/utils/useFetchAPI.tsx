@@ -81,8 +81,7 @@ export function useFetchAPI<
         });
         const isFormData = data instanceof FormData;
         const body =
-          data === undefined ?
-            requestOptions?.body
+          data === undefined ? requestOptions?.body
           : isFormData ? data
           : JSON.stringify(data);
 
