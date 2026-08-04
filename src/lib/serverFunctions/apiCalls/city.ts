@@ -1,3 +1,4 @@
+import { fetchAdminSqliteCities } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/city";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -24,6 +25,7 @@ export const useFetchCities = (
   return useFetchAPI<FetchCitiesResponse, FetchCitiesParams>({
     url,
     callbacks: params?.callbacks,
+    offlineFallback: fetchAdminSqliteCities,
     options: {
       method: "GET",
       next: { tags: ["city", "database"] },
@@ -63,11 +65,13 @@ export type DeleteCityResponse = {
 export const useDeleteCity = (
   params?: UseFetchAPIParams<DeleteCityResponse>,
 ) => {
-  return useFetchAPI<DeleteCityResponse, Record<string, never>, DeleteCityData>({
-    url: "/api/admin/cities/delete",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
+  return useFetchAPI<DeleteCityResponse, Record<string, never>, DeleteCityData>(
+    {
+      url: "/api/admin/cities/delete",
+      callbacks: params?.callbacks,
+      options: {
+        method: "POST",
+      },
     },
-  });
+  );
 };

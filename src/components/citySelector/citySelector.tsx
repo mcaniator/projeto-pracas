@@ -50,12 +50,25 @@ const CitySelector = ({
     },
   });
 
+  const {
+    noEmptyLocations,
+    includeAdminstrativeRegions,
+    includeUniqueAdminstrativeUnitsTitles,
+  } = fetchCitiesParams;
+
   const queryParams = useMemo<FetchCitiesParams>(
     () => ({
-      ...fetchCitiesParams,
       state,
+      noEmptyLocations,
+      includeAdminstrativeRegions,
+      includeUniqueAdminstrativeUnitsTitles,
     }),
-    [fetchCitiesParams, state],
+    [
+      state,
+      noEmptyLocations,
+      includeAdminstrativeRegions,
+      includeUniqueAdminstrativeUnitsTitles,
+    ],
   );
 
   useEffect(() => {

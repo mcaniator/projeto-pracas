@@ -120,6 +120,21 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE INDEX idx_location_city ON location (city_id);`,
     },
+    {
+      statement: `CREATE TABLE "assessment" (
+        id INTEGER PRIMARY KEY,
+        start_date TEXT NOT NULL,
+        end_date TEXT,
+        is_finalized INTEGER NOT NULL CHECK (is_finalized IN (0, 1)),
+        id_public INTEGER NOT NULL CHECK (id_public IN (0, 1)),
+        drive_folder_url TEXT,
+        user_id TEXT NOT NULL REFERENCES "user"(id),
+        location_id INTEGER NOT NULL REFERENCES location(id),
+        form_id INTEGER NOT NULL REFERENCES form(id),
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )`,
+    },
   ],
 });
 

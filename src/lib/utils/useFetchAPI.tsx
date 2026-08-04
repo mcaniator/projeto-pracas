@@ -10,6 +10,8 @@ import {
   generateQueryString,
   replaceRouteParams,
 } from "@/lib/utils/apiCall";
+import { Capacitor } from "@capacitor/core";
+import { Network } from "@capacitor/network";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useFetchAPI<
@@ -20,13 +22,14 @@ export function useFetchAPI<
   url,
   callbacks,
   options,
+  offlineFallback,
 }: {
   url: string;
   callbacks?: {
     onSuccess?: (response: APIResponse<T>) => void;
     onError?: (response: APIResponse<T>) => void;
-    onCallFailed?: (response: APIResponse<T>) => void;
   };
+  offlineFallback?: (params: P) => Promise<APIResponse<T>>;
   options: RequestInit & {
     next?: { tags?: string[] };
   };
@@ -75,6 +78,31 @@ export function useFetchAPI<
       try {
         const currentOptions = optionsRef.current;
         const currentCallbacks = callbacksRef.current;
+        const isOffline =
+          Capacitor.isNativePlatform() &&
+          !(await Network.getStatus()).connected;
+
+        if (isOffline && offlineFallback) {
+          const fallbackResponse = await offlineFallback(params);
+          if (
+            fallbackResponse.responseInfo.statusCode >= 200 &&
+            fallbackResponse.responseInfo.statusCode < 300
+          ) {
+            currentCallbacks?.onSuccess?.(fallbackResponse);
+          } else {
+            currentCallbacks?.onError?.(fallbackResponse);
+          }
+          if (!silent) {
+            helperCardProcessResponse(fallbackResponse.responseInfo);
+          }
+          setLoadingOverlay({ show: false });
+          setIsLoading(false);
+          return {
+            responseInfo: fallbackResponse.responseInfo,
+            data: fallbackResponse.data,
+          };
+        }
+
         const headers = new Headers(currentOptions.headers);
         new Headers(requestOptions?.headers).forEach((value, key) => {
           headers.set(key, value);
@@ -107,7 +135,7 @@ export function useFetchAPI<
             statusCode: response.status,
             message: message ?? `Erro na requisição ao servidor!`,
           };
-          currentCallbacks?.onCallFailed?.({
+          currentCallbacks?.onError?.({
             responseInfo: errorResponseInfo,
             data: null,
           });
@@ -145,10 +173,6 @@ export function useFetchAPI<
           statusCode: 500,
           message: `Erro na requisição ao servidor!`,
         };
-        callbacksRef.current?.onCallFailed?.({
-          responseInfo: errorResponseInfo,
-          data: null,
-        });
         callbacksRef.current?.onError?.({
           responseInfo: errorResponseInfo,
           data: null,
@@ -164,7 +188,7 @@ export function useFetchAPI<
         };
       }
     },
-    [helperCardProcessResponse, setLoadingOverlay, url],
+    [helperCardProcessResponse, offlineFallback, setLoadingOverlay, url],
   );
 
   return [fetchFunction, isLoading];

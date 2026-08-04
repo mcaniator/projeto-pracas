@@ -1,3 +1,4 @@
+import { fetchAdminSQLiteLocations } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/location";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -28,6 +29,7 @@ export const useFetchLocations = (
   return useFetchAPI<FetchLocationsResponse, FetchLocationsParams>({
     url,
     callbacks: params?.callbacks,
+    offlineFallback: fetchAdminSQLiteLocations,
     options: {
       method: "GET",
       next: { tags: ["location", "database"] },
@@ -68,13 +70,15 @@ export const useDeleteLocation = (params?: UseFetchAPIParams<null>) => {
 export const useUpdateLocationVisibility = (
   params?: UseFetchAPIParams<null>,
 ) => {
-  return useFetchAPI<null, Record<string, never>, UpdateLocationVisibilityData>({
-    url: "/api/admin/locations/visibility",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
+  return useFetchAPI<null, Record<string, never>, UpdateLocationVisibilityData>(
+    {
+      url: "/api/admin/locations/visibility",
+      callbacks: params?.callbacks,
+      options: {
+        method: "POST",
+      },
     },
-  });
+  );
 };
 
 export const useEditLocationPolygon = (params?: UseFetchAPIParams<null>) => {

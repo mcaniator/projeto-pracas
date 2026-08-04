@@ -2,6 +2,7 @@
 
 import LocationDetails from "@/app/admin/map/locationDetails/locationDetails";
 import { MapContext } from "@/app/admin/map/mapProvider";
+import CapacitorOnlineGuard from "@/components/capacitor/capacitorOnlineGuard";
 import { useGeolocation } from "@/components/context/geolocationContext";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
@@ -640,16 +641,18 @@ const PolygonsAndClientContainer = () => {
           className={`pointer-events-auto absolute z-50 flex h-fit w-fit flex-row gap-2 overflow-auto ${isMobileView ? "bottom-2 left-2" : "right-2 top-4"}`}
         >
           <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
-            <div>
-              <CButton
-                square={isMobileView}
-                onClick={() => {
-                  setIsCreating((prev) => !prev);
-                }}
-              >
-                <IconPlus /> {!isMobileView && "Cadastrar praça"}
-              </CButton>
-            </div>
+            <CapacitorOnlineGuard>
+              <div>
+                <CButton
+                  square={isMobileView}
+                  onClick={() => {
+                    setIsCreating((prev) => !prev);
+                  }}
+                >
+                  <IconPlus /> {!isMobileView && "Cadastrar praça"}
+                </CButton>
+              </div>
+            </CapacitorOnlineGuard>
           </PermissionGuard>
           <CButton
             square

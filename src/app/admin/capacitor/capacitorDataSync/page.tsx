@@ -6,7 +6,7 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
-import { fetchAdminSQLiteLastSync } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/metadata";
+import { fetchAdminSQLiteLastSync } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/lastSync";
 import { SQLiteTransactionOperation } from "@/lib/capacitor/sqlite/sqlite";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchSQLiteSyncData } from "@/lib/serverFunctions/apiCalls/sqliteSync";

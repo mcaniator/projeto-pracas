@@ -5,6 +5,8 @@ import CIconChip from "@/components/ui/cIconChip";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
 import { usePublicFetchPublicAssessments } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import { PublicFetchPublicAssessmentsResponse } from "@/lib/serverFunctions/queries/public/assessment";
+import { Capacitor } from "@capacitor/core";
+import { ConnectionStatus, Network } from "@capacitor/network";
 import { Box } from "@mui/material";
 import { IconBrowserMaximize, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -31,7 +33,17 @@ const AssessmentHistory = ({
     },
   });
   useEffect(() => {
-    void fetchPublicAssessments({ params: { locationId } });
+    const conditionallyFetch = async () => {
+      let connectionStatus: ConnectionStatus | null = null;
+      if (Capacitor.isNativePlatform()) {
+        connectionStatus = await Network.getStatus();
+      }
+      if (!Capacitor.isNativePlatform() || connectionStatus?.connected) {
+        void fetchPublicAssessments({ params: { locationId } });
+      }
+    };
+
+    void conditionallyFetch();
   }, [locationId, fetchPublicAssessments]);
   if (loading) {
     return <CLinearProgress label="Carregando..." />;

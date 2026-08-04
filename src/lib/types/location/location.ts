@@ -4,9 +4,9 @@ export type LocationForMap = {
   id: number;
   name: string;
   firstStreet: string;
-  secondStreet: string;
-  thirdStreet: string;
-  fourthStreet: string;
+  secondStreet: string | null;
+  thirdStreet: string | null;
+  fourthStreet: string | null;
   mainImage: string | null;
   popularName: string | null;
   typeId: number;

@@ -14,7 +14,6 @@ type FetchCallbacks<T> =
   | {
       onSuccess?: (response: APIResponse<T>) => void;
       onError?: (response: APIResponse<T>) => void;
-      onCallFailed?: (response: APIResponse<T>) => void;
     }
   | undefined;
 
