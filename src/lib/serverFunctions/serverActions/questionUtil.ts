@@ -454,7 +454,6 @@ const _questionUpdate = async (
       responseInfo: {
         statusCode: 200,
         message: `Questão "${question.name}" editada!`,
-        showSuccessCard: true,
       },
     };
   } catch (e) {
@@ -548,7 +547,6 @@ const _deleteQuestion = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 200,
-        showSuccessCard: true,
         message: `Questão "${deletedQuestion.name}" excluí­da!`,
       } as APIResponseInfo,
       data: {

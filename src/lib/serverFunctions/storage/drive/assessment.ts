@@ -86,7 +86,6 @@ export const uploadImageResponse = async ({
       responseInfo: {
         statusCode: 201,
         message: "Imagem enviada ao Google Drive!",
-        showSuccessCard: true,
       },
       data: {
         fileUid: uploadedResponseData.id,

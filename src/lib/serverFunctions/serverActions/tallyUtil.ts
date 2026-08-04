@@ -78,7 +78,6 @@ export const _createTallyV2 = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Contagem criada!`,
         } as APIResponseInfo,
         data: {
@@ -210,7 +209,6 @@ const _saveOngoingTallyData = async ({
       responseInfo: {
         statusCode: 200,
         message: "Contagem salva com sucesso!",
-        showSuccessCard: true,
       } as APIResponseInfo,
       data: {
         savedAsFinalized: isFinalized,
@@ -276,7 +274,6 @@ const _deleteTally = async ({ tallyId }: { tallyId: number }) => {
       responseInfo: {
         statusCode: 200,
         message: "Contagem excluída!",
-        showSuccessCard: true,
       } as APIResponseInfo,
     };
   } catch (error) {

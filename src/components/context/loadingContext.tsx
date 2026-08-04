@@ -74,7 +74,7 @@ export const useLoadingOverlay = () => {
   const context = useContext(LoadingOverlay);
   if (!context) {
     throw new Error(
-      "useLoadingOverlay must be used within a HelperCardProvider",
+      "useLoadingOverlay must be used within a LoadingOverlayProvider",
     );
   }
   return context;

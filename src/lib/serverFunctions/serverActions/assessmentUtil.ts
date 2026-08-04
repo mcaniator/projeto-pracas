@@ -52,7 +52,6 @@ const _createAssessmentV2 = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Avaliação criada!`,
         } as APIResponseInfo,
         data: {
@@ -108,7 +107,6 @@ const _updateAssessmentVisibility = async ({
       responseInfo: {
         statusCode: 200,
         message: "Visibilidade da avaliação atualizada!",
-        showSuccessCard: true,
       } as APIResponseInfo,
     };
   } catch (e) {
@@ -202,7 +200,6 @@ const _deleteAssessment = async (assessmentId: number) => {
       responseInfo: {
         statusCode: 200,
         message: "Avaliação excluída!",
-        showSuccessCard: true,
       } as APIResponseInfo,
     };
   } catch (e) {

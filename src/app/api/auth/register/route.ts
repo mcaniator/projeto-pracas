@@ -40,7 +40,7 @@ export async function POST(request: Request) {
           errors: [
             {
               message: "O e-mail fornecido nao corresponde ao convite!",
-              element: "helperCard",
+              element: "snackbar",
             },
           ],
         },

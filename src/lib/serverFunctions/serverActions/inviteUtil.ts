@@ -141,7 +141,6 @@ export const _createInviteV2 = async (params: {
         return {
           responseInfo: {
             statusCode: 201,
-            showSuccessCard: true,
             message: "Convite criado, mas sem envio de email!",
           } as APIResponseInfo,
         };
@@ -150,7 +149,6 @@ export const _createInviteV2 = async (params: {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: "Convite criado com sucesso!",
         } as APIResponseInfo,
       };
@@ -248,7 +246,6 @@ export const _deleteInviteV2 = async (params: { id: number }) => {
       responseInfo: {
         statusCode: 200,
         message: "Convite excluído com sucesso!",
-        showSuccessCard: true,
       } as APIResponseInfo,
     };
   } catch (e) {

@@ -4,7 +4,6 @@ import AssessmentImportDataDialog from "@/app/admin/assessments/details/assessme
 import ResponseFormV2, {
   type ResponseFormV2Handle,
 } from "@/app/admin/assessments/details/responseFormV2";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
@@ -12,6 +11,7 @@ import {
   ResponseFormGeometry,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { IconFileUpload, IconListCheck } from "@tabler/icons-react";
@@ -54,7 +54,7 @@ const AssessmentClient = ({
   const [openAssessmentImportDialog, setOpenAssessmentImportDialog] =
     useState(false);
   const { setLoadingOverlay } = useLoadingOverlay();
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   return (
     <div className="flex h-full flex-col gap-1 overflow-auto bg-white p-2 text-black">
       <CAdminHeader
@@ -92,10 +92,8 @@ const AssessmentClient = ({
           responseFormRef.current
             ?.importData(e)
             .catch(() => {
-              setHelperCard({
-                show: true,
-                helperCardType: "ERROR",
-                content: <>Erro ao importar dados!</>,
+              enqueueSnackbar(<>Erro ao importar dados!</>, {
+                variant: "error",
               });
             })
             .finally(() => {

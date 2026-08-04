@@ -5,7 +5,6 @@ import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/q
 import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
-import { useHelperCard } from "@context/helperCardContext";
 import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
@@ -52,7 +51,6 @@ const QuestionFormV2 = ({
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   reloadCategories: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
   const [questionsListState, setQuestionsListState] = useState<
     "LOADING" | "LOADED" | "ERROR"
   >("LOADING");
@@ -154,7 +152,6 @@ const QuestionFormV2 = ({
     void searchByCategoryAndSubcateogory();
   }, [
     selectedCategoryAndSubcategoryId,
-    setHelperCard,
     searchByCategoryAndSubcateogory,
   ]);
 

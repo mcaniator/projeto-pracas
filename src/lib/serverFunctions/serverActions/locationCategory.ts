@@ -42,7 +42,6 @@ export const _saveLocationCategory = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Categoria ${name} atualizada!`,
         } as APIResponseInfo,
       };
@@ -74,7 +73,6 @@ export const _saveLocationCategory = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Categoria ${name} criada!`,
       } as APIResponseInfo,
     };
@@ -182,7 +180,6 @@ export const _deleteLocationCategoryOrType = async (formData: FormData) => {
         return {
           responseInfo: {
             statusCode: 200,
-            showSuccessCard: true,
             message: `Categoria '${cat.name}' excluída!`,
           } as APIResponseInfo,
           data: null,
@@ -263,7 +260,6 @@ export const _deleteLocationCategoryOrType = async (formData: FormData) => {
         return {
           responseInfo: {
             statusCode: 200,
-            showSuccessCard: true,
             message: `Tipo '${type.name}' excluído!`,
           } as APIResponseInfo,
           data: null,

@@ -1,10 +1,10 @@
 "use client";
 
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useResetPassword } from "@/lib/serverFunctions/apiCalls/auth";
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
 import { Input } from "@components/ui/input";
-import { useResetPassword } from "@/lib/serverFunctions/apiCalls/auth";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,7 +18,7 @@ const PasswordResetForm = ({
   token: string;
   email: string;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const router = useRouter();
   const [resetPassword, isPending] = useResetPassword();
   const [state, setState] = useState<{
@@ -45,26 +45,14 @@ const PasswordResetForm = ({
 
   useEffect(() => {
     if (state?.statusCode === 200) {
-      setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Senha redefinida!</>,
-      });
+      enqueueSnackbar(<>Senha redefinida!</>, { variant: "success" });
       router.push("/auth/login");
     } else if (state?.statusCode === 403 || state?.statusCode === 404) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>{state.errorMessage}</>,
-      });
+      enqueueSnackbar(<>{state.errorMessage}</>, { variant: "error" });
     } else if (state?.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao redefinir senha!</>,
-      });
+      enqueueSnackbar(<>Erro ao redefinir senha!</>, { variant: "error" });
     }
-  }, [state, router, setHelperCard]);
+  }, [state, router, enqueueSnackbar]);
 
   return (
     <AuthPageShell>
@@ -82,19 +70,16 @@ const PasswordResetForm = ({
                   variant={"ghost"}
                   className="group absolute left-20 text-white"
                   onPress={() =>
-                    setHelperCard({
-                      show: true,
-                      helperCardType: "INFO",
-                      content: (
-                        <div className="flex flex-col gap-2">
-                          <p>
-                            Senha: Deve ter tamanho mínimo de 8 caracteres e ao
-                            menos 1 letra minúscula, 1 letra maiúscula, 1 número
-                            e 1 caractere especial
-                          </p>
-                        </div>
-                      ),
-                    })
+                    enqueueSnackbar(
+                      <div className="flex flex-col gap-2">
+                        <p>
+                          Senha: Deve ter tamanho mínimo de 8 caracteres e ao
+                          menos 1 letra minúscula, 1 letra maiúscula, 1 número e
+                          1 caractere especial
+                        </p>
+                      </div>,
+                      { variant: "info" },
+                    )
                   }
                 >
                   <IconHelp className="text-white" />

@@ -3,7 +3,6 @@
 import ChooseResponsesSourceDialog from "@/app/admin/assessments/details/chooseResponsesSourceDialog";
 import DriveFolderUrlDialog from "@/app/admin/assessments/details/driveFolderUrlDialog";
 import { useUserContext } from "@/components/context/UserContext";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
@@ -28,6 +27,7 @@ import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
 import type { DexieAssessment } from "@/lib/dexie/dexie";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   buildDateResponseFormatByQuestionId,
   deserializeResponseFormValues,
@@ -139,7 +139,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
-    const { setHelperCard } = useHelperCard();
+    const { enqueueSnackbar } = useAppSnackbar();
     const { user } = useUserContext();
     const { setLoadingOverlay } = useLoadingOverlay();
     const defaultResponseFormValues = useMemo(
@@ -334,10 +334,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           setPendingServerSave(false);
           setLocalAssessmentUpdatedAt(undefined);
         } catch (e) {
-          setHelperCard({
-            show: true,
-            content: "Erro ao remover dados locais!",
-            helperCardType: "ERROR",
+          enqueueSnackbar("Erro ao remover dados locais!", {
+            variant: "error",
           });
         } finally {
           if (assessmentTree.isFinalized) {
@@ -352,7 +350,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       assessmentTree,
       defaultResponseFormValues,
       reset,
-      setHelperCard,
+      enqueueSnackbar,
       setLoadingOverlay,
     ]);
 
@@ -480,17 +478,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
         setDriveFolderUrl(importedData.driveFolderUrl);
 
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Avaliação importada!</>,
-        });
+        enqueueSnackbar(<>Avaliação importada!</>, { variant: "success" });
       } catch (err) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Arquivo inválido!</>,
-        });
+        enqueueSnackbar(<>Arquivo inválido!</>, { variant: "error" });
       } finally {
         e.target.value = "";
       }
@@ -530,11 +520,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
           setPendingLocalAssessmentChoice(localAssessment);
         } catch (e) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Erro ao respostas locais!</>,
-          });
+          enqueueSnackbar(<>Erro ao respostas locais!</>, { variant: "error" });
         } finally {
           setLoadingOverlay({ show: false });
         }
@@ -547,7 +533,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         ignore = true;
       };
     }, [
-      setHelperCard,
+      enqueueSnackbar,
       setLoadingOverlay,
       applyLocalAssessmentValues,
       assessmentTree.id,
@@ -897,6 +883,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               onConfirm={() => {
                 setOpenRevertLocalAssessmentDialog(false);
                 applyServerAssessmentValues();
+                enqueueSnackbar("Revertido com sucesso!", {
+                  variant: "success",
+                });
               }}
             />
           </>

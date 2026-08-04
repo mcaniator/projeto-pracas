@@ -62,7 +62,6 @@ export const _saveCity = async (formData: FormData) => {
         return {
           responseInfo: {
             statusCode: 201,
-            showSuccessCard: true,
             message: `Cidade ${parse.name} atualizada!`,
           } as APIResponseInfo,
         };
@@ -98,7 +97,6 @@ export const _saveCity = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Cidade ${parse.name} criada!`,
         } as APIResponseInfo,
       };
@@ -170,7 +168,6 @@ export const _deleteCity = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 200,
-          showSuccessCard: true,
           message: `Cidade '${city.name}' excluída!`,
         } as APIResponseInfo,
         data: null,

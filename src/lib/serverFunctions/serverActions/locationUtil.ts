@@ -75,7 +75,6 @@ const _deleteLocation = async (formData: FormData) => {
         responseInfo: {
           statusCode: 200,
           message: `Praça ${deletedLocation.name} excluida!`,
-          showSuccessCard: true,
         } as APIResponseInfo,
       };
     } catch (err) {
@@ -198,7 +197,6 @@ const _updateLocation = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 200,
-          showSuccessCard: true,
           message: `Praça  ${locationName} atualizada!`,
         } as APIResponseInfo,
       };
@@ -302,7 +300,6 @@ const _createLocation = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Praça  ${locationName} registrada!`,
         } as APIResponseInfo,
       };
@@ -347,7 +344,6 @@ const _editLocationPolygon = async ({
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Praça atualizada!`,
       } as APIResponseInfo,
     };
@@ -391,7 +387,6 @@ const _updateLocationVisibility = async ({
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Praça atualizada!`,
       } as APIResponseInfo,
     };

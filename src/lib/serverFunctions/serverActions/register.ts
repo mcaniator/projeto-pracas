@@ -56,7 +56,7 @@ const _register = async (
         errors: [
           {
             message: "O e-mail fornecido não corresponde ao convite!",
-            element: "helperCard",
+            element: "snackbar",
           },
         ],
       };

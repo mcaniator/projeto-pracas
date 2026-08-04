@@ -1,6 +1,7 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   FetchAssessmentUsersResponse,
   _fetchAssessments,
@@ -14,7 +15,6 @@ import { useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
@@ -49,7 +49,7 @@ const AssessmentsClient = () => {
   const unsyncedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
     null,
   );
-  const { helperCardProcessResponse, setHelperCard } = useHelperCard();
+  const { enqueueSnackbar, notifyApiResponse } = useAppSnackbar();
   const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
     [],
   );
@@ -268,7 +268,7 @@ const AssessmentsClient = () => {
           narrowUnitId,
           finalizationStatus: finalizationStatus,
         });
-        helperCardProcessResponse(response.responseInfo);
+        notifyApiResponse(response.responseInfo);
         const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
         const formattedAssessmentsPromises = response.data?.assessments.map(
           async (assessment) => {
@@ -309,19 +309,17 @@ const AssessmentsClient = () => {
           setAssessments([]);
         }
       } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>{"Erro ao consultar avaliações!"}</>,
+        enqueueSnackbar(<>{"Erro ao consultar avaliações!"}</>, {
+          variant: "error",
         });
       }
 
       setIsLoading(false);
     },
     [
-      helperCardProcessResponse,
+      notifyApiResponse,
       getUnsyncedAssessmentIds,
-      setHelperCard,
+      enqueueSnackbar,
       locationId,
       formId,
       startDate,

@@ -1,6 +1,6 @@
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { formatFileSize } from "@/lib/utils/file";
 import { Box, LinearProgress } from "@mui/material";
 import {
@@ -36,17 +36,15 @@ const CImageInput = ({
   const [isCompressingImages, setIsCompressingImages] = useState(false);
   const [imagesCompressionProgress, setImagesCompressionProgress] = useState(0);
 
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsCompressingImages(true);
     if (!e.target.files) return;
     const inputFiles = Array.from(e.target.files);
     const percentagePerFile = 100 / inputFiles.length;
     if (inputFiles.length > 1 && !multiple) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: "Apenas uma imagem pode ser enviada!",
+      enqueueSnackbar("Apenas uma imagem pode ser enviada!", {
+        variant: "error",
       });
       return;
     }
@@ -56,11 +54,7 @@ const CImageInput = ({
       if (!selectedFile) return;
 
       if (!selectedFile.type.startsWith("image/")) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: "Arquivo inválido!",
-        });
+        enqueueSnackbar("Arquivo inválido!", { variant: "error" });
         return;
       }
 
@@ -78,11 +72,7 @@ const CImageInput = ({
         });
         compressedFiles.push(compressedFile);
       } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: "Erro ao comprimir imagem!",
-        });
+        enqueueSnackbar("Erro ao comprimir imagem!", { variant: "error" });
         setIsCompressingImages(false);
         return;
       }

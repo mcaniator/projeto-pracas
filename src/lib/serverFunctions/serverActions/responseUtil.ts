@@ -401,7 +401,6 @@ const _addResponsesV2 = async ({
       responseInfo: {
         statusCode: 201,
         message: "Avaliação salva!",
-        showSuccessCard: true,
       } as APIResponseInfo,
       data: {
         savedAsFinalized: updatedAssessment.isFinalized,

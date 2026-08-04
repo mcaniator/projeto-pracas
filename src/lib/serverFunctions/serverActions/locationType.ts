@@ -42,7 +42,6 @@ export const _saveLocationType = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Tipo ${name} atualizado!`,
         } as APIResponseInfo,
       };
@@ -74,7 +73,6 @@ export const _saveLocationType = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Tipo ${name} criado!`,
       } as APIResponseInfo,
     };

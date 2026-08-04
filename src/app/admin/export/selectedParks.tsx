@@ -6,6 +6,7 @@ import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { downloadCSVFileFromText } from "@/lib/downloadFile";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   useExportAssessments,
   useExportDailyTallys,
@@ -13,7 +14,6 @@ import {
   useExportRegistrationData,
 } from "@/lib/serverFunctions/apiCalls/export";
 import PermissionGuard from "@components/auth/permissionGuard";
-import { useHelperCard } from "@components/context/helperCardContext";
 import { Divider } from "@mui/material";
 import {
   IconMapPin,
@@ -49,7 +49,7 @@ const SelectedParks = ({
   handleCloseLocationParamsDialog: () => void;
   handleDialogClose: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
     evaluations: false,
@@ -72,18 +72,14 @@ const SelectedParks = ({
       CSVstring: null,
     };
     if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar dados de praças!</>,
+      enqueueSnackbar(<>Sem permissão para exportar dados de praças!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar dados de praças!</>,
+      enqueueSnackbar(<>Erro exportar dados de praças!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
@@ -96,17 +92,14 @@ const SelectedParks = ({
           content: csvString,
         });
 
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Dados de praças exportados!</>,
+        enqueueSnackbar(<>Dados de praças exportados!</>, {
+          variant: "success",
         });
       } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
-        });
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
       } finally {
         setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       }
@@ -128,19 +121,13 @@ const SelectedParks = ({
       csvObjs: [],
     };
     if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     }
@@ -152,20 +139,15 @@ const SelectedParks = ({
           content: csvObj.csvString,
         });
       } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
-        });
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
         setLoadingExport((prev) => ({ ...prev, evaluations: false }));
         return;
       }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Avaliações exportadas!</>,
-    });
+    enqueueSnackbar(<>Avaliações exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
@@ -190,19 +172,13 @@ const SelectedParks = ({
       CSVstringWeekendDays: [],
     };
     if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     }
@@ -220,11 +196,10 @@ const SelectedParks = ({
               content: csvString,
             });
           } catch (e) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Não foi possível salvar o arquivo no dispositivo!</>,
-            });
+            enqueueSnackbar(
+              <>Não foi possível salvar o arquivo no dispositivo!</>,
+              { variant: "error" },
+            );
             setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
             return;
           }
@@ -241,22 +216,17 @@ const SelectedParks = ({
               content: csvString,
             });
           } catch (e) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Não foi possível salvar o arquivo no dispositivo!</>,
-            });
+            enqueueSnackbar(
+              <>Não foi possível salvar o arquivo no dispositivo!</>,
+              { variant: "error" },
+            );
             setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
             return;
           }
         }
       }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Contagens exportadas!</>,
-    });
+    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
   };
 
@@ -278,19 +248,13 @@ const SelectedParks = ({
       CSVstring: null,
     };
     if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
     } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
     }
@@ -303,21 +267,16 @@ const SelectedParks = ({
           content: csvString,
         });
       } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Não foi possível salvar o arquivo no dispositivo!</>,
-        });
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
         setLoadingExport((prev) => ({ ...prev, tallys: false }));
         return;
       }
     }
 
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Contagens exportadas!</>,
-    });
+    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
 

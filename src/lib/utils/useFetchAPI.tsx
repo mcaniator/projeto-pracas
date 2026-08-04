@@ -1,5 +1,5 @@
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   APIResponse,
   APIResponseInfo,
@@ -39,7 +39,7 @@ export function useFetchAPI<
   ) => Promise<{ responseInfo: APIResponseInfo; data?: T | null }>,
   boolean,
 ] {
-  const { helperCardProcessResponse } = useHelperCard();
+  const { notifyApiResponse } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isLoading, setIsLoading] = useState(false);
   const callbacksRef = useRef(callbacks);
@@ -78,6 +78,9 @@ export function useFetchAPI<
       try {
         const currentOptions = optionsRef.current;
         const currentCallbacks = callbacksRef.current;
+        const showSuccessMessage = ["POST", "PUT", "DELETE"].includes(
+          currentOptions.method?.toUpperCase() ?? "GET",
+        );
         const isOffline =
           Capacitor.isNativePlatform() &&
           !(await Network.getStatus()).connected;
@@ -93,7 +96,9 @@ export function useFetchAPI<
             currentCallbacks?.onError?.(fallbackResponse);
           }
           if (!silent) {
-            helperCardProcessResponse(fallbackResponse.responseInfo);
+            notifyApiResponse(fallbackResponse.responseInfo, {
+              showSuccessMessage,
+            });
           }
           setLoadingOverlay({ show: false });
           setIsLoading(false);
@@ -140,7 +145,7 @@ export function useFetchAPI<
             data: null,
           });
           if (!silent) {
-            helperCardProcessResponse(errorResponseInfo);
+            notifyApiResponse(errorResponseInfo, { showSuccessMessage });
           }
           setLoadingOverlay({ show: false });
           setIsLoading(false);
@@ -160,7 +165,7 @@ export function useFetchAPI<
           currentCallbacks?.onError?.(json);
         }
         if (!silent) {
-          helperCardProcessResponse(json.responseInfo);
+          notifyApiResponse(json.responseInfo, { showSuccessMessage });
         }
         setLoadingOverlay({ show: false });
         setIsLoading(false);
@@ -178,7 +183,7 @@ export function useFetchAPI<
           data: null,
         });
         if (!silent) {
-          helperCardProcessResponse(errorResponseInfo);
+          notifyApiResponse(errorResponseInfo);
         }
         setLoadingOverlay({ show: false });
         setIsLoading(false);
@@ -188,7 +193,7 @@ export function useFetchAPI<
         };
       }
     },
-    [helperCardProcessResponse, offlineFallback, setLoadingOverlay, url],
+    [notifyApiResponse, offlineFallback, setLoadingOverlay, url],
   );
 
   return [fetchFunction, isLoading];

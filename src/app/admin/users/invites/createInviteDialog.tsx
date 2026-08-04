@@ -1,9 +1,9 @@
 import RolesHelpDialogTrigger from "@/app/admin/users/rolesHelpDialogTrigger";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { getRoleForGroup } from "@/lib/auth/rolesUtil";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useCreateInvite } from "@/lib/serverFunctions/apiCalls/invite";
 import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
 import { Role } from "@prisma/client";
@@ -23,7 +23,7 @@ const CreateInviteDialog = ({
   onClose: () => void;
   updateTable: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [action, loading] = useCreateInvite({
     callbacks: {
       onSuccess() {
@@ -92,11 +92,7 @@ const CreateInviteDialog = ({
   const copyLink = async () => {
     const url = `${window.location.origin}/auth/register?inviteToken=${invite?.token}`;
     await navigator.clipboard.writeText(url);
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: "Link copiado!",
-    });
+    enqueueSnackbar("Link copiado!", { variant: "success" });
   };
 
   const reset = () => {

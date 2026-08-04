@@ -91,7 +91,6 @@ const _createForm = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 200,
-          showSuccessCard: true,
           message: "Formulário criado com sucesso!",
         } as APIResponseInfo,
       };
@@ -438,7 +437,6 @@ const _updateFormArchiveStatus = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 200,
-        showSuccessCard: true,
         message:
           archived ?
             archivedDueToAssessments ?

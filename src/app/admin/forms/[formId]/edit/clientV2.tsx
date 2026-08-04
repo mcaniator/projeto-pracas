@@ -4,13 +4,13 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useUpdateForm } from "@/lib/serverFunctions/apiCalls/form";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
 import {
   OptionForQuestionPicker,
@@ -100,7 +100,7 @@ const ClientV2 = ({
 }) => {
   const userContext = useUserContext();
   const router = useRouter();
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
     form.formTree.finalized ||
@@ -335,28 +335,16 @@ const ClientV2 = ({
         },
       });
       if (response.responseInfo.statusCode !== 200) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao salvar!</>,
-        });
+        enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
       } else {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Formulário salvo!</>,
-        });
+        enqueueSnackbar(<>Formulário salvo!</>, { variant: "success" });
         if (saveAsDone) {
           setIsRedirecting(true);
           void router.push("/admin/forms");
         }
       }
     } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar!</>,
-      });
+      enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
     } finally {
       setLoadingOverlay({ show: false });
     }

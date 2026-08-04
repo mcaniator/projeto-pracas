@@ -1,7 +1,6 @@
 "use client";
 
 import { useUserContext } from "@/components/context/UserContext";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
@@ -13,6 +12,7 @@ import type {
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import {
   useAddResponses,
@@ -143,7 +143,7 @@ const SaveAssessmentDialog = ({
   const [showDatePickerError, setShowDatePickerError] = useState(false);
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { user } = useUserContext();
   const [uploadImage] = useUploadImageResponse();
   const saveResponseImages = async (responseImages: ResponseFormImages) => {
@@ -189,13 +189,10 @@ const SaveAssessmentDialog = ({
             }
           })
           .catch(() => {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: (
-                <>Avaliação salva, mas falha ao excluir do dispositivo!</>
-              ),
-            });
+            enqueueSnackbar(
+              <>Avaliação salva, mas falha ao excluir do dispositivo!</>,
+              { variant: "error" },
+            );
           })
           .finally(() => {
             setErrorOnServerSave(false);
@@ -242,11 +239,7 @@ const SaveAssessmentDialog = ({
       });
       setErrorOnLocalSave(false);
     } catch (e) {
-      setHelperCard({
-        show: true,
-        content: "Erro ao salvar dados locais!",
-        helperCardType: "ERROR",
-      });
+      enqueueSnackbar("Erro ao salvar dados locais!", { variant: "error" });
       setErrorOnLocalSave(true);
       setLoadingOverlay({ show: false });
       return;
@@ -335,10 +328,8 @@ const SaveAssessmentDialog = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setHelperCard({
-        show: true,
-        content: "Erro ao gerar arquivo da avaliação!",
-        helperCardType: "ERROR",
+      enqueueSnackbar("Erro ao gerar arquivo da avaliação!", {
+        variant: "error",
       });
     } finally {
       setLoadingOverlay({ show: false });

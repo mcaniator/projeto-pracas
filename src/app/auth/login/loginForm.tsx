@@ -1,8 +1,8 @@
 "use client";
 
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useLogin } from "@/lib/serverFunctions/apiCalls/auth";
 import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import AuthPageShell from "../authPageShell";
 
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const router = useRouter();
   const [login] = useLogin();
   const [state, setState] = useState<{ statusCode: number } | null>(null);
@@ -42,18 +42,15 @@ const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
 
   useEffect(() => {
     if (!state) return;
-    setHelperCard({
-      show: true,
-      helperCardType: state?.statusCode === 200 ? "CONFIRM" : "ERROR",
-      content: (
-        <>
-          {state?.statusCode === 200 ?
-            "Login realizado! Entrando..."
-          : "Credenciais incorretas!"}
-        </>
-      ),
-    });
-  }, [state, setHelperCard]);
+    enqueueSnackbar(
+      <>
+        {state?.statusCode === 200 ?
+          "Login realizado! Entrando..."
+        : "Credenciais incorretas!"}
+      </>,
+      { variant: state?.statusCode === 200 ? "success" : "error" },
+    );
+  }, [state, enqueueSnackbar]);
 
   return (
     <AuthPageShell showMobileWave>

@@ -1,6 +1,6 @@
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { isValidUrl } from "@/lib/utils/url";
 import { IconCheck, IconExternalLink } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -19,18 +19,14 @@ const DriveFolderUrlDialog = ({
   onConfirm: (url: string | null) => void;
 }) => {
   const [url, setUrl] = useState<string | null>(driveFolderUrl);
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   useEffect(() => {
     setUrl(driveFolderUrl);
   }, [open, driveFolderUrl]);
 
   const openLink = () => {
     if (!url || !isValidUrl(url)) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: "Link inválido!",
-      });
+      enqueueSnackbar("Link inválido!", { variant: "error" });
       return;
     }
     window.open(url, "_blank", "noopener,noreferrer");
@@ -46,11 +42,7 @@ const DriveFolderUrlDialog = ({
       onCancel={openLink}
       onConfirm={() => {
         if (url && !isValidUrl(url)) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: "Link inválido!",
-          });
+          enqueueSnackbar("Link inválido!", { variant: "error" });
           return;
         }
         onConfirm(url);

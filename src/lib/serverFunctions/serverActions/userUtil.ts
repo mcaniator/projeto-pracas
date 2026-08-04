@@ -161,7 +161,6 @@ export const _updateUserRolesV2 = async ({
       responseInfo: {
         statusCode: 200,
         message: "Permissões atualizadas com sucesso!",
-        showSuccessCard: true,
       } as APIResponseInfo,
     };
   } catch (e) {
@@ -237,7 +236,6 @@ export const _userArchiveUpdate = async (params: {
           params.active ?
             "Usuário ativado com sucesso!"
           : "Usuário desativado com sucesso!",
-        showSuccessCard: true,
       },
     };
   } catch (e) {

@@ -2,20 +2,36 @@
 
 import CapacitorAppProvider from "@/components/context/capacitorAppProvider";
 import { GeolocationProvider } from "@/components/context/geolocationContext";
-import { HelperCardProvider } from "@/components/context/helperCardContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
 import MuiThemeProvider from "@/components/theme/MuiThemeProvider";
+import { IconButton } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { IconX } from "@tabler/icons-react";
 import "dayjs/locale/pt-br";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import { SnackbarProvider, closeSnackbar } from "notistack";
 import { ReactNode } from "react";
 
 const AppProviders = ({ children }: { children: ReactNode }) => {
   return (
     <CapacitorAppProvider>
       <MuiThemeProvider>
-        <HelperCardProvider>
+        <SnackbarProvider
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          dense
+          preventDuplicate
+          action={(snackbarId) => (
+            <IconButton
+              aria-label="Fechar notificação"
+              color="inherit"
+              size="small"
+              onClick={() => closeSnackbar(snackbarId)}
+            >
+              <IconX size={18} />
+            </IconButton>
+          )}
+        >
           <LocalizationProvider
             dateAdapter={AdapterDayjs}
             adapterLocale="pt-br"
@@ -31,7 +47,7 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
               shallowRouting
             />
           </LocalizationProvider>
-        </HelperCardProvider>
+        </SnackbarProvider>
       </MuiThemeProvider>
     </CapacitorAppProvider>
   );

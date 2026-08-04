@@ -1,6 +1,6 @@
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useDeleteAssessment } from "@/lib/serverFunctions/apiCalls/assessment";
 import { LinearProgress } from "@mui/material";
 import { IconAlertSquareRounded } from "@tabler/icons-react";
@@ -18,7 +18,7 @@ const DeleteAssessmentDialog = ({
   assessmentId: number;
   locationId: number;
 }) => {
-  const { setHelperCard, helperCardProcessResponse } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -29,7 +29,6 @@ const DeleteAssessmentDialog = ({
       const response = await deleteAssessment({
         data: { assessmentId },
       });
-      helperCardProcessResponse(response.responseInfo);
       setIsRedirecting(true);
       if (response.responseInfo.statusCode === 200) {
         router.push(`/admin/assessments?locationId=${locationId}`);
@@ -37,11 +36,7 @@ const DeleteAssessmentDialog = ({
         setLoadingOverlay({ show: false });
       }
     } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao excluir avaliação!</>,
-      });
+      enqueueSnackbar(<>Erro ao excluir avaliação!</>, { variant: "error" });
       setLoadingOverlay({ show: false });
     } finally {
       setLoadingOverlay({ show: false });

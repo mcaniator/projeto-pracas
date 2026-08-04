@@ -1,7 +1,7 @@
 "use client";
 
 import { useGeolocation } from "@/components/context/geolocationContext";
-import { useHelperCard } from "@/components/context/helperCardContext";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import View from "ol/View";
 import { useCallback } from "react";
 
@@ -15,7 +15,7 @@ type CenterOnUserLocationParams = {
 
 const useCenterOnUserLocation = () => {
   const { cachedUserCoordinates, readUserLocation } = useGeolocation();
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
 
   return useCallback(
     async ({
@@ -45,11 +45,7 @@ const useCenterOnUserLocation = () => {
       });
 
       if (!coordinates) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: "Erro ao obter sua localização!",
-        });
+        enqueueSnackbar("Erro ao obter sua localização!", { variant: "error" });
         return;
       }
 
@@ -59,7 +55,7 @@ const useCenterOnUserLocation = () => {
         duration,
       });
     },
-    [cachedUserCoordinates, readUserLocation, setHelperCard],
+    [cachedUserCoordinates, readUserLocation, enqueueSnackbar],
   );
 };
 

@@ -2,6 +2,7 @@
 
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   useFetchQuestionUses,
   useQuestionSubmit,
@@ -10,7 +11,6 @@ import {
 import { FetchquestionUsesResponse } from "@/lib/serverFunctions/queries/question";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useHelperCard } from "@context/helperCardContext";
 import type {
   OptionForQuestionPicker,
   QuestionPickerQuestionToEdit,
@@ -67,7 +67,7 @@ const QuestionCreation = ({
   const activeCategoryName = question?.categoryName ?? categoryName;
   const activeSubcategoryId = question?.subcategoryId ?? subcategoryId;
   const activeSubcategoryName = question?.subcategoryName ?? subcategoryName;
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS">("FORM");
   const [reloadOnClose, setReloadOnClose] = useState(false);
   const [title, setTitle] = useState<string | null>(null);
@@ -286,11 +286,7 @@ const QuestionCreation = ({
   }, [open, question, fetchQuestionUses]);
 
   const showError = (content: ReactNode) => {
-    setHelperCard({
-      show: true,
-      helperCardType: "ERROR",
-      content,
-    });
+    enqueueSnackbar(content, { variant: "error" });
   };
 
   const validateCurrentQuestion = () => {

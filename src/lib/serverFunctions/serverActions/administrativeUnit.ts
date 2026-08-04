@@ -88,7 +88,6 @@ export const _saveAdministrativeUnit = async (formData: FormData) => {
           responseInfo: {
             statusCode: 201,
             message: `${levelName} atualizado(a)!`,
-            showSuccessCard: true,
           } as APIResponseInfo,
           data: null,
         };
@@ -157,7 +156,6 @@ export const _saveAdministrativeUnit = async (formData: FormData) => {
         responseInfo: {
           statusCode: 201,
           message: `${levelName} criado(a)!`,
-          showSuccessCard: true,
         } as APIResponseInfo,
         data: null,
       };
@@ -257,7 +255,6 @@ export const _deleteAdministrativeUnit = async (formData: FormData) => {
           responseInfo: {
             statusCode: 200,
             message: `Região administrativa ${deleted.name} excluída!`,
-            showSuccessCard: true,
           } as APIResponseInfo,
           data: null,
         };

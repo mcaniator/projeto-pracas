@@ -48,7 +48,6 @@ const _categorySubmit = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Categoria ${category.name} editada!`,
         } as APIResponseInfo,
         data: null,
@@ -60,7 +59,6 @@ const _categorySubmit = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Categoria ${category.name} criada!`,
       } as APIResponseInfo,
       data: null,
@@ -85,7 +83,9 @@ const _categorySubmit = async (formData: FormData) => {
   }
 };
 
-const _deleteCategory = async (formData: FormData): Promise<{
+const _deleteCategory = async (
+  formData: FormData,
+): Promise<{
   responseInfo: APIResponseInfo;
   data: {
     formsWithQuestions: {
@@ -186,7 +186,6 @@ const _deleteCategory = async (formData: FormData): Promise<{
     return {
       responseInfo: {
         statusCode: 200,
-        showSuccessCard: true,
         message: `Categoria "${deletedCategoryName}" excluída!`,
       },
       data: null,
@@ -199,7 +198,9 @@ const _deleteCategory = async (formData: FormData): Promise<{
   }
 };
 
-const _deleteSubcategory = async (formData: FormData): Promise<{
+const _deleteSubcategory = async (
+  formData: FormData,
+): Promise<{
   responseInfo: APIResponseInfo;
   data: {
     formsWithQuestions: {
@@ -293,7 +294,6 @@ const _deleteSubcategory = async (formData: FormData): Promise<{
     return {
       responseInfo: {
         statusCode: 200,
-        showSuccessCard: true,
         message: `Subcategoria "${deletedSubcategoryName}" excluída!`,
       },
       data: null,
@@ -349,7 +349,6 @@ const _subcategorySubmit = async (formData: FormData) => {
       return {
         responseInfo: {
           statusCode: 201,
-          showSuccessCard: true,
           message: `Subcategoria ${subcategory.name} editada!`,
         } as APIResponseInfo,
         data: null,
@@ -366,7 +365,6 @@ const _subcategorySubmit = async (formData: FormData) => {
     return {
       responseInfo: {
         statusCode: 201,
-        showSuccessCard: true,
         message: `Subcategoria ${subcategory.name} criada!`,
       } as APIResponseInfo,
       data: null,
