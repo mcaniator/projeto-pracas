@@ -4,8 +4,8 @@ import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   FetchAssessmentUsersResponse,
-  _fetchAssessments,
   useFetchAssessmentUsers,
+  useFetchAssessments,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
@@ -68,6 +68,7 @@ const AssessmentsClient = () => {
       },
     },
   });
+  const [_fetchAssessments] = useFetchAssessments();
   const [fetchAssessmentUsers, loadingUsers] = useFetchAssessmentUsers({
     callbacks: {
       onSuccess: ({ data }) => {
@@ -257,16 +258,18 @@ const AssessmentsClient = () => {
       try {
         lastFetchedLocationId.current = locationId;
         const response = await _fetchAssessments({
-          locationId,
-          formId,
-          startDate,
-          endDate,
-          userId,
-          cityId,
-          broadUnitId,
-          intermediateUnitId,
-          narrowUnitId,
-          finalizationStatus: finalizationStatus,
+          params: {
+            locationId,
+            formId,
+            startDate,
+            endDate,
+            userId,
+            cityId,
+            broadUnitId,
+            intermediateUnitId,
+            narrowUnitId,
+            finalizationStatus: finalizationStatus,
+          },
         });
         notifyApiResponse(response.responseInfo);
         const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
@@ -320,6 +323,7 @@ const AssessmentsClient = () => {
       notifyApiResponse,
       getUnsyncedAssessmentIds,
       enqueueSnackbar,
+      _fetchAssessments,
       locationId,
       formId,
       startDate,

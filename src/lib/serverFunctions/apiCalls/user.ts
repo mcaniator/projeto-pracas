@@ -20,7 +20,6 @@ export const useFetchUsers = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["user", "database"] },
     },
   });
 };

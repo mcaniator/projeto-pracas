@@ -15,7 +15,6 @@ const useFetchDynamicIcons = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["question", "database"] },
     },
   });
 };

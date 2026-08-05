@@ -64,7 +64,6 @@ const _searchQuestionsByCategoryAndSubcategory = async ({
 
   const questionsResponse = await fetch(url, {
     method: "GET",
-    next: { tags: ["category", "question", "database"] },
   });
   if (!questionsResponse.ok) {
     return { statusCode: 500, categories: [] as CategoryForQuestionPicker[] };

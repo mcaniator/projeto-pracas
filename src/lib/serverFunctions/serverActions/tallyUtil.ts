@@ -16,7 +16,6 @@ import {
   commercialActivitySchema,
   tallyPersonArraySchema,
 } from "@zodValidators";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 interface WeatherStats {
@@ -74,7 +73,6 @@ export const _createTallyV2 = async (formData: FormData) => {
           id: true,
         },
       });
-      revalidateTag("tally");
       return {
         responseInfo: {
           statusCode: 201,

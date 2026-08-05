@@ -30,9 +30,7 @@ export function useFetchAPI<
     onError?: (response: APIResponse<T>) => void;
   };
   offlineFallback?: (params: P) => Promise<APIResponse<T>>;
-  options: RequestInit & {
-    next?: { tags?: string[] };
-  };
+  options: RequestInit;
 }): [
   (
     args?: FetchFunctionArgs<P, D>,

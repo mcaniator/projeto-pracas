@@ -16,7 +16,6 @@ export const useFetchRecentActivity = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "tally", "database"] },
     },
   });
 };

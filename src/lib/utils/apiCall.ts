@@ -1,7 +1,3 @@
-import {
-  APIResponse,
-  APIResponseInfo,
-} from "@lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const generatePrismaPaginationObject = ({
@@ -138,39 +134,3 @@ export const buildApiUrl = (url: string) => {
 
   return `${baseUrl}${path}`;
 };
-
-export async function fetchAPI<T>({
-  url,
-  params,
-  options,
-}: {
-  url: string;
-  params?: Record<string, unknown>;
-  options?: RequestInit & { next?: { tags?: string[] } };
-}): Promise<{ responseInfo: APIResponseInfo; data: T | null | undefined }> {
-  const queryString = params ? generateQueryString(params) : "";
-  const parsedUrl = buildApiUrl(url);
-  const fullUrl = queryString ? `${parsedUrl}?${queryString}` : parsedUrl;
-  const response = await fetch(fullUrl, {
-    ...options,
-    credentials: options?.credentials ?? "include",
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    return {
-      responseInfo: {
-        statusCode: response.status,
-        message: message ?? `Erro na requisição ao servidor!`,
-      },
-      data: null,
-    };
-  }
-
-  const json = (await response.json()) as APIResponse<T>;
-
-  return {
-    responseInfo: json.responseInfo,
-    data: json.data,
-  };
-}

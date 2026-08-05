@@ -31,7 +31,6 @@ export const useFetchForms = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["form", "database"] },
     },
   });
 };
@@ -44,7 +43,6 @@ export const useFetchFormEditor = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["form", "database"] },
     },
   });
 };

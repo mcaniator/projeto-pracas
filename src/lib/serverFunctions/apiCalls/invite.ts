@@ -18,7 +18,6 @@ export const useFetchInvites = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["invite", "database"] },
     },
   });
 };

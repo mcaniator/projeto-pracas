@@ -28,7 +28,6 @@ export const useFetchCities = (
     offlineFallback: fetchAdminSqliteCities,
     options: {
       method: "GET",
-      next: { tags: ["city", "database"] },
     },
   });
 };
@@ -43,7 +42,6 @@ export const usePublicFetchCities = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["city", "database"] },
     },
   });
 };

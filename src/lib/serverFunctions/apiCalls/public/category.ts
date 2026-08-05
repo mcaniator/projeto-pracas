@@ -17,7 +17,6 @@ export const usePublicFetchLocationCategories = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["category", "database"] },
     },
   });
 };

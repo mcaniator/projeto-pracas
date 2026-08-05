@@ -51,7 +51,6 @@ export const useFetchTallys = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["tally", "database"] },
     },
   });
 };
@@ -64,7 +63,6 @@ export const useFetchTallyUsers = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["tally", "user", "database"] },
     },
   });
 };
@@ -77,7 +75,6 @@ export const useFetchOngoingTally = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["tally", "database"] },
     },
   });
 };
@@ -93,7 +90,6 @@ export const useFetchFinalizedTallysDataVisualization = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["tally", "database"] },
     },
   });
 };

@@ -5,7 +5,6 @@ import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
@@ -87,7 +86,6 @@ const _createForm = async (formData: FormData) => {
         });
       }
 
-      revalidateTag("form");
       return {
         responseInfo: {
           statusCode: 200,
@@ -370,7 +368,6 @@ const _updateFormV2 = async ({
       }
     });
 
-    revalidateTag("form");
     return { statusCode: 200 };
   } catch (e) {
     return { statusCode: 500 };

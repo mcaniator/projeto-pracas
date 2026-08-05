@@ -18,7 +18,6 @@ export const useFetchLocationTypes = (
     offlineFallback: fetchAdminSQLiteLocationTypes,
     options: {
       method: "GET",
-      next: { tags: ["locationCategory", "database"] },
     },
   });
 };

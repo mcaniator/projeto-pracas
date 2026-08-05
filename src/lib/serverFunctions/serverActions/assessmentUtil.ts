@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@lib/auth/auth";
 import { getSessionUser } from "@lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
@@ -48,7 +47,6 @@ const _createAssessmentV2 = async (formData: FormData) => {
           id: true,
         },
       });
-      revalidateTag("assessemnt");
       return {
         responseInfo: {
           statusCode: 201,
@@ -195,7 +193,6 @@ const _deleteAssessment = async (assessmentId: number) => {
         },
       }),
     ]);
-    revalidateTag("assessemnt");
     return {
       responseInfo: {
         statusCode: 200,

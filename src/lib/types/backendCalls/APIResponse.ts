@@ -27,9 +27,7 @@ type FetchAPIOptions = {
   silent?: boolean;
 };
 
-type FetchRequestOptions = Omit<RequestInit, "method"> & {
-  next?: { tags?: string[] };
-};
+type FetchRequestOptions = Omit<RequestInit, "method">;
 
 type FetchFunctionArgs<
   Params extends Record<string, unknown>,

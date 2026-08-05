@@ -7,7 +7,6 @@ import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { Image } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { addPolygon } from "@serverOnly/geometries";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 const _deleteLocation = async (formData: FormData) => {
@@ -70,7 +69,6 @@ const _deleteLocation = async (formData: FormData) => {
           name: true,
         },
       });
-      revalidateTag("location");
       return {
         responseInfo: {
           statusCode: 200,
@@ -193,7 +191,6 @@ const _updateLocation = async (formData: FormData) => {
         }
         locationName = location.name;
       });
-      revalidateTag("location");
       return {
         responseInfo: {
           statusCode: 200,
@@ -296,7 +293,6 @@ const _createLocation = async (formData: FormData) => {
         }
         locationName = location.name;
       });
-      revalidateTag("location");
       return {
         responseInfo: {
           statusCode: 201,
@@ -340,7 +336,6 @@ const _editLocationPolygon = async ({
   }
   try {
     await addPolygon(featuresGeoJson, id);
-    revalidateTag("location");
     return {
       responseInfo: {
         statusCode: 201,
@@ -383,7 +378,6 @@ const _updateLocationVisibility = async ({
         isPublic,
       },
     });
-    revalidateTag("location");
     return {
       responseInfo: {
         statusCode: 201,

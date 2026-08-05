@@ -2,23 +2,22 @@ import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
 
-import { fetchAPI } from "../../utils/apiCall";
-import type {
-  AddResponsesData,
-  CreateAssessmentData,
-  DeleteAssessmentData,
-  FetchAssessmentsParams,
-  FetchAssessmentTreeParams,
-  FetchPublicAssessmentsParams,
-  UpdateAssessmentVisibilityData,
-  UploadImageResponseParams,
-} from "./assessmentParamsSchemas";
 import type {
   FetchAssessmentTreeResponse,
   FetchAssessmentsResponse,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
 import type { UploadImageResponseData } from "../storage/drive/assessment";
+import type {
+  AddResponsesData,
+  CreateAssessmentData,
+  DeleteAssessmentData,
+  FetchAssessmentTreeParams,
+  FetchAssessmentsParams,
+  FetchPublicAssessmentsParams,
+  UpdateAssessmentVisibilityData,
+  UploadImageResponseParams,
+} from "./assessmentParamsSchemas";
 
 export type {
   AddResponsesData,
@@ -44,21 +43,6 @@ export type AddResponsesResponse = {
   updatedAt: string;
 };
 
-export const _fetchAssessments = async (params: FetchAssessmentsParams) => {
-  const url = `/api/admin/assessments`;
-
-  const response = await fetchAPI<FetchAssessmentsResponse>({
-    url,
-    params,
-    options: {
-      method: "GET",
-      next: { tags: ["assessment", "database"] },
-    },
-  });
-
-  return response;
-};
-
 export const useFetchAssessments = (
   params?: UseFetchAPIParams<FetchAssessmentsResponse>,
 ) => {
@@ -67,7 +51,6 @@ export const useFetchAssessments = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -80,7 +63,6 @@ export const useFetchAssessmentUsers = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "user", "database"] },
     },
   });
 };
@@ -130,7 +112,11 @@ export const useUpdateAssessmentVisibility = (
 export const useAddResponses = (
   params?: UseFetchAPIParams<AddResponsesResponse>,
 ) => {
-  return useFetchAPI<AddResponsesResponse, Record<string, never>, AddResponsesData>({
+  return useFetchAPI<
+    AddResponsesResponse,
+    Record<string, never>,
+    AddResponsesData
+  >({
     url: "/api/admin/assessments/responses",
     callbacks: params?.callbacks,
     options: {
@@ -150,7 +136,6 @@ export const useFetchPublicAssessments = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -165,7 +150,6 @@ export const useFetchAssessmentTree = ({
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -180,7 +164,6 @@ export const useFetchPublicAssessmentTree = ({
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };

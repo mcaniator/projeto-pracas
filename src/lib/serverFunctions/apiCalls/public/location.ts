@@ -15,7 +15,6 @@ export const usePublicFetchLocations = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["location", "database"] },
     },
   });
 };

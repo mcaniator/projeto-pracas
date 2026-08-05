@@ -32,7 +32,6 @@ export const useFetchLocations = (
     offlineFallback: fetchAdminSQLiteLocations,
     options: {
       method: "GET",
-      next: { tags: ["location", "database"] },
     },
   });
 };
