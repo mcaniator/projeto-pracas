@@ -1,19 +1,9 @@
-import { Capacitor } from "@capacitor/core";
-import { Network } from "@capacitor/network";
-import { ReactNode, useEffect, useState } from "react";
+import { useNetwork } from "@/components/context/networkContext";
+import { ReactNode } from "react";
 
 const CapacitorOnlineGuard = ({ children }: { children: ReactNode }) => {
-  const [isOnline, setIsOnline] = useState(false);
-  useEffect(() => {
-    const checkIfIsOnline = async () => {
-      const status = await Network.getStatus();
-      setIsOnline(status.connected);
-    };
-    void checkIfIsOnline();
-  }, []);
-  if (!Capacitor.isNativePlatform()) {
-    return <>{children}</>;
-  } else if (isOnline) {
+  const { isConnected } = useNetwork();
+  if (isConnected) {
     return <>{children}</>;
   }
   return null;

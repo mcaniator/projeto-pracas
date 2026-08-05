@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       JSON.stringify({
         responseInfo: {
           statusCode: 404,
-          message: "Token invalido.",
+          message: "Token inválido.",
         },
         data: {
           email: null,

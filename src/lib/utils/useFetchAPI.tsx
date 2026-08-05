@@ -1,4 +1,5 @@
 import { useLoadingOverlay } from "@/components/context/loadingContext";
+import { useNetwork } from "@/components/context/networkContext";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   APIResponse,
@@ -11,7 +12,6 @@ import {
   replaceRouteParams,
 } from "@/lib/utils/apiCall";
 import { Capacitor } from "@capacitor/core";
-import { Network } from "@capacitor/network";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useFetchAPI<
@@ -41,6 +41,7 @@ export function useFetchAPI<
 ] {
   const { notifyApiResponse } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
+  const { isConnectedRef, setServerOnline } = useNetwork();
   const [isLoading, setIsLoading] = useState(false);
   const callbacksRef = useRef(callbacks);
   const optionsRef = useRef(options);
@@ -82,30 +83,52 @@ export function useFetchAPI<
           currentOptions.method?.toUpperCase() ?? "GET",
         );
         const isOffline =
-          Capacitor.isNativePlatform() &&
-          !(await Network.getStatus()).connected;
+          Capacitor.isNativePlatform() && !isConnectedRef.current;
 
-        if (isOffline && offlineFallback) {
-          const fallbackResponse = await offlineFallback(params);
-          if (
-            fallbackResponse.responseInfo.statusCode >= 200 &&
-            fallbackResponse.responseInfo.statusCode < 300
-          ) {
-            currentCallbacks?.onSuccess?.(fallbackResponse);
-          } else {
-            currentCallbacks?.onError?.(fallbackResponse);
+        if (isOffline) {
+          if (!offlineFallback) {
+            setLoadingOverlay({ show: false });
+            setIsLoading(false);
+            return {
+              responseInfo: {
+                statusCode: 500,
+                message: "Offline! Sem conexão com o servidor!",
+              },
+              data: null,
+            };
           }
-          if (!silent) {
-            notifyApiResponse(fallbackResponse.responseInfo, {
-              showSuccessMessage,
-            });
+          try {
+            const fallbackResponse = await offlineFallback(params);
+            if (
+              fallbackResponse.responseInfo.statusCode >= 200 &&
+              fallbackResponse.responseInfo.statusCode < 300
+            ) {
+              currentCallbacks?.onSuccess?.(fallbackResponse);
+            } else {
+              currentCallbacks?.onError?.(fallbackResponse);
+            }
+            if (!silent) {
+              notifyApiResponse(fallbackResponse.responseInfo, {
+                showSuccessMessage,
+              });
+            }
+            setLoadingOverlay({ show: false });
+            setIsLoading(false);
+            return {
+              responseInfo: fallbackResponse.responseInfo,
+              data: fallbackResponse.data,
+            };
+          } catch (e) {
+            setLoadingOverlay({ show: false });
+            setIsLoading(false);
+            return {
+              responseInfo: {
+                statusCode: 500,
+                message: "Erro ao carregar dados offline!",
+              },
+              data: null,
+            };
           }
-          setLoadingOverlay({ show: false });
-          setIsLoading(false);
-          return {
-            responseInfo: fallbackResponse.responseInfo,
-            data: fallbackResponse.data,
-          };
         }
 
         const headers = new Headers(currentOptions.headers);
@@ -122,30 +145,119 @@ export function useFetchAPI<
           headers.set("Content-Type", "application/json");
         }
 
-        const response = await fetch(fullUrl, {
-          ...currentOptions,
-          ...requestOptions,
-          body,
-          credentials:
-            requestOptions?.credentials ??
-            currentOptions.credentials ??
-            "include",
-          headers,
-          method: currentOptions.method,
-        });
+        try {
+          const response = await fetch(fullUrl, {
+            ...currentOptions,
+            ...requestOptions,
+            body,
+            credentials:
+              requestOptions?.credentials ??
+              currentOptions.credentials ??
+              "include",
+            headers,
+            method: currentOptions.method,
+          });
 
-        if (!response.ok) {
-          const message = await response.text();
+          try {
+            if (!response.ok) {
+              const message = await response.text();
+              const errorResponseInfo: APIResponseInfo = {
+                statusCode: response.status,
+                message: message ?? `Erro na requisição ao servidor!`,
+              };
+              currentCallbacks?.onError?.({
+                responseInfo: errorResponseInfo,
+                data: null,
+              });
+              if (!silent) {
+                notifyApiResponse(errorResponseInfo, { showSuccessMessage });
+              }
+              setLoadingOverlay({ show: false });
+              setIsLoading(false);
+              return {
+                responseInfo: errorResponseInfo,
+                data: null,
+              };
+            }
+            const json = (await response.json()) as APIResponse<T>;
+            if (
+              json.responseInfo.statusCode >= 200 &&
+              json.responseInfo.statusCode < 300
+            ) {
+              currentCallbacks?.onSuccess?.(json);
+            } else {
+              currentCallbacks?.onError?.(json);
+            }
+            if (!silent) {
+              notifyApiResponse(json.responseInfo, { showSuccessMessage });
+            }
+            setLoadingOverlay({ show: false });
+            setIsLoading(false);
+            return {
+              responseInfo: json.responseInfo,
+              data: json.data,
+            };
+          } catch (e) {
+            setLoadingOverlay({ show: false });
+            setIsLoading(false);
+            return {
+              responseInfo: {
+                statusCode: 500,
+                message: `Erro ao processar a resposta do servidor!`,
+              },
+              data: null,
+            };
+          }
+        } catch (e) {
+          if (Capacitor.isNativePlatform()) {
+            setServerOnline(false);
+            if (offlineFallback) {
+              try {
+                const fallbackResponse = await offlineFallback(params);
+                if (
+                  fallbackResponse.responseInfo.statusCode >= 200 &&
+                  fallbackResponse.responseInfo.statusCode < 300
+                ) {
+                  currentCallbacks?.onSuccess?.(fallbackResponse);
+                } else {
+                  currentCallbacks?.onError?.(fallbackResponse);
+                }
+                if (!silent) {
+                  notifyApiResponse(fallbackResponse.responseInfo, {
+                    showSuccessMessage,
+                  });
+                }
+                setLoadingOverlay({ show: false });
+                setIsLoading(false);
+                return {
+                  responseInfo: fallbackResponse.responseInfo,
+                  data: fallbackResponse.data,
+                };
+              } catch (e) {
+                setLoadingOverlay({ show: false });
+                setIsLoading(false);
+                return {
+                  responseInfo: {
+                    statusCode: 500,
+                    message: "Erro ao carregar dados offline!",
+                  },
+                  data: null,
+                };
+              }
+            }
+          }
+
           const errorResponseInfo: APIResponseInfo = {
-            statusCode: response.status,
-            message: message ?? `Erro na requisição ao servidor!`,
+            statusCode: 500,
+            message: `Erro na requisição ao servidor!`,
           };
-          currentCallbacks?.onError?.({
+          callbacksRef.current?.onError?.({
             responseInfo: errorResponseInfo,
             data: null,
           });
-          if (!silent) {
-            notifyApiResponse(errorResponseInfo, { showSuccessMessage });
+          if (!silent && !Capacitor.isNativePlatform()) {
+            // If is native app, the error about server not found has already been shown after setServerOnline(false)
+            notifyApiResponse(errorResponseInfo);
           }
           setLoadingOverlay({ show: false });
           setIsLoading(false);
@@ -154,29 +266,10 @@ export function useFetchAPI<
             data: null,
           };
         }
-
-        const json = (await response.json()) as APIResponse<T>;
-        if (
-          json.responseInfo.statusCode >= 200 &&
-          json.responseInfo.statusCode < 300
-        ) {
-          currentCallbacks?.onSuccess?.(json);
-        } else {
-          currentCallbacks?.onError?.(json);
-        }
-        if (!silent) {
-          notifyApiResponse(json.responseInfo, { showSuccessMessage });
-        }
-        setLoadingOverlay({ show: false });
-        setIsLoading(false);
-        return {
-          responseInfo: json.responseInfo,
-          data: json.data,
-        };
       } catch (e) {
         const errorResponseInfo: APIResponseInfo = {
           statusCode: 500,
-          message: `Erro na requisição ao servidor!`,
+          message: `Erro desconhecido!`,
         };
         callbacksRef.current?.onError?.({
           responseInfo: errorResponseInfo,
@@ -193,7 +286,14 @@ export function useFetchAPI<
         };
       }
     },
-    [notifyApiResponse, offlineFallback, setLoadingOverlay, url],
+    [
+      notifyApiResponse,
+      offlineFallback,
+      setLoadingOverlay,
+      isConnectedRef,
+      setServerOnline,
+      url,
+    ],
   );
 
   return [fetchFunction, isLoading];

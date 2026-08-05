@@ -3,6 +3,7 @@
 import CapacitorAppProvider from "@/components/context/capacitorAppProvider";
 import { GeolocationProvider } from "@/components/context/geolocationContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
+import { NetworkProvider } from "@/components/context/networkContext";
 import MuiThemeProvider from "@/components/theme/MuiThemeProvider";
 import { IconButton } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -32,21 +33,23 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
             </IconButton>
           )}
         >
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            adapterLocale="pt-br"
-          >
-            <GeolocationProvider>
-              <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
-            </GeolocationProvider>
+          <NetworkProvider>
+            <LocalizationProvider
+              dateAdapter={AdapterDayjs}
+              adapterLocale="pt-br"
+            >
+              <GeolocationProvider>
+                <LoadingOverlayProvider>{children}</LoadingOverlayProvider>
+              </GeolocationProvider>
 
-            <ProgressBar
-              height="4px"
-              color="#F6FAF2"
-              options={{ showSpinner: true }}
-              shallowRouting
-            />
-          </LocalizationProvider>
+              <ProgressBar
+                height="4px"
+                color="#F6FAF2"
+                options={{ showSpinner: true }}
+                shallowRouting
+              />
+            </LocalizationProvider>
+          </NetworkProvider>
         </SnackbarProvider>
       </MuiThemeProvider>
     </CapacitorAppProvider>

@@ -1,12 +1,11 @@
 import PublicAssessmentResultViewerDialog from "@/app/map/locationDetails/publicAssessmentResultViewerDialog";
+import { useNetwork } from "@/components/context/networkContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
 import { usePublicFetchPublicAssessments } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import { PublicFetchPublicAssessmentsResponse } from "@/lib/serverFunctions/queries/public/assessment";
-import { Capacitor } from "@capacitor/core";
-import { ConnectionStatus, Network } from "@capacitor/network";
 import { Box } from "@mui/material";
 import { IconBrowserMaximize, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -25,6 +24,7 @@ const AssessmentHistory = ({
   const [selectedAssessment, setSelectedAssessment] = useState<
     PublicFetchPublicAssessmentsResponse["assessments"][number] | null
   >(null);
+  const { isConnectedRef } = useNetwork();
   const [fetchPublicAssessments, loading] = usePublicFetchPublicAssessments({
     callbacks: {
       onSuccess: (response) => {
@@ -33,18 +33,14 @@ const AssessmentHistory = ({
     },
   });
   useEffect(() => {
-    const conditionallyFetch = async () => {
-      let connectionStatus: ConnectionStatus | null = null;
-      if (Capacitor.isNativePlatform()) {
-        connectionStatus = await Network.getStatus();
-      }
-      if (!Capacitor.isNativePlatform() || connectionStatus?.connected) {
+    const conditionallyFetch = () => {
+      if (isConnectedRef.current) {
         void fetchPublicAssessments({ params: { locationId } });
       }
     };
 
     void conditionallyFetch();
-  }, [locationId, fetchPublicAssessments]);
+  }, [locationId, isConnectedRef, fetchPublicAssessments]);
   if (loading) {
     return <CLinearProgress label="Carregando..." />;
   }
