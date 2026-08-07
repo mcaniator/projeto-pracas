@@ -1,4 +1,4 @@
-import { publicFetchCategoriesParamsSchema } from "@/lib/serverFunctions/apiCalls/public/categoryParamsSchemas";
+import { publicFetchCategoriesParamsSchema } from "@/lib/serverFunctions/queries/public/category";
 import { publicFetchCategories } from "@/lib/serverFunctions/queries/public/category";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
@@ -6,7 +6,10 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(publicFetchCategoriesParamsSchema, searchParams);
+    const params = parseQueryParams(
+      publicFetchCategoriesParamsSchema,
+      searchParams,
+    );
     const locations = await publicFetchCategories(params);
     return new Response(JSON.stringify(locations), {
       status: 200,

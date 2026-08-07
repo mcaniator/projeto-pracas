@@ -1,12 +1,9 @@
-"use server";
-
 import { signIn } from "@auth/auth";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
 import { getInviteToken } from "@serverOnly/invite";
 import { userRegisterSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { ZodError, z } from "zod";
 
 const _register = async (
@@ -83,14 +80,11 @@ const _register = async (
     await signIn("credentials", {
       email: newUser.email,
       password: newUser.password,
-      redirectTo: "/admin/map",
+      redirect: false,
     });
 
     return { statusCode: 201, errors: null };
   } catch (e) {
-    if (isRedirectError(e)) {
-      throw e;
-    }
     if (
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2002"
@@ -121,4 +115,11 @@ const _register = async (
   }
 };
 
-export default _register;
+export type RegisterResponse = Awaited<ReturnType<typeof register>>["data"];
+export const register = async (formData: FormData) => {
+  const result = await _register(formData);
+  return {
+    responseInfo: { statusCode: result?.statusCode ?? 500 },
+    data: { errors: result?.errors ?? null },
+  };
+};

@@ -67,17 +67,14 @@ const SelectedParks = ({
     const result = await exportRegistrationData({
       data: { locationsIds },
     });
-    const response = result.data ?? {
-      statusCode: result.responseInfo.statusCode,
-      CSVstring: null,
-    };
-    if (response.statusCode === 401) {
+    const response = result.data ?? { CSVstring: null };
+    if (result.responseInfo.statusCode === 401) {
       enqueueSnackbar(<>Sem permissão para exportar dados de praças!</>, {
         variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
-    } else if (response.statusCode === 500) {
+    } else if (result.responseInfo.statusCode === 500) {
       enqueueSnackbar(<>Erro exportar dados de praças!</>, {
         variant: "error",
       });
@@ -116,17 +113,14 @@ const SelectedParks = ({
     const result = await exportAssessments({
       data: { assessmentIds },
     });
-    const response = result.data ?? {
-      statusCode: result.responseInfo.statusCode,
-      csvObjs: [],
-    };
-    if (response.statusCode === 401) {
+    const response = result.data ?? { csvObjs: [] };
+    if (result.responseInfo.statusCode === 401) {
       enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
         variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
-    } else if (response.statusCode === 500) {
+    } else if (result.responseInfo.statusCode === 500) {
       enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
@@ -167,17 +161,16 @@ const SelectedParks = ({
       },
     });
     const response = result.data ?? {
-      statusCode: result.responseInfo.statusCode,
       CSVstringWeekdays: [],
       CSVstringWeekendDays: [],
     };
-    if (response.statusCode === 401) {
+    if (result.responseInfo.statusCode === 401) {
       enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
         variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
-    } else if (response.statusCode === 500) {
+    } else if (result.responseInfo.statusCode === 500) {
       enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
@@ -243,17 +236,14 @@ const SelectedParks = ({
     const result = await exportIndividualTallysToCSV({
       data: { tallysIds },
     });
-    const response = result.data ?? {
-      statusCode: result.responseInfo.statusCode,
-      CSVstring: null,
-    };
-    if (response.statusCode === 401) {
+    const response = result.data ?? { CSVstring: null };
+    if (result.responseInfo.statusCode === 401) {
       enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
         variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
-    } else if (response.statusCode === 500) {
+    } else if (result.responseInfo.statusCode === 500) {
       enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;

@@ -1,32 +1,23 @@
-import { fetchRecentlyCompletedAssessments } from "@/lib/serverFunctions/queries/assessment";
-import { fetchRecentlyCompletedTallys } from "@/lib/serverFunctions/queries/tally";
+import { fetchRecentActivity } from "@/lib/serverFunctions/queries/activity";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function GET() {
   try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roleGroups: ["ASSESSMENT", "TALLY"],
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roleGroups: ["ASSESSMENT", "TALLY"],
+      });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const result = await fetchRecentActivity();
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response("Unauthorized", { status: 401 });
+    return new Response("Erro obter atividade recente", { status: 500 });
   }
-
-  const [assessments, tallys] = await Promise.all([
-    fetchRecentlyCompletedAssessments(),
-    fetchRecentlyCompletedTallys(),
-  ]);
-
-  return Response.json({
-    responseInfo: {
-      statusCode:
-        assessments.responseInfo.statusCode === 200 &&
-        tallys.responseInfo.statusCode === 200 ?
-          200
-        : 500,
-    },
-    data: {
-      assessments: assessments.data.assessments,
-      tallys: tallys.data.tallys,
-    },
-  });
 }

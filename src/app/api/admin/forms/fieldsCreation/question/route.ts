@@ -1,4 +1,4 @@
-import { fetchQuestionsByCategoryAndSubcategoryParamsSchema } from "@/lib/serverFunctions/apiCalls/questionParamsSchemas";
+import { fetchQuestionsByCategoryAndSubcategoryParamsSchema } from "@/lib/serverFunctions/queries/question";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import {
   searchQuestionsByCategoryAndSubcategory,

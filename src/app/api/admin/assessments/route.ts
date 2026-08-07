@@ -1,4 +1,4 @@
-import { fetchAssessmentsParamsSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
+import { fetchAssessmentsParamsSchema } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 

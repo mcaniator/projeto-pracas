@@ -1,8 +1,25 @@
-import { createAssessmentDataSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
-import { _createAssessmentV2 } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _createAssessmentV2,
+  createAssessmentDataSchema,
+} from "@/lib/serverFunctions/mutations/assessmentUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = createAssessmentDataSchema.parse(await request.formData());
-  return responseFromResult(await _createAssessmentV2(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
+      });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = createAssessmentDataSchema.parse(await request.formData());
+    const result = await _createAssessmentV2(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

@@ -1,7 +1,8 @@
-import type { FetchFormParams } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { sleep } from "@/lib/utils/sleep";
+import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
+import { z } from "zod";
 
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import {
@@ -50,6 +51,13 @@ const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
     };
   }
 };
+
+export const fetchFormParamsSchema = z.object({
+  finalizedOnly: booleanFromString.nullish(),
+  includeArchived: booleanFromString.nullish(),
+});
+
+export type FetchFormParams = z.infer<typeof fetchFormParamsSchema>;
 
 export type FetchFormsResponse = Awaited<ReturnType<typeof fetchForms>>["data"];
 export const fetchForms = async (params: FetchFormParams) => {
@@ -294,22 +302,6 @@ const getFormTree = async (params: { formId: number }) => {
   }
 };
 
-const searchformNameById = async (formId: number) => {
-  try {
-    const form = await prisma.form.findUnique({
-      where: {
-        id: formId,
-      },
-      select: {
-        name: true,
-      },
-    });
-    return { statusCode: 200, formName: form?.name ?? null };
-  } catch (e) {
-    return { statusCode: 500, formName: null };
-  }
-};
-
 const getCalculationByFormId = async (formId: number) => {
   try {
     const dbCalculations = await prisma.calculation.findMany({
@@ -343,16 +335,34 @@ const getCalculationByFormId = async (formId: number) => {
   }
 };
 
-export type FetchFormEditorResponse = {
-  form: Awaited<ReturnType<typeof getFormTree>>;
-  calculations: Awaited<
-    ReturnType<typeof getCalculationByFormId>
-  >["calculations"];
+export const fetchFormStructureParamsSchema = z.object({
+  formId: z.coerce.number(),
+});
+
+export type fetchFormStructureParams = z.infer<
+  typeof fetchFormStructureParamsSchema
+>;
+
+export type fetchFormStructureResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchFormStructure>>["data"]
+>;
+
+export const fetchFormStructure = async (params: fetchFormStructureParams) => {
+  const [form, calculations] = await Promise.all([
+    getFormTree(params),
+    getCalculationByFormId(params.formId),
+  ]);
+
+  return {
+    responseInfo: {
+      statusCode:
+        form.statusCode === 200 ? calculations.statusCode : form.statusCode,
+    } as APIResponseInfo,
+    data: {
+      form,
+      calculations: calculations.calculations,
+    },
+  };
 };
 
-export {
-  fetchFormsLatest,
-  getFormTree,
-  searchformNameById,
-  getCalculationByFormId,
-};
+export { fetchFormsLatest, getFormTree, getCalculationByFormId };

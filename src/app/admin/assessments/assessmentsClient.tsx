@@ -3,11 +3,11 @@
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
-  FetchAssessmentUsersResponse,
   useFetchAssessmentUsers,
   useFetchAssessments,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
+import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";

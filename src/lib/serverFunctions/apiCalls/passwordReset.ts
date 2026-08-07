@@ -1,12 +1,10 @@
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import type { FetchPasswordResetTokenParams } from "./passwordResetParamsSchemas";
 
-export type { FetchPasswordResetTokenParams } from "./passwordResetParamsSchemas";
-
-export type FetchPasswordResetTokenResponse = {
-  email: string | null;
-};
+import type {
+  FetchPasswordResetTokenParams,
+  FetchPasswordResetTokenResponse,
+} from "../queries/passwordReset";
 
 export const useFetchPasswordResetToken = (
   params?: UseFetchAPIParams<FetchPasswordResetTokenResponse>,

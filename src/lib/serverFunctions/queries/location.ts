@@ -2,9 +2,16 @@ import { buildImageUrl } from "@/lib/utils/image";
 import { LocationForMap } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
-import type { FetchLocationsParams } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+
+export const fetchLocationsParamsSchema = z.object({
+  cityId: z.coerce.number().nullish(),
+  locationId: z.coerce.number().nullish(),
+});
+
+export type FetchLocationsParams = z.infer<typeof fetchLocationsParamsSchema>;
 
 export type FetchLocationsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchLocations>>["data"]

@@ -1,5 +1,3 @@
-"use server";
-
 import type {
   ResponseFormGeometry,
   SerializedFormValues,
@@ -12,6 +10,7 @@ import { getSessionUser } from "@auth/userUtil";
 import { Prisma } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { Coordinate } from "ol/coordinate";
+import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
@@ -54,6 +53,20 @@ const toOptionResponseValue = (
   };
 };
 
+export const addResponsesDataSchema = z.object({
+  assessmentId: z.coerce.number(),
+  responses: z.custom<SerializedFormValues>(),
+  geometries: z.custom<ResponseFormGeometry[]>(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  isFinalized: z.boolean(),
+  driveFolderUrl: z.string().nullable(),
+});
+export type AddResponsesData = z.infer<typeof addResponsesDataSchema>;
+export type AddResponsesResponse = NonNullable<
+  Awaited<ReturnType<typeof _addResponsesV2>>["data"]
+>;
+
 const _addResponsesV2 = async ({
   assessmentId,
   responses,
@@ -62,28 +75,7 @@ const _addResponsesV2 = async ({
   endDate,
   isFinalized,
   driveFolderUrl,
-}: {
-  assessmentId: number;
-  responses: SerializedFormValues;
-  geometries: ResponseFormGeometry[];
-  startDate: Date;
-  endDate: Date | null;
-  isFinalized: boolean;
-  driveFolderUrl: string | null;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para avaliar!",
-      } as APIResponseInfo,
-    };
-  }
-
+}: AddResponsesData) => {
   try {
     const user = await getSessionUser();
     if (!user) {

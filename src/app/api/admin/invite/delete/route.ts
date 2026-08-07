@@ -1,8 +1,23 @@
-import { deleteInviteDataSchema } from "@/lib/serverFunctions/apiCalls/inviteParamsSchemas";
-import { _deleteInviteV2 } from "@/lib/serverFunctions/serverActions/inviteUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteInviteV2,
+  deleteInviteDataSchema,
+} from "@/lib/serverFunctions/mutations/inviteUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = deleteInviteDataSchema.parse(await request.json());
-  return responseFromResult(await _deleteInviteV2(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = deleteInviteDataSchema.parse(await request.json());
+    const result = await _deleteInviteV2(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

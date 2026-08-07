@@ -4,13 +4,10 @@ import type {
 } from "@/components/ui/responseForm/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import type {
-  FetchAssessmentsParams,
-  FetchPublicAssessmentsParams,
-} from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { Coordinate } from "ol/coordinate";
+import { z } from "zod";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { ResponseGeometry } from "../../types/assessments/geometry";
@@ -124,6 +121,45 @@ const fetchRecentlyCompletedAssessments = async () => {
     };
   }
 };
+
+export type FetchAssessmentUsersResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentUsers>>
+>["data"];
+
+export const fetchAssessmentUsers = async () => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { assessment: { some: {} } },
+      select: { id: true, username: true },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        users,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliadores!",
+      } as APIResponseInfo,
+      data: {
+        users: [],
+      },
+    };
+  }
+};
+
+export const fetchAssessmentTreeParamsSchema = z.object({
+  assessmentId: z.string().min(1),
+});
+
+export type FetchAssessmentTreeParams = z.infer<
+  typeof fetchAssessmentTreeParamsSchema
+>;
 
 export type FetchAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentTree>>["data"]
@@ -918,6 +954,23 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
   }
 };
 
+export const fetchAssessmentsParamsSchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  formId: z.coerce.number().optional(),
+  userId: z.string().optional(),
+  locationId: z.coerce.number().optional(),
+  narrowUnitId: z.coerce.number().optional(),
+  intermediateUnitId: z.coerce.number().optional(),
+  broadUnitId: z.coerce.number().optional(),
+  cityId: z.coerce.number().optional(),
+  finalizationStatus: z.coerce.number().optional(),
+});
+
+export type FetchAssessmentsParams = z.infer<
+  typeof fetchAssessmentsParamsSchema
+>;
+
 export type FetchAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessments>>["data"]
 >;
@@ -993,6 +1046,14 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
     };
   }
 };
+
+export const fetchPublicAssessmentsParamsSchema = z.object({
+  locationId: z.coerce.number().optional(),
+});
+
+export type FetchPublicAssessmentsParams = z.infer<
+  typeof fetchPublicAssessmentsParamsSchema
+>;
 
 export type FetchPublicAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchPublicAssessments>>["data"]

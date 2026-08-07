@@ -1,8 +1,23 @@
-import { updateLocationVisibilityDataSchema } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
-import { _updateLocationVisibility } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _updateLocationVisibility,
+  updateLocationVisibilityDataSchema,
+} from "@/lib/serverFunctions/mutations/locationUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = updateLocationVisibilityDataSchema.parse(await request.json());
-  return responseFromResult(await _updateLocationVisibility(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = updateLocationVisibilityDataSchema.parse(await request.json());
+    const result = await _updateLocationVisibility(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

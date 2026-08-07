@@ -3,45 +3,28 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
 
 import type {
-  FetchAssessmentTreeResponse,
-  FetchAssessmentsResponse,
-  FetchPublicAssessmentsResponse,
-} from "../queries/assessment";
-import type { UploadImageResponseData } from "../storage/drive/assessment";
+  CreateAssessmentData,
+  CreateAssessmentResponse,
+  DeleteAssessmentData,
+  UpdateAssessmentVisibilityData,
+} from "../mutations/assessmentUtil";
 import type {
   AddResponsesData,
-  CreateAssessmentData,
-  DeleteAssessmentData,
+  AddResponsesResponse,
+} from "../mutations/responseUtil";
+import type {
   FetchAssessmentTreeParams,
+  FetchAssessmentTreeResponse,
+  FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
+  FetchAssessmentsResponse,
   FetchPublicAssessmentsParams,
-  UpdateAssessmentVisibilityData,
+  FetchPublicAssessmentsResponse,
+} from "../queries/assessment";
+import type {
+  UploadImageResponseData,
   UploadImageResponseParams,
-} from "./assessmentParamsSchemas";
-
-export type {
-  AddResponsesData,
-  CreateAssessmentData,
-  DeleteAssessmentData,
-  FetchAssessmentsParams,
-  FetchAssessmentTreeParams,
-  FetchPublicAssessmentsParams,
-  UpdateAssessmentVisibilityData,
-  UploadImageResponseParams,
-} from "./assessmentParamsSchemas";
-
-export type FetchAssessmentUsersResponse = {
-  users: { id: string; username: string }[];
-};
-
-export type CreateAssessmentResponse = {
-  assessmentId: number;
-};
-
-export type AddResponsesResponse = {
-  savedAsFinalized: boolean;
-  updatedAt: string;
-};
+} from "../storage/drive/assessment";
 
 export const useFetchAssessments = (
   params?: UseFetchAPIParams<FetchAssessmentsResponse>,

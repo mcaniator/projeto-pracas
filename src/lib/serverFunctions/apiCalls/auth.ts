@@ -1,39 +1,13 @@
-import type { Role } from "@prisma/client";
-
+import type { FetchCurrentUserResponse } from "@/lib/serverFunctions/queries/user";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-export type CurrentUser = {
-  id: string;
-  username: string;
-  email: string;
-  image: string | null;
-  active: boolean;
-  roles: Role[];
-};
-
-export type FetchCurrentUserResponse = {
-  user: CurrentUser | null;
-};
-
-export type LoginResponse = null;
-
-export type LogoutResponse = null;
-
-export type RegisterResponse = {
-  errors:
-    | {
-        message: string | null;
-        element: string | null;
-      }[]
-    | null;
-};
-
-export type RequestPasswordResetResponse = null;
-
-export type ResetPasswordResponse = {
-  errorMessage: string | null;
-};
+import type { LoginResponse, LogoutResponse } from "../mutations/login";
+import type {
+  RequestPasswordResetResponse,
+  ResetPasswordResponse,
+} from "../mutations/passwordResetUtil";
+import type { RegisterResponse } from "../mutations/register";
 
 export const useFetchCurrentUser = (
   params?: UseFetchAPIParams<FetchCurrentUserResponse>,

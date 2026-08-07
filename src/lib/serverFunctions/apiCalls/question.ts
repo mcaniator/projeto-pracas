@@ -1,26 +1,17 @@
 import type {
+  FetchQuestionsByCategoryAndSubcategoryParams,
   FetchquestionUsesResponse,
   FetchquestionsByCategoryAndSubcategoryResponse,
 } from "@/lib/serverFunctions/queries/question";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import type {
-  DeleteQuestionData,
-  FetchQuestionsByCategoryAndSubcategoryParams,
-  FetchQuestionUsesParams,
-  QuestionSubmitData,
-  QuestionUpdateData,
-} from "./questionParamsSchemas";
 
 import type { CategoryForQuestionPicker } from "../../types/forms/formCreation";
-
-export type {
+import type {
   DeleteQuestionData,
-  FetchQuestionsByCategoryAndSubcategoryParams,
-  FetchQuestionUsesParams,
   QuestionSubmitData,
   QuestionUpdateData,
-} from "./questionParamsSchemas";
+} from "../mutations/questionUtil";
 
 const _searchQuestionsByCategoryAndSubcategory = async ({
   name,

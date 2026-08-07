@@ -1,4 +1,4 @@
-import { uploadImageResponseParamsSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
+import { uploadImageResponseParamsSchema } from "@/lib/serverFunctions/storage/drive/assessment";
 import { uploadImageResponse } from "@/lib/serverFunctions/storage/drive/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";

@@ -1,10 +1,25 @@
-import { exportIndividualTallysToCSVDataSchema } from "@/lib/serverFunctions/apiCalls/exportParamsSchemas";
-import { _exportIndividualTallysToCSV } from "@/lib/serverFunctions/serverActions/exportToCSV";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _exportIndividualTallysToCSV,
+  exportIndividualTallysToCSVDataSchema,
+} from "@/lib/serverFunctions/mutations/exportToCSV";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = exportIndividualTallysToCSVDataSchema.parse(
-    await request.json(),
-  );
-  return responseFromResult(await _exportIndividualTallysToCSV(data.tallysIds));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = exportIndividualTallysToCSVDataSchema.parse(
+      await request.json(),
+    );
+    const result = await _exportIndividualTallysToCSV(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

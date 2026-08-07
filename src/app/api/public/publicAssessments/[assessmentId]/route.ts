@@ -1,7 +1,6 @@
-import type { PublicFetchPublicAssessmentTreeParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
+import type { PublicFetchPublicAssessmentTreeParams } from "@/lib/serverFunctions/queries/public/assessment";
 import { publicFetchPublicAssessmentTree } from "@/lib/serverFunctions/queries/public/assessment";
 import { NextRequest } from "next/server";
-import { z } from "zod";
 
 export async function GET(
   request: NextRequest,
@@ -10,9 +9,9 @@ export async function GET(
   },
 ) {
   try {
-    const params = await props.params;
-    const assessmentId = z.coerce.number().parse(params.assessmentId);
-    const assessments = await publicFetchPublicAssessmentTree({ assessmentId });
+    const assessments = await publicFetchPublicAssessmentTree(
+      await props.params,
+    );
     return new Response(JSON.stringify(assessments), {
       status: 200,
       headers: {

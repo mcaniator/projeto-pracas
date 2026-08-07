@@ -1,8 +1,24 @@
-import { deleteCityDataSchema } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
-import { _deleteCity } from "@/lib/serverFunctions/serverActions/city";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteCity,
+  deleteCityDataSchema,
+} from "@/lib/serverFunctions/mutations/city";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = deleteCityDataSchema.parse(await request.formData());
-  return responseFromResult(await _deleteCity(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const data = deleteCityDataSchema.parse(await request.formData());
+    const result = await _deleteCity(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

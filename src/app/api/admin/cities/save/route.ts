@@ -1,8 +1,24 @@
-import { saveCityDataSchema } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
-import { _saveCity } from "@/lib/serverFunctions/serverActions/city";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _saveCity,
+  saveCityDataSchema,
+} from "@/lib/serverFunctions/mutations/city";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = saveCityDataSchema.parse(await request.formData());
-  return responseFromResult(await _saveCity(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const data = saveCityDataSchema.parse(await request.formData());
+    const result = await _saveCity(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

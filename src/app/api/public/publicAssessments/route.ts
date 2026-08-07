@@ -1,4 +1,4 @@
-import { publicFetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
+import { publicFetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/queries/public/assessment";
 import { publicFetchPublicAssessments } from "@/lib/serverFunctions/queries/public/assessment";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";

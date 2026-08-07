@@ -1,23 +1,18 @@
-"use server";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveLocationCategory = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar categorias de praças!",
-      },
-    };
-  }
+export const saveLocationCategoryDataSchema = z.instanceof(FormData);
+
+export type SaveLocationCategoryData = z.infer<
+  typeof saveLocationCategoryDataSchema
+>;
+
+export const _saveLocationCategory = async (
+  formData: SaveLocationCategoryData,
+) => {
   let name: string | null = null;
   let categoryId: number | null | undefined = null;
   try {
@@ -95,18 +90,19 @@ export const _saveLocationCategory = async (formData: FormData) => {
   }
 };
 
-export const _deleteLocationCategoryOrType = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir categorias/tipos de praças!",
-      },
-      data: null,
-    };
-  }
+export const deleteLocationCategoryOrTypeDataSchema = z.instanceof(FormData);
+
+export type DeleteLocationCategoryOrTypeData = z.infer<
+  typeof deleteLocationCategoryOrTypeDataSchema
+>;
+
+export type DeleteLocationCategoryOrTypeResponse = NonNullable<
+  Awaited<ReturnType<typeof _deleteLocationCategoryOrType>>
+>["data"];
+
+export const _deleteLocationCategoryOrType = async (
+  formData: DeleteLocationCategoryOrTypeData,
+) => {
   try {
     const itemType = z
       .enum(["CATEGORY", "TYPE"])
@@ -274,6 +270,14 @@ export const _deleteLocationCategoryOrType = async (formData: FormData) => {
         };
       }
     }
+
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Tipo de item inválido!",
+      } as APIResponseInfo,
+      data: null,
+    };
   } catch (e) {
     return {
       responseInfo: {

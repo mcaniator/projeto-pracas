@@ -1,8 +1,27 @@
-import { updateAssessmentVisibilityDataSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
-import { _updateAssessmentVisibility } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _updateAssessmentVisibility,
+  updateAssessmentVisibilityDataSchema,
+} from "@/lib/serverFunctions/mutations/assessmentUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = updateAssessmentVisibilityDataSchema.parse(await request.json());
-  return responseFromResult(await _updateAssessmentVisibility(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["ASSESSMENT_MANAGER"],
+      });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = updateAssessmentVisibilityDataSchema.parse(
+      await request.json(),
+    );
+    const result = await _updateAssessmentVisibility(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

@@ -1,12 +1,6 @@
-import type { FetchRecentlyCompletedAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
-import type { FetchRecentlyCompletedTallyResponse } from "@/lib/serverFunctions/queries/tally";
+import type { FetchRecentActivityResponse } from "@/lib/serverFunctions/queries/activity";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-
-export type FetchRecentActivityResponse = {
-  assessments: FetchRecentlyCompletedAssessmentsResponse["assessments"];
-  tallys: FetchRecentlyCompletedTallyResponse["tallys"];
-};
 
 export const useFetchRecentActivity = (
   params?: UseFetchAPIParams<FetchRecentActivityResponse>,

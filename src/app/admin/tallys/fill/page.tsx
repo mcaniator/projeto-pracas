@@ -2,7 +2,7 @@
 
 import LoadingIcon from "@/components/LoadingIcon";
 import { useFetchOngoingTally } from "@/lib/serverFunctions/apiCalls/tally";
-import type { FetchOngoingTallyResponse } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchOngoingTallyResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";

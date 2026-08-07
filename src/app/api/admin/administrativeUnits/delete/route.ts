@@ -1,10 +1,28 @@
-import { deleteAdministrativeUnitDataSchema } from "@/lib/serverFunctions/apiCalls/administrativeUnitParamsSchemas";
-import { _deleteAdministrativeUnit } from "@/lib/serverFunctions/serverActions/administrativeUnit";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteAdministrativeUnit,
+  deleteAdministrativeUnitDataSchema,
+} from "@/lib/serverFunctions/mutations/administrativeUnit";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = deleteAdministrativeUnitDataSchema.parse(
-    await request.formData(),
-  );
-  return responseFromResult(await _deleteAdministrativeUnit(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const data = deleteAdministrativeUnitDataSchema.parse(
+      await request.formData(),
+    );
+    const result = await _deleteAdministrativeUnit(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", {
+      status: 500,
+    });
+  }
 }

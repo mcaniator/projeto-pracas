@@ -1,10 +1,9 @@
 "use client";
 
+import type { CurrentUser } from "@/lib/serverFunctions/queries/user";
 import { Header } from "@components/header/header";
 import { useFetchCurrentUser } from "@lib/serverFunctions/apiCalls/auth";
 import { ReactNode, useEffect, useState } from "react";
-
-import type { CurrentUser } from "@/lib/serverFunctions/apiCalls/auth";
 
 const UserRoot = ({ children }: { children: ReactNode }) => {
   const [fetchCurrentUser] = useFetchCurrentUser();

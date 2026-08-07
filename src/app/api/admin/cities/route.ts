@@ -1,4 +1,4 @@
-import { fetchCitiesParamsSchema } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
+import { fetchCitiesParamsSchema } from "@/lib/serverFunctions/queries/city";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 

@@ -1,10 +1,8 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { auth, signIn, signOut } from "@auth/auth";
 import { userLoginSchema } from "@zodValidators";
+import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 const _login = async (
   formData: FormData,
@@ -29,16 +27,22 @@ const _login = async (
     if (!userExists || !userExists.password || !userExists.email) {
       return { statusCode: 404 };
     }
+
+    const passwordsMatch = await bcrypt.compare(
+      loginUser.password,
+      userExists.password,
+    );
+    if (!passwordsMatch) {
+      return { statusCode: 401 };
+    }
+
     await signIn("credentials", {
       email: loginUser.email,
       password: loginUser.password,
-      redirectTo: "/admin/map",
+      redirect: false,
     });
     return { statusCode: 200 };
   } catch (e) {
-    if (isRedirectError(e)) {
-      throw e;
-    }
     if (e instanceof AuthError) {
       switch (e.type) {
         case "CredentialsSignin":
@@ -47,8 +51,28 @@ const _login = async (
           return { statusCode: 401 };
       }
     }
-    return { statusCode: 401 };
+    return { statusCode: 500 };
   }
 };
 
-export default _login;
+export type LoginResponse = Awaited<ReturnType<typeof login>>["data"];
+export const login = async (formData: FormData) => {
+  const result = await _login(formData);
+  return {
+    responseInfo: { statusCode: result?.statusCode ?? 500 },
+    data: null,
+  };
+};
+
+export type LogoutResponse = Awaited<ReturnType<typeof logout>>["data"];
+export const logout = async () => {
+  try {
+    await signOut({ redirect: false });
+    return { responseInfo: { statusCode: 200 }, data: null };
+  } catch {
+    return {
+      responseInfo: { statusCode: 500, message: "Erro ao encerrar sessão." },
+      data: null,
+    };
+  }
+};

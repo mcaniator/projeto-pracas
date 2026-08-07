@@ -5,11 +5,13 @@ import TallysFilterSidebar from "@/app/admin/tallys/tallysFilterSidebar";
 import TallysList from "@/app/admin/tallys/tallysList";
 import { dexieDb } from "@/lib/dexie/dexie";
 import {
-  FetchTallyUsersResponse,
   useFetchTallyUsers,
   useFetchTallys,
 } from "@/lib/serverFunctions/apiCalls/tally";
-import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
+import type {
+  FetchTallyUsersResponse,
+  FetchTallysResponse,
+} from "@/lib/serverFunctions/queries/tally";
 import { IconFilter, IconPlus } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {

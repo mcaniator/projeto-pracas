@@ -1,4 +1,4 @@
-import { fetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
+import { fetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/queries/assessment";
 import { fetchPublicAssessments } from "@/lib/serverFunctions/queries/assessment";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";

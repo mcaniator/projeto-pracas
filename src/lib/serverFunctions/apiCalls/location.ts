@@ -2,24 +2,17 @@ import { fetchAdminSQLiteLocations } from "@/lib/capacitor/sqlite/adminSQLiteDb/
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import type { FetchLocationsResponse } from "../queries/location";
 import type {
   CreateLocationData,
   DeleteLocationData,
   EditLocationPolygonData,
-  FetchLocationsParams,
   UpdateLocationData,
   UpdateLocationVisibilityData,
-} from "./locationParamsSchemas";
-
-export type {
-  CreateLocationData,
-  DeleteLocationData,
-  EditLocationPolygonData,
+} from "../mutations/locationUtil";
+import type {
   FetchLocationsParams,
-  UpdateLocationData,
-  UpdateLocationVisibilityData,
-} from "./locationParamsSchemas";
+  FetchLocationsResponse,
+} from "../queries/location";
 
 export const useFetchLocations = (
   params?: UseFetchAPIParams<FetchLocationsResponse>,

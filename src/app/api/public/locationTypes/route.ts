@@ -1,4 +1,4 @@
-import { publicFetchLocationTypesParamsSchema } from "@/lib/serverFunctions/apiCalls/public/locationTypeParamsSchemas";
+import { publicFetchLocationTypesParamsSchema } from "@/lib/serverFunctions/queries/public/locationType";
 import { publicFetchLocationTypes } from "@/lib/serverFunctions/queries/public/locationType";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
@@ -6,7 +6,10 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(publicFetchLocationTypesParamsSchema, searchParams);
+    const params = parseQueryParams(
+      publicFetchLocationTypesParamsSchema,
+      searchParams,
+    );
     const locations = await publicFetchLocationTypes(params);
     return new Response(JSON.stringify(locations), {
       status: 200,

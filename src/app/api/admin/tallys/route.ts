@@ -1,4 +1,4 @@
-import { fetchTallysParamsSchema } from "@/lib/serverFunctions/apiCalls/tallyParamsSchemas";
+import { fetchTallysParamsSchema } from "@/lib/serverFunctions/queries/tally";
 import { fetchTallys } from "@/lib/serverFunctions/queries/tally";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";

@@ -1,5 +1,3 @@
-"use server";
-
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import {
   dateFormatter,
@@ -9,7 +7,6 @@ import {
 import { prisma } from "@/lib/prisma";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { QuestionResponseCharacterTypes, QuestionTypes } from "@prisma/client";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import {
   createTallyStringWithoutAddedData,
   formatCSVField,
@@ -20,6 +17,7 @@ import {
   locationArrayExportDailyTallysSchema,
   tallyArraySchema,
 } from "@zodValidators";
+import { z } from "zod";
 
 type AssessmentExportSubcategoryItem = {
   id: number;
@@ -48,15 +46,19 @@ type AssessmentExportCategoryItem = {
   )[];
 };
 
-const _exportRegistrationData = async (locationsIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
-  } catch (e) {
-    return {
-      statusCode: 401,
-      CSVstring: null,
-    };
-  }
+export const exportRegistrationDataSchema = z.object({
+  locationsIds: z.array(z.coerce.number()),
+});
+export type ExportRegistrationData = z.infer<
+  typeof exportRegistrationDataSchema
+>;
+export type ExportRegistrationResponse = NonNullable<
+  Awaited<ReturnType<typeof _exportRegistrationData>>["data"]
+>;
+
+const _exportRegistrationData = async ({
+  locationsIds,
+}: ExportRegistrationData) => {
   try {
     const locations = await prisma.location.findMany({
       where: {
@@ -122,19 +124,29 @@ const _exportRegistrationData = async (locationsIds: number[]) => {
       })
       .join("\n");
 
-    return { statusCode: 200, CSVstring };
+    return {
+      responseInfo: { statusCode: 200 },
+      data: { CSVstring },
+    };
   } catch (e) {
-    return { statusCode: 500, CSVstring: null };
+    return {
+      responseInfo: { statusCode: 500 },
+      data: { CSVstring: null },
+    };
   }
 };
 
-export const _exportAssessments = async (assessmentIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
-  } catch (e) {
-    return { statusCode: 401, csvObjs: [] };
-  }
+export const exportAssessmentsDataSchema = z.object({
+  assessmentIds: z.array(z.coerce.number()),
+});
+export type ExportAssessmentsData = z.infer<typeof exportAssessmentsDataSchema>;
+export type ExportAssessmentsResponse = NonNullable<
+  Awaited<ReturnType<typeof _exportAssessments>>["data"]
+>;
 
+export const _exportAssessments = async ({
+  assessmentIds,
+}: ExportAssessmentsData) => {
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -543,24 +555,30 @@ export const _exportAssessments = async (assessmentIds: number[]) => {
     }
 
     return {
-      statusCode: 200,
-      csvObjs: csvObjs,
+      responseInfo: { statusCode: 200 },
+      data: { csvObjs },
     };
   } catch (e) {
-    return { statusCode: 500, csvObjs: [] };
+    return {
+      responseInfo: { statusCode: 500 },
+      data: { csvObjs: [] },
+    };
   }
 };
 
-const _exportDailyTallys = async (
-  locationIds: number[],
-  tallysIds: number[],
-) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
-  }
+export const exportDailyTallysDataSchema = z.object({
+  locationIds: z.array(z.coerce.number()),
+  tallysIds: z.array(z.coerce.number()),
+});
+export type ExportDailyTallysData = z.infer<typeof exportDailyTallysDataSchema>;
+export type ExportDailyTallysResponse = NonNullable<
+  Awaited<ReturnType<typeof _exportDailyTallys>>["data"]
+>;
 
+const _exportDailyTallys = async ({
+  locationIds,
+  tallysIds,
+}: ExportDailyTallysData) => {
   try {
     const locationObjs = await prisma.location.findMany({
       where: {
@@ -602,9 +620,11 @@ const _exportDailyTallys = async (
       locationArrayExportDailyTallysSchema.safeParse(locationObjs);
     if (!parsedLocationObjs.success) {
       return {
-        statusCode: 400,
-        CSVstringWeekdays: [],
-        CSVstringWeekendDays: [],
+        responseInfo: { statusCode: 400 },
+        data: {
+          CSVstringWeekdays: [],
+          CSVstringWeekendDays: [],
+        },
       };
     }
 
@@ -818,22 +838,36 @@ const _exportDailyTallys = async (
       CSVstringWeekendDays.push(CSVstring);
     }
     return {
-      statusCode: 200,
-      CSVstringWeekdays,
-      CSVstringWeekendDays,
+      responseInfo: { statusCode: 200 },
+      data: {
+        CSVstringWeekdays,
+        CSVstringWeekendDays,
+      },
     };
   } catch (e) {
-    return { statusCode: 500, CSVstringWeekdays: [], CSVstringWeekendDays: [] };
+    return {
+      responseInfo: { statusCode: 500 },
+      data: {
+        CSVstringWeekdays: [],
+        CSVstringWeekendDays: [],
+      },
+    };
   }
 };
 
-const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, CSVstring: null };
-  }
+export const exportDailyTallysFromSingleLocationDataSchema = z.object({
+  tallysIds: z.array(z.coerce.number()),
+});
+export type ExportDailyTallysFromSingleLocationData = z.infer<
+  typeof exportDailyTallysFromSingleLocationDataSchema
+>;
+export type ExportDailyTallysFromSingleLocationResponse = NonNullable<
+  Awaited<ReturnType<typeof _exportDailyTallysFromSingleLocation>>["data"]
+>;
 
+const _exportDailyTallysFromSingleLocation = async ({
+  tallysIds,
+}: ExportDailyTallysFromSingleLocationData) => {
   const unparsedTallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -858,7 +892,10 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
   const parsedTallys = tallyArraySchema.safeParse(unparsedTallys);
 
   if (!parsedTallys.success) {
-    return { statusCode: 400, CSVstring: "" };
+    return {
+      responseInfo: { statusCode: 400 },
+      data: { CSVstring: "" },
+    };
   }
 
   let tallys = parsedTallys.data;
@@ -931,18 +968,27 @@ const _exportDailyTallysFromSingleLocation = async (tallysIds: number[]) => {
     })
     .join("\n");
 
-  return { statusCode: 200, CSVstring };
+  return {
+    responseInfo: { statusCode: 200 },
+    data: { CSVstring },
+  };
 };
 
 //This function below is used to export tally content without combining data. It uses old spreadsheet formation.
 
-const _exportIndividualTallysToCSV = async (tallysIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-  } catch (e) {
-    return { statusCode: 401, CSVstring: null };
-  }
+export const exportIndividualTallysToCSVDataSchema = z.object({
+  tallysIds: z.array(z.coerce.number()),
+});
+export type ExportIndividualTallysToCSVData = z.infer<
+  typeof exportIndividualTallysToCSVDataSchema
+>;
+export type ExportIndividualTallysToCSVResponse = NonNullable<
+  Awaited<ReturnType<typeof _exportIndividualTallysToCSV>>["data"]
+>;
 
+const _exportIndividualTallysToCSV = async ({
+  tallysIds,
+}: ExportIndividualTallysToCSVData) => {
   const tallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -965,12 +1011,18 @@ const _exportIndividualTallysToCSV = async (tallysIds: number[]) => {
 
   const parsedTallys = tallyArraySchema.safeParse(tallys);
   if (!parsedTallys.success) {
-    return { statusCode: 400, CSVstring: "" };
+    return {
+      responseInfo: { statusCode: 400 },
+      data: { CSVstring: "" },
+    };
   }
 
   const CSVstring = createTallyStringWithoutAddedData(parsedTallys.data);
 
-  return { statusCode: 200, CSVstring };
+  return {
+    responseInfo: { statusCode: 200 },
+    data: { CSVstring },
+  };
 };
 
 export {

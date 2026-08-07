@@ -1,4 +1,4 @@
-import { fetchFormParamsSchema } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
+import { fetchFormParamsSchema } from "@/lib/serverFunctions/queries/form";
 import { fetchForms } from "@/lib/serverFunctions/queries/form";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import "@/lib/utils/bigIntInJson";

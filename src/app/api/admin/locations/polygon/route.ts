@@ -1,8 +1,23 @@
-import { editLocationPolygonDataSchema } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
-import { _editLocationPolygon } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _editLocationPolygon,
+  editLocationPolygonDataSchema,
+} from "@/lib/serverFunctions/mutations/locationUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = editLocationPolygonDataSchema.parse(await request.json());
-  return responseFromResult(await _editLocationPolygon(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = editLocationPolygonDataSchema.parse(await request.json());
+    const result = await _editLocationPolygon(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

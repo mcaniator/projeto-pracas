@@ -1,20 +1,13 @@
-import { signOut } from "@auth/auth";
+import { logout } from "@/lib/serverFunctions/mutations/login";
 
 export async function POST() {
   try {
-    await signOut({ redirect: false });
-
-    return Response.json({
-      responseInfo: { statusCode: 200 },
-      data: null,
+    const result = await logout();
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
-  } catch {
-    return Response.json(
-      {
-        responseInfo: { statusCode: 500, message: "Erro ao encerrar sessão." },
-        data: null,
-      },
-      { status: 500 },
-    );
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
   }
 }

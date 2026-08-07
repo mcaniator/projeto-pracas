@@ -1,8 +1,23 @@
-import { deleteTallyDataSchema } from "@/lib/serverFunctions/apiCalls/tallyParamsSchemas";
-import { _deleteTally } from "@/lib/serverFunctions/serverActions/tallyUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteTally,
+  deleteTallyDataSchema,
+} from "@/lib/serverFunctions/mutations/tallyUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function POST(request: Request) {
-  const data = deleteTallyDataSchema.parse(await request.json());
-  return responseFromResult(await _deleteTally(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = deleteTallyDataSchema.parse(await request.json());
+    const result = await _deleteTally(data);
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

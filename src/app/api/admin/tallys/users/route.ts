@@ -1,27 +1,21 @@
-import { prisma } from "@/lib/prisma";
+import { fetchTallyUsers } from "@/lib/serverFunctions/queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function GET() {
   try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const data = await fetchTallyUsers();
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (e) {
-    return new Response("Unauthorized", { status: 401 });
+    return new Response("Error fetching users", { status: 500 });
   }
-
-  const users = await prisma.user.findMany({
-    where: {
-      tally: {
-        some: {},
-      },
-    },
-    select: {
-      id: true,
-      username: true,
-    },
-  });
-
-  return Response.json({
-    responseInfo: { statusCode: 200 },
-    data: { users },
-  });
 }

@@ -34,7 +34,7 @@ const fetchAdminSQLiteLocationTypes = async (): Promise<
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao buscar categorias de praças!",
+        message: "Erro ao buscar tipos de praças!",
       } as APIResponseInfo,
       data: {
         types: [],

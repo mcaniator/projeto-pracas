@@ -1,45 +1,22 @@
-import type { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
+import type {
+  FetchFinalizedTallysDataVisualizationParams,
+  FetchFinalizedTallysDataVisualizationResponse,
+  FetchOngoingTallyParams,
+  FetchOngoingTallyResponse,
+  FetchTallyUsersResponse,
+  FetchTallysParams,
+  FetchTallysResponse,
+} from "@/lib/serverFunctions/queries/tally";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import type {
-  FetchFinalizedTallysToDataVisualizationResponse,
-  FetchOngoingTallyByIdResponse,
-} from "@/lib/serverFunctions/queries/tally";
+
 import type {
   CreateTallyData,
+  CreateTallyResponse,
   DeleteTallyData,
-  FetchFinalizedTallysDataVisualizationParams,
-  FetchOngoingTallyParams,
-  FetchTallysParams,
   SaveOngoingTallyData,
-} from "./tallyParamsSchemas";
-
-export type {
-  CreateTallyData,
-  DeleteTallyData,
-  FetchFinalizedTallysDataVisualizationParams,
-  FetchOngoingTallyParams,
-  FetchTallysParams,
-  SaveOngoingTallyData,
-} from "./tallyParamsSchemas";
-
-export type FetchTallyUsersResponse = {
-  users: { id: string; username: string }[];
-};
-
-export type FetchOngoingTallyResponse = FetchOngoingTallyByIdResponse;
-
-export type FetchFinalizedTallysDataVisualizationResponse =
-  FetchFinalizedTallysToDataVisualizationResponse;
-
-export type CreateTallyResponse = {
-  tallyId: number;
-};
-
-export type SaveOngoingTallyResponse = {
-  savedAsFinalized: boolean;
-  updatedAt: string;
-};
+  SaveOngoingTallyResponse,
+} from "../mutations/tallyUtil";
 
 export const useFetchTallys = (
   params?: UseFetchAPIParams<FetchTallysResponse>,
@@ -97,7 +74,11 @@ export const useFetchFinalizedTallysDataVisualization = (
 export const useCreateTally = (
   params?: UseFetchAPIParams<CreateTallyResponse>,
 ) => {
-  return useFetchAPI<CreateTallyResponse, Record<string, never>, CreateTallyData>({
+  return useFetchAPI<
+    CreateTallyResponse,
+    Record<string, never>,
+    CreateTallyData
+  >({
     url: "/api/admin/tallys/create",
     callbacks: params?.callbacks,
     options: {

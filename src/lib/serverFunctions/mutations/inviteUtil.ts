@@ -1,73 +1,19 @@
-"use server";
-
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Prisma, Role } from "@prisma/client";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { emailTransporter } from "@serverOnly/email";
 import { getInviteEmail } from "@serverOnly/renderEmail";
 import * as crypto from "crypto";
+import { z } from "zod";
 
-const _updateInvite = async (inviteToken: string, roles: Role[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
-  } catch (e) {
-    return { statusCode: 401 };
-  }
-  try {
-    if (
-      roles.filter((role) => role).length > 0 &&
-      !roles.some((role) => role === "PARK_VIEWER" || role === "PARK_MANAGER")
-    ) {
-      return { statusCode: 400 };
-    }
-    await prisma.invite.update({
-      where: {
-        token: inviteToken,
-      },
-      data: {
-        roles,
-      },
-    });
-    return { statusCode: 200 };
-  } catch (e) {
-    return { statusCode: 500 };
-  }
-};
+export const createInviteDataSchema = z.object({
+  email: z.string(),
+  roles: z.array(z.nativeEnum(Role)),
+  inviteId: z.coerce.number().optional(),
+});
+export type CreateInviteData = z.infer<typeof createInviteDataSchema>;
 
-const _deleteInvite = async (token: string) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
-  } catch (e) {
-    return { statusCode: 401 };
-  }
-  try {
-    await prisma.invite.delete({
-      where: {
-        token,
-      },
-    });
-    return { statusCode: 200 };
-  } catch (e) {
-    return { statusCode: 500 };
-  }
-};
-
-export const _createInviteV2 = async (params: {
-  email: string;
-  roles: Role[];
-  inviteId?: number;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar convites!",
-      } as APIResponseInfo,
-    };
-  }
+export const _createInviteV2 = async (params: CreateInviteData) => {
   if (params.email.trim().length === 0) {
     return {
       responseInfo: {
@@ -225,17 +171,10 @@ export const _createInviteV2 = async (params: {
   }
 };
 
-export const _deleteInviteV2 = async (params: { id: number }) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir convites!",
-      } as APIResponseInfo,
-    };
-  }
+export const deleteInviteDataSchema = z.object({ id: z.coerce.number() });
+export type DeleteInviteData = z.infer<typeof deleteInviteDataSchema>;
+
+export const _deleteInviteV2 = async (params: DeleteInviteData) => {
   try {
     await prisma.invite.delete({
       where: {
@@ -257,5 +196,3 @@ export const _deleteInviteV2 = async (params: { id: number }) => {
     };
   }
 };
-
-export { _deleteInvite, _updateInvite };

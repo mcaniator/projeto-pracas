@@ -1,4 +1,4 @@
-import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/apiCalls/questionIconParamsSchemas";
+import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/queries/questionIcon";
 import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";

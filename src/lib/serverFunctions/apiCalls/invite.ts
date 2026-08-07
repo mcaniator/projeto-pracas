@@ -1,12 +1,11 @@
 import type { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+
 import type {
   CreateInviteData,
   DeleteInviteData,
-} from "./inviteParamsSchemas";
-
-export type { CreateInviteData, DeleteInviteData } from "./inviteParamsSchemas";
+} from "../mutations/inviteUtil";
 
 export const useFetchInvites = (
   params?: UseFetchAPIParams<FetchInvitesResponse>,

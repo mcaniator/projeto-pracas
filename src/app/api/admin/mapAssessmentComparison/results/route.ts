@@ -1,4 +1,4 @@
-import { fetchMapAssessmentComparisonResultsParamsSchema } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparisonParamsSchemas";
+import { fetchMapAssessmentComparisonResultsParamsSchema } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { fetchMapAssessmentComparisonResults } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";

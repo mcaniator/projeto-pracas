@@ -1,5 +1,5 @@
+import { fetchLocationsParamsSchema } from "@/lib/serverFunctions/queries/location";
 import "@/lib/utils/bigIntInJson";
-import { fetchLocationsParamsSchema } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 

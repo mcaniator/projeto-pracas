@@ -1,27 +1,22 @@
-import { prisma } from "@/lib/prisma";
+import { fetchAssessmentUsers } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 
 export async function GET() {
   try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["ASSESSMENT"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const data = await fetchAssessmentUsers();
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (e) {
-    return new Response("Unauthorized", { status: 401 });
+    return new Response("Erro ao buscar avaliadores!", {
+      status: 500,
+    });
   }
-
-  const users = await prisma.user.findMany({
-    where: {
-      assessment: {
-        some: {},
-      },
-    },
-    select: {
-      id: true,
-      username: true,
-    },
-  });
-
-  return Response.json({
-    responseInfo: { statusCode: 200 },
-    data: { users },
-  });
 }

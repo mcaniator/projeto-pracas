@@ -3,6 +3,7 @@ import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import type { Coordinate } from "ol/coordinate";
+import { z } from "zod";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
@@ -81,6 +82,15 @@ export const fetchMapAssessmentComparisonCategories = async () => {
   }
 };
 
+export const fetchMapAssessmentComparisonResultsParamsSchema = z.object({
+  cityId: z.coerce.number(),
+  categoryId: z.coerce.number(),
+});
+
+export type FetchMapAssessmentComparisonResultsParams = z.infer<
+  typeof fetchMapAssessmentComparisonResultsParamsSchema
+>;
+
 export type FetchMapAssessmentComparisonResultsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchMapAssessmentComparisonResults>>["data"]
 >;
@@ -88,10 +98,7 @@ export type FetchMapAssessmentComparisonResultsResponse = NonNullable<
 export const fetchMapAssessmentComparisonResults = async ({
   cityId,
   categoryId,
-}: {
-  cityId: number;
-  categoryId: number;
-}) => {
+}: FetchMapAssessmentComparisonResultsParams) => {
   try {
     const locations = await prisma.location.findMany({
       where: {
@@ -289,6 +296,21 @@ const parseAssessmentGeometries = (
   return parsedGeometries;
 };
 
+export const fetchMapAssessmentComparisonAssessmentTreesParamsSchema = z.object(
+  {
+    categoryId: z.coerce.number(),
+    locationIds: z
+      .string()
+      .transform((value) =>
+        value.split(",").map((id) => z.coerce.number().parse(id)),
+      ),
+  },
+);
+
+export type FetchMapAssessmentComparisonAssessmentTreesParams = z.infer<
+  typeof fetchMapAssessmentComparisonAssessmentTreesParamsSchema
+>;
+
 export type FetchMapAssessmentComparisonAssessmentTreesResponse = NonNullable<
   Awaited<
     ReturnType<typeof fetchMapAssessmentComparisonAssessmentTrees>
@@ -351,10 +373,7 @@ type MapAssessmentComparisonAssessmentQueryResult = {
 export const fetchMapAssessmentComparisonAssessmentTrees = async ({
   categoryId,
   locationIds,
-}: {
-  categoryId: number;
-  locationIds: number[];
-}) => {
+}: FetchMapAssessmentComparisonAssessmentTreesParams) => {
   try {
     const assessmentIds = (
       await prisma.assessment.findMany({

@@ -3,40 +3,16 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import type {
   ExportAssessmentsData,
+  ExportAssessmentsResponse,
   ExportDailyTallysData,
   ExportDailyTallysFromSingleLocationData,
+  ExportDailyTallysFromSingleLocationResponse,
+  ExportDailyTallysResponse,
   ExportIndividualTallysToCSVData,
+  ExportIndividualTallysToCSVResponse,
   ExportRegistrationData,
-} from "./exportParamsSchemas";
-
-export type {
-  ExportAssessmentsData,
-  ExportDailyTallysData,
-  ExportDailyTallysFromSingleLocationData,
-  ExportIndividualTallysToCSVData,
-  ExportRegistrationData,
-} from "./exportParamsSchemas";
-
-export type ExportRegistrationResponse = {
-  statusCode: number;
-  CSVstring: string | null;
-};
-
-export type ExportAssessmentsResponse = {
-  statusCode: number;
-  csvObjs: { formName: string; csvString: string }[];
-};
-
-export type ExportDailyTallysResponse = {
-  statusCode: number;
-  CSVstringWeekdays: string[];
-  CSVstringWeekendDays: string[];
-};
-
-export type ExportCSVResponse = {
-  statusCode: number;
-  CSVstring: string | null;
-};
+  ExportRegistrationResponse,
+} from "../mutations/exportToCSV";
 
 export const useExportRegistrationData = (
   params?: UseFetchAPIParams<ExportRegistrationResponse>,
@@ -87,10 +63,10 @@ export const useExportDailyTallys = (
 };
 
 export const useExportDailyTallysFromSingleLocation = (
-  params?: UseFetchAPIParams<ExportCSVResponse>,
+  params?: UseFetchAPIParams<ExportDailyTallysFromSingleLocationResponse>,
 ) => {
   return useFetchAPI<
-    ExportCSVResponse,
+    ExportDailyTallysFromSingleLocationResponse,
     Record<string, never>,
     ExportDailyTallysFromSingleLocationData
   >({
@@ -103,10 +79,10 @@ export const useExportDailyTallysFromSingleLocation = (
 };
 
 export const useExportIndividualTallysToCSV = (
-  params?: UseFetchAPIParams<ExportCSVResponse>,
+  params?: UseFetchAPIParams<ExportIndividualTallysToCSVResponse>,
 ) => {
   return useFetchAPI<
-    ExportCSVResponse,
+    ExportIndividualTallysToCSVResponse,
     Record<string, never>,
     ExportIndividualTallysToCSVData
   >({

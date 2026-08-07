@@ -2,7 +2,7 @@
 
 import LoadingIcon from "@/components/LoadingIcon";
 import { useFetchFinalizedTallysDataVisualization } from "@/lib/serverFunctions/apiCalls/tally";
-import type { FetchFinalizedTallysDataVisualizationResponse } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchFinalizedTallysDataVisualizationResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 

@@ -1,4 +1,4 @@
-import { sqliteSyncParamsSchema } from "@/lib/serverFunctions/apiCalls/sqliteSyncSchemas";
+import { sqliteSyncParamsSchema } from "@/lib/serverFunctions/queries/sqliteSync";
 import { fetchSQLiteSyncData } from "@/lib/serverFunctions/queries/sqliteSync";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -19,6 +19,6 @@ export async function GET(request: NextRequest) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response("Error fetching users", { status: 500 });
+    return new Response("Erro ao buscar dados!", { status: 500 });
   }
 }

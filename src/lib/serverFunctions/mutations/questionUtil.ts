@@ -1,10 +1,7 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
@@ -23,23 +20,15 @@ const parseQuestionOptions = (formData: FormData, questionId: number) => {
   });
 };
 
+export const questionSubmitDataSchema = z.instanceof(FormData);
+export type QuestionSubmitData = z.infer<typeof questionSubmitDataSchema>;
+
 const _questionSubmit = async (
-  formData: FormData,
+  formData: QuestionSubmitData,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: null;
-} | null> => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para registrar questões!",
-      },
-      data: null,
-    };
-  }
+}> => {
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
@@ -315,20 +304,12 @@ const _questionSubmit = async (
   };
 };
 
-const _questionUpdate = async (
-  formData: FormData,
-): Promise<{ responseInfo: APIResponseInfo }> => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para editar questões!",
-      },
-    };
-  }
+export const questionUpdateDataSchema = z.instanceof(FormData);
+export type QuestionUpdateData = z.infer<typeof questionUpdateDataSchema>;
 
+const _questionUpdate = async (
+  formData: QuestionUpdateData,
+): Promise<{ responseInfo: APIResponseInfo }> => {
   try {
     const questionId = Number(formData.get("questionId"));
     const questionType = formData.get("questionType");
@@ -466,21 +447,10 @@ const _questionUpdate = async (
   }
 };
 
-const _deleteQuestion = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir questões!",
-      } as APIResponseInfo,
-      data: {
-        formsWithQuestions: [],
-      },
-    };
-  }
+export const deleteQuestionDataSchema = z.instanceof(FormData);
+export type DeleteQuestionData = z.infer<typeof deleteQuestionDataSchema>;
 
+const _deleteQuestion = async (formData: DeleteQuestionData) => {
   const questionId = parseInt(formData.get("questionId") as string);
 
   try {

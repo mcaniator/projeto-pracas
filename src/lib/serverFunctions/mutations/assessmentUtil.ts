@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { auth } from "@lib/auth/auth";
 import { getSessionUser } from "@lib/auth/userUtil";
@@ -8,19 +6,13 @@ import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-const _createAssessmentV2 = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+export const createAssessmentDataSchema = z.instanceof(FormData);
+export type CreateAssessmentData = z.infer<typeof createAssessmentDataSchema>;
+export type CreateAssessmentResponse = NonNullable<
+  Awaited<ReturnType<typeof _createAssessmentV2>>["data"]
+>;
+
+const _createAssessmentV2 = async (formData: CreateAssessmentData) => {
   const session = await auth();
   if (!session || !session.user) {
     return {
@@ -74,25 +66,18 @@ const _createAssessmentV2 = async (formData: FormData) => {
   }
 };
 
+export const updateAssessmentVisibilityDataSchema = z.object({
+  assessmentId: z.coerce.number(),
+  isPublic: z.boolean(),
+});
+export type UpdateAssessmentVisibilityData = z.infer<
+  typeof updateAssessmentVisibilityDataSchema
+>;
+
 const _updateAssessmentVisibility = async ({
   assessmentId,
   isPublic,
-}: {
-  assessmentId: number;
-  isPublic: boolean;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["ASSESSMENT_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+}: UpdateAssessmentVisibilityData) => {
   try {
     const updatedAssessment = await prisma.assessment.update({
       where: { id: assessmentId, isFinalized: isPublic ? true : undefined },
@@ -117,19 +102,12 @@ const _updateAssessmentVisibility = async ({
   }
 };
 
-const _deleteAssessment = async (assessmentId: number) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["ASSESSMENT_EDITOR", "ASSESSMENT_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir avaliação!",
-      } as APIResponseInfo,
-    };
-  }
+export const deleteAssessmentDataSchema = z.object({
+  assessmentId: z.coerce.number(),
+});
+export type DeleteAssessmentData = z.infer<typeof deleteAssessmentDataSchema>;
+
+const _deleteAssessment = async ({ assessmentId }: DeleteAssessmentData) => {
   try {
     const assessment = await prisma.assessment.findUnique({
       where: {

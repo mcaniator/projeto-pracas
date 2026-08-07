@@ -2,20 +2,16 @@ import { fetchAdminSqliteCities } from "@/lib/capacitor/sqlite/adminSQLiteDb/que
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import type { FetchCitiesResponse } from "../queries/city";
 import type {
   DeleteCityData,
-  FetchCitiesParams,
+  DeleteCityResponse,
   SaveCityData,
-} from "./cityParamsSchemas";
-import type { PublicFetchCitiesParams } from "./public/cityParamsSchemas";
-
-export type {
-  DeleteCityData,
-  FetchCitiesParams,
-  SaveCityData,
-} from "./cityParamsSchemas";
-export type { PublicFetchCitiesParams } from "./public/cityParamsSchemas";
+} from "../mutations/city";
+import type { FetchCitiesParams, FetchCitiesResponse } from "../queries/city";
+import type {
+  PublicFetchCitiesParams,
+  PublicFetchCitiesResponse,
+} from "../queries/public/city";
 
 export const useFetchCities = (
   params?: UseFetchAPIParams<FetchCitiesResponse>,
@@ -33,11 +29,11 @@ export const useFetchCities = (
 };
 
 export const usePublicFetchCities = (
-  params?: UseFetchAPIParams<FetchCitiesResponse>,
+  params?: UseFetchAPIParams<PublicFetchCitiesResponse>,
 ) => {
   const url = "/api/public/cities";
 
-  return useFetchAPI<FetchCitiesResponse, PublicFetchCitiesParams>({
+  return useFetchAPI<PublicFetchCitiesResponse, PublicFetchCitiesParams>({
     url,
     callbacks: params?.callbacks,
     options: {
@@ -55,10 +51,6 @@ export const useSaveCity = (params?: UseFetchAPIParams<null>) => {
     },
   });
 };
-
-export type DeleteCityResponse = {
-  numberOfLocations: number;
-} | null;
 
 export const useDeleteCity = (
   params?: UseFetchAPIParams<DeleteCityResponse>,

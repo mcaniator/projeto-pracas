@@ -1,4 +1,4 @@
-import { fetchQuestionUsesParamsSchema } from "@/lib/serverFunctions/apiCalls/questionParamsSchemas";
+import { fetchQuestionUsesParamsSchema } from "@/lib/serverFunctions/queries/question";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { fetchQuestionUses } from "@queries/question";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -15,7 +15,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(fetchQuestionUsesParamsSchema, searchParams);
+    const params = parseQueryParams(
+      fetchQuestionUsesParamsSchema,
+      searchParams,
+    );
     const questionUses = await fetchQuestionUses(params);
     return new Response(JSON.stringify(questionUses), {
       status: 200,

@@ -2,7 +2,7 @@
 
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
-import type { FetchCitiesParams } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
+import type { FetchCitiesParams } from "@/lib/serverFunctions/queries/city";
 import type { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { getStoredLocationSelection } from "@/lib/utils/localStorage";
 import { BrazilianStates } from "@prisma/client";
