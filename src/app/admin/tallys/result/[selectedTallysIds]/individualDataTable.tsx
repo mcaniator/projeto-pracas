@@ -27,8 +27,8 @@ const IndividualDataTable = ({ tallys }: { tallys: FinalizedTally[] }) => {
     <>
       <div className="flex flex-col gap-5 overflow-auto rounded">
         {tallys.map((tally, key) => {
-          const startDate = new Date(tally.startDate);
-          const endDate = tally.endDate ? new Date(tally.endDate) : null;
+          const startDate = tally.startDate;
+          const endDate = tally.endDate;
           return (
             <div
               key={key}

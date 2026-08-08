@@ -17,7 +17,12 @@ export const useAppSnackbar = () => {
       responseInfo: APIResponseInfo | undefined | null,
       { showSuccessMessage = false }: NotifyApiResponseOptions = {},
     ) => {
-      if (!responseInfo || responseInfo.statusCode <= 0) return;
+      if (
+        !responseInfo ||
+        responseInfo.statusCode <= 0 ||
+        !responseInfo.message
+      )
+        return;
 
       const isSuccess =
         responseInfo.statusCode >= 200 && responseInfo.statusCode < 300;

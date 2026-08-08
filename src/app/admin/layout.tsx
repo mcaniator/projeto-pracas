@@ -7,10 +7,8 @@ import { Capacitor } from "@capacitor/core";
 import { Network } from "@capacitor/network";
 import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";
-import {
-  CurrentUser,
-  useFetchCurrentUser,
-} from "@lib/serverFunctions/apiCalls/auth";
+import { useFetchCurrentUser } from "@lib/serverFunctions/apiCalls/auth";
+import type { CurrentUser } from "@lib/serverFunctions/queries/user";
 import { CircularProgress } from "@mui/material";
 import { Role } from "@prisma/client";
 import { useRouter } from "next-nprogress-bar";
@@ -44,6 +42,8 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
   }, [router]);
 
   useEffect(() => {
+    //This is the user login check.
+    //TODO: The code is too complex to be declared inside the component. Check if it can be refactored
     const loadUser = async () => {
       const capacitorNetWorkStatus = await Network.getStatus();
       if (!Capacitor.isNativePlatform() || capacitorNetWorkStatus.connected) {
@@ -113,8 +113,9 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
 
   if (!user || user.roles.length === 0) {
     return (
-      <div className="flex h-[100dvh] items-center justify-center bg-white">
+      <div className="flex h-[100dvh] flex-col items-center justify-center bg-white">
         <CircularProgress size={128} />
+        <p className="text-2xl">Carregando dados de usuário...</p>
       </div>
     );
   }

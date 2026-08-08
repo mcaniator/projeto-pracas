@@ -99,9 +99,7 @@ const ResultViewerAssessmentComparison = ({
           options={selectedLocation?.assessmentTrees ?? []}
           value={selectedAssessment}
           isOptionEqualToValue={(option, value) => option.id === value.id}
-          getOptionLabel={(option) =>
-            dateFormatter.format(new Date(option.startDate))
-          }
+          getOptionLabel={(option) => dateFormatter.format(option.startDate)}
           onChange={(_, value) => {
             if (value) setSelectedAssessmentId(value.id);
           }}

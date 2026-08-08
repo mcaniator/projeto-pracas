@@ -1,10 +1,8 @@
-import type {
-  FetchQuestionUsesParams,
-  FetchQuestionsByCategoryAndSubcategoryParams,
-} from "@/lib/serverFunctions/apiCalls/questionParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
@@ -121,6 +119,17 @@ const buildQuestionsByCategoryQuery = ({
   ORDER BY c.name DESC
 `;
 
+export const fetchQuestionsByCategoryAndSubcategoryParamsSchema = z.object({
+  categoryId: z.coerce.number().int().nullish(),
+  subcategoryId: z.coerce.number().nullish(),
+  verifySubcategoryNullness: booleanFromString.nullish(),
+  name: z.string().optional().nullish(),
+});
+
+export type FetchQuestionsByCategoryAndSubcategoryParams = z.infer<
+  typeof fetchQuestionsByCategoryAndSubcategoryParamsSchema
+>;
+
 export type FetchquestionsByCategoryAndSubcategoryResponse = NonNullable<
   Awaited<ReturnType<typeof searchQuestionsByCategoryAndSubcategory>>["data"]
 >;
@@ -218,6 +227,14 @@ const searchQuestionsByName = async (name: string) => {
     };
   }
 };
+
+export const fetchQuestionUsesParamsSchema = z.object({
+  questionId: z.coerce.number().int(),
+});
+
+export type FetchQuestionUsesParams = z.infer<
+  typeof fetchQuestionUsesParamsSchema
+>;
 
 export type FetchquestionUsesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchQuestionUses>>["data"]

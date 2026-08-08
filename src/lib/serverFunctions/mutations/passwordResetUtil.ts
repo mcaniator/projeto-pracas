@@ -1,5 +1,3 @@
-"use server";
-
 import { auth, signOut } from "@auth/auth";
 import { prisma } from "@lib/prisma";
 import { emailTransporter } from "@serverOnly/email";
@@ -89,6 +87,17 @@ const _createPasswordReset = async (formData: FormData) => {
   }
 };
 
+export type RequestPasswordResetResponse = Awaited<
+  ReturnType<typeof requestPasswordReset>
+>["data"];
+export const requestPasswordReset = async (formData: FormData) => {
+  const result = await _createPasswordReset(formData);
+  return {
+    responseInfo: { statusCode: result.statusCode },
+    data: null,
+  };
+};
+
 const _resetPassword = async (formData: FormData) => {
   try {
     const passwordReset = passwordResetSchema.parse({
@@ -142,4 +151,13 @@ const _resetPassword = async (formData: FormData) => {
   }
 };
 
-export { _createPasswordReset, _resetPassword };
+export type ResetPasswordResponse = Awaited<
+  ReturnType<typeof resetPassword>
+>["data"];
+export const resetPassword = async (formData: FormData) => {
+  const result = await _resetPassword(formData);
+  return {
+    responseInfo: { statusCode: result?.statusCode ?? 500 },
+    data: { errorMessage: result?.errorMessage ?? null },
+  };
+};

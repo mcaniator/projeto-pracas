@@ -1,25 +1,15 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { deleteImage, uploadImage } from "@/lib/utils/image";
 import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { Image } from "@prisma/client";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { addPolygon } from "@serverOnly/geometries";
 import { z } from "zod";
 
-const _deleteLocation = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir praças!",
-      } as APIResponseInfo,
-    };
-  }
+export const deleteLocationDataSchema = z.instanceof(FormData);
+export type DeleteLocationData = z.infer<typeof deleteLocationDataSchema>;
+
+const _deleteLocation = async (formData: DeleteLocationData) => {
   try {
     const id = z.coerce.number().parse(formData.get("id"));
     try {
@@ -93,18 +83,10 @@ const _deleteLocation = async (formData: FormData) => {
   }
 };
 
-const _updateLocation = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Invalid permission",
-      } as APIResponseInfo,
-    };
-  }
+export const updateLocationDataSchema = z.instanceof(FormData);
+export type UpdateLocationData = z.infer<typeof updateLocationDataSchema>;
 
+const _updateLocation = async (formData: UpdateLocationData) => {
   try {
     const locationData = locationSchema.parse({
       name: formData.get("name"),
@@ -215,18 +197,10 @@ const _updateLocation = async (formData: FormData) => {
   }
 };
 
-const _createLocation = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+export const createLocationDataSchema = z.instanceof(FormData);
+export type CreateLocationData = z.infer<typeof createLocationDataSchema>;
 
+const _createLocation = async (formData: CreateLocationData) => {
   try {
     const locationData = locationSchema.parse({
       name: z.coerce
@@ -317,23 +291,18 @@ const _createLocation = async (formData: FormData) => {
   }
 };
 
+export const editLocationPolygonDataSchema = z.object({
+  id: z.coerce.number(),
+  featuresGeoJson: z.string(),
+});
+export type EditLocationPolygonData = z.infer<
+  typeof editLocationPolygonDataSchema
+>;
+
 const _editLocationPolygon = async ({
   id,
   featuresGeoJson,
-}: {
-  id: number;
-  featuresGeoJson: string;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+}: EditLocationPolygonData) => {
   try {
     await addPolygon(featuresGeoJson, id);
     return {
@@ -352,23 +321,18 @@ const _editLocationPolygon = async ({
   }
 };
 
+export const updateLocationVisibilityDataSchema = z.object({
+  id: z.coerce.number(),
+  isPublic: z.boolean(),
+});
+export type UpdateLocationVisibilityData = z.infer<
+  typeof updateLocationVisibilityDataSchema
+>;
+
 const _updateLocationVisibility = async ({
   id,
   isPublic,
-}: {
-  id: number;
-  isPublic: boolean;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+}: UpdateLocationVisibilityData) => {
   try {
     await prisma.location.update({
       where: {

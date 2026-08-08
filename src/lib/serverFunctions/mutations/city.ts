@@ -1,25 +1,15 @@
-"use server";
-
 import { BrazilianStates } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveCity = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar categorias de praças!",
-      },
-    };
-  }
+export const saveCityDataSchema = z.instanceof(FormData);
 
+export type SaveCityData = z.infer<typeof saveCityDataSchema>;
+
+export const _saveCity = async (formData: SaveCityData) => {
   try {
     const parse = {
       name: z.string().trim().max(255).min(1).parse(formData.get("name")),
@@ -127,19 +117,15 @@ export const _saveCity = async (formData: FormData) => {
   }
 };
 
-export const _deleteCity = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para cadastrar cidades!",
-      },
-      data: null,
-    };
-  }
+export const deleteCityDataSchema = z.instanceof(FormData);
 
+export type DeleteCityData = z.infer<typeof deleteCityDataSchema>;
+
+export type DeleteCityResponse = NonNullable<
+  Awaited<ReturnType<typeof _deleteCity>>["data"]
+> | null;
+
+export const _deleteCity = async (formData: DeleteCityData) => {
   try {
     const cityId = z.coerce.number().parse(formData.get("cityId"));
     try {

@@ -1,27 +1,17 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { z } from "zod";
 
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
-const _createForm = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+export const createFormDataSchema = z.instanceof(FormData);
+export type CreateFormData = z.infer<typeof createFormDataSchema>;
+
+const _createForm = async (formData: CreateFormData) => {
   try {
     const newFormData = formSchema.parse({
       name: formData.get("name"),
@@ -110,24 +100,25 @@ const _createForm = async (formData: FormData) => {
   }
 };
 
+export const updateFormDataSchema = z.custom<{
+  formId: number;
+  formTree: FormEditorTree;
+  calculations: CalculationParams[];
+  isFinalized: boolean;
+  newFormName?: string;
+}>();
+export type UpdateFormData = z.infer<typeof updateFormDataSchema>;
+export type UpdateFormResponse = Awaited<
+  ReturnType<typeof _updateFormV2>
+>["data"];
+
 const _updateFormV2 = async ({
   formId,
   formTree,
   calculations,
   isFinalized,
   newFormName,
-}: {
-  formId: number;
-  formTree: FormEditorTree;
-  calculations: CalculationParams[];
-  isFinalized: boolean;
-  newFormName?: string;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return { statusCode: 401 };
-  }
+}: UpdateFormData) => {
   try {
     const currentForm = await prisma.form.findFirst({
       where: {
@@ -136,7 +127,7 @@ const _updateFormV2 = async ({
       },
     });
     if (!currentForm) {
-      return { statusCode: 400 };
+      return { responseInfo: { statusCode: 400 }, data: null };
     }
 
     await prisma.form.update({
@@ -368,24 +359,20 @@ const _updateFormV2 = async ({
       }
     });
 
-    return { statusCode: 200 };
+    return { responseInfo: { statusCode: 200 }, data: null };
   } catch (e) {
-    return { statusCode: 500 };
+    return { responseInfo: { statusCode: 500 }, data: null };
   }
 };
 
-const _updateFormArchiveStatus = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+export const updateFormArchiveStatusDataSchema = z.instanceof(FormData);
+export type UpdateFormArchiveStatusData = z.infer<
+  typeof updateFormArchiveStatusDataSchema
+>;
 
+const _updateFormArchiveStatus = async (
+  formData: UpdateFormArchiveStatusData,
+) => {
   try {
     const formId = z.coerce.number().parse(formData.get("formId"));
     const archived = booleanFromString.parse(formData.get("archived"));

@@ -1,8 +1,24 @@
-import { updateUserRolesDataSchema } from "@/lib/serverFunctions/apiCalls/userParamsSchemas";
-import { _updateUserRolesV2 } from "@/lib/serverFunctions/serverActions/userUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _updateUserRolesV2,
+  updateUserRolesDataSchema,
+} from "@/lib/serverFunctions/mutations/userUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = updateUserRolesDataSchema.parse(await request.json());
-  return responseFromResult(await _updateUserRolesV2(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["USER_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = updateUserRolesDataSchema.parse(await request.json());
+    const result = await _updateUserRolesV2(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

@@ -1,6 +1,6 @@
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/apiCalls/assessment";
+import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Divider } from "@mui/material";
 import { IconExternalLink } from "@tabler/icons-react";

@@ -1,8 +1,26 @@
-import { deleteAssessmentDataSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
-import { _deleteAssessment } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteAssessment,
+  deleteAssessmentDataSchema,
+} from "@/lib/serverFunctions/mutations/assessmentUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = deleteAssessmentDataSchema.parse(await request.json());
-  return responseFromResult(await _deleteAssessment(data.assessmentId));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roleGroups: ["ASSESSMENT"],
+      });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = deleteAssessmentDataSchema.parse(await request.json());
+    const result = await _deleteAssessment(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

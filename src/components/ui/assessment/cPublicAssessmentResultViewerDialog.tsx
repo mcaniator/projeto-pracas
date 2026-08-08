@@ -50,7 +50,7 @@ const CPublicAssessmentResultViewerDialog = ({
       title={locationName}
       subtitle={
         selectedAssessment?.startDate ?
-          dateFormatter.format(new Date(selectedAssessment.startDate))
+          dateFormatter.format(selectedAssessment.startDate)
         : ""
       }
     >

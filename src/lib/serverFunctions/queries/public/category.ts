@@ -1,6 +1,14 @@
-import type { PublicFetchCategoriesParams } from "@/lib/serverFunctions/apiCalls/public/categoryParamsSchemas";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import { z } from "zod";
+
+export const publicFetchCategoriesParamsSchema = z.object({
+  cityId: z.coerce.number(),
+});
+
+export type PublicFetchCategoriesParams = z.infer<
+  typeof publicFetchCategoriesParamsSchema
+>;
 
 export type PublicFetchCategoriesResponse = Awaited<
   ReturnType<typeof publicFetchCategories>

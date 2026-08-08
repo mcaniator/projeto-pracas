@@ -1,8 +1,24 @@
-import { deleteLocationDataSchema } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
-import { _deleteLocation } from "@/lib/serverFunctions/serverActions/locationUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _deleteLocation,
+  deleteLocationDataSchema,
+} from "@/lib/serverFunctions/mutations/locationUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = deleteLocationDataSchema.parse(await request.formData());
-  return responseFromResult(await _deleteLocation(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = deleteLocationDataSchema.parse(await request.formData());
+    const result = await _deleteLocation(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

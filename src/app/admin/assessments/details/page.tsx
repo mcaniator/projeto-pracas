@@ -10,15 +10,6 @@ import { Suspense, useEffect, useState } from "react";
 
 import AssessmentClient from "./assessmentClient";
 
-const normalizeAssessmentTreeDates = (
-  assessmentTree: FetchAssessmentTreeResponse["assessmentTree"],
-): FetchAssessmentTreeResponse["assessmentTree"] => ({
-  ...assessmentTree,
-  startDate: new Date(assessmentTree.startDate),
-  endDate: assessmentTree.endDate ? new Date(assessmentTree.endDate) : null,
-  updatedAt: new Date(assessmentTree.updatedAt),
-});
-
 const ResponsesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,9 +35,7 @@ const ResponsesContent = () => {
         return;
       }
 
-      setAssessmentTree(
-        normalizeAssessmentTreeDates(response.data.assessmentTree),
-      );
+      setAssessmentTree(response.data.assessmentTree);
     };
 
     void loadAssessment();

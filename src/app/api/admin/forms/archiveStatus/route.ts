@@ -1,10 +1,26 @@
-import { updateFormArchiveStatusDataSchema } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
-import { _updateFormArchiveStatus } from "@/lib/serverFunctions/serverActions/formUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _updateFormArchiveStatus,
+  updateFormArchiveStatusDataSchema,
+} from "@/lib/serverFunctions/mutations/formUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = updateFormArchiveStatusDataSchema.parse(
-    await request.formData(),
-  );
-  return responseFromResult(await _updateFormArchiveStatus(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = updateFormArchiveStatusDataSchema.parse(
+      await request.formData(),
+    );
+    const result = await _updateFormArchiveStatus(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

@@ -62,7 +62,7 @@ const TallysList = ({ tallys }: { tallys: TallyWithSyncStatus[] }) => {
                       icon={<IconCalendar />}
                       tooltip={a.endDate ? "Início - Fim" : "Início"}
                     />
-                    {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
+                    {`${dateTimeFormatter.format(a.startDate)} ${a.endDate ? `- ${dateTimeFormatter.format(a.endDate)}` : ""}`}
                   </span>
                   <Divider />
                   <span className="flex items-center text-base sm:text-xl">

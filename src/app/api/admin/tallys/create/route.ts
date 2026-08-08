@@ -1,8 +1,26 @@
-import { createTallyDataSchema } from "@/lib/serverFunctions/apiCalls/tallyParamsSchemas";
-import { _createTallyV2 } from "@/lib/serverFunctions/serverActions/tallyUtil";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _createTallyV2,
+  createTallyDataSchema,
+} from "@/lib/serverFunctions/mutations/tallyUtil";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = createTallyDataSchema.parse(await request.formData());
-  return responseFromResult(await _createTallyV2(data));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
+      });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = createTallyDataSchema.parse(await request.formData());
+    const result = await _createTallyV2(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

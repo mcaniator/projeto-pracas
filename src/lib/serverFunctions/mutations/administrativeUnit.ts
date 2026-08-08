@@ -1,25 +1,18 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { fetchLocationsAssociatedWithAdministrativeUnit } from "@/lib/serverFunctions/queries/location";
-import { checkIfLoggedInUserHasAnyPermission } from "@/lib/serverFunctions/serverOnly/checkPermission";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
-export const _saveAdministrativeUnit = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir categorias/tipos de praças!",
-      },
-      data: null,
-    };
-  }
+export const saveAdministrativeUnitDataSchema = z.instanceof(FormData);
 
+export type SaveAdministrativeUnitData = z.infer<
+  typeof saveAdministrativeUnitDataSchema
+>;
+
+export const _saveAdministrativeUnit = async (
+  formData: SaveAdministrativeUnitData,
+) => {
   try {
     const unitType = z
       .enum(["NARROW", "INTERMEDIATE", "BROAD"])
@@ -189,18 +182,19 @@ export const _saveAdministrativeUnit = async (formData: FormData) => {
   }
 };
 
-export const _deleteAdministrativeUnit = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir regiões administrativas!",
-      } as APIResponseInfo,
-      data: null,
-    };
-  }
+export const deleteAdministrativeUnitDataSchema = z.instanceof(FormData);
+
+export type DeleteAdministrativeUnitData = z.infer<
+  typeof deleteAdministrativeUnitDataSchema
+>;
+
+export type DeleteAdministrativeUnitResponse = NonNullable<
+  Awaited<ReturnType<typeof _deleteAdministrativeUnit>>["data"]
+> | null;
+
+export const _deleteAdministrativeUnit = async (
+  formData: DeleteAdministrativeUnitData,
+) => {
   try {
     const unitId = z.coerce.number().parse(formData.get("unitId"));
     const unitType = z

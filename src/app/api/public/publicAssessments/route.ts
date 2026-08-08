@@ -1,7 +1,8 @@
-import { publicFetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
+import { publicFetchPublicAssessmentsParamsSchema } from "@/lib/serverFunctions/queries/public/assessment";
 import { publicFetchPublicAssessments } from "@/lib/serverFunctions/queries/public/assessment";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
       searchParams,
     );
     const assessments = await publicFetchPublicAssessments(params);
-    return new Response(JSON.stringify(assessments), {
+    return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

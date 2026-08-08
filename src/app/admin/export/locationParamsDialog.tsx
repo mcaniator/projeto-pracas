@@ -146,7 +146,7 @@ const LocationParamsDialog = ({
                     />
                     <div className="flex w-full flex-row items-center justify-between">
                       <div className="flex flex-col">
-                        <span>{`${dateTimeFormatter.format(new Date(t.startDate))} - ${t.endDate ? dateTimeFormatter.format(new Date(t.endDate)) : "Sem data final!"}`}</span>
+                        <span>{`${dateTimeFormatter.format(t.startDate)} - ${t.endDate ? dateTimeFormatter.format(t.endDate) : "Sem data final!"}`}</span>
                         <Chip
                           sx={{ mt: 0.5, width: "fit-content" }}
                           size="small"
@@ -205,11 +205,13 @@ const LocationParamsDialog = ({
                             sx={{ ml: 1 }}
                             size="small"
                             color={a.isFinalized ? "secondary" : "error"}
-                            label={a.isFinalized ? "Finalizado" : "Em progresso"}
+                            label={
+                              a.isFinalized ? "Finalizado" : "Em progresso"
+                            }
                           />
                         </div>
                         <span className="flex flex-row items-center">
-                          {`${dateTimeFormatter.format(new Date(a.startDate))} - ${a.endDate ? dateTimeFormatter.format(new Date(a.endDate)) : "Sem data final!"}`}
+                          {`${dateTimeFormatter.format(a.startDate)} - ${a.endDate ? dateTimeFormatter.format(a.endDate) : "Sem data final!"}`}
                         </span>
                       </div>
                       <span className="flex">

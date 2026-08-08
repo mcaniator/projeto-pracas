@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@serverActions/*": ["src/lib/serverFunctions/serverActions/*"],
+      "@mutations/*": ["src/lib/serverFunctions/mutations/*"],
       "@serverOnly/*": ["src/lib/serverFunctions/serverOnly/*"],
       "@queries/*": ["src/lib/serverFunctions/queries/*"],
       "@customTypes/*": ["src/lib/types/*"],

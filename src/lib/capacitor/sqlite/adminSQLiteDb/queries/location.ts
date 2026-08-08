@@ -1,6 +1,6 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
-import { FetchLocationsParams } from "@/lib/serverFunctions/apiCalls/locationParamsSchemas";
+import type { FetchLocationsParams } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import {
   APIResponse,

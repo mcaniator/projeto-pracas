@@ -1,8 +1,9 @@
-import { sqliteSyncParamsSchema } from "@/lib/serverFunctions/apiCalls/sqliteSyncSchemas";
+import { sqliteSyncParamsSchema } from "@/lib/serverFunctions/queries/sqliteSync";
 import { fetchSQLiteSyncData } from "@/lib/serverFunctions/queries/sqliteSync";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,11 +15,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(sqliteSyncParamsSchema, searchParams);
     const users = await fetchSQLiteSyncData(params);
-    return new Response(JSON.stringify(users), {
+    return new Response(superjson.stringify(users), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response("Error fetching users", { status: 500 });
+    return new Response("Erro ao buscar dados!", { status: 500 });
   }
 }

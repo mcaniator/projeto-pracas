@@ -3,25 +3,11 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import type {
   DeleteAdministrativeUnitData,
+  DeleteAdministrativeUnitResponse,
   SaveAdministrativeUnitData,
-} from "./administrativeUnitParamsSchemas";
+} from "../mutations/administrativeUnit";
 
-export type {
-  DeleteAdministrativeUnitData,
-  SaveAdministrativeUnitData,
-} from "./administrativeUnitParamsSchemas";
-
-export type DeleteAdministrativeUnitResponse = {
-  conflictingItems: {
-    cityId: number;
-    cityName: string;
-    locations: { name: string }[];
-  }[];
-} | null;
-
-export const useSaveAdministrativeUnit = (
-  params?: UseFetchAPIParams<null>,
-) => {
+export const useSaveAdministrativeUnit = (params?: UseFetchAPIParams<null>) => {
   return useFetchAPI<null, Record<string, never>, SaveAdministrativeUnitData>({
     url: "/api/admin/administrativeUnits/save",
     callbacks: params?.callbacks,

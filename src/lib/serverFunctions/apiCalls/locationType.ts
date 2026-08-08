@@ -3,9 +3,7 @@ import type { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/l
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import type { SaveLocationTypeData } from "./locationTypeParamsSchemas";
-
-export type { SaveLocationTypeData } from "./locationTypeParamsSchemas";
+import type { SaveLocationTypeData } from "../mutations/locationType";
 
 export const useFetchLocationTypes = (
   params?: UseFetchAPIParams<FetchLocationTypesResponse>,

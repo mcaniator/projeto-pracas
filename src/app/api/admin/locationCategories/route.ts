@@ -1,4 +1,5 @@
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 import { fetchLocationCategories } from "../../../../lib/serverFunctions/queries/locationCategory";
 
@@ -10,7 +11,7 @@ export async function GET() {
       return new Response("Unauthorized", { status: 401 });
     }
     const locations = await fetchLocationCategories();
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

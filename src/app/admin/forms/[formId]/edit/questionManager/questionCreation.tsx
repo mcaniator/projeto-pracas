@@ -1,5 +1,6 @@
 "use client";
 
+import QuestionDeletionDialog from "@/app/admin/forms/[formId]/edit/questionManager/questionDeletionDialog";
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
@@ -26,6 +27,7 @@ import {
   IconArrowBackUp,
   IconArrowForwardUp,
   IconCheck,
+  IconTrash,
 } from "@tabler/icons-react";
 import {
   type FormEventHandler,
@@ -99,6 +101,8 @@ const QuestionCreation = ({
     useState<QuestionCreationDraft | null>(null);
   const [questionUses, setQuestionUses] =
     useState<FetchquestionUsesResponse | null>(null);
+  const [openDeleteQuestionDialog, setOpenDeleteQuestionDialog] =
+    useState(false);
 
   const [fetchQuestionUses, isFetchingQuestionUses] = useFetchQuestionUses({
     callbacks: {
@@ -357,6 +361,9 @@ const QuestionCreation = ({
 
   const handleSubmit: FormEventHandler<HTMLDivElement> &
     FormEventHandler<HTMLFormElement> = (event) => {
+    if (openDeleteQuestionDialog) {
+      return;
+    }
     if (!(event.currentTarget instanceof HTMLFormElement)) {
       return;
     }
@@ -388,11 +395,15 @@ const QuestionCreation = ({
     const submitQuestion = isEditing ? updateQuestion : createQuestion;
     void submitQuestion({
       data: pendingFormData,
-      projectOptions: { loadingMessage: "Salvando questao..." },
+      projectOptions: { loadingMessage: "Salvando questão..." },
     });
   };
 
   const handleCancel = () => {
+    if (isEditing && step === 1) {
+      setOpenDeleteQuestionDialog(true);
+      return;
+    }
     if (step === 2) {
       setStep(1);
       return;
@@ -410,8 +421,15 @@ const QuestionCreation = ({
       onSubmit={handleSubmit}
       title={isEditing ? "Editar questão" : "Criar questão"}
       confirmChildren={step === 1 ? <IconArrowForwardUp /> : <IconCheck />}
-      cancelChildren={pageState === "FORM" ? <IconArrowBackUp /> : undefined}
-      disableCancelButton={step === 1}
+      cancelChildren={
+        pageState === "FORM" ?
+          isEditing && step === 1 ?
+            <IconTrash />
+          : <IconArrowBackUp />
+        : undefined
+      }
+      disableCancelButton={step === 1 && !isEditing}
+      cancelColor={isEditing && step === 1 ? "error" : "primary"}
       onCancel={handleCancel}
       confirmLoading={isPending}
       disableConfirmButton={
@@ -531,6 +549,19 @@ const QuestionCreation = ({
           </div>
         )}
       </div>
+      <QuestionDeletionDialog
+        open={openDeleteQuestionDialog}
+        onClose={() => {
+          setOpenDeleteQuestionDialog(false);
+        }}
+        onDeleted={() => {
+          fetchCategoriesAfterCreation();
+          resetModal();
+          onClose();
+        }}
+        questionId={question?.id}
+        questionName={question?.name}
+      />
     </CDialog>
   );
 };

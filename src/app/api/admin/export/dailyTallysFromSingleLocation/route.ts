@@ -1,12 +1,26 @@
-import { exportDailyTallysFromSingleLocationDataSchema } from "@/lib/serverFunctions/apiCalls/exportParamsSchemas";
-import { _exportDailyTallysFromSingleLocation } from "@/lib/serverFunctions/serverActions/exportToCSV";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _exportDailyTallysFromSingleLocation,
+  exportDailyTallysFromSingleLocationDataSchema,
+} from "@/lib/serverFunctions/mutations/exportToCSV";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = exportDailyTallysFromSingleLocationDataSchema.parse(
-    await request.json(),
-  );
-  return responseFromResult(
-    await _exportDailyTallysFromSingleLocation(data.tallysIds),
-  );
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = exportDailyTallysFromSingleLocationDataSchema.parse(
+      await request.json(),
+    );
+    const result = await _exportDailyTallysFromSingleLocation(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

@@ -1,6 +1,14 @@
-import type { PublicFetchLocationTypesParams } from "@/lib/serverFunctions/apiCalls/public/locationTypeParamsSchemas";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import { z } from "zod";
+
+export const publicFetchLocationTypesParamsSchema = z.object({
+  cityId: z.coerce.number(),
+});
+
+export type PublicFetchLocationTypesParams = z.infer<
+  typeof publicFetchLocationTypesParamsSchema
+>;
 
 export type PublicFetchLocationTypesResponse = Awaited<
   ReturnType<typeof publicFetchLocationTypes>

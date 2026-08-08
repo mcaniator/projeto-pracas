@@ -1,23 +1,14 @@
-"use server";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
-import { checkIfLoggedInUserHasAnyPermission } from "../serverOnly/checkPermission";
 
-export const _saveLocationType = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["PARK_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar tipos de praças!",
-      },
-    };
-  }
+export const saveLocationTypeDataSchema = z.instanceof(FormData);
+
+export type SaveLocationTypeData = z.infer<typeof saveLocationTypeDataSchema>;
+
+export const _saveLocationType = async (formData: SaveLocationTypeData) => {
   let name: string | null = null;
   let typeId: number | null | undefined = null;
   try {

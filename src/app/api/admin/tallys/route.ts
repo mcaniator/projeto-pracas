@@ -1,8 +1,9 @@
-import { fetchTallysParamsSchema } from "@/lib/serverFunctions/apiCalls/tallyParamsSchemas";
+import { fetchTallysParamsSchema } from "@/lib/serverFunctions/queries/tally";
 import { fetchTallys } from "@/lib/serverFunctions/queries/tally";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchTallysParamsSchema, searchParams);
     const tallys = await fetchTallys(params);
-    return new Response(JSON.stringify(tallys), {
+    return new Response(superjson.stringify(tallys), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

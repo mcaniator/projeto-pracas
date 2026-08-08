@@ -1,27 +1,17 @@
-"use server";
-
 import {
   categoryInfoToCreateSchema,
   subcategoryInfoToCreateSchema,
 } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import { z } from "zod";
 
 import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
 
-const _categorySubmit = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar categorias!",
-      } as APIResponseInfo,
-      data: null,
-    };
-  }
+export const categorySubmitDataSchema = z.instanceof(FormData);
+export type CategorySubmitData = z.infer<typeof categorySubmitDataSchema>;
+
+const _categorySubmit = async (formData: CategorySubmitData) => {
   let parse;
   try {
     parse = categoryInfoToCreateSchema.parse({
@@ -83,8 +73,11 @@ const _categorySubmit = async (formData: FormData) => {
   }
 };
 
+export const deleteCategoryDataSchema = z.instanceof(FormData);
+export type DeleteCategoryData = z.infer<typeof deleteCategoryDataSchema>;
+
 const _deleteCategory = async (
-  formData: FormData,
+  formData: DeleteCategoryData,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: {
@@ -98,18 +91,7 @@ const _deleteCategory = async (
       }[];
     }[];
   } | null;
-} | null> => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir categorias!",
-      } as APIResponseInfo,
-      data: null,
-    };
-  }
+}> => {
   const categoryId = parseInt(formData.get("categoryId") as string);
 
   try {
@@ -198,8 +180,11 @@ const _deleteCategory = async (
   }
 };
 
+export const deleteSubcategoryDataSchema = z.instanceof(FormData);
+export type DeleteSubcategoryData = z.infer<typeof deleteSubcategoryDataSchema>;
+
 const _deleteSubcategory = async (
-  formData: FormData,
+  formData: DeleteSubcategoryData,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: {
@@ -213,18 +198,7 @@ const _deleteSubcategory = async (
       }[];
     }[];
   } | null;
-} | null> => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para excluir subcategorias!",
-      } as APIResponseInfo,
-      data: null,
-    };
-  }
+}> => {
   const subcategoryId = parseInt(formData.get("subcategoryId") as string);
   try {
     const formsWithQuestions = await prisma.form.findMany({
@@ -309,19 +283,10 @@ const _deleteSubcategory = async (
   }
 };
 
-const _subcategorySubmit = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Sem permissão para criar categorias!",
-      } as APIResponseInfo,
-      data: null,
-    };
-  }
+export const subcategorySubmitDataSchema = z.instanceof(FormData);
+export type SubcategorySubmitData = z.infer<typeof subcategorySubmitDataSchema>;
 
+const _subcategorySubmit = async (formData: SubcategorySubmitData) => {
   let parse;
   try {
     parse = subcategoryInfoToCreateSchema.parse({

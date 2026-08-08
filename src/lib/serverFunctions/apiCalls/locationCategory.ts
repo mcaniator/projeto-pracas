@@ -2,24 +2,12 @@ import { fetchAdminSQLiteLocationCategories } from "@/lib/capacitor/sqlite/admin
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import type { FetchLocationCategoriesResponse } from "../queries/locationCategory";
 import type {
   DeleteLocationCategoryOrTypeData,
+  DeleteLocationCategoryOrTypeResponse,
   SaveLocationCategoryData,
-} from "./locationCategoryParamsSchemas";
-
-export type {
-  DeleteLocationCategoryOrTypeData,
-  SaveLocationCategoryData,
-} from "./locationCategoryParamsSchemas";
-
-export type DeleteLocationCategoryOrTypeResponse = {
-  conflictingItems: {
-    cityId: number;
-    cityName: string;
-    locations: { name: string }[];
-  }[];
-} | null;
+} from "../mutations/locationCategory";
+import type { FetchLocationCategoriesResponse } from "../queries/locationCategory";
 
 export const useFetchLocationCategories = (
   params?: UseFetchAPIParams<FetchLocationCategoriesResponse>,

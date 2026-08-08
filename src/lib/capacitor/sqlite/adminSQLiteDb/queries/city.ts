@@ -1,5 +1,5 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
-import { FetchCitiesParams } from "@/lib/serverFunctions/apiCalls/cityParamsSchemas";
+import type { FetchCitiesParams } from "@/lib/serverFunctions/queries/city";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import {
   APIResponse,

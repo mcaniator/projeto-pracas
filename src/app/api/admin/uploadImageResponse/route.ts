@@ -1,7 +1,8 @@
-import { uploadImageResponseParamsSchema } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
+import { uploadImageResponseParamsSchema } from "@/lib/serverFunctions/storage/drive/assessment";
 import { uploadImageResponse } from "@/lib/serverFunctions/storage/drive/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     if (!params.success) {
       return new Response(
-        JSON.stringify({
+        superjson.stringify({
           responseInfo: {
             statusCode: 400,
             message: "Dados invalidos para envio da imagem!",
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const uploadResponse = await uploadImageResponse(params.data);
 
-    return new Response(JSON.stringify(uploadResponse), {
+    return new Response(superjson.stringify(uploadResponse), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

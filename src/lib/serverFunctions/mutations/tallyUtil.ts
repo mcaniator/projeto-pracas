@@ -1,5 +1,3 @@
-"use server";
-
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
@@ -36,19 +34,13 @@ interface PersonWithQuantity {
   quantity: number;
 }
 
-export const _createTallyV2 = async (formData: FormData) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+export const createTallyDataSchema = z.instanceof(FormData);
+export type CreateTallyData = z.infer<typeof createTallyDataSchema>;
+export type CreateTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof _createTallyV2>>["data"]
+>;
+
+export const _createTallyV2 = async (formData: CreateTallyData) => {
   const session = await auth();
   if (!session || !session.user) {
     return {
@@ -100,40 +92,37 @@ export const _createTallyV2 = async (formData: FormData) => {
   }
 };
 
+export const saveOngoingTallyDataSchema = z.object({
+  tallyId: z.coerce.number(),
+  weatherStats: z.custom<WeatherStats>(),
+  tallyMapEntries: z.array(z.tuple([z.string(), z.coerce.number()])),
+  commercialActivities: z.custom<CommercialActivity>(),
+  complementaryData: z.object({
+    animalsAmount: z.coerce.number(),
+    groupsAmount: z.coerce.number(),
+  }),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  isFinalized: z.boolean(),
+});
+export type SaveOngoingTallyData = z.infer<typeof saveOngoingTallyDataSchema>;
+export type SaveOngoingTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof _saveOngoingTallyData>>["data"]
+>;
+
 const _saveOngoingTallyData = async ({
   tallyId,
   weatherStats,
-  tallyMap,
+  tallyMapEntries,
   commercialActivities,
   complementaryData,
   startDate,
   endDate,
   isFinalized,
-}: {
-  tallyId: number;
-  weatherStats: WeatherStats;
-  tallyMap: Map<string, number>;
-  commercialActivities: CommercialActivity;
-  complementaryData: { animalsAmount: number; groupsAmount: number };
-  startDate: Date;
-  endDate: Date | null;
-  isFinalized: boolean;
-}) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_EDITOR", "TALLY_MANAGER"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 401,
-        message: "Permissão inválida!",
-      } as APIResponseInfo,
-    };
-  }
+}: SaveOngoingTallyData) => {
   const persons: PersonWithQuantity[] = [];
 
-  tallyMap.forEach((quantity, key) => {
+  new Map(tallyMapEntries).forEach((quantity, key) => {
     const [
       gender,
       ageGroup,
@@ -223,19 +212,12 @@ const _saveOngoingTallyData = async ({
   }
 };
 
-const _deleteTally = async ({ tallyId }: { tallyId: number }) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
-    });
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 403,
-        message: "Sem permissão para excluir esta contagem!",
-      } as APIResponseInfo,
-    };
-  }
+export const deleteTallyDataSchema = z.object({
+  tallyId: z.coerce.number(),
+});
+export type DeleteTallyData = z.infer<typeof deleteTallyDataSchema>;
+
+const _deleteTally = async ({ tallyId }: DeleteTallyData) => {
   const userId = await getSessionUserId();
   const tally = await prisma.tally.findUnique({
     where: {
@@ -284,44 +266,4 @@ const _deleteTally = async ({ tallyId }: { tallyId: number }) => {
   }
 };
 
-const _deleteTallys = async (tallysIds: number[]) => {
-  try {
-    await checkIfLoggedInUserHasAnyPermission({
-      roles: ["TALLY_MANAGER", "TALLY_EDITOR"],
-    });
-  } catch (e) {
-    return { statusCode: 401 };
-  }
-  const userId = await getSessionUserId();
-  const userTallysAmount = await prisma.tally.count({
-    where: {
-      id: {
-        in: tallysIds,
-      },
-      userId,
-    },
-  });
-  if (userTallysAmount < tallysIds.length) {
-    try {
-      await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
-    } catch (e) {
-      return { statusCode: 403 };
-    }
-  }
-  try {
-    await prisma.$transaction(async (prisma) => {
-      await prisma.tally.deleteMany({
-        where: {
-          id: {
-            in: tallysIds,
-          },
-        },
-      });
-    });
-    return { statusCode: 200 };
-  } catch (error) {
-    return { statusCode: 500 };
-  }
-};
-
-export { _saveOngoingTallyData, _deleteTallys, _deleteTally };
+export { _saveOngoingTallyData, _deleteTally };

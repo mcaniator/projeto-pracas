@@ -1,7 +1,16 @@
-import type { PublicFetchCitiesParams } from "@/lib/serverFunctions/apiCalls/public/cityParamsSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
-import { $Enums } from "@prisma/client";
+import { $Enums, BrazilianStates } from "@prisma/client";
+import { z } from "zod";
+
+export const publicFetchCitiesParamsSchema = z.object({
+  state: z.nativeEnum(BrazilianStates),
+  includeAdminstrativeRegions: z.coerce.boolean().optional(),
+});
+
+export type PublicFetchCitiesParams = z.infer<
+  typeof publicFetchCitiesParamsSchema
+>;
 
 export type PublicFetchCitiesResponse = Awaited<
   ReturnType<typeof publicFetchCities>

@@ -1,25 +1,18 @@
 import type {
-  FetchFormEditorResponse,
+  FetchFormParams,
   FetchFormsResponse,
+  fetchFormStructureParams,
+  fetchFormStructureResponse,
 } from "@/lib/serverFunctions/queries/form";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import type {
   CreateFormData,
-  FetchFormEditorParams,
-  FetchFormParams,
   UpdateFormArchiveStatusData,
   UpdateFormData,
-} from "./formParamsSchemas";
-
-export type {
-  CreateFormData,
-  FetchFormEditorParams,
-  FetchFormParams,
-  UpdateFormArchiveStatusData,
-  UpdateFormData,
-} from "./formParamsSchemas";
+  UpdateFormResponse,
+} from "../mutations/formUtil";
 
 export const useFetchForms = (
   params?: UseFetchAPIParams<FetchFormsResponse>,
@@ -35,10 +28,10 @@ export const useFetchForms = (
   });
 };
 
-export const useFetchFormEditor = (
-  params?: UseFetchAPIParams<FetchFormEditorResponse>,
+export const useFetchFormStructure = (
+  params?: UseFetchAPIParams<fetchFormStructureResponse>,
 ) => {
-  return useFetchAPI<FetchFormEditorResponse, FetchFormEditorParams>({
+  return useFetchAPI<fetchFormStructureResponse, fetchFormStructureParams>({
     url: "/api/admin/forms/editor",
     callbacks: params?.callbacks,
     options: {
@@ -70,17 +63,15 @@ export const useUpdateFormArchiveStatus = (
 };
 
 export const useUpdateForm = (
-  params?: UseFetchAPIParams<{ statusCode: number }>,
+  params?: UseFetchAPIParams<UpdateFormResponse>,
 ) => {
-  return useFetchAPI<
-    { statusCode: number },
-    Record<string, never>,
-    UpdateFormData //TODO: Fix type
-  >({
-    url: "/api/admin/forms/update",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
+  return useFetchAPI<UpdateFormResponse, Record<string, never>, UpdateFormData>(
+    {
+      url: "/api/admin/forms/update",
+      callbacks: params?.callbacks,
+      options: {
+        method: "POST",
+      },
     },
-  });
+  );
 };

@@ -1,26 +1,18 @@
 import type {
+  FetchQuestionsByCategoryAndSubcategoryParams,
   FetchquestionUsesResponse,
   FetchquestionsByCategoryAndSubcategoryResponse,
 } from "@/lib/serverFunctions/queries/question";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import type {
-  DeleteQuestionData,
-  FetchQuestionsByCategoryAndSubcategoryParams,
-  FetchQuestionUsesParams,
-  QuestionSubmitData,
-  QuestionUpdateData,
-} from "./questionParamsSchemas";
 
 import type { CategoryForQuestionPicker } from "../../types/forms/formCreation";
-
-export type {
+import type {
   DeleteQuestionData,
-  FetchQuestionsByCategoryAndSubcategoryParams,
-  FetchQuestionUsesParams,
+  DeleteQuestionResponse,
   QuestionSubmitData,
   QuestionUpdateData,
-} from "./questionParamsSchemas";
+} from "../mutations/questionUtil";
 
 const _searchQuestionsByCategoryAndSubcategory = async ({
   name,
@@ -125,8 +117,14 @@ export const useQuestionUpdate = (params?: UseFetchAPIParams<null>) => {
   });
 };
 
-export const useDeleteQuestion = (params?: UseFetchAPIParams<null>) => {
-  return useFetchAPI<null, Record<string, never>, DeleteQuestionData>({
+export const useDeleteQuestion = (
+  params?: UseFetchAPIParams<DeleteQuestionResponse>,
+) => {
+  return useFetchAPI<
+    DeleteQuestionResponse,
+    Record<string, never>,
+    DeleteQuestionData
+  >({
     url: "/api/admin/forms/fieldsCreation/question/delete",
     callbacks: params?.callbacks,
     options: {

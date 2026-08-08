@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { SQLiteSyncParams } from "@/lib/serverFunctions/apiCalls/sqliteSyncSchemas";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import { z } from "zod";
+
+export const sqliteSyncParamsSchema = z.object({
+  userId: z.string(),
+  cityId: z.coerce.number(),
+});
+
+export type SQLiteSyncParams = z.infer<typeof sqliteSyncParamsSchema>;
 
 export type FetchSQLiteSyncDataResponse = NonNullable<
   Awaited<ReturnType<typeof fetchSQLiteSyncData>>["data"]

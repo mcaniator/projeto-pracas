@@ -1,4 +1,4 @@
-import { fetchQuestionsByCategoryAndSubcategoryParamsSchema } from "@/lib/serverFunctions/apiCalls/questionParamsSchemas";
+import { fetchQuestionsByCategoryAndSubcategoryParamsSchema } from "@/lib/serverFunctions/queries/question";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import {
   searchQuestionsByCategoryAndSubcategory,
@@ -6,6 +6,7 @@ import {
 } from "@queries/question";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,13 +23,13 @@ export async function GET(request: NextRequest) {
     );
     if (params.name) {
       const questions = await searchQuestionsByName(params.name);
-      return new Response(JSON.stringify(questions), {
+      return new Response(superjson.stringify(questions), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }
     const questions = await searchQuestionsByCategoryAndSubcategory(params);
-    return new Response(JSON.stringify(questions), {
+    return new Response(superjson.stringify(questions), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

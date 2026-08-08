@@ -1,15 +1,11 @@
 import type { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
+
 import type {
   UpdateUserArchiveData,
   UpdateUserRolesData,
-} from "./userParamsSchemas";
-
-export type {
-  UpdateUserArchiveData,
-  UpdateUserRolesData,
-} from "./userParamsSchemas";
+} from "../mutations/userUtil";
 
 export const useFetchUsers = (
   params?: UseFetchAPIParams<FetchUsersResponse>,

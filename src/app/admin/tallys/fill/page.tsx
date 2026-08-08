@@ -2,30 +2,12 @@
 
 import LoadingIcon from "@/components/LoadingIcon";
 import { useFetchOngoingTally } from "@/lib/serverFunctions/apiCalls/tally";
-import type { FetchOngoingTallyResponse } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchOngoingTallyResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { TallyInProgressPage } from "../[tallyId]/fill/tallyInProgressPage";
-
-const normalizeOngoingTallyDates = (
-  response: FetchOngoingTallyResponse,
-): FetchOngoingTallyResponse => {
-  if (!response.tally) {
-    return response;
-  }
-
-  return {
-    ...response,
-    tally: {
-      ...response.tally,
-      startDate: new Date(response.tally.startDate),
-      endDate: response.tally.endDate ? new Date(response.tally.endDate) : null,
-      updatedAt: new Date(response.tally.updatedAt),
-    },
-  };
-};
 
 const FillContent = () => {
   const router = useRouter();
@@ -51,7 +33,7 @@ const FillContent = () => {
         return;
       }
 
-      setResponse(normalizeOngoingTallyDates(result.data));
+      setResponse(result.data);
     };
 
     void loadTally();

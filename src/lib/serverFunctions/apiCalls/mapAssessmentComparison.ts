@@ -2,19 +2,12 @@ import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import type {
+  FetchMapAssessmentComparisonAssessmentTreesParams,
   FetchMapAssessmentComparisonAssessmentTreesResponse,
   FetchMapAssessmentComparisonCategoriesResponse,
+  FetchMapAssessmentComparisonResultsParams,
   FetchMapAssessmentComparisonResultsResponse,
 } from "../queries/mapAssessmentComparison";
-import type {
-  FetchMapAssessmentComparisonAssessmentTreesParams,
-  FetchMapAssessmentComparisonResultsParams,
-} from "./mapAssessmentComparisonParamsSchemas";
-
-export type {
-  FetchMapAssessmentComparisonAssessmentTreesParams,
-  FetchMapAssessmentComparisonResultsParams,
-} from "./mapAssessmentComparisonParamsSchemas";
 
 export const useFetchMapAssessmentComparisonCategories = (
   params?: UseFetchAPIParams<FetchMapAssessmentComparisonCategoriesResponse>,

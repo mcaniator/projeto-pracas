@@ -1,8 +1,9 @@
-import { fetchMapAssessmentComparisonResultsParamsSchema } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparisonParamsSchemas";
+import { fetchMapAssessmentComparisonResultsParamsSchema } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { fetchMapAssessmentComparisonResults } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     );
     const results = await fetchMapAssessmentComparisonResults(params);
 
-    return new Response(JSON.stringify(results), {
+    return new Response(superjson.stringify(results), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

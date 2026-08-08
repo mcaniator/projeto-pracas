@@ -1,8 +1,24 @@
-import { exportRegistrationDataSchema } from "@/lib/serverFunctions/apiCalls/exportParamsSchemas";
-import { _exportRegistrationData } from "@/lib/serverFunctions/serverActions/exportToCSV";
-import { responseFromResult } from "@/lib/utils/apiRouteResponse";
+import {
+  _exportRegistrationData,
+  exportRegistrationDataSchema,
+} from "@/lib/serverFunctions/mutations/exportToCSV";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const data = exportRegistrationDataSchema.parse(await request.json());
-  return responseFromResult(await _exportRegistrationData(data.locationsIds));
+  try {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
+    } catch (e) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+    const data = exportRegistrationDataSchema.parse(await request.json());
+    const result = await _exportRegistrationData(data);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

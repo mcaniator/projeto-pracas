@@ -1,7 +1,7 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { FetchTallyUsersResponse } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchTallyUsersResponse } from "@/lib/serverFunctions/queries/tally";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CDateTimePicker from "@components/ui/cDateTimePicker";
 import { Divider } from "@mui/material";

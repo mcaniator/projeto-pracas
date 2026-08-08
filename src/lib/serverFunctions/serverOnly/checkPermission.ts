@@ -17,11 +17,16 @@ import { prisma } from "../../prisma";
 const checkIfLoggedInUserHasAnyPermission = async ({
   roles,
   roleGroups,
+  forceRevalidation,
 }: {
   roles?: Role[];
   roleGroups?: RoleGroup[];
+  forceRevalidation?: boolean;
 }) => {
   try {
+    if (forceRevalidation) {
+      throw new PermissionError("Permission forced revalidation");
+    }
     try {
       const permissionsCookieValue = await getSignedCookieValue("permissions");
       if (!permissionsCookieValue) {
@@ -77,12 +82,17 @@ const checkIfLoggedInUserHasAnyPermission = async ({
 const checkIfLoggedInUserHasAllPermissions = async ({
   roles,
   roleGroups,
+  forceRevalidation,
 }: {
   roles?: Role[];
   roleGroups?: RoleGroup[];
+  forceRevalidation?: boolean;
 }) => {
   try {
     try {
+      if (forceRevalidation) {
+        throw new PermissionError("Permission forced revalidation");
+      }
       const permissionsCookieValue = await getSignedCookieValue("permissions");
       if (!permissionsCookieValue) {
         throw new Error();

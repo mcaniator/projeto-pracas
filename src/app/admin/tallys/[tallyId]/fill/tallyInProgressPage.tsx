@@ -236,9 +236,7 @@ const TallyInProgressPage = ({
       }
       setLocalTallyUpdatedAt(localTally.localUpdatedAt);
 
-      const localServerUpdatedAt = new Date(
-        localTally.serverUpdatedAt,
-      ).getTime();
+      const localServerUpdatedAt = localTally.serverUpdatedAt.getTime();
       const serverUpdatedAt = serverUpdatedAtRef.current.getTime();
 
       if (serverUpdatedAt <= localServerUpdatedAt) {

@@ -1,7 +1,7 @@
 import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import TallysFilter from "@/app/admin/tallys/tallysFilter";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { FetchTallyUsersResponse } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchTallyUsersResponse } from "@/lib/serverFunctions/queries/tally";
 
 const TallysFilterSidebar = ({
   users,

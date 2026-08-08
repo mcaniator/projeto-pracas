@@ -4,7 +4,7 @@ import Client from "@/app/admin/activity/client";
 import LoadingIcon from "@/components/LoadingIcon";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import { useFetchRecentActivity } from "@/lib/serverFunctions/apiCalls/activity";
-import type { FetchRecentActivityResponse } from "@/lib/serverFunctions/apiCalls/activity";
+import type { FetchRecentActivityResponse } from "@/lib/serverFunctions/queries/activity";
 import { IconList } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 

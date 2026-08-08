@@ -15,8 +15,8 @@ const QuestionDeletionDialog = ({
   onClose,
   onDeleted,
 }: {
-  questionId: number;
-  questionName: string;
+  questionId?: number;
+  questionName?: string;
   open: boolean;
   onClose: () => void;
   onDeleted: () => void;
@@ -32,9 +32,7 @@ const QuestionDeletionDialog = ({
       },
       onError(response) {
         setShowConflictInfo(true);
-        setConflictForms(
-          ((response.data as any)?.formsWithQuestions ?? []) as ConflictForm[],
-        );
+        setConflictForms(response.data?.formsWithQuestions ?? []);
       },
     },
   });
@@ -52,11 +50,15 @@ const QuestionDeletionDialog = ({
 
   useEffect(() => {
     if (isPending) {
-      setLoadingOverlay({ show: true, message: "Excluindo questao..." });
+      setLoadingOverlay({ show: true, message: "Excluindo questão..." });
     } else {
       setLoadingOverlay({ show: false });
     }
   }, [isPending, setLoadingOverlay]);
+
+  if (!questionId && !questionName) {
+    return null;
+  }
 
   return (
     <CDialog
@@ -65,13 +67,14 @@ const QuestionDeletionDialog = ({
       open={open}
       onClose={handleClose}
       confirmChildren={<>Excluir</>}
-      title="Excluir questao"
+      confirmColor="error"
+      title="Excluir questão"
       subtitle={questionName}
     >
       <div className="flex flex-col gap-1">
         {!showConflictInfo && (
           <h6 className="text-base font-semibold text-red-500">
-            Aviso: esta acao excluira esta questao permanentemente!
+            Aviso: esta ação excluirá esta questão permanentemente!
           </h6>
         )}
 
@@ -85,7 +88,7 @@ const QuestionDeletionDialog = ({
         {showConflictInfo && conflictForms.length > 0 && (
           <div className="flex flex-col gap-1">
             <h5 className="text-center text-xl font-semibold text-red-500">
-              {`Esta questao esta presente em ${conflictForms.length} formularios:`}
+              {`Esta questão está presente em ${conflictForms.length} formularios:`}
             </h5>
             <ul className="list-inside list-decimal space-y-2 break-words pl-3 font-semibold">
               {conflictForms.map((form, index) => (

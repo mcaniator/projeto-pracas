@@ -1,7 +1,6 @@
 import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
-import type { PublicFetchPublicAssessmentsParams } from "@/lib/serverFunctions/apiCalls/public/assessmentParamsSchemas";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
@@ -12,6 +11,15 @@ import { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { Coordinate } from "ol/coordinate";
+import { z } from "zod";
+
+export const publicFetchPublicAssessmentsParamsSchema = z.object({
+  locationId: z.coerce.number().optional(),
+});
+
+export type PublicFetchPublicAssessmentsParams = z.infer<
+  typeof publicFetchPublicAssessmentsParamsSchema
+>;
 
 export type PublicFetchPublicAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchPublicAssessments>>["data"]
@@ -55,16 +63,25 @@ export const publicFetchPublicAssessments = async (
   }
 };
 
+export const publicFetchPublicAssessmentTreeParamsSchema = z.object({
+  assessmentId: z.string().min(1),
+});
+
+export type PublicFetchPublicAssessmentTreeParams = z.infer<
+  typeof publicFetchPublicAssessmentTreeParamsSchema
+>;
+
 export type PublicFetchPublicAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchPublicAssessmentTree>>["data"]
 >;
 
-export const publicFetchPublicAssessmentTree = async (params: {
-  assessmentId: number;
-}) => {
+export const publicFetchPublicAssessmentTree = async (
+  params: PublicFetchPublicAssessmentTreeParams,
+) => {
+  const assessmentId = Number(params.assessmentId);
   try {
     const assessment = await prisma.assessment.findUnique({
-      where: { id: params.assessmentId, isPublic: true },
+      where: { id: assessmentId, isPublic: true },
       select: {
         id: true,
         endDate: true,
@@ -140,7 +157,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     geometryTypes: true,
                     response: {
                       where: {
-                        assessmentId: params.assessmentId,
+                        assessmentId,
                       },
                       select: {
                         response: true,
@@ -148,7 +165,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     },
                     ResponseOption: {
                       where: {
-                        assessmentId: params.assessmentId,
+                        assessmentId,
                         optionId: { not: null },
                       },
                       select: {
@@ -348,7 +365,7 @@ export const publicFetchPublicAssessmentTree = async (params: {
       });
     });
 
-    const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
+    const rawGeometries = await fetchAssessmentGeometries(assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
       if (!geometry) {

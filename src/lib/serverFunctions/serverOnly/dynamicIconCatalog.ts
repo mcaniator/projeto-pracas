@@ -1,4 +1,4 @@
-import type { FetchDynamicIconsParams } from "@/lib/serverFunctions/apiCalls/questionIconParamsSchemas";
+import type { FetchDynamicIconsParams } from "@/lib/serverFunctions/queries/questionIcon";
 import {
   DynamicIconPackId,
   buildDynamicIconKey,

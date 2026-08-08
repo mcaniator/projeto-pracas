@@ -1,8 +1,8 @@
 "use client";
 
 import LoadingIcon from "@/components/LoadingIcon";
-import { useFetchFormEditor } from "@/lib/serverFunctions/apiCalls/form";
-import type { FetchFormEditorResponse } from "@/lib/serverFunctions/queries/form";
+import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
+import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -13,8 +13,8 @@ const EditFormProtectedContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formId = Number(searchParams.get("formId"));
-  const [fetchFormEditor, isLoading] = useFetchFormEditor();
-  const [response, setResponse] = useState<FetchFormEditorResponse | null>(
+  const [fetchFormStructure, isLoading] = useFetchFormStructure();
+  const [response, setResponse] = useState<fetchFormStructureResponse | null>(
     null,
   );
 
@@ -25,7 +25,7 @@ const EditFormProtectedContent = () => {
         return;
       }
 
-      const result = await fetchFormEditor({
+      const result = await fetchFormStructure({
         params: { formId },
       });
       if (!result.data?.form.formTree) {
@@ -37,7 +37,7 @@ const EditFormProtectedContent = () => {
     };
 
     void loadForm();
-  }, [formId, fetchFormEditor, router]);
+  }, [formId, fetchFormStructure, router]);
 
   if (isLoading || !response?.form.formTree) {
     return (

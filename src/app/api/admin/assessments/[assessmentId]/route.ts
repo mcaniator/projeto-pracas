@@ -1,7 +1,8 @@
-import type { FetchAssessmentTreeParams } from "@/lib/serverFunctions/apiCalls/assessmentParamsSchemas";
+import type { FetchAssessmentTreeParams } from "@/lib/serverFunctions/queries/assessment";
 import { fetchAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 import { z } from "zod";
 
 export async function GET(
@@ -19,7 +20,7 @@ export async function GET(
     const params = await props.params;
     const assessmentId = z.coerce.number().parse(params.assessmentId);
     const assessments = await fetchAssessmentTree({ assessmentId });
-    return new Response(JSON.stringify(assessments), {
+    return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

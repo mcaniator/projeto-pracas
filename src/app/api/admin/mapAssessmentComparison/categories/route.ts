@@ -1,5 +1,6 @@
 import { fetchMapAssessmentComparisonCategories } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
 
     const categories = await fetchMapAssessmentComparisonCategories();
 
-    return new Response(JSON.stringify(categories), {
+    return new Response(superjson.stringify(categories), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

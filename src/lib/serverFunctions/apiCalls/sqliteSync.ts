@@ -1,5 +1,7 @@
-import { SQLiteSyncParams } from "@/lib/serverFunctions/apiCalls/sqliteSyncSchemas";
-import { FetchSQLiteSyncDataResponse } from "@/lib/serverFunctions/queries/sqliteSync";
+import type {
+  FetchSQLiteSyncDataResponse,
+  SQLiteSyncParams,
+} from "@/lib/serverFunctions/queries/sqliteSync";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 

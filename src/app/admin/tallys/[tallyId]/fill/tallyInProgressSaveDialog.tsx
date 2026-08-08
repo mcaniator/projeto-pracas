@@ -118,7 +118,7 @@ const TallyInProgressSaveDialog = ({
         }
 
         if (response.data?.updatedAt) {
-          onSaveSuccess?.(new Date(response.data.updatedAt));
+          onSaveSuccess?.(response.data.updatedAt);
         }
         onClose();
         if (response.data?.savedAsFinalized) {

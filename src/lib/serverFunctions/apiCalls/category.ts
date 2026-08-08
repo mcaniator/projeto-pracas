@@ -1,20 +1,13 @@
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import { UseFetchAPIParams } from "../../types/backendCalls/APIResponse";
-import type { FetchCategoriesWithSubcategoriesReponse } from "../queries/category";
 import type {
   CategorySubmitData,
   DeleteCategoryData,
   DeleteSubcategoryData,
   SubcategorySubmitData,
-} from "./categoryParamsSchemas";
-
-export type {
-  CategorySubmitData,
-  DeleteCategoryData,
-  DeleteSubcategoryData,
-  SubcategorySubmitData,
-} from "./categoryParamsSchemas";
+} from "../mutations/categoryServerActions";
+import type { FetchCategoriesWithSubcategoriesReponse } from "../queries/category";
 
 export const useFetchCategoriesWithSubcategories = (
   params?: UseFetchAPIParams<FetchCategoriesWithSubcategoriesReponse>,

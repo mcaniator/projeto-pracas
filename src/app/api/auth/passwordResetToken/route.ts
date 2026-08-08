@@ -1,6 +1,9 @@
-import { fetchPasswordResetTokenParamsSchema } from "@/lib/serverFunctions/apiCalls/passwordResetParamsSchemas";
-import { getResetPasswordUserByToken } from "@queries/passwordReset";
+import {
+  fetchPasswordResetToken,
+  fetchPasswordResetTokenParamsSchema,
+} from "@queries/passwordReset";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   const parse = fetchPasswordResetTokenParamsSchema.safeParse({
@@ -11,36 +14,10 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid params", { status: 400 });
   }
 
-  const tokenResponse = await getResetPasswordUserByToken(parse.data.token);
+  const result = await fetchPasswordResetToken(parse.data);
 
-  if (!tokenResponse) {
-    return new Response(
-      JSON.stringify({
-        responseInfo: {
-          statusCode: 404,
-          message: "Token inválido.",
-        },
-        data: {
-          email: null,
-        },
-      }),
-      {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
-
-  return new Response(
-    JSON.stringify({
-      responseInfo: { statusCode: 200 },
-      data: {
-        email: tokenResponse.user.email,
-      },
-    }),
-    {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+  return new Response(superjson.stringify(result), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

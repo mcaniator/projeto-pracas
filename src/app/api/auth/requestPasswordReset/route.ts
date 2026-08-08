@@ -1,13 +1,15 @@
-import { _createPasswordReset } from "@/lib/serverFunctions/serverActions/passwordResetUtil";
+import { requestPasswordReset } from "@/lib/serverFunctions/mutations/passwordResetUtil";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
-  const response = await _createPasswordReset(formData);
-
-  return Response.json({
-    responseInfo: {
-      statusCode: response.statusCode,
-    },
-    data: null,
-  });
+  try {
+    const formData = await request.formData();
+    const result = await requestPasswordReset(formData);
+    return new Response(superjson.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }

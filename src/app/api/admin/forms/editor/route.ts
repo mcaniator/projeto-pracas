@@ -1,11 +1,11 @@
-import { fetchFormEditorParamsSchema } from "@/lib/serverFunctions/apiCalls/formParamsSchemas";
 import {
-  getCalculationByFormId,
-  getFormTree,
+  fetchFormStructure,
+  fetchFormStructureParamsSchema,
 } from "@/lib/serverFunctions/queries/form";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,27 +15,13 @@ export async function GET(request: NextRequest) {
   }
 
   const params = parseQueryParams(
-    fetchFormEditorParamsSchema,
+    fetchFormStructureParamsSchema,
     request.nextUrl.searchParams,
   );
-  const [form, calculations] = await Promise.all([
-    getFormTree({ formId: params.formId }),
-    getCalculationByFormId(params.formId),
-  ]);
+  const result = await fetchFormStructure(params);
 
-  return new Response(
-    JSON.stringify({
-      responseInfo: {
-        statusCode: form.statusCode === 200 ? calculations.statusCode : form.statusCode,
-      },
-      data: {
-        form,
-        calculations: calculations.calculations,
-      },
-    }),
-    {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+  return new Response(superjson.stringify(result), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

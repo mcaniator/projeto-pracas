@@ -1,14 +1,18 @@
-import { publicFetchCitiesParamsSchema } from "@/lib/serverFunctions/apiCalls/public/cityParamsSchemas";
+import { publicFetchCitiesParamsSchema } from "@/lib/serverFunctions/queries/public/city";
 import { publicFetchCities } from "@/lib/serverFunctions/queries/public/city";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(publicFetchCitiesParamsSchema, searchParams);
+    const params = parseQueryParams(
+      publicFetchCitiesParamsSchema,
+      searchParams,
+    );
     const locations = await publicFetchCities(params);
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
