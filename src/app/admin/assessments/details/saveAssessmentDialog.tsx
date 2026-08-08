@@ -201,7 +201,7 @@ const SaveAssessmentDialog = ({
                 "Avaliação salva, mas a data de atualização não foi retornada!",
               );
             }
-            onSaveSuccess(new Date(response.data.updatedAt));
+            onSaveSuccess(response.data.updatedAt);
           });
       },
       onError: () => {

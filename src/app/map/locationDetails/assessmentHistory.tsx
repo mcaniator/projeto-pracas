@@ -67,7 +67,7 @@ const AssessmentHistory = ({
                         icon={<IconCalendar />}
                         tooltip={"Data da avaliação"}
                       />
-                      {`${dateFormatter.format(new Date(a.startDate))}`}
+                      {`${dateFormatter.format(a.startDate)}`}
                     </span>
                     <CButton square onClick={() => setSelectedAssessment(a)}>
                       <IconBrowserMaximize />

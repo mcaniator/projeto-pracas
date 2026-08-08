@@ -265,9 +265,7 @@ const LocationAssessmentSelector = ({
           options={location.assessmentTrees}
           value={selectedAssessment}
           isOptionEqualToValue={(option, value) => option.id === value.id}
-          getOptionLabel={(option) =>
-            dateFormatter.format(new Date(option.startDate))
-          }
+          getOptionLabel={(option) => dateFormatter.format(option.startDate)}
           onChange={(_, value) => {
             if (value) onAssessmentChange(value.id);
           }}
@@ -425,9 +423,7 @@ const TableAssessmentComparison = ({
                           <div className="mt-1 flex items-center gap-1 text-xs font-normal text-gray-700">
                             <IconCalendar size={14} />
                             {dateFormatter.format(
-                              new Date(
-                                comparisonLocation.selectedAssessment.startDate,
-                              ),
+                              comparisonLocation.selectedAssessment.startDate,
                             )}
                           </div>
                         )}

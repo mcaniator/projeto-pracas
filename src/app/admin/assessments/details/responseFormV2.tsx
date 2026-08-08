@@ -508,9 +508,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           }
           setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
 
-          const localServerUpdatedAt = new Date(
-            localAssessment.serverUpdatedAt,
-          ).getTime();
+          const localServerUpdatedAt =
+            localAssessment.serverUpdatedAt.getTime();
           const serverUpdatedAt = assessmentTree.updatedAt.getTime();
 
           if (serverUpdatedAt <= localServerUpdatedAt) {

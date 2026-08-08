@@ -22,7 +22,9 @@ const booleanPersonProperties: BooleanPersonProperties[] = [
   "isPersonWithoutHousing",
 ];
 
-type TallyPersonData = NonNullable<FinalizedTally["tallyPerson"]>[number]["person"];
+type TallyPersonData = NonNullable<
+  FinalizedTally["tallyPerson"]
+>[number]["person"];
 
 export type TallyDataPersonFilters = {
   booleanConditionsFilter: (BooleanPersonProperties | "DEFAULT")[];
@@ -61,7 +63,7 @@ export const immutableTallyData = (tallys: TallyDataVisualizationInput[]) => {
     commercialActivitiesMap.set(tally.id, {
       tallyInfo: {
         observer: tally.user?.username ?? "",
-        startDate: new Date(tally.startDate).toLocaleString(),
+        startDate: tally.startDate.toLocaleString(),
       },
       commercialActivities: tally.commercialActivities ?? {},
     });
@@ -82,12 +84,7 @@ export const shouldIncludePersonByFilters = (
   person: TallyPersonData,
   filters: TallyDataPersonFilters,
 ) => {
-  const {
-    booleanConditionsFilter,
-    genders,
-    ageGroups,
-    activities,
-  } = filters;
+  const { booleanConditionsFilter, genders, ageGroups, activities } = filters;
 
   if (booleanConditionsFilter.length > 0) {
     for (const filter of booleanConditionsFilter) {
