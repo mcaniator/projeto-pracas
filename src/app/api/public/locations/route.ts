@@ -3,6 +3,7 @@ import { publicFetchLocations } from "@/lib/serverFunctions/queries/public/locat
 import "@/lib/utils/bigIntInJson";
 import { parseQueryParams } from "@lib/utils/apiCall";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
       searchParams,
     );
     const locations = await publicFetchLocations(params);
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import {
   exportDailyTallysDataSchema,
 } from "@/lib/serverFunctions/mutations/exportToCSV";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     }
     const data = exportDailyTallysDataSchema.parse(await request.json());
     const result = await _exportDailyTallys(data);
-    return new Response(JSON.stringify(result), {
+    return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

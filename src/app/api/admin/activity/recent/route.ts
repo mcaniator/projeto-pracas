@@ -1,5 +1,6 @@
 import { fetchRecentActivity } from "@/lib/serverFunctions/queries/activity";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
 
     const result = await fetchRecentActivity();
 
-    return new Response(JSON.stringify(result), {
+    return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

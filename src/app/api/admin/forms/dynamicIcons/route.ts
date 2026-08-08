@@ -2,6 +2,7 @@ import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/queries/que
 import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   const response = fetchDynamicIcons(parse.data);
 
-  return new Response(JSON.stringify(response), {
+  return new Response(superjson.stringify(response), {
     status: 200,
     headers: {
       "Content-Type": "application/json",

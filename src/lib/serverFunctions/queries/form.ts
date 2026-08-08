@@ -92,7 +92,7 @@ export const fetchForms = async (params: FetchFormParams) => {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao consultar formulário!",
+        message: "Erro ao consultar formulários!",
       } as APIResponseInfo,
       data: {
         forms: [],

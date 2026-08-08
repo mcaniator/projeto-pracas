@@ -1,6 +1,7 @@
 import type { PublicFetchPublicAssessmentTreeParams } from "@/lib/serverFunctions/queries/public/assessment";
 import { publicFetchPublicAssessmentTree } from "@/lib/serverFunctions/queries/public/assessment";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +13,7 @@ export async function GET(
     const assessments = await publicFetchPublicAssessmentTree(
       await props.params,
     );
-    return new Response(JSON.stringify(assessments), {
+    return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

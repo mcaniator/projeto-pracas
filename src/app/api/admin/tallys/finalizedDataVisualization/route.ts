@@ -3,6 +3,7 @@ import { fetchFinalizedTallysToDataVisualization } from "@/lib/serverFunctions/q
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       params.tallyIds,
     );
 
-    return new Response(JSON.stringify(result), {
+    return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

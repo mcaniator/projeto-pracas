@@ -2,6 +2,7 @@ import type { FetchAssessmentTreeParams } from "@/lib/serverFunctions/queries/as
 import { fetchAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 import { z } from "zod";
 
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
       assessmentId,
       isPublic: true,
     });
-    return new Response(JSON.stringify(assessments), {
+    return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

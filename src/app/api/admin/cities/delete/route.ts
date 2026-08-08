@@ -3,6 +3,7 @@ import {
   deleteCityDataSchema,
 } from "@/lib/serverFunctions/mutations/city";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
 
     const data = deleteCityDataSchema.parse(await request.formData());
     const result = await _deleteCity(data);
-    return new Response(JSON.stringify(result), {
+    return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

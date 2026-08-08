@@ -2,6 +2,7 @@ import { publicFetchCategoriesParamsSchema } from "@/lib/serverFunctions/queries
 import { publicFetchCategories } from "@/lib/serverFunctions/queries/public/category";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
       searchParams,
     );
     const locations = await publicFetchCategories(params);
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

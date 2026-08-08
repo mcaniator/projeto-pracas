@@ -1,6 +1,7 @@
 import { fetchCitiesParamsSchema } from "@/lib/serverFunctions/queries/city";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 import { fetchCities } from "../../../../lib/serverFunctions/queries/city";
 import { parseQueryParams } from "../../../../lib/utils/apiCall";
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchCitiesParamsSchema, searchParams);
     const locations = await fetchCities(params);
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

@@ -4,6 +4,7 @@ import { parseQueryParams } from "@/lib/utils/apiCall";
 import "@/lib/utils/bigIntInJson";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,11 +18,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchFormParamsSchema, searchParams);
     const forms = await fetchForms(params);
-    return new Response(JSON.stringify(forms), {
+    return new Response(superjson.stringify(forms), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "private, max-age=30",
       },
     });
   } catch (error) {

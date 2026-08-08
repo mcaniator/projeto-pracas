@@ -2,6 +2,7 @@ import { fetchLocationsParamsSchema } from "@/lib/serverFunctions/queries/locati
 import "@/lib/utils/bigIntInJson";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
+import superjson from "superjson";
 
 import { fetchLocations } from "../../../../lib/serverFunctions/queries/location";
 import { parseQueryParams } from "../../../../lib/utils/apiCall";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchLocationsParamsSchema, searchParams);
     const locations = await fetchLocations(params);
-    return new Response(JSON.stringify(locations), {
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

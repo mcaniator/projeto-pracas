@@ -3,6 +3,7 @@ import {
   updateLocationVisibilityDataSchema,
 } from "@/lib/serverFunctions/mutations/locationUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     }
     const data = updateLocationVisibilityDataSchema.parse(await request.json());
     const result = await _updateLocationVisibility(data);
-    return new Response(JSON.stringify(result), {
+    return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

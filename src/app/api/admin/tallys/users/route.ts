@@ -1,5 +1,6 @@
 import { fetchTallyUsers } from "@/lib/serverFunctions/queries/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function GET() {
   try {
@@ -11,7 +12,7 @@ export async function GET() {
 
     const data = await fetchTallyUsers();
 
-    return new Response(JSON.stringify(data), {
+    return new Response(superjson.stringify(data), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

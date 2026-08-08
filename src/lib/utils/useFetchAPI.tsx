@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils/apiCall";
 import { Capacitor } from "@capacitor/core";
 import { useCallback, useEffect, useRef, useState } from "react";
+import superjson from "superjson";
 
 export function useFetchAPI<
   T,
@@ -177,7 +178,8 @@ export function useFetchAPI<
                 data: null,
               };
             }
-            const json = (await response.json()) as APIResponse<T>;
+            const jsonText = await response.text();
+            const json = superjson.parse<APIResponse<T>>(jsonText);
             if (
               json.responseInfo.statusCode >= 200 &&
               json.responseInfo.statusCode < 300
