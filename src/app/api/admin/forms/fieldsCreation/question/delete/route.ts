@@ -1,5 +1,5 @@
 import {
-  _deleteQuestion,
+  deleteQuestion,
   deleteQuestionDataSchema,
 } from "@/lib/serverFunctions/mutations/questionUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = deleteQuestionDataSchema.parse(await request.formData());
-    const result = await _deleteQuestion(data);
+    const result = await deleteQuestion(data);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

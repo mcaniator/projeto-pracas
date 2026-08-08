@@ -450,7 +450,11 @@ const _questionUpdate = async (
 export const deleteQuestionDataSchema = z.instanceof(FormData);
 export type DeleteQuestionData = z.infer<typeof deleteQuestionDataSchema>;
 
-const _deleteQuestion = async (formData: DeleteQuestionData) => {
+export type DeleteQuestionResponse = NonNullable<
+  Awaited<ReturnType<typeof deleteQuestion>>
+>["data"];
+
+const deleteQuestion = async (formData: DeleteQuestionData) => {
   const questionId = parseInt(formData.get("questionId") as string);
 
   try {
@@ -536,4 +540,4 @@ const _deleteQuestion = async (formData: DeleteQuestionData) => {
   }
 };
 
-export { _deleteQuestion, _questionSubmit, _questionUpdate };
+export { deleteQuestion, _questionSubmit, _questionUpdate };

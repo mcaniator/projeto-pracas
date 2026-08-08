@@ -9,6 +9,7 @@ import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import type { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 import type {
   DeleteQuestionData,
+  DeleteQuestionResponse,
   QuestionSubmitData,
   QuestionUpdateData,
 } from "../mutations/questionUtil";
@@ -116,8 +117,14 @@ export const useQuestionUpdate = (params?: UseFetchAPIParams<null>) => {
   });
 };
 
-export const useDeleteQuestion = (params?: UseFetchAPIParams<null>) => {
-  return useFetchAPI<null, Record<string, never>, DeleteQuestionData>({
+export const useDeleteQuestion = (
+  params?: UseFetchAPIParams<DeleteQuestionResponse>,
+) => {
+  return useFetchAPI<
+    DeleteQuestionResponse,
+    Record<string, never>,
+    DeleteQuestionData
+  >({
     url: "/api/admin/forms/fieldsCreation/question/delete",
     callbacks: params?.callbacks,
     options: {

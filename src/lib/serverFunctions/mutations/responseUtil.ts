@@ -150,7 +150,7 @@ const _addResponsesV2 = async ({
           throw new Error("Resposta em array enviada para questão escrita!");
         }
         if (typeof response === "object" && response !== null) {
-          throw new Error("Resposta em objeto enviada para questao escrita!");
+          throw new Error("Resposta em objeto enviada para questão escrita!");
         }
         if (typeof response === "boolean") {
           throw new Error("Resposta em booleana enviada para questão escrita!");
