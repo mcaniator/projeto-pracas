@@ -17,6 +17,7 @@ type NetworkContextType = {
   isConnected: boolean;
   isConnectedRef: React.MutableRefObject<boolean>;
   setServerOnline: Dispatch<SetStateAction<boolean>>;
+  setNetworkStatus: Dispatch<SetStateAction<boolean>>;
 };
 
 const NetworkContext = createContext<NetworkContextType | null>(null);
@@ -100,7 +101,7 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <NetworkContext.Provider
-      value={{ isConnected, isConnectedRef, setServerOnline }}
+      value={{ isConnected, isConnectedRef, setServerOnline, setNetworkStatus }}
     >
       {hasReceivedInitialNetworkStatus && children}
     </NetworkContext.Provider>

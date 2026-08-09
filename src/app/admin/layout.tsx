@@ -1,10 +1,10 @@
 "use client";
 
+import { useNetwork } from "@/components/context/networkContext";
 import { Header } from "@/components/header/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { Capacitor } from "@capacitor/core";
-import { Network } from "@capacitor/network";
 import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";
 import { useFetchCurrentUser } from "@lib/serverFunctions/apiCalls/auth";
@@ -16,6 +16,7 @@ import { ReactNode, useCallback, useEffect, useState } from "react";
 
 const AdminRoot = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
+  const { isConnectedRef } = useNetwork();
   const [fetchCurrentUser] = useFetchCurrentUser();
   const [user, setUser] = useState<CurrentUser | null>();
 
@@ -45,8 +46,7 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
     //This is the user login check.
     //TODO: The code is too complex to be declared inside the component. Check if it can be refactored
     const loadUser = async () => {
-      const capacitorNetWorkStatus = await Network.getStatus();
-      if (!Capacitor.isNativePlatform() || capacitorNetWorkStatus.connected) {
+      if (isConnectedRef.current) {
         const response = await fetchCurrentUser({
           projectOptions: { silent: true },
         });
@@ -103,7 +103,7 @@ const AdminRoot = ({ children }: { children: ReactNode }) => {
     };
 
     void loadUser();
-  }, [router, fetchCurrentUser, offlineLogin]);
+  }, [router, isConnectedRef, fetchCurrentUser, offlineLogin]);
 
   useEffect(() => {
     if (user && user.roles.length === 0) {

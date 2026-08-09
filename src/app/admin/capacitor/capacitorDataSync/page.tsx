@@ -3,6 +3,7 @@
 import CitySelector from "@/components/citySelector/citySelector";
 import { useUserContext } from "@/components/context/UserContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
+import { useNetwork } from "@/components/context/networkContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
@@ -11,13 +12,14 @@ import { SQLiteTransactionOperation } from "@/lib/capacitor/sqlite/sqlite";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchSQLiteSyncData } from "@/lib/serverFunctions/apiCalls/sqliteSync";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import { Capacitor } from "@capacitor/core";
 import {
   IconBuilding,
   IconCalendarClock,
   IconDownload,
   IconWifiOff,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const MAX_SQLITE_PARAMETERS = 999;
 
@@ -57,6 +59,7 @@ const CapacitorDataSync = () => {
   const { user } = useUserContext();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [fetchData] = useFetchSQLiteSyncData();
+  const { isConnected, setNetworkStatus, setServerOnline } = useNetwork();
   const [sqliteMetaData, setSqliteMetaData] = useState<{
     lastSync: Date;
     cityId: number;
@@ -258,7 +261,9 @@ const CapacitorDataSync = () => {
   useEffect(() => {
     void loadSqliteMetaData();
   }, []);
-
+  const debugEnabled = useMemo(() => {
+    return process.env.NEXT_PUBLIC_DEBUG === "true";
+  }, []);
   return (
     <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader titleIcon={<IconWifiOff />} title="Uso offline" />
@@ -266,6 +271,19 @@ const CapacitorDataSync = () => {
         <p className="text-lg">
           Prepare o aplicativo para realizar avaliações offline
         </p>
+        {debugEnabled && Capacitor.isNativePlatform() && (
+          <CButton
+            onClick={() => {
+              setNetworkStatus(!isConnected);
+              setServerOnline(!isConnected);
+            }}
+          >
+            {isConnected ?
+              "(Debug) Ativar modo offline"
+            : "(Debug) Desativar modo offline"}
+          </CButton>
+        )}
+
         {sqliteMetaData && (
           <div className="flex flex-col rounded-md bg-gray-400 p-2 text-white">
             <div className="font-semibold">Última sincronização</div>

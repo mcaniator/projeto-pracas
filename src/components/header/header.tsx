@@ -1,23 +1,32 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { useNetwork } from "@/components/context/networkContext";
 import ButtonLink from "@/components/ui/buttonLink";
 import CButton from "@/components/ui/cButton";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Chip } from "@mui/material";
+import {
+  Chip,
+  ClickAwayListener,
+  Divider,
+  Paper,
+  Popper,
+  Slide,
+} from "@mui/material";
 import {
   IconInfoSquareRounded,
   IconLogin2,
   IconMapSearch,
   IconMenu2,
   IconTree,
+  IconWifiOff,
   IconX,
 } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { enqueueSnackbar } from "notistack";
 import {
   HTMLAttributes,
   MouseEvent,
@@ -26,7 +35,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 import { GrUserAdmin } from "react-icons/gr";
 
 type HeaderVariant = "public" | "admin";
@@ -56,8 +64,11 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
     },
     ref,
   ) => {
-    const [popupContentRef] = useAutoAnimate();
+    const { isConnected } = useNetwork();
+    const [openUserPopper, setOpenUserPopper] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+    const [userPopperAnchorEl, setUserPopperAnchorEl] =
+      useState<null | HTMLElement>(null);
     const isPublic = variant === "public";
     const isAdmin = variant === "admin";
 
@@ -99,7 +110,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
               onClick={toggleSidebar}
               type="button"
               aria-label="Abrir menu"
-              className="fixed left-4 top-2 z-[61] items-center md:top-3"
+              className="fixed left-4 top-1 z-[61] items-center"
             >
               {!isSidebarVisible && <IconMenu2 size={34} />}
             </button>
@@ -168,7 +179,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
         <header
           className={cn(
             titillium_web.className,
-            "flex w-full pl-14 pr-7 transition-all md:py-1",
+            "flex w-full py-1 pl-14 pr-7 transition-all",
             position === "box" && "relative z-[60] mx-2 mt-2 rounded-2xl",
             colorType === "translucid" ?
               "fixed inset-x-0 top-0 z-[60] bg-main opacity-20 backdrop-blur-[2px]"
@@ -178,45 +189,55 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
           ref={ref}
           {...props}
         >
-          <Link className="z-[50] flex items-center" href="/">
-            <Button
-              type={"button"}
-              variant={"ghost"}
-              use={"link"}
-              className="px-3 py-6"
-            >
-              <IconTree size={34} />
-              <span className="text-xl">Projeto Praças</span>
-            </Button>
-          </Link>
+          <div className="z-[50] flex items-center px-3">
+            <IconTree size={34} />
+            <span className="hidden text-xl sm:block">Projeto Praças</span>
+            {!isConnected && (
+              <Chip
+                icon={<IconWifiOff />}
+                label="Offline"
+                size="small"
+                color="error"
+              />
+            )}
+          </div>
 
           {isAdmin && user && (
-            <DialogTrigger>
-              <Button
-                variant={"ghost"}
-                className="z-[50] ml-auto flex items-center px-3 py-6 pl-2"
+            <>
+              <div className="z-[50] ml-auto flex items-center px-3 pl-2">
+                <Chip
+                  label="Painel"
+                  color="secondary"
+                  icon={<GrUserAdmin size={18} />}
+                  className="ml-2"
+                  onClick={(e) => {
+                    setUserPopperAnchorEl(e.currentTarget);
+                    setOpenUserPopper((prev) => !prev);
+                  }}
+                />
+              </div>
+
+              <Popper
+                open={openUserPopper}
+                anchorEl={userPopperAnchorEl}
+                transition
               >
-                <div className="flex items-center gap-2">
-                  <Chip
-                    label="Painel"
-                    color="secondary"
-                    icon={<GrUserAdmin size={18} />}
-                    className="ml-2"
-                  />
-                </div>
-              </Button>
-              <Popover
-                className={
-                  "z-81 rounded-3xl border-0 bg-off-white p-4 shadow-md data-[entering]:animate-in data-[exiting]:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[placement=bottom]:slide-in-from-top-2"
-                }
-              >
-                <Dialog className={"outline-none"}>
-                  <div ref={popupContentRef}>
-                    <UserInfo user={user} />
-                  </div>
-                </Dialog>
-              </Popover>
-            </DialogTrigger>
+                {({ TransitionProps }) => (
+                  <ClickAwayListener
+                    onClickAway={() => {
+                      setOpenUserPopper(false);
+                      setUserPopperAnchorEl(null);
+                    }}
+                  >
+                    <Slide direction="left" {...TransitionProps} timeout={100}>
+                      <Paper sx={{ p: 2, mr: 1 }} elevation={3}>
+                        <UserInfo user={user} />
+                      </Paper>
+                    </Slide>
+                  </ClickAwayListener>
+                )}
+              </Popper>
+            </>
           )}
 
           {isAdmin && !user && (
@@ -250,6 +271,9 @@ const UserInfo = ({
   const [logout, loggingOut] = useLogout({
     callbacks: {
       onSuccess: () => {
+        enqueueSnackbar("Logout realizado com sucesso!", {
+          variant: "success",
+        });
         router.replace("/");
       },
     },
@@ -267,17 +291,17 @@ const UserInfo = ({
           </span>
         </div>
       </div>
+      <Divider />
       <div className="flex w-full items-center">
         <div className="ml-auto">
           <CButton
-            variant={"text"}
             loading={loggingOut}
             onClick={() => {
               void logout();
             }}
           >
-            <span className="-mb-1 flex gap-1 font-bold text-black">
-              <IconLogin2 strokeWidth={3} /> Log out
+            <span className="-mb-1 flex gap-1">
+              <IconLogin2 /> Log out
             </span>
           </CButton>
         </div>
