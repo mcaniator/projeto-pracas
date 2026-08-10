@@ -1,9 +1,9 @@
+import { getSessionUser } from "@/lib/auth/userUtil";
 import { prisma } from "@/lib/prisma";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const sqliteSyncParamsSchema = z.object({
-  userId: z.string(),
   cityId: z.coerce.number(),
 });
 
@@ -13,9 +13,19 @@ export type FetchSQLiteSyncDataResponse = NonNullable<
   Awaited<ReturnType<typeof fetchSQLiteSyncData>>["data"]
 >;
 export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
+  const user = await getSessionUser();
+  if (!user) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Unauthorized",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
   const getCurrentUserData = prisma.user.findUnique({
     where: {
-      id: params.userId,
+      id: user.id,
     },
     select: {
       id: true,
@@ -65,6 +75,85 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
     FROM location
     WHERE city_id = ${params.cityId}
   `;
+  const syncedFormFilter = {
+    archived: false,
+    finalized: true,
+  };
+  const syncedAssessmentFilter = {
+    isFinalized: false,
+    userId: user.id,
+    location: {
+      cityId: params.cityId,
+    },
+  };
+
+  const getFormsData = prisma.form.findMany({
+    where: syncedFormFilter,
+  });
+  const getCalculationsData = prisma.calculation.findMany({
+    where: {
+      form: syncedFormFilter,
+    },
+  });
+  const getFormItemsData = prisma.formItem.findMany({
+    where: {
+      form: syncedFormFilter,
+    },
+  });
+  const getCategoriesData = prisma.category.findMany({
+    where: {
+      formItems: {
+        some: {
+          form: syncedFormFilter,
+          subcategoryId: null,
+          questionId: null,
+        },
+      },
+    },
+  });
+  const getSubcategoriesData = prisma.subcategory.findMany({
+    where: {
+      formItems: {
+        some: {
+          form: syncedFormFilter,
+          questionId: null,
+        },
+      },
+    },
+  });
+  const getQuestionsData = prisma.question.findMany({
+    where: {
+      formItems: {
+        some: {
+          form: syncedFormFilter,
+        },
+      },
+    },
+  });
+  const getOptionsData = prisma.option.findMany({
+    where: {
+      question: {
+        formItems: {
+          some: {
+            form: syncedFormFilter,
+          },
+        },
+      },
+    },
+  });
+  const getAssessmentsData = prisma.assessment.findMany({
+    where: syncedAssessmentFilter,
+  });
+  const getResponsesData = prisma.response.findMany({
+    where: {
+      assessment: syncedAssessmentFilter,
+    },
+  });
+  const getResponseOptionsData = prisma.responseOption.findMany({
+    where: {
+      assessment: syncedAssessmentFilter,
+    },
+  });
   try {
     const [
       currentUser,
@@ -72,12 +161,32 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
       locationCategory,
       locationType,
       locationPolygons,
+      forms,
+      calculations,
+      formItems,
+      categories,
+      subcategories,
+      questions,
+      options,
+      assessments,
+      responses,
+      responseOptions,
     ] = await prisma.$transaction([
       getCurrentUserData,
       getCityData,
       getLocationCategoryData,
       getLocationTypeData,
       getLocationPolygons,
+      getFormsData,
+      getCalculationsData,
+      getFormItemsData,
+      getCategoriesData,
+      getSubcategoriesData,
+      getQuestionsData,
+      getOptionsData,
+      getAssessmentsData,
+      getResponsesData,
+      getResponseOptionsData,
     ]);
     if (!currentUser || !cityData)
       return {
@@ -119,6 +228,16 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
         locationCategory,
         locationType,
         locations,
+        forms,
+        calculations,
+        formItems,
+        categories,
+        subcategories,
+        questions,
+        options,
+        assessments,
+        responses,
+        responseOptions,
       },
     };
   } catch (e) {

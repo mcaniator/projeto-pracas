@@ -3,6 +3,7 @@
 import FormArchiveDialog from "@/app/admin/forms/formArchiveDialog";
 import FormCreationDialog from "@/app/admin/forms/formCreationDialog";
 import PermissionGuard from "@/components/auth/permissionGuard";
+import { useNetwork } from "@/components/context/networkContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CMenu from "@/components/ui/menu/cMenu";
@@ -26,6 +27,7 @@ type FormRow = FetchFormsResponse["forms"][number];
 
 const FormsClient = () => {
   const theme = useTheme();
+  const { isConnected } = useNetwork();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
   const [_fetchForms, loading] = useFetchForms({
     callbacks: {
@@ -161,6 +163,7 @@ const FormsClient = () => {
                   Clonar
                 </div>
               ),
+              disabled: !isConnected,
               onClick: () => {
                 handleClone({
                   id: params.row.id,
@@ -184,6 +187,7 @@ const FormsClient = () => {
                   }
                 </div>
               ),
+              disabled: !isConnected,
               sx: {
                 color: "red",
               },
@@ -215,6 +219,8 @@ const FormsClient = () => {
           <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
             <CButton
               square={isMobileView}
+              disabled={!isConnected}
+              tooltip={isConnected ? "" : "Conecte-se para criar um formulário"}
               onClick={() => {
                 setSelectedForm(undefined);
                 setOpenFormCreationDialog(true);

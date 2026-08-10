@@ -95,7 +95,7 @@ const AssessmentsClient = () => {
     setIsLoading(false);
   }, []);
 
-  const getUnsyncedAssessmentIds = useCallback(() => {
+  const getUnsavedAssessmentIds = useCallback(() => {
     if (!unsyncedAssessmentIdsPromiseRef.current) {
       unsyncedAssessmentIdsPromiseRef.current = dexieDb.assessments
         .toArray()
@@ -272,7 +272,7 @@ const AssessmentsClient = () => {
           },
         });
         notifyApiResponse(response.responseInfo);
-        const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
+        const unsyncedAssessmentIds = await getUnsavedAssessmentIds();
         const formattedAssessmentsPromises = response.data?.assessments.map(
           async (assessment) => {
             if (unsyncedAssessmentIds.has(assessment.id)) {
@@ -321,7 +321,7 @@ const AssessmentsClient = () => {
     },
     [
       notifyApiResponse,
-      getUnsyncedAssessmentIds,
+      getUnsavedAssessmentIds,
       enqueueSnackbar,
       _fetchAssessments,
       locationId,
@@ -338,8 +338,8 @@ const AssessmentsClient = () => {
   );
 
   useEffect(() => {
-    void getUnsyncedAssessmentIds();
-  }, [getUnsyncedAssessmentIds]);
+    void getUnsavedAssessmentIds();
+  }, [getUnsavedAssessmentIds]);
 
   useEffect(() => {
     void fetchForms({
@@ -414,6 +414,7 @@ const AssessmentsClient = () => {
                 <IconFilter />
               </CButton>
             )}
+
             <CButton
               square={isMobileView}
               onClick={() => setOpenAssessmentCreationDialog(true)}

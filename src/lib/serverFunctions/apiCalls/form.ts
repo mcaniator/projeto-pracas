@@ -1,3 +1,7 @@
+import {
+  fetchAdminSQLiteForms,
+  fetchAdminSQLiteFormStructure,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/form";
 import type {
   FetchFormParams,
   FetchFormsResponse,
@@ -25,6 +29,7 @@ export const useFetchForms = (
     options: {
       method: "GET",
     },
+    offlineFallback: fetchAdminSQLiteForms,
   });
 };
 
@@ -37,6 +42,7 @@ export const useFetchFormStructure = (
     options: {
       method: "GET",
     },
+    offlineFallback: fetchAdminSQLiteFormStructure,
   });
 };
 
