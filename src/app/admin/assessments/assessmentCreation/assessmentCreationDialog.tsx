@@ -1,5 +1,4 @@
 import FormsDataGrid from "@/app/admin/assessments/assessmentCreation/formsDataGrid";
-import { useNetwork } from "@/components/context/networkContext";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -19,7 +18,6 @@ const AssessmentCreationDialog = ({
   onClose: () => void;
 }) => {
   const router = useRouter();
-  const { isConnectedRef } = useNetwork();
   const [selectedLocation, setSelectedLocation] = useState<
     FetchLocationsResponse["locations"][number] | null
   >(null);
@@ -33,13 +31,22 @@ const AssessmentCreationDialog = ({
 
   const [createAssessment, isSaving] = useCreateAssessment({
     callbacks: {
-      onSuccess: (response) => {
+      onServerSuccess(response) {
         if (!response.data?.assessmentId) {
           return;
         }
         setIsRedirecting(true);
         router.push(
-          `/admin/assessments/details?assessmentId=${response.data.assessmentId}&isSQLiteAssessment=${!isConnectedRef.current}`,
+          `/admin/assessments/details?assessmentId=${response.data.assessmentId}}`,
+        );
+      },
+      onOfflineSuccess: (response) => {
+        if (!response.data?.assessmentId) {
+          return;
+        }
+        setIsRedirecting(true);
+        router.push(
+          `/admin/assessments/details?assessmentId=${response.data.assessmentId}&isSQLiteAssessment=${true}`,
         );
       },
     },

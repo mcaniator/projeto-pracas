@@ -1,4 +1,7 @@
-import { fetchAdminSQLiteAssessmentUsers } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  createAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentUsers,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
@@ -65,6 +68,7 @@ export const useCreateAssessment = (
     options: {
       method: "POST",
     },
+    offlineFallback: createAdminSQLiteAssessment,
   });
 };
 

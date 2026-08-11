@@ -1,4 +1,5 @@
 import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDialog";
+import { useNetwork } from "@/components/context/networkContext";
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -31,6 +32,7 @@ const AssessmentsList = ({
   hasSQLiteAssessments: boolean;
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
 }) => {
+  const { isConnected } = useNetwork();
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
     id: number;
     locationName: string;
@@ -66,15 +68,15 @@ const AssessmentsList = ({
         </div>
       )}
       {hasSQLiteAssessments && (
-        <div className="text-center text-xl font-semibold">
+        <div className="text-center font-semibold">
           <Chip
             icon={<IconAlertTriangle />}
             label="Há avaliações salvas localmente!"
             color="warning"
           />
           <p>
-            É necessário enviar as avaliações ao servidor para ver todas as
-            outras.
+            É necessário enviar as avaliações do dispositivo ao servidor para
+            ver todas as outras.
           </p>
         </div>
       )}
@@ -161,7 +163,10 @@ const AssessmentsList = ({
                       }
                       disabled={a.hasUnsavedFilling || !a.isFinalized}
                       tooltip={
-                        a.hasUnsavedFilling ?
+                        !isConnected ? "Nao conectado ao servidor!"
+                        : hasSQLiteAssessments ?
+                          "Não é possível alterar a visibilidade de uma avaliação não enviada!"
+                        : a.hasUnsavedFilling ?
                           "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
                         : !a.isFinalized ?
                           "A avaliação ainda nao foi finalizada!"

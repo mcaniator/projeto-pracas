@@ -4,6 +4,10 @@ import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
+  CreateAssessmentData,
+  CreateAssessmentResponse,
+} from "@/lib/serverFunctions/mutations/assessmentUtil";
+import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
@@ -15,6 +19,7 @@ import type {
 } from "@/lib/serverFunctions/queries/assessment";
 import type {
   APIRequest,
+  APIRequestData,
   APIRequestParams,
   APIResponse,
 } from "@/lib/types/backendCalls/APIResponse";
@@ -143,6 +148,83 @@ const responseOptionsSchema = z.array(
   }),
 );
 
+const createAdminSQLiteAssessment = async (
+  request: APIRequestData<CreateAssessmentData>,
+): Promise<APIResponse<CreateAssessmentResponse>> => {
+  try {
+    const formData = request.data!;
+    const locationId = z.coerce.number().parse(formData.get("locationId"));
+    const formId = z.coerce.number().parse(formData.get("formId"));
+    const startDate = z.coerce.date().parse(formData.get("startDate"));
+    const currentUserValues = await adminSQLiteDb.query({
+      statement: `SELECT id FROM "current_user" LIMIT 1`,
+    });
+    const userId = z
+      .object({ id: z.string() })
+      .parse(currentUserValues.values[0]).id;
+    const now = new Date();
+
+    const result = await adminSQLiteDb.run(
+      `INSERT INTO assessment (
+        created_locally,
+        start_date,
+        end_date,
+        is_finalized,
+        is_public,
+        drive_folder_url,
+        user_id,
+        location_id,
+        form_id,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [1, startDate, null, 0, 0, null, userId, locationId, formId, now, now],
+    );
+
+    return {
+      responseInfo: {
+        statusCode: 201,
+        message: "Avaliação criada no dispositivo!",
+      } as APIResponseInfo,
+      data: {
+        assessmentId: result.changes.lastId,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao criar avaliação offline!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+const fetchAdminSQLiteHasAssessments = async (_request: APIRequest) => {
+  try {
+    const hasAssessments = await adminSQLiteDb.query({
+      statement: `SELECT 1 FROM assessment LIMIT 1`,
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        hasAssessments: hasAssessments.values.length > 0,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliações offline!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
 const fetchAdminSQLiteAssessments = async (
   request: APIRequestParams<FetchAssessmentsParams>,
 ): Promise<APIResponse<FetchAssessmentsResponse>> => {
@@ -257,9 +339,7 @@ const fetchAdminSQLiteAssessments = async (
 
 const fetchAdminSQLiteAssessmentUsers = async (
   _request: APIRequest,
-): Promise<
-  APIResponse<FetchAssessmentUsersResponse>
-> => {
+): Promise<APIResponse<FetchAssessmentUsersResponse>> => {
   try {
     const userValues = await adminSQLiteDb.query({
       statement: `
@@ -671,7 +751,9 @@ const fetchAdminSQLiteAssessmentTree = async (
 };
 
 export {
+  createAdminSQLiteAssessment,
   fetchAdminSQLiteAssessments,
   fetchAdminSQLiteAssessmentTree,
   fetchAdminSQLiteAssessmentUsers,
+  fetchAdminSQLiteHasAssessments,
 };

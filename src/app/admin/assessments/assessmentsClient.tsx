@@ -1,7 +1,10 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
-import { fetchAdminSQLiteAssessments } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  fetchAdminSQLiteAssessments,
+  fetchAdminSQLiteHasAssessments,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
   useFetchAssessmentUsers,
   useFetchAssessments,
@@ -296,31 +299,27 @@ const AssessmentsClient = () => {
       lastFetchedLocationId.current = locationId;
       setIsLoading(true);
 
-      const offlineResponse = await fetchAdminSQLiteAssessments({
-        params: {
-          locationId,
-          formId,
-          startDate,
-          endDate,
-          userId,
-          cityId,
-          broadUnitId,
-          intermediateUnitId,
-          narrowUnitId,
-          finalizationStatus: finalizationStatus,
-        },
-      });
-      const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
-      let assessments = SQLiteAssessments;
-      if (SQLiteAssessments.length > 0) {
+      let assessments: FetchAssessmentsResponse["assessments"] = [];
+      const hasSQLiteAssessments = await fetchAdminSQLiteHasAssessments({});
+      if (hasSQLiteAssessments) {
         // If there are SQLite assessments, we cannot show server assessments until they are synced
         setHasSQLiteAssessments(true);
-        setAssessments(
-          SQLiteAssessments.map((assessmentt) => ({
-            ...assessmentt,
-            hasUnsavedFilling: false,
-          })),
-        );
+        const offlineResponse = await fetchAdminSQLiteAssessments({
+          params: {
+            locationId,
+            formId,
+            startDate,
+            endDate,
+            userId,
+            cityId,
+            broadUnitId,
+            intermediateUnitId,
+            narrowUnitId,
+            finalizationStatus: finalizationStatus,
+          },
+        });
+        const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
+        assessments = SQLiteAssessments;
       } else {
         const response = await _fetchAssessments({
           params: {
