@@ -20,6 +20,14 @@ export type SQLiteBulkInsertOperation = {
   rows: readonly (readonly unknown[])[];
 };
 
+export type SQLiteBulkUpsertOperation = {
+  table: string;
+  insertColumns: readonly string[];
+  updateColumns: readonly string[];
+  conflictColumns: readonly string[];
+  rows: readonly (readonly unknown[])[];
+};
+
 type SQLiteDriverTransactionOperation = {
   statement: string;
   values?: unknown[];
@@ -160,6 +168,26 @@ class SQLite
     return db.executeTransaction(operations);
   }
 
+  /**
+   * Executes bulk upserts in a single transaction without relying on SQLite's
+   * `ON CONFLICT ... DO UPDATE` syntax. By doing this way, we can avoid needing SQLite 3.24+
+   *
+   * Each row first updates a matching record and then inserts only when no
+   * record matches all conflict columns. Every generated statement stays
+   * within SQLite's parameter limit.
+   *
+   * @param upserts Tables, insert/update columns, conflict columns and rows.
+   */
+  public async executeBulkUpsertTransaction(
+    upserts: readonly SQLiteBulkUpsertOperation[],
+  ) {
+    const db = await this.getDb();
+    const operations = upserts.flatMap((upsert) =>
+      this.prepareBulkUpsertOperations(upsert),
+    );
+    return db.executeTransaction(operations);
+  }
+
   /** Returns whether the database connection is open. */
   public async isOpen() {
     const db = await this.getDb();
@@ -284,6 +312,178 @@ class SQLite
 
     // All operations are later passed together to one SQLite transaction.
     return preparedOperations;
+  }
+
+  /**
+   * Returns UPDATE/conditional INSERT operations for a bulk upsert.
+   *
+   * A one-row CTE lets the conditional INSERT reuse the values already bound
+   * for the row, so conflict columns do not consume parameters twice.
+   */
+  private prepareBulkUpsertOperations({
+    table,
+    insertColumns,
+    updateColumns,
+    conflictColumns,
+    rows,
+  }: SQLiteBulkUpsertOperation): SQLiteDriverTransactionOperation[] {
+    // An upsert needs insert columns to describe the positional values in each row.
+    if (insertColumns.length === 0) {
+      throw new Error(`Cannot upsert into ${table} without insert columns.`);
+    }
+
+    // At least one conflict column is required to identify an existing row.
+    if (conflictColumns.length === 0) {
+      throw new Error(`Cannot upsert into ${table} without conflict columns.`);
+    }
+
+    // A Set both detects duplicate insert columns and provides efficient
+    // membership checks for the update and conflict column validations below.
+    const uniqueInsertColumns = new Set(insertColumns);
+    if (uniqueInsertColumns.size !== insertColumns.length) {
+      throw new Error(`Insert columns for ${table} must be unique.`);
+    }
+
+    // Duplicate update columns would generate repeated assignments in SET.
+    if (new Set(updateColumns).size !== updateColumns.length) {
+      throw new Error(`Update columns for ${table} must be unique.`);
+    }
+
+    // Duplicate conflict columns would generate redundant WHERE predicates.
+    if (new Set(conflictColumns).size !== conflictColumns.length) {
+      throw new Error(`Conflict columns for ${table} must be unique.`);
+    }
+
+    // Values are supplied according to insertColumns, so every column used by
+    // UPDATE or conflict matching must have a corresponding value in each row.
+    const validateInsertColumn = (
+      column: string,
+      columnKind: "update" | "conflict",
+    ) => {
+      if (!uniqueInsertColumns.has(column)) {
+        throw new Error(
+          `${columnKind === "update" ? "Update" : "Conflict"} column ${column} is not present in the insert columns for ${table}.`,
+        );
+      }
+    };
+    updateColumns.forEach((column) => validateInsertColumn(column, "update"));
+    conflictColumns.forEach((column) =>
+      validateInsertColumn(column, "conflict"),
+    );
+
+    // Conflict columns identify the existing row and cannot also be updated.
+    // Supporting key changes would require separate old and new column values.
+    const conflictColumnSet = new Set(conflictColumns);
+    const overlappingColumn = updateColumns.find((column) =>
+      conflictColumnSet.has(column),
+    );
+    if (overlappingColumn) {
+      throw new Error(
+        `Column ${overlappingColumn} cannot be both an update and conflict column for ${table}.`,
+      );
+    }
+
+    // The conditional INSERT binds one parameter for every insert column.
+    if (insertColumns.length > MAX_SQLITE_PARAMETERS_PER_STATEMENT) {
+      throw new Error(
+        `A row for ${table} requires ${insertColumns.length} parameters, exceeding the SQLite limit of ${MAX_SQLITE_PARAMETERS_PER_STATEMENT}.`,
+      );
+    }
+
+    // UPDATE binds the new values first and the conflict values used by WHERE
+    // afterwards. Check their combined count against SQLite's parameter limit.
+    const updateParameterCount = updateColumns.length + conflictColumns.length;
+    if (updateParameterCount > MAX_SQLITE_PARAMETERS_PER_STATEMENT) {
+      throw new Error(
+        `An update for ${table} requires ${updateParameterCount} parameters, exceeding the SQLite limit of ${MAX_SQLITE_PARAMETERS_PER_STATEMENT}.`,
+      );
+    }
+
+    // Each row must match the positional schema defined by insertColumns.
+    rows.forEach((row, index) => {
+      if (row.length !== insertColumns.length) {
+        throw new Error(
+          `Row ${index} for ${table} has ${row.length} values, but ${insertColumns.length} insert columns were provided.`,
+        );
+      }
+    });
+
+    // Quote every dynamic identifier before adding it to a SQL statement.
+    const quotedTable = quoteSQLiteIdentifier(table);
+    const quotedIncoming = quoteSQLiteIdentifier("incoming");
+    const quotedExisting = quoteSQLiteIdentifier("existing");
+    const quotedInsertColumns = insertColumns.map(quoteSQLiteIdentifier);
+
+    // Map column names to their positions so UPDATE and WHERE values can be
+    // extracted from each row regardless of the insert column order.
+    const columnIndexByName = new Map(
+      insertColumns.map((column, index) => [column, index]),
+    );
+    const getRowValue = (row: readonly unknown[], column: string) =>
+      row[columnIndexByName.get(column)!];
+
+    // Combine every conflict column with AND to support composite unique keys.
+    const conflictPredicate = conflictColumns
+      .map(
+        (column) =>
+          `${quotedExisting}.${quoteSQLiteIdentifier(column)} = ${quotedIncoming}.${quoteSQLiteIdentifier(column)}`,
+      )
+      .join(" AND ");
+    const rowPlaceholders = insertColumns.map(() => "?").join(", ");
+
+    // Store one incoming row in a CTE so its bound values can be reused by the
+    // SELECT and NOT EXISTS check without binding conflict values a second time.
+    const conditionalInsertStatement = `
+      WITH ${quotedIncoming} (${quotedInsertColumns.join(", ")}) AS (
+        VALUES (${rowPlaceholders})
+      )
+      INSERT INTO ${quotedTable} (${quotedInsertColumns.join(", ")})
+      SELECT ${quotedInsertColumns
+        .map((column) => `${quotedIncoming}.${column}`)
+        .join(", ")}
+      FROM ${quotedIncoming}
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM ${quotedTable} AS ${quotedExisting}
+        WHERE ${conflictPredicate}
+      );
+    `;
+
+    // When there are update columns, create an UPDATE that changes only those
+    // columns and locates the existing row using all conflict columns.
+    const updateStatement =
+      updateColumns.length > 0 ?
+        `UPDATE ${quotedTable}
+         SET ${updateColumns
+           .map((column) => `${quoteSQLiteIdentifier(column)} = ?`)
+           .join(", ")}
+         WHERE ${conflictColumns
+           .map((column) => `${quoteSQLiteIdentifier(column)} = ?`)
+           .join(" AND ")};`
+      : null;
+
+    // Preserve input order by producing an UPDATE followed by a conditional
+    // INSERT for each row. All operations are later run in one transaction.
+    return rows.flatMap((row) => {
+      const operations: SQLiteDriverTransactionOperation[] = [];
+      if (updateStatement) {
+        operations.push({
+          statement: updateStatement,
+          values: [
+            ...updateColumns.map((column) => getRowValue(row, column)),
+            ...conflictColumns.map((column) => getRowValue(row, column)),
+          ],
+        });
+      }
+
+      // If UPDATE found no match, this statement inserts the row. If it found
+      // one, NOT EXISTS prevents a duplicate insert.
+      operations.push({
+        statement: conditionalInsertStatement,
+        values: [...row],
+      });
+      return operations;
+    });
   }
 
   private async executeMigrations({
