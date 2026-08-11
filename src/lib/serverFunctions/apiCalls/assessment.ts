@@ -1,8 +1,4 @@
-import {
-  fetchAdminSQLiteAssessments,
-  fetchAdminSQLiteAssessmentTree,
-  fetchAdminSQLiteAssessmentUsers,
-} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import { fetchAdminSQLiteAssessmentUsers } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
@@ -40,7 +36,6 @@ export const useFetchAssessments = (
     options: {
       method: "GET",
     },
-    offlineFallback: fetchAdminSQLiteAssessments,
   });
 };
 
@@ -141,7 +136,6 @@ export const useFetchAssessmentTree = ({
     options: {
       method: "GET",
     },
-    offlineFallback: fetchAdminSQLiteAssessmentTree,
   });
 };
 

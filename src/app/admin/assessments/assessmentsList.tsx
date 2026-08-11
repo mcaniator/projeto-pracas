@@ -5,6 +5,7 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { useUpdateAssessmentVisibility } from "@/lib/serverFunctions/apiCalls/assessment";
 import { Chip, Divider } from "@mui/material";
 import {
+  IconAlertTriangle,
   IconCalendar,
   IconCheck,
   IconClipboard,
@@ -23,9 +24,11 @@ import type { AssessmentWithSyncStatus } from "./assessmentsClient";
 
 const AssessmentsList = ({
   assessments,
+  hasSQLiteAssessments,
   handleVisibilityChange,
 }: {
   assessments: AssessmentWithSyncStatus[];
+  hasSQLiteAssessments: boolean;
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
 }) => {
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
@@ -62,6 +65,19 @@ const AssessmentsList = ({
           Nenhuma avaliação corresponde aos filtros!
         </div>
       )}
+      {hasSQLiteAssessments && (
+        <div className="text-center text-xl font-semibold">
+          <Chip
+            icon={<IconAlertTriangle />}
+            label="Há avaliações salvas localmente!"
+            color="warning"
+          />
+          <p>
+            É necessário enviar as avaliações ao servidor para ver todas as
+            outras.
+          </p>
+        </div>
+      )}
       <Virtuoso
         data={assessments}
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
@@ -86,7 +102,7 @@ const AssessmentsList = ({
                     />
                   </span>
                   <Divider />
-                  {a.hasUnsyncedFilling && (
+                  {a.hasUnsavedFilling && (
                     <>
                       <span className="flex items-center text-base sm:text-xl">
                         <Chip
@@ -117,7 +133,7 @@ const AssessmentsList = ({
                   </span>
                   <Divider />
                   <span className="flex items-center gap-2 text-base sm:text-xl">
-                    {!a.hasUnsyncedFilling && a.isFinalized ?
+                    {!a.hasUnsavedFilling && a.isFinalized ?
                       <CButton
                         square
                         onClick={() => {
@@ -129,7 +145,7 @@ const AssessmentsList = ({
                     : <CButton
                         square
                         loadingOnClick
-                        href={`/admin/assessments/details?assessmentId=${a.id}`}
+                        href={`/admin/assessments/details?assessmentId=${a.id}&isSQLiteAssessment=${hasSQLiteAssessments}`}
                       >
                         <IconExternalLink />
                         Acessar
@@ -143,9 +159,9 @@ const AssessmentsList = ({
                           pendingVisibilityChange.isPublic
                         : a.isPublic
                       }
-                      disabled={a.hasUnsyncedFilling || !a.isFinalized}
+                      disabled={a.hasUnsavedFilling || !a.isFinalized}
                       tooltip={
-                        a.hasUnsyncedFilling ?
+                        a.hasUnsavedFilling ?
                           "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
                         : !a.isFinalized ?
                           "A avaliação ainda nao foi finalizada!"

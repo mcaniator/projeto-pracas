@@ -29,6 +29,10 @@ export function useFetchAPI<
   callbacks?: {
     onSuccess?: (response: APIResponse<T>) => void;
     onError?: (response: APIResponse<T>) => void;
+    onServerSuccess?: (response: APIResponse<T>) => void;
+    onServerError?: (response: APIResponse<T>) => void;
+    onOfflineSuccess?: (response: APIResponse<T>) => void;
+    onOfflineError?: (response: APIResponse<T>) => void;
   };
   offlineFallback?: (params: P) => Promise<APIResponse<T>>;
   options: RequestInit;
@@ -103,8 +107,10 @@ export function useFetchAPI<
               fallbackResponse.responseInfo.statusCode < 300
             ) {
               currentCallbacks?.onSuccess?.(fallbackResponse);
+              currentCallbacks?.onOfflineSuccess?.(fallbackResponse);
             } else {
               currentCallbacks?.onError?.(fallbackResponse);
+              currentCallbacks?.onOfflineError?.(fallbackResponse);
             }
             if (!silent) {
               notifyApiResponse(fallbackResponse.responseInfo, {
@@ -168,6 +174,10 @@ export function useFetchAPI<
                 responseInfo: errorResponseInfo,
                 data: null,
               });
+              currentCallbacks?.onServerError?.({
+                responseInfo: errorResponseInfo,
+                data: null,
+              });
               if (!silent) {
                 notifyApiResponse(errorResponseInfo, { showSuccessMessage });
               }
@@ -185,8 +195,10 @@ export function useFetchAPI<
               json.responseInfo.statusCode < 300
             ) {
               currentCallbacks?.onSuccess?.(json);
+              currentCallbacks?.onServerSuccess?.(json);
             } else {
               currentCallbacks?.onError?.(json);
+              currentCallbacks?.onServerError?.(json);
             }
             if (!silent) {
               notifyApiResponse(json.responseInfo, { showSuccessMessage });
@@ -219,8 +231,10 @@ export function useFetchAPI<
                   fallbackResponse.responseInfo.statusCode < 300
                 ) {
                   currentCallbacks?.onSuccess?.(fallbackResponse);
+                  currentCallbacks?.onOfflineSuccess?.(fallbackResponse);
                 } else {
                   currentCallbacks?.onError?.(fallbackResponse);
+                  currentCallbacks?.onOfflineError?.(fallbackResponse);
                 }
                 if (!silent) {
                   notifyApiResponse(fallbackResponse.responseInfo, {

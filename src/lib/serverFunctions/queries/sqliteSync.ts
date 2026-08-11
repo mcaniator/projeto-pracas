@@ -79,13 +79,6 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
     archived: false,
     finalized: true,
   };
-  const syncedAssessmentFilter = {
-    isFinalized: false,
-    userId: user.id,
-    location: {
-      cityId: params.cityId,
-    },
-  };
 
   const getFormsData = prisma.form.findMany({
     where: syncedFormFilter,
@@ -141,19 +134,7 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
       },
     },
   });
-  const getAssessmentsData = prisma.assessment.findMany({
-    where: syncedAssessmentFilter,
-  });
-  const getResponsesData = prisma.response.findMany({
-    where: {
-      assessment: syncedAssessmentFilter,
-    },
-  });
-  const getResponseOptionsData = prisma.responseOption.findMany({
-    where: {
-      assessment: syncedAssessmentFilter,
-    },
-  });
+
   try {
     const [
       currentUser,
@@ -168,9 +149,6 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
       subcategories,
       questions,
       options,
-      assessments,
-      responses,
-      responseOptions,
     ] = await prisma.$transaction([
       getCurrentUserData,
       getCityData,
@@ -184,9 +162,6 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
       getSubcategoriesData,
       getQuestionsData,
       getOptionsData,
-      getAssessmentsData,
-      getResponsesData,
-      getResponseOptionsData,
     ]);
     if (!currentUser || !cityData)
       return {
@@ -235,9 +210,6 @@ export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
         subcategories,
         questions,
         options,
-        assessments,
-        responses,
-        responseOptions,
       },
     };
   } catch (e) {

@@ -3,8 +3,10 @@
 import Loading from "@/app/admin/loading";
 import LoadingIcon from "@/components/LoadingIcon";
 import { useUserContext } from "@/components/context/UserContext";
+import { fetchAdminSQLiteAssessmentTree } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import { Capacitor } from "@capacitor/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -14,6 +16,7 @@ const ResponsesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assessmentId = searchParams.get("assessmentId");
+  const isSQLiteAssessment = searchParams.get("isSQLiteAssessment") === "true";
   const { user } = useUserContext();
   const [fetchAssessmentTree, isLoading] = useFetchAssessmentTree({});
   const [assessmentTree, setAssessmentTree] = useState<
@@ -26,20 +29,32 @@ const ResponsesContent = () => {
         router.replace("/error");
         return;
       }
+      let assessmentTree:
+        | FetchAssessmentTreeResponse["assessmentTree"]
+        | undefined = undefined;
+      if (isSQLiteAssessment && Capacitor.isNativePlatform()) {
+        //SQLite assessment
+        const response = await fetchAdminSQLiteAssessmentTree({
+          assessmentId,
+        });
+        assessmentTree = response.data?.assessmentTree;
+      } else {
+        const response = await fetchAssessmentTree({
+          params: { assessmentId },
+        });
+        assessmentTree = response.data?.assessmentTree;
+      }
 
-      const response = await fetchAssessmentTree({
-        params: { assessmentId },
-      });
-      if (!response.data?.assessmentTree?.location) {
+      if (!assessmentTree) {
         router.replace("/error");
         return;
       }
 
-      setAssessmentTree(response.data.assessmentTree);
+      setAssessmentTree(assessmentTree);
     };
 
     void loadAssessment();
-  }, [assessmentId, fetchAssessmentTree, router]);
+  }, [assessmentId, fetchAssessmentTree, isSQLiteAssessment, router]);
 
   if (isLoading || !assessmentTree?.location) {
     return <Loading />;

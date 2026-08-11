@@ -7,11 +7,11 @@ import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
+  FetchAssessmentTreeParams,
+  FetchAssessmentTreeResponse,
   FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
-  FetchAssessmentTreeParams,
-  FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import type { APIResponse } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
@@ -476,18 +476,13 @@ const fetchAdminSQLiteAssessmentTree = async (
         result.set(responseOption.questionId, questionResponseOptions);
         return result;
       },
-      new Map<
-        number,
-        { optionId: number; overrideValue: string | null }[]
-      >(),
+      new Map<number, { optionId: number; overrideValue: string | null }[]>(),
     );
 
     const categories: AssessmentCategoryItem[] = [];
     categoryFormItems.forEach((item) => {
       if (
-        !categories.some(
-          (category) => category.categoryId === item.categoryId,
-        )
+        !categories.some((category) => category.categoryId === item.categoryId)
       ) {
         categories.push({
           id: item.id,
@@ -622,8 +617,7 @@ const fetchAdminSQLiteAssessmentTree = async (
       .map((category) => ({
         ...category,
         categoryChildren: category.categoryChildren.filter(
-          (child) =>
-            !("subcategoryId" in child) || child.questions.length > 0,
+          (child) => !("subcategoryId" in child) || child.questions.length > 0,
         ),
       }))
       .filter((category) => category.categoryChildren.length > 0);

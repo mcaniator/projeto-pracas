@@ -1,7 +1,7 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
-import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { fetchAdminSQLiteAssessments } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
   useFetchAssessmentUsers,
   useFetchAssessments,
@@ -9,6 +9,7 @@ import {
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import { Capacitor } from "@capacitor/core";
 import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
@@ -37,7 +38,7 @@ export type AssessmentsFilterType =
 
 export type AssessmentWithSyncStatus =
   FetchAssessmentsResponse["assessments"][number] & {
-    hasUnsyncedFilling: boolean;
+    hasUnsavedFilling: boolean;
   };
 
 const AssessmentsClient = () => {
@@ -46,10 +47,10 @@ const AssessmentsClient = () => {
   const [params] = useState(useSearchParams());
   const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const unsyncedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
+  const [hasSQLiteAssessments, setHasSQLiteAssessments] = useState(false);
+  const unsavedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
     null,
   );
-  const { enqueueSnackbar, notifyApiResponse } = useAppSnackbar();
   const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
     [],
   );
@@ -95,9 +96,13 @@ const AssessmentsClient = () => {
     setIsLoading(false);
   }, []);
 
-  const getUnsavedAssessmentIds = useCallback(() => {
-    if (!unsyncedAssessmentIdsPromiseRef.current) {
-      unsyncedAssessmentIdsPromiseRef.current = dexieDb.assessments
+  const getUnsavedAssessmentIds = useCallback(async () => {
+    if (Capacitor.isNativePlatform()) {
+      // If native app, the unsaved responses are stored in the SQLite database, as it is more reliable than IndexedDB. // TODO: add SQLite responses cache
+      return new Set<number>();
+    }
+    if (!unsavedAssessmentIdsPromiseRef.current) {
+      unsavedAssessmentIdsPromiseRef.current = dexieDb.assessments
         .toArray()
         .then(
           (dexieAssessments) =>
@@ -112,8 +117,41 @@ const AssessmentsClient = () => {
         );
     }
 
-    return unsyncedAssessmentIdsPromiseRef.current;
+    return unsavedAssessmentIdsPromiseRef.current;
   }, []);
+
+  const formatAssessmentsWithUnsavedFilling = useCallback(
+    async (assessments: FetchAssessmentsResponse["assessments"]) => {
+      const unsavedAssessmentIds = await getUnsavedAssessmentIds();
+      return assessments.map(async (assessment) => {
+        if (unsavedAssessmentIds.has(assessment.id)) {
+          //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
+          const localAssessment = await dexieDb.assessments.get(assessment.id);
+          if (!localAssessment) {
+            //This should never happen
+            return {
+              ...assessment,
+              hasUnsavedFilling: false,
+            };
+          }
+
+          return {
+            ...assessment,
+            startDate: localAssessment.startDate,
+            endDate: localAssessment.endDate,
+            isFinalized: localAssessment.isFinalized,
+            hasUnsavedFilling: true,
+          };
+        } else {
+          return {
+            ...assessment,
+            hasUnsavedFilling: false,
+          };
+        }
+      });
+    },
+    [getUnsavedAssessmentIds],
+  );
 
   const handleFilterChange = ({
     type,
@@ -254,9 +292,34 @@ const AssessmentsClient = () => {
           return;
         }
       }
+
+      lastFetchedLocationId.current = locationId;
       setIsLoading(true);
-      try {
-        lastFetchedLocationId.current = locationId;
+
+      const offlineResponse = await fetchAdminSQLiteAssessments({
+        locationId,
+        formId,
+        startDate,
+        endDate,
+        userId,
+        cityId,
+        broadUnitId,
+        intermediateUnitId,
+        narrowUnitId,
+        finalizationStatus: finalizationStatus,
+      });
+      const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
+      let assessments = SQLiteAssessments;
+      if (SQLiteAssessments.length > 0) {
+        // If there are SQLite assessments, we cannot show server assessments until they are synced
+        setHasSQLiteAssessments(true);
+        setAssessments(
+          SQLiteAssessments.map((assessmentt) => ({
+            ...assessmentt,
+            hasUnsavedFilling: false,
+          })),
+        );
+      } else {
         const response = await _fetchAssessments({
           params: {
             locationId,
@@ -271,59 +334,24 @@ const AssessmentsClient = () => {
             finalizationStatus: finalizationStatus,
           },
         });
-        notifyApiResponse(response.responseInfo);
-        const unsyncedAssessmentIds = await getUnsavedAssessmentIds();
-        const formattedAssessmentsPromises = response.data?.assessments.map(
-          async (assessment) => {
-            if (unsyncedAssessmentIds.has(assessment.id)) {
-              //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
-              const localAssessment = await dexieDb.assessments.get(
-                assessment.id,
-              );
-              if (!localAssessment) {
-                //This should never happen
-                return {
-                  ...assessment,
-                  hasUnsyncedFilling: false,
-                };
-              }
-
-              return {
-                ...assessment,
-                startDate: localAssessment.startDate,
-                endDate: localAssessment.endDate,
-                isFinalized: localAssessment.isFinalized,
-                hasUnsyncedFilling: true,
-              };
-            } else {
-              return {
-                ...assessment,
-                hasUnsyncedFilling: false,
-              };
-            }
-          },
-        );
-        if (formattedAssessmentsPromises) {
-          const formattedAssessments = await Promise.all(
-            formattedAssessmentsPromises,
-          );
-          setAssessments(formattedAssessments);
-        } else {
-          setAssessments([]);
-        }
-      } catch (e) {
-        enqueueSnackbar(<>{"Erro ao consultar avaliações!"}</>, {
-          variant: "error",
-        });
+        assessments = response.data?.assessments ?? [];
       }
 
+      const formattedAssessmentsPromises =
+        await formatAssessmentsWithUnsavedFilling(assessments);
+      if (formattedAssessmentsPromises) {
+        const formattedAssessments = await Promise.all(
+          formattedAssessmentsPromises,
+        );
+        setAssessments(formattedAssessments);
+      } else {
+        setAssessments([]);
+      }
       setIsLoading(false);
     },
     [
-      notifyApiResponse,
-      getUnsavedAssessmentIds,
-      enqueueSnackbar,
       _fetchAssessments,
+      formatAssessmentsWithUnsavedFilling,
       locationId,
       formId,
       startDate,
@@ -336,10 +364,6 @@ const AssessmentsClient = () => {
       finalizationStatus,
     ],
   );
-
-  useEffect(() => {
-    void getUnsavedAssessmentIds();
-  }, [getUnsavedAssessmentIds]);
 
   useEffect(() => {
     void fetchForms({
@@ -433,6 +457,7 @@ const AssessmentsClient = () => {
             <CSkeletonGroup quantity={5} height={120} />
           : <AssessmentsList
               assessments={assessments}
+              hasSQLiteAssessments={hasSQLiteAssessments}
               handleVisibilityChange={handleVisibilityChange}
             />
           }
