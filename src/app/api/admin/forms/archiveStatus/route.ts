@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const data = updateFormArchiveStatusDataSchema.parse(
       await request.formData(),
     );
-    const result = await _updateFormArchiveStatus(data);
+    const result = await _updateFormArchiveStatus({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

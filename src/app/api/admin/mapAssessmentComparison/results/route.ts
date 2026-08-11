@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       fetchMapAssessmentComparisonResultsParamsSchema,
       searchParams,
     );
-    const results = await fetchMapAssessmentComparisonResults(params);
+    const results = await fetchMapAssessmentComparisonResults({ params });
 
     return new Response(superjson.stringify(results), {
       status: 200,

@@ -1,6 +1,9 @@
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUserId } from "@auth/userUtil";
 import {
   ActivityType,
@@ -40,7 +43,10 @@ export type CreateTallyResponse = NonNullable<
   Awaited<ReturnType<typeof _createTallyV2>>["data"]
 >;
 
-export const _createTallyV2 = async (formData: CreateTallyData) => {
+export const _createTallyV2 = async (
+  request: APIRequestData<CreateTallyData>,
+) => {
+  const formData = request.data!;
   const session = await auth();
   if (!session || !session.user) {
     return {
@@ -110,16 +116,19 @@ export type SaveOngoingTallyResponse = NonNullable<
   Awaited<ReturnType<typeof _saveOngoingTallyData>>["data"]
 >;
 
-const _saveOngoingTallyData = async ({
-  tallyId,
-  weatherStats,
-  tallyMapEntries,
-  commercialActivities,
-  complementaryData,
-  startDate,
-  endDate,
-  isFinalized,
-}: SaveOngoingTallyData) => {
+const _saveOngoingTallyData = async (
+  request: APIRequestData<SaveOngoingTallyData>,
+) => {
+  const {
+    tallyId,
+    weatherStats,
+    tallyMapEntries,
+    commercialActivities,
+    complementaryData,
+    startDate,
+    endDate,
+    isFinalized,
+  } = request.data!;
   const persons: PersonWithQuantity[] = [];
 
   new Map(tallyMapEntries).forEach((quantity, key) => {
@@ -217,7 +226,10 @@ export const deleteTallyDataSchema = z.object({
 });
 export type DeleteTallyData = z.infer<typeof deleteTallyDataSchema>;
 
-const _deleteTally = async ({ tallyId }: DeleteTallyData) => {
+const _deleteTally = async (
+  request: APIRequestData<DeleteTallyData>,
+) => {
+  const { tallyId } = request.data!;
   const userId = await getSessionUserId();
   const tally = await prisma.tally.findUnique({
     where: {

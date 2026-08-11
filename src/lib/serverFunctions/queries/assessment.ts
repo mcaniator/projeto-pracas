@@ -11,7 +11,11 @@ import { z } from "zod";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { ResponseGeometry } from "../../types/assessments/geometry";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
@@ -126,7 +130,9 @@ export type FetchAssessmentUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentUsers>>
 >["data"];
 
-export const fetchAssessmentUsers = async () => {
+export const fetchAssessmentUsers = async (
+  _request: APIRequest,
+) => {
   try {
     const users = await prisma.user.findMany({
       where: { assessment: { some: {} } },
@@ -169,10 +175,15 @@ type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const fetchAssessmentTree = async (params: {
-  assessmentId: number;
-  isPublic?: boolean;
-}) => {
+const fetchAssessmentTree = async (
+  request: APIRequestParams<
+    {
+      assessmentId: number;
+      isPublic?: boolean;
+    }
+  >,
+) => {
+  const params = request.params!;
   try {
     const assessment = await prisma.assessment.findUnique({
       where: { id: params.assessmentId, isPublic: params.isPublic },
@@ -975,7 +986,10 @@ export type FetchAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessments>>["data"]
 >;
 
-const fetchAssessments = async (params: FetchAssessmentsParams) => {
+const fetchAssessments = async (
+  request: APIRequestParams<FetchAssessmentsParams>,
+) => {
+  const params = request.params!;
   try {
     let isFinalizedFilter = undefined;
     if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
@@ -1060,8 +1074,9 @@ export type FetchPublicAssessmentsResponse = NonNullable<
 >;
 
 export const fetchPublicAssessments = async (
-  params: FetchPublicAssessmentsParams,
+  request: APIRequestParams<FetchPublicAssessmentsParams>,
 ) => {
+  const params = request.params!;
   try {
     const assessments = await prisma.assessment.findMany({
       where: {

@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = createTallyDataSchema.parse(await request.formData());
-    const result = await _createTallyV2(data);
+    const result = await _createTallyV2({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

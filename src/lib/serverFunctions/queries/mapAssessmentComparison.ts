@@ -6,7 +6,11 @@ import type { Coordinate } from "ol/coordinate";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 import { buildImageUrl } from "../../utils/image";
 import {
@@ -31,7 +35,9 @@ export type FetchMapAssessmentComparisonCategoriesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchMapAssessmentComparisonCategories>>["data"]
 >;
 
-export const fetchMapAssessmentComparisonCategories = async () => {
+export const fetchMapAssessmentComparisonCategories = async (
+  _request: APIRequest,
+) => {
   try {
     const categories = await prisma.category.findMany({
       where: {
@@ -95,10 +101,10 @@ export type FetchMapAssessmentComparisonResultsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchMapAssessmentComparisonResults>>["data"]
 >;
 
-export const fetchMapAssessmentComparisonResults = async ({
-  cityId,
-  categoryId,
-}: FetchMapAssessmentComparisonResultsParams) => {
+export const fetchMapAssessmentComparisonResults = async (
+  request: APIRequestParams<FetchMapAssessmentComparisonResultsParams>,
+) => {
+  const { cityId, categoryId } = request.params!;
   try {
     const locations = await prisma.location.findMany({
       where: {
@@ -370,10 +376,10 @@ type MapAssessmentComparisonAssessmentQueryResult = {
   };
 };
 
-export const fetchMapAssessmentComparisonAssessmentTrees = async ({
-  categoryId,
-  locationIds,
-}: FetchMapAssessmentComparisonAssessmentTreesParams) => {
+export const fetchMapAssessmentComparisonAssessmentTrees = async (
+  request: APIRequestParams<FetchMapAssessmentComparisonAssessmentTreesParams>,
+) => {
+  const { categoryId, locationIds } = request.params!;
   try {
     const assessmentIds = (
       await prisma.assessment.findMany({

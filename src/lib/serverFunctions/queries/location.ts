@@ -4,7 +4,10 @@ import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const fetchLocationsParamsSchema = z.object({
   cityId: z.coerce.number().nullish(),
@@ -17,7 +20,10 @@ export type FetchLocationsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchLocations>>["data"]
 >;
 
-export const fetchLocations = async (params: FetchLocationsParams) => {
+export const fetchLocations = async (
+  request: APIRequestParams<FetchLocationsParams>,
+) => {
+  const params = request.params!;
   try {
     const locations = await prisma.$queryRaw<Array<LocationForMap>>`
   SELECT

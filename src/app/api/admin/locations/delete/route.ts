@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = deleteLocationDataSchema.parse(await request.formData());
-    const result = await _deleteLocation(data);
+    const result = await _deleteLocation({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

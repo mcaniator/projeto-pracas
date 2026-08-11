@@ -1,5 +1,8 @@
 import { searchDynamicIcons } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const fetchDynamicIconsParamsSchema = z.object({
@@ -15,7 +18,10 @@ export type FetchDynamicIconsResponse = Awaited<
   ReturnType<typeof fetchDynamicIcons>
 >["data"];
 
-const fetchDynamicIcons = (params: FetchDynamicIconsParams) => {
+const fetchDynamicIcons = (
+  request: APIRequestParams<FetchDynamicIconsParams>,
+) => {
+  const params = request.params!;
   try {
     const icons = searchDynamicIcons({
       query: params.query,

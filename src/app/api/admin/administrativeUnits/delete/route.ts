@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const data = deleteAdministrativeUnitDataSchema.parse(
       await request.formData(),
     );
-    const result = await _deleteAdministrativeUnit(data);
+    const result = await _deleteAdministrativeUnit({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

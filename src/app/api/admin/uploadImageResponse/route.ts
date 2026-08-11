@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const uploadResponse = await uploadImageResponse(params.data);
+    const uploadResponse = await uploadImageResponse({ data: params.data });
 
     return new Response(superjson.stringify(uploadResponse), {
       status: 200,

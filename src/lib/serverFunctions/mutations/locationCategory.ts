@@ -2,7 +2,10 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const saveLocationCategoryDataSchema = z.instanceof(FormData);
 
@@ -11,8 +14,9 @@ export type SaveLocationCategoryData = z.infer<
 >;
 
 export const _saveLocationCategory = async (
-  formData: SaveLocationCategoryData,
+  request: APIRequestData<SaveLocationCategoryData>,
 ) => {
+  const formData = request.data!;
   let name: string | null = null;
   let categoryId: number | null | undefined = null;
   try {
@@ -101,8 +105,9 @@ export type DeleteLocationCategoryOrTypeResponse = NonNullable<
 >["data"];
 
 export const _deleteLocationCategoryOrType = async (
-  formData: DeleteLocationCategoryOrTypeData,
+  request: APIRequestData<DeleteLocationCategoryOrTypeData>,
 ) => {
+  const formData = request.data!;
   try {
     const itemType = z
       .enum(["CATEGORY", "TYPE"])

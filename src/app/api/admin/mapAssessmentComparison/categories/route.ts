@@ -12,7 +12,7 @@ export async function GET() {
       });
     }
 
-    const categories = await fetchMapAssessmentComparisonCategories();
+    const categories = await fetchMapAssessmentComparisonCategories({});
 
     return new Response(superjson.stringify(categories), {
       status: 200,

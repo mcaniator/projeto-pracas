@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       fetchQuestionUsesParamsSchema,
       searchParams,
     );
-    const questionUses = await fetchQuestionUses(params);
+    const questionUses = await fetchQuestionUses({ params });
     return new Response(superjson.stringify(questionUses), {
       status: 200,
       headers: { "Content-Type": "application/json" },

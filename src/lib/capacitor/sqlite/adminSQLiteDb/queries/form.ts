@@ -12,7 +12,10 @@ import type {
   fetchFormStructureParams,
   fetchFormStructureResponse,
 } from "@/lib/serverFunctions/queries/form";
-import type { APIResponse } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  APIRequestParams,
+  APIResponse,
+} from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import {
@@ -106,8 +109,9 @@ const calculationsSchema = z.array(
 );
 
 const fetchAdminSQLiteForms = async (
-  params: FetchFormParams,
+  request: APIRequestParams<FetchFormParams>,
 ): Promise<APIResponse<FetchFormsResponse>> => {
+  const params = request.params!;
   try {
     const formsValues = await adminSQLiteDb.query({
       statement: `
@@ -158,8 +162,9 @@ const fetchAdminSQLiteForms = async (
 };
 
 const fetchAdminSQLiteFormStructure = async (
-  params: fetchFormStructureParams,
+  request: APIRequestParams<fetchFormStructureParams>,
 ): Promise<APIResponse<fetchFormStructureResponse>> => {
+  const params = request.params!;
   try {
     const [
       formValues,

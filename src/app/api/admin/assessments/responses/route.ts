@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = addResponsesDataSchema.parse(await request.json());
-    const result = await _addResponsesV2(data);
+    const result = await _addResponsesV2({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

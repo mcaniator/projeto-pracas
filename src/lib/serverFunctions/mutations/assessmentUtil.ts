@@ -4,7 +4,10 @@ import { getSessionUser } from "@lib/auth/userUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const createAssessmentDataSchema = z.instanceof(FormData);
 export type CreateAssessmentData = z.infer<typeof createAssessmentDataSchema>;
@@ -12,7 +15,10 @@ export type CreateAssessmentResponse = NonNullable<
   Awaited<ReturnType<typeof _createAssessmentV2>>["data"]
 >;
 
-const _createAssessmentV2 = async (formData: CreateAssessmentData) => {
+const _createAssessmentV2 = async (
+  request: APIRequestData<CreateAssessmentData>,
+) => {
+  const formData = request.data!;
   const session = await auth();
   if (!session || !session.user) {
     return {
@@ -74,10 +80,10 @@ export type UpdateAssessmentVisibilityData = z.infer<
   typeof updateAssessmentVisibilityDataSchema
 >;
 
-const _updateAssessmentVisibility = async ({
-  assessmentId,
-  isPublic,
-}: UpdateAssessmentVisibilityData) => {
+const _updateAssessmentVisibility = async (
+  request: APIRequestData<UpdateAssessmentVisibilityData>,
+) => {
+  const { assessmentId, isPublic } = request.data!;
   try {
     const updatedAssessment = await prisma.assessment.update({
       where: { id: assessmentId, isFinalized: isPublic ? true : undefined },
@@ -107,7 +113,10 @@ export const deleteAssessmentDataSchema = z.object({
 });
 export type DeleteAssessmentData = z.infer<typeof deleteAssessmentDataSchema>;
 
-const _deleteAssessment = async ({ assessmentId }: DeleteAssessmentData) => {
+const _deleteAssessment = async (
+  request: APIRequestData<DeleteAssessmentData>,
+) => {
+  const { assessmentId } = request.data!;
   try {
     const assessment = await prisma.assessment.findUnique({
       where: {

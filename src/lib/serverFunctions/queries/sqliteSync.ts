@@ -1,6 +1,9 @@
 import { getSessionUser } from "@/lib/auth/userUtil";
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const sqliteSyncParamsSchema = z.object({
@@ -12,7 +15,10 @@ export type SQLiteSyncParams = z.infer<typeof sqliteSyncParamsSchema>;
 export type FetchSQLiteSyncDataResponse = NonNullable<
   Awaited<ReturnType<typeof fetchSQLiteSyncData>>["data"]
 >;
-export const fetchSQLiteSyncData = async (params: SQLiteSyncParams) => {
+export const fetchSQLiteSyncData = async (
+  request: APIRequestParams<SQLiteSyncParams>,
+) => {
+  const params = request.params!;
   const user = await getSessionUser();
   if (!user) {
     return {

@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
@@ -134,8 +137,9 @@ export type FetchquestionsByCategoryAndSubcategoryResponse = NonNullable<
   Awaited<ReturnType<typeof searchQuestionsByCategoryAndSubcategory>>["data"]
 >;
 const searchQuestionsByCategoryAndSubcategory = async (
-  params: FetchQuestionsByCategoryAndSubcategoryParams,
+  request: APIRequestParams<FetchQuestionsByCategoryAndSubcategoryParams>,
 ) => {
+  const params = request.params!;
   if (!params.categoryId) return { statusCode: 400, categories: [] };
   try {
     const categoryQuestionFilter =
@@ -185,7 +189,10 @@ const searchQuestionsByCategoryAndSubcategory = async (
   }
 };
 
-const searchQuestionsByName = async (name: string) => {
+const searchQuestionsByName = async (
+  request: APIRequestParams<{ name: string }>,
+) => {
+  let { name } = request.params!;
   if (!name)
     return {
       responseInfo: {
@@ -255,7 +262,10 @@ type QuestionUses = {
   }[];
 };
 
-export const fetchQuestionUses = async (params: FetchQuestionUsesParams) => {
+export const fetchQuestionUses = async (
+  request: APIRequestParams<FetchQuestionUsesParams>,
+) => {
+  const params = request.params!;
   try {
     const [questionUses] = await prisma.$queryRaw<QuestionUses[]>`
       WITH question_forms AS (

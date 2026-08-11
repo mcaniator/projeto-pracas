@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchAssessmentsParamsSchema, searchParams);
-    const assessments = await fetchAssessments(params);
+    const assessments = await fetchAssessments({ params });
     return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const data = updateAssessmentVisibilityDataSchema.parse(
       await request.json(),
     );
-    const result = await _updateAssessmentVisibility(data);
+    const result = await _updateAssessmentVisibility({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

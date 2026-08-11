@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { sleep } from "@/lib/utils/sleep";
 import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
@@ -60,7 +63,10 @@ export const fetchFormParamsSchema = z.object({
 export type FetchFormParams = z.infer<typeof fetchFormParamsSchema>;
 
 export type FetchFormsResponse = Awaited<ReturnType<typeof fetchForms>>["data"];
-export const fetchForms = async (params: FetchFormParams) => {
+export const fetchForms = async (
+  request: APIRequestParams<FetchFormParams>,
+) => {
+  const params = request.params!;
   try {
     const forms = await prisma.form.findMany({
       where: {
@@ -347,7 +353,10 @@ export type fetchFormStructureResponse = NonNullable<
   Awaited<ReturnType<typeof fetchFormStructure>>["data"]
 >;
 
-export const fetchFormStructure = async (params: fetchFormStructureParams) => {
+export const fetchFormStructure = async (
+  request: APIRequestParams<fetchFormStructureParams>,
+) => {
+  const params = request.params!;
   const [form, calculations] = await Promise.all([
     getFormTree(params),
     getCalculationByFormId(params.formId),

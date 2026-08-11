@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid params", { status: 400 });
   }
 
-  const result = await fetchPasswordResetToken(parse.data);
+  const result = await fetchPasswordResetToken({ params: parse.data });
 
   return new Response(superjson.stringify(result), {
     status: 200,

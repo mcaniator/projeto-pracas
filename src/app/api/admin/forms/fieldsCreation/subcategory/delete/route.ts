@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = deleteSubcategoryDataSchema.parse(await request.formData());
-    const result = await _deleteSubcategory(data);
+    const result = await _deleteSubcategory({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import {
+  APIRequest,
   APIResponse,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
@@ -13,7 +14,9 @@ const locationCategoriesSchema = z.array(
   }),
 );
 
-const fetchAdminSQLiteLocationCategories = async (): Promise<
+const fetchAdminSQLiteLocationCategories = async (
+  _request: APIRequest,
+): Promise<
   APIResponse<FetchLocationCategoriesResponse>
 > => {
   try {

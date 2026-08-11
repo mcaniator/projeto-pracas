@@ -1,4 +1,5 @@
 import { signIn } from "@auth/auth";
+import { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
 import { getInviteToken } from "@serverOnly/invite";
@@ -116,7 +117,8 @@ const _register = async (
 };
 
 export type RegisterResponse = Awaited<ReturnType<typeof register>>["data"];
-export const register = async (formData: FormData) => {
+export const register = async (request: APIRequestData<FormData>) => {
+  const formData = request.data!;
   const result = await _register(formData);
   return {
     responseInfo: { statusCode: result?.statusCode ?? 500 },

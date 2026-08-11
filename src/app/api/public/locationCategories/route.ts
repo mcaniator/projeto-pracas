@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       publicFetchCategoriesParamsSchema,
       searchParams,
     );
-    const locations = await publicFetchCategories(params);
+    const locations = await publicFetchCategories({ params });
     return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {

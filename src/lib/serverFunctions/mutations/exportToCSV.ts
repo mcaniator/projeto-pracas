@@ -5,6 +5,7 @@ import {
   weekdayFormatter,
 } from "@/lib/formatters/dateFormatters";
 import { prisma } from "@/lib/prisma";
+import { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { QuestionResponseCharacterTypes, QuestionTypes } from "@prisma/client";
 import {
@@ -56,9 +57,10 @@ export type ExportRegistrationResponse = NonNullable<
   Awaited<ReturnType<typeof _exportRegistrationData>>["data"]
 >;
 
-const _exportRegistrationData = async ({
-  locationsIds,
-}: ExportRegistrationData) => {
+const _exportRegistrationData = async (
+  request: APIRequestData<ExportRegistrationData>,
+) => {
+  const { locationsIds } = request.data!;
   try {
     const locations = await prisma.location.findMany({
       where: {
@@ -144,9 +146,10 @@ export type ExportAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof _exportAssessments>>["data"]
 >;
 
-export const _exportAssessments = async ({
-  assessmentIds,
-}: ExportAssessmentsData) => {
+export const _exportAssessments = async (
+  request: APIRequestData<ExportAssessmentsData>,
+) => {
+  const { assessmentIds } = request.data!;
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -575,10 +578,10 @@ export type ExportDailyTallysResponse = NonNullable<
   Awaited<ReturnType<typeof _exportDailyTallys>>["data"]
 >;
 
-const _exportDailyTallys = async ({
-  locationIds,
-  tallysIds,
-}: ExportDailyTallysData) => {
+const _exportDailyTallys = async (
+  request: APIRequestData<ExportDailyTallysData>,
+) => {
+  const { locationIds, tallysIds } = request.data!;
   try {
     const locationObjs = await prisma.location.findMany({
       where: {
@@ -865,9 +868,10 @@ export type ExportDailyTallysFromSingleLocationResponse = NonNullable<
   Awaited<ReturnType<typeof _exportDailyTallysFromSingleLocation>>["data"]
 >;
 
-const _exportDailyTallysFromSingleLocation = async ({
-  tallysIds,
-}: ExportDailyTallysFromSingleLocationData) => {
+const _exportDailyTallysFromSingleLocation = async (
+  request: APIRequestData<ExportDailyTallysFromSingleLocationData>,
+) => {
+  const { tallysIds } = request.data!;
   const unparsedTallys = await prisma.tally.findMany({
     where: {
       id: {
@@ -986,9 +990,10 @@ export type ExportIndividualTallysToCSVResponse = NonNullable<
   Awaited<ReturnType<typeof _exportIndividualTallysToCSV>>["data"]
 >;
 
-const _exportIndividualTallysToCSV = async ({
-  tallysIds,
-}: ExportIndividualTallysToCSVData) => {
+const _exportIndividualTallysToCSV = async (
+  request: APIRequestData<ExportIndividualTallysToCSVData>,
+) => {
+  const { tallysIds } = request.data!;
   const tallys = await prisma.tally.findMany({
     where: {
       id: {

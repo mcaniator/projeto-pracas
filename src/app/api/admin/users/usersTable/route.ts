@@ -10,7 +10,7 @@ export async function GET() {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const users = await fetchUsers();
+    const users = await fetchUsers({});
     return new Response(superjson.stringify(users), {
       status: 200,
       headers: { "Content-Type": "application/json" },

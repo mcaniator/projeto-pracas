@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export async function POST() {
   try {
-    const result = await logout();
+    const result = await logout({});
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

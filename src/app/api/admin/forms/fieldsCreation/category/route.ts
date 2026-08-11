@@ -9,7 +9,7 @@ export async function GET() {
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const categories = await fetchCategoriesForFieldsCreation();
+    const categories = await fetchCategoriesForFieldsCreation({});
     return new Response(superjson.stringify(categories), {
       status: 200,
       headers: { "Content-Type": "application/json" },

@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import {
+  APIRequest,
+  APIRequestData,
+} from "@/lib/types/backendCalls/APIResponse";
 import { auth, signIn, signOut } from "@auth/auth";
 import { userLoginSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
@@ -56,7 +60,8 @@ const _login = async (
 };
 
 export type LoginResponse = Awaited<ReturnType<typeof login>>["data"];
-export const login = async (formData: FormData) => {
+export const login = async (request: APIRequestData<FormData>) => {
+  const formData = request.data!;
   const result = await _login(formData);
   return {
     responseInfo: { statusCode: result?.statusCode ?? 500 },
@@ -65,7 +70,9 @@ export const login = async (formData: FormData) => {
 };
 
 export type LogoutResponse = Awaited<ReturnType<typeof logout>>["data"];
-export const logout = async () => {
+export const logout = async (
+  _request: APIRequest,
+) => {
   try {
     await signOut({ redirect: false });
     return { responseInfo: { statusCode: 200 }, data: null };

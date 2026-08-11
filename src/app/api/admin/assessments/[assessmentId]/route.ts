@@ -19,7 +19,9 @@ export async function GET(
     }
     const params = await props.params;
     const assessmentId = z.coerce.number().parse(params.assessmentId);
-    const assessments = await fetchAssessmentTree({ assessmentId });
+    const assessments = await fetchAssessmentTree({
+      params: { assessmentId },
+    });
     return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {

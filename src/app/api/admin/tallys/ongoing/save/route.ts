@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = saveOngoingTallyDataSchema.parse(await request.json());
-    const result = await _saveOngoingTallyData(data);
+    const result = await _saveOngoingTallyData({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

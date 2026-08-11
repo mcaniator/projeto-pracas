@@ -297,16 +297,18 @@ const AssessmentsClient = () => {
       setIsLoading(true);
 
       const offlineResponse = await fetchAdminSQLiteAssessments({
-        locationId,
-        formId,
-        startDate,
-        endDate,
-        userId,
-        cityId,
-        broadUnitId,
-        intermediateUnitId,
-        narrowUnitId,
-        finalizationStatus: finalizationStatus,
+        params: {
+          locationId,
+          formId,
+          startDate,
+          endDate,
+          userId,
+          cityId,
+          broadUnitId,
+          intermediateUnitId,
+          narrowUnitId,
+          finalizationStatus: finalizationStatus,
+        },
       });
       const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
       let assessments = SQLiteAssessments;

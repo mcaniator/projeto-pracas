@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchCitiesParamsSchema, searchParams);
-    const locations = await fetchCities(params);
+    const locations = await fetchCities({ params });
     return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {

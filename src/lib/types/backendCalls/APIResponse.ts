@@ -8,6 +8,15 @@ type APIResponse<T> = {
   data?: T | null;
 };
 
+type APIRequest<P = unknown, D = unknown> = {
+  params?: P;
+  data?: D;
+};
+
+type APIRequestParams<P = unknown> = APIRequest<P>;
+
+type APIRequestData<D = unknown> = APIRequest<unknown, D>;
+
 type FetchCallbacks<T> =
   | {
       onSuccess?: (response: APIResponse<T>) => void;
@@ -36,9 +45,7 @@ type FetchRequestOptions = Omit<RequestInit, "method">;
 type FetchFunctionArgs<
   Params extends Record<string, unknown>,
   Data = unknown,
-> = {
-  params?: Params;
-  data?: Data;
+> = APIRequest<Params, Data> & {
   projectOptions?: FetchAPIOptions;
   requestOptions?: FetchRequestOptions;
 };
@@ -46,6 +53,9 @@ type FetchFunctionArgs<
 export type {
   APIResponseInfo,
   APIResponse,
+  APIRequest,
+  APIRequestParams,
+  APIRequestData,
   FetchCallbacks,
   UseFetchAPIParams,
   FetchAPIOptions,

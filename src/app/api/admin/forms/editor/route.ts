@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     fetchFormStructureParamsSchema,
     request.nextUrl.searchParams,
   );
-  const result = await fetchFormStructure(params);
+  const result = await fetchFormStructure({ params });
 
   return new Response(superjson.stringify(result), {
     status: 200,

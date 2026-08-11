@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const data = exportIndividualTallysToCSVDataSchema.parse(
       await request.json(),
     );
-    const result = await _exportIndividualTallysToCSV(data);
+    const result = await _exportIndividualTallysToCSV({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

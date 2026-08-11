@@ -35,7 +35,7 @@ const ResponsesContent = () => {
       if (isSQLiteAssessment && Capacitor.isNativePlatform()) {
         //SQLite assessment
         const response = await fetchAdminSQLiteAssessmentTree({
-          assessmentId,
+          params: { assessmentId },
         });
         assessmentTree = response.data?.assessmentTree;
       } else {

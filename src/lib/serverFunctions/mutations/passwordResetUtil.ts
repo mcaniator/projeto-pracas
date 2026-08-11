@@ -1,4 +1,5 @@
 import { auth, signOut } from "@auth/auth";
+import { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { emailTransporter } from "@serverOnly/email";
 import { getPasswordResetEmail } from "@serverOnly/renderEmail";
@@ -90,7 +91,10 @@ const _createPasswordReset = async (formData: FormData) => {
 export type RequestPasswordResetResponse = Awaited<
   ReturnType<typeof requestPasswordReset>
 >["data"];
-export const requestPasswordReset = async (formData: FormData) => {
+export const requestPasswordReset = async (
+  request: APIRequestData<FormData>,
+) => {
+  const formData = request.data!;
   const result = await _createPasswordReset(formData);
   return {
     responseInfo: { statusCode: result.statusCode },
@@ -154,7 +158,8 @@ const _resetPassword = async (formData: FormData) => {
 export type ResetPasswordResponse = Awaited<
   ReturnType<typeof resetPassword>
 >["data"];
-export const resetPassword = async (formData: FormData) => {
+export const resetPassword = async (request: APIRequestData<FormData>) => {
+  const formData = request.data!;
   const result = await _resetPassword(formData);
   return {
     responseInfo: { statusCode: result?.statusCode ?? 500 },

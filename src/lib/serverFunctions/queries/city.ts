@@ -2,7 +2,10 @@ import { prisma } from "@lib/prisma";
 import { $Enums, BrazilianStates } from "@prisma/client";
 import { z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const fetchCitiesParamsSchema = z.object({
   state: z.nativeEnum(BrazilianStates),
@@ -17,7 +20,8 @@ export type FetchCitiesResponse = Awaited<
   ReturnType<typeof fetchCities>
 >["data"];
 
-const fetchCities = async (params: FetchCitiesParams) => {
+const fetchCities = async (request: APIRequestParams<FetchCitiesParams>) => {
+  const params = request.params!;
   try {
     const cities: ({
       narrowAdministrativeUnit?: {

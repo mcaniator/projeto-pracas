@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Prisma, Role } from "@prisma/client";
 import { emailTransporter } from "@serverOnly/email";
@@ -13,7 +16,10 @@ export const createInviteDataSchema = z.object({
 });
 export type CreateInviteData = z.infer<typeof createInviteDataSchema>;
 
-export const _createInviteV2 = async (params: CreateInviteData) => {
+export const _createInviteV2 = async (
+  request: APIRequestData<CreateInviteData>,
+) => {
+  const params = request.data!;
   if (params.email.trim().length === 0) {
     return {
       responseInfo: {
@@ -174,7 +180,10 @@ export const _createInviteV2 = async (params: CreateInviteData) => {
 export const deleteInviteDataSchema = z.object({ id: z.coerce.number() });
 export type DeleteInviteData = z.infer<typeof deleteInviteDataSchema>;
 
-export const _deleteInviteV2 = async (params: DeleteInviteData) => {
+export const _deleteInviteV2 = async (
+  request: APIRequestData<DeleteInviteData>,
+) => {
+  const params = request.data!;
   try {
     await prisma.invite.delete({
       where: {

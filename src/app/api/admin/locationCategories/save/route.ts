@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const data = saveLocationCategoryDataSchema.parse(await request.formData());
-    const result = await _saveLocationCategory(data);
+    const result = await _saveLocationCategory({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

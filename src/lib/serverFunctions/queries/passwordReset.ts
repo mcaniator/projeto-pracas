@@ -1,4 +1,5 @@
 import { prisma } from "@lib/prisma";
+import { APIRequestParams } from "@/lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const fetchPasswordResetTokenParamsSchema = z.object({
@@ -11,9 +12,10 @@ export type FetchPasswordResetTokenResponse = NonNullable<
   Awaited<ReturnType<typeof fetchPasswordResetToken>>
 >["data"];
 
-const fetchPasswordResetToken = async ({
-  token,
-}: FetchPasswordResetTokenParams) => {
+const fetchPasswordResetToken = async (
+  request: APIRequestParams<FetchPasswordResetTokenParams>,
+) => {
+  const { token } = request.params!;
   try {
     const passwordReset = await prisma.passwordReset.findUnique({
       where: {

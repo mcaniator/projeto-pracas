@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { deleteImage, uploadImage } from "@/lib/utils/image";
 import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { Image } from "@prisma/client";
@@ -9,7 +12,10 @@ import { z } from "zod";
 export const deleteLocationDataSchema = z.instanceof(FormData);
 export type DeleteLocationData = z.infer<typeof deleteLocationDataSchema>;
 
-const _deleteLocation = async (formData: DeleteLocationData) => {
+const _deleteLocation = async (
+  request: APIRequestData<DeleteLocationData>,
+) => {
+  const formData = request.data!;
   try {
     const id = z.coerce.number().parse(formData.get("id"));
     try {
@@ -86,7 +92,10 @@ const _deleteLocation = async (formData: DeleteLocationData) => {
 export const updateLocationDataSchema = z.instanceof(FormData);
 export type UpdateLocationData = z.infer<typeof updateLocationDataSchema>;
 
-const _updateLocation = async (formData: UpdateLocationData) => {
+const _updateLocation = async (
+  request: APIRequestData<UpdateLocationData>,
+) => {
+  const formData = request.data!;
   try {
     const locationData = locationSchema.parse({
       name: formData.get("name"),
@@ -200,7 +209,10 @@ const _updateLocation = async (formData: UpdateLocationData) => {
 export const createLocationDataSchema = z.instanceof(FormData);
 export type CreateLocationData = z.infer<typeof createLocationDataSchema>;
 
-const _createLocation = async (formData: CreateLocationData) => {
+const _createLocation = async (
+  request: APIRequestData<CreateLocationData>,
+) => {
+  const formData = request.data!;
   try {
     const locationData = locationSchema.parse({
       name: z.coerce
@@ -299,10 +311,10 @@ export type EditLocationPolygonData = z.infer<
   typeof editLocationPolygonDataSchema
 >;
 
-const _editLocationPolygon = async ({
-  id,
-  featuresGeoJson,
-}: EditLocationPolygonData) => {
+const _editLocationPolygon = async (
+  request: APIRequestData<EditLocationPolygonData>,
+) => {
+  const { id, featuresGeoJson } = request.data!;
   try {
     await addPolygon(featuresGeoJson, id);
     return {
@@ -329,10 +341,10 @@ export type UpdateLocationVisibilityData = z.infer<
   typeof updateLocationVisibilityDataSchema
 >;
 
-const _updateLocationVisibility = async ({
-  id,
-  isPublic,
-}: UpdateLocationVisibilityData) => {
+const _updateLocationVisibility = async (
+  request: APIRequestData<UpdateLocationVisibilityData>,
+) => {
+  const { id, isPublic } = request.data!;
   try {
     await prisma.location.update({
       where: {

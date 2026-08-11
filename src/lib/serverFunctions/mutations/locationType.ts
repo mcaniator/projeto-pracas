@@ -2,13 +2,19 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const saveLocationTypeDataSchema = z.instanceof(FormData);
 
 export type SaveLocationTypeData = z.infer<typeof saveLocationTypeDataSchema>;
 
-export const _saveLocationType = async (formData: SaveLocationTypeData) => {
+export const _saveLocationType = async (
+  request: APIRequestData<SaveLocationTypeData>,
+) => {
+  const formData = request.data!;
   let name: string | null = null;
   let typeId: number | null | undefined = null;
   try {

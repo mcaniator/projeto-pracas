@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = deleteAssessmentDataSchema.parse(await request.json());
-    const result = await _deleteAssessment(data);
+    const result = await _deleteAssessment({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

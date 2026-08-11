@@ -1,4 +1,7 @@
-import type { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import {
   buildGoogleDriveDirectImageUrl,
   buildGoogleDriveThumbnailImageUrl,
@@ -20,10 +23,10 @@ export type UploadImageResponseData = NonNullable<
   Awaited<ReturnType<typeof uploadImageResponse>>["data"]
 >;
 
-export const uploadImageResponse = async ({
-  folderId,
-  image,
-}: UploadImageResponseParams) => {
+export const uploadImageResponse = async (
+  request: APIRequestData<UploadImageResponseParams>,
+) => {
+  const { folderId, image } = request.data!;
   //Unused because of problems with the Google API.
   //We cannot use the Google Drive API because it refresh of OAuth token.
   //TODO: Save the image locally.

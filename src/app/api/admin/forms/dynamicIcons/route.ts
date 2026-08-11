@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid params", { status: 400 });
   }
 
-  const response = fetchDynamicIcons(parse.data);
+  const response = fetchDynamicIcons({ params: parse.data });
 
   return new Response(superjson.stringify(response), {
     status: 200,

@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 
 export type FetchInvitesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchInvites>>["data"]
 >;
-export const fetchInvites = async () => {
+export const fetchInvites = async (
+  _request: APIRequest,
+) => {
   try {
     const invites = await prisma.invite.findMany({
       orderBy: {

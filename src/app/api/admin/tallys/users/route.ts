@@ -10,7 +10,7 @@ export async function GET() {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const data = await fetchTallyUsers();
+    const data = await fetchTallyUsers({});
 
     return new Response(superjson.stringify(data), {
       status: 200,

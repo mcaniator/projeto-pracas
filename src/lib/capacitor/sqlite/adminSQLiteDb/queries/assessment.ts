@@ -13,7 +13,11 @@ import type {
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
-import type { APIResponse } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  APIRequest,
+  APIRequestParams,
+  APIResponse,
+} from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import {
   OptionTypes,
@@ -140,8 +144,9 @@ const responseOptionsSchema = z.array(
 );
 
 const fetchAdminSQLiteAssessments = async (
-  params: FetchAssessmentsParams,
+  request: APIRequestParams<FetchAssessmentsParams>,
 ): Promise<APIResponse<FetchAssessmentsResponse>> => {
+  const params = request.params!;
   try {
     const where: string[] = ["1 = 1"];
     const values: (number | string)[] = [];
@@ -250,7 +255,9 @@ const fetchAdminSQLiteAssessments = async (
   }
 };
 
-const fetchAdminSQLiteAssessmentUsers = async (): Promise<
+const fetchAdminSQLiteAssessmentUsers = async (
+  _request: APIRequest,
+): Promise<
   APIResponse<FetchAssessmentUsersResponse>
 > => {
   try {
@@ -286,8 +293,9 @@ const fetchAdminSQLiteAssessmentUsers = async (): Promise<
 };
 
 const fetchAdminSQLiteAssessmentTree = async (
-  params: FetchAssessmentTreeParams,
+  request: APIRequestParams<FetchAssessmentTreeParams>,
 ): Promise<APIResponse<FetchAssessmentTreeResponse>> => {
+  const params = request.params!;
   try {
     const assessmentValues = await adminSQLiteDb.query({
       statement: `

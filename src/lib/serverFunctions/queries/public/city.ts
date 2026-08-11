@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { $Enums, BrazilianStates } from "@prisma/client";
 import { z } from "zod";
@@ -16,7 +19,10 @@ export type PublicFetchCitiesResponse = Awaited<
   ReturnType<typeof publicFetchCities>
 >["data"];
 
-const publicFetchCities = async (params: PublicFetchCitiesParams) => {
+const publicFetchCities = async (
+  request: APIRequestParams<PublicFetchCitiesParams>,
+) => {
+  const params = request.params!;
   try {
     const cities: ({
       narrowAdministrativeUnit?: {

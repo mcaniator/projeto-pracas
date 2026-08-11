@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const assessments = await publicFetchPublicAssessmentTree(
-      await props.params,
+      { params: await props.params },
     );
     return new Response(superjson.stringify(assessments), {
       status: 200,

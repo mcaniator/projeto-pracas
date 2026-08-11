@@ -3,7 +3,10 @@ import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dyna
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { ZodError, z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 const parseQuestionOptions = (formData: FormData, questionId: number) => {
   const optionTexts = formData.getAll("options");
@@ -24,11 +27,12 @@ export const questionSubmitDataSchema = z.instanceof(FormData);
 export type QuestionSubmitData = z.infer<typeof questionSubmitDataSchema>;
 
 const _questionSubmit = async (
-  formData: QuestionSubmitData,
+  request: APIRequestData<QuestionSubmitData>,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: null;
 }> => {
+  const formData = request.data!;
   const questionType = formData.get("questionType");
   const questionCharacterType = formData.get("characterType");
   const notes = formData.get("notes") as string;
@@ -308,8 +312,9 @@ export const questionUpdateDataSchema = z.instanceof(FormData);
 export type QuestionUpdateData = z.infer<typeof questionUpdateDataSchema>;
 
 const _questionUpdate = async (
-  formData: QuestionUpdateData,
+  request: APIRequestData<QuestionUpdateData>,
 ): Promise<{ responseInfo: APIResponseInfo }> => {
+  const formData = request.data!;
   try {
     const questionId = Number(formData.get("questionId"));
     const questionType = formData.get("questionType");
@@ -454,7 +459,10 @@ export type DeleteQuestionResponse = NonNullable<
   Awaited<ReturnType<typeof deleteQuestion>>
 >["data"];
 
-const deleteQuestion = async (formData: DeleteQuestionData) => {
+const deleteQuestion = async (
+  request: APIRequestData<DeleteQuestionData>,
+) => {
+  const formData = request.data!;
   const questionId = parseInt(formData.get("questionId") as string);
 
   try {

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       fetchPublicAssessmentsParamsSchema,
       searchParams,
     );
-    const assessments = await fetchPublicAssessments(params);
+    const assessments = await fetchPublicAssessments({ params });
     return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {

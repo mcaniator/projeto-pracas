@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(sqliteSyncParamsSchema, searchParams);
-    const users = await fetchSQLiteSyncData(params);
+    const users = await fetchSQLiteSyncData({ params });
     return new Response(superjson.stringify(users), {
       status: 200,
       headers: { "Content-Type": "application/json" },

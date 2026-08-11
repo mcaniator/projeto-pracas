@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
 
@@ -6,7 +9,9 @@ export type FetchCurrentUserResponse = NonNullable<
   Awaited<ReturnType<typeof fetchCurrentUser>>
 >["data"];
 export type CurrentUser = NonNullable<FetchCurrentUserResponse["user"]>;
-export const fetchCurrentUser = async () => {
+export const fetchCurrentUser = async (
+  _request: APIRequest,
+) => {
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser) return null;
@@ -47,7 +52,9 @@ export const fetchCurrentUser = async () => {
 export type FetchUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchUsers>>["data"]
 >;
-export const fetchUsers = async () => {
+export const fetchUsers = async (
+  _request: APIRequest,
+) => {
   try {
     const users = await prisma.user.findMany();
     return {

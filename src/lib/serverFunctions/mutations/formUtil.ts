@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -11,7 +14,8 @@ import { FormItemUtils } from "../../utils/formTreeUtils";
 export const createFormDataSchema = z.instanceof(FormData);
 export type CreateFormData = z.infer<typeof createFormDataSchema>;
 
-const _createForm = async (formData: CreateFormData) => {
+const _createForm = async (request: APIRequestData<CreateFormData>) => {
+  const formData = request.data!;
   try {
     const newFormData = formSchema.parse({
       name: formData.get("name"),
@@ -112,13 +116,11 @@ export type UpdateFormResponse = Awaited<
   ReturnType<typeof _updateFormV2>
 >["data"];
 
-const _updateFormV2 = async ({
-  formId,
-  formTree,
-  calculations,
-  isFinalized,
-  newFormName,
-}: UpdateFormData) => {
+const _updateFormV2 = async (
+  request: APIRequestData<UpdateFormData>,
+) => {
+  const { formId, formTree, calculations, isFinalized, newFormName } =
+    request.data!;
   try {
     const currentForm = await prisma.form.findFirst({
       where: {
@@ -371,8 +373,9 @@ export type UpdateFormArchiveStatusData = z.infer<
 >;
 
 const _updateFormArchiveStatus = async (
-  formData: UpdateFormArchiveStatusData,
+  request: APIRequestData<UpdateFormArchiveStatusData>,
 ) => {
+  const formData = request.data!;
   try {
     const formId = z.coerce.number().parse(formData.get("formId"));
     const archived = booleanFromString.parse(formData.get("archived"));

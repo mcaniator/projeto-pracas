@@ -1,5 +1,9 @@
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
 import { z } from "zod";
@@ -21,7 +25,10 @@ export type FetchTallysParams = z.infer<typeof fetchTallysParamsSchema>;
 export type FetchTallysResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallys>>["data"]
 >;
-export const fetchTallys = async (params: FetchTallysParams) => {
+export const fetchTallys = async (
+  request: APIRequestParams<FetchTallysParams>,
+) => {
+  const params = request.params!;
   let isFinalizedFilter = undefined;
   if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
     isFinalizedFilter = true;
@@ -151,7 +158,10 @@ export type FetchOngoingTallyResponse = NonNullable<
   Awaited<ReturnType<typeof fetchOngoingTallyById>>
 >["data"];
 
-const fetchOngoingTallyById = async (tallyId: number) => {
+const fetchOngoingTallyById = async (
+  request: APIRequestParams<FetchOngoingTallyParams>,
+) => {
+  const { tallyId } = request.params!;
   try {
     const tally = await prisma.tally.findUnique({
       where: {
@@ -204,7 +214,9 @@ export type FetchTallyUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallyUsers>>
 >["data"];
 
-export const fetchTallyUsers = async () => {
+export const fetchTallyUsers = async (
+  _request: APIRequest,
+) => {
   try {
     const users = await prisma.user.findMany({
       where: { tally: { some: {} } },
@@ -250,7 +262,10 @@ export type FetchFinalizedTallysDataVisualizationResponse = NonNullable<
   Awaited<ReturnType<typeof fetchFinalizedTallysToDataVisualization>>
 >["data"];
 
-const fetchFinalizedTallysToDataVisualization = async (tallysIds: number[]) => {
+const fetchFinalizedTallysToDataVisualization = async (
+  request: APIRequestParams<FetchFinalizedTallysDataVisualizationParams>,
+) => {
+  const tallysIds = request.params!.tallyIds;
   try {
     const tallys = await prisma.tally.findMany({
       where: {

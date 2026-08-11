@@ -1,5 +1,8 @@
 import { auth } from "@/lib/auth/auth";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 import { Role } from "@prisma/client";
 import { z } from "zod";
@@ -10,10 +13,10 @@ export const updateUserRolesDataSchema = z.object({
 });
 export type UpdateUserRolesData = z.infer<typeof updateUserRolesDataSchema>;
 
-export const _updateUserRolesV2 = async ({
-  userId,
-  roles,
-}: UpdateUserRolesData) => {
+export const _updateUserRolesV2 = async (
+  request: APIRequestData<UpdateUserRolesData>,
+) => {
+  const { userId, roles } = request.data!;
   if (
     roles.filter((role) => role).length > 0 &&
     !roles.some((role) => role === "PARK_VIEWER" || role === "PARK_MANAGER")
@@ -70,7 +73,10 @@ export const updateUserArchiveDataSchema = z.object({
 });
 export type UpdateUserArchiveData = z.infer<typeof updateUserArchiveDataSchema>;
 
-export const _userArchiveUpdate = async (params: UpdateUserArchiveData) => {
+export const _userArchiveUpdate = async (
+  request: APIRequestData<UpdateUserArchiveData>,
+) => {
+  const params = request.data!;
   try {
     await prisma.user.update({
       where: {

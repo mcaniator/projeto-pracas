@@ -12,7 +12,10 @@ import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission
 import { Coordinate } from "ol/coordinate";
 import { z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 const isSerializedOptionValueWithOverride = (
   response: unknown,
@@ -67,15 +70,18 @@ export type AddResponsesResponse = NonNullable<
   Awaited<ReturnType<typeof _addResponsesV2>>["data"]
 >;
 
-const _addResponsesV2 = async ({
-  assessmentId,
-  responses,
-  geometries,
-  startDate,
-  endDate,
-  isFinalized,
-  driveFolderUrl,
-}: AddResponsesData) => {
+const _addResponsesV2 = async (
+  request: APIRequestData<AddResponsesData>,
+) => {
+  const {
+    assessmentId,
+    responses,
+    geometries,
+    startDate,
+    endDate,
+    isFinalized,
+    driveFolderUrl,
+  } = request.data!;
   try {
     const user = await getSessionUser();
     if (!user) {

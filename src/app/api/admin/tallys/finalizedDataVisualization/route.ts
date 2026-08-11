@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
       fetchFinalizedTallysDataVisualizationParamsSchema,
       request.nextUrl.searchParams,
     );
-    const result = await fetchFinalizedTallysToDataVisualization(
-      params.tallyIds,
-    );
+    const result = await fetchFinalizedTallysToDataVisualization({ params });
 
     return new Response(superjson.stringify(result), {
       status: 200,

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       publicFetchLocationsParamsSchema,
       searchParams,
     );
-    const locations = await publicFetchLocations(params);
+    const locations = await publicFetchLocations({ params });
     return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {

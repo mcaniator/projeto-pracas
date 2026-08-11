@@ -6,12 +6,18 @@ import { prisma } from "@lib/prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const categorySubmitDataSchema = z.instanceof(FormData);
 export type CategorySubmitData = z.infer<typeof categorySubmitDataSchema>;
 
-const _categorySubmit = async (formData: CategorySubmitData) => {
+const _categorySubmit = async (
+  request: APIRequestData<CategorySubmitData>,
+) => {
+  const formData = request.data!;
   let parse;
   try {
     parse = categoryInfoToCreateSchema.parse({
@@ -77,7 +83,7 @@ export const deleteCategoryDataSchema = z.instanceof(FormData);
 export type DeleteCategoryData = z.infer<typeof deleteCategoryDataSchema>;
 
 const _deleteCategory = async (
-  formData: DeleteCategoryData,
+  request: APIRequestData<DeleteCategoryData>,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: {
@@ -92,6 +98,7 @@ const _deleteCategory = async (
     }[];
   } | null;
 }> => {
+  const formData = request.data!;
   const categoryId = parseInt(formData.get("categoryId") as string);
 
   try {
@@ -184,7 +191,7 @@ export const deleteSubcategoryDataSchema = z.instanceof(FormData);
 export type DeleteSubcategoryData = z.infer<typeof deleteSubcategoryDataSchema>;
 
 const _deleteSubcategory = async (
-  formData: DeleteSubcategoryData,
+  request: APIRequestData<DeleteSubcategoryData>,
 ): Promise<{
   responseInfo: APIResponseInfo;
   data: {
@@ -199,6 +206,7 @@ const _deleteSubcategory = async (
     }[];
   } | null;
 }> => {
+  const formData = request.data!;
   const subcategoryId = parseInt(formData.get("subcategoryId") as string);
   try {
     const formsWithQuestions = await prisma.form.findMany({
@@ -286,7 +294,10 @@ const _deleteSubcategory = async (
 export const subcategorySubmitDataSchema = z.instanceof(FormData);
 export type SubcategorySubmitData = z.infer<typeof subcategorySubmitDataSchema>;
 
-const _subcategorySubmit = async (formData: SubcategorySubmitData) => {
+const _subcategorySubmit = async (
+  request: APIRequestData<SubcategorySubmitData>,
+) => {
+  const formData = request.data!;
   let parse;
   try {
     parse = subcategoryInfoToCreateSchema.parse({

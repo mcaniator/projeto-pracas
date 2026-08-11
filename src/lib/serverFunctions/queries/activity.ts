@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 
 import { fetchRecentlyCompletedAssessments } from "./assessment";
 import { fetchRecentlyCompletedTallys } from "./tally";
@@ -7,7 +10,9 @@ export type FetchRecentActivityResponse = NonNullable<
   Awaited<ReturnType<typeof fetchRecentActivity>>
 >["data"];
 
-export const fetchRecentActivity = async () => {
+export const fetchRecentActivity = async (
+  _request: APIRequest,
+) => {
   try {
     const [assessments, tallys] = await Promise.all([
       fetchRecentlyCompletedAssessments(),

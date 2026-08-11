@@ -3,13 +3,17 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 export const saveCityDataSchema = z.instanceof(FormData);
 
 export type SaveCityData = z.infer<typeof saveCityDataSchema>;
 
-export const _saveCity = async (formData: SaveCityData) => {
+export const _saveCity = async (request: APIRequestData<SaveCityData>) => {
+  const formData = request.data!;
   try {
     const parse = {
       name: z.string().trim().max(255).min(1).parse(formData.get("name")),
@@ -125,7 +129,10 @@ export type DeleteCityResponse = NonNullable<
   Awaited<ReturnType<typeof _deleteCity>>["data"]
 > | null;
 
-export const _deleteCity = async (formData: DeleteCityData) => {
+export const _deleteCity = async (
+  request: APIRequestData<DeleteCityData>,
+) => {
+  const formData = request.data!;
   try {
     const cityId = z.coerce.number().parse(formData.get("cityId"));
     try {

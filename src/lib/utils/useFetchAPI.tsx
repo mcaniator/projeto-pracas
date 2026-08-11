@@ -2,6 +2,7 @@ import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
+  APIRequest,
   APIResponse,
   APIResponseInfo,
   FetchFunctionArgs,
@@ -34,7 +35,7 @@ export function useFetchAPI<
     onOfflineSuccess?: (response: APIResponse<T>) => void;
     onOfflineError?: (response: APIResponse<T>) => void;
   };
-  offlineFallback?: (params: P) => Promise<APIResponse<T>>;
+  offlineFallback?: (request: APIRequest<P, D>) => Promise<APIResponse<T>>;
   options: RequestInit;
 }): [
   (
@@ -101,7 +102,7 @@ export function useFetchAPI<
             };
           }
           try {
-            const fallbackResponse = await offlineFallback(params);
+            const fallbackResponse = await offlineFallback({ params, data });
             if (
               fallbackResponse.responseInfo.statusCode >= 200 &&
               fallbackResponse.responseInfo.statusCode < 300
@@ -225,7 +226,10 @@ export function useFetchAPI<
             setServerOnline(false);
             if (offlineFallback) {
               try {
-                const fallbackResponse = await offlineFallback(params);
+                const fallbackResponse = await offlineFallback({
+                  params,
+                  data,
+                });
                 if (
                   fallbackResponse.responseInfo.statusCode >= 200 &&
                   fallbackResponse.responseInfo.statusCode < 300

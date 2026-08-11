@@ -8,7 +8,10 @@ import {
 } from "@/lib/serverFunctions/queries/assessment";
 import { fetchAssessmentGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { Coordinate } from "ol/coordinate";
 import { z } from "zod";
@@ -26,8 +29,9 @@ export type PublicFetchPublicAssessmentsResponse = NonNullable<
 >;
 
 export const publicFetchPublicAssessments = async (
-  params: PublicFetchPublicAssessmentsParams,
+  request: APIRequestParams<PublicFetchPublicAssessmentsParams>,
 ) => {
+  const params = request.params!;
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -76,8 +80,9 @@ export type PublicFetchPublicAssessmentTreeResponse = NonNullable<
 >;
 
 export const publicFetchPublicAssessmentTree = async (
-  params: PublicFetchPublicAssessmentTreeParams,
+  request: APIRequestParams<PublicFetchPublicAssessmentTreeParams>,
 ) => {
+  const params = request.params!;
   const assessmentId = Number(params.assessmentId);
   try {
     const assessment = await prisma.assessment.findUnique({

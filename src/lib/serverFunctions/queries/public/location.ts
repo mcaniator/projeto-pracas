@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { APIRequestParams } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PublicLocationForMap } from "@/lib/types/location/location";
 import { buildImageUrl } from "@/lib/utils/image";
@@ -19,8 +20,9 @@ export type PublicFetchLocationsResponse = NonNullable<
 >;
 
 export const publicFetchLocations = async (
-  params: PublicFetchLocationsParams,
+  request: APIRequestParams<PublicFetchLocationsParams>,
 ) => {
+  const params = request.params!;
   try {
     const locations = await prisma.$queryRaw<Array<PublicLocationForMap>>`
   SELECT DISTINCT

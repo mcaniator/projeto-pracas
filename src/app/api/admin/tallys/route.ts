@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(fetchTallysParamsSchema, searchParams);
-    const tallys = await fetchTallys(params);
+    const tallys = await fetchTallys({ params });
     return new Response(superjson.stringify(tallys), {
       status: 200,
       headers: {

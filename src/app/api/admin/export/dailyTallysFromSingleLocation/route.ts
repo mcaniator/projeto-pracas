@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const data = exportDailyTallysFromSingleLocationDataSchema.parse(
       await request.json(),
     );
-    const result = await _exportDailyTallysFromSingleLocation(data);
+    const result = await _exportDailyTallysFromSingleLocation({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

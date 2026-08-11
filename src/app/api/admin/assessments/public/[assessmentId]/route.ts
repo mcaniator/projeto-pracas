@@ -20,8 +20,10 @@ export async function GET(
     const params = await props.params;
     const assessmentId = z.coerce.number().parse(params.assessmentId);
     const assessments = await fetchAssessmentTree({
-      assessmentId,
-      isPublic: true,
+      params: {
+        assessmentId,
+        isPublic: true,
+      },
     });
     return new Response(superjson.stringify(assessments), {
       status: 200,

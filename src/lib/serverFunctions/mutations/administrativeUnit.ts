@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { fetchLocationsAssociatedWithAdministrativeUnit } from "@/lib/serverFunctions/queries/location";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
@@ -11,8 +14,9 @@ export type SaveAdministrativeUnitData = z.infer<
 >;
 
 export const _saveAdministrativeUnit = async (
-  formData: SaveAdministrativeUnitData,
+  request: APIRequestData<SaveAdministrativeUnitData>,
 ) => {
+  const formData = request.data!;
   try {
     const unitType = z
       .enum(["NARROW", "INTERMEDIATE", "BROAD"])
@@ -193,8 +197,9 @@ export type DeleteAdministrativeUnitResponse = NonNullable<
 > | null;
 
 export const _deleteAdministrativeUnit = async (
-  formData: DeleteAdministrativeUnitData,
+  request: APIRequestData<DeleteAdministrativeUnitData>,
 ) => {
+  const formData = request.data!;
   try {
     const unitId = z.coerce.number().parse(formData.get("unitId"));
     const unitType = z

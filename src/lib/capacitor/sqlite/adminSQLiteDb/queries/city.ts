@@ -2,6 +2,7 @@ import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import type { FetchCitiesParams } from "@/lib/serverFunctions/queries/city";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import {
+  APIRequestParams,
   APIResponse,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
@@ -41,8 +42,9 @@ const groupAdministrativeUnitsByCity = (
 };
 
 const fetchAdminSqliteCities = async (
-  params: FetchCitiesParams,
+  request: APIRequestParams<FetchCitiesParams>,
 ): Promise<APIResponse<FetchCitiesResponse>> => {
+  const params = request.params!;
   try {
     const cityValues = await adminSQLiteDb.query({
       statement: `

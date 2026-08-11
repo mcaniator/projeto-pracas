@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
     const data = exportDailyTallysDataSchema.parse(await request.json());
-    const result = await _exportDailyTallys(data);
+    const result = await _exportDailyTallys({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

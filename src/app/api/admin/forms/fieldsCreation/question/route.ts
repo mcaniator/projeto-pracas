@@ -22,13 +22,17 @@ export async function GET(request: NextRequest) {
       searchParams,
     );
     if (params.name) {
-      const questions = await searchQuestionsByName(params.name);
+      const questions = await searchQuestionsByName({
+        params: { name: params.name },
+      });
       return new Response(superjson.stringify(questions), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     }
-    const questions = await searchQuestionsByCategoryAndSubcategory(params);
+    const questions = await searchQuestionsByCategoryAndSubcategory({
+      params,
+    });
     return new Response(superjson.stringify(questions), {
       status: 200,
       headers: { "Content-Type": "application/json" },

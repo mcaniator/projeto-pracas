@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const data = deleteLocationCategoryOrTypeDataSchema.parse(
       await request.formData(),
     );
-    const result = await _deleteLocationCategoryOrType(data);
+    const result = await _deleteLocationCategoryOrType({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

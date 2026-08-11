@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const data = deleteCityDataSchema.parse(await request.formData());
-    const result = await _deleteCity(data);
+    const result = await _deleteCity({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

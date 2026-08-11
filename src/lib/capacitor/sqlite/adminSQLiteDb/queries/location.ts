@@ -3,6 +3,7 @@ import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type { FetchLocationsParams } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import {
+  APIRequestParams,
   APIResponse,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
@@ -53,8 +54,9 @@ const locationsSchema = z.array(
 );
 
 const fetchAdminSQLiteLocations = async (
-  params: FetchLocationsParams,
+  request: APIRequestParams<FetchLocationsParams>,
 ): Promise<APIResponse<FetchLocationsResponse>> => {
+  const params = request.params!;
   try {
     const values: number[] = [];
     const where: string[] = ["1 = 1"];

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       fetchOngoingTallyParamsSchema,
       request.nextUrl.searchParams,
     );
-    const result = await fetchOngoingTallyById(params.tallyId);
+    const result = await fetchOngoingTallyById({ params });
 
     return new Response(superjson.stringify(result), {
       status: 200,
