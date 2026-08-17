@@ -34,16 +34,16 @@ const RevertLocalAssessmentDialog = ({
       <div className="flex flex-col items-center gap-2 text-center">
         <IconAlertSquareRounded size={32} color="orange" />
         <p>
-          Tem certeza que deseja descartar os dados salvos neste dispositivo e
-          usar a versão do servidor?
+          Tem certeza que deseja descartar os dados não salvos neste e usar a
+          versão salva anteriormente?
         </p>
         <div className="flex flex-col gap-1 text-left">
           <p>
-            <strong>Alteração local:</strong>{" "}
+            <strong>Alteração não salva:</strong>{" "}
             {localUpdatedAt ? dateTimeFormatter.format(localUpdatedAt) : null}
           </p>
           <p>
-            <strong>Versão do servidor:</strong>{" "}
+            <strong>Versão anterior:</strong>{" "}
             {dateTimeFormatter.format(serverUpdatedAt)}
           </p>
         </div>

@@ -246,6 +246,15 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         updated_at TEXT NOT NULL
       )`,
     },
+    {
+      statement: `CREATE TABLE response_geometry (
+        id INTEGER PRIMARY KEY,
+        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE,
+        question_id INTEGER NOT NULL REFERENCES question(id),
+        geometries TEXT,
+        UNIQUE (assessment_id, question_id)
+      )`,
+    },
   ],
 });
 

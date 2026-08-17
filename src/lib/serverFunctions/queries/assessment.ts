@@ -6,17 +6,16 @@ import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
-import { Coordinate } from "ol/coordinate";
 import { z } from "zod";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
-import { ResponseGeometry } from "../../types/assessments/geometry";
 import {
   APIRequest,
   APIRequestParams,
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
+import { deserializeResponseGeometriesFromWkt } from "../../utils/responseGeometry";
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
@@ -130,9 +129,7 @@ export type FetchAssessmentUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentUsers>>
 >["data"];
 
-export const fetchAssessmentUsers = async (
-  _request: APIRequest,
-) => {
+export const fetchAssessmentUsers = async (_request: APIRequest) => {
   try {
     const users = await prisma.user.findMany({
       where: { assessment: { some: {} } },
@@ -176,12 +173,10 @@ type AssessmentLocationPolygon = {
 };
 
 const fetchAssessmentTree = async (
-  request: APIRequestParams<
-    {
-      assessmentId: number;
-      isPublic?: boolean;
-    }
-  >,
+  request: APIRequestParams<{
+    assessmentId: number;
+    isPublic?: boolean;
+  }>,
 ) => {
   const params = request.params!;
   try {
@@ -486,59 +481,10 @@ const fetchAssessmentTree = async (
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
-              }
-              ringsCoordinates.push(geometryPointsCoordinates);
-            }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
-          }
-        }
-      }
-
-      return { questionId, geometries: geometries };
+      return {
+        questionId,
+        geometries: deserializeResponseGeometriesFromWkt(geometry),
+      };
     });
     return {
       responseInfo: {
@@ -553,6 +499,7 @@ const fetchAssessmentTree = async (
           updatedAt: assessment.updatedAt,
           driveFolderUrl: assessment.driveFolderUrl,
           formName: assessment.form.name,
+          formId: assessment.form.id,
           location: {
             id: assessment.location.id,
             name: assessment.location.name,
@@ -874,59 +821,10 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
-              }
-              ringsCoordinates.push(geometryPointsCoordinates);
-            }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
-          }
-        }
-      }
-
-      return { questionId, geometries: geometries };
+      return {
+        questionId,
+        geometries: deserializeResponseGeometriesFromWkt(geometry),
+      };
     });
     return {
       responseInfo: {

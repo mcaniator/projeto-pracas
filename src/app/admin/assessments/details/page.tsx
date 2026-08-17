@@ -3,7 +3,10 @@
 import Loading from "@/app/admin/loading";
 import LoadingIcon from "@/components/LoadingIcon";
 import { useUserContext } from "@/components/context/UserContext";
-import { fetchAdminSQLiteAssessmentTree } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  fetchAdminSQLiteAssessmentTree,
+  fetchAdminSQLiteIfCanSaveAssessment,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { Capacitor } from "@capacitor/core";
@@ -22,6 +25,7 @@ const ResponsesContent = () => {
   const [assessmentTree, setAssessmentTree] = useState<
     FetchAssessmentTreeResponse["assessmentTree"] | null
   >(null);
+  const [canSaveOffline, setCanSaveOffline] = useState(false);
 
   useEffect(() => {
     const loadAssessment = async () => {
@@ -39,6 +43,7 @@ const ResponsesContent = () => {
         });
         assessmentTree = response.data?.assessmentTree;
       } else {
+        //Server assessment
         const response = await fetchAssessmentTree({
           params: { assessmentId },
         });
@@ -55,6 +60,26 @@ const ResponsesContent = () => {
 
     void loadAssessment();
   }, [assessmentId, fetchAssessmentTree, isSQLiteAssessment, router]);
+
+  useEffect(() => {
+    const checkIfCanSaveOffline = async () => {
+      // Check if can save offline
+      if (!assessmentTree) return;
+      const checkResponse = await fetchAdminSQLiteIfCanSaveAssessment({
+        params: {
+          formId: assessmentTree.formId,
+          locationId: assessmentTree.location.id,
+          userId: assessmentTree.user.id,
+        },
+      });
+
+      setCanSaveOffline(checkResponse.data?.canSave || false);
+    };
+
+    if (assessmentTree) {
+      void checkIfCanSaveOffline();
+    }
+  }, [assessmentTree]);
 
   if (isLoading || !assessmentTree?.location) {
     return <Loading />;
@@ -73,6 +98,8 @@ const ResponsesContent = () => {
       assessmentTree={assessmentTree}
       finalized={assessmentTree.isFinalized}
       userCanEdit={userCanEdit}
+      canSaveOffline={canSaveOffline}
+      isSQLiteAssessment={isSQLiteAssessment}
     />
   );
 };

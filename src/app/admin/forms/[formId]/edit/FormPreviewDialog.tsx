@@ -18,6 +18,7 @@ import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
+  FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
@@ -223,7 +224,7 @@ const buildPreviewAssessmentTree = ({
 }: {
   formTree: FormEditorTree;
   formCalculations: CalculationParams[];
-}) => {
+}): FetchAssessmentTreeResponse["assessmentTree"] => {
   const responsesFormValues: SerializedFormValues = {};
   const calculationByQuestionId = new Map(
     formCalculations.map((calculation) => [
@@ -238,6 +239,7 @@ const buildPreviewAssessmentTree = ({
     endDate: null,
     isFinalized: false,
     formName: formTree.name,
+    formId: formTree.id,
     totalQuestions: countQuestions(formTree),
     updatedAt: new Date(),
     responsesFormValues,
@@ -245,6 +247,11 @@ const buildPreviewAssessmentTree = ({
     user: {
       username: "",
       id: "",
+    },
+    location: {
+      id: -1,
+      name: "Praça",
+      st_asgeojson: null,
     },
     categories: formTree.categories.map((category) =>
       toAssessmentCategory({

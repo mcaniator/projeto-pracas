@@ -2,7 +2,7 @@ import type { FormValues } from "@/components/ui/responseForm/responseFormTypes"
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import type { Coordinate } from "ol/coordinate";
+import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
@@ -254,54 +254,6 @@ export type MapAssessmentComparisonAssessmentTree = {
   geometries: { questionId: number; geometries: ResponseGeometry[] }[];
 };
 
-const parseAssessmentGeometries = (
-  geometry: string | null,
-): ResponseGeometry[] => {
-  if (!geometry) return [];
-
-  const parsedGeometries: ResponseGeometry[] = [];
-  const geometriesWithoutCollection = geometry
-    .replace("GEOMETRYCOLLECTION(", "")
-    .slice(0, -1);
-  const geometriesWkt = geometriesWithoutCollection.match(
-    /(?:POINT|POLYGON)\([^)]*\)+/g,
-  );
-
-  geometriesWkt?.forEach((geometryWkt) => {
-    if (geometryWkt.startsWith("POINT")) {
-      parsedGeometries.push({
-        type: "Point",
-        coordinates: geometryWkt
-          .replace("POINT(", "")
-          .replace(")", "")
-          .split(" ")
-          .map(Number),
-      });
-      return;
-    }
-
-    const rings: Coordinate[][] = geometryWkt
-      .replace("POLYGON(", " ")
-      .slice(0, -1)
-      .split("),(")
-      .map((ring) =>
-        ring
-          .split(",")
-          .map((point) =>
-            point
-              .replace("(", "")
-              .replace(")", "")
-              .trim()
-              .split(" ")
-              .map(Number),
-          ),
-      );
-    parsedGeometries.push({ type: "Polygon", coordinates: rings });
-  });
-
-  return parsedGeometries;
-};
-
 export const fetchMapAssessmentComparisonAssessmentTreesParamsSchema = z.object(
   {
     categoryId: z.coerce.number(),
@@ -520,7 +472,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
         geometriesByAssessmentId.get(geometry.assessmentId) ?? [];
       assessmentGeometries.push({
         questionId: geometry.questionId,
-        geometries: parseAssessmentGeometries(geometry.geometry),
+        geometries: deserializeResponseGeometriesFromWkt(geometry.geometry),
       });
       geometriesByAssessmentId.set(geometry.assessmentId, assessmentGeometries);
     });

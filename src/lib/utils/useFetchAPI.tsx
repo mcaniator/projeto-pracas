@@ -222,6 +222,12 @@ export function useFetchAPI<
             };
           }
         } catch (e) {
+          currentCallbacks?.onServerError?.({
+            responseInfo: {
+              statusCode: 500,
+            } as APIResponseInfo,
+            data: null,
+          });
           if (Capacitor.isNativePlatform()) {
             setServerOnline(false);
             if (offlineFallback) {

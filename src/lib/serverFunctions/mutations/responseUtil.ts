@@ -6,10 +6,14 @@ import dayjs from "@/lib/dayjs";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
+import { serializeResponseGeometriesToWkt } from "@/lib/utils/responseGeometry";
 import { getSessionUser } from "@auth/userUtil";
-import { Prisma } from "@prisma/client";
+import {
+  Prisma,
+  QuestionResponseCharacterTypes,
+  QuestionTypes,
+} from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
-import { Coordinate } from "ol/coordinate";
 import { z } from "zod";
 
 import {
@@ -32,6 +36,11 @@ const isSerializedOptionValueWithOverride = (
   );
 };
 
+/**
+ * Formats a response value to an AssessmentOptionValueWithOverride, even if it's a reponse option without override possibility
+ * @param response
+ * @returns
+ */
 const toOptionResponseValue = (
   response: unknown,
 ): AssessmentOptionValueWithOverride | null => {
@@ -70,9 +79,7 @@ export type AddResponsesResponse = NonNullable<
   Awaited<ReturnType<typeof _addResponsesV2>>["data"]
 >;
 
-const _addResponsesV2 = async (
-  request: APIRequestData<AddResponsesData>,
-) => {
+const _addResponsesV2 = async (request: APIRequestData<AddResponsesData>) => {
   const {
     assessmentId,
     responses,
@@ -146,12 +153,12 @@ const _addResponsesV2 = async (
       value: AssessmentOptionValueWithOverride[];
     }[] = [];
     const booleanResponses: { questionId: number; value: boolean }[] = [];
-    questions.forEach((q) => {
-      if (!Object.keys(responses).includes(String(q.id))) {
+    questions.forEach((question) => {
+      if (!Object.hasOwn(responses, question.id)) {
         throw new Error("Resposta não enviada para uma ou mais questões!");
       }
-      const response = responses[q.id];
-      if (q.questionType === "WRITTEN") {
+      const response = responses[question.id];
+      if (question.questionType === QuestionTypes.WRITTEN) {
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
@@ -165,7 +172,7 @@ const _addResponsesV2 = async (
         let writtenResponse = response;
 
         //Date validation
-        if (q.characterType === "DATE") {
+        if (question.characterType === QuestionResponseCharacterTypes.DATE) {
           writtenResponse =
             (
               typeof writtenResponse === "string" &&
@@ -173,7 +180,9 @@ const _addResponsesV2 = async (
             ) ?
               writtenResponse
             : null;
-        } else if (q.characterType === "TIME") {
+        } else if (
+          question.characterType === QuestionResponseCharacterTypes.TIME
+        ) {
           writtenResponse =
             (
               typeof writtenResponse === "string" &&
@@ -181,7 +190,9 @@ const _addResponsesV2 = async (
             ) ?
               writtenResponse
             : null;
-        } else if (q.characterType === "DATETIME") {
+        } else if (
+          question.characterType === QuestionResponseCharacterTypes.DATETIME
+        ) {
           writtenResponse =
             (
               typeof writtenResponse === "string" &&
@@ -192,14 +203,14 @@ const _addResponsesV2 = async (
         }
 
         writtenResponses.push({
-          questionId: q.id,
+          questionId: question.id,
           value: writtenResponse ?? null,
         });
-      } else if (q.questionType === "OPTIONS") {
+      } else if (question.questionType === QuestionTypes.OPTIONS) {
         if (!Array.isArray(response)) {
           const optionResponseValue = toOptionResponseValue(response);
           optionsResponses.push({
-            questionId: q.id,
+            questionId: question.id,
             value:
               response == null || optionResponseValue === null ?
                 []
@@ -207,7 +218,7 @@ const _addResponsesV2 = async (
           });
         } else {
           optionsResponses.push({
-            questionId: q.id,
+            questionId: question.id,
             value: response
               .map(toOptionResponseValue)
               .filter(
@@ -216,13 +227,13 @@ const _addResponsesV2 = async (
               ),
           });
         }
-      } else if (q.questionType === "BOOLEAN") {
+      } else if (question.questionType === "BOOLEAN") {
         if (typeof response !== "boolean") {
           throw new Error(
             "Resposta não booleana enviada para questão de verdadeiro ou falso!",
           );
         }
-        booleanResponses.push({ questionId: q.id, value: response });
+        booleanResponses.push({ questionId: question.id, value: response });
       }
     });
 
@@ -357,28 +368,11 @@ const _addResponsesV2 = async (
     //GEOMETRIES
     const geometryValues = geometries.map((geometryByQuestion) => {
       const { questionId, geometries } = geometryByQuestion;
-      const wktGeometries = geometries
-        .map((geometry) => {
-          const { type, coordinates } = geometry;
-          if (type === "Point") {
-            const [longitude, latitude] = coordinates as number[];
-            return `POINT(${longitude} ${latitude})`;
-          } else if (type === "Polygon") {
-            const polygonCoordinates = (coordinates as Coordinate[][])
-              .map((ring) =>
-                ring
-                  .map(([longitude, latitude]) => `${longitude} ${latitude}`)
-                  .join(", "),
-              )
-              .join("), (");
-
-            return `POLYGON((${polygonCoordinates}))`;
-          }
-        })
-        .join(", ");
+      const geometryCollectionWkt =
+        serializeResponseGeometriesToWkt(geometries);
       const geoText =
-        wktGeometries.length > 0 ?
-          Prisma.sql`ST_GeomFromText(${`GEOMETRYCOLLECTION(${wktGeometries})`}, 4326)`
+        geometryCollectionWkt ?
+          Prisma.sql`ST_GeomFromText(${geometryCollectionWkt}, 4326)`
         : Prisma.sql`NULL`;
       return Prisma.sql`(${assessmentId}, ${questionId}, ${geoText})`;
     });

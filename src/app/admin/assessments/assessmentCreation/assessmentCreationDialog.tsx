@@ -37,7 +37,7 @@ const AssessmentCreationDialog = ({
         }
         setIsRedirecting(true);
         router.push(
-          `/admin/assessments/details?assessmentId=${response.data.assessmentId}}`,
+          `/admin/assessments/details?assessmentId=${response.data.assessmentId}`,
         );
       },
       onOfflineSuccess: (response) => {

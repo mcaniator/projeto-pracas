@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 const AssessmentResultDialog = ({
   assessment,
   open,
+  isSQLiteAssessment,
   onClose,
 }: {
   assessment: {
@@ -21,6 +22,7 @@ const AssessmentResultDialog = ({
     endDate: Date | null;
   } | null;
   open: boolean;
+  isSQLiteAssessment: boolean;
   onClose: () => void;
 }) => {
   const [assessmentTree, setAssessmentTree] =
@@ -59,7 +61,7 @@ const AssessmentResultDialog = ({
         </>
       }
       confirmProps={{
-        href: `/admin/assessments/details?assessmentId=${assessment.id}`,
+        href: `/admin/assessments/details?assessmentId=${assessment.id}&isSQLiteAssessment=${isSQLiteAssessment}`,
         loadingOnClick: true,
       }}
     >

@@ -12,7 +12,6 @@ import {
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
-import { Capacitor } from "@capacitor/core";
 import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
@@ -41,7 +40,7 @@ export type AssessmentsFilterType =
 
 export type AssessmentWithSyncStatus =
   FetchAssessmentsResponse["assessments"][number] & {
-    hasUnsavedFilling: boolean;
+    hasPendingSaveFromDraft: boolean;
   };
 
 const AssessmentsClient = () => {
@@ -100,10 +99,6 @@ const AssessmentsClient = () => {
   }, []);
 
   const getUnsavedAssessmentIds = useCallback(async () => {
-    if (Capacitor.isNativePlatform()) {
-      // If native app, the unsaved responses are stored in the SQLite database, as it is more reliable than IndexedDB. // TODO: add SQLite responses cache
-      return new Set<number>();
-    }
     if (!unsavedAssessmentIdsPromiseRef.current) {
       unsavedAssessmentIdsPromiseRef.current = dexieDb.assessments
         .toArray()
@@ -134,7 +129,7 @@ const AssessmentsClient = () => {
             //This should never happen
             return {
               ...assessment,
-              hasUnsavedFilling: false,
+              hasPendingSaveFromDraft: false,
             };
           }
 
@@ -143,12 +138,12 @@ const AssessmentsClient = () => {
             startDate: localAssessment.startDate,
             endDate: localAssessment.endDate,
             isFinalized: localAssessment.isFinalized,
-            hasUnsavedFilling: true,
+            hasPendingSaveFromDraft: true,
           };
         } else {
           return {
             ...assessment,
-            hasUnsavedFilling: false,
+            hasPendingSaveFromDraft: false,
           };
         }
       });
@@ -300,24 +295,13 @@ const AssessmentsClient = () => {
       setIsLoading(true);
 
       let assessments: FetchAssessmentsResponse["assessments"] = [];
-      const hasSQLiteAssessments = await fetchAdminSQLiteHasAssessments({});
-      if (hasSQLiteAssessments) {
+      const hasSQLiteAssessmentsResponse = await fetchAdminSQLiteHasAssessments(
+        {},
+      );
+      if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
         // If there are SQLite assessments, we cannot show server assessments until they are synced
         setHasSQLiteAssessments(true);
-        const offlineResponse = await fetchAdminSQLiteAssessments({
-          params: {
-            locationId,
-            formId,
-            startDate,
-            endDate,
-            userId,
-            cityId,
-            broadUnitId,
-            intermediateUnitId,
-            narrowUnitId,
-            finalizationStatus: finalizationStatus,
-          },
-        });
+        const offlineResponse = await fetchAdminSQLiteAssessments({});
         const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
         assessments = SQLiteAssessments;
       } else {
@@ -429,7 +413,7 @@ const AssessmentsClient = () => {
         title="Avaliações"
         append={
           <div className="flex items-center gap-1">
-            {isMobileView && (
+            {isMobileView && !hasSQLiteAssessments && (
               <CButton
                 square={isMobileView}
                 enableTopLeftChip
@@ -478,6 +462,7 @@ const AssessmentsClient = () => {
           selectedLocationId={locationId}
           forms={forms}
           users={users}
+          hasSQLiteAssessments={hasSQLiteAssessments}
           handleFilterChange={handleFilterChange}
         />
       </div>

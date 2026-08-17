@@ -14,6 +14,9 @@ const adminSQLiteDbClearTransaction: SQLiteTransactionOperation[] = [
     statement: `DELETE FROM "response_option";`,
   },
   {
+    statement: `DELETE FROM "response_geometry";`,
+  },
+  {
     statement: `DELETE FROM "response";`,
   },
   {

@@ -2,6 +2,7 @@
 
 import { useUserContext } from "@/components/context/UserContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
+import { useNetwork } from "@/components/context/networkContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -10,6 +11,10 @@ import type {
   ResponseFormGeometry,
   ResponseFormImages,
 } from "@/components/ui/responseForm/responseFormTypes";
+import {
+  adminSQLiteAddResponsesV2,
+  createAdminSQLiteAssessmentFromRemoteAssessment,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
@@ -19,6 +24,8 @@ import {
   useUploadImageResponse,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
+import { Capacitor } from "@capacitor/core";
+import { IconAlertSquare } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
 import JSZip from "jszip";
 import { useRouter } from "next-nprogress-bar";
@@ -113,7 +120,11 @@ const SaveAssessmentDialog = ({
   driveFolderUrl,
   responseImages,
   categories,
+  locationId,
+  formId,
   serverUpdatedAt,
+  canSaveOffline,
+  originalIsSQLiteAssessment,
   onResponseImageSynced,
   onSaveSuccess,
   onIsFinalizedChange,
@@ -131,7 +142,11 @@ const SaveAssessmentDialog = ({
   driveFolderUrl: string | null;
   responseImages: ResponseFormImages;
   categories: AssessmentCategoryItem[];
+  locationId: number;
+  formId: number;
   serverUpdatedAt: Date;
+  canSaveOffline: boolean;
+  originalIsSQLiteAssessment: boolean;
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onSaveSuccess: (newServerUpdatedAt: Date) => void;
   onIsFinalizedChange: (newIsFinalized: boolean) => void;
@@ -141,6 +156,10 @@ const SaveAssessmentDialog = ({
   const [errorOnServerSave, setErrorOnServerSave] = useState(false);
   const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
+  const [isSQLiteAssessment, setIsSQLiteAssessment] = useState(
+    originalIsSQLiteAssessment,
+  );
+  const { isConnected } = useNetwork();
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
   const { enqueueSnackbar } = useAppSnackbar();
@@ -207,6 +226,48 @@ const SaveAssessmentDialog = ({
       onError: () => {
         setErrorOnServerSave(true);
       },
+      onServerError: () => {
+        const saveOffline = async () => {
+          if (Capacitor.isNativePlatform() && canSaveOffline) {
+            // Saving assessment on SQLite, so the user is guaranteed that the data won't be lost
+            await createAdminSQLiteAssessmentFromRemoteAssessment({
+              data: {
+                id: assessmentId,
+                startDate: startDate.toDate(),
+                endDate: endDate?.toDate() ?? null,
+                isFinalized: isFinalized,
+                isPublic: false,
+                driveFolderUrl: driveFolderUrl,
+                locationId: locationId,
+                formId: formId,
+              },
+            });
+            const serializedFormValues = serializeResponseFormValues(
+              formValues,
+              categories,
+            );
+            const offlineSaveResponse = await adminSQLiteAddResponsesV2({
+              data: {
+                assessmentId,
+                responses: serializedFormValues,
+                geometries: geometries,
+                startDate: startDate.toDate(),
+                endDate: endDate?.toDate() ?? null,
+                isFinalized: isFinalized,
+                driveFolderUrl: driveFolderUrl,
+              },
+            });
+
+            await dexieDb.assessments.delete(assessmentId);
+            setIsSQLiteAssessment(true);
+
+            if (offlineSaveResponse.data?.savedAsFinalized) {
+              router.push(`/admin/assessments`);
+            }
+          }
+        };
+        void saveOffline();
+      },
     },
   });
   const save = async () => {
@@ -239,26 +300,72 @@ const SaveAssessmentDialog = ({
       });
       setErrorOnLocalSave(false);
     } catch (e) {
-      enqueueSnackbar("Erro ao salvar dados locais!", { variant: "error" });
+      enqueueSnackbar("Erro salvar ao respostas no dispositivo!", {
+        variant: "error",
+      });
       setErrorOnLocalSave(true);
       setLoadingOverlay({ show: false });
       return;
     }
 
     try {
-      await saveResponseImages(responseImages);
+      let funcIsSQLiteAssessment = isSQLiteAssessment;
+      if (!isConnected && !isSQLiteAssessment && canSaveOffline) {
+        await createAdminSQLiteAssessmentFromRemoteAssessment({
+          data: {
+            id: assessmentId,
+            startDate: startDate.toDate(),
+            endDate: endDate?.toDate() ?? null,
+            isFinalized: isFinalized,
+            isPublic: false,
+            driveFolderUrl: driveFolderUrl,
+            locationId: locationId,
+            formId: formId,
+          },
+        });
+        funcIsSQLiteAssessment = true;
+        setIsSQLiteAssessment(true);
+      }
+      if (!funcIsSQLiteAssessment) {
+        if (isConnected) {
+          await saveResponseImages(responseImages);
 
-      await saveResponses({
-        data: {
-          assessmentId,
-          responses: serializedFormValues,
-          geometries: geometries,
-          startDate: startDate.toDate(),
-          endDate: endDate?.toDate() ?? null,
-          isFinalized: isFinalized,
-          driveFolderUrl: driveFolderUrl,
-        },
-      });
+          await saveResponses({
+            data: {
+              assessmentId,
+              responses: serializedFormValues,
+              geometries: geometries,
+              startDate: startDate.toDate(),
+              endDate: endDate?.toDate() ?? null,
+              isFinalized: isFinalized,
+              driveFolderUrl: driveFolderUrl,
+            },
+          });
+        } else {
+          enqueueSnackbar("Respostas salvas apenas no dispostivo!", {
+            variant: "info",
+          });
+        }
+      } else {
+        const offlineSaveResponse = await adminSQLiteAddResponsesV2({
+          data: {
+            assessmentId,
+            responses: serializedFormValues,
+            geometries: geometries,
+            startDate: startDate.toDate(),
+            endDate: endDate?.toDate() ?? null,
+            isFinalized: isFinalized,
+            driveFolderUrl: driveFolderUrl,
+          },
+        });
+        await dexieDb.assessments.delete(assessmentId);
+        if (offlineSaveResponse.data?.savedAsFinalized) {
+          router.push(`/admin/assessments`);
+        }
+        enqueueSnackbar("Avaliação salva no dispostivo!", {
+          variant: "success",
+        });
+      }
     } finally {
       setLoadingOverlay({ show: false });
     }
@@ -389,9 +496,25 @@ const SaveAssessmentDialog = ({
             </p>
           </div>
         )}
+        {!canSaveOffline && !isConnected && (
+          <div className="flex w-full flex-col items-center gap-1">
+            <IconAlertSquare className="text-red-500" />
+            <p className="text-red-500">
+              {
+                "Após sair desta página, você não poderá acessar esta avaliação enquanto estiver offline."
+              }
+            </p>
+            <p className="text-red-500">
+              {
+                "Os dados abaixo só poderão ser salvos quando você estiver online."
+              }
+            </p>
+          </div>
+        )}
         <CSwitch
           checked={isFinalized}
           label="Salvar como finalizado"
+          disabled={!canSaveOffline && !isConnected}
           onChange={(e) => {
             onIsFinalizedChange(e.target.checked);
           }}
@@ -399,6 +522,7 @@ const SaveAssessmentDialog = ({
         <CDateTimePicker
           value={endDate}
           error={showDatePickerError}
+          disabled={!canSaveOffline && !isConnected}
           clearable
           onChange={(e) => {
             setShowDatePickerError(false);

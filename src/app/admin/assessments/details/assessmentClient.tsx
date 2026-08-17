@@ -7,12 +7,8 @@ import ResponseFormV2, {
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
-import {
-  ResponseFormGeometry,
-  SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
-import { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
+import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { IconFileUpload, IconListCheck } from "@tabler/icons-react";
 import { useRef, useState } from "react";
@@ -24,29 +20,17 @@ const AssessmentClient = ({
   assessmentTree,
   finalized,
   userCanEdit,
+  canSaveOffline,
+  isSQLiteAssessment,
 }: {
   locationId: number;
   locationName: string;
   locationPolygonGeoJson: string | null;
-  assessmentTree: {
-    id: number;
-    startDate: Date;
-    endDate: Date | null;
-    updatedAt: Date;
-    user: {
-      username: string;
-      id: string;
-    };
-    isFinalized: boolean;
-    formName: string;
-    totalQuestions: number;
-    responsesFormValues: SerializedFormValues;
-    geometries: ResponseFormGeometry[];
-    categories: AssessmentCategoryItem[];
-    driveFolderUrl: string | null;
-  };
+  assessmentTree: FetchAssessmentTreeResponse["assessmentTree"];
   finalized: boolean;
   userCanEdit: boolean;
+  canSaveOffline: boolean;
+  isSQLiteAssessment: boolean;
 }) => {
   const theme = useTheme();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
@@ -81,6 +65,8 @@ const AssessmentClient = ({
         assessmentTree={assessmentTree}
         finalized={finalized}
         userCanEdit={userCanEdit}
+        canSaveOffline={canSaveOffline}
+        isSQLiteAssessment={isSQLiteAssessment}
       />
       <AssessmentImportDataDialog
         open={openAssessmentImportDialog}

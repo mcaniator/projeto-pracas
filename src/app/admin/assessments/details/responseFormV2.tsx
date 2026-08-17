@@ -36,6 +36,7 @@ import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
+  FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
 import { Calculation } from "@/lib/utils/calculationUtils";
@@ -98,26 +99,12 @@ type ResponseFormV2Props = {
   locationId: number;
   locationName: string;
   locationPolygonGeoJson: string | null;
-  assessmentTree: {
-    id: number;
-    startDate: Date;
-    endDate: Date | null;
-    updatedAt: Date;
-    user: {
-      username: string;
-      id: string;
-    };
-    isFinalized: boolean;
-    formName: string;
-    totalQuestions: number;
-    responsesFormValues: SerializedFormValues;
-    geometries: ResponseFormGeometry[];
-    categories: AssessmentCategoryItem[];
-    driveFolderUrl: string | null;
-  };
+  assessmentTree: FetchAssessmentTreeResponse["assessmentTree"];
   finalized: boolean;
   userCanEdit: boolean;
   isPreview?: boolean;
+  canSaveOffline?: boolean;
+  isSQLiteAssessment?: boolean;
   onValuesChange?: (values: FormValues) => void;
   onGeometriesChange?: (geometries: ResponseFormGeometry[]) => void;
   onImagesChange?: (images: ResponseFormImages) => void;
@@ -133,6 +120,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       finalized,
       userCanEdit,
       isPreview = false,
+      canSaveOffline = false,
+      isSQLiteAssessment = false,
       onValuesChange,
       onGeometriesChange,
       onImagesChange,
@@ -235,7 +224,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
       useState<Date>();
     const [filledCount, setFilledCount] = useState(0);
-    const [pendingServerSave, setPendingServerSave] = useState(false);
+    const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
     const geometriesRef = useRef(geometries);
     const responseImagesRef = useRef(responseImages);
     const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
@@ -306,7 +295,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         responseImagesRef.current = localAssessment.responseImages;
         nonResponseItemsIsDirtyRef.current = false;
         setPendingLocalAssessmentChoice(undefined);
-        setPendingServerSave(true);
+        setPendingSaveFromDraft(true);
       },
       [assessmentTree.categories, reset],
     );
@@ -331,7 +320,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setPendingLocalAssessmentChoice(undefined);
         try {
           await dexieDb.assessments.delete(assessmentTree.id);
-          setPendingServerSave(false);
+          setPendingSaveFromDraft(false);
           setLocalAssessmentUpdatedAt(undefined);
         } catch (e) {
           enqueueSnackbar("Erro ao remover dados locais!", {
@@ -590,7 +579,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     useEffect(() => {
       if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current))
         return;
-      setPendingServerSave(true);
+      setPendingSaveFromDraft(true);
       const timeoutId = window.setTimeout(() => {
         const localAssessment: DexieAssessment = {
           id: assessmentTree.id,
@@ -709,10 +698,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   )}
                   <CButton
                     topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingServerSave}
+                    enableTopLeftChip={pendingSaveFromDraft}
                     tooltip="Reverter alterações locais"
                     square
-                    disabled={!pendingServerSave}
+                    disabled={!pendingSaveFromDraft}
                     onClick={() => {
                       setOpenRevertLocalAssessmentDialog(true);
                     }}
@@ -760,11 +749,11 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   </CButton>
                   <CButton
                     topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingServerSave}
+                    enableTopLeftChip={pendingSaveFromDraft}
                     tooltip="Reverter alterações locais"
                     square
                     color="warning"
-                    disabled={!pendingServerSave}
+                    disabled={!pendingSaveFromDraft}
                     onClick={() => {
                       setOpenRevertLocalAssessmentDialog(true);
                     }}
@@ -816,9 +805,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
         {isFilling && !isPreview && (
           <div className="flex flex-col justify-center gap-4">
-            {pendingServerSave && (
+            {pendingSaveFromDraft && (
               <Chip
-                label="Respostas não enviadas!"
+                label="Respostas não salvas!"
                 color="error"
                 icon={<IconCloudExclamation />}
               />
@@ -844,12 +833,16 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               driveFolderUrl={driveFolderUrl}
               responseImages={responseImages}
               categories={assessmentTree.categories}
+              locationId={locationId}
+              formId={assessmentTree.formId}
               serverUpdatedAt={serverUpdatedAtRef.current}
+              canSaveOffline={canSaveOffline}
+              originalIsSQLiteAssessment={isSQLiteAssessment}
               onResponseImageSynced={handleQuestionImageSynced}
               onSaveSuccess={(newUpdatedAt) => {
                 serverUpdatedAtRef.current = newUpdatedAt;
                 setServerUpdatedAtState(newUpdatedAt);
-                setPendingServerSave(false);
+                setPendingSaveFromDraft(false);
               }}
               onClose={() => {
                 setOpenSaveDialog(false);

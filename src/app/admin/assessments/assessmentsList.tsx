@@ -104,12 +104,12 @@ const AssessmentsList = ({
                     />
                   </span>
                   <Divider />
-                  {a.hasUnsavedFilling && (
+                  {a.hasPendingSaveFromDraft && (
                     <>
                       <span className="flex items-center text-base sm:text-xl">
                         <Chip
                           icon={<IconCloudExclamation />}
-                          label="Respostas não enviadas!"
+                          label="Respostas não salvas!"
                           color="error"
                         />
                       </span>
@@ -135,7 +135,7 @@ const AssessmentsList = ({
                   </span>
                   <Divider />
                   <span className="flex items-center gap-2 text-base sm:text-xl">
-                    {!a.hasUnsavedFilling && a.isFinalized ?
+                    {!a.hasPendingSaveFromDraft && a.isFinalized ?
                       <CButton
                         square
                         onClick={() => {
@@ -161,12 +161,12 @@ const AssessmentsList = ({
                           pendingVisibilityChange.isPublic
                         : a.isPublic
                       }
-                      disabled={a.hasUnsavedFilling || !a.isFinalized}
+                      disabled={a.hasPendingSaveFromDraft || !a.isFinalized}
                       tooltip={
                         !isConnected ? "Nao conectado ao servidor!"
                         : hasSQLiteAssessments ?
                           "Não é possível alterar a visibilidade de uma avaliação não enviada!"
-                        : a.hasUnsavedFilling ?
+                        : a.hasPendingSaveFromDraft ?
                           "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
                         : !a.isFinalized ?
                           "A avaliação ainda nao foi finalizada!"
@@ -216,6 +216,7 @@ const AssessmentsList = ({
         open={!!selectedAssessmentToView}
         onClose={() => setSelectedAssessmentToView(null)}
         assessment={selectedAssessmentToView}
+        isSQLiteAssessment={hasSQLiteAssessments}
       />
     </div>
   );

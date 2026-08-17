@@ -7,6 +7,7 @@ import CButton from "@/components/ui/cButton";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
 import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
+import { Capacitor } from "@capacitor/core";
 import {
   Chip,
   ClickAwayListener,
@@ -21,6 +22,7 @@ import {
   IconMapSearch,
   IconMenu2,
   IconTree,
+  IconWifi,
   IconWifiOff,
   IconX,
 } from "@tabler/icons-react";
@@ -64,7 +66,8 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
     },
     ref,
   ) => {
-    const { isConnected } = useNetwork();
+    const isDebug = process.env.NEXT_PUBLIC_DEBUG === "true";
+    const { isConnected, setNetworkStatus, setServerOnline } = useNetwork();
     const [openUserPopper, setOpenUserPopper] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
     const [userPopperAnchorEl, setUserPopperAnchorEl] =
@@ -201,7 +204,17 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
               />
             )}
           </div>
-
+          {Capacitor.isNativePlatform() && isDebug && (
+            <CButton
+              square
+              onClick={() => {
+                setNetworkStatus(!isConnected);
+                setServerOnline(!isConnected);
+              }}
+            >
+              <IconWifi />
+            </CButton>
+          )}
           {isAdmin && user && (
             <>
               <div className="z-[50] ml-auto flex items-center px-3 pl-2">
