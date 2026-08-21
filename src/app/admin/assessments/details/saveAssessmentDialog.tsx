@@ -124,11 +124,12 @@ const SaveAssessmentDialog = ({
   formId,
   serverUpdatedAt,
   canSaveOffline,
-  originalIsSQLiteAssessment,
+  isSQLiteAssessment,
   onResponseImageSynced,
   onSaveSuccess,
   onIsFinalizedChange,
   onEndDateChange,
+  onIsSQLiteAssessmentChange,
   onClose,
 }: {
   open: boolean;
@@ -146,19 +147,17 @@ const SaveAssessmentDialog = ({
   formId: number;
   serverUpdatedAt: Date;
   canSaveOffline: boolean;
-  originalIsSQLiteAssessment: boolean;
+  isSQLiteAssessment: boolean;
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onSaveSuccess: (newServerUpdatedAt: Date) => void;
   onIsFinalizedChange: (newIsFinalized: boolean) => void;
   onEndDateChange: (newEndDate: Dayjs | null) => void;
+  onIsSQLiteAssessmentChange?: (newIsSQLiteAssessment: boolean) => void;
   onClose: () => void;
 }) => {
   const [errorOnServerSave, setErrorOnServerSave] = useState(false);
   const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
-  const [isSQLiteAssessment, setIsSQLiteAssessment] = useState(
-    originalIsSQLiteAssessment,
-  );
   const { isConnected } = useNetwork();
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
@@ -259,7 +258,7 @@ const SaveAssessmentDialog = ({
             });
 
             await dexieDb.assessments.delete(assessmentId);
-            setIsSQLiteAssessment(true);
+            onIsSQLiteAssessmentChange?.(true);
 
             if (offlineSaveResponse.data?.savedAsFinalized) {
               router.push(`/admin/assessments`);
@@ -324,7 +323,7 @@ const SaveAssessmentDialog = ({
           },
         });
         funcIsSQLiteAssessment = true;
-        setIsSQLiteAssessment(true);
+        onIsSQLiteAssessmentChange?.(true);
       }
       if (!funcIsSQLiteAssessment) {
         if (isConnected) {

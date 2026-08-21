@@ -14,6 +14,7 @@ import {
   IconExternalLink,
   IconEye,
   IconFilePencil,
+  IconUpload,
   IconUser,
 } from "@tabler/icons-react";
 import { useState } from "react";
@@ -135,7 +136,11 @@ const AssessmentsList = ({
                   </span>
                   <Divider />
                   <span className="flex items-center gap-2 text-base sm:text-xl">
-                    {!a.hasPendingSaveFromDraft && a.isFinalized ?
+                    {(
+                      !a.hasPendingSaveFromDraft &&
+                      a.isFinalized &&
+                      !hasSQLiteAssessments
+                    ) ?
                       <CButton
                         square
                         onClick={() => {
@@ -155,32 +160,37 @@ const AssessmentsList = ({
                     }
 
                     <Divider orientation="vertical" />
-                    <CSwitch
-                      checked={
-                        pendingVisibilityChange?.id === a.id ?
-                          pendingVisibilityChange.isPublic
-                        : a.isPublic
-                      }
-                      disabled={a.hasPendingSaveFromDraft || !a.isFinalized}
-                      tooltip={
-                        !isConnected ? "Nao conectado ao servidor!"
-                        : hasSQLiteAssessments ?
-                          "Não é possível alterar a visibilidade de uma avaliação não enviada!"
-                        : a.hasPendingSaveFromDraft ?
-                          "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
-                        : !a.isFinalized ?
-                          "A avaliação ainda nao foi finalizada!"
-                        : ""
-                      }
-                      label="Visível publicamente"
-                      onChange={(e) => {
-                        setPendingVisibilityChange({
-                          id: a.id,
-                          locationName: a.location.name,
-                          isPublic: e.target.checked,
-                        });
-                      }}
-                    />
+                    {hasSQLiteAssessments ?
+                      <CButton square>
+                        <IconUpload /> Sincronizar
+                      </CButton>
+                    : <CSwitch
+                        checked={
+                          pendingVisibilityChange?.id === a.id ?
+                            pendingVisibilityChange.isPublic
+                          : a.isPublic
+                        }
+                        disabled={a.hasPendingSaveFromDraft || !a.isFinalized}
+                        tooltip={
+                          !isConnected ? "Nao conectado ao servidor!"
+                          : hasSQLiteAssessments ?
+                            "Não é possível alterar a visibilidade de uma avaliação não enviada!"
+                          : a.hasPendingSaveFromDraft ?
+                            "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
+                          : !a.isFinalized ?
+                            "A avaliação ainda nao foi finalizada!"
+                          : ""
+                        }
+                        label="Visível publicamente"
+                        onChange={(e) => {
+                          setPendingVisibilityChange({
+                            id: a.id,
+                            locationName: a.location.name,
+                            isPublic: e.target.checked,
+                          });
+                        }}
+                      />
+                    }
                   </span>
                 </div>
               </div>

@@ -19,7 +19,10 @@ const ResponsesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assessmentId = searchParams.get("assessmentId");
-  const isSQLiteAssessment = searchParams.get("isSQLiteAssessment") === "true";
+  const [isSQLiteAssessment, setIsSQLiteAssessment] = useState(
+    Capacitor.isNativePlatform() &&
+      searchParams.get("isSQLiteAssessment") === "true",
+  );
   const { user } = useUserContext();
   const [fetchAssessmentTree, isLoading] = useFetchAssessmentTree({});
   const [assessmentTree, setAssessmentTree] = useState<
@@ -36,7 +39,10 @@ const ResponsesContent = () => {
       let assessmentTree:
         | FetchAssessmentTreeResponse["assessmentTree"]
         | undefined = undefined;
-      if (isSQLiteAssessment && Capacitor.isNativePlatform()) {
+      if (
+        Capacitor.isNativePlatform() &&
+        searchParams.get("isSQLiteAssessment") === "true"
+      ) {
         //SQLite assessment
         const response = await fetchAdminSQLiteAssessmentTree({
           params: { assessmentId },
@@ -59,7 +65,7 @@ const ResponsesContent = () => {
     };
 
     void loadAssessment();
-  }, [assessmentId, fetchAssessmentTree, isSQLiteAssessment, router]);
+  }, [assessmentId, fetchAssessmentTree, searchParams, router]);
 
   useEffect(() => {
     const checkIfCanSaveOffline = async () => {
@@ -100,6 +106,9 @@ const ResponsesContent = () => {
       userCanEdit={userCanEdit}
       canSaveOffline={canSaveOffline}
       isSQLiteAssessment={isSQLiteAssessment}
+      onIsSQLiteAssessmentChange={(v) => {
+        setIsSQLiteAssessment(v);
+      }}
     />
   );
 };

@@ -1,9 +1,13 @@
+import ConfirmDisabledOfflineSavingDialog from "@/app/admin/assessments/assessmentCreation/confirmDisabledOfflineSavingDialog";
 import FormsDataGrid from "@/app/admin/assessments/assessmentCreation/formsDataGrid";
+import { useUserContext } from "@/components/context/UserContext";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { fetchAdminSQLiteIfCanSaveAssessment } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { useCreateAssessment } from "@/lib/serverFunctions/apiCalls/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { Capacitor } from "@capacitor/core";
 import { Divider, LinearProgress } from "@mui/material";
 import { IconCheck } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
@@ -18,6 +22,7 @@ const AssessmentCreationDialog = ({
   onClose: () => void;
 }) => {
   const router = useRouter();
+  const { user } = useUserContext();
   const [selectedLocation, setSelectedLocation] = useState<
     FetchLocationsResponse["locations"][number] | null
   >(null);
@@ -28,6 +33,11 @@ const AssessmentCreationDialog = ({
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [selectedForm, setSelectedForm] = useState<{ id: number } | null>(null);
+
+  const [
+    openConfirmDisabledOfflineSavingDialog,
+    setOpenConfirmDisabledOfflineSavingDialog,
+  ] = useState(false);
 
   const [createAssessment, isSaving] = useCreateAssessment({
     callbacks: {
@@ -52,13 +62,32 @@ const AssessmentCreationDialog = ({
     },
   });
 
-  const handleSubmit = () => {
-    const formData = new FormData();
+  const submit = () => {
     if (!selectedLocation || !selectedDateTime || !selectedForm) return;
+    const formData = new FormData();
     formData.append("locationId", selectedLocation.id.toString());
     formData.append("startDate", selectedDateTime.toDate().toISOString());
     formData.append("formId", selectedForm.id.toString());
     void createAssessment({ data: formData });
+  };
+  const handleSubmit = async () => {
+    if (!selectedLocation || !selectedDateTime || !selectedForm) return;
+    if (Capacitor.isNativePlatform()) {
+      const checkIfCanSaveOffline = await fetchAdminSQLiteIfCanSaveAssessment({
+        params: {
+          formId: selectedForm.id,
+          locationId: selectedLocation.id,
+          userId: user.id,
+        },
+      });
+      if (!checkIfCanSaveOffline.data?.canSave) {
+        setOpenConfirmDisabledOfflineSavingDialog(true);
+      } else {
+        submit();
+      }
+    } else {
+      submit();
+    }
   };
 
   const enableSaveButton = useMemo(() => {
@@ -71,10 +100,12 @@ const AssessmentCreationDialog = ({
       fullScreen
       open={open}
       onClose={onClose}
-      onConfirm={handleSubmit}
+      onConfirm={() => {
+        void handleSubmit();
+      }}
       confirmChildren={<IconCheck />}
       disableConfirmButton={!enableSaveButton}
-      confirmLoading={isSaving}
+      confirmLoading={isSaving || isRedirecting}
       removeCloseButton={isRedirecting}
     >
       <div className="flex flex-col gap-1">
@@ -113,6 +144,16 @@ const AssessmentCreationDialog = ({
           </>
         }
       </div>
+      <ConfirmDisabledOfflineSavingDialog
+        open={openConfirmDisabledOfflineSavingDialog}
+        onClose={() => {
+          setOpenConfirmDisabledOfflineSavingDialog(false);
+        }}
+        onConfirm={() => {
+          setOpenConfirmDisabledOfflineSavingDialog(false);
+          submit();
+        }}
+      />
     </CDialog>
   );
 };

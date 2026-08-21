@@ -108,6 +108,7 @@ type ResponseFormV2Props = {
   onValuesChange?: (values: FormValues) => void;
   onGeometriesChange?: (geometries: ResponseFormGeometry[]) => void;
   onImagesChange?: (images: ResponseFormImages) => void;
+  onIsSQLiteAssessmentChange?: (v: boolean) => void;
 };
 
 const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
@@ -125,6 +126,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       onValuesChange,
       onGeometriesChange,
       onImagesChange,
+      onIsSQLiteAssessmentChange,
     },
     ref,
   ) => {
@@ -837,7 +839,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               formId={assessmentTree.formId}
               serverUpdatedAt={serverUpdatedAtRef.current}
               canSaveOffline={canSaveOffline}
-              originalIsSQLiteAssessment={isSQLiteAssessment}
+              isSQLiteAssessment={isSQLiteAssessment}
               onResponseImageSynced={handleQuestionImageSynced}
               onSaveSuccess={(newUpdatedAt) => {
                 serverUpdatedAtRef.current = newUpdatedAt;
@@ -855,11 +857,13 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                 nonResponseItemsIsDirtyRef.current = true;
                 setEndDate(v);
               }}
+              onIsSQLiteAssessmentChange={onIsSQLiteAssessmentChange}
             />
             <DeleteAssessmentDialog
               assessmentId={assessmentTree.id}
               open={openDeleteAssessmentDialog}
               locationId={locationId}
+              isSQLiteAssessment={isSQLiteAssessment}
               onClose={() => {
                 setOpenDeleteAssessmentDialog(false);
               }}

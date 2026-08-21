@@ -22,6 +22,7 @@ const AssessmentClient = ({
   userCanEdit,
   canSaveOffline,
   isSQLiteAssessment,
+  onIsSQLiteAssessmentChange,
 }: {
   locationId: number;
   locationName: string;
@@ -31,6 +32,7 @@ const AssessmentClient = ({
   userCanEdit: boolean;
   canSaveOffline: boolean;
   isSQLiteAssessment: boolean;
+  onIsSQLiteAssessmentChange: (v: boolean) => void;
 }) => {
   const theme = useTheme();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
@@ -67,6 +69,7 @@ const AssessmentClient = ({
         userCanEdit={userCanEdit}
         canSaveOffline={canSaveOffline}
         isSQLiteAssessment={isSQLiteAssessment}
+        onIsSQLiteAssessmentChange={onIsSQLiteAssessmentChange}
       />
       <AssessmentImportDataDialog
         open={openAssessmentImportDialog}

@@ -11,6 +11,7 @@ import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   CreateAssessmentData,
   CreateAssessmentResponse,
+  DeleteAssessmentData,
 } from "@/lib/serverFunctions/mutations/assessmentUtil";
 import type {
   AddResponsesData,
@@ -190,6 +191,7 @@ const editableAssessmentSchema = z.object({
   locationId: z.coerce.number(),
   formId: z.coerce.number(),
   createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 const responseQuestionSchema = z.array(
@@ -375,6 +377,120 @@ const createAdminSQLiteAssessmentFromRemoteAssessment = async (
   }
 };
 
+const deleteAdminSQLiteAssessment = async (
+  request: APIRequestData<DeleteAssessmentData>,
+) => {
+  const data = request.data;
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Dados inválidos para excluir avaliação do dispostivo!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+  try {
+    const deletedAssessment = await adminSQLiteDb.run(
+      `DELETE FROM assessment WHERE id = ? AND created_locally = 1`,
+      [data.assessmentId],
+    );
+    if (deletedAssessment.changes.changes < 1) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Avaliação nao encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Avaliação excluída com sucesso!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir avaliação offline!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+type FetchAdminSQLiteAssessmentBasicDataParams = {
+  assessmentId: number;
+};
+
+const fetchAdminSQLiteAssessmentTableData = async (
+  request: APIRequestParams<FetchAdminSQLiteAssessmentBasicDataParams>,
+) => {
+  const params = request.params;
+  if (!params) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Parametros inválidos para consultar avaliação offline!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+  try {
+    const assessmentValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT
+          id,
+          created_locally AS createdLocally,
+          start_date AS startDate,
+          end_date AS endDate,
+          is_finalized AS isFinalized,
+          is_public AS isPublic,
+          drive_folder_url AS driveFolderUrl,
+          user_id AS userId,
+          location_id AS locationId,
+          form_id AS formId,
+          created_at AS createdAt,
+          updated_at AS updatedAt
+        FROM assessment
+        WHERE id = ?
+        LIMIT 1
+      `,
+      values: [params.assessmentId],
+    });
+    const assessment = editableAssessmentSchema.parse(
+      assessmentValues.values[0],
+    );
+    if (!assessment) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Avaliação nao encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Avaliação encontrada!",
+      } as APIResponseInfo,
+      data: assessment,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliação offline!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
 const adminSQLiteAddResponsesV2 = async (
   request: APIRequestData<AddResponsesData>,
 ): Promise<APIResponse<AddResponsesResponse>> => {
@@ -415,7 +531,8 @@ const adminSQLiteAddResponsesV2 = async (
           user_id AS userId,
           location_id AS locationId,
           form_id AS formId,
-          created_at AS createdAt
+          created_at AS createdAt,
+          updated_at AS updatedAt
         FROM assessment
         WHERE id = ?
         LIMIT 1
@@ -1399,4 +1516,6 @@ export {
   fetchAdminSQLiteAssessmentUsers,
   fetchAdminSQLiteHasAssessments,
   fetchAdminSQLiteIfCanSaveAssessment,
+  deleteAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentTableData,
 };
