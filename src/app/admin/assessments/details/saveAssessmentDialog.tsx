@@ -17,6 +17,7 @@ import {
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import dayjs from "@/lib/dayjs";
 import { dexieDb } from "@/lib/dexie/dexie";
+import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import {
@@ -427,12 +428,14 @@ const SaveAssessmentDialog = ({
       const blob = await zip.generateAsync({
         type: "blob",
       });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `avaliação_${locationName}_${new Date().toISOString()}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+
+      const filename = `avaliação_${locationName}_${new Date().toISOString()}.zip`;
+
+      await downloadBlob({
+        filename,
+        mimeType: "application/zip",
+        blob,
+      });
     } catch (e) {
       enqueueSnackbar("Erro ao gerar arquivo da avaliação!", {
         variant: "error",
