@@ -116,9 +116,7 @@ export type UpdateFormResponse = Awaited<
   ReturnType<typeof _updateFormV2>
 >["data"];
 
-const _updateFormV2 = async (
-  request: APIRequestData<UpdateFormData>,
-) => {
+const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
   const { formId, formTree, calculations, isFinalized, newFormName } =
     request.data!;
   try {
@@ -131,11 +129,6 @@ const _updateFormV2 = async (
     if (!currentForm) {
       return { responseInfo: { statusCode: 400 }, data: null };
     }
-
-    await prisma.form.update({
-      data: { name: newFormName, finalized: isFinalized },
-      where: { id: formId },
-    });
 
     const flatItems: {
       position: number;
@@ -327,6 +320,8 @@ const _updateFormV2 = async (
       WHERE c.id = v.id`;
     }*/
 
+    // INSERT
+
     let calculationsInsertQuery: Prisma.Sql | null = null;
     if (calculationsToInsert.length > 0) {
       const values = calculationsToInsert.map(
@@ -335,12 +330,14 @@ const _updateFormV2 = async (
       calculationsInsertQuery = Prisma.sql`INSERT INTO calculation (form_id, target_question_Id, expression) VALUES ${Prisma.join(values, ",")}`;
     }
 
-    // INSERT
-
     // #endregion
 
     //Transaction
     await prisma.$transaction(async (tx) => {
+      await tx.form.update({
+        data: { name: newFormName, finalized: isFinalized },
+        where: { id: formId },
+      });
       if (deleteQuery) {
         await tx.$executeRaw(deleteQuery);
       }
