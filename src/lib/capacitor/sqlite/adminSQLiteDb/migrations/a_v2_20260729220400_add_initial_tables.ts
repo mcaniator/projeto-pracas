@@ -255,6 +255,12 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         UNIQUE (assessment_id, question_id)
       )`,
     },
+    {
+      statement: `CREATE TABLE assessment_draft (
+        assessment_id PRIMARY KEY,
+        draft TEXT
+      )`,
+    },
   ],
 });
 

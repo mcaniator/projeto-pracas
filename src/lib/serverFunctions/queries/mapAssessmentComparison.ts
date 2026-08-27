@@ -1,7 +1,7 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
 import { z } from "zod";
 

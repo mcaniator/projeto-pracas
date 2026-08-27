@@ -10,16 +10,16 @@ import CSwitch from "@/components/ui/cSwtich";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import type {
-  FormValues,
-  ResponseFormGeometry,
-  SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
-import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
   FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+  SerializedFormValues,
+} from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";

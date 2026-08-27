@@ -2,6 +2,10 @@
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import {
+  getAssessmentsDraftsIds,
+  loadAssessmentResponsesDraft,
+} from "@/app/admin/assessments/details/responseFormUtil";
+import {
   fetchAdminSQLiteAssessments,
   fetchAdminSQLiteHasAssessments,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
@@ -21,7 +25,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
-import { dexieDb } from "../../../lib/dexie/dexie";
 import type { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
@@ -100,19 +103,7 @@ const AssessmentsClient = () => {
 
   const getUnsavedAssessmentIds = useCallback(async () => {
     if (!unsavedAssessmentIdsPromiseRef.current) {
-      unsavedAssessmentIdsPromiseRef.current = dexieDb.assessments
-        .toArray()
-        .then(
-          (dexieAssessments) =>
-            new Set(
-              dexieAssessments
-                .filter(
-                  (assessment) =>
-                    assessment.localUpdatedAt > assessment.serverUpdatedAt,
-                )
-                .map((assessment) => assessment.id),
-            ),
-        );
+      unsavedAssessmentIdsPromiseRef.current = getAssessmentsDraftsIds();
     }
 
     return unsavedAssessmentIdsPromiseRef.current;
@@ -123,8 +114,10 @@ const AssessmentsClient = () => {
       const unsavedAssessmentIds = await getUnsavedAssessmentIds();
       return assessments.map(async (assessment) => {
         if (unsavedAssessmentIds.has(assessment.id)) {
-          //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
-          const localAssessment = await dexieDb.assessments.get(assessment.id);
+          //If the assessment has unsynced filling, we need to fetch it from draft and insert the local unsynced data into the assessment
+          const localAssessment = await loadAssessmentResponsesDraft(
+            assessment.id,
+          );
           if (!localAssessment) {
             //This should never happen
             return {

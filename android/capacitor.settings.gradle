@@ -24,4 +24,4 @@ include ':microbit-capacitor-sqlite-vanilla'
 project(':microbit-capacitor-sqlite-vanilla').projectDir = new File('../node_modules/.pnpm/@microbit+capacitor-sqlite-vanilla@0.1.0_@capacitor+core@8.4.1/node_modules/@microbit/capacitor-sqlite-vanilla/android')
 
 include ':capacitor-save-as'
-project(':capacitor-save-as').projectDir = new File('../node_modules/.pnpm/capacitor-save-as@0.2.0_@capacitor+core@8.4.1/node_modules/capacitor-save-as/android')
+project(':capacitor-save-as').projectDir = new File('../node_modules/.pnpm/capacitor-save-as@file+..+capacitor-save-as_@capacitor+core@8.4.1/node_modules/capacitor-save-as/android')

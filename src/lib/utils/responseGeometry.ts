@@ -1,4 +1,4 @@
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import type { Coordinate } from "ol/coordinate";
 
 const splitTopLevelWktItems = (value: string): string[] => {

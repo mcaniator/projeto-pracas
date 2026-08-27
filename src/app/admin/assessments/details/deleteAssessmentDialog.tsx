@@ -1,3 +1,4 @@
+import { deleteAssessmentResponsesDraft } from "@/app/admin/assessments/details/responseFormUtil";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
@@ -20,13 +21,11 @@ const DeleteAssessmentDialog = ({
   open,
   onClose,
   assessmentId,
-  locationId,
   isSQLiteAssessment,
 }: {
   open: boolean;
   onClose: () => void;
   assessmentId: number;
-  locationId: number;
   isSQLiteAssessment: boolean;
 }) => {
   const { enqueueSnackbar, notifyApiResponse } = useAppSnackbar();
@@ -54,8 +53,9 @@ const DeleteAssessmentDialog = ({
       }
 
       if (response.responseInfo.statusCode === 200) {
+        await deleteAssessmentResponsesDraft(assessmentId);
         setIsRedirecting(true);
-        router.push(`/admin/assessments?locationId=${locationId}`);
+        router.push(`/admin/assessments`);
       } else {
         setLoadingOverlay({ show: false });
       }

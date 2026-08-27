@@ -1,15 +1,15 @@
 import { type ResolvedQuestionValue } from "@/components/ui/assessment/questionResponseRenderer";
 import {
+  AssessmentCategoryItem,
+  AssessmentQuestionItem,
+} from "@/lib/serverFunctions/queries/assessment";
+import {
   type FormValues,
   type ResponseQuestionValue,
   isAssessmentOptionValueWithOverride,
   isAssessmentOptionValueWithOverrideArray,
-} from "@/components/ui/responseForm/responseFormTypes";
-import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-} from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+} from "@/lib/types/assessments/responseFormTypes";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import dayjs from "dayjs";
 
 export type AssessmentTree = {

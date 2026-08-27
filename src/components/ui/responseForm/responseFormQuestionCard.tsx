@@ -1,10 +1,10 @@
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { SimpleMention } from "@/lib/types/assessments/responseFormTypes";
 import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 
 import ResponseFormQuestionDescriptors from "./responseFormQuestionDescriptors";
-import type { SimpleMention } from "./responseFormTypes";
 
 const ResponseFormQuestionCard = ({
   question,

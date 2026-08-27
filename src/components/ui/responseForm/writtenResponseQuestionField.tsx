@@ -4,9 +4,8 @@ import CNumberField from "@/components/ui/cNumberField";
 import CTextField from "@/components/ui/cTextField";
 import CTimePicker from "@/components/ui/cTimePicker";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { ResponseQuestionValue } from "@/lib/types/assessments/responseFormTypes";
 import dayjs from "dayjs";
-
-import type { ResponseQuestionValue } from "./responseFormTypes";
 
 const WrittenResponseQuestionField = ({
   question,

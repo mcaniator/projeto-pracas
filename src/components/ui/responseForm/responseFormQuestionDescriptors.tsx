@@ -6,8 +6,7 @@ import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChi
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-
-import type { SimpleMention } from "./responseFormTypes";
+import type { SimpleMention } from "@/lib/types/assessments/responseFormTypes";
 
 const ResponseFormQuestionDescriptors = ({
   question,

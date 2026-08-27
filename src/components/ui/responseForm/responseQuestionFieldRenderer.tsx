@@ -1,7 +1,8 @@
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { ResponseQuestionValue } from "@/lib/types/assessments/responseFormTypes";
+
 import BooleanResponseQuestionField from "./booleanResponseQuestionField";
 import OptionsResponseQuestionField from "./optionsResponseQuestionField";
-import type { ResponseQuestionValue } from "./responseFormTypes";
 import WrittenResponseQuestionField from "./writtenResponseQuestionField";
 
 const ResponseQuestionFieldRenderer = ({

@@ -1,7 +1,7 @@
 import type {
   ResponseFormGeometry,
   SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
+} from "@/lib/types/assessments/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";

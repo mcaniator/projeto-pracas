@@ -1,4 +1,4 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import {

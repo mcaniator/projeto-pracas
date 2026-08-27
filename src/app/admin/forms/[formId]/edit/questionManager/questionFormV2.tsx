@@ -150,10 +150,7 @@ const QuestionFormV2 = ({
 
   useEffect(() => {
     void searchByCategoryAndSubcateogory();
-  }, [
-    selectedCategoryAndSubcategoryId,
-    searchByCategoryAndSubcateogory,
-  ]);
+  }, [selectedCategoryAndSubcategoryId, searchByCategoryAndSubcateogory]);
 
   useEffect(() => {
     if (

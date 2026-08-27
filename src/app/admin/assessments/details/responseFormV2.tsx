@@ -14,15 +14,6 @@ import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQ
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
-import type {
-  FormValues,
-  ResponseFormGeometry,
-  ResponseFormImage,
-  ResponseFormImages,
-  SerializedFormValues,
-  SerializedResponseQuestionValue,
-  SimpleMention,
-} from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
@@ -36,7 +27,17 @@ import {
   AssessmentSubcategoryItem,
   FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type {
+  AssessmentDraft,
+  FormValues,
+  ResponseFormGeometry,
+  ResponseFormImage,
+  ResponseFormImages,
+  ResponseGeometry,
+  SerializedFormValues,
+  SerializedResponseQuestionValue,
+  SimpleMention,
+} from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { Chip } from "@mui/material";
 import {
@@ -75,7 +76,6 @@ import {
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import {
-  AssessmentDraft,
   deleteAssessmentResponsesDraft,
   loadAssessmentResponsesDraft,
   saveAssessmentResponsesDraft,
@@ -857,7 +857,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             <DeleteAssessmentDialog
               assessmentId={assessmentTree.id}
               open={openDeleteAssessmentDialog}
-              locationId={locationId}
               isSQLiteAssessment={isSQLiteAssessment}
               onClose={() => {
                 setOpenDeleteAssessmentDialog(false);

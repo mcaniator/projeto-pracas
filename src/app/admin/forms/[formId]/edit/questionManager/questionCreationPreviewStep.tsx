@@ -6,13 +6,13 @@ import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQ
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
+import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
+import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import {
   ResponseFormGeometry,
   ResponseFormImages,
   ResponseQuestionValue,
-} from "@/components/ui/responseForm/responseFormTypes";
-import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+} from "@/lib/types/assessments/responseFormTypes";
 import { resolveQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { useEffect, useMemo, useState } from "react";
 

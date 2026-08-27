@@ -2,6 +2,7 @@
 
 import CNumberField from "@/components/ui/cNumberField";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { useEffect, useMemo } from "react";
 import {
@@ -9,8 +10,6 @@ import {
   type UseFormSetValue,
   useController,
 } from "react-hook-form";
-
-import type { FormValues } from "./responseFormTypes";
 
 const CalculationResponseQuestionField = ({
   question,

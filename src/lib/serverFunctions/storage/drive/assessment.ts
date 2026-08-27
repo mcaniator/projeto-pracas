@@ -1,7 +1,4 @@
-import type {
-  APIRequestData,
-  APIResponseInfo,
-} from "@/lib/types/backendCalls/APIResponse";
+import type { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
 import {
   buildGoogleDriveDirectImageUrl,
   buildGoogleDriveThumbnailImageUrl,

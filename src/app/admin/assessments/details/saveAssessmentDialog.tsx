@@ -6,11 +6,6 @@ import { useNetwork } from "@/components/context/networkContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import type {
-  FormValues,
-  ResponseFormGeometry,
-  ResponseFormImages,
-} from "@/components/ui/responseForm/responseFormTypes";
 import {
   adminSQLiteAddResponsesV2,
   createAdminSQLiteAssessmentFromRemoteAssessment,
@@ -24,6 +19,11 @@ import {
   useUploadImageResponse,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+  ResponseFormImages,
+} from "@/lib/types/assessments/responseFormTypes";
 import { Capacitor } from "@capacitor/core";
 import { IconAlertSquare } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
@@ -345,7 +345,7 @@ const SaveAssessmentDialog = ({
             },
           });
         } else {
-          enqueueSnackbar("Respostas salvas apenas no dispostivo!", {
+          enqueueSnackbar("Respostas salvas como rascunho!", {
             variant: "info",
           });
         }

@@ -2,15 +2,15 @@ import {
   isAssessmentQuestionItem,
   isAssessmentSubcategoryItem,
 } from "@/app/admin/assessments/details/responseFormV2";
-import {
-  FormValues,
-  SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
 import {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
 } from "@/lib/serverFunctions/queries/assessment";
+import {
+  FormValues,
+  SerializedFormValues,
+} from "@/lib/types/assessments/responseFormTypes";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 
 export const getDateTimeResponseFormat = (question: AssessmentQuestionItem) => {

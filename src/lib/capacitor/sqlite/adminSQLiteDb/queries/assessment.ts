@@ -1,7 +1,3 @@
-import type {
-  ResponseFormGeometry,
-  SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type { SQLiteBulkUpsertOperation } from "@/lib/capacitor/sqlite/sqlite";
@@ -27,6 +23,12 @@ import type {
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
+import {
+  type AssessmentDraft,
+  type ResponseFormGeometry,
+  type SerializedFormValues,
+  assessmentDraftSchema,
+} from "@/lib/types/assessments/responseFormTypes";
 import type {
   APIRequest,
   APIRequestData,
@@ -1507,6 +1509,198 @@ const fetchAdminSQLiteIfCanSaveAssessment = async (
   }
 };
 
+// #region Draft
+
+const assessmentDraftValuesSchema = z.array(
+  z.object({
+    draft: z
+      .string()
+      .transform((draft) => JSON.parse(draft) as unknown)
+      .pipe(assessmentDraftSchema),
+  }),
+);
+
+const assessmentDraftIdsSchema = z.array(
+  z.object({
+    assessmentId: z.coerce.number(),
+  }),
+);
+
+type SaveAdminSQLiteAssessmentDraftData = {
+  assessmentId: number;
+  draft: AssessmentDraft;
+};
+
+const saveAdminSQLiteAssessmentDraft = async (
+  request: APIRequestData<SaveAdminSQLiteAssessmentDraftData>,
+) => {
+  const data = request.data;
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Dados inválidos para salvar o rascunho da avaliação!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+
+  try {
+    await adminSQLiteDb.run(
+      `INSERT OR REPLACE INTO assessment_draft (assessment_id, draft)
+       VALUES (?, ?)`,
+      [data.assessmentId, JSON.stringify(data.draft)],
+    );
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: null,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao salvar rascunho da avaliação no dispositivo!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+type DeleteAdminSQLiteAssessmentDraftData = {
+  assessmentId: number;
+};
+
+const deleteAdminSQLiteAssessmentDraft = async (
+  request: APIRequestData<DeleteAdminSQLiteAssessmentDraftData>,
+) => {
+  const data = request.data;
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Dados inválidos para excluir o rascunho da avaliação!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+
+  try {
+    await adminSQLiteDb.run(
+      `DELETE FROM assessment_draft WHERE assessment_id = ?`,
+      [data.assessmentId],
+    );
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: null,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir rascunho da avaliação do dispositivo!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+type FetchAdminSQLiteAssessmentDraftParams = {
+  assessmentId: number;
+};
+
+const fetchAdminSQLiteAssessmentDraft = async (
+  request: APIRequestParams<FetchAdminSQLiteAssessmentDraftParams>,
+) => {
+  const params = request.params;
+  if (!params) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Parâmetros inválidos para consultar o rascunho da avaliação!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+
+  try {
+    const assessmentDraftValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT draft
+        FROM assessment_draft
+        WHERE assessment_id = ?
+        LIMIT 1
+      `,
+      values: [params.assessmentId],
+    });
+    const assessmentDraft = assessmentDraftValuesSchema.parse(
+      assessmentDraftValues.values,
+    )[0];
+
+    if (!assessmentDraft) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Rascunho da avaliação não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: assessmentDraft.draft,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar rascunho da avaliação no dispositivo!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+const fetchAdminSQLiteAssessmentDraftsIds = async (_request: APIRequest) => {
+  try {
+    const assessmentDraftValues = await adminSQLiteDb.query({
+      statement: `SELECT assessment_id AS assessmentId FROM assessment_draft`,
+    });
+    const assessmentIds = assessmentDraftIdsSchema
+      .parse(assessmentDraftValues.values)
+      .map((assessmentDraft) => assessmentDraft.assessmentId);
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        assessmentIds,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar rascunhos de avaliações no dispositivo!",
+      } as APIResponseInfo,
+      data: {
+        assessmentIds: [],
+      },
+    };
+  }
+};
+
+// #endregion
+
 export {
   adminSQLiteAddResponsesV2,
   createAdminSQLiteAssessment,
@@ -1517,5 +1711,9 @@ export {
   fetchAdminSQLiteHasAssessments,
   fetchAdminSQLiteIfCanSaveAssessment,
   deleteAdminSQLiteAssessment,
+  deleteAdminSQLiteAssessmentDraft,
+  fetchAdminSQLiteAssessmentDraft,
+  fetchAdminSQLiteAssessmentDraftsIds,
   fetchAdminSQLiteAssessmentTableData,
+  saveAdminSQLiteAssessmentDraft,
 };

@@ -1,7 +1,7 @@
 import type {
   FormValues,
   SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
+} from "@/lib/types/assessments/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
