@@ -24,8 +24,6 @@ import type {
   SimpleMention,
 } from "@/components/ui/responseForm/responseFormTypes";
 import dayjs from "@/lib/dayjs";
-import { dexieDb } from "@/lib/dexie/dexie";
-import type { DexieAssessment } from "@/lib/dexie/dexie";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
@@ -76,6 +74,12 @@ import {
 } from "react-hook-form";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
+import {
+  AssessmentDraft,
+  deleteAssessmentResponsesDraft,
+  loadAssessmentResponsesDraft,
+  saveAssessmentResponsesDraft,
+} from "./responseFormUtil";
 import RevertLocalAssessmentDialog from "./revertLocalAssessmentDialog";
 import SaveAssessmentDialog from "./saveAssessmentDialog";
 
@@ -222,13 +226,12 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       setOpenRevertLocalAssessmentDialog,
     ] = useState(false);
     const [pendingLocalAssessmentChoice, setPendingLocalAssessmentChoice] =
-      useState<DexieAssessment>();
+      useState<AssessmentDraft>();
     const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
       useState<Date>();
     const [filledCount, setFilledCount] = useState(0);
     const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
     const geometriesRef = useRef(geometries);
-    const responseImagesRef = useRef(responseImages);
     const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
     const nonResponseItemsIsDirtyRef = useRef(false);
 
@@ -276,7 +279,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const totalQuestions = assessmentTree.totalQuestions;
 
     const applyLocalAssessmentValues = useCallback(
-      (localAssessment: DexieAssessment) => {
+      (localAssessment: AssessmentDraft) => {
         const localFormValues = deserializeResponseFormValues(
           localAssessment.responseFormValues,
           assessmentTree.categories,
@@ -291,10 +294,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         );
         setDriveFolderUrl(localAssessment.driveFolderUrl);
         setGeometries(localAssessment.geometries);
-        setResponseImages(localAssessment.responseImages);
         serializedFormValuesRef.current = localAssessment.responseFormValues;
         geometriesRef.current = localAssessment.geometries;
-        responseImagesRef.current = localAssessment.responseImages;
         nonResponseItemsIsDirtyRef.current = false;
         setPendingLocalAssessmentChoice(undefined);
         setPendingSaveFromDraft(true);
@@ -317,11 +318,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setResponseImages({}); //TODO
         serializedFormValuesRef.current = assessmentTree.responsesFormValues;
         geometriesRef.current = assessmentTree.geometries;
-        responseImagesRef.current = {};
         nonResponseItemsIsDirtyRef.current = false;
         setPendingLocalAssessmentChoice(undefined);
         try {
-          await dexieDb.assessments.delete(assessmentTree.id);
+          await deleteAssessmentResponsesDraft(assessmentTree.id);
           setPendingSaveFromDraft(false);
           setLocalAssessmentUpdatedAt(undefined);
         } catch (e) {
@@ -373,7 +373,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       questionId: number,
       images: ResponseFormImage[],
     ) => {
-      nonResponseItemsIsDirtyRef.current = true;
       setResponseImages((prev) => ({
         ...prev,
         [questionId]: images,
@@ -454,7 +453,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         setGeometries(incomingGeoms);
         setResponseImages(importedImages);
         geometriesRef.current = incomingGeoms;
-        responseImagesRef.current = importedImages;
         serializedFormValuesRef.current = importedData.responses;
 
         const startDate = dayjs(importedData.startDate);
@@ -490,7 +488,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             show: true,
             message: "Carregando respostas locais...",
           });
-          const localAssessment = await dexieDb.assessments.get(
+          const localAssessment = await loadAssessmentResponsesDraft(
             assessmentTree.id,
           );
 
@@ -574,7 +572,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     }, [geometries, onGeometriesChange]);
 
     useEffect(() => {
-      responseImagesRef.current = responseImages;
       onImagesChange?.(responseImages);
     }, [responseImages, onImagesChange]);
 
@@ -583,7 +580,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         return;
       setPendingSaveFromDraft(true);
       const timeoutId = window.setTimeout(() => {
-        const localAssessment: DexieAssessment = {
+        const localAssessment: AssessmentDraft = {
           id: assessmentTree.id,
           userId: user.id,
           username: user.username,
@@ -595,10 +592,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           driveFolderUrl: driveFolderUrl,
           responseFormValues: serializedFormValuesRef.current,
           geometries: geometriesRef.current,
-          responseImages: responseImagesRef.current,
         };
 
-        void dexieDb.assessments.put(localAssessment);
+        void saveAssessmentResponsesDraft(localAssessment);
         setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
       }, 500);
 
@@ -616,7 +612,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       isDirty,
       isPreview,
       user,
-      responseImages,
     ]);
 
     return (
@@ -908,7 +903,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             }}
             applyServerAssessmentValues={applyServerAssessmentValues}
             applyLocalAssessmentValues={() => {
-              applyLocalAssessmentValues(pendingLocalAssessmentChoice);
+              void applyLocalAssessmentValues(pendingLocalAssessmentChoice);
             }}
           />
         )}

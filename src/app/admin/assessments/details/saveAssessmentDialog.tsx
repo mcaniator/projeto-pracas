@@ -16,7 +16,6 @@ import {
   createAdminSQLiteAssessmentFromRemoteAssessment,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import dayjs from "@/lib/dayjs";
-import { dexieDb } from "@/lib/dexie/dexie";
 import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
@@ -31,6 +30,11 @@ import { Dayjs } from "dayjs";
 import JSZip from "jszip";
 import { useRouter } from "next-nprogress-bar";
 import { useEffect, useState } from "react";
+
+import {
+  deleteAssessmentResponsesDraft,
+  saveAssessmentResponsesDraft,
+} from "./responseFormUtil";
 
 const imageExtensionsByMimeType: Record<string, readonly string[]> = {
   "image/avif": ["avif"],
@@ -200,8 +204,8 @@ const SaveAssessmentDialog = ({
       onSuccess: (response) => {
         // Delete local data, as it is no longer need
         // TODO: Refresh server data in ResponseFormV2
-        dexieDb.assessments
-          .delete(assessmentId)
+
+        deleteAssessmentResponsesDraft(assessmentId)
           .then(() => {
             if (response.data?.savedAsFinalized) {
               router.push(`/admin/assessments`);
@@ -258,7 +262,7 @@ const SaveAssessmentDialog = ({
               },
             });
 
-            await dexieDb.assessments.delete(assessmentId);
+            await deleteAssessmentResponsesDraft(assessmentId);
             onIsSQLiteAssessmentChange?.(true);
 
             if (offlineSaveResponse.data?.savedAsFinalized) {
@@ -284,7 +288,7 @@ const SaveAssessmentDialog = ({
 
     try {
       // Save locally, to not lose data if something goes wrong in the server
-      await dexieDb.assessments.put({
+      await saveAssessmentResponsesDraft({
         id: assessmentId,
         userId: user.id,
         username: user.username,
@@ -296,7 +300,6 @@ const SaveAssessmentDialog = ({
         driveFolderUrl: driveFolderUrl,
         responseFormValues: serializedFormValues,
         geometries: geometries,
-        responseImages: responseImages,
       });
       setErrorOnLocalSave(false);
     } catch (e) {
@@ -358,7 +361,8 @@ const SaveAssessmentDialog = ({
             driveFolderUrl: driveFolderUrl,
           },
         });
-        await dexieDb.assessments.delete(assessmentId);
+        await deleteAssessmentResponsesDraft(assessmentId);
+
         if (offlineSaveResponse.data?.savedAsFinalized) {
           router.push(`/admin/assessments`);
         }

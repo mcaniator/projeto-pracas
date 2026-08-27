@@ -1,14 +1,12 @@
-// db.ts
 import {
   ResponseFormGeometry,
-  ResponseFormImages,
   SerializedFormValues,
 } from "@/components/ui/responseForm/responseFormTypes";
 import type { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import type { CommercialActivity } from "@/lib/zodValidators";
 import { Dexie, type EntityTable } from "dexie";
 
-interface DexieAssessment {
+interface DexieAssessmentDraft {
   id: number;
   userId: string;
   username: string;
@@ -20,7 +18,6 @@ interface DexieAssessment {
   driveFolderUrl: string | null;
   responseFormValues: SerializedFormValues;
   geometries: ResponseFormGeometry[];
-  responseImages: ResponseFormImages;
 }
 
 interface DexieTally {
@@ -43,7 +40,7 @@ interface DexieTally {
 
 const dexieDb = new Dexie("PracasLocal") as Dexie & {
   assessments: EntityTable<
-    DexieAssessment,
+    DexieAssessmentDraft,
     "id" // primary key "id"
   >;
   tallys: EntityTable<
@@ -55,10 +52,10 @@ const dexieDb = new Dexie("PracasLocal") as Dexie & {
 // Schema declaration:
 dexieDb.version(1).stores({
   assessments:
-    "id, userId, username, serverUpdatedAt, localUpdatedAt, isFinalized, startDate, endDate, driveFolderUrl, responseFormValues, geometries, responseImages",
+    "id, userId, username, serverUpdatedAt, localUpdatedAt, isFinalized, startDate, endDate, driveFolderUrl, responseFormValues, geometries",
   tallys:
     "id, userId, username, serverUpdatedAt, localUpdatedAt, isFinalized, startDate, endDate, weatherStats, tallyMap, commercialActivities, complementaryData",
 });
 
-export type { DexieAssessment, DexieTally };
+export type { DexieAssessmentDraft, DexieTally };
 export { dexieDb };
