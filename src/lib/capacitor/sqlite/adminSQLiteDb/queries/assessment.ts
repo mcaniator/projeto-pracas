@@ -390,11 +390,11 @@ const deleteAdminSQLiteAssessment = async (
     };
   }
   try {
-    const deletedAssessment = await adminSQLiteDb.run(
-      `DELETE FROM assessment WHERE id = ?`,
-      [data.assessmentId],
-    );
-    if (deletedAssessment.changes.changes < 1) {
+    const assessmentToDelete = await adminSQLiteDb.query({
+      statement: `SELECT * FROM assessment WHERE id = ?`,
+      values: [data.assessmentId],
+    });
+    if (assessmentToDelete.values.length < 1) {
       return {
         responseInfo: {
           statusCode: 404,
@@ -403,6 +403,17 @@ const deleteAdminSQLiteAssessment = async (
         data: null,
       };
     }
+    await adminSQLiteDb.executeTransaction([
+      {
+        statement: `DELETE FROM assessment_draft WHERE assessment_id = ?`,
+        values: [data.assessmentId],
+      },
+      {
+        statement: `DELETE FROM assessment WHERE id = ?`,
+        values: [data.assessmentId],
+      },
+    ]);
+
     return {
       responseInfo: {
         statusCode: 200,

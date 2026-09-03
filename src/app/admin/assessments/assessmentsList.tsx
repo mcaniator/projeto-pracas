@@ -1,4 +1,5 @@
 import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDialog";
+import CancelAssessmentSyncDialog from "@/app/admin/assessments/cancelAssessmentSyncDialog";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CButton from "@/components/ui/cButton";
@@ -22,6 +23,7 @@ import {
   IconCheck,
   IconClipboard,
   IconCloudExclamation,
+  IconCloudX,
   IconExternalLink,
   IconEye,
   IconFilePencil,
@@ -54,6 +56,9 @@ const AssessmentsList = ({
     locationName: string;
     isPublic: boolean;
   }>();
+
+  const [pendingCancelAssessmentSync, setPendingCancelAssessmentSync] =
+    useState<AssessmentWithSyncStatus | null>(null);
 
   const [selectedAssessmentToView, setSelectedAssessmentToView] =
     useState<AssessmentWithSyncStatus | null>(null);
@@ -284,14 +289,25 @@ const AssessmentsList = ({
 
                     <Divider orientation="vertical" />
                     {hasSQLiteAssessments ?
-                      <CButton
-                        square
-                        onClick={() => {
-                          void assessmentSync(a);
-                        }}
-                      >
-                        <IconUpload /> Sincronizar
-                      </CButton>
+                      <div className="flex items-center gap-2">
+                        <CButton
+                          square
+                          onClick={() => {
+                            void assessmentSync(a);
+                          }}
+                        >
+                          <IconUpload /> Sincronizar
+                        </CButton>
+                        <CButton
+                          square
+                          color="error"
+                          onClick={() => {
+                            setPendingCancelAssessmentSync(a);
+                          }}
+                        >
+                          <IconCloudX />
+                        </CButton>
+                      </div>
                     : <CSwitch
                         checked={
                           pendingVisibilityChange?.id === a.id ?
@@ -355,6 +371,15 @@ const AssessmentsList = ({
         onClose={() => setSelectedAssessmentToView(null)}
         assessment={selectedAssessmentToView}
         isSQLiteAssessment={hasSQLiteAssessments}
+      />
+      <CancelAssessmentSyncDialog
+        assessment={pendingCancelAssessmentSync}
+        onClose={() => {
+          setPendingCancelAssessmentSync(null);
+        }}
+        onDeletion={() => {
+          void fetchAssessments();
+        }}
       />
     </div>
   );
