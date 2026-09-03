@@ -3,7 +3,7 @@
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import CustomIconManagerDialog from "@/components/ui/dynamicIcon/customIconManagerDialog";
+import CustomDynamicIconManagerDialog from "@/components/ui/dynamicIcon/customDynamicIconManagerDialog";
 import { type FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { useFetchDynamicIcons } from "@apiCalls/questionIcon";
 import CTextField from "@components/ui/cTextField";
@@ -44,7 +44,8 @@ const QuestionIconPicker = ({
     FetchDynamicIconsResponse["icons"][number][]
   >([]);
   const [showAllIcons, setShowAllIcons] = useState(false);
-  const [isCustomIconManagerOpen, setIsCustomIconManagerOpen] = useState(false);
+  const [isCustomDynamicIconManagerOpen, setIsCustomDynamicIconManagerOpen] =
+    useState(false);
 
   const [fetchDynamicIcons, isLoading] = useFetchDynamicIcons({
     callbacks: {
@@ -87,7 +88,7 @@ const QuestionIconPicker = ({
           square
           tooltip="Gerenciar ícones personalizados"
           aria-label="Gerenciar ícones personalizados"
-          onClick={() => setIsCustomIconManagerOpen(true)}
+          onClick={() => setIsCustomDynamicIconManagerOpen(true)}
         >
           <SettingsIcon />
         </CButton>
@@ -165,9 +166,9 @@ const QuestionIconPicker = ({
         </span>
       </div>
 
-      <CustomIconManagerDialog
-        open={isCustomIconManagerOpen}
-        onClose={() => setIsCustomIconManagerOpen(false)}
+      <CustomDynamicIconManagerDialog
+        open={isCustomDynamicIconManagerOpen}
+        onClose={() => setIsCustomDynamicIconManagerOpen(false)}
       />
     </div>
   );

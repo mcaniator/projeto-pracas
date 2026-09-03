@@ -1,6 +1,6 @@
 import {
-  createDynamicIcon,
-  createDynamicIconDataSchema,
+  createCustomDynamicIcon,
+  createCustomDynamicIconDataSchema,
 } from "@/lib/serverFunctions/mutations/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import superjson from "superjson";
@@ -13,8 +13,8 @@ export async function POST(request: Request) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const data = createDynamicIconDataSchema.parse(await request.json());
-    const result = await createDynamicIcon({ data });
+    const data = createCustomDynamicIconDataSchema.parse(await request.json());
+    const result = await createCustomDynamicIcon({ data });
 
     return new Response(superjson.stringify(result), {
       status: 200,

@@ -8,17 +8,21 @@ import {
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
 
-const createDynamicIconDataSchema = z.object({
+const createCustomDynamicIconDataSchema = z.object({
   name: z.string().trim().min(1),
   svg: z.string().min(1),
   aliases: z.array(z.string().trim().min(1)).default([]),
 });
 
-type CreateDynamicIconData = z.infer<typeof createDynamicIconDataSchema>;
-type CreateDynamicIconResponse = Awaited<ReturnType<typeof createDynamicIcon>>;
+type CreateCustomDynamicIconData = z.infer<
+  typeof createCustomDynamicIconDataSchema
+>;
+type CreateCustomDynamicIconResponse = Awaited<
+  ReturnType<typeof createCustomDynamicIcon>
+>;
 
-const createDynamicIcon = async (
-  request: APIRequestData<CreateDynamicIconData>,
+const createCustomDynamicIcon = async (
+  request: APIRequestData<CreateCustomDynamicIconData>,
 ) => {
   const data = request.data;
   if (!data)
@@ -60,7 +64,7 @@ const createDynamicIcon = async (
   }
 
   try {
-    await prisma.customIcon.create({
+    await prisma.customDynamicIcon.create({
       data: {
         name,
         body: icon.body,
@@ -98,5 +102,8 @@ const createDynamicIcon = async (
   };
 };
 
-export { createDynamicIcon, createDynamicIconDataSchema };
-export type { CreateDynamicIconData, CreateDynamicIconResponse };
+export { createCustomDynamicIcon, createCustomDynamicIconDataSchema };
+export type {
+  CreateCustomDynamicIconData,
+  CreateCustomDynamicIconResponse,
+};

@@ -5,23 +5,27 @@ import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { useCreateDynamicIcon } from "@apiCalls/questionIcon";
+import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
 import { IconHelp, IconPlus, IconUpload } from "@tabler/icons-react";
 import { ChangeEvent, DragEvent, useEffect, useState } from "react";
 
-type SaveCustomIconDialogProps = {
+type SaveCustomDynamicIconDialogProps = {
   open: boolean;
   onClose: () => void;
 };
 
-const SaveCustomIconDialog = ({ open, onClose }: SaveCustomIconDialogProps) => {
+const SaveCustomDynamicIconDialog = ({
+  open,
+  onClose,
+}: SaveCustomDynamicIconDialogProps) => {
   const [svgPreviewUrl, setSvgPreviewUrl] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
   const [aliases, setAliases] = useState<string[]>([""]);
 
-  const [createDynamicIcon, isCreatingDynamicIcon] = useCreateDynamicIcon({
+  const [createCustomDynamicIcon, isCreatingCustomDynamicIcon] =
+    useCreateCustomDynamicIcon({
     callbacks: {
       onSuccess: onClose,
     },
@@ -67,7 +71,7 @@ const SaveCustomIconDialog = ({ open, onClose }: SaveCustomIconDialogProps) => {
       ),
     ];
 
-    void createDynamicIcon({
+    void createCustomDynamicIcon({
       data: {
         name: normalizedName,
         svg,
@@ -84,7 +88,7 @@ const SaveCustomIconDialog = ({ open, onClose }: SaveCustomIconDialogProps) => {
       confirmChildren="Salvar"
       onConfirm={handleConfirm}
       disableConfirmButton={!name?.trim() || !svg}
-      confirmLoading={isCreatingDynamicIcon}
+      confirmLoading={isCreatingCustomDynamicIcon}
     >
       <div className="flex flex-col gap-2">
         <div
@@ -157,4 +161,4 @@ const SaveCustomIconDialog = ({ open, onClose }: SaveCustomIconDialogProps) => {
   );
 };
 
-export default SaveCustomIconDialog;
+export default SaveCustomDynamicIconDialog;

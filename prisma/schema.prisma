@@ -651,7 +651,7 @@ model Image {
 //  Ícones personalizados
 //  ------------------------------------------------------------------------------------------------------------
 
-model CustomIcon {
+model CustomDynamicIcon {
   id      Int      @id @default(autoincrement())
   name    String   @unique
   aliases String[] @default([])
@@ -661,7 +661,7 @@ model CustomIcon {
 
   @@index([name])
   @@index([aliases])
-  @@map("custom_icon")
+  @@map("custom_dynamic_icon")
 }
 
 // #endregion

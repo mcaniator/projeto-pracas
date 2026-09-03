@@ -5,18 +5,19 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { IconPlus } from "@tabler/icons-react";
 import { useState } from "react";
 
-import SaveCustomIconDialog from "./saveCustomIconDialog";
+import SaveCustomDynamicIconDialog from "./saveCustomDynamicIconDialog";
 
-type CustomIconManagerDialogProps = {
+type CustomDynamicIconManagerDialogProps = {
   open: boolean;
   onClose: () => void;
 };
 
-const CustomIconManagerDialog = ({
+const CustomDynamicIconManagerDialog = ({
   open,
   onClose,
-}: CustomIconManagerDialogProps) => {
-  const [isSaveCustomIconOpen, setIsSaveCustomIconOpen] = useState(false);
+}: CustomDynamicIconManagerDialogProps) => {
+  const [isSaveCustomDynamicIconOpen, setIsSaveCustomDynamicIconOpen] =
+    useState(false);
 
   return (
     <CDialog
@@ -31,17 +32,17 @@ const CustomIconManagerDialog = ({
         square
         tooltip="Adicionar ícone personalizado"
         aria-label="Adicionar ícone personalizado"
-        onClick={() => setIsSaveCustomIconOpen(true)}
+        onClick={() => setIsSaveCustomDynamicIconOpen(true)}
       >
         <IconPlus />
       </CButton>
 
-      <SaveCustomIconDialog
-        open={isSaveCustomIconOpen}
-        onClose={() => setIsSaveCustomIconOpen(false)}
+      <SaveCustomDynamicIconDialog
+        open={isSaveCustomDynamicIconOpen}
+        onClose={() => setIsSaveCustomDynamicIconOpen(false)}
       />
     </CDialog>
   );
 };
 
-export default CustomIconManagerDialog;
+export default CustomDynamicIconManagerDialog;
