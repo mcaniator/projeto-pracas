@@ -645,3 +645,23 @@ model Image {
 }
 
 // #endregion
+
+// #region Ícones personalizados
+//  ------------------------------------------------------------------------------------------------------------
+//  Ícones personalizados
+//  ------------------------------------------------------------------------------------------------------------
+
+model CustomIcon {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  aliases String[] @default([])
+  body    String
+  width   Float
+  height  Float
+
+  @@index([name])
+  @@index([aliases])
+  @@map("custom_icon")
+}
+
+// #endregion
