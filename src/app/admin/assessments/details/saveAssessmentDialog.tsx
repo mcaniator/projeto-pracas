@@ -525,17 +525,11 @@ const SaveAssessmentDialog = ({
                 "Após sair desta página, você não poderá acessar esta avaliação enquanto estiver offline."
               }
             </p>
-            <p className="text-red-500">
-              {
-                "Os dados abaixo só poderão ser salvos quando você estiver online."
-              }
-            </p>
           </div>
         )}
         <CSwitch
           checked={isFinalized}
           label="Salvar como finalizado"
-          disabled={!canSaveOffline && !isConnected}
           onChange={(e) => {
             onIsFinalizedChange(e.target.checked);
           }}
@@ -543,7 +537,6 @@ const SaveAssessmentDialog = ({
         <CDateTimePicker
           value={endDate}
           error={showDatePickerError}
-          disabled={!canSaveOffline && !isConnected}
           clearable
           onChange={(e) => {
             setShowDatePickerError(false);
