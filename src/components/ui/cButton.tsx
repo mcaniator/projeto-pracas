@@ -1,9 +1,8 @@
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { Box, Chip, Tooltip } from "@mui/material";
 import Button, { ButtonOwnProps, ButtonProps } from "@mui/material/Button";
 import Link from "next/link";
 import React, { useState } from "react";
-
-import { useHelperCard } from "../context/helperCardContext";
 
 export type CButtonProps = ButtonProps & {
   dense?: boolean;
@@ -45,7 +44,7 @@ function CButton(props: CButtonProps) {
     disableMinWidth ? { minWidth: "0px" } : { minWidth: "64px" };
   const denseSx = dense ? { padding: "0px 0px", minWidth: "0px" } : {};
   const squareSx = square ? { padding: "6px", minWidth: "0px" } : {};
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
 
   const component = (
     <Box
@@ -85,11 +84,7 @@ function CButton(props: CButtonProps) {
             return;
           }
           if (toDo) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: <>Em desenvolvimento</>,
-            });
+            enqueueSnackbar(<>Em desenvolvimento</>, { variant: "error" });
           } else {
             if (loadingOnClick) {
               setInternalLoading(true);
@@ -123,7 +118,7 @@ function CButton(props: CButtonProps) {
     : component;
 
   return tooltip ?
-      <Tooltip title={tooltip} enterTouchDelay={1}>
+      <Tooltip title={tooltip} enterTouchDelay={0}>
         {componentWithLink}
       </Tooltip>
     : componentWithLink;

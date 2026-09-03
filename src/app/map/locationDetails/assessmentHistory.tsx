@@ -1,4 +1,5 @@
 import PublicAssessmentResultViewerDialog from "@/app/map/locationDetails/publicAssessmentResultViewerDialog";
+import { useNetwork } from "@/components/context/networkContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
@@ -23,6 +24,7 @@ const AssessmentHistory = ({
   const [selectedAssessment, setSelectedAssessment] = useState<
     PublicFetchPublicAssessmentsResponse["assessments"][number] | null
   >(null);
+  const { isConnectedRef } = useNetwork();
   const [fetchPublicAssessments, loading] = usePublicFetchPublicAssessments({
     callbacks: {
       onSuccess: (response) => {
@@ -31,8 +33,14 @@ const AssessmentHistory = ({
     },
   });
   useEffect(() => {
-    void fetchPublicAssessments({ locationId });
-  }, [locationId, fetchPublicAssessments]);
+    const conditionallyFetch = () => {
+      if (isConnectedRef.current) {
+        void fetchPublicAssessments({ params: { locationId } });
+      }
+    };
+
+    void conditionallyFetch();
+  }, [locationId, isConnectedRef, fetchPublicAssessments]);
   if (loading) {
     return <CLinearProgress label="Carregando..." />;
   }
@@ -59,7 +67,7 @@ const AssessmentHistory = ({
                         icon={<IconCalendar />}
                         tooltip={"Data da avaliação"}
                       />
-                      {`${dateFormatter.format(new Date(a.startDate))}`}
+                      {`${dateFormatter.format(a.startDate)}`}
                     </span>
                     <CButton square onClick={() => setSelectedAssessment(a)}>
                       <IconBrowserMaximize />

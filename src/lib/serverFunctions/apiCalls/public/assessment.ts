@@ -1,7 +1,7 @@
-import { PublicFetchPublicAssessmentTreeParams } from "@/app/api/public/publicAssessments/[assessmentId]/route";
-import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
-import {
+import type {
+  PublicFetchPublicAssessmentTreeParams,
   PublicFetchPublicAssessmentTreeResponse,
+  PublicFetchPublicAssessmentsParams,
   PublicFetchPublicAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/public/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
@@ -18,7 +18,6 @@ export const usePublicFetchPublicAssessments = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -32,11 +31,10 @@ export const usePublicFetchPublicAssessmentTree = ({
     PublicFetchPublicAssessmentTreeResponse,
     PublicFetchPublicAssessmentTreeParams
   >({
-    url: "/api/public/publicAssessments/:assessmentId",
+    url: "/api/public/publicAssessment",
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };

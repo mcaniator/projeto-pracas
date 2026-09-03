@@ -1,17 +1,11 @@
+import { fetchLocationsParamsSchema } from "@/lib/serverFunctions/queries/location";
 import "@/lib/utils/bigIntInJson";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
+import superjson from "superjson";
 
 import { fetchLocations } from "../../../../lib/serverFunctions/queries/location";
 import { parseQueryParams } from "../../../../lib/utils/apiCall";
-
-const paramsSchema = z.object({
-  cityId: z.coerce.number().nullish(),
-  locationId: z.coerce.number().nullish(),
-});
-
-export type FetchLocationsParams = z.infer<typeof paramsSchema>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,9 +17,9 @@ export async function GET(request: NextRequest) {
       });
     }
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(paramsSchema, searchParams);
-    const locations = await fetchLocations(params);
-    return new Response(JSON.stringify(locations), {
+    const params = parseQueryParams(fetchLocationsParamsSchema, searchParams);
+    const locations = await fetchLocations({ params });
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

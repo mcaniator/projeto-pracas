@@ -1,7 +1,7 @@
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _updateFormArchiveStatus } from "@/lib/serverFunctions/serverActions/formUtil";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useUpdateFormArchiveStatus } from "@/lib/serverFunctions/apiCalls/form";
 import { IconTrashX } from "@tabler/icons-react";
+import { FormEventHandler } from "react";
 import { FaTrashRestore } from "react-icons/fa";
 
 const FormArchiveDialog = ({
@@ -17,8 +17,7 @@ const FormArchiveDialog = ({
     | undefined;
   reloadForms: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _updateFormArchiveStatus,
+  const [updateArchiveStatus, isPending] = useUpdateFormArchiveStatus({
     callbacks: {
       onSuccess() {
         reloadForms();
@@ -29,13 +28,18 @@ const FormArchiveDialog = ({
 
   if (!formToArchive) return null;
   const isDeleting = !formToArchive.archived;
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void updateArchiveStatus({ data: new FormData(event.currentTarget) });
+  };
+
   return (
     <CDialog
       title={
         formToArchive.archived ? "Restaurar formulário" : "Excluir formulário"
       }
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       confirmLoading={isPending}
       subtitle={formToArchive.name}
       open={open}

@@ -18,7 +18,8 @@ const setSignedCookie = async (
   const cookieValue = `${value}.${cookieSignature}`;
   const cookieStore = await cookies();
   cookieStore.set(name, cookieValue, {
-    sameSite: "strict",
+    sameSite: process.env.NEXT_PUBLIC_DEBUG === "true" ? "lax" : "none",
+    secure: process.env.NEXT_PUBLIC_DEBUG === "true" ? false : true,
     httpOnly: true,
     maxAge: options.maxAge || 60 * 60 * 24,
   });

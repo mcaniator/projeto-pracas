@@ -1,24 +1,10 @@
+import { fetchAssessmentsParamsSchema } from "@/lib/serverFunctions/queries/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
+import superjson from "superjson";
 
 import { fetchAssessments } from "../../../../lib/serverFunctions/queries/assessment";
 import { parseQueryParams } from "../../../../lib/utils/apiCall";
-
-const paramsSchema = z.object({
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
-  formId: z.coerce.number().optional(),
-  userId: z.string().optional(),
-  locationId: z.coerce.number().optional(),
-  narrowUnitId: z.coerce.number().optional(),
-  intermediateUnitId: z.coerce.number().optional(),
-  broadUnitId: z.coerce.number().optional(),
-  cityId: z.coerce.number().optional(),
-  finalizationStatus: z.coerce.number().optional(),
-});
-
-export type FetchAssessmentsParams = z.infer<typeof paramsSchema>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,9 +14,9 @@ export async function GET(request: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(paramsSchema, searchParams);
-    const assessments = await fetchAssessments(params);
-    return new Response(JSON.stringify(assessments), {
+    const params = parseQueryParams(fetchAssessmentsParamsSchema, searchParams);
+    const assessments = await fetchAssessments({ params });
+    return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

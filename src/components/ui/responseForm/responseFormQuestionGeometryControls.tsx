@@ -2,11 +2,11 @@
 
 import CButton from "@/components/ui/cButton";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { ResponseFormGeometry } from "@/lib/types/assessments/responseFormTypes";
 import { IconMap } from "@tabler/icons-react";
 import { useState } from "react";
 
 import ResponseFormMapDialog from "./responseFormMapDialog";
-import type { ResponseFormGeometry } from "./responseFormTypes";
 
 const ResponseFormQuestionGeometryControls = ({
   question,

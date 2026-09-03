@@ -1,14 +1,24 @@
-import { Skeleton } from "@mui/material";
+import { Divider, Skeleton } from "@mui/material";
 
 const Loading = () => {
   return (
-    <div className="flex flex-col gap-1 p-2">
-      <div>
+    <div className="flex h-full flex-col gap-1 p-2">
+      <div className="flex items-center gap-1 p-2">
         <Skeleton variant="circular" width={24} height={24} />
+        <Skeleton
+          variant="rectangular"
+          sx={{ borderRadius: "12px" }}
+          width={200}
+          height={24}
+        />
       </div>
-
-      <Skeleton variant="rectangular" height={100} />
-      <Skeleton variant="rectangular" height={100} />
+      <Divider />
+      <Skeleton
+        variant="rectangular"
+        sx={{
+          height: "100%",
+        }}
+      />
     </div>
   );
 };

@@ -1,7 +1,11 @@
-import { FetchFormParams } from "@/app/api/admin/forms/route";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { sleep } from "@/lib/utils/sleep";
+import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
+import { z } from "zod";
 
 import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
 import {
@@ -51,8 +55,18 @@ const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
   }
 };
 
+export const fetchFormParamsSchema = z.object({
+  finalizedOnly: booleanFromString.nullish(),
+  includeArchived: booleanFromString.nullish(),
+});
+
+export type FetchFormParams = z.infer<typeof fetchFormParamsSchema>;
+
 export type FetchFormsResponse = Awaited<ReturnType<typeof fetchForms>>["data"];
-export const fetchForms = async (params: FetchFormParams) => {
+export const fetchForms = async (
+  request: APIRequestParams<FetchFormParams>,
+) => {
+  const params = request.params!;
   try {
     const forms = await prisma.form.findMany({
       where: {
@@ -84,7 +98,7 @@ export const fetchForms = async (params: FetchFormParams) => {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao consultar formulário!",
+        message: "Erro ao consultar formulários!",
       } as APIResponseInfo,
       data: {
         forms: [],
@@ -125,6 +139,8 @@ const getFormTree = async (params: { formId: number }) => {
                 questionType: true,
                 characterType: true,
                 isPublic: true,
+                minValue: true,
+                maxValue: true,
                 allowResponseImages: true,
                 optionType: true,
                 options: {
@@ -132,12 +148,6 @@ const getFormTree = async (params: { formId: number }) => {
                     id: true,
                     text: true,
                     isOverridable: true,
-                  },
-                },
-                scaleConfig: {
-                  select: {
-                    minValue: true,
-                    maxValue: true,
                   },
                 },
                 categoryId: true,
@@ -234,6 +244,8 @@ const getFormTree = async (params: { formId: number }) => {
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           allowResponseImages: dbQuestion.allowResponseImages,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
@@ -244,7 +256,6 @@ const getFormTree = async (params: { formId: number }) => {
             text: option.text,
             isOverridable: option.isOverridable,
           })),
-          scaleConfig: dbQuestion.scaleConfig,
           geometryTypes: dbQuestion.geometryTypes,
           categoryName: dbQuestion.category.name,
           subcategoryName: dbQuestion.subcategory?.name ?? null,
@@ -297,22 +308,6 @@ const getFormTree = async (params: { formId: number }) => {
   }
 };
 
-const searchformNameById = async (formId: number) => {
-  try {
-    const form = await prisma.form.findUnique({
-      where: {
-        id: formId,
-      },
-      select: {
-        name: true,
-      },
-    });
-    return { statusCode: 200, formName: form?.name ?? null };
-  } catch (e) {
-    return { statusCode: 500, formName: null };
-  }
-};
-
 const getCalculationByFormId = async (formId: number) => {
   try {
     const dbCalculations = await prisma.calculation.findMany({
@@ -346,9 +341,37 @@ const getCalculationByFormId = async (formId: number) => {
   }
 };
 
-export {
-  fetchFormsLatest,
-  getFormTree,
-  searchformNameById,
-  getCalculationByFormId,
+export const fetchFormStructureParamsSchema = z.object({
+  formId: z.coerce.number(),
+});
+
+export type fetchFormStructureParams = z.infer<
+  typeof fetchFormStructureParamsSchema
+>;
+
+export type fetchFormStructureResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchFormStructure>>["data"]
+>;
+
+export const fetchFormStructure = async (
+  request: APIRequestParams<fetchFormStructureParams>,
+) => {
+  const params = request.params!;
+  const [form, calculations] = await Promise.all([
+    getFormTree(params),
+    getCalculationByFormId(params.formId),
+  ]);
+
+  return {
+    responseInfo: {
+      statusCode:
+        form.statusCode === 200 ? calculations.statusCode : form.statusCode,
+    } as APIResponseInfo,
+    data: {
+      form,
+      calculations: calculations.calculations,
+    },
+  };
 };
+
+export { fetchFormsLatest, getFormTree, getCalculationByFormId };

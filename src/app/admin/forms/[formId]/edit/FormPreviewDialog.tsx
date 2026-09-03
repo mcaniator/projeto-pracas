@@ -10,15 +10,16 @@ import CSwitch from "@/components/ui/cSwtich";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import type {
-  FormValues,
-  ResponseFormGeometry,
-  SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
-import type {
   AssessmentCategoryItem,
   AssessmentQuestionItem,
   AssessmentSubcategoryItem,
+  FetchAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormValues,
+  ResponseFormGeometry,
+  SerializedFormValues,
+} from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
@@ -34,7 +35,7 @@ import type {
 } from "./clientV2";
 
 const ResponseFormV2 = dynamic(
-  () => import("@/app/admin/assessments/[selectedAssessmentId]/responseFormV2"),
+  () => import("@/app/admin/assessments/details/responseFormV2"),
   {
     ssr: false,
     loading: () => <CLinearProgress label="Carregando prévia..." />,
@@ -80,7 +81,6 @@ const toAssessmentQuestion = ({
   return {
     ...question,
     id: question.questionId,
-    scaleConfig: question.scaleConfig,
     options: question.options?.map((option) => ({
       id: option.id,
       text: option.text,
@@ -224,7 +224,7 @@ const buildPreviewAssessmentTree = ({
 }: {
   formTree: FormEditorTree;
   formCalculations: CalculationParams[];
-}) => {
+}): FetchAssessmentTreeResponse["assessmentTree"] => {
   const responsesFormValues: SerializedFormValues = {};
   const calculationByQuestionId = new Map(
     formCalculations.map((calculation) => [
@@ -239,6 +239,7 @@ const buildPreviewAssessmentTree = ({
     endDate: null,
     isFinalized: false,
     formName: formTree.name,
+    formId: formTree.id,
     totalQuestions: countQuestions(formTree),
     updatedAt: new Date(),
     responsesFormValues,
@@ -246,6 +247,11 @@ const buildPreviewAssessmentTree = ({
     user: {
       username: "",
       id: "",
+    },
+    location: {
+      id: -1,
+      name: "Praça",
+      st_asgeojson: null,
     },
     categories: formTree.categories.map((category) =>
       toAssessmentCategory({

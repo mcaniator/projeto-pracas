@@ -13,6 +13,8 @@ export type QuestionCreationDraft = {
   notes: string | null;
   iconKey: string;
   isPublic: boolean;
+  minValue: number | null;
+  maxValue: number | null;
   questionType: QuestionTypes;
   characterType: QuestionResponseCharacterTypes;
   optionType: OptionTypes | null;
@@ -20,5 +22,4 @@ export type QuestionCreationDraft = {
   hasAssociatedGeometry: boolean;
   allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
-  scaleConfig: { minValue: number; maxValue: number } | null;
 };

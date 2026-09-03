@@ -1,7 +1,7 @@
 "use client";
 
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import PermissionGuard from "@components/auth/permissionGuard";
-import { useHelperCard } from "@components/context/helperCardContext";
 import {
   IconClipboard,
   IconFountain,
@@ -15,17 +15,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-const AdminRoot = () => {
-  const { setHelperCard } = useHelperCard();
+const AdminRootContent = () => {
+  const { enqueueSnackbar } = useAppSnackbar();
   const params = useSearchParams();
 
   useEffect(() => {
     if (params.get("permissionDenied") === "true") {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Permissão negada</>,
-      });
+      enqueueSnackbar(<>Permissão negada</>, { variant: "error" });
     }
   });
 
@@ -99,6 +95,10 @@ const AdminRoot = () => {
       </div>
     </div>
   );
+};
+
+const AdminRoot = () => {
+  return <AdminRootContent />;
 };
 
 export default AdminRoot;

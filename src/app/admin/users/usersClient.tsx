@@ -94,7 +94,7 @@ const UsersClient = () => {
       headerName: "Atualizado em",
       width: 180,
       renderCell: (params: GridRenderCellParams<FormRow>) => {
-        return dateTimeFormatter.format(new Date(params.row.updatedAt));
+        return dateTimeFormatter.format(params.row.updatedAt);
       },
     },
     {
@@ -102,7 +102,7 @@ const UsersClient = () => {
       headerName: "Registrado em",
       width: 180,
       renderCell: (params: GridRenderCellParams<FormRow>) => {
-        return dateTimeFormatter.format(new Date(params.row.createdAt));
+        return dateTimeFormatter.format(params.row.createdAt);
       },
     },
     {

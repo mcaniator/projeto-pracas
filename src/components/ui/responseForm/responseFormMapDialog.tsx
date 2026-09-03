@@ -1,7 +1,7 @@
 "use client";
 
 import CDialog from "@/components/ui/dialog/cDialog";
-import { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import { QuestionGeometryTypes } from "@prisma/client";
 import { IconCheck, IconTrash } from "@tabler/icons-react";
 import dynamic from "next/dynamic";

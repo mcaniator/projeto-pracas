@@ -31,7 +31,7 @@ const AssessmentHistory = ({
     },
   });
   useEffect(() => {
-    void fetchPublicAssessments({ locationId });
+    void fetchPublicAssessments({ params: { locationId } });
   }, [locationId, fetchPublicAssessments]);
   if (loading) {
     return <CLinearProgress label="Carregando..." />;
@@ -59,7 +59,7 @@ const AssessmentHistory = ({
                         icon={<IconCalendar />}
                         tooltip={"Data da avaliação"}
                       />
-                      {`${dateFormatter.format(new Date(a.startDate))}`}
+                      {`${dateFormatter.format(a.startDate)}`}
                     </span>
                     <CButton square onClick={() => setSelectedAssessment(a)}>
                       <IconBrowserMaximize />

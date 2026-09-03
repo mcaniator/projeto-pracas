@@ -4,12 +4,13 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
-import { IconPencil } from "@tabler/icons-react";
+import { IconEye } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 const AssessmentResultDialog = ({
   assessment,
   open,
+  isSQLiteAssessment,
   onClose,
 }: {
   assessment: {
@@ -21,6 +22,7 @@ const AssessmentResultDialog = ({
     endDate: Date | null;
   } | null;
   open: boolean;
+  isSQLiteAssessment: boolean;
   onClose: () => void;
 }) => {
   const [assessmentTree, setAssessmentTree] =
@@ -37,7 +39,9 @@ const AssessmentResultDialog = ({
   useEffect(() => {
     if (!assessment) return;
     void fetchAssessmentTree({
-      assessmentId: String(assessment?.id),
+      params: {
+        assessmentId: assessment.id,
+      },
     });
   }, [assessment, fetchAssessmentTree]);
   if (!assessment) {
@@ -47,16 +51,17 @@ const AssessmentResultDialog = ({
     <CDialog
       open={open}
       onClose={onClose}
+      mobileFullScreen
       title={assessment.location.name}
-      subtitle={`${dateTimeFormatter.format(new Date(assessment.startDate))} ${assessment.endDate ? `- ${dateTimeFormatter.format(new Date(assessment.endDate))}` : ""}`}
+      subtitle={`${dateTimeFormatter.format(assessment.startDate)} ${assessment.endDate ? `- ${dateTimeFormatter.format(assessment.endDate)}` : ""}`}
       confirmChildren={
         <>
-          <IconPencil />
-          Editar
+          <IconEye />
+          Ver preenchimento
         </>
       }
       confirmProps={{
-        href: `/admin/assessments/${assessment.id}`,
+        href: `/admin/assessments/details?assessmentId=${assessment.id}&isSQLiteAssessment=${isSQLiteAssessment}`,
         loadingOnClick: true,
       }}
     >

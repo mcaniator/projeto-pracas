@@ -62,8 +62,10 @@ const AssessmentComparisonDialog = ({
     }
 
     void fetchAssessmentTrees({
-      categoryId: category.id,
-      locationIds,
+      params: {
+        categoryId: category.id,
+        locationIds,
+      },
     });
   }, [category, fetchAssessmentTrees, locationIds, open]);
   return (

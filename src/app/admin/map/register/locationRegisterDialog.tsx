@@ -2,6 +2,10 @@
 
 import OptionalInfoStep from "@/app/admin/map/register/registerSteps/optionalnfoStep";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import {
+  useCreateLocation,
+  useUpdateLocation,
+} from "@/lib/serverFunctions/apiCalls/location";
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
@@ -9,7 +13,6 @@ import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
 import { getImageFromUrl } from "@/lib/utils/image";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { LinearProgress, Step, StepLabel, Stepper } from "@mui/material";
 import {
   IconArrowBackUp,
@@ -17,7 +20,6 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import {
-  startTransition,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -25,10 +27,6 @@ import {
 } from "react";
 
 import CDialog from "../../../../components/ui/dialog/cDialog";
-import {
-  _createLocation,
-  _updateLocation,
-} from "../../../../lib/serverFunctions/serverActions/locationUtil";
 import { ParkRegisterData } from "../../../../lib/types/parks/parkRegister";
 import AddressStep from "./registerSteps/addressStep";
 import BasicInfoStep from "./registerSteps/basicInfoStep";
@@ -219,20 +217,23 @@ const LocationRegisterDialog = ({
   const [step, setStep] = useState(1);
   const [enableNextStep, setEnableNextStep] = useState(false);
 
-  const action = !location ? _createLocation : _updateLocation;
-  const [formAction] = useResettableActionState({
-    action: action,
-    callbacks: {
-      onSuccess() {
-        reloadLocations();
-        setStep(1);
-        handleClose(true);
-      },
+  const mutationCallbacks = {
+    onSuccess() {
+      reloadLocations();
+      setStep(1);
+      handleClose(true);
     },
-    options: {
-      loadingMessage: "Salvando...",
-    },
+  };
+  const [createLocation, isCreatingLocation] = useCreateLocation({
+    callbacks: mutationCallbacks,
   });
+  const [updateLocation, isUpdatingLocation] = useUpdateLocation({
+    callbacks: mutationCallbacks,
+  });
+  const isSavingLocation = isCreatingLocation || isUpdatingLocation;
+
+  const submitLocationData = !location ? createLocation : updateLocation;
+
   const handleSubmit = () => {
     const formData = new FormData();
     Object.entries(parkData).forEach(([key, value]) => {
@@ -261,8 +262,11 @@ const LocationRegisterDialog = ({
     /*if (shapefile) {
         formData.append("file", shapefile.file); //Now shapefile should be used in map
       }*/
-    startTransition(() => {
-      formAction(formData);
+    void submitLocationData({
+      data: formData,
+      projectOptions: {
+        loadingMessage: "Salvando...",
+      },
     });
   };
 
@@ -299,40 +303,38 @@ const LocationRegisterDialog = ({
 
   const loadLocationCategories = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationCategories(
-        {},
-        {
+      await _fetchLocationCategories({
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchLocationCategories],
   );
 
   const loadLocationTypes = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchLocationTypes(
-        {},
-        {
+      await _fetchLocationTypes({
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [_fetchLocationTypes],
   );
 
   const loadCitiesOptions = useCallback(
     async ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      await _fetchCities(
-        {
+      await _fetchCities({
+        params: {
           state: parkData.state,
           includeAdminstrativeRegions: true,
           includeUniqueAdminstrativeUnitsTitles: true,
         },
-        {
+        requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
-      );
+      });
     },
     [parkData.state, _fetchCities],
   );
@@ -364,7 +366,8 @@ const LocationRegisterDialog = ({
       onClose={() => {
         handleClose(false);
       }}
-      disableConfirmButton={!enableNextStep}
+      disableConfirmButton={!enableNextStep || isSavingLocation}
+      confirmLoading={isSavingLocation}
       confirmChildren={
         step === steps.length ? <IconCheck /> : <IconArrowForwardUp />
       }

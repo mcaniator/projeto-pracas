@@ -11,6 +11,8 @@ type CMenuOption = {
   onClick?: () => void;
   sx?: MenuItemOwnProps["sx"];
   href?: string;
+  hide?: boolean;
+  disabled?: boolean;
 };
 
 type CMenuProps = {
@@ -44,18 +46,21 @@ const CMenu = ({ options, icon }: CMenuProps) => {
           horizontal: "right",
         }}
       >
-        {options.map((opt, index) => (
-          <CMenuItem
-            key={index}
-            label={opt.label}
-            href={opt.href}
-            sx={opt.sx}
-            onClick={() => {
-              handleCloseMenu();
-              opt.onClick?.();
-            }}
-          ></CMenuItem>
-        ))}
+        {options
+          .filter((opt) => !opt.hide)
+          .map((opt, index) => (
+            <CMenuItem
+              key={index}
+              label={opt.label}
+              href={opt.href}
+              sx={opt.sx}
+              disabled={opt.disabled}
+              onClick={() => {
+                handleCloseMenu();
+                opt.onClick?.();
+              }}
+            ></CMenuItem>
+          ))}
       </Menu>
     </>
   );

@@ -1,11 +1,10 @@
 "use client";
 
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _deleteCity } from "@/lib/serverFunctions/serverActions/city";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useDeleteCity } from "@/lib/serverFunctions/apiCalls/city";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
 
 const DeleteCityDialog = ({
   open,
@@ -23,8 +22,7 @@ const DeleteCityDialog = ({
   onClose: () => void;
   reloadItems: () => void;
 }) => {
-  const [formAction] = useResettableActionState({
-    action: _deleteCity,
+  const [deleteCity, isLoading] = useDeleteCity({
     callbacks: {
       onSuccess() {
         reloadItems();
@@ -37,15 +35,21 @@ const DeleteCityDialog = ({
         }
       },
     },
-    options: {
-      loadingMessage: "Excluindo cidade...",
-    },
   });
   const [numberOfLocations, setNumberOfLocations] = useState(0);
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteCity({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Excluindo cidade..." },
+    });
+  };
+
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
+      confirmLoading={isLoading}
       open={open}
       onClose={onClose}
       title={"Excluir cidade"}

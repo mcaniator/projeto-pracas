@@ -1,6 +1,6 @@
 "use client";
 
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";

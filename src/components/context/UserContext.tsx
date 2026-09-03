@@ -14,6 +14,7 @@ type UserData = {
   username: string;
   email: string;
   image: string | null;
+  active: boolean;
   roles: Role[];
 };
 
@@ -89,3 +90,4 @@ const useUserContext = () => {
 };
 
 export { UserContext, UserContextProvider, useUserContext };
+export type { UserData };

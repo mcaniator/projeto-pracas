@@ -5,15 +5,16 @@ import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import PermissionGuard from "@components/auth/permissionGuard";
-import { useHelperCard } from "@components/context/helperCardContext";
-import { Divider } from "@mui/material";
+import { downloadCSVFileFromText } from "@/lib/downloadFile";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
-  _exportAssessments,
-  _exportDailyTallys,
-  _exportIndividualTallysToCSV,
-  _exportRegistrationData,
-} from "@serverActions/exportToCSV";
+  useExportAssessments,
+  useExportDailyTallys,
+  useExportIndividualTallysToCSV,
+  useExportRegistrationData,
+} from "@/lib/serverFunctions/apiCalls/export";
+import PermissionGuard from "@components/auth/permissionGuard";
+import { Divider } from "@mui/material";
 import {
   IconMapPin,
   IconMinus,
@@ -48,95 +49,99 @@ const SelectedParks = ({
   handleCloseLocationParamsDialog: () => void;
   handleDialogClose: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
     evaluations: false,
     tallys: false,
     dailyTallys: false,
   });
+  const [exportRegistrationData] = useExportRegistrationData();
+  const [exportAssessments] = useExportAssessments();
+  const [exportDailyTallys] = useExportDailyTallys();
+  const [exportIndividualTallysToCSV] = useExportIndividualTallysToCSV();
+
   const handleRegistrationDataExport = async () => {
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
     const locationsIds = selectedLocationsObjs.map((location) => location.id);
-    const response = await _exportRegistrationData(locationsIds);
-    if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar dados de praças!</>,
+    const result = await exportRegistrationData({
+      data: { locationsIds },
+    });
+    const response = result.data ?? { CSVstring: null };
+    if (result.responseInfo.statusCode === 401) {
+      enqueueSnackbar(<>Sem permissão para exportar dados de praças!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
-    } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar dados de praças!</>,
+    } else if (result.responseInfo.statusCode === 500) {
+      enqueueSnackbar(<>Erro exportar dados de praças!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
       return;
     }
     const csvString = response.CSVstring;
     if (csvString) {
-      const blob = new Blob([csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Informações-Cadastro.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        await downloadCSVFileFromText({
+          filename: "Informações-Cadastro.csv",
+          content: csvString,
+        });
+
+        enqueueSnackbar(<>Dados de praças exportados!</>, {
+          variant: "success",
+        });
+      } catch (e) {
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
+      } finally {
+        setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
+      }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Dados de praças exportados!</>,
-    });
-    setLoadingExport((prev) => ({ ...prev, registrationsData: false }));
   };
   const handleEvaluationExport = async () => {
     setLoadingExport((prev) => ({ ...prev, evaluations: true }));
     const locationsToExportEvaluations = selectedLocationsObjs.filter(
       (location) => location.assessmentsIds.length > 0,
     );
-    const response = await _exportAssessments(
-      locationsToExportEvaluations
-        .map((location) => location.assessmentsIds)
-        .flat(),
-    );
-    if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+    const assessmentIds = locationsToExportEvaluations
+      .map((location) => location.assessmentsIds)
+      .flat();
+    const result = await exportAssessments({
+      data: { assessmentIds },
+    });
+    const response = result.data ?? { csvObjs: [] };
+    if (result.responseInfo.statusCode === 401) {
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
-    } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+    } else if (result.responseInfo.statusCode === 500) {
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, evaluations: false }));
       return;
     }
     const csvObjs = response.csvObjs;
     for (const csvObj of csvObjs) {
-      const blob = new Blob([csvObj.csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Avaliações - ${csvObj.formName}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        await downloadCSVFileFromText({
+          filename: `Avaliações - ${csvObj.formName}.csv`,
+          content: csvObj.csvString,
+        });
+      } catch (e) {
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
+        setLoadingExport((prev) => ({ ...prev, evaluations: false }));
+        return;
+      }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Avaliações exportadas!</>,
-    });
+    enqueueSnackbar(<>Avaliações exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
   const handleTallysExport = async () => {
@@ -149,24 +154,24 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, dailyTallys: true }));
-    const response = await _exportDailyTallys(
-      locationsToExportTallys.map((location) => location.id),
-      tallysIds,
-    );
-    if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+    const result = await exportDailyTallys({
+      data: {
+        locationIds: locationsToExportTallys.map((location) => location.id),
+        tallysIds,
+      },
+    });
+    const response = result.data ?? {
+      CSVstringWeekdays: [],
+      CSVstringWeekendDays: [],
+    };
+    if (result.responseInfo.statusCode === 401) {
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
-    } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+    } else if (result.responseInfo.statusCode === 500) {
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
       return;
     }
@@ -178,14 +183,19 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
         const csvString = csvObj.CSVstringWeekdays[i];
         if (csvString) {
-          const blob = new Blob([csvString]);
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Contagem-Semana-Dia${i + 1}.csv`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          try {
+            await downloadCSVFileFromText({
+              filename: `Contagem-Semana-Dia${i + 1}.csv`,
+              content: csvString,
+            });
+          } catch (e) {
+            enqueueSnackbar(
+              <>Não foi possível salvar o arquivo no dispositivo!</>,
+              { variant: "error" },
+            );
+            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
+            return;
+          }
         }
       }
     }
@@ -193,22 +203,23 @@ const SelectedParks = ({
       for (let i = 0; i < csvObj?.CSVstringWeekendDays.length; i++) {
         const csvString = csvObj.CSVstringWeekendDays[i];
         if (csvString) {
-          const blob = new Blob([csvString]);
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Contagem-FimSemana-Dia${i + 1}.csv`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          try {
+            await downloadCSVFileFromText({
+              filename: `Contagem-FimSemana-Dia${i + 1}.csv`,
+              content: csvString,
+            });
+          } catch (e) {
+            enqueueSnackbar(
+              <>Não foi possível salvar o arquivo no dispositivo!</>,
+              { variant: "error" },
+            );
+            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
+            return;
+          }
         }
       }
     }
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Contagens exportadas!</>,
-    });
+    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
   };
 
@@ -222,42 +233,40 @@ const SelectedParks = ({
     );
     if (!tallysIds || tallysIds.length === 0) return;
     setLoadingExport((prev) => ({ ...prev, tallys: true }));
-    const response = await _exportIndividualTallysToCSV(tallysIds);
-    if (response.statusCode === 401) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Sem permissão para exportar avaliações!</>,
+    const result = await exportIndividualTallysToCSV({
+      data: { tallysIds },
+    });
+    const response = result.data ?? { CSVstring: null };
+    if (result.responseInfo.statusCode === 401) {
+      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
+        variant: "error",
       });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
-    } else if (response.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro exportar avaliações!</>,
-      });
+    } else if (result.responseInfo.statusCode === 500) {
+      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
       setLoadingExport((prev) => ({ ...prev, tallys: false }));
       return;
     }
 
     const csvString = response.CSVstring;
     if (csvString) {
-      const blob = new Blob([csvString]);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Contagens individuais.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        await downloadCSVFileFromText({
+          filename: "Contagens individuais.csv",
+          content: csvString,
+        });
+      } catch (e) {
+        enqueueSnackbar(
+          <>Não foi possível salvar o arquivo no dispositivo!</>,
+          { variant: "error" },
+        );
+        setLoadingExport((prev) => ({ ...prev, tallys: false }));
+        return;
+      }
     }
 
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: <>Contagens exportadas!</>,
-    });
+    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, tallys: false }));
   };
 

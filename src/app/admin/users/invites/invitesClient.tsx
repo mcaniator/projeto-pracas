@@ -59,7 +59,7 @@ const InvitesClient = () => {
       headerName: "Expira em",
       width: 180,
       renderCell: (params: GridRenderCellParams<FormRow>) => {
-        return dateTimeFormatter.format(new Date(params.row.expiresAt));
+        return dateTimeFormatter.format(params.row.expiresAt);
       },
     },
     {
@@ -67,7 +67,7 @@ const InvitesClient = () => {
       headerName: "Atualizado em",
       width: 180,
       renderCell: (params: GridRenderCellParams<FormRow>) => {
-        return dateTimeFormatter.format(new Date(params.row.updatedAt));
+        return dateTimeFormatter.format(params.row.updatedAt);
       },
     },
     {

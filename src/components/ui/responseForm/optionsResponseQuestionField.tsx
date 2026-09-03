@@ -2,14 +2,13 @@ import COverridableCheckboxGroup from "@/components/ui/cOverridableCheckboxGroup
 import COverridableRadioGroup from "@/components/ui/cOverridableRadioGroup";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
-import { useMemo } from "react";
-
 import {
   type ResponseQuestionValue,
   isAssessmentOptionValueWithOverride,
   isAssessmentOptionValueWithOverrideArray,
-} from "./responseFormTypes";
+} from "@/lib/types/assessments/responseFormTypes";
+import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
+import { useMemo } from "react";
 
 const OptionsResponseQuestionField = ({
   question,

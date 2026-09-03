@@ -1,0 +1,281 @@
+import { auth } from "@/lib/auth/auth";
+import { prisma } from "@/lib/prisma";
+import {
+  APIRequestData,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
+import { getSessionUserId } from "@auth/userUtil";
+import {
+  ActivityType,
+  AgeGroupType,
+  GenderType,
+} from "@customTypes/tallys/person";
+import { WeatherConditions } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import {
+  CommercialActivity,
+  commercialActivitySchema,
+  tallyPersonArraySchema,
+} from "@zodValidators";
+import { z } from "zod";
+
+interface WeatherStats {
+  temperature: number | null;
+  weather: WeatherConditions;
+}
+
+interface PersonWithQuantity {
+  person: {
+    gender: GenderType;
+    ageGroup: AgeGroupType;
+    activity: ActivityType;
+    isTraversing: boolean;
+    isPersonWithImpairment: boolean;
+    isInApparentIllicitActivity: boolean;
+    isPersonWithoutHousing: boolean;
+  };
+  quantity: number;
+}
+
+export const createTallyDataSchema = z.instanceof(FormData);
+export type CreateTallyData = z.infer<typeof createTallyDataSchema>;
+export type CreateTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof _createTallyV2>>["data"]
+>;
+
+export const _createTallyV2 = async (
+  request: APIRequestData<CreateTallyData>,
+) => {
+  const formData = request.data!;
+  const session = await auth();
+  if (!session || !session.user) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Não foi possível obter os dados do usuário logado!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    const locationId = z.coerce.number().parse(formData.get("locationId"));
+    const userId = z.string().parse(session.user.id);
+    const startDate = z.coerce.date().parse(formData.get("startDate"));
+    try {
+      const tally = await prisma.tally.create({
+        data: {
+          startDate: new Date(startDate),
+          user: { connect: { id: userId } },
+          location: { connect: { id: Number(locationId) } },
+        },
+        select: {
+          id: true,
+        },
+      });
+      return {
+        responseInfo: {
+          statusCode: 201,
+          message: `Contagem criada!`,
+        } as APIResponseInfo,
+        data: {
+          tallyId: tally.id,
+        },
+      };
+    } catch (error) {
+      return {
+        responseInfo: {
+          statusCode: 500,
+          message: "Erro ao criar contagem!",
+        } as APIResponseInfo,
+      };
+    }
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
+export const saveOngoingTallyDataSchema = z.object({
+  tallyId: z.coerce.number(),
+  weatherStats: z.custom<WeatherStats>(),
+  tallyMapEntries: z.array(z.tuple([z.string(), z.coerce.number()])),
+  commercialActivities: z.custom<CommercialActivity>(),
+  complementaryData: z.object({
+    animalsAmount: z.coerce.number(),
+    groupsAmount: z.coerce.number(),
+  }),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable(),
+  isFinalized: z.boolean(),
+});
+export type SaveOngoingTallyData = z.infer<typeof saveOngoingTallyDataSchema>;
+export type SaveOngoingTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof _saveOngoingTallyData>>["data"]
+>;
+
+const _saveOngoingTallyData = async (
+  request: APIRequestData<SaveOngoingTallyData>,
+) => {
+  const {
+    tallyId,
+    weatherStats,
+    tallyMapEntries,
+    commercialActivities,
+    complementaryData,
+    startDate,
+    endDate,
+    isFinalized,
+  } = request.data!;
+  const persons: PersonWithQuantity[] = [];
+
+  new Map(tallyMapEntries).forEach((quantity, key) => {
+    const [
+      gender,
+      ageGroup,
+      activity,
+      isTraversing,
+      isPersonWithImpairment,
+      isInApparentIllicitActivity,
+      isPersonWithoutHousing,
+    ] = key.split("-") as [
+      GenderType,
+      AgeGroupType,
+      ActivityType,
+      string,
+      string,
+      string,
+      string,
+    ];
+    persons.push({
+      quantity,
+      person: {
+        gender,
+        ageGroup,
+        activity,
+        isTraversing: isTraversing === "true",
+        isPersonWithImpairment: isPersonWithImpairment === "true",
+        isInApparentIllicitActivity: isInApparentIllicitActivity === "true",
+        isPersonWithoutHousing: isPersonWithoutHousing === "true",
+      },
+    });
+  });
+  const parsedTallyPersonArray = tallyPersonArraySchema.safeParse(persons);
+  if (!parsedTallyPersonArray.success) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+  const parsedCommercialActivities =
+    commercialActivitySchema.safeParse(commercialActivities);
+  if (!parsedCommercialActivities.success) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+  try {
+    const updatedTally = await prisma.tally.update({
+      where: {
+        id: tallyId,
+      },
+      select: {
+        updatedAt: true,
+      },
+      data: {
+        temperature: weatherStats.temperature,
+        weatherCondition: weatherStats.weather,
+        animalsAmount: complementaryData.animalsAmount,
+        groups: complementaryData.groupsAmount,
+        commercialActivities: parsedCommercialActivities.data,
+        tallyPerson: parsedTallyPersonArray.data,
+        startDate: startDate,
+        endDate: endDate,
+        isFinalized,
+      },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Contagem salva com sucesso!",
+      } as APIResponseInfo,
+      data: {
+        savedAsFinalized: isFinalized,
+        updatedAt: updatedTally.updatedAt,
+      },
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao salvar contagem!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
+export const deleteTallyDataSchema = z.object({
+  tallyId: z.coerce.number(),
+});
+export type DeleteTallyData = z.infer<typeof deleteTallyDataSchema>;
+
+const _deleteTally = async (
+  request: APIRequestData<DeleteTallyData>,
+) => {
+  const { tallyId } = request.data!;
+  const userId = await getSessionUserId();
+  const tally = await prisma.tally.findUnique({
+    where: {
+      id: tallyId,
+    },
+  });
+  if (!tally) {
+    return {
+      responseInfo: {
+        statusCode: 404,
+        message: "Contagem não encontrada!",
+      } as APIResponseInfo,
+    };
+  }
+  if (tally.userId !== userId) {
+    try {
+      await checkIfLoggedInUserHasAnyPermission({ roles: ["TALLY_MANAGER"] });
+    } catch (e) {
+      return {
+        responseInfo: {
+          statusCode: 403,
+          message: "Sem permissão para excluir esta contagem!",
+        } as APIResponseInfo,
+      };
+    }
+  }
+  try {
+    await prisma.tally.delete({
+      where: {
+        id: tallyId,
+      },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Contagem excluída!",
+      } as APIResponseInfo,
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir contagem!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
+export { _saveOngoingTallyData, _deleteTally };

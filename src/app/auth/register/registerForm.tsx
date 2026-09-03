@@ -1,21 +1,15 @@
 "use client";
 
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useRegister } from "@/lib/serverFunctions/apiCalls/auth";
 import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import GoogleRegisterButton from "@components/singleUse/auth/googleRegisterButton";
 import { Input } from "@components/ui/input";
-import _register from "@serverActions/register";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import Link from "next/link";
-import {
-  startTransition,
-  useActionState,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
@@ -27,8 +21,17 @@ const RegisterForm = ({
   enableGoogleLogin: boolean;
 }) => {
   const { setLoadingOverlayVisible } = useLoadingOverlay();
-  const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(_register, null);
+  const { enqueueSnackbar } = useAppSnackbar();
+  const [register, isPending] = useRegister();
+  const [state, setState] = useState<{
+    statusCode: number;
+    errors:
+      | {
+          message: string | null;
+          element: string | null;
+        }[]
+      | null;
+  } | null>(null);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
     confirmPasswordError: false,
@@ -42,19 +45,16 @@ const RegisterForm = ({
     if (state) {
       if (state.statusCode !== 201) {
         if (state.statusCode === 404) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: (
-              <div className="flex flex-col gap-2">
-                {state.errors
-                  ?.filter((error) => error.element === "helperCard")
-                  .map((error, index) => {
-                    return <p key={index}>{error.message}</p>;
-                  })}
-              </div>
-            ),
-          });
+          enqueueSnackbar(
+            <div className="flex flex-col gap-2">
+              {state.errors
+                ?.filter((error) => error.element === "snackbar")
+                .map((error, index) => {
+                  return <p key={index}>{error.message}</p>;
+                })}
+            </div>,
+            { variant: "error" },
+          );
         }
         setErrors({
           statusCode: state.statusCode,
@@ -64,7 +64,7 @@ const RegisterForm = ({
         setLoadingOverlayVisible(true);
       }
     }
-  }, [state, setHelperCard, setLoadingOverlayVisible]);
+  }, [state, enqueueSnackbar, setLoadingOverlayVisible]);
 
   const emailError = useMemo(
     () => errors.errors?.find((e) => e.element === "email"),
@@ -87,10 +87,17 @@ const RegisterForm = ({
     [errors],
   );
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    startTransition(() => formAction(formData));
+    const response = await register({
+      data: formData,
+      projectOptions: { silent: true },
+    });
+    setState({
+      statusCode: response.responseInfo.statusCode,
+      errors: response.data?.errors ?? null,
+    });
   }
 
   return (
@@ -145,19 +152,16 @@ const RegisterForm = ({
                     variant={"ghost"}
                     className="group absolute left-40 text-white"
                     onPress={() =>
-                      setHelperCard({
-                        show: true,
-                        helperCardType: "INFO",
-                        content: (
-                          <div className="flex flex-col gap-2">
-                            <p>
-                              Nome de usuário: Este será seu identificador único
-                              no sistema. É composto apenas por letras, números
-                              e pontos.
-                            </p>
-                          </div>
-                        ),
-                      })
+                      enqueueSnackbar(
+                        <div className="flex flex-col gap-2">
+                          <p>
+                            Nome de usuário: Este será seu identificador único
+                            no sistema. É composto apenas por letras, números e
+                            pontos.
+                          </p>
+                        </div>,
+                        { variant: "info" },
+                      )
                     }
                   >
                     <IconHelp className="text-white" />
@@ -180,19 +184,16 @@ const RegisterForm = ({
                     variant={"ghost"}
                     className="group absolute left-20 text-white"
                     onPress={() =>
-                      setHelperCard({
-                        show: true,
-                        helperCardType: "INFO",
-                        content: (
-                          <div className="flex flex-col gap-2">
-                            <p>
-                              Senha: Deve ter tamanho mínimo de 8 caracteres e
-                              ao menos 1 letra minúscula, 1 letra maiúscula, 1
-                              número e 1 caractere especial
-                            </p>
-                          </div>
-                        ),
-                      })
+                      enqueueSnackbar(
+                        <div className="flex flex-col gap-2">
+                          <p>
+                            Senha: Deve ter tamanho mínimo de 8 caracteres e ao
+                            menos 1 letra minúscula, 1 letra maiúscula, 1 número
+                            e 1 caractere especial
+                          </p>
+                        </div>,
+                        { variant: "info" },
+                      )
                     }
                   >
                     <IconHelp className="text-white" />

@@ -1,14 +1,13 @@
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useCreateTally } from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { _createTallyV2 } from "@/lib/serverFunctions/serverActions/tallyUtil";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import { Divider, LinearProgress } from "@mui/material";
 import { IconCheck } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
-import { startTransition, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const TallyCreationDialog = ({
   open,
@@ -27,15 +26,14 @@ const TallyCreationDialog = ({
   );
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  const [formAction, isSaving] = useResettableActionState({
-    action: _createTallyV2,
+  const [createTally, isSaving] = useCreateTally({
     callbacks: {
       onSuccess: (response) => {
         if (!response.data?.tallyId) {
           return;
         }
         setIsRedirecting(true);
-        router.push(`/admin/tallys/${response.data.tallyId}/fill`);
+        router.push(`/admin/tallys/fill?tallyId=${response.data.tallyId}`);
       },
     },
   });
@@ -45,7 +43,7 @@ const TallyCreationDialog = ({
     if (!selectedLocation || !selectedDateTime) return;
     formData.append("locationId", selectedLocation.id.toString());
     formData.append("startDate", selectedDateTime.toDate().toISOString());
-    startTransition(() => formAction(formData));
+    void createTally({ data: formData });
   };
 
   const enableSaveButton = useMemo(() => {

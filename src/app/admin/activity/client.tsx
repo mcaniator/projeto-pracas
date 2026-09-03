@@ -58,7 +58,10 @@ const Client = ({
           <Virtuoso
             data={assessments}
             itemContent={(_, a) => (
-              <Link key={a.id} href={`/admin/assessments/${a.id}`}>
+              <Link
+                key={a.id}
+                href={`/admin/assessments/details?assessmentId=${a.id}`}
+              >
                 <div className="pb-4">
                   <div
                     key={a.id}
@@ -86,7 +89,7 @@ const Client = ({
                           icon={<IconCalendar />}
                           tooltip={a.endDate ? "Início - Fim" : "Início"}
                         />
-                        {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
+                        {`${dateTimeFormatter.format(a.startDate)} ${a.endDate ? `- ${dateTimeFormatter.format(a.endDate)}` : ""}`}
                       </span>
                       <Divider />
                       <span className="flex items-center text-base sm:text-xl">
@@ -107,7 +110,7 @@ const Client = ({
                 href={
                   a.endDate ?
                     `/admin/parks/${a.location.id}/tallys/dataVisualization/${a.id}`
-                  : `/admin/tallys/${a.id}/fill`
+                  : `/admin/tallys/fill?tallyId=${a.id}`
                 }
               >
                 <div className="pb-4">
@@ -129,7 +132,7 @@ const Client = ({
                           icon={<IconCalendar />}
                           tooltip={a.endDate ? "Início - Fim" : "Início"}
                         />
-                        {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
+                        {`${dateTimeFormatter.format(a.startDate)} ${a.endDate ? `- ${dateTimeFormatter.format(a.endDate)}` : ""}`}
                       </span>
                       <Divider />
                       <span className="flex items-center text-base sm:text-xl">

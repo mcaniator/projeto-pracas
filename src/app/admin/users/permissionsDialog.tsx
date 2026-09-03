@@ -1,9 +1,8 @@
 import RolesHelpDialogTrigger from "@/app/admin/users/rolesHelpDialogTrigger";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useUpdateUserRoles } from "@/lib/serverFunctions/apiCalls/user";
 import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
-import { _updateUserRolesV2 } from "@/lib/serverFunctions/serverActions/userUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Role } from "@prisma/client";
 import { IconCheck } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -21,8 +20,7 @@ const PermissionsDialog = ({
   user: FetchUsersResponse["users"][number];
   updateTable: () => void;
 }) => {
-  const [update, loading] = useServerAction({
-    action: _updateUserRolesV2,
+  const [update, loading] = useUpdateUserRoles({
     callbacks: {
       onSuccess() {
         updateTable();
@@ -92,8 +90,10 @@ const PermissionsDialog = ({
       confirmLoading={loading}
       onConfirm={() => {
         void update({
-          userId: user.id,
-          roles: userRoles.map((ur) => ur.role).filter((r) => r !== null),
+          data: {
+            userId: user.id,
+            roles: userRoles.map((ur) => ur.role).filter((r) => r !== null),
+          },
         });
       }}
     >

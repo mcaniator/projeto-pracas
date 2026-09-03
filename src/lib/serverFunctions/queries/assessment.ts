@@ -1,25 +1,24 @@
-import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   FormValues,
   SerializedFormValues,
-} from "@/components/ui/responseForm/responseFormTypes";
-import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+} from "@/lib/types/assessments/responseFormTypes";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
-import { Coordinate } from "ol/coordinate";
+import { z } from "zod";
 
 import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
-import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
-import { ResponseGeometry } from "../../types/assessments/geometry";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
+import { deserializeResponseGeometriesFromWkt } from "../../utils/responseGeometry";
 
 export type AssessmentQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
   options?: {
     id: number;
     text: string;
@@ -126,6 +125,45 @@ const fetchRecentlyCompletedAssessments = async () => {
   }
 };
 
+export type FetchAssessmentUsersResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentUsers>>
+>["data"];
+
+export const fetchAssessmentUsers = async (_request: APIRequest) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { assessment: { some: {} } },
+      select: { id: true, username: true },
+    });
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        users,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar avaliadores!",
+      } as APIResponseInfo,
+      data: {
+        users: [],
+      },
+    };
+  }
+};
+
+export const fetchAssessmentTreeParamsSchema = z.object({
+  assessmentId: z.coerce.number().int().positive(),
+});
+
+export type FetchAssessmentTreeParams = z.infer<
+  typeof fetchAssessmentTreeParamsSchema
+>;
+
 export type FetchAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentTree>>["data"]
 >;
@@ -134,10 +172,13 @@ type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const fetchAssessmentTree = async (params: {
-  assessmentId: number;
-  isPublic?: boolean;
-}) => {
+const fetchAssessmentTree = async (
+  request: APIRequestParams<{
+    assessmentId: number;
+    isPublic?: boolean;
+  }>,
+) => {
+  const params = request.params!;
   try {
     const assessment = await prisma.assessment.findUnique({
       where: { id: params.assessmentId, isPublic: params.isPublic },
@@ -221,26 +262,14 @@ const fetchAssessmentTree = async (params: {
                     categoryId: true,
                     subcategoryId: true,
                     geometryTypes: true,
-                    scaleConfig: {
-                      select: {
-                        minValue: true,
-                        maxValue: true,
-                      },
-                    },
+                    minValue: true,
+                    maxValue: true,
                     response: {
                       where: {
                         assessmentId: params.assessmentId,
                       },
                       select: {
                         response: true,
-                      },
-                    },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
                       },
                     },
                     ResponseOption: {
@@ -380,7 +409,8 @@ const fetchAssessmentTree = async (params: {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(
@@ -395,7 +425,8 @@ const fetchAssessmentTree = async (params: {
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -450,59 +481,10 @@ const fetchAssessmentTree = async (params: {
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
-              }
-              ringsCoordinates.push(geometryPointsCoordinates);
-            }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
-          }
-        }
-      }
-
-      return { questionId, geometries: geometries };
+      return {
+        questionId,
+        geometries: deserializeResponseGeometriesFromWkt(geometry),
+      };
     });
     return {
       responseInfo: {
@@ -517,6 +499,7 @@ const fetchAssessmentTree = async (params: {
           updatedAt: assessment.updatedAt,
           driveFolderUrl: assessment.driveFolderUrl,
           formName: assessment.form.name,
+          formId: assessment.form.id,
           location: {
             id: assessment.location.id,
             name: assessment.location.name,
@@ -609,7 +592,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                     iconKey: true,
                     isPublic: true,
                     allowResponseImages: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -630,14 +614,6 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
                       },
                       select: {
                         response: true,
-                      },
-                    },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
                       },
                     },
                     ResponseOption: {
@@ -774,7 +750,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(
@@ -788,7 +765,8 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
           iconKey: dbQuestion.iconKey,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -843,59 +821,10 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
     const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
-              }
-              ringsCoordinates.push(geometryPointsCoordinates);
-            }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
-          }
-        }
-      }
-
-      return { questionId, geometries: geometries };
+      return {
+        questionId,
+        geometries: deserializeResponseGeometriesFromWkt(geometry),
+      };
     });
     return {
       responseInfo: {
@@ -934,11 +863,31 @@ const fetchPublicAssessmentTree = async (params: { assessmentId: number }) => {
   }
 };
 
+export const fetchAssessmentsParamsSchema = z.object({
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  formId: z.coerce.number().optional(),
+  userId: z.string().optional(),
+  locationId: z.coerce.number().optional(),
+  narrowUnitId: z.coerce.number().optional(),
+  intermediateUnitId: z.coerce.number().optional(),
+  broadUnitId: z.coerce.number().optional(),
+  cityId: z.coerce.number().optional(),
+  finalizationStatus: z.coerce.number().optional(),
+});
+
+export type FetchAssessmentsParams = z.infer<
+  typeof fetchAssessmentsParamsSchema
+>;
+
 export type FetchAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessments>>["data"]
 >;
 
-const fetchAssessments = async (params: FetchAssessmentsParams) => {
+const fetchAssessments = async (
+  request: APIRequestParams<FetchAssessmentsParams>,
+) => {
+  const params = request.params!;
   try {
     let isFinalizedFilter = undefined;
     if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
@@ -1010,13 +959,22 @@ const fetchAssessments = async (params: FetchAssessmentsParams) => {
   }
 };
 
+export const fetchPublicAssessmentsParamsSchema = z.object({
+  locationId: z.coerce.number().optional(),
+});
+
+export type FetchPublicAssessmentsParams = z.infer<
+  typeof fetchPublicAssessmentsParamsSchema
+>;
+
 export type FetchPublicAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchPublicAssessments>>["data"]
 >;
 
 export const fetchPublicAssessments = async (
-  params: FetchPublicAssessmentsParams,
+  request: APIRequestParams<FetchPublicAssessmentsParams>,
 ) => {
+  const params = request.params!;
   try {
     const assessments = await prisma.assessment.findMany({
       where: {

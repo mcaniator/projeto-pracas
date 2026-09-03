@@ -1,7 +1,7 @@
 "use client";
 
 import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import { type ReactNode, useState } from "react";
 
 import { AssessmentBooleanValueRenderer } from "./assessmentBooleanValueRenderer";

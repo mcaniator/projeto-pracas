@@ -1,33 +1,34 @@
-import { FetchAssessmentTreeParams } from "@/app/api/admin/assessments/[assessmentId]/route";
-import { FetchPublicAssessmentsParams } from "@/app/api/admin/publicAssessments/route";
-import type { UploadImageResponseParams } from "@/app/api/admin/uploadImageResponse/route";
+import {
+  createAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentUsers,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 import { useCallback } from "react";
 
-import { FetchAssessmentsParams } from "../../../app/api/admin/assessments/route";
-import { fetchAPI } from "../../utils/apiCall";
-import {
+import type {
+  CreateAssessmentData,
+  CreateAssessmentResponse,
+  DeleteAssessmentData,
+  UpdateAssessmentVisibilityData,
+} from "../mutations/assessmentUtil";
+import type {
+  AddResponsesData,
+  AddResponsesResponse,
+} from "../mutations/responseUtil";
+import type {
+  FetchAssessmentTreeParams,
   FetchAssessmentTreeResponse,
+  FetchAssessmentUsersResponse,
+  FetchAssessmentsParams,
   FetchAssessmentsResponse,
+  FetchPublicAssessmentsParams,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
-import type { UploadImageResponseData } from "../storage/drive/assessment";
-
-export const _fetchAssessments = async (params: FetchAssessmentsParams) => {
-  const url = `/api/admin/assessments`;
-
-  const response = await fetchAPI<FetchAssessmentsResponse>({
-    url,
-    params,
-    options: {
-      method: "GET",
-      next: { tags: ["assessment", "database"] },
-    },
-  });
-
-  return response;
-};
+import type {
+  UploadImageResponseData,
+  UploadImageResponseParams,
+} from "../storage/drive/assessment";
 
 export const useFetchAssessments = (
   params?: UseFetchAPIParams<FetchAssessmentsResponse>,
@@ -37,7 +38,79 @@ export const useFetchAssessments = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
+    },
+  });
+};
+
+export const useFetchAssessmentUsers = (
+  params?: UseFetchAPIParams<FetchAssessmentUsersResponse>,
+) => {
+  return useFetchAPI<FetchAssessmentUsersResponse, Record<string, never>>({
+    url: "/api/admin/assessments/users",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+    },
+    offlineFallback: fetchAdminSQLiteAssessmentUsers,
+  });
+};
+
+export const useCreateAssessment = (
+  params?: UseFetchAPIParams<CreateAssessmentResponse>,
+) => {
+  return useFetchAPI<
+    CreateAssessmentResponse,
+    Record<string, never>,
+    CreateAssessmentData
+  >({
+    url: "/api/admin/assessments/create",
+    callbacks: params?.callbacks,
+    disableOfflineFallback: params?.disableOfflineFallback,
+    options: {
+      method: "POST",
+    },
+    offlineFallback: createAdminSQLiteAssessment,
+  });
+};
+
+export const useDeleteAssessment = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, DeleteAssessmentData>({
+    url: "/api/admin/assessments/delete",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useUpdateAssessmentVisibility = (
+  params?: UseFetchAPIParams<null>,
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    UpdateAssessmentVisibilityData
+  >({
+    url: "/api/admin/assessments/visibility",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
+export const useAddResponses = (
+  params?: UseFetchAPIParams<AddResponsesResponse>,
+) => {
+  return useFetchAPI<
+    AddResponsesResponse,
+    Record<string, never>,
+    AddResponsesData
+  >({
+    url: "/api/admin/assessments/responses",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
     },
   });
 };
@@ -53,7 +126,6 @@ export const useFetchPublicAssessments = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -64,11 +136,10 @@ export const useFetchAssessmentTree = ({
   params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
   return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
-    url: "/api/admin/assessments/:assessmentId",
+    url: "/api/admin/assessment",
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -79,11 +150,10 @@ export const useFetchPublicAssessmentTree = ({
   params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
   return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
-    url: "/api/admin/assessments/public/:assessmentId",
+    url: "/api/admin/assessment/public",
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -105,20 +175,19 @@ export const useUploadImageResponse = (
   const uploadImageResponse = useCallback(
     (
       { folderId, image }: UploadImageResponseParams,
-      functionOptions?: Parameters<typeof uploadImageResponseFetch>[1],
+      projectOptions?: NonNullable<
+        Parameters<typeof uploadImageResponseFetch>[0]
+      >["projectOptions"],
     ) => {
       const formData = new FormData();
       //formData.append("folderId", folderId);
       formData.append("folderId", folderId);
       formData.append("image", image);
 
-      return uploadImageResponseFetch(
-        {},
-        {
-          ...functionOptions,
-          body: formData,
-        },
-      );
+      return uploadImageResponseFetch({
+        data: formData,
+        projectOptions,
+      });
     },
     [uploadImageResponseFetch],
   );

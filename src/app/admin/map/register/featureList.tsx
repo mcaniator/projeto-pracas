@@ -2,8 +2,8 @@
 
 import { MapContext } from "@/app/admin/map/mapProvider";
 import { PolygonProviderContext } from "@/app/admin/map/polygonProvider";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { sleep } from "@/lib/utils/sleep";
 import { LinearProgress } from "@mui/material";
 import {
@@ -43,7 +43,7 @@ const FeatureList = ({
   openRegisterFormDialog: () => void;
   handleUpdateLocationPolygon: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const drawingProviderContext = useContext(DrawingProviderVectorSourceContext);
   const map = useContext(MapContext);
   const view = map?.getView();
@@ -89,20 +89,12 @@ const FeatureList = ({
           });
         }
       } else {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Shapefile vazio!</>,
-        });
+        enqueueSnackbar(<>Shapefile vazio!</>, { variant: "error" });
       }
 
       setUploadedShapeFile(true);
     } catch (error) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao importar shapefile!</>,
-      });
+      enqueueSnackbar(<>Erro ao importar shapefile!</>, { variant: "error" });
     } finally {
       setImportingShapeFile(false);
     }

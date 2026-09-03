@@ -5,7 +5,6 @@ import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/q
 import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
-import { useHelperCard } from "@context/helperCardContext";
 import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
@@ -52,7 +51,6 @@ const QuestionFormV2 = ({
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   reloadCategories: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
   const [questionsListState, setQuestionsListState] = useState<
     "LOADING" | "LOADED" | "ERROR"
   >("LOADING");
@@ -102,7 +100,9 @@ const QuestionFormV2 = ({
       setCategoriesList([]);
       return;
     }
-    await fetchQuestionsByCategoryAndSubcategory({ name: searchedName });
+    await fetchQuestionsByCategoryAndSubcategory({
+      params: { name: searchedName },
+    });
   }, [searchedName, fetchQuestionsByCategoryAndSubcategory]);
 
   const searchByCategoryAndSubcateogory = useCallback(async () => {
@@ -110,10 +110,12 @@ const QuestionFormV2 = ({
       return;
 
     await fetchQuestionsByCategoryAndSubcategory({
-      categoryId: selectedCategoryAndSubcategoryId.categoryId,
-      subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
-      verifySubcategoryNullness:
-        selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+      params: {
+        categoryId: selectedCategoryAndSubcategoryId.categoryId,
+        subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
+        verifySubcategoryNullness:
+          selectedCategoryAndSubcategoryId.verifySubcategoryNullness,
+      },
     });
   }, [
     selectedCategoryAndSubcategoryId,
@@ -148,11 +150,7 @@ const QuestionFormV2 = ({
 
   useEffect(() => {
     void searchByCategoryAndSubcateogory();
-  }, [
-    selectedCategoryAndSubcategoryId,
-    setHelperCard,
-    searchByCategoryAndSubcateogory,
-  ]);
+  }, [selectedCategoryAndSubcategoryId, searchByCategoryAndSubcateogory]);
 
   useEffect(() => {
     if (

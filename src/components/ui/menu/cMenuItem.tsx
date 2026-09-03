@@ -8,15 +8,18 @@ type CMenuItemType = {
   label: ReactNode;
   href?: string;
   sx?: MenuItemOwnProps["sx"];
+  disabled?: boolean;
   onClick?: () => void;
 };
 
-const CMenuItem = ({ label, href, sx, onClick }: CMenuItemType) => {
+const CMenuItem = ({ label, href, disabled, sx, onClick }: CMenuItemType) => {
   const defaultMenuItemSx = { px: "8px", py: "4px" };
   const linkMenuItemSx = { px: "0px", py: "0px" };
+
   return (
     <MenuItem
       onClick={onClick}
+      disabled={disabled}
       sx={{ ...(href ? linkMenuItemSx : defaultMenuItemSx), ...sx }}
     >
       {href ?

@@ -1,5 +1,4 @@
-import { PublicFetchPublicAssessmentsParams } from "@/app/api/public/publicAssessments/route";
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import {
   AssessmentCategoryItem,
@@ -7,18 +6,31 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import { fetchAssessmentGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
-import { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import { Coordinate } from "ol/coordinate";
+import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
+import { z } from "zod";
+
+export const publicFetchPublicAssessmentsParamsSchema = z.object({
+  locationId: z.coerce.number().optional(),
+});
+
+export type PublicFetchPublicAssessmentsParams = z.infer<
+  typeof publicFetchPublicAssessmentsParamsSchema
+>;
 
 export type PublicFetchPublicAssessmentsResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchPublicAssessments>>["data"]
 >;
 
 export const publicFetchPublicAssessments = async (
-  params: PublicFetchPublicAssessmentsParams,
+  request: APIRequestParams<PublicFetchPublicAssessmentsParams>,
 ) => {
+  const params = request.params!;
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -54,16 +66,26 @@ export const publicFetchPublicAssessments = async (
   }
 };
 
+export const publicFetchPublicAssessmentTreeParamsSchema = z.object({
+  assessmentId: z.number().int().positive(),
+});
+
+export type PublicFetchPublicAssessmentTreeParams = z.infer<
+  typeof publicFetchPublicAssessmentTreeParamsSchema
+>;
+
 export type PublicFetchPublicAssessmentTreeResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchPublicAssessmentTree>>["data"]
 >;
 
-export const publicFetchPublicAssessmentTree = async (params: {
-  assessmentId: number;
-}) => {
+export const publicFetchPublicAssessmentTree = async (
+  request: APIRequestParams<PublicFetchPublicAssessmentTreeParams>,
+) => {
+  const params = request.params!;
+  const assessmentId = params.assessmentId;
   try {
     const assessment = await prisma.assessment.findUnique({
-      where: { id: params.assessmentId, isPublic: true },
+      where: { id: assessmentId, isPublic: true },
       select: {
         id: true,
         endDate: true,
@@ -121,7 +143,8 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     iconKey: true,
                     isPublic: true,
                     allowResponseImages: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -138,23 +161,15 @@ export const publicFetchPublicAssessmentTree = async (params: {
                     geometryTypes: true,
                     response: {
                       where: {
-                        assessmentId: params.assessmentId,
+                        assessmentId,
                       },
                       select: {
                         response: true,
                       },
                     },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: params.assessmentId,
-                      },
-                      select: {
-                        checked: true,
-                      },
-                    },
                     ResponseOption: {
                       where: {
-                        assessmentId: params.assessmentId,
+                        assessmentId,
                         optionId: { not: null },
                       },
                       select: {
@@ -286,7 +301,8 @@ export const publicFetchPublicAssessmentTree = async (params: {
           }
         } else if (dbQuestion.questionType === "BOOLEAN") {
           responsesFormValues[dbQuestion.id] =
-            dbQuestion.booleanResponses[0]?.checked ?? false;
+            dbQuestion.response[0]?.response === BooleanResponseValue.TRUE ??
+            false;
         }
 
         const relatedCalculation = form.calculations.find(
@@ -299,9 +315,10 @@ export const publicFetchPublicAssessmentTree = async (params: {
           questionId: item.questionId,
           name: dbQuestion.name,
           iconKey: dbQuestion.iconKey,
+          minValue: dbQuestion.minValue,
+          maxValue: dbQuestion.maxValue,
           isPublic: dbQuestion.isPublic,
           allowResponseImages: dbQuestion.allowResponseImages,
-          scaleConfig: dbQuestion.scaleConfig,
           notes: dbQuestion.notes,
           questionType: dbQuestion.questionType,
           characterType: dbQuestion.characterType,
@@ -352,62 +369,13 @@ export const publicFetchPublicAssessmentTree = async (params: {
       });
     });
 
-    const rawGeometries = await fetchAssessmentGeometries(params.assessmentId);
+    const rawGeometries = await fetchAssessmentGeometries(assessmentId);
     const geometries = rawGeometries.map((fetchedGeometry) => {
       const { questionId, geometry } = fetchedGeometry;
-      if (!geometry) {
-        return { questionId, geometries: [] };
-      }
-      const geometries: ResponseGeometry[] = [];
-      const geometriesWithoutCollection = geometry
-        .replace("GEOMETRYCOLLECTION(", "")
-        .slice(0, -1);
-      const regex = /(?:POINT|POLYGON)\([^)]*\)+/g;
-      const geometriesStrs = geometriesWithoutCollection.match(regex);
-      if (geometriesStrs) {
-        for (const geometry of geometriesStrs) {
-          if (geometry.startsWith("POINT")) {
-            const geometryPointsStr = geometry
-              .replace("POINT(", "")
-              .replace(")", "");
-            const geometryPoints = geometryPointsStr.split(" ");
-            const geometryPointsNumber: number[] = [];
-            for (const geo of geometryPoints) {
-              geometryPointsNumber.push(Number(geo));
-            }
-            geometries.push({
-              type: "Point",
-              coordinates: geometryPointsNumber,
-            });
-          } else if (geometry.startsWith("POLYGON")) {
-            const geometryRingsStr = geometry
-              .replace("POLYGON(", " ")
-              .slice(0, -1);
-            const ringsStrs = geometryRingsStr.split("),(");
-            const ringsCoordinates: Coordinate[][] = [];
-            for (const ring of ringsStrs) {
-              const geometryPointsStr = ring.split(",");
-              const geometryPointsCoordinates: Coordinate[] = [];
-              for (const point of geometryPointsStr) {
-                const pointClean = point
-                  .replace("(", "")
-                  .replace(")", "")
-                  .trim();
-                const geometryPoints = pointClean.split(" ");
-                const geometryPointsNumber: number[] = [];
-                for (const geo of geometryPoints) {
-                  geometryPointsNumber.push(Number(geo));
-                }
-                geometryPointsCoordinates.push(geometryPointsNumber);
-              }
-              ringsCoordinates.push(geometryPointsCoordinates);
-            }
-            geometries.push({ type: "Polygon", coordinates: ringsCoordinates });
-          }
-        }
-      }
-
-      return { questionId, geometries: geometries };
+      return {
+        questionId,
+        geometries: deserializeResponseGeometriesFromWkt(geometry),
+      };
     });
     return {
       responseInfo: {

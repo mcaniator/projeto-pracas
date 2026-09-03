@@ -1,6 +1,7 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { useLogout } from "@/lib/serverFunctions/apiCalls/auth";
+import { useRouter } from "next-nprogress-bar";
 import { ReactNode, useEffect } from "react";
 
 const AutoSignOut = ({
@@ -10,9 +11,20 @@ const AutoSignOut = ({
   children: ReactNode;
   userActive?: boolean | null;
 }) => {
+  const router = useRouter();
+  const [logout] = useLogout({
+    callbacks: {
+      onSuccess: () => {
+        router.replace("/");
+      },
+    },
+  });
+
   useEffect(() => {
-    if (!userActive) void signOut({ redirect: true, redirectTo: "/" });
-  }, [userActive]);
+    if (userActive) return;
+
+    void logout();
+  }, [logout, router, userActive]);
 
   return children;
 };

@@ -1,14 +1,8 @@
+import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/queries/questionIcon";
 import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
-
-const iconSearchQuerySchema = z.object({
-  query: z.string().optional().nullish(),
-  limit: z.coerce.number().int().positive().nullish(),
-});
-
-export type FetchDynamicIconsParams = z.infer<typeof iconSearchQuerySchema>;
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +11,7 @@ export async function GET(request: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const parse = iconSearchQuerySchema.safeParse({
+  const parse = fetchDynamicIconsParamsSchema.safeParse({
     query: request.nextUrl.searchParams.get("query"),
     limit: request.nextUrl.searchParams.get("limit"),
   });
@@ -26,9 +20,9 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid params", { status: 400 });
   }
 
-  const response = fetchDynamicIcons(parse.data);
+  const response = fetchDynamicIcons({ params: parse.data });
 
-  return new Response(JSON.stringify(response), {
+  return new Response(superjson.stringify(response), {
     status: 200,
     headers: {
       "Content-Type": "application/json",

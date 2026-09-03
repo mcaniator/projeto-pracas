@@ -1,25 +1,30 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
-import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
-import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
-import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "next/navigation";
 import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+  getAssessmentsDraftsIds,
+  loadAssessmentResponsesDraft,
+} from "@/app/admin/assessments/details/responseFormUtil";
+import {
+  fetchAdminSQLiteAssessments,
+  fetchAdminSQLiteHasAssessments,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  useFetchAssessmentUsers,
+  useFetchAssessments,
+} from "@/lib/serverFunctions/apiCalls/assessment";
+import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
+import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
+import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
+import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useHelperCard } from "../../../components/context/helperCardContext";
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
 import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
-import { dexieDb } from "../../../lib/dexie/dexie";
-import { _fetchAssessments } from "../../../lib/serverFunctions/apiCalls/assessment";
 import type { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
@@ -38,25 +43,19 @@ export type AssessmentsFilterType =
 
 export type AssessmentWithSyncStatus =
   FetchAssessmentsResponse["assessments"][number] & {
-    hasUnsyncedFilling: boolean;
+    hasPendingSaveFromDraft: boolean;
   };
 
-const AssessmentsClient = ({
-  formsPromise,
-  usersPromise,
-}: {
-  formsPromise: Promise<FetchFormsResponse["forms"]>;
-  usersPromise: Promise<{ id: string; username: string }[]>;
-}) => {
+const AssessmentsClient = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [params] = useState(useSearchParams());
   const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const unsyncedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
+  const [hasSQLiteAssessments, setHasSQLiteAssessments] = useState(false);
+  const unsavedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
     null,
   );
-  const { helperCardProcessResponse, setHelperCard } = useHelperCard();
   const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
     [],
   );
@@ -64,6 +63,27 @@ const AssessmentsClient = ({
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
+  const [forms, setForms] = useState<FetchFormsResponse["forms"]>([]);
+  const [users, setUsers] = useState<FetchAssessmentUsersResponse["users"]>([]);
+  const [fetchForms, loadingForms] = useFetchForms({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        if (data) {
+          setForms(data.forms);
+        }
+      },
+    },
+  });
+  const [_fetchAssessments] = useFetchAssessments();
+  const [fetchAssessmentUsers, loadingUsers] = useFetchAssessmentUsers({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        if (data) {
+          setUsers(data.users);
+        }
+      },
+    },
+  });
   //Filters
   const [isLoading, setIsLoading] = useState(true);
   const [locationId, setLocationId] = useState<number | undefined>(undefined);
@@ -81,25 +101,48 @@ const AssessmentsClient = ({
     setIsLoading(false);
   }, []);
 
-  const getUnsyncedAssessmentIds = useCallback(() => {
-    if (!unsyncedAssessmentIdsPromiseRef.current) {
-      unsyncedAssessmentIdsPromiseRef.current = dexieDb.assessments
-        .toArray()
-        .then(
-          (dexieAssessments) =>
-            new Set(
-              dexieAssessments
-                .filter(
-                  (assessment) =>
-                    assessment.localUpdatedAt > assessment.serverUpdatedAt,
-                )
-                .map((assessment) => assessment.id),
-            ),
-        );
+  const getUnsavedAssessmentIds = useCallback(async () => {
+    if (!unsavedAssessmentIdsPromiseRef.current) {
+      unsavedAssessmentIdsPromiseRef.current = getAssessmentsDraftsIds();
     }
 
-    return unsyncedAssessmentIdsPromiseRef.current;
+    return unsavedAssessmentIdsPromiseRef.current;
   }, []);
+
+  const formatAssessmentsWithUnsavedFilling = useCallback(
+    async (assessments: FetchAssessmentsResponse["assessments"]) => {
+      const unsavedAssessmentIds = await getUnsavedAssessmentIds();
+      return assessments.map(async (assessment) => {
+        if (unsavedAssessmentIds.has(assessment.id)) {
+          //If the assessment has unsynced filling, we need to fetch it from draft and insert the local unsynced data into the assessment
+          const localAssessment = await loadAssessmentResponsesDraft(
+            assessment.id,
+          );
+          if (!localAssessment) {
+            //This should never happen
+            return {
+              ...assessment,
+              hasPendingSaveFromDraft: false,
+            };
+          }
+
+          return {
+            ...assessment,
+            startDate: localAssessment.startDate,
+            endDate: localAssessment.endDate,
+            isFinalized: localAssessment.isFinalized,
+            hasPendingSaveFromDraft: true,
+          };
+        } else {
+          return {
+            ...assessment,
+            hasPendingSaveFromDraft: false,
+          };
+        }
+      });
+    },
+    [getUnsavedAssessmentIds],
+  );
 
   const handleFilterChange = ({
     type,
@@ -240,75 +283,54 @@ const AssessmentsClient = ({
           return;
         }
       }
-      setIsLoading(true);
-      try {
-        lastFetchedLocationId.current = locationId;
-        const response = await _fetchAssessments({
-          locationId,
-          formId,
-          startDate,
-          endDate,
-          userId,
-          cityId,
-          broadUnitId,
-          intermediateUnitId,
-          narrowUnitId,
-          finalizationStatus: finalizationStatus,
-        });
-        helperCardProcessResponse(response.responseInfo);
-        const unsyncedAssessmentIds = await getUnsyncedAssessmentIds();
-        const formattedAssessmentsPromises = response.data?.assessments.map(
-          async (assessment) => {
-            if (unsyncedAssessmentIds.has(assessment.id)) {
-              //If the assessment has unsynced filling, we need to fetch it from the local database and insert the local unsynced data into the assessment
-              const localAssessment = await dexieDb.assessments.get(
-                assessment.id,
-              );
-              if (!localAssessment) {
-                //This should never happen
-                return {
-                  ...assessment,
-                  hasUnsyncedFilling: false,
-                };
-              }
 
-              return {
-                ...assessment,
-                startDate: localAssessment.startDate,
-                endDate: localAssessment.endDate,
-                isFinalized: localAssessment.isFinalized,
-                hasUnsyncedFilling: true,
-              };
-            } else {
-              return {
-                ...assessment,
-                hasUnsyncedFilling: false,
-              };
-            }
+      lastFetchedLocationId.current = locationId;
+      setIsLoading(true);
+
+      let assessments: FetchAssessmentsResponse["assessments"] = [];
+      const hasSQLiteAssessmentsResponse = await fetchAdminSQLiteHasAssessments(
+        {},
+      );
+      if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
+        // If there are SQLite assessments, we cannot show server assessments until they are synced
+        setHasSQLiteAssessments(true);
+        const offlineResponse = await fetchAdminSQLiteAssessments({});
+        const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
+        assessments = SQLiteAssessments;
+      } else {
+        setHasSQLiteAssessments(false);
+        const response = await _fetchAssessments({
+          params: {
+            locationId,
+            formId,
+            startDate,
+            endDate,
+            userId,
+            cityId,
+            broadUnitId,
+            intermediateUnitId,
+            narrowUnitId,
+            finalizationStatus: finalizationStatus,
           },
-        );
-        if (formattedAssessmentsPromises) {
-          const formattedAssessments = await Promise.all(
-            formattedAssessmentsPromises,
-          );
-          setAssessments(formattedAssessments);
-        } else {
-          setAssessments([]);
-        }
-      } catch (e) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>{"Erro ao consultar avaliações!"}</>,
         });
+        assessments = response.data?.assessments ?? [];
       }
 
+      const formattedAssessmentsPromises =
+        await formatAssessmentsWithUnsavedFilling(assessments);
+      if (formattedAssessmentsPromises) {
+        const formattedAssessments = await Promise.all(
+          formattedAssessmentsPromises,
+        );
+        setAssessments(formattedAssessments);
+      } else {
+        setAssessments([]);
+      }
       setIsLoading(false);
     },
     [
-      helperCardProcessResponse,
-      getUnsyncedAssessmentIds,
-      setHelperCard,
+      _fetchAssessments,
+      formatAssessmentsWithUnsavedFilling,
       locationId,
       formId,
       startDate,
@@ -323,8 +345,11 @@ const AssessmentsClient = ({
   );
 
   useEffect(() => {
-    void getUnsyncedAssessmentIds();
-  }, [getUnsyncedAssessmentIds]);
+    void fetchForms({
+      params: { finalizedOnly: true },
+    });
+    void fetchAssessmentUsers({});
+  }, [fetchAssessmentUsers, fetchForms]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -382,7 +407,7 @@ const AssessmentsClient = ({
         title="Avaliações"
         append={
           <div className="flex items-center gap-1">
-            {isMobileView && (
+            {isMobileView && !hasSQLiteAssessments && (
               <CButton
                 square={isMobileView}
                 enableTopLeftChip
@@ -392,6 +417,7 @@ const AssessmentsClient = ({
                 <IconFilter />
               </CButton>
             )}
+
             <CButton
               square={isMobileView}
               onClick={() => setOpenAssessmentCreationDialog(true)}
@@ -410,28 +436,32 @@ const AssessmentsClient = ({
             <CSkeletonGroup quantity={5} height={120} />
           : <AssessmentsList
               assessments={assessments}
+              hasSQLiteAssessments={hasSQLiteAssessments}
               handleVisibilityChange={handleVisibilityChange}
+              fetchAssessments={() => {
+                void fetchAssessments();
+              }}
             />
           }
         </div>
 
-        <Suspense fallback={<CSkeletonGroup quantity={5} />}>
-          <AssessmentsFilterSidebar
-            openDialog={openFiltersDialog}
-            isDialog={isMobileView}
-            onNoCitiesFound={onNoCitiesFound}
-            onCloseDialog={() => setOpenFiltersDialog(false)}
-            defaultLocationId={
-              params.get("locationId") ?
-                Number(params.get("locationId"))
-              : undefined
-            }
-            selectedLocationId={locationId}
-            formsPromise={formsPromise}
-            usersPromise={usersPromise}
-            handleFilterChange={handleFilterChange}
-          />
-        </Suspense>
+        <AssessmentsFilterSidebar
+          openDialog={openFiltersDialog}
+          isDialog={isMobileView}
+          isLoading={loadingForms || loadingUsers}
+          onNoCitiesFound={onNoCitiesFound}
+          onCloseDialog={() => setOpenFiltersDialog(false)}
+          defaultLocationId={
+            params.get("locationId") ?
+              Number(params.get("locationId"))
+            : undefined
+          }
+          selectedLocationId={locationId}
+          forms={forms}
+          users={users}
+          hasSQLiteAssessments={hasSQLiteAssessments}
+          handleFilterChange={handleFilterChange}
+        />
       </div>
       <AssessmentCreationDialog
         open={openAssessmentCreationDialog}

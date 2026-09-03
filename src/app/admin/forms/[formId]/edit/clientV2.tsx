@@ -4,12 +4,13 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useUpdateForm } from "@/lib/serverFunctions/apiCalls/form";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useHelperCard } from "@context/helperCardContext";
 import { useLoadingOverlay } from "@context/loadingContext";
 import {
   OptionForQuestionPicker,
@@ -22,7 +23,6 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { _updateFormV2 } from "@serverActions/formUtil";
 import { IconCalculator, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
@@ -65,10 +65,8 @@ export type QuestionItem = {
   categoryName: string;
   subcategoryName: string | null;
   options?: OptionForQuestionPicker[];
-  scaleConfig: {
-    minValue: number;
-    maxValue: number;
-  } | null;
+  minValue: number | null;
+  maxValue: number | null;
   allowResponseImages: boolean;
   geometryTypes: QuestionGeometryTypes[];
 };
@@ -102,7 +100,7 @@ const ClientV2 = ({
 }) => {
   const userContext = useUserContext();
   const router = useRouter();
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
     form.formTree.finalized ||
@@ -134,6 +132,7 @@ const ClientV2 = ({
         },
       },
     });
+  const [updateForm] = useUpdateForm();
 
   const reloadCategories = useCallback(() => {
     void fetchCategories({});
@@ -204,12 +203,13 @@ const ClientV2 = ({
               iconKey: question.iconKey,
               isPublic: question.isPublic,
               notes: question.notes,
+              minValue: question.minValue,
+              maxValue: question.maxValue,
               questionType: question.questionType,
               position: (subItem.questions?.length ?? 0) + 1,
               characterType: question.characterType,
               optionType: question.optionType,
               options: question.options,
-              scaleConfig: question.scaleConfig,
               allowResponseImages: question.allowResponseImages,
               geometryTypes: question.geometryTypes,
               categoryName: category.name,
@@ -239,11 +239,12 @@ const ClientV2 = ({
           iconKey: question.iconKey,
           isPublic: question.isPublic,
           notes: question.notes,
+          minValue: question.minValue,
+          maxValue: question.maxValue,
           questionType: question.questionType,
           characterType: question.characterType,
           optionType: question.optionType,
           options: question.options,
-          scaleConfig: question.scaleConfig,
           geometryTypes: question.geometryTypes,
           allowResponseImages: question.allowResponseImages,
           position: newCategory.categoryChildren.length + 1,
@@ -324,36 +325,26 @@ const ClientV2 = ({
   const handleUpdateForm = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
-      const response = await _updateFormV2({
-        formId: formId,
-        newFormName: formName,
-        formTree: formTree,
-        isFinalized: saveAsDone,
-        calculations: formCalculations,
+      const response = await updateForm({
+        data: {
+          formId: formId,
+          newFormName: formName,
+          formTree: formTree,
+          isFinalized: saveAsDone,
+          calculations: formCalculations,
+        },
       });
-      if (response?.statusCode !== 200) {
-        setHelperCard({
-          show: true,
-          helperCardType: "ERROR",
-          content: <>Erro ao salvar!</>,
-        });
+      if (response.responseInfo.statusCode !== 200) {
+        enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
       } else {
-        setHelperCard({
-          show: true,
-          helperCardType: "CONFIRM",
-          content: <>Formulário salvo!</>,
-        });
+        enqueueSnackbar(<>Formulário salvo!</>, { variant: "success" });
         if (saveAsDone) {
           setIsRedirecting(true);
           void router.push("/admin/forms");
         }
       }
     } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar!</>,
-      });
+      enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
     } finally {
       setLoadingOverlay({ show: false });
     }

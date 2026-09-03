@@ -1,4 +1,4 @@
-import { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import { Extent, buffer, createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Point, Polygon } from "ol/geom";
@@ -74,7 +74,8 @@ export const resolveInitialViewTarget = ({
   locationPolygonGeoJson: string | null | undefined;
   initialGeometries: ResponseGeometry[] | undefined;
 }): InitialViewTarget => {
-  const responseGeometriesExtent = getResponseGeometriesExtent(initialGeometries);
+  const responseGeometriesExtent =
+    getResponseGeometriesExtent(initialGeometries);
   if (responseGeometriesExtent) {
     return {
       type: "response-geometries",
@@ -82,7 +83,9 @@ export const resolveInitialViewTarget = ({
     };
   }
 
-  const locationPolygonExtent = getLocationPolygonExtent(locationPolygonGeoJson);
+  const locationPolygonExtent = getLocationPolygonExtent(
+    locationPolygonGeoJson,
+  );
   if (locationPolygonExtent) {
     return {
       type: "location-polygon",

@@ -1,24 +1,125 @@
+"use client";
+
+import { useNetwork } from "@/components/context/networkContext";
 import { Header } from "@/components/header/header";
 import Sidebar from "@/components/singleUse/admin/sidebar";
+import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
+import { Capacitor } from "@capacitor/core";
 import AutoSignOut from "@components/auth/autoSignOut";
 import { UserContextProvider } from "@components/context/UserContext";
-import { auth } from "@lib/auth/auth";
-import { getUserAuthInfo } from "@queries/user";
-import { redirect } from "next/navigation";
-import { ReactNode } from "react";
+import { useFetchCurrentUser } from "@lib/serverFunctions/apiCalls/auth";
+import type { CurrentUser } from "@lib/serverFunctions/queries/user";
+import { CircularProgress } from "@mui/material";
+import { Role } from "@prisma/client";
+import { useRouter } from "next-nprogress-bar";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 
-const AdminRoot = async ({ children }: { children: ReactNode }) => {
-  const session = await auth();
-  const user = await getUserAuthInfo(session?.user?.id);
+const AdminRoot = ({ children }: { children: ReactNode }) => {
+  const router = useRouter();
+  const { isConnectedRef } = useNetwork();
+  const [fetchCurrentUser] = useFetchCurrentUser();
+  const [user, setUser] = useState<CurrentUser | null>();
 
-  if (!user) {
-    redirect("/auth/login");
+  const offlineLogin = useCallback(async () => {
+    const user = await adminSQLiteDb.query({
+      statement: `SELECT * FROM "current_user"`,
+    });
+    const SQLiteUserRaw = user.values[0];
+    if (!SQLiteUserRaw) {
+      setUser(null);
+      router.replace("/auth/login");
+      return;
+    }
+
+    const SQLiteUserParsed = {
+      id: SQLiteUserRaw.id,
+      email: SQLiteUserRaw.email,
+      image: SQLiteUserRaw.image,
+      username: SQLiteUserRaw.username,
+      roles: JSON.parse(String(SQLiteUserRaw.roles)) as Role[],
+      active: SQLiteUserRaw.active === 1,
+    } as CurrentUser;
+    setUser(SQLiteUserParsed);
+  }, [router]);
+
+  useEffect(() => {
+    //This is the user login check.
+    //TODO: The code is too complex to be declared inside the component. Check if it can be refactored
+    const loadUser = async () => {
+      if (isConnectedRef.current) {
+        const response = await fetchCurrentUser({
+          projectOptions: { silent: true },
+        });
+        if (!response.data?.user) {
+          if (response.responseInfo.statusCode === 401) {
+            // API responded, but user is not logged in or not active
+            if (Capacitor.isNativePlatform()) {
+              await adminSQLiteDb.clear();
+              await adminSQLiteDb.executeTransaction([
+                {
+                  statement: `DELETE FROM "current_user";`,
+                },
+              ]);
+            }
+
+            setUser(null);
+            router.replace("/auth/login");
+            return;
+          } else {
+            //Server malfunction
+            if (Capacitor.isNativePlatform()) {
+              void offlineLogin();
+            }
+
+            return;
+          }
+        }
+        if (Capacitor.isNativePlatform()) {
+          await adminSQLiteDb.executeTransaction([
+            {
+              statement: `DELETE FROM "current_user";`,
+            },
+            {
+              statement: `INSERT INTO "current_user" (id, email, image, username, roles, active) VALUES (?, ?, ?, ?, ?, ?);`,
+              values: [
+                response.data.user.id,
+                response.data.user.email,
+                response.data.user.image,
+                response.data.user.username,
+                JSON.stringify(response.data.user.roles),
+                response.data.user.active ? 1 : 0,
+              ],
+            },
+          ]);
+        }
+
+        setUser(response.data.user);
+      } else {
+        if (Capacitor.isNativePlatform()) {
+          // If offline, get user from SQLite
+          void offlineLogin();
+        }
+      }
+    };
+
+    void loadUser();
+  }, [router, isConnectedRef, fetchCurrentUser, offlineLogin]);
+
+  useEffect(() => {
+    if (user && user.roles.length === 0) {
+      router.replace("/user/accessDenied");
+    }
+  }, [router, user]);
+
+  if (!user || user.roles.length === 0) {
+    return (
+      <div className="flex h-[100dvh] flex-col items-center justify-center bg-white">
+        <CircularProgress size={128} />
+        <p className="text-2xl">Carregando dados de usuário...</p>
+      </div>
+    );
   }
 
-  if (user?.roles.length === 0) {
-    //This should never happen
-    redirect("/user/accessDenied");
-  }
   return (
     <AutoSignOut userActive={user.active}>
       <UserContextProvider initialUserInfo={user}>
@@ -27,7 +128,7 @@ const AdminRoot = async ({ children }: { children: ReactNode }) => {
             variant="admin"
             position="static"
             colorType="filled"
-            user={user ?? null}
+            user={user}
           />
           <div className="flex min-h-0 flex-grow justify-center">
             <Sidebar />

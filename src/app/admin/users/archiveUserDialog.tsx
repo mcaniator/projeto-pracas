@@ -1,7 +1,6 @@
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useUpdateUserArchive } from "@/lib/serverFunctions/apiCalls/user";
 import { FetchUsersResponse } from "@/lib/serverFunctions/queries/user";
-import { _userArchiveUpdate } from "@/lib/serverFunctions/serverActions/userUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { IconTrash } from "@tabler/icons-react";
 import { FaTrashRestore } from "react-icons/fa";
 
@@ -16,8 +15,7 @@ const ArchiveUserDialog = ({
   user: FetchUsersResponse["users"][number];
   updateTable: () => void;
 }) => {
-  const [update, loading] = useServerAction({
-    action: _userArchiveUpdate,
+  const [update, loading] = useUpdateUserArchive({
     callbacks: {
       onSuccess() {
         updateTable();
@@ -39,7 +37,7 @@ const ArchiveUserDialog = ({
         color: user.active ? "error" : "primary",
       }}
       onConfirm={() => {
-        void update({ userId: user.id, active: !user.active });
+        void update({ data: { userId: user.id, active: !user.active } });
       }}
       confirmLoading={loading}
     ></CDialog>

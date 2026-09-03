@@ -1,13 +1,11 @@
-import { auth } from "../../../lib/auth/auth";
-import AlreadyLoggedInError from "../alreadyLoggedInError";
+"use client";
+
 import LoginForm from "./loginForm";
 
-const LoginPage = async () => {
-  const session = await auth();
-  if (session) {
-    return <AlreadyLoggedInError />;
-  }
-  const enableGoogleLogin = process.env.ENABLE_GOOGLE_LOGIN === "true";
+const LoginPage = () => {
+  const enableGoogleLogin =
+    process.env.NEXT_PUBLIC_ENABLE_GOOGLE_LOGIN === "true";
+
   return <LoginForm enableGoogleLogin={enableGoogleLogin} />;
 };
 

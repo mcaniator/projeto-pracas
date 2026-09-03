@@ -6,13 +6,13 @@ import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQ
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
+import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
+import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import {
   ResponseFormGeometry,
   ResponseFormImages,
   ResponseQuestionValue,
-} from "@/components/ui/responseForm/responseFormTypes";
-import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+} from "@/lib/types/assessments/responseFormTypes";
 import { resolveQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
 import { useEffect, useMemo, useState } from "react";
 
@@ -42,6 +42,8 @@ const buildPreviewQuestion = ({
     questionId: -1,
     name: draft.name || "Questão sem título",
     iconKey: draft.iconKey,
+    minValue: draft.minValue,
+    maxValue: draft.maxValue,
     isPublic: draft.isPublic,
     notes: draft.notes,
     questionType: draft.questionType,
@@ -52,7 +54,6 @@ const buildPreviewQuestion = ({
     options,
     allowResponseImages: draft.allowResponseImages,
     geometryTypes: draft.hasAssociatedGeometry ? draft.geometryTypes : [],
-    scaleConfig: draft.scaleConfig,
     calculationExpression: undefined,
   };
 };

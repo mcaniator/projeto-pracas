@@ -1,4 +1,5 @@
 import { CButtonProps } from "@/components/ui/cButton";
+import { Capacitor } from "@capacitor/core";
 import {
   ButtonProps,
   Dialog,
@@ -17,7 +18,7 @@ import React, { ReactNode, useEffect, useMemo, useRef } from "react";
 import CDialogFooter from "./cDialogFooter";
 import CDialogHeader from "./dDialogHeader";
 
-export type CDialogProps = DialogProps & {
+export type CDialogProps = Omit<DialogProps, "onClose" | "onSubmit"> & {
   title?: string;
   subtitle?: string;
   children?: ReactNode;
@@ -44,6 +45,12 @@ export type CDialogProps = DialogProps & {
   onCancel?: () => void;
   onConfirm?: () => void;
   onClose?: () => void;
+  action?: (formData: FormData) => void;
+  onSubmit?: React.FormEventHandler<HTMLFormElement>;
+};
+
+type FormPaperProps = Omit<PaperProps, "action" | "component" | "onSubmit"> & {
+  component: "form";
   action?: (formData: FormData) => void;
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
@@ -99,65 +106,6 @@ const CDialog = ({
       "onSubmit defined in a CDialog that does not have 'isForm' set as true",
     );
   }
-  // This code is used to close the dialog when the user presses the navigation buttons.
-  // It is commented out because it breaks if the dialog is closed from the 'open' prop.
-  /*const onCloseRef = useRef(onClose);
-  const openDialogCounterContext = useOpenedDialogsCounterContext();
-  const dialogIndexRef = useRef(0);
-  const handlePopRef = useRef((forceBackNavigation?: boolean) => {
-    if (
-      openDialogCounterContext.openedDialogsCounterRef.current ===
-      dialogIndexRef.current
-    ) {
-      if (
-        !forceBackNavigation &&
-        !!openDialogCounterContext.timeoutRef.current
-      ) {
-        window.history.pushState(
-          { dialogIndex: dialogIndexRef.current - 1 },
-          "",
-        );
-      }
-      if (
-        forceBackNavigation &&
-        !!openDialogCounterContext.timeoutRef.current
-      ) {
-        window.history.back();
-      }
-      window.removeEventListener("popstate", () => {
-        handlePopRef.current();
-      });
-      openDialogCounterContext.closeDialog();
-      dialogIndexRef.current = 0;
-      onCloseRef.current();
-    }
-  });
-
-  const handleEventClose = (
-    event: object,
-    reason: "backdropClick" | "escapeKeyDown",
-  ) => {
-    if (disableBackdropClose && reason === "backdropClick") {
-      return;
-    }
-    handlePopRef.current(true);
-  };
-
-  useEffect(() => {
-    if (!props.open || dialogIndexRef.current !== 0) return;
-
-    dialogIndexRef.current = openDialogCounterContext.openDialog();
-
-    window.history.pushState({ dialogIndex: dialogIndexRef.current - 1 }, "");
-
-    window.addEventListener("popstate", () => {
-      handlePopRef.current();
-    });
-  }, [props.open]);
-
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);*/
 
   const handleEventClose = (
     event: object,
@@ -195,9 +143,13 @@ const CDialog = ({
         return;
       }
 
-      const shouldNavigate = window.confirm(
-        "Deseja sair desta página? Alteracoes não salvas serão perdidas.",
-      );
+      // When is native app, the dialog will close
+      let shouldNavigate = Capacitor.isNativePlatform();
+      if (!shouldNavigate) {
+        shouldNavigate = window.confirm(
+          "Deseja sair desta página? Alteracoes não salvas serão perdidas.",
+        );
+      }
 
       if (!shouldNavigate) {
         skipNextPopStateRef.current = true;
@@ -222,17 +174,16 @@ const CDialog = ({
     : { px: { xs: "4px", sm: "12px" }, py: "4px" };
   //TODO: Study ways to remove code duplication
   if (isForm) {
-    const formPaperProps: PaperProps & React.ComponentPropsWithoutRef<"form"> =
-      {
-        component: "form",
-        sx: {
-          borderRadius: memoFullScreen ? "0px" : "12px",
-          py: { xs: "4px", sm: "16px" },
-          overflow: "hidden",
-        },
-        action,
-        onSubmit,
-      };
+    const formPaperProps: FormPaperProps = {
+      component: "form",
+      sx: {
+        borderRadius: memoFullScreen ? "0px" : "12px",
+        py: { xs: "4px", sm: "16px" },
+        overflow: "hidden",
+      },
+      action,
+      onSubmit,
+    };
 
     return (
       <Dialog

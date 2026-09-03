@@ -1,5 +1,6 @@
 import { getCategoriesWithSubcategories } from "@queries/category";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function GET() {
   try {
@@ -8,8 +9,8 @@ export async function GET() {
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const categories = await getCategoriesWithSubcategories();
-    return new Response(JSON.stringify(categories), {
+    const categories = await getCategoriesWithSubcategories({});
+    return new Response(superjson.stringify(categories), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

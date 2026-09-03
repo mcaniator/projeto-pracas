@@ -1,7 +1,7 @@
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useCategorySubmit } from "@/lib/serverFunctions/apiCalls/category";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import { _categorySubmit } from "@serverActions/categoryServerActions";
+import { FormEventHandler } from "react";
 
 const CategoryCreationDialog = ({
   open,
@@ -20,21 +20,25 @@ const CategoryCreationDialog = ({
   reloadCategories: () => void;
   openCategoryDeletionDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _categorySubmit,
+  const [categorySubmit, isPending] = useCategorySubmit({
     callbacks: {
       onSuccess: () => {
         reloadCategories();
       },
     },
-    options: {
-      loadingMessage: "Salvando categoria...",
-    },
   });
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void categorySubmit({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Salvando categoria..." },
+    });
+  };
+
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       title={categoryId ? "Editar categoria" : "Criar categoria"}
       open={open}
       onClose={onClose}

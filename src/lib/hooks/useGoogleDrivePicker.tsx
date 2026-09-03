@@ -1,4 +1,4 @@
-import { useHelperCard } from "@/components/context/helperCardContext";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useState } from "react";
 
 let googleAccessToken: string | null = null;
@@ -53,7 +53,7 @@ const googlePickerApiKey = process.env.NEXT_PUBLIC_GOOGLE_PICKER_API_KEY;
 const googleDriveAppId = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_APP_ID;
 
 const useGoogleDrivePicker = () => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [loadingPicker, setLoadingPicker] = useState(false);
   if (!googleClientId) {
     throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not defined");
@@ -78,10 +78,8 @@ const useGoogleDrivePicker = () => {
       scope: "https://www.googleapis.com/auth/drive.file", //See, edit, create, and delete only the specific Google Drive files you use with this app.
       callback: (response) => {
         if (response.error) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Erro ao conectar ao Google Drive!</>,
+          enqueueSnackbar(<>Erro ao conectar ao Google Drive!</>, {
+            variant: "error",
           });
           setLoadingPicker(false);
           return;

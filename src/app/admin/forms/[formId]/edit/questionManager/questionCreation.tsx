@@ -1,13 +1,17 @@
 "use client";
 
+import QuestionDeletionDialog from "@/app/admin/forms/[formId]/edit/questionManager/questionDeletionDialog";
 import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import { useFetchQuestionUses } from "@/lib/serverFunctions/apiCalls/question";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import {
+  useFetchQuestionUses,
+  useQuestionSubmit,
+  useQuestionUpdate,
+} from "@/lib/serverFunctions/apiCalls/question";
 import { FetchquestionUsesResponse } from "@/lib/serverFunctions/queries/question";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
 import CButton from "@components/ui/cButton";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useHelperCard } from "@context/helperCardContext";
 import type {
   OptionForQuestionPicker,
   QuestionPickerQuestionToEdit,
@@ -19,16 +23,15 @@ import type {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { _questionSubmit, _questionUpdate } from "@serverActions/questionUtil";
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
   IconCheck,
+  IconTrash,
 } from "@tabler/icons-react";
 import {
   type FormEventHandler,
   type ReactNode,
-  startTransition,
   useEffect,
   useState,
 } from "react";
@@ -66,7 +69,7 @@ const QuestionCreation = ({
   const activeCategoryName = question?.categoryName ?? categoryName;
   const activeSubcategoryId = question?.subcategoryId ?? subcategoryId;
   const activeSubcategoryName = question?.subcategoryName ?? subcategoryName;
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const [pageState, setPageState] = useState<"FORM" | "SUCCESS">("FORM");
   const [reloadOnClose, setReloadOnClose] = useState(false);
   const [title, setTitle] = useState<string | null>(null);
@@ -98,6 +101,8 @@ const QuestionCreation = ({
     useState<QuestionCreationDraft | null>(null);
   const [questionUses, setQuestionUses] =
     useState<FetchquestionUsesResponse | null>(null);
+  const [openDeleteQuestionDialog, setOpenDeleteQuestionDialog] =
+    useState(false);
 
   const [fetchQuestionUses, isFetchingQuestionUses] = useFetchQuestionUses({
     callbacks: {
@@ -107,8 +112,7 @@ const QuestionCreation = ({
     },
   });
 
-  const [createFormAction, isCreatePending] = useResettableActionState({
-    action: _questionSubmit,
+  const [createQuestion, isCreatePending] = useQuestionSubmit({
     callbacks: {
       onSuccess: () => {
         setReloadOnClose(true);
@@ -118,12 +122,8 @@ const QuestionCreation = ({
         setPageState("FORM");
       },
     },
-    options: {
-      loadingMessage: "Salvando questão...",
-    },
   });
-  const [updateFormAction, isUpdatePending] = useResettableActionState({
-    action: _questionUpdate,
+  const [updateQuestion, isUpdatePending] = useQuestionUpdate({
     callbacks: {
       onSuccess: () => {
         fetchCategoriesAfterCreation();
@@ -133,9 +133,6 @@ const QuestionCreation = ({
       onError: () => {
         setPageState("FORM");
       },
-    },
-    options: {
-      loadingMessage: "Salvando questão...",
     },
   });
   const isPending = isCreatePending || isUpdatePending;
@@ -260,7 +257,9 @@ const QuestionCreation = ({
     if (!open || !question) {
       return;
     }
-    void fetchQuestionUses({ questionId: question.id });
+    void fetchQuestionUses({
+      params: { questionId: question.id },
+    });
     setType(question.questionType);
     setCharacterType(question.characterType);
     setSelectionType(question.optionType);
@@ -277,8 +276,8 @@ const QuestionCreation = ({
     setGeometryTypes(question.geometryTypes);
     setSelectedIconKey(question.iconKey);
     setPageState("FORM");
-    setMinValue(question.scaleConfig?.minValue ?? null);
-    setMaxValue(question.scaleConfig?.maxValue ?? null);
+    setMinValue(question.minValue ?? null);
+    setMaxValue(question.maxValue ?? null);
     setScaleOptionMode("MANUAL");
     setScaleStep(null);
     setIsPublic(question.isPublic);
@@ -291,11 +290,7 @@ const QuestionCreation = ({
   }, [open, question, fetchQuestionUses]);
 
   const showError = (content: ReactNode) => {
-    setHelperCard({
-      show: true,
-      helperCardType: "ERROR",
-      content,
-    });
+    enqueueSnackbar(content, { variant: "error" });
   };
 
   const validateCurrentQuestion = () => {
@@ -348,6 +343,8 @@ const QuestionCreation = ({
       notes: notes.length > 0 ? notes : null,
       iconKey: selectedIconKey ?? "",
       isPublic,
+      minValue: minValue ?? null,
+      maxValue: maxValue ?? null,
       questionType: type as QuestionTypes,
       characterType: characterType as QuestionResponseCharacterTypes,
       optionType:
@@ -359,15 +356,14 @@ const QuestionCreation = ({
         hasAssociatedGeometry === true ?
           (geometryTypes as QuestionGeometryTypes[])
         : [],
-      scaleConfig:
-        characterType === "SCALE" && minValue !== null && maxValue !== null ?
-          { minValue, maxValue }
-        : null,
     };
   };
 
   const handleSubmit: FormEventHandler<HTMLDivElement> &
     FormEventHandler<HTMLFormElement> = (event) => {
+    if (openDeleteQuestionDialog) {
+      return;
+    }
     if (!(event.currentTarget instanceof HTMLFormElement)) {
       return;
     }
@@ -396,16 +392,18 @@ const QuestionCreation = ({
       return;
     }
 
-    startTransition(() => {
-      if (isEditing) {
-        updateFormAction(pendingFormData);
-        return;
-      }
-      createFormAction(pendingFormData);
+    const submitQuestion = isEditing ? updateQuestion : createQuestion;
+    void submitQuestion({
+      data: pendingFormData,
+      projectOptions: { loadingMessage: "Salvando questão..." },
     });
   };
 
   const handleCancel = () => {
+    if (isEditing && step === 1) {
+      setOpenDeleteQuestionDialog(true);
+      return;
+    }
     if (step === 2) {
       setStep(1);
       return;
@@ -423,8 +421,15 @@ const QuestionCreation = ({
       onSubmit={handleSubmit}
       title={isEditing ? "Editar questão" : "Criar questão"}
       confirmChildren={step === 1 ? <IconArrowForwardUp /> : <IconCheck />}
-      cancelChildren={pageState === "FORM" ? <IconArrowBackUp /> : undefined}
-      disableCancelButton={step === 1}
+      cancelChildren={
+        pageState === "FORM" ?
+          isEditing && step === 1 ?
+            <IconTrash />
+          : <IconArrowBackUp />
+        : undefined
+      }
+      disableCancelButton={step === 1 && !isEditing}
+      cancelColor={isEditing && step === 1 ? "error" : "primary"}
       onCancel={handleCancel}
       confirmLoading={isPending}
       disableConfirmButton={
@@ -544,6 +549,19 @@ const QuestionCreation = ({
           </div>
         )}
       </div>
+      <QuestionDeletionDialog
+        open={openDeleteQuestionDialog}
+        onClose={() => {
+          setOpenDeleteQuestionDialog(false);
+        }}
+        onDeleted={() => {
+          fetchCategoriesAfterCreation();
+          resetModal();
+          onClose();
+        }}
+        questionId={question?.id}
+        questionName={question?.name}
+      />
     </CDialog>
   );
 };

@@ -1,13 +1,15 @@
+"use client";
+
 import { IconMoodSad } from "@tabler/icons-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import ButtonLink from "../../../components/ui/buttonLink";
 import AuthPageShell from "../authPageShell";
 
-const AuthErrorPage = async (props: {
-  searchParams: Promise<{ error: string }>;
-}) => {
-  const searchParams = await props.searchParams;
-  const error = searchParams.error;
+const AuthErrorContent = () => {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   return (
     <AuthPageShell>
@@ -27,6 +29,14 @@ const AuthErrorPage = async (props: {
         </ButtonLink>
       </div>
     </AuthPageShell>
+  );
+};
+
+const AuthErrorPage = () => {
+  return (
+    <Suspense>
+      <AuthErrorContent />
+    </Suspense>
   );
 };
 

@@ -1,11 +1,10 @@
 "use client";
 
-import { _saveCity } from "@/lib/serverFunctions/serverActions/city";
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useSaveCity } from "@/lib/serverFunctions/apiCalls/city";
 import { Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
 import { IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
 
 import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
 import CTextField from "../../../../../../components/ui/cTextField";
@@ -38,8 +37,7 @@ const SaveCityDialog = ({
   reloadCities: () => void;
   openDeleteDialog: () => void;
 }) => {
-  const [formAction, isPending] = useResettableActionState({
-    action: _saveCity,
+  const [saveCity, isPending] = useSaveCity({
     callbacks: {
       onSuccess() {
         reloadCities();
@@ -53,10 +51,16 @@ const SaveCityDialog = ({
   useEffect(() => {
     setCityState(previouslySelectedState);
   }, [previouslySelectedState]);
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void saveCity({ data: new FormData(event.currentTarget) });
+  };
+
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       open={open}
       onClose={onClose}
       onCancel={openDeleteDialog}

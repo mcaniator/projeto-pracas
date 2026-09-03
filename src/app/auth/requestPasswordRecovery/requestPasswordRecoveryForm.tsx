@@ -1,21 +1,19 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
-import { useHelperCard } from "@components/context/helperCardContext";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useRequestPasswordReset } from "@/lib/serverFunctions/apiCalls/auth";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import { Input } from "@components/ui/input";
-import { _createPasswordReset } from "@serverActions/passwordResetUtil";
-import { startTransition, useActionState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
 const RequestPasswordRecoveryForm = () => {
-  const { setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlayVisible } = useLoadingOverlay();
-  const [state, formAction, isPending] = useActionState(
-    _createPasswordReset,
-    null,
-  );
+  const [requestPasswordReset, isPending] = useRequestPasswordReset();
+  const [state, setState] = useState<{ statusCode: number } | null>(null);
 
   useEffect(() => {
     setLoadingOverlayVisible(isPending);
@@ -23,54 +21,41 @@ const RequestPasswordRecoveryForm = () => {
 
   useEffect(() => {
     if (state?.statusCode === 503) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Serviço indisponível!</>,
-      });
+      enqueueSnackbar(<>Serviço indisponível!</>, { variant: "error" });
     } else if (state?.statusCode === 400) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>E-mail em formato incorreto!</>,
-      });
+      enqueueSnackbar(<>E-mail em formato incorreto!</>, { variant: "error" });
     } else if (state?.statusCode === 409) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: (
-          <>
-            Um e-mail de recuperação de senha já foi enviado para este endereço
-            de e-mail!
-          </>
-        ),
-      });
+      enqueueSnackbar(
+        <>
+          Um e-mail de recuperação de senha já foi enviado para este endereço de
+          e-mail!
+        </>,
+        { variant: "error" },
+      );
     } else if (state?.statusCode === 201) {
-      setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        customTimeout: 15000,
-        content: (
-          <>
-            E-mail enviado! Por favor, confira sua caixa de entrada. Caso não
-            tenha recebido, certifique-se que o endereço informado é o mesmo
-            utilizado para se cadastrar no sistema.
-          </>
-        ),
-      });
+      enqueueSnackbar(
+        <>
+          E-mail enviado! Por favor, confira sua caixa de entrada. Caso não
+          tenha recebido, certifique-se que o endereço informado é o mesmo
+          utilizado para se cadastrar no sistema.
+        </>,
+        { variant: "success" },
+      );
     } else if (state?.statusCode === 500) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao registrar recuperação de senha.</>,
+      enqueueSnackbar(<>Erro ao registrar recuperação de senha.</>, {
+        variant: "error",
       });
     }
-  }, [state, setHelperCard]);
+  }, [state, enqueueSnackbar]);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    startTransition(() => formAction(formData));
+    const response = await requestPasswordReset({
+      data: formData,
+      projectOptions: { silent: true },
+    });
+    setState({ statusCode: response.responseInfo.statusCode });
   }
 
   return (

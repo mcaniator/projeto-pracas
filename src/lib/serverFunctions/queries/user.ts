@@ -1,15 +1,23 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { getSessionUser } from "@auth/userUtil";
 import { prisma } from "@lib/prisma";
 
-const getUserAuthInfo = async (userId: string | undefined | null) => {
-  if (!userId) return null;
-  const sessionUser = await getSessionUser();
-  if (!sessionUser || sessionUser.id !== userId) return null;
+export type FetchCurrentUserResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchCurrentUser>>
+>["data"];
+export type CurrentUser = NonNullable<FetchCurrentUserResponse["user"]>;
+export const fetchCurrentUser = async (
+  _request: APIRequest,
+) => {
   try {
+    const sessionUser = await getSessionUser();
+    if (!sessionUser) return null;
     const user = await prisma.user.findUnique({
       where: {
-        id: userId,
+        id: sessionUser.id,
       },
       select: {
         id: true,
@@ -20,36 +28,33 @@ const getUserAuthInfo = async (userId: string | undefined | null) => {
         roles: true,
       },
     });
-    return user;
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        user,
+      },
+    };
   } catch (e) {
-    return null;
-  }
-};
-
-const getUserContentAmount = async (userId: string) => {
-  try {
-    const [assessments, tallys] = await Promise.all([
-      prisma.assessment.count({
-        where: {
-          userId,
-        },
-      }),
-      prisma.tally.count({
-        where: {
-          userId,
-        },
-      }),
-    ]);
-    return { statusCode: 200, assessments, tallys };
-  } catch (e) {
-    return { statusCode: 500, assessments: null, tallys: null };
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar usuário!",
+      } as APIResponseInfo,
+      data: {
+        user: null,
+      },
+    };
   }
 };
 
 export type FetchUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchUsers>>["data"]
 >;
-export const fetchUsers = async () => {
+export const fetchUsers = async (
+  _request: APIRequest,
+) => {
   try {
     const users = await prisma.user.findMany();
     return {
@@ -72,5 +77,3 @@ export const fetchUsers = async () => {
     };
   }
 };
-
-export { getUserAuthInfo, getUserContentAmount };

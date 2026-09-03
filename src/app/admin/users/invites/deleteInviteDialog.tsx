@@ -1,7 +1,6 @@
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useDeleteInvite } from "@/lib/serverFunctions/apiCalls/invite";
 import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
-import { _deleteInviteV2 } from "@/lib/serverFunctions/serverActions/inviteUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { IconTrash } from "@tabler/icons-react";
 
 const DeleteInviteDialog = ({
@@ -15,8 +14,7 @@ const DeleteInviteDialog = ({
   invite: FetchInvitesResponse["invites"][number];
   updateTable: () => void;
 }) => {
-  const [action, loading] = useServerAction({
-    action: _deleteInviteV2,
+  const [action, loading] = useDeleteInvite({
     callbacks: {
       onSuccess() {
         updateTable();
@@ -34,7 +32,7 @@ const DeleteInviteDialog = ({
       confirmColor="error"
       confirmChildren={<IconTrash />}
       onConfirm={() => {
-        void action({ id: invite.id });
+        void action({ data: { id: invite.id } });
       }}
     ></CDialog>
   );

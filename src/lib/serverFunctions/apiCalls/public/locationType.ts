@@ -1,5 +1,7 @@
-import { PublicFetchLocationTypesParams } from "@/app/api/public/locationTypes/route";
-import { PublicFetchLocationTypesResponse } from "@/lib/serverFunctions/queries/public/locationType";
+import type {
+  PublicFetchLocationTypesParams,
+  PublicFetchLocationTypesResponse,
+} from "@/lib/serverFunctions/queries/public/locationType";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -15,7 +17,6 @@ export const usePublicFetchLocationTypes = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["locationType", "database"] },
     },
   });
 };

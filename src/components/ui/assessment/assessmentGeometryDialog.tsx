@@ -1,7 +1,7 @@
 "use client";
 
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
 import dynamic from "next/dynamic";
 
 const AssessmentViewerMapProvider = dynamic(

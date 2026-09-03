@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 
 type LocationCategories = Awaited<ReturnType<typeof fetchLocationCategories>>;
 
@@ -8,7 +11,9 @@ export type FetchLocationCategoriesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchLocationCategories>>["data"]
 >;
 
-export const fetchLocationCategories = async () => {
+export const fetchLocationCategories = async (
+  _request: APIRequest,
+) => {
   try {
     const locationCategories = await prisma.locationCategory.findMany();
     return {

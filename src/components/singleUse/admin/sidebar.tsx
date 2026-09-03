@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "@/components/button";
+import { useNetwork } from "@/components/context/networkContext";
 import { cn } from "@/lib/cn";
 import { titillium_web } from "@/lib/fonts";
+import { Capacitor } from "@capacitor/core";
 import {
   IconClipboard,
   IconListCheck,
@@ -12,6 +14,7 @@ import {
   IconTableExport,
   IconTree,
   IconUserCog,
+  IconWifiOff,
   IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -25,6 +28,7 @@ import ButtonLink from "../../ui/buttonLink";
 
 const Sidebar = () => {
   const { user } = useUserContext();
+  const { isConnected } = useNetwork();
   const currentLocation = usePathname();
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
@@ -77,21 +81,41 @@ const Sidebar = () => {
       icon: <IconTableExport size={34} />,
       name: "Exportar",
       path: "/admin/export",
-      show: true,
+      show: isConnected,
     },
     {
       icon: <IconLogs size={34} />,
       name: "Atividade",
       path: "/admin/activity",
-      show: checkIfRolesArrayContainsAny(user.roles, {
-        roleGroups: ["ASSESSMENT", "TALLY"],
-      }),
+      show:
+        isConnected &&
+        checkIfRolesArrayContainsAny(user.roles, {
+          roleGroups: ["ASSESSMENT", "TALLY"],
+        }),
+    },
+    {
+      icon: <IconWifiOff size={34} />,
+      name: "Uso offline",
+      path: "/admin/capacitor/capacitorDataSync",
+      show:
+        checkIfRolesArrayContainsAny(user.roles, {
+          roles: [
+            "ASSESSMENT_EDITOR",
+            "ASSESSMENT_MANAGER",
+            "TALLY_EDITOR",
+            "TALLY_MANAGER",
+          ],
+        }) &&
+        (Capacitor.isNativePlatform() ||
+          process.env.NEXT_PUBLIC_DEBUG === "true"),
     },
     {
       icon: <IconUserCog size={34} />,
       name: "Usuários",
       path: "/admin/users",
-      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["USER"] }),
+      show:
+        isConnected &&
+        checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["USER"] }),
     },
   ];
 
@@ -99,7 +123,7 @@ const Sidebar = () => {
     <div className="relative z-[51]">
       <button
         onClick={toggleSidebar}
-        className="fixed left-4 top-2 z-[51] items-center md:top-3"
+        className="fixed left-4 top-1 z-[51] items-center"
       >
         {!isSidebarVisible && <IconMenu2 size={34} />}
       </button>

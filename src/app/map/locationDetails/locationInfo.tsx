@@ -37,7 +37,9 @@ const LocationInfo = ({
     setLatestAssessment(undefined);
     if (location.latestAssessmentId) {
       void fetchLatestAssessmentTree({
-        assessmentId: String(location.latestAssessmentId),
+        params: {
+          assessmentId: String(location.latestAssessmentId),
+        },
       });
     } else {
       setLatestAssessment(undefined);

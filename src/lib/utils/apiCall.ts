@@ -1,7 +1,3 @@
-import {
-  APIResponse,
-  APIResponseInfo,
-} from "@lib/types/backendCalls/APIResponse";
 import { z } from "zod";
 
 export const generatePrismaPaginationObject = ({
@@ -115,34 +111,26 @@ export const replaceRouteParams = <P extends Record<string, unknown>>(
   };
 };
 
-export async function fetchAPI<T>({
-  url,
-  params,
-  options,
-}: {
-  url: string;
-  params?: Record<string, unknown>;
-  options?: RequestInit & { next?: { tags?: string[] } };
-}): Promise<{ responseInfo: APIResponseInfo; data: T | null | undefined }> {
-  const queryString = params ? generateQueryString(params) : "";
-  const fullUrl = queryString ? `${url}?${queryString}` : url;
-  const response = await fetch(fullUrl, options);
-
-  if (!response.ok) {
-    const message = await response.text();
-    return {
-      responseInfo: {
-        statusCode: response.status,
-        message: message ?? `Erro na requisição ao servidor!`,
-      },
-      data: null,
-    };
+export const getApiBaseUrl = () => {
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/$/, "");
   }
 
-  const json = (await response.json()) as APIResponse<T>;
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
 
-  return {
-    responseInfo: json.responseInfo,
-    data: json.data,
-  };
-}
+  return "";
+};
+
+export const buildApiUrl = (url: string) => {
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+
+  const baseUrl = getApiBaseUrl();
+  const path = url.startsWith("/") ? url : `/${url}`;
+
+  return `${baseUrl}${path}`;
+};

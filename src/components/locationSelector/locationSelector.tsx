@@ -233,7 +233,9 @@ const LocationSelector = ({
   const loadDefaultLocation = useCallback(async () => {
     if (!defaultLocationId || hasLoadedDefaultLocation) return;
     await _fetchDefaultLocation({
-      locationId: defaultLocationId,
+      params: {
+        locationId: defaultLocationId,
+      },
     });
   }, []);
 
@@ -243,14 +245,18 @@ const LocationSelector = ({
       return;
     }
     await _fetchLocations({
-      cityId: selectedCity?.id,
+      params: {
+        cityId: selectedCity?.id,
+      },
     });
   }, [_fetchLocations, selectedCity]);
 
   const loadCitiesOptions = useCallback(async () => {
     await _fetchCities({
-      state: state,
-      includeAdminstrativeRegions: true,
+      params: {
+        state: state,
+        includeAdminstrativeRegions: true,
+      },
     });
   }, [state, _fetchCities]);
 

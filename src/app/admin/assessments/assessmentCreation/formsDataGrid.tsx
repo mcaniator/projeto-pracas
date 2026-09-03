@@ -23,7 +23,7 @@ const FormsDataGrid = ({
     },
   });
   const loadForms = useCallback(() => {
-    void _fetchForms({ finalizedOnly: true });
+    void _fetchForms({ params: { finalizedOnly: true } });
   }, [_fetchForms]);
   useEffect(() => {
     void loadForms();
@@ -54,7 +54,7 @@ const FormsDataGrid = ({
       headerName: "Última edição",
       width: 180,
       renderCell: (params: GridRenderCellParams<FormRow>) =>
-        dateTimeWithoutSecondsFormater.format(new Date(params.row.updatedAt)),
+        dateTimeWithoutSecondsFormater.format(params.row.updatedAt),
     },
   ];
   return (

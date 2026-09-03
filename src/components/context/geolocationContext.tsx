@@ -1,5 +1,7 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 import {
   ReactNode,
   createContext,
@@ -27,11 +29,7 @@ const GeolocationContext = createContext<GeolocationContextType | undefined>(
   undefined,
 );
 
-export const GeolocationProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
+export const GeolocationProvider = ({ children }: { children: ReactNode }) => {
   const [cachedUserCoordinates, setCachedUserCoordinates] =
     useState<UserCoordinates | null>(null);
   const [pendingUserLocationReads, setPendingUserLocationReads] = useState(0);
@@ -40,34 +38,55 @@ export const GeolocationProvider = ({
     async ({
       maximumAge,
     }: ReadLocationOptions): Promise<UserCoordinates | null> => {
+      if (Capacitor.isNativePlatform()) {
+        setPendingUserLocationReads((current) => current + 1);
+
+        try {
+          const position = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            maximumAge,
+            timeout: 60000,
+          });
+          const coordinates: UserCoordinates = [
+            position.coords.longitude,
+            position.coords.latitude,
+          ];
+          setCachedUserCoordinates(coordinates);
+          return coordinates;
+        } catch {
+          return null;
+        } finally {
+          setPendingUserLocationReads((current) => Math.max(0, current - 1));
+        }
+      }
+
       if (typeof navigator === "undefined" || !navigator.geolocation) {
         return null;
       }
 
-      return new Promise((resolve) => {
-        setPendingUserLocationReads((current) => current + 1);
+      setPendingUserLocationReads((current) => current + 1);
 
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const coordinates: UserCoordinates = [
-              pos.coords.longitude,
-              pos.coords.latitude,
-            ];
-            setCachedUserCoordinates(coordinates);
-            setPendingUserLocationReads((current) => Math.max(0, current - 1));
-            resolve(coordinates);
-          },
-          () => {
-            setPendingUserLocationReads((current) => Math.max(0, current - 1));
-            resolve(null);
-          },
-          {
-            enableHighAccuracy: false,
-            maximumAge,
-            timeout: 60000,
+      try {
+        const position = await new Promise<GeolocationPosition>(
+          (resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              maximumAge,
+              timeout: 60000,
+            });
           },
         );
-      });
+        const coordinates: UserCoordinates = [
+          position.coords.longitude,
+          position.coords.latitude,
+        ];
+        setCachedUserCoordinates(coordinates);
+        return coordinates;
+      } catch {
+        return null;
+      } finally {
+        setPendingUserLocationReads((current) => Math.max(0, current - 1));
+      }
     },
     [],
   );

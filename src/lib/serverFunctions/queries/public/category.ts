@@ -1,14 +1,26 @@
-import { PublicFetchCategoriesParams } from "@/app/api/public/locationCategories/route";
 import { prisma } from "@/lib/prisma";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
+import { z } from "zod";
+
+export const publicFetchCategoriesParamsSchema = z.object({
+  cityId: z.coerce.number(),
+});
+
+export type PublicFetchCategoriesParams = z.infer<
+  typeof publicFetchCategoriesParamsSchema
+>;
 
 export type PublicFetchCategoriesResponse = Awaited<
   ReturnType<typeof publicFetchCategories>
 >["data"];
 
 export const publicFetchCategories = async (
-  params: PublicFetchCategoriesParams,
+  request: APIRequestParams<PublicFetchCategoriesParams>,
 ) => {
+  const params = request.params!;
   try {
     const categories = await prisma.locationCategory.findMany({
       where: {

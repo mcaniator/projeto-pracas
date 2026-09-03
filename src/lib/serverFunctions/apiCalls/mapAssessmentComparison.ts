@@ -1,11 +1,11 @@
-import { FetchMapAssessmentComparisonResultsParams } from "@/app/api/admin/mapAssessmentComparison/results/route";
-import { FetchMapAssessmentComparisonAssessmentTreesParams } from "@/app/api/admin/mapAssessmentComparison/assessmentTrees/route";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import {
+import type {
+  FetchMapAssessmentComparisonAssessmentTreesParams,
   FetchMapAssessmentComparisonAssessmentTreesResponse,
   FetchMapAssessmentComparisonCategoriesResponse,
+  FetchMapAssessmentComparisonResultsParams,
   FetchMapAssessmentComparisonResultsResponse,
 } from "../queries/mapAssessmentComparison";
 
@@ -20,7 +20,6 @@ export const useFetchMapAssessmentComparisonCategories = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -36,7 +35,6 @@ export const useFetchMapAssessmentComparisonResults = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };
@@ -52,7 +50,6 @@ export const useFetchMapAssessmentComparisonAssessmentTrees = (
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["assessment", "database"] },
     },
   });
 };

@@ -1,20 +1,36 @@
 import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDialog";
+import CancelAssessmentSyncDialog from "@/app/admin/assessments/cancelAssessmentSyncDialog";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
+import { useNetwork } from "@/components/context/networkContext";
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { _updateAssessmentVisibility } from "@/lib/serverFunctions/serverActions/assessmentUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
+import {
+  deleteAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentTableData,
+  fetchAdminSQLiteAssessmentTree,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  useAddResponses,
+  useCreateAssessment,
+  useUpdateAssessmentVisibility,
+} from "@/lib/serverFunctions/apiCalls/assessment";
+import { Capacitor } from "@capacitor/core";
 import { Chip, Divider } from "@mui/material";
 import {
+  IconAlertTriangle,
   IconCalendar,
   IconCheck,
   IconClipboard,
-  IconCloudExclamation,
+  IconCloudX,
+  IconDeviceFloppy,
   IconExternalLink,
   IconEye,
   IconFilePencil,
+  IconUpload,
   IconUser,
 } from "@tabler/icons-react";
+import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
@@ -24,22 +40,34 @@ import type { AssessmentWithSyncStatus } from "./assessmentsClient";
 
 const AssessmentsList = ({
   assessments,
+  hasSQLiteAssessments,
   handleVisibilityChange,
+  fetchAssessments,
 }: {
   assessments: AssessmentWithSyncStatus[];
+  hasSQLiteAssessments: boolean;
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
+  fetchAssessments: () => void;
 }) => {
+  const { isConnected, isConnectedRef } = useNetwork();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
     id: number;
     locationName: string;
     isPublic: boolean;
   }>();
 
+  const [pendingCancelAssessmentSync, setPendingCancelAssessmentSync] =
+    useState<AssessmentWithSyncStatus | null>(null);
+
   const [selectedAssessmentToView, setSelectedAssessmentToView] =
     useState<AssessmentWithSyncStatus | null>(null);
 
-  const [updateVisibility, updatingVisibility] = useServerAction({
-    action: _updateAssessmentVisibility,
+  const [createAssessmentOnServer] = useCreateAssessment({
+    disableOfflineFallback: true,
+  });
+  const [addResponsesOnServer] = useAddResponses(); //This hook does not have offline fallback
+  const [updateVisibility, updatingVisibility] = useUpdateAssessmentVisibility({
     callbacks: {
       onSuccess: () => {
         if (pendingVisibilityChange === undefined) {
@@ -57,11 +85,126 @@ const AssessmentsList = ({
       },
     },
   });
+
+  const assessmentSync = async (assessment: AssessmentWithSyncStatus) => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    if (isConnectedRef.current === false) {
+      enqueueSnackbar("Sem conexão!", {
+        variant: "error",
+      });
+      return;
+    }
+
+    if (assessment.hasPendingSaveFromDraft) {
+      enqueueSnackbar("Salve as respostas antes de sincronizar!", {
+        variant: "error",
+      });
+      return;
+    }
+    try {
+      setLoadingOverlay({ show: true, message: "Sincronizando avaliação..." });
+      const assessmentTableDataResponse =
+        await fetchAdminSQLiteAssessmentTableData({
+          params: {
+            assessmentId: assessment.id,
+          },
+        });
+      const SQLiteAssessmentTableData = assessmentTableDataResponse.data;
+      if (!SQLiteAssessmentTableData) {
+        enqueueSnackbar("Avaliação não encontrada no dispositivo!", {
+          variant: "error",
+        });
+        return;
+      }
+      let serverAssessmentId = SQLiteAssessmentTableData.id; // We initialize with the local id. If it is an existing assessment, it will aleady be correct. Otherwise, we will create a new one on the server and update the variable.
+      if (SQLiteAssessmentTableData.createdLocally) {
+        //Create the assessment on the server
+        const createAssessmentResponse = await createAssessmentOnServer({
+          data: {
+            locationId: SQLiteAssessmentTableData.locationId,
+            startDate: SQLiteAssessmentTableData.startDate,
+            formId: SQLiteAssessmentTableData.formId,
+            endDate: SQLiteAssessmentTableData.endDate,
+            isFinalized: SQLiteAssessmentTableData.isFinalized,
+            driveFolderUrl: SQLiteAssessmentTableData.driveFolderUrl,
+            createdAt: SQLiteAssessmentTableData.createdAt,
+            updatedAt: SQLiteAssessmentTableData.updatedAt,
+          },
+        });
+        if (!createAssessmentResponse.data?.assessmentId) {
+          enqueueSnackbar("Erro ao criar avaliação!", {
+            variant: "error",
+          });
+          return;
+        }
+        serverAssessmentId = createAssessmentResponse.data.assessmentId;
+      }
+      // Fetch responses from SQLite and send them to the server
+      const SQLiteAssessmentTree = await fetchAdminSQLiteAssessmentTree({
+        params: {
+          assessmentId: assessment.id,
+        },
+      });
+      const SQLiteAssessmentTreeData =
+        SQLiteAssessmentTree.data?.assessmentTree;
+      if (!SQLiteAssessmentTreeData) {
+        enqueueSnackbar(
+          "Respostas da avaliação não encontradas no dispositivo!",
+          {
+            variant: "error",
+          },
+        );
+        return;
+      }
+      await addResponsesOnServer({
+        data: {
+          assessmentId: serverAssessmentId,
+          startDate: SQLiteAssessmentTreeData.startDate,
+          endDate: SQLiteAssessmentTreeData.endDate,
+          isFinalized: SQLiteAssessmentTreeData.isFinalized,
+          driveFolderUrl: SQLiteAssessmentTreeData.driveFolderUrl,
+          geometries: SQLiteAssessmentTreeData.geometries,
+          responses: SQLiteAssessmentTreeData.responsesFormValues,
+        },
+      });
+
+      //Delete local data, as it is no longer need
+      await deleteAdminSQLiteAssessment({
+        data: {
+          assessmentId: assessment.id,
+        },
+      });
+
+      //Refresh the list
+      fetchAssessments();
+    } catch (e) {
+      enqueueSnackbar("Erro ao sincronizar!", { variant: "error" });
+    } finally {
+      setLoadingOverlay({ show: false });
+    }
+  };
+
   return (
     <div className="flex h-full flex-col gap-1">
       {assessments.length === 0 && (
         <div className="text-center text-xl font-semibold">
           Nenhuma avaliação corresponde aos filtros!
+        </div>
+      )}
+      {hasSQLiteAssessments && (
+        <div className="text-center font-semibold">
+          <Chip
+            icon={<IconAlertTriangle />}
+            label="Há avaliações salvas localmente!"
+            color="warning"
+          />
+          <p>
+            É necessário enviar as avaliações do dispositivo ao servidor para
+            ver todas as outras.
+          </p>
         </div>
       )}
       <Virtuoso
@@ -80,7 +223,9 @@ const AssessmentsList = ({
                       icon={<IconFilePencil />}
                       tooltip="Avaliação - Praça"
                     />
-                    {`${a.id} - ${a.location.name} `}
+                    {hasSQLiteAssessments ?
+                      `${a.location.name}`
+                    : `${a.id} - ${a.location.name}`}
                     <Chip
                       sx={{ ml: 2 }}
                       color={a.isFinalized ? "secondary" : "warning"}
@@ -88,12 +233,12 @@ const AssessmentsList = ({
                     />
                   </span>
                   <Divider />
-                  {a.hasUnsyncedFilling && (
+                  {a.hasPendingSaveFromDraft && (
                     <>
                       <span className="flex items-center text-base sm:text-xl">
                         <Chip
-                          icon={<IconCloudExclamation />}
-                          label="Respostas não enviadas!"
+                          icon={<IconDeviceFloppy />}
+                          label="Respostas não salvas!"
                           color="error"
                         />
                       </span>
@@ -110,7 +255,7 @@ const AssessmentsList = ({
                       icon={<IconCalendar />}
                       tooltip={a.endDate ? "Início - Fim" : "Início"}
                     />
-                    {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
+                    {`${dateTimeFormatter.format(a.startDate)} ${a.endDate ? `- ${dateTimeFormatter.format(a.endDate)}` : ""}`}
                   </span>
                   <Divider />
                   <span className="flex items-center text-base sm:text-xl">
@@ -119,7 +264,11 @@ const AssessmentsList = ({
                   </span>
                   <Divider />
                   <span className="flex items-center gap-2 text-base sm:text-xl">
-                    {!a.hasUnsyncedFilling && a.isFinalized ?
+                    {(
+                      !a.hasPendingSaveFromDraft &&
+                      a.isFinalized &&
+                      !hasSQLiteAssessments
+                    ) ?
                       <CButton
                         square
                         onClick={() => {
@@ -131,7 +280,7 @@ const AssessmentsList = ({
                     : <CButton
                         square
                         loadingOnClick
-                        href={`/admin/assessments/${a.id}`}
+                        href={`/admin/assessments/details?assessmentId=${a.id}${Capacitor.isNativePlatform() ? `&isSQLiteAssessment=${hasSQLiteAssessments}` : ``}`}
                       >
                         <IconExternalLink />
                         Acessar
@@ -139,29 +288,53 @@ const AssessmentsList = ({
                     }
 
                     <Divider orientation="vertical" />
-                    <CSwitch
-                      checked={
-                        pendingVisibilityChange?.id === a.id ?
-                          pendingVisibilityChange.isPublic
-                        : a.isPublic
-                      }
-                      disabled={a.hasUnsyncedFilling || !a.isFinalized}
-                      tooltip={
-                        a.hasUnsyncedFilling ?
-                          "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
-                        : !a.isFinalized ?
-                          "A avaliação ainda nao foi finalizada!"
-                        : ""
-                      }
-                      label="Visível publicamente"
-                      onChange={(e) => {
-                        setPendingVisibilityChange({
-                          id: a.id,
-                          locationName: a.location.name,
-                          isPublic: e.target.checked,
-                        });
-                      }}
-                    />
+                    {hasSQLiteAssessments ?
+                      <div className="flex items-center gap-2">
+                        <CButton
+                          square
+                          onClick={() => {
+                            void assessmentSync(a);
+                          }}
+                        >
+                          <IconUpload /> Sincronizar
+                        </CButton>
+                        <CButton
+                          square
+                          color="error"
+                          onClick={() => {
+                            setPendingCancelAssessmentSync(a);
+                          }}
+                        >
+                          <IconCloudX />
+                        </CButton>
+                      </div>
+                    : <CSwitch
+                        checked={
+                          pendingVisibilityChange?.id === a.id ?
+                            pendingVisibilityChange.isPublic
+                          : a.isPublic
+                        }
+                        disabled={a.hasPendingSaveFromDraft || !a.isFinalized}
+                        tooltip={
+                          !isConnected ? "Nao conectado ao servidor!"
+                          : hasSQLiteAssessments ?
+                            "Não é possível alterar a visibilidade de uma avaliação não enviada!"
+                          : a.hasPendingSaveFromDraft ?
+                            "Não é possível alterar a visibilidade de uma avaliação com respostas nao enviadas!"
+                          : !a.isFinalized ?
+                            "A avaliação ainda nao foi finalizada!"
+                          : ""
+                        }
+                        label="Visível publicamente"
+                        onChange={(e) => {
+                          setPendingVisibilityChange({
+                            id: a.id,
+                            locationName: a.location.name,
+                            isPublic: e.target.checked,
+                          });
+                        }}
+                      />
+                    }
                   </span>
                 </div>
               </div>
@@ -179,8 +352,10 @@ const AssessmentsList = ({
         confirmLoading={updatingVisibility}
         onConfirm={() => {
           void updateVisibility({
-            assessmentId: pendingVisibilityChange!.id,
-            isPublic: pendingVisibilityChange!.isPublic,
+            data: {
+              assessmentId: pendingVisibilityChange!.id,
+              isPublic: pendingVisibilityChange!.isPublic,
+            },
           });
         }}
       >
@@ -195,6 +370,16 @@ const AssessmentsList = ({
         open={!!selectedAssessmentToView}
         onClose={() => setSelectedAssessmentToView(null)}
         assessment={selectedAssessmentToView}
+        isSQLiteAssessment={hasSQLiteAssessments}
+      />
+      <CancelAssessmentSyncDialog
+        assessment={pendingCancelAssessmentSync}
+        onClose={() => {
+          setPendingCancelAssessmentSync(null);
+        }}
+        onDeletion={() => {
+          void fetchAssessments();
+        }}
       />
     </div>
   );

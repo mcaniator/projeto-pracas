@@ -1,18 +1,8 @@
+import { uploadImageResponseParamsSchema } from "@/lib/serverFunctions/storage/drive/assessment";
 import { uploadImageResponse } from "@/lib/serverFunctions/storage/drive/assessment";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
-import { z } from "zod";
-
-const paramsSchema = z.object({
-  folderId: z.string().trim().min(1),
-  image: z
-    .custom<File>((value) => value instanceof File)
-    .refine((file) => file.type.startsWith("image/"), {
-      message: "Arquivo invalido!",
-    }),
-});
-
-export type UploadImageResponseParams = z.infer<typeof paramsSchema>;
+import superjson from "superjson";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,14 +13,14 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const params = paramsSchema.safeParse({
+    const params = uploadImageResponseParamsSchema.safeParse({
       folderId: formData.get("folderId"),
       image: formData.get("image"),
     });
 
     if (!params.success) {
       return new Response(
-        JSON.stringify({
+        superjson.stringify({
           responseInfo: {
             statusCode: 400,
             message: "Dados invalidos para envio da imagem!",
@@ -46,9 +36,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const uploadResponse = await uploadImageResponse(params.data);
+    const uploadResponse = await uploadImageResponse({ data: params.data });
 
-    return new Response(JSON.stringify(uploadResponse), {
+    return new Response(superjson.stringify(uploadResponse), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

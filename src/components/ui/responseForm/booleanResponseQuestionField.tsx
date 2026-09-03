@@ -1,5 +1,5 @@
 import CSwitch from "@/components/ui/cSwtich";
-import type { ResponseQuestionValue } from "./responseFormTypes";
+import type { ResponseQuestionValue } from "@/lib/types/assessments/responseFormTypes";
 
 const BooleanResponseQuestionField = ({
   value,

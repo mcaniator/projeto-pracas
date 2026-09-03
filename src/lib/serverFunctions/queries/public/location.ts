@@ -1,17 +1,28 @@
-import { PublicFetchLocationsParams } from "@/app/api/public/locations/route";
 import { prisma } from "@/lib/prisma";
+import { APIRequestParams } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
 import { PublicLocationForMap } from "@/lib/types/location/location";
 import { buildImageUrl } from "@/lib/utils/image";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
+
+export const publicFetchLocationsParamsSchema = z.object({
+  cityId: z.coerce.number().nullish(),
+  locationId: z.coerce.number().nullish(),
+});
+
+export type PublicFetchLocationsParams = z.infer<
+  typeof publicFetchLocationsParamsSchema
+>;
 
 export type PublicFetchLocationsResponse = NonNullable<
   Awaited<ReturnType<typeof publicFetchLocations>>["data"]
 >;
 
 export const publicFetchLocations = async (
-  params: PublicFetchLocationsParams,
+  request: APIRequestParams<PublicFetchLocationsParams>,
 ) => {
+  const params = request.params!;
   try {
     const locations = await prisma.$queryRaw<Array<PublicLocationForMap>>`
   SELECT DISTINCT

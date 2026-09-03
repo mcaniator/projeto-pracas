@@ -1,8 +1,12 @@
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useDeleteQuestion } from "@/lib/serverFunctions/apiCalls/question";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useLoadingOverlay } from "@context/loadingContext";
-import { _deleteQuestion } from "@lib/serverFunctions/serverActions/questionUtil";
-import { useEffect, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
+
+//TODO: Use type from server
+type ConflictForm = {
+  name: string;
+};
 
 const QuestionDeletionDialog = ({
   questionId,
@@ -11,30 +15,37 @@ const QuestionDeletionDialog = ({
   onClose,
   onDeleted,
 }: {
-  questionId: number;
-  questionName: string;
+  questionId?: number;
+  questionName?: string;
   open: boolean;
   onClose: () => void;
   onDeleted: () => void;
 }) => {
-  const [formAction, isPending, state] = useResettableActionState({
-    action: _deleteQuestion,
+  const [showConflictInfo, setShowConflictInfo] = useState(false);
+  const [conflictForms, setConflictForms] = useState<ConflictForm[]>([]);
+  const { setLoadingOverlay } = useLoadingOverlay();
+  const [deleteQuestion, isPending] = useDeleteQuestion({
     callbacks: {
       onSuccess() {
         handleClose();
         onDeleted();
       },
-      onError() {
+      onError(response) {
         setShowConflictInfo(true);
+        setConflictForms(response.data?.formsWithQuestions ?? []);
       },
     },
   });
-  const [showConflictInfo, setShowConflictInfo] = useState(false);
-  const { setLoadingOverlay } = useLoadingOverlay();
 
   const handleClose = () => {
     setShowConflictInfo(false);
+    setConflictForms([]);
     onClose();
+  };
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteQuestion({ data: new FormData(event.currentTarget) });
   };
 
   useEffect(() => {
@@ -45,14 +56,19 @@ const QuestionDeletionDialog = ({
     }
   }, [isPending, setLoadingOverlay]);
 
+  if (!questionId && !questionName) {
+    return null;
+  }
+
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       open={open}
       onClose={handleClose}
       confirmChildren={<>Excluir</>}
-      title="Excluir questao"
+      confirmColor="error"
+      title="Excluir questão"
       subtitle={questionName}
     >
       <div className="flex flex-col gap-1">
@@ -69,13 +85,13 @@ const QuestionDeletionDialog = ({
           value={questionId}
         />
 
-        {state.responseInfo.statusCode === 409 && showConflictInfo && (
+        {showConflictInfo && conflictForms.length > 0 && (
           <div className="flex flex-col gap-1">
             <h5 className="text-center text-xl font-semibold text-red-500">
-              {`Esta questão está presente em ${state.data.formsWithQuestions.length} formulários:`}
+              {`Esta questão está presente em ${conflictForms.length} formularios:`}
             </h5>
             <ul className="list-inside list-decimal space-y-2 break-words pl-3 font-semibold">
-              {state.data.formsWithQuestions.map((form, index) => (
+              {conflictForms.map((form, index) => (
                 <li
                   key={index}
                   className="px-2 outline outline-1 outline-black"

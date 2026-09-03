@@ -4,11 +4,11 @@ import CImage from "@/components/ui/CImage";
 import CImageInput from "@/components/ui/CImageInput";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
+import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import type {
   ResponseFormImage,
   ResponseFormImages,
-} from "@/components/ui/responseForm/responseFormTypes";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+} from "@/lib/types/assessments/responseFormTypes";
 import { IconPhoto, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 

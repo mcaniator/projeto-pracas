@@ -1,12 +1,11 @@
 import RolesHelpDialogTrigger from "@/app/admin/users/rolesHelpDialogTrigger";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { getRoleForGroup } from "@/lib/auth/rolesUtil";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useCreateInvite } from "@/lib/serverFunctions/apiCalls/invite";
 import { FetchInvitesResponse } from "@/lib/serverFunctions/queries/invite";
-import { _createInviteV2 } from "@/lib/serverFunctions/serverActions/inviteUtil";
-import { useServerAction } from "@/lib/utils/useServerAction";
 import { Role } from "@prisma/client";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -24,9 +23,8 @@ const CreateInviteDialog = ({
   onClose: () => void;
   updateTable: () => void;
 }) => {
-  const { setHelperCard } = useHelperCard();
-  const [action, loading] = useServerAction({
-    action: _createInviteV2,
+  const { enqueueSnackbar } = useAppSnackbar();
+  const [action, loading] = useCreateInvite({
     callbacks: {
       onSuccess() {
         updateTable();
@@ -94,11 +92,7 @@ const CreateInviteDialog = ({
   const copyLink = async () => {
     const url = `${window.location.origin}/auth/register?inviteToken=${invite?.token}`;
     await navigator.clipboard.writeText(url);
-    setHelperCard({
-      show: true,
-      helperCardType: "CONFIRM",
-      content: "Link copiado!",
-    });
+    enqueueSnackbar("Link copiado!", { variant: "success" });
   };
 
   const reset = () => {
@@ -163,9 +157,11 @@ const CreateInviteDialog = ({
       title="Criar convite"
       onConfirm={() => {
         void action({
-          email,
-          roles: userRoles.map((ur) => ur.role).filter((r) => r !== null),
-          inviteId: invite?.id,
+          data: {
+            email,
+            roles: userRoles.map((ur) => ur.role).filter((r) => r !== null),
+            inviteId: invite?.id,
+          },
         });
       }}
       confirmChildren={<IconCheck />}

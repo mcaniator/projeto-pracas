@@ -35,7 +35,9 @@ const PublicAssessmentResultViewerDialog = ({
   useEffect(() => {
     if (!selectedAssessment) return;
     void fetchAssessmentTree({
-      assessmentId: String(selectedAssessment?.id),
+      params: {
+        assessmentId: selectedAssessment?.id,
+      },
     });
   }, [selectedAssessment, fetchAssessmentTree]);
   return (
@@ -48,7 +50,7 @@ const PublicAssessmentResultViewerDialog = ({
       title={locationName}
       subtitle={
         selectedAssessment?.startDate ?
-          dateFormatter.format(new Date(selectedAssessment.startDate))
+          dateFormatter.format(selectedAssessment.startDate)
         : ""
       }
     >

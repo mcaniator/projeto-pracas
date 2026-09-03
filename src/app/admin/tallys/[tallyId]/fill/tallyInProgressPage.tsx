@@ -10,7 +10,6 @@ import TallyPersonActions, {
   ActivityOption,
   SharedCharacteristics,
 } from "@/app/admin/tallys/[tallyId]/fill/tallyPersonActions";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
@@ -23,6 +22,7 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
 import { dexieDb } from "@/lib/dexie/dexie";
 import type { DexieTally } from "@/lib/dexie/dexie";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { weatherNameMap } from "@/lib/translationMaps/tallys";
 import { AgeGroupType, GenderType } from "@/lib/types/tallys/person";
 import { useUserContext } from "@components/context/UserContext";
@@ -48,7 +48,7 @@ import {
   tallyImportDataSchema,
 } from "@zodValidators";
 import dayjs, { Dayjs } from "dayjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next-nprogress-bar";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BsPersonStanding, BsPersonStandingDress } from "react-icons/bs";
 import { FaPersonRunning, FaPersonWalking } from "react-icons/fa6";
@@ -162,17 +162,14 @@ const TallyInProgressPage = ({
   tally: OngoingTally;
   finalizedTally: boolean;
 }) => {
+  const router = useRouter();
   const theme = useTheme();
   const isMobileView = useMediaQuery(theme.breakpoints.down("xl"));
   const { user } = useUserContext();
-  if (user.id !== tally.user.id) {
-    if (
-      !checkIfRolesArrayContainsAll(user.roles, { roles: ["TALLY_MANAGER"] })
-    ) {
-      redirect("/error");
-    }
-  }
-  const { setHelperCard } = useHelperCard();
+  const userCanEdit =
+    user.id === tally.user.id ||
+    checkIfRolesArrayContainsAll(user.roles, { roles: ["TALLY_MANAGER"] });
+  const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const serverUpdatedAtRef = useRef(tally.updatedAt);
   const [serverUpdatedAtState, setServerUpdatedAtState] = useState(
@@ -226,61 +223,6 @@ const TallyInProgressPage = ({
   const [isDirty, setIsDirty] = useState(false);
   const [localTallyUpdatedAt, setLocalTallyUpdatedAt] = useState<Date>();
 
-  const applyLocalTallyValues = (localTally: DexieTally) => {
-    setStartDate(dayjs(localTally.startDate));
-    setEndDate(localTally.endDate ? dayjs(localTally.endDate) : null);
-    setIsFinalized(localTally.isFinalized);
-    setWeatherStats(localTally.weatherStats);
-    setTallyMap(new Map(Object.entries(localTally.tallyMap)));
-    setCommercialActivities(localTally.commercialActivities);
-    setCommercialActivitiesOptions(
-      buildCommercialActivitiesOptions(localTally.commercialActivities),
-    );
-    setComplementaryData(localTally.complementaryData);
-    setPendingLocalTallyChoice(undefined);
-    setPendingServerSave(true);
-    setIsDirty(false);
-  };
-
-  const applyServerTallyValues = () => {
-    const applyServerValuesAndDeleteLocalValues = async () => {
-      setLoadingOverlay({ show: true, message: "Carregando..." });
-      setStartDate(dayjs(tally.startDate));
-      setEndDate(tally.endDate ? dayjs(tally.endDate) : null);
-      setIsFinalized(tally.isFinalized);
-      setWeatherStats({
-        temperature: tally.temperature ? tally.temperature : null,
-        weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
-      });
-      setTallyMap(buildTallyMapFromTally(tally));
-      setCommercialActivities(tally.commercialActivities ?? {});
-      setCommercialActivitiesOptions(
-        buildCommercialActivitiesOptions(tally.commercialActivities),
-      );
-      setComplementaryData({
-        animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
-        groupsAmount: tally.groups ? tally.groups : 0,
-      });
-      setPendingLocalTallyChoice(undefined);
-      setIsDirty(false);
-      try {
-        await dexieDb.tallys.delete(tallyId);
-        setPendingServerSave(false);
-        setLocalTallyUpdatedAt(undefined);
-      } catch (e) {
-        setHelperCard({
-          show: true,
-          content: "Erro ao remover dados locais!",
-          helperCardType: "ERROR",
-        });
-      } finally {
-        setLoadingOverlay({ show: false });
-      }
-    };
-
-    void applyServerValuesAndDeleteLocalValues();
-  };
-
   useEffect(() => {
     let ignore = false;
 
@@ -294,9 +236,7 @@ const TallyInProgressPage = ({
       }
       setLocalTallyUpdatedAt(localTally.localUpdatedAt);
 
-      const localServerUpdatedAt = new Date(
-        localTally.serverUpdatedAt,
-      ).getTime();
+      const localServerUpdatedAt = localTally.serverUpdatedAt.getTime();
       const serverUpdatedAt = serverUpdatedAtRef.current.getTime();
 
       if (serverUpdatedAt <= localServerUpdatedAt) {
@@ -355,6 +295,68 @@ const TallyInProgressPage = ({
     user.username,
     weatherStats,
   ]);
+
+  useEffect(() => {
+    if (!userCanEdit) {
+      router.replace("/error");
+    }
+  }, [router, userCanEdit]);
+
+  if (!userCanEdit) {
+    return null;
+  }
+
+  const applyLocalTallyValues = (localTally: DexieTally) => {
+    setStartDate(dayjs(localTally.startDate));
+    setEndDate(localTally.endDate ? dayjs(localTally.endDate) : null);
+    setIsFinalized(localTally.isFinalized);
+    setWeatherStats(localTally.weatherStats);
+    setTallyMap(new Map(Object.entries(localTally.tallyMap)));
+    setCommercialActivities(localTally.commercialActivities);
+    setCommercialActivitiesOptions(
+      buildCommercialActivitiesOptions(localTally.commercialActivities),
+    );
+    setComplementaryData(localTally.complementaryData);
+    setPendingLocalTallyChoice(undefined);
+    setPendingServerSave(true);
+    setIsDirty(false);
+  };
+
+  const applyServerTallyValues = () => {
+    const applyServerValuesAndDeleteLocalValues = async () => {
+      setLoadingOverlay({ show: true, message: "Carregando..." });
+      setStartDate(dayjs(tally.startDate));
+      setEndDate(tally.endDate ? dayjs(tally.endDate) : null);
+      setIsFinalized(tally.isFinalized);
+      setWeatherStats({
+        temperature: tally.temperature ? tally.temperature : null,
+        weather: tally.weatherCondition ? tally.weatherCondition : "SUNNY",
+      });
+      setTallyMap(buildTallyMapFromTally(tally));
+      setCommercialActivities(tally.commercialActivities ?? {});
+      setCommercialActivitiesOptions(
+        buildCommercialActivitiesOptions(tally.commercialActivities),
+      );
+      setComplementaryData({
+        animalsAmount: tally.animalsAmount ? tally.animalsAmount : 0,
+        groupsAmount: tally.groups ? tally.groups : 0,
+      });
+      setPendingLocalTallyChoice(undefined);
+      setIsDirty(false);
+      try {
+        await dexieDb.tallys.delete(tallyId);
+        setPendingServerSave(false);
+        setLocalTallyUpdatedAt(undefined);
+      } catch (e) {
+        enqueueSnackbar("Erro ao remover dados locais!", { variant: "error" });
+      } finally {
+        setLoadingOverlay({ show: false });
+      }
+    };
+
+    void applyServerValuesAndDeleteLocalValues();
+  };
+
   const buildPersonKey = (
     gender: GenderType,
     ageGroup: AgeGroupType,
@@ -426,17 +428,9 @@ const TallyInProgressPage = ({
       setEndDate(importedData.endDate ? dayjs(importedData.endDate) : null);
       setIsFinalized(importedData.isFinalized ?? !!importedData.endDate);
 
-      setHelperCard({
-        show: true,
-        helperCardType: "CONFIRM",
-        content: <>Contagem importada!</>,
-      });
+      enqueueSnackbar(<>Contagem importada!</>, { variant: "success" });
     } catch (err) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Arquivo inválido!</>,
-      });
+      enqueueSnackbar(<>Arquivo inválido!</>, { variant: "error" });
     }
   };
   return (
@@ -723,24 +717,18 @@ const TallyInProgressPage = ({
                         setSelectedCommercialActivity(
                           () => defaultCommercialActivitiesOptions[0]!.value,
                         );
-                        setHelperCard({
-                          show: true,
-                          helperCardType: "CONFIRM",
-                          content: (
-                            <>Atividade comercial itinerante removida!</>
-                          ),
-                        });
+                        enqueueSnackbar(
+                          <>Atividade comercial itinerante removida!</>,
+                          { variant: "success" },
+                        );
                       } else {
-                        setHelperCard({
-                          show: true,
-                          helperCardType: "ERROR",
-                          content: (
-                            <>
-                              Não é possível remover uma atividade comercial com
-                              quantidade maior que 0!
-                            </>
-                          ),
-                        });
+                        enqueueSnackbar(
+                          <>
+                            Não é possível remover uma atividade comercial com
+                            quantidade maior que 0!
+                          </>,
+                          { variant: "error" },
+                        );
                       }
                     }}
                   />
@@ -819,26 +807,20 @@ const TallyInProgressPage = ({
               (option) => option.value === activity,
             )
           ) {
-            setHelperCard({
-              show: true,
-              helperCardType: "ERROR",
-              content: (
-                <>Atividade comercial itinerante já existente ou inválida!</>
-              ),
-            });
+            enqueueSnackbar(
+              <>Atividade comercial itinerante já existente ou inválida!</>,
+              { variant: "error" },
+            );
             return;
           } else {
             setCommercialActivitiesOptions((prev) => [
               ...prev,
               { value: activity, label: activity },
             ]);
-            setHelperCard({
-              show: true,
-              helperCardType: "CONFIRM",
-              content: (
-                <>{`Atividade comercial itinerante "${activity} registrada"!`}</>
-              ),
-            });
+            enqueueSnackbar(
+              <>{`Atividade comercial itinerante "${activity} registrada"!`}</>,
+              { variant: "success" },
+            );
           }
         }}
       />
@@ -892,10 +874,8 @@ const TallyInProgressPage = ({
           setLoadingOverlay({ show: true, message: "Importando dados..." });
           importData(e)
             .catch(() => {
-              setHelperCard({
-                show: true,
-                helperCardType: "ERROR",
-                content: <>Erro ao importar dados!</>,
+              enqueueSnackbar(<>Erro ao importar dados!</>, {
+                variant: "error",
               });
             })
             .finally(() => {
@@ -914,6 +894,9 @@ const TallyInProgressPage = ({
         onConfirm={() => {
           setOpenRevertLocalTallyDialog(false);
           applyServerTallyValues();
+          enqueueSnackbar("Revertido com sucesso!", {
+            variant: "success",
+          });
         }}
       />
       {!!pendingLocalTallyChoice && (

@@ -1,10 +1,16 @@
-import type { FormValues } from "@/components/ui/responseForm/responseFormTypes";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
-import type { ResponseGeometry } from "@/lib/types/assessments/geometry";
-import type { Coordinate } from "ol/coordinate";
+import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
+import { z } from "zod";
 
 import { prisma } from "../../prisma";
-import { APIResponseInfo } from "../../types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIRequestParams,
+  APIResponseInfo,
+} from "../../types/backendCalls/APIResponse";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 import { buildImageUrl } from "../../utils/image";
 import {
@@ -29,7 +35,9 @@ export type FetchMapAssessmentComparisonCategoriesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchMapAssessmentComparisonCategories>>["data"]
 >;
 
-export const fetchMapAssessmentComparisonCategories = async () => {
+export const fetchMapAssessmentComparisonCategories = async (
+  _request: APIRequest,
+) => {
   try {
     const categories = await prisma.category.findMany({
       where: {
@@ -80,17 +88,23 @@ export const fetchMapAssessmentComparisonCategories = async () => {
   }
 };
 
+export const fetchMapAssessmentComparisonResultsParamsSchema = z.object({
+  cityId: z.coerce.number(),
+  categoryId: z.coerce.number(),
+});
+
+export type FetchMapAssessmentComparisonResultsParams = z.infer<
+  typeof fetchMapAssessmentComparisonResultsParamsSchema
+>;
+
 export type FetchMapAssessmentComparisonResultsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchMapAssessmentComparisonResults>>["data"]
 >;
 
-export const fetchMapAssessmentComparisonResults = async ({
-  cityId,
-  categoryId,
-}: {
-  cityId: number;
-  categoryId: number;
-}) => {
+export const fetchMapAssessmentComparisonResults = async (
+  request: APIRequestParams<FetchMapAssessmentComparisonResultsParams>,
+) => {
+  const { cityId, categoryId } = request.params!;
   try {
     const locations = await prisma.location.findMany({
       where: {
@@ -240,53 +254,20 @@ export type MapAssessmentComparisonAssessmentTree = {
   geometries: { questionId: number; geometries: ResponseGeometry[] }[];
 };
 
-const parseAssessmentGeometries = (
-  geometry: string | null,
-): ResponseGeometry[] => {
-  if (!geometry) return [];
+export const fetchMapAssessmentComparisonAssessmentTreesParamsSchema = z.object(
+  {
+    categoryId: z.coerce.number(),
+    locationIds: z
+      .string()
+      .transform((value) =>
+        value.split(",").map((id) => z.coerce.number().parse(id)),
+      ),
+  },
+);
 
-  const parsedGeometries: ResponseGeometry[] = [];
-  const geometriesWithoutCollection = geometry
-    .replace("GEOMETRYCOLLECTION(", "")
-    .slice(0, -1);
-  const geometriesWkt = geometriesWithoutCollection.match(
-    /(?:POINT|POLYGON)\([^)]*\)+/g,
-  );
-
-  geometriesWkt?.forEach((geometryWkt) => {
-    if (geometryWkt.startsWith("POINT")) {
-      parsedGeometries.push({
-        type: "Point",
-        coordinates: geometryWkt
-          .replace("POINT(", "")
-          .replace(")", "")
-          .split(" ")
-          .map(Number),
-      });
-      return;
-    }
-
-    const rings: Coordinate[][] = geometryWkt
-      .replace("POLYGON(", " ")
-      .slice(0, -1)
-      .split("),(")
-      .map((ring) =>
-        ring
-          .split(",")
-          .map((point) =>
-            point
-              .replace("(", "")
-              .replace(")", "")
-              .trim()
-              .split(" ")
-              .map(Number),
-          ),
-      );
-    parsedGeometries.push({ type: "Polygon", coordinates: rings });
-  });
-
-  return parsedGeometries;
-};
+export type FetchMapAssessmentComparisonAssessmentTreesParams = z.infer<
+  typeof fetchMapAssessmentComparisonAssessmentTreesParamsSchema
+>;
 
 export type FetchMapAssessmentComparisonAssessmentTreesResponse = NonNullable<
   Awaited<
@@ -322,7 +303,8 @@ type MapAssessmentComparisonAssessmentQueryResult = {
         name: string;
         iconKey: string;
         isPublic: boolean;
-        scaleConfig: { minValue: number; maxValue: number } | null;
+        minValue: number | null;
+        maxValue: number | null;
         notes: string | null;
         questionType: AssessmentQuestionItem["questionType"];
         characterType: AssessmentQuestionItem["characterType"];
@@ -336,10 +318,6 @@ type MapAssessmentComparisonAssessmentQueryResult = {
           assessmentId: number;
           response: string | null;
         }[];
-        booleanResponses: {
-          assessmentId: number;
-          checked: boolean;
-        }[];
         ResponseOption: {
           assessmentId: number;
           overrideValue: string | null;
@@ -350,13 +328,10 @@ type MapAssessmentComparisonAssessmentQueryResult = {
   };
 };
 
-export const fetchMapAssessmentComparisonAssessmentTrees = async ({
-  categoryId,
-  locationIds,
-}: {
-  categoryId: number;
-  locationIds: number[];
-}) => {
+export const fetchMapAssessmentComparisonAssessmentTrees = async (
+  request: APIRequestParams<FetchMapAssessmentComparisonAssessmentTreesParams>,
+) => {
+  const { categoryId, locationIds } = request.params!;
   try {
     const assessmentIds = (
       await prisma.assessment.findMany({
@@ -434,7 +409,8 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
                     name: true,
                     iconKey: true,
                     isPublic: true,
-                    scaleConfig: true,
+                    minValue: true,
+                    maxValue: true,
                     notes: true,
                     questionType: true,
                     characterType: true,
@@ -457,15 +433,6 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
                       select: {
                         assessmentId: true,
                         response: true,
-                      },
-                    },
-                    booleanResponses: {
-                      where: {
-                        assessmentId: { in: assessmentIds },
-                      },
-                      select: {
-                        assessmentId: true,
-                        checked: true,
                       },
                     },
                     ResponseOption: {
@@ -505,7 +472,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async ({
         geometriesByAssessmentId.get(geometry.assessmentId) ?? [];
       assessmentGeometries.push({
         questionId: geometry.questionId,
-        geometries: parseAssessmentGeometries(geometry.geometry),
+        geometries: deserializeResponseGeometriesFromWkt(geometry.geometry),
       });
       geometriesByAssessmentId.set(geometry.assessmentId, assessmentGeometries);
     });
@@ -663,9 +630,9 @@ const buildMapAssessmentComparisonAssessmentTree = ({
         }
       } else if (dbQuestion.questionType === "BOOLEAN") {
         responsesFormValues[dbQuestion.id] =
-          dbQuestion.booleanResponses.find(
+          dbQuestion.response.find(
             (response) => response.assessmentId === assessment.id,
-          )?.checked ?? false;
+          )?.response === BooleanResponseValue.TRUE ?? false;
       }
 
       const relatedCalculation = assessment.form.calculations.find(
@@ -677,9 +644,10 @@ const buildMapAssessmentComparisonAssessmentTree = ({
         questionId: item.questionId,
         name: dbQuestion.name,
         iconKey: dbQuestion.iconKey,
+        minValue: dbQuestion.minValue,
+        maxValue: dbQuestion.maxValue,
         isPublic: dbQuestion.isPublic,
         allowResponseImages: dbQuestion.allowResponseImages,
-        scaleConfig: dbQuestion.scaleConfig,
         notes: dbQuestion.notes,
         questionType: dbQuestion.questionType,
         characterType: dbQuestion.characterType,

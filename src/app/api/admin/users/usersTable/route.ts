@@ -1,5 +1,6 @@
 import { fetchUsers } from "@queries/user";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
+import superjson from "superjson";
 
 export async function GET() {
   try {
@@ -9,8 +10,8 @@ export async function GET() {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const users = await fetchUsers();
-    return new Response(JSON.stringify(users), {
+    const users = await fetchUsers({});
+    return new Response(superjson.stringify(users), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

@@ -1,4 +1,7 @@
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequest,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
 
 type CategoriesForFieldsCreation = NonNullable<
@@ -9,7 +12,9 @@ export type FetchCategoriesWithSubcategoriesReponse = NonNullable<
   Awaited<ReturnType<typeof getCategoriesWithSubcategories>>
 >["data"];
 
-const getCategoriesWithSubcategories = async () => {
+const getCategoriesWithSubcategories = async (
+  _request: APIRequest,
+) => {
   try {
     const categories = await prisma.category.findMany({
       select: {
@@ -47,7 +52,9 @@ const getCategoriesWithSubcategories = async () => {
   }
 };
 
-const fetchCategoriesForFieldsCreation = async () => {
+const fetchCategoriesForFieldsCreation = async (
+  _request: APIRequest,
+) => {
   try {
     const categories = await prisma.category.findMany({
       include: {

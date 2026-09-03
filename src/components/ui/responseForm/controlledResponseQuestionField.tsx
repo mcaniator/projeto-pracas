@@ -1,12 +1,16 @@
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormValues,
+  ResponseQuestionValue,
+} from "@/lib/types/assessments/responseFormTypes";
 import {
-  Controller,
   type Control,
+  Controller,
   type UseFormSetValue,
 } from "react-hook-form";
+
 import CalculationResponseQuestionField from "./calculationResponseQuestionField";
 import ResponseQuestionFieldRenderer from "./responseQuestionFieldRenderer";
-import type { FormValues, ResponseQuestionValue } from "./responseFormTypes";
 
 const ControlledResponseQuestionField = ({
   question,

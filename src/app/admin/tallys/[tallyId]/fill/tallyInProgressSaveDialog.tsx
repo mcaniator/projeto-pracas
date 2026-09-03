@@ -1,13 +1,13 @@
 "use client";
 
 import { useUserContext } from "@/components/context/UserContext";
-import { useHelperCard } from "@/components/context/helperCardContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dexieDb } from "@/lib/dexie/dexie";
-import { _saveOngoingTallyData } from "@/lib/serverFunctions/serverActions/tallyUtil";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useSaveOngoingTallyData } from "@/lib/serverFunctions/apiCalls/tally";
 import { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import { CommercialActivity } from "@/lib/zodValidators";
 import dayjs, { Dayjs } from "dayjs";
@@ -52,11 +52,12 @@ const TallyInProgressSaveDialog = ({
 }) => {
   const router = useRouter();
   const { setLoadingOverlay } = useLoadingOverlay();
-  const { helperCardProcessResponse, setHelperCard } = useHelperCard();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { user } = useUserContext();
   const [errorOnServerSave, setErrorOnServerSave] = useState(false);
   const [errorOnLocalSave, setErrorOnLocalSave] = useState(false);
   const [showDatePickerError, setShowDatePickerError] = useState(false);
+  const [saveOngoingTallyData] = useSaveOngoingTallyData();
 
   const save = async () => {
     if (isFinalized && !endDate) {
@@ -82,29 +83,26 @@ const TallyInProgressSaveDialog = ({
       });
       setErrorOnLocalSave(false);
     } catch (e) {
-      setHelperCard({
-        show: true,
-        content: "Erro ao salvar dados locais!",
-        helperCardType: "ERROR",
-      });
+      enqueueSnackbar("Erro ao salvar dados locais!", { variant: "error" });
       setErrorOnLocalSave(true);
       setLoadingOverlay({ show: false });
       return;
     }
 
     try {
-      const response = await _saveOngoingTallyData({
-        tallyId,
-        weatherStats,
-        tallyMap,
-        commercialActivities,
-        complementaryData,
-        startDate: startDate.toDate(),
-        endDate: endDate?.toDate() ?? null,
-        isFinalized,
+      const response = await saveOngoingTallyData({
+        data: {
+          tallyId,
+          weatherStats,
+          tallyMapEntries: [...tallyMap.entries()],
+          commercialActivities,
+          complementaryData,
+          startDate: startDate.toDate(),
+          endDate: endDate?.toDate() ?? null,
+          isFinalized,
+        },
       });
       // TODO: Refresh server data in TallyInProgressPage
-      helperCardProcessResponse(response.responseInfo);
       if (response.responseInfo.statusCode !== 200) {
         setErrorOnServerSave(true);
       } else {
@@ -113,11 +111,10 @@ const TallyInProgressSaveDialog = ({
           // Delete local data, as it is no longer needed
           await dexieDb.tallys.delete(tallyId);
         } catch (e) {
-          setHelperCard({
-            show: true,
-            helperCardType: "ERROR",
-            content: <>Avaliação salva, mas falha ao excluir do dispositivo!</>,
-          });
+          enqueueSnackbar(
+            <>Avaliação salva, mas falha ao excluir do dispositivo!</>,
+            { variant: "error" },
+          );
         }
 
         if (response.data?.updatedAt) {
@@ -129,11 +126,7 @@ const TallyInProgressSaveDialog = ({
         }
       }
     } catch (e) {
-      setHelperCard({
-        show: true,
-        helperCardType: "ERROR",
-        content: <>Erro ao salvar contagem!</>,
-      });
+      enqueueSnackbar(<>Erro ao salvar contagem!</>, { variant: "error" });
       setErrorOnServerSave(true);
     } finally {
       setLoadingOverlay({ show: false });

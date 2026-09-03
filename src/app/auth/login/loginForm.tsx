@@ -1,41 +1,66 @@
 "use client";
 
-import LoadingIcon from "@components/LoadingIcon";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import { useLogin } from "@/lib/serverFunctions/apiCalls/auth";
 import { Button } from "@components/button";
-import { useHelperCard } from "@components/context/helperCardContext";
 import GoogleLoginButton from "@components/singleUse/auth/googleLoginButton";
 import ButtonLink from "@components/ui/buttonLink";
 import { Input } from "@components/ui/input";
-import _login from "@serverActions/login";
-import { useActionState, useEffect } from "react";
+import { CircularProgress } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import AuthPageShell from "../authPageShell";
 
 const LoginForm = ({ enableGoogleLogin }: { enableGoogleLogin: boolean }) => {
-  const { setHelperCard } = useHelperCard();
-  const [state, formAction, isPending] = useActionState(_login, null);
+  const { enqueueSnackbar } = useAppSnackbar();
+  const router = useRouter();
+  const [login] = useLogin();
+  const [state, setState] = useState<{ statusCode: number } | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    setIsPending(true);
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    try {
+      const response = await login({
+        data: formData,
+        projectOptions: { silent: true },
+      });
+
+      setState({ statusCode: response.responseInfo.statusCode });
+      if (response.responseInfo.statusCode === 200) {
+        router.push("/admin/map");
+      } else {
+        setIsPending(false);
+      }
+    } catch (e) {
+      setState({ statusCode: 500 });
+      setIsPending(false);
+    }
+  }
 
   useEffect(() => {
     if (!state) return;
-    setHelperCard({
-      show: true,
-      helperCardType: state?.statusCode === 200 ? "CONFIRM" : "ERROR",
-      content: (
-        <>
-          {state?.statusCode === 200 ?
-            "Login realizado! Entrando..."
-          : "Credenciais incorretas!"}
-        </>
-      ),
-    });
-  }, [state, setHelperCard]);
+    enqueueSnackbar(
+      <>
+        {state?.statusCode === 200 ?
+          "Login realizado! Entrando..."
+        : "Credenciais incorretas!"}
+      </>,
+      { variant: state?.statusCode === 200 ? "success" : "error" },
+    );
+  }, [state, enqueueSnackbar]);
 
   return (
     <AuthPageShell showMobileWave>
-      {isPending && <LoadingIcon className="h-32 w-32" />}
+      {isPending && <CircularProgress size={72} sx={{ color: "white" }} />}
       {!isPending && (
         <>
-          <form action={formAction} className="w-full max-w-xs">
+          <form
+            onSubmit={(e) => void handleSubmit(e)}
+            className="w-full max-w-xs"
+          >
             <div className="flex flex-col gap-4 text-center text-white">
               <h2 className="text-2xl">Login</h2>
               <div className="text-left">

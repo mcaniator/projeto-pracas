@@ -1,30 +1,29 @@
-import { UploadImageResponseParams } from "@/app/api/admin/uploadImageResponse/route";
-import type { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import type { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
 import {
   buildGoogleDriveDirectImageUrl,
   buildGoogleDriveThumbnailImageUrl,
 } from "@/lib/utils/image";
 import { Readable } from "stream";
+import { z } from "zod";
 
-export type UploadImageResponseData = {
-  fileUid: string;
-  relativePath: string;
-  size: number | null;
-  name: string;
-  mimeType: string;
-  webViewLink: string | null;
-  webContentLink: string | null;
-  directUrl: string | null;
-  thumbnailUrl: string | null;
-};
+export const uploadImageResponseParamsSchema = z.object({
+  folderId: z.string().min(1),
+  image: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, "Arquivo vazio")
+    .refine((file) => file.type.startsWith("image/"), "Arquivo invalido"),
+});
+export type UploadImageResponseParams = z.infer<
+  typeof uploadImageResponseParamsSchema
+>;
+export type UploadImageResponseData = NonNullable<
+  Awaited<ReturnType<typeof uploadImageResponse>>["data"]
+>;
 
-export const uploadImageResponse = async ({
-  folderId,
-  image,
-}: UploadImageResponseParams): Promise<{
-  responseInfo: APIResponseInfo;
-  data?: UploadImageResponseData | null;
-}> => {
+export const uploadImageResponse = async (
+  request: APIRequestData<UploadImageResponseParams>,
+) => {
+  const { folderId, image } = request.data!;
   //Unused because of problems with the Google API.
   //We cannot use the Google Drive API because it refresh of OAuth token.
   //TODO: Save the image locally.
@@ -86,7 +85,6 @@ export const uploadImageResponse = async ({
       responseInfo: {
         statusCode: 201,
         message: "Imagem enviada ao Google Drive!",
-        showSuccessCard: true,
       },
       data: {
         fileUid: uploadedResponseData.id,

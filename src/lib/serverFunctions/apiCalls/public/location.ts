@@ -1,5 +1,7 @@
-import { FetchLocationsParams } from "@/app/api/admin/locations/route";
-import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
+import type {
+  PublicFetchLocationsParams,
+  PublicFetchLocationsResponse,
+} from "@/lib/serverFunctions/queries/public/location";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -8,12 +10,11 @@ export const usePublicFetchLocations = (
 ) => {
   const url = `/api/public/locations`;
 
-  return useFetchAPI<PublicFetchLocationsResponse, FetchLocationsParams>({
+  return useFetchAPI<PublicFetchLocationsResponse, PublicFetchLocationsParams>({
     url,
     callbacks: params?.callbacks,
     options: {
       method: "GET",
-      next: { tags: ["location", "database"] },
     },
   });
 };

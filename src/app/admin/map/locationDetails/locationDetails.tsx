@@ -1,6 +1,8 @@
 import LocationDeleteDialog from "@/app/admin/map/locationDeleteDialog";
 import AssessmentHistory from "@/app/admin/map/locationDetails/assessmentHistory";
 import LocationInfo from "@/app/admin/map/locationDetails/locationInfo";
+import PermissionGuard from "@/components/auth/permissionGuard";
+import CapacitorOnlineGuard from "@/components/capacitor/capacitorOnlineGuard";
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
@@ -96,28 +98,32 @@ const LocationDetails = ({
                   </Link>
                 </div>
               </div>
-              <div className="flex gap-1">
-                <CButton
-                  onClick={() => {
-                    enableLocationEdition();
-                    setOpenMobileDialog(false);
-                  }}
-                  square
-                  dense
-                >
-                  <IconPencil />
-                </CButton>
-                <CButton
-                  color="error"
-                  square
-                  dense
-                  onClick={() => {
-                    setOpenDeleteLocationDialog(true);
-                  }}
-                >
-                  <IconTrash />
-                </CButton>
-              </div>
+              <PermissionGuard requiresAnyRoles={["PARK_MANAGER"]}>
+                <CapacitorOnlineGuard>
+                  <div className="flex gap-1">
+                    <CButton
+                      onClick={() => {
+                        enableLocationEdition();
+                        setOpenMobileDialog(false);
+                      }}
+                      square
+                      dense
+                    >
+                      <IconPencil />
+                    </CButton>
+                    <CButton
+                      color="error"
+                      square
+                      dense
+                      onClick={() => {
+                        setOpenDeleteLocationDialog(true);
+                      }}
+                    >
+                      <IconTrash />
+                    </CButton>
+                  </div>
+                </CapacitorOnlineGuard>
+              </PermissionGuard>
             </div>
             <Divider />
           </>

@@ -1,22 +1,19 @@
+import { publicFetchLocationsParamsSchema } from "@/lib/serverFunctions/queries/public/location";
 import { publicFetchLocations } from "@/lib/serverFunctions/queries/public/location";
 import "@/lib/utils/bigIntInJson";
 import { parseQueryParams } from "@lib/utils/apiCall";
 import { NextRequest } from "next/server";
-import { z } from "zod";
-
-const paramsSchema = z.object({
-  cityId: z.coerce.number().nullish(),
-  locationId: z.coerce.number().nullish(),
-});
-
-export type PublicFetchLocationsParams = z.infer<typeof paramsSchema>;
+import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(paramsSchema, searchParams);
-    const locations = await publicFetchLocations(params);
-    return new Response(JSON.stringify(locations), {
+    const params = parseQueryParams(
+      publicFetchLocationsParamsSchema,
+      searchParams,
+    );
+    const locations = await publicFetchLocations({ params });
+    return new Response(superjson.stringify(locations), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

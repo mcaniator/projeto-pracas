@@ -140,10 +140,9 @@ model User {
 
   assessment Assessment[]
 
-  response         Response[]
-  booleanResponses BooleanResponse[]
-  responseOption   ResponseOption[]
-  tally            Tally[]
+  response       Response[]
+  responseOption ResponseOption[]
+  tally          Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -265,10 +264,11 @@ model Question {
   notes               String?                        @db.Text
   isPublic            Boolean                        @map("is_public")
   allowResponseImages Boolean                        @map("allow_response_images")
+  minValue            Float?                         @map("min_value") //setting for question with characterType "SCALE"
+  maxValue            Float?                         @map("max_value") //setting for question with characterType "SCALE"
   questionType        QuestionTypes                  @map("question_type")
   characterType       QuestionResponseCharacterTypes @map("character_type")
   response            Response[]
-  booleanResponses    BooleanResponse[]
   optionType          OptionTypes?                   @map("option_type")
   geometryTypes       QuestionGeometryTypes[]        @map("geometry_types")
 
@@ -286,8 +286,6 @@ model Question {
   geometries QuestionGeometry[]
 
   formItems FormItem[]
-
-  scaleConfig QuestionScaleConfig? //setting for question with characterType "SCALE"
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -308,16 +306,6 @@ model QuestionGeometry {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("question_geometry")
-}
-
-model QuestionScaleConfig {
-  minValue Float @map("min_value")
-  maxValue Float @map("max_value")
-
-  questionId Int      @unique @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  @@map("question_scale_config")
 }
 
 model Calculation {
@@ -351,26 +339,6 @@ model Response {
 
   @@unique([assessmentId, questionId], name: "assessmentId_questionId")
   @@map("response")
-}
-
-model BooleanResponse {
-  id Int @id @default(autoincrement())
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
-
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-
-  questionId Int      @map("question_id")
-  question   Question @relation(fields: [questionId], references: [id])
-
-  checked   Boolean
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
-  @@map("boolean_response")
 }
 
 model Option {
@@ -605,10 +573,9 @@ model Assessment {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  question         Question[]
-  response         Response[]
-  booleanResponses BooleanResponse[]
-  responseOption   ResponseOption[]
+  question       Question[]
+  response       Response[]
+  responseOption ResponseOption[]
 
   geometries QuestionGeometry[]
 

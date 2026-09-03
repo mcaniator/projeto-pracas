@@ -1,8 +1,11 @@
-import type { FetchQuestionUsesParams } from "@/app/api/admin/forms/fieldsCreation/question/questionUses/route";
-import type { FetchQuestionsByCategoryAndSubcategoryParams } from "@/app/api/admin/forms/fieldsCreation/question/route";
-import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
+import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
 
@@ -34,15 +37,8 @@ const buildQuestionsByCategoryQuery = ({
             'optionType', q."option_type",
             'allowResponseImages', q."allow_response_images",
             'geometryTypes', COALESCE(array_to_json(q."geometry_types"), '[]'::json),
-            'scaleConfig',
-              (
-                SELECT json_build_object(
-                  'minValue', qsc."min_value",
-                  'maxValue', qsc."max_value"
-                )
-                FROM "question_scale_config" qsc
-                WHERE qsc."question_id" = q.id
-              ),
+            'minValue', q."min_value",
+            'maxValue', q."max_value",
             'options', COALESCE(
               (
                 SELECT json_agg(
@@ -88,15 +84,8 @@ const buildQuestionsByCategoryQuery = ({
                     'allowResponseImages', sq."allow_response_images",
                     'optionType', sq."option_type",
                     'geometryTypes', COALESCE(array_to_json(sq."geometry_types"), '[]'::json),
-                    'scaleConfig',
-                      (
-                        SELECT json_build_object(
-                          'minValue', sqsc."min_value",
-                          'maxValue', sqsc."max_value"
-                        )
-                        FROM "question_scale_config" sqsc
-                        WHERE sqsc."question_id" = sq.id
-                      ),
+                    'minValue', sq."min_value",
+                    'maxValue', sq."max_value",
                     'options', COALESCE(
                       (
                         SELECT json_agg(
@@ -133,12 +122,24 @@ const buildQuestionsByCategoryQuery = ({
   ORDER BY c.name DESC
 `;
 
+export const fetchQuestionsByCategoryAndSubcategoryParamsSchema = z.object({
+  categoryId: z.coerce.number().int().nullish(),
+  subcategoryId: z.coerce.number().nullish(),
+  verifySubcategoryNullness: booleanFromString.nullish(),
+  name: z.string().optional().nullish(),
+});
+
+export type FetchQuestionsByCategoryAndSubcategoryParams = z.infer<
+  typeof fetchQuestionsByCategoryAndSubcategoryParamsSchema
+>;
+
 export type FetchquestionsByCategoryAndSubcategoryResponse = NonNullable<
   Awaited<ReturnType<typeof searchQuestionsByCategoryAndSubcategory>>["data"]
 >;
 const searchQuestionsByCategoryAndSubcategory = async (
-  params: FetchQuestionsByCategoryAndSubcategoryParams,
+  request: APIRequestParams<FetchQuestionsByCategoryAndSubcategoryParams>,
 ) => {
+  const params = request.params!;
   if (!params.categoryId) return { statusCode: 400, categories: [] };
   try {
     const categoryQuestionFilter =
@@ -188,7 +189,10 @@ const searchQuestionsByCategoryAndSubcategory = async (
   }
 };
 
-const searchQuestionsByName = async (name: string) => {
+const searchQuestionsByName = async (
+  request: APIRequestParams<{ name: string }>,
+) => {
+  let { name } = request.params!;
   if (!name)
     return {
       responseInfo: {
@@ -231,6 +235,14 @@ const searchQuestionsByName = async (name: string) => {
   }
 };
 
+export const fetchQuestionUsesParamsSchema = z.object({
+  questionId: z.coerce.number().int(),
+});
+
+export type FetchQuestionUsesParams = z.infer<
+  typeof fetchQuestionUsesParamsSchema
+>;
+
 export type FetchquestionUsesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchQuestionUses>>["data"]
 >;
@@ -250,7 +262,10 @@ type QuestionUses = {
   }[];
 };
 
-export const fetchQuestionUses = async (params: FetchQuestionUsesParams) => {
+export const fetchQuestionUses = async (
+  request: APIRequestParams<FetchQuestionUsesParams>,
+) => {
+  const params = request.params!;
   try {
     const [questionUses] = await prisma.$queryRaw<QuestionUses[]>`
       WITH question_forms AS (

@@ -1,7 +1,16 @@
-import { useResettableActionState } from "@/lib/utils/useResettableActionState";
+import { useDeleteSubcategory } from "@/lib/serverFunctions/apiCalls/category";
 import CDialog from "@components/ui/dialog/cDialog";
-import { _deleteSubcategory } from "@serverActions/categoryServerActions";
-import { useState } from "react";
+import { FormEventHandler, useState } from "react";
+
+//TODO: Use type from server
+type ConflictForm = {
+  name: string;
+  formItems: {
+    question?: {
+      name: string | null;
+    } | null;
+  }[];
+};
 
 const SubcategoryDeletionDialog = ({
   subcategoryId,
@@ -17,14 +26,15 @@ const SubcategoryDeletionDialog = ({
   reloadCategories: () => void;
 }) => {
   const [showConflictInfo, setShowConflictInfo] = useState(false);
+  const [conflictForms, setConflictForms] = useState<ConflictForm[]>([]);
 
   const handleClose = () => {
     setShowConflictInfo(false);
+    setConflictForms([]);
     onClose();
   };
 
-  const [formAction, isPending, state] = useResettableActionState({
-    action: _deleteSubcategory,
+  const [deleteSubcategory, isPending] = useDeleteSubcategory({
     callbacks: {
       onSuccess: () => {
         handleClose();
@@ -38,22 +48,29 @@ const SubcategoryDeletionDialog = ({
 
         if (state.responseInfo.statusCode === 409) {
           setShowConflictInfo(true);
+          setConflictForms(
+            ((state.data as any)?.formsWithQuestions ?? []) as ConflictForm[],
+          );
           return;
         }
 
         setShowConflictInfo(false);
+        setConflictForms([]);
       },
     },
-    options: {
-      loadingMessage: "Excluindo subcategoria...",
-    },
   });
-  const conflictForms = state?.data?.formsWithQuestions ?? [];
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    void deleteSubcategory({
+      data: new FormData(event.currentTarget),
+      projectOptions: { loadingMessage: "Excluindo subcategoria..." },
+    });
+  };
 
   return (
     <CDialog
       isForm
-      action={formAction}
+      onSubmit={handleSubmit}
       open={open}
       onClose={handleClose}
       confirmChildren={<>Excluir</>}

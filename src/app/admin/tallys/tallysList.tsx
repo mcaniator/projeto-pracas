@@ -62,7 +62,7 @@ const TallysList = ({ tallys }: { tallys: TallyWithSyncStatus[] }) => {
                       icon={<IconCalendar />}
                       tooltip={a.endDate ? "Início - Fim" : "Início"}
                     />
-                    {`${dateTimeFormatter.format(new Date(a.startDate))} ${a.endDate ? `- ${dateTimeFormatter.format(new Date(a.endDate))}` : ""}`}
+                    {`${dateTimeFormatter.format(a.startDate)} ${a.endDate ? `- ${dateTimeFormatter.format(a.endDate)}` : ""}`}
                   </span>
                   <Divider />
                   <span className="flex items-center text-base sm:text-xl">
@@ -76,8 +76,8 @@ const TallysList = ({ tallys }: { tallys: TallyWithSyncStatus[] }) => {
                       loadingOnClick
                       href={
                         !a.hasUnsyncedFilling && a.isFinalized ?
-                          `/admin/tallys/result/${a.id}`
-                        : `/admin/tallys/${a.id}/fill`
+                          `/admin/tallys/result?tallyIds=${a.id}`
+                        : `/admin/tallys/fill?tallyId=${a.id}`
                       }
                     >
                       <IconExternalLink />
