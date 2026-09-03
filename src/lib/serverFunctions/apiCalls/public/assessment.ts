@@ -31,7 +31,7 @@ export const usePublicFetchPublicAssessmentTree = ({
     PublicFetchPublicAssessmentTreeResponse,
     PublicFetchPublicAssessmentTreeParams
   >({
-    url: "/api/public/publicAssessments/:assessmentId",
+    url: "/api/public/publicAssessment",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

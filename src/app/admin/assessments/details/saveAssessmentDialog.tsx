@@ -199,7 +199,7 @@ const SaveAssessmentDialog = ({
       ),
     );
   };
-  const [saveResponses] = useAddResponses({
+  const [serverSaveResponses] = useAddResponses({
     callbacks: {
       onSuccess: (response) => {
         // Delete local data, as it is no longer need
@@ -262,7 +262,15 @@ const SaveAssessmentDialog = ({
               },
             });
 
+            if (!offlineSaveResponse.data) {
+              enqueueSnackbar("Erro ao salvar avaliação no dispostivo!", {
+                variant: "error",
+              });
+              return;
+            }
+
             await deleteAssessmentResponsesDraft(assessmentId);
+            onSaveSuccess(offlineSaveResponse.data.updatedAt);
             onIsSQLiteAssessmentChange?.(true);
 
             if (offlineSaveResponse.data?.savedAsFinalized) {
@@ -333,7 +341,7 @@ const SaveAssessmentDialog = ({
         if (isConnected) {
           await saveResponseImages(responseImages);
 
-          await saveResponses({
+          await serverSaveResponses({
             data: {
               assessmentId,
               responses: serializedFormValues,
@@ -361,9 +369,16 @@ const SaveAssessmentDialog = ({
             driveFolderUrl: driveFolderUrl,
           },
         });
+        if (!offlineSaveResponse.data) {
+          enqueueSnackbar("Erro ao salvar avaliação no dispostivo!", {
+            variant: "error",
+          });
+          return;
+        }
         await deleteAssessmentResponsesDraft(assessmentId);
+        onSaveSuccess(offlineSaveResponse.data.updatedAt);
 
-        if (offlineSaveResponse.data?.savedAsFinalized) {
+        if (offlineSaveResponse.data.savedAsFinalized) {
           router.push(`/admin/assessments`);
         }
         enqueueSnackbar("Avaliação salva no dispostivo!", {

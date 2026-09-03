@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const data = createAssessmentDataSchema.parse(await request.formData());
+    const data = createAssessmentDataSchema.parse(await request.json());
     const result = await _createAssessmentV2({ data });
     return new Response(superjson.stringify(result), {
       status: 200,

@@ -31,6 +31,7 @@ type FetchCallbacks<T> =
 type UseFetchAPIParams<T> =
   | {
       callbacks?: FetchCallbacks<T>;
+      disableOfflineFallback?: boolean;
     }
   | undefined;
 

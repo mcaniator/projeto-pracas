@@ -9,7 +9,16 @@ import {
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
 
-export const createAssessmentDataSchema = z.instanceof(FormData);
+export const createAssessmentDataSchema = z.object({
+  locationId: z.coerce.number(),
+  formId: z.coerce.number(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional().nullable(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+  driveFolderUrl: z.string().optional().nullable(),
+  isFinalized: z.boolean().optional(),
+});
 export type CreateAssessmentData = z.infer<typeof createAssessmentDataSchema>;
 export type CreateAssessmentResponse = NonNullable<
   Awaited<ReturnType<typeof _createAssessmentV2>>["data"]
@@ -18,7 +27,16 @@ export type CreateAssessmentResponse = NonNullable<
 const _createAssessmentV2 = async (
   request: APIRequestData<CreateAssessmentData>,
 ) => {
-  const formData = request.data!;
+  const {
+    locationId,
+    formId,
+    startDate,
+    endDate,
+    createdAt,
+    updatedAt,
+    driveFolderUrl,
+    isFinalized,
+  } = request.data!;
   const session = await auth();
   if (!session || !session.user) {
     return {
@@ -29,14 +47,16 @@ const _createAssessmentV2 = async (
     };
   }
   try {
-    const locationId = z.coerce.number().parse(formData.get("locationId"));
     const userId = z.string().parse(session.user.id);
-    const formId = z.coerce.number().parse(formData.get("formId"));
-    const startDate = z.coerce.date().parse(formData.get("startDate"));
     try {
       const assessment = await prisma.assessment.create({
         data: {
           startDate: new Date(startDate),
+          endDate,
+          createdAt,
+          updatedAt,
+          driveFolderUrl,
+          isFinalized,
           user: { connect: { id: userId } },
           location: { connect: { id: Number(locationId) } },
           form: { connect: { id: Number(formId) } },

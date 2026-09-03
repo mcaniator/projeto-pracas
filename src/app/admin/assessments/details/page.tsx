@@ -18,7 +18,7 @@ import AssessmentClient from "./assessmentClient";
 const ResponsesContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const assessmentId = searchParams.get("assessmentId");
+  const assessmentId = Number(searchParams.get("assessmentId"));
   const [isSQLiteAssessment, setIsSQLiteAssessment] = useState(
     Capacitor.isNativePlatform() &&
       searchParams.get("isSQLiteAssessment") === "true",
@@ -52,6 +52,9 @@ const ResponsesContent = () => {
         //Server assessment
         const response = await fetchAssessmentTree({
           params: { assessmentId },
+          requestOptions: {
+            cache: "reload",
+          },
         });
         assessmentTree = response.data?.assessmentTree;
       }

@@ -65,6 +65,7 @@ export const useCreateAssessment = (
   >({
     url: "/api/admin/assessments/create",
     callbacks: params?.callbacks,
+    disableOfflineFallback: params?.disableOfflineFallback,
     options: {
       method: "POST",
     },
@@ -135,7 +136,7 @@ export const useFetchAssessmentTree = ({
   params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
   return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
-    url: "/api/admin/assessments/:assessmentId",
+    url: "/api/admin/assessment",
     callbacks: params?.callbacks,
     options: {
       method: "GET",
@@ -149,7 +150,7 @@ export const useFetchPublicAssessmentTree = ({
   params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
 }) => {
   return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
-    url: "/api/admin/assessments/public/:assessmentId",
+    url: "/api/admin/assessment/public",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

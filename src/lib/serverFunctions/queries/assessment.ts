@@ -1,9 +1,9 @@
+import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
+import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   FormValues,
   SerializedFormValues,
 } from "@/lib/types/assessments/responseFormTypes";
-import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
-import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { z } from "zod";
@@ -157,7 +157,7 @@ export const fetchAssessmentUsers = async (_request: APIRequest) => {
 };
 
 export const fetchAssessmentTreeParamsSchema = z.object({
-  assessmentId: z.string().min(1),
+  assessmentId: z.coerce.number().int().positive(),
 });
 
 export type FetchAssessmentTreeParams = z.infer<

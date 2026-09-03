@@ -36,7 +36,7 @@ const CPublicAssessmentResultViewerDialog = ({
     if (!selectedAssessment) return;
     void fetchAssessmentTree({
       params: {
-        assessmentId: String(selectedAssessment?.id),
+        assessmentId: selectedAssessment?.id,
       },
     });
   }, [selectedAssessment, fetchAssessmentTree]);

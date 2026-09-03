@@ -64,11 +64,13 @@ const AssessmentCreationDialog = ({
 
   const submit = () => {
     if (!selectedLocation || !selectedDateTime || !selectedForm) return;
-    const formData = new FormData();
-    formData.append("locationId", selectedLocation.id.toString());
-    formData.append("startDate", selectedDateTime.toDate().toISOString());
-    formData.append("formId", selectedForm.id.toString());
-    void createAssessment({ data: formData });
+    void createAssessment({
+      data: {
+        locationId: selectedLocation.id,
+        startDate: selectedDateTime.toDate(),
+        formId: selectedForm.id,
+      },
+    });
   };
   const handleSubmit = async () => {
     if (!selectedLocation || !selectedDateTime || !selectedForm) return;

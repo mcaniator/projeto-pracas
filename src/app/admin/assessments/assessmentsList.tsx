@@ -1,9 +1,20 @@
 import AssessmentResultDialog from "@/app/admin/assessments/assessmentResultDialog";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { useUpdateAssessmentVisibility } from "@/lib/serverFunctions/apiCalls/assessment";
+import {
+  deleteAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentTableData,
+  fetchAdminSQLiteAssessmentTree,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
+import {
+  useAddResponses,
+  useCreateAssessment,
+  useUpdateAssessmentVisibility,
+} from "@/lib/serverFunctions/apiCalls/assessment";
+import { Capacitor } from "@capacitor/core";
 import { Chip, Divider } from "@mui/material";
 import {
   IconAlertTriangle,
@@ -17,6 +28,7 @@ import {
   IconUpload,
   IconUser,
 } from "@tabler/icons-react";
+import { enqueueSnackbar } from "notistack";
 import { useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
@@ -28,12 +40,15 @@ const AssessmentsList = ({
   assessments,
   hasSQLiteAssessments,
   handleVisibilityChange,
+  fetchAssessments,
 }: {
   assessments: AssessmentWithSyncStatus[];
   hasSQLiteAssessments: boolean;
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
+  fetchAssessments: () => void;
 }) => {
-  const { isConnected } = useNetwork();
+  const { isConnected, isConnectedRef } = useNetwork();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{
     id: number;
     locationName: string;
@@ -43,6 +58,10 @@ const AssessmentsList = ({
   const [selectedAssessmentToView, setSelectedAssessmentToView] =
     useState<AssessmentWithSyncStatus | null>(null);
 
+  const [createAssessmentOnServer] = useCreateAssessment({
+    disableOfflineFallback: true,
+  });
+  const [addResponsesOnServer] = useAddResponses(); //This hook does not have offline fallback
   const [updateVisibility, updatingVisibility] = useUpdateAssessmentVisibility({
     callbacks: {
       onSuccess: () => {
@@ -61,6 +80,108 @@ const AssessmentsList = ({
       },
     },
   });
+
+  const assessmentSync = async (assessment: AssessmentWithSyncStatus) => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    if (isConnectedRef.current === false) {
+      enqueueSnackbar("Sem conexão!", {
+        variant: "error",
+      });
+      return;
+    }
+
+    if (assessment.hasPendingSaveFromDraft) {
+      enqueueSnackbar("Salve as respostas antes de sincronizar!", {
+        variant: "error",
+      });
+      return;
+    }
+    try {
+      setLoadingOverlay({ show: true, message: "Sincronizando avaliação..." });
+      const assessmentTableDataResponse =
+        await fetchAdminSQLiteAssessmentTableData({
+          params: {
+            assessmentId: assessment.id,
+          },
+        });
+      const SQLiteAssessmentTableData = assessmentTableDataResponse.data;
+      if (!SQLiteAssessmentTableData) {
+        enqueueSnackbar("Avaliação não encontrada no dispositivo!", {
+          variant: "error",
+        });
+        return;
+      }
+      let serverAssessmentId = SQLiteAssessmentTableData.id; // We initialize with the local id. If it is an existing assessment, it will aleady be correct. Otherwise, we will create a new one on the server and update the variable.
+      if (SQLiteAssessmentTableData.createdLocally) {
+        //Create the assessment on the server
+        const createAssessmentResponse = await createAssessmentOnServer({
+          data: {
+            locationId: SQLiteAssessmentTableData.locationId,
+            startDate: SQLiteAssessmentTableData.startDate,
+            formId: SQLiteAssessmentTableData.formId,
+            endDate: SQLiteAssessmentTableData.endDate,
+            isFinalized: SQLiteAssessmentTableData.isFinalized,
+            driveFolderUrl: SQLiteAssessmentTableData.driveFolderUrl,
+            createdAt: SQLiteAssessmentTableData.createdAt,
+            updatedAt: SQLiteAssessmentTableData.updatedAt,
+          },
+        });
+        if (!createAssessmentResponse.data?.assessmentId) {
+          enqueueSnackbar("Erro ao criar avaliação!", {
+            variant: "error",
+          });
+          return;
+        }
+        serverAssessmentId = createAssessmentResponse.data.assessmentId;
+      }
+      // Fetch responses from SQLite and send them to the server
+      const SQLiteAssessmentTree = await fetchAdminSQLiteAssessmentTree({
+        params: {
+          assessmentId: assessment.id,
+        },
+      });
+      const SQLiteAssessmentTreeData =
+        SQLiteAssessmentTree.data?.assessmentTree;
+      if (!SQLiteAssessmentTreeData) {
+        enqueueSnackbar(
+          "Respostas da avaliação não encontradas no dispositivo!",
+          {
+            variant: "error",
+          },
+        );
+        return;
+      }
+      await addResponsesOnServer({
+        data: {
+          assessmentId: serverAssessmentId,
+          startDate: SQLiteAssessmentTreeData.startDate,
+          endDate: SQLiteAssessmentTreeData.endDate,
+          isFinalized: SQLiteAssessmentTreeData.isFinalized,
+          driveFolderUrl: SQLiteAssessmentTreeData.driveFolderUrl,
+          geometries: SQLiteAssessmentTreeData.geometries,
+          responses: SQLiteAssessmentTreeData.responsesFormValues,
+        },
+      });
+
+      //Delete local data, as it is no longer need
+      await deleteAdminSQLiteAssessment({
+        data: {
+          assessmentId: assessment.id,
+        },
+      });
+
+      //Refresh the list
+      fetchAssessments();
+    } catch (e) {
+      enqueueSnackbar("Erro ao sincronizar!", { variant: "error" });
+    } finally {
+      setLoadingOverlay({ show: false });
+    }
+  };
+
   return (
     <div className="flex h-full flex-col gap-1">
       {assessments.length === 0 && (
@@ -97,7 +218,9 @@ const AssessmentsList = ({
                       icon={<IconFilePencil />}
                       tooltip="Avaliação - Praça"
                     />
-                    {`${a.id} - ${a.location.name} `}
+                    {hasSQLiteAssessments ?
+                      `${a.location.name}`
+                    : `${a.id} - ${a.location.name}`}
                     <Chip
                       sx={{ ml: 2 }}
                       color={a.isFinalized ? "secondary" : "warning"}
@@ -152,7 +275,7 @@ const AssessmentsList = ({
                     : <CButton
                         square
                         loadingOnClick
-                        href={`/admin/assessments/details?assessmentId=${a.id}&isSQLiteAssessment=${hasSQLiteAssessments}`}
+                        href={`/admin/assessments/details?assessmentId=${a.id}${Capacitor.isNativePlatform() ? `&isSQLiteAssessment=${hasSQLiteAssessments}` : ``}`}
                       >
                         <IconExternalLink />
                         Acessar
@@ -161,7 +284,12 @@ const AssessmentsList = ({
 
                     <Divider orientation="vertical" />
                     {hasSQLiteAssessments ?
-                      <CButton square>
+                      <CButton
+                        square
+                        onClick={() => {
+                          void assessmentSync(a);
+                        }}
+                      >
                         <IconUpload /> Sincronizar
                       </CButton>
                     : <CSwitch

@@ -1,4 +1,3 @@
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,6 +6,7 @@ import {
   AssessmentSubcategoryItem,
 } from "@/lib/serverFunctions/queries/assessment";
 import { fetchAssessmentGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
 import {
   APIRequestParams,
   APIResponseInfo,
@@ -67,7 +67,7 @@ export const publicFetchPublicAssessments = async (
 };
 
 export const publicFetchPublicAssessmentTreeParamsSchema = z.object({
-  assessmentId: z.string().min(1),
+  assessmentId: z.number().int().positive(),
 });
 
 export type PublicFetchPublicAssessmentTreeParams = z.infer<
@@ -82,7 +82,7 @@ export const publicFetchPublicAssessmentTree = async (
   request: APIRequestParams<PublicFetchPublicAssessmentTreeParams>,
 ) => {
   const params = request.params!;
-  const assessmentId = Number(params.assessmentId);
+  const assessmentId = params.assessmentId;
   try {
     const assessment = await prisma.assessment.findUnique({
       where: { id: assessmentId, isPublic: true },

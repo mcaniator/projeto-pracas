@@ -1,27 +1,26 @@
-import type { FetchAssessmentTreeParams } from "@/lib/serverFunctions/queries/assessment";
-import { fetchAssessmentTree } from "@/lib/serverFunctions/queries/assessment";
+import {
+  fetchAssessmentTree,
+  fetchAssessmentTreeParamsSchema,
+} from "@/lib/serverFunctions/queries/assessment";
+import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import superjson from "superjson";
-import { z } from "zod";
 
-export async function GET(
-  request: NextRequest,
-  props: {
-    params: Promise<FetchAssessmentTreeParams>;
-  },
-) {
+export async function GET(request: NextRequest) {
   try {
     try {
       await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["PARK"] });
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const params = await props.params;
-    const assessmentId = z.coerce.number().parse(params.assessmentId);
+    const params = parseQueryParams(
+      fetchAssessmentTreeParamsSchema,
+      request.nextUrl.searchParams,
+    );
     const assessments = await fetchAssessmentTree({
       params: {
-        assessmentId,
+        ...params,
         isPublic: true,
       },
     });

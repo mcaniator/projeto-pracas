@@ -40,7 +40,7 @@ const AssessmentResultDialog = ({
     if (!assessment) return;
     void fetchAssessmentTree({
       params: {
-        assessmentId: String(assessment?.id),
+        assessmentId: assessment.id,
       },
     });
   }, [assessment, fetchAssessmentTree]);

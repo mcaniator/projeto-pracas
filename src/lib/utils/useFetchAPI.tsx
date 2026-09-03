@@ -23,6 +23,7 @@ export function useFetchAPI<
 >({
   url,
   callbacks,
+  disableOfflineFallback,
   options,
   offlineFallback,
 }: {
@@ -35,6 +36,7 @@ export function useFetchAPI<
     onOfflineSuccess?: (response: APIResponse<T>) => void;
     onOfflineError?: (response: APIResponse<T>) => void;
   };
+  disableOfflineFallback?: boolean;
   offlineFallback?: (request: APIRequest<P, D>) => Promise<APIResponse<T>>;
   options: RequestInit;
 }): [
@@ -90,7 +92,7 @@ export function useFetchAPI<
           Capacitor.isNativePlatform() && !isConnectedRef.current;
 
         if (isOffline) {
-          if (!offlineFallback) {
+          if (!offlineFallback || disableOfflineFallback) {
             setLoadingOverlay({ show: false });
             setIsLoading(false);
             return {
@@ -230,7 +232,7 @@ export function useFetchAPI<
           });
           if (Capacitor.isNativePlatform()) {
             setServerOnline(false);
-            if (offlineFallback) {
+            if (offlineFallback && !disableOfflineFallback) {
               try {
                 const fallbackResponse = await offlineFallback({
                   params,
@@ -313,6 +315,7 @@ export function useFetchAPI<
     [
       notifyApiResponse,
       offlineFallback,
+      disableOfflineFallback,
       setLoadingOverlay,
       isConnectedRef,
       setServerOnline,

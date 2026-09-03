@@ -252,10 +252,7 @@ const createAdminSQLiteAssessment = async (
   request: APIRequestData<CreateAssessmentData>,
 ): Promise<APIResponse<CreateAssessmentResponse>> => {
   try {
-    const formData = request.data!;
-    const locationId = z.coerce.number().parse(formData.get("locationId"));
-    const formId = z.coerce.number().parse(formData.get("formId"));
-    const startDate = z.coerce.date().parse(formData.get("startDate"));
+    const { locationId, formId, startDate } = request.data!;
     const currentUserValues = await adminSQLiteDb.query({
       statement: `SELECT id FROM "current_user" LIMIT 1`,
     });
@@ -394,7 +391,7 @@ const deleteAdminSQLiteAssessment = async (
   }
   try {
     const deletedAssessment = await adminSQLiteDb.run(
-      `DELETE FROM assessment WHERE id = ? AND created_locally = 1`,
+      `DELETE FROM assessment WHERE id = ?`,
       [data.assessmentId],
     );
     if (deletedAssessment.changes.changes < 1) {

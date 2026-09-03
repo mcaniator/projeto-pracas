@@ -72,7 +72,7 @@ const LocationInfo = ({
     if (location.latestAssessmentId) {
       void fetchLatestAssessmentTree({
         params: {
-          assessmentId: String(location.latestAssessmentId),
+          assessmentId: location.latestAssessmentId,
         },
       });
     } else {

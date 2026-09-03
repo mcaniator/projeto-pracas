@@ -298,6 +298,7 @@ const AssessmentsClient = () => {
         const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
         assessments = SQLiteAssessments;
       } else {
+        setHasSQLiteAssessments(false);
         const response = await _fetchAssessments({
           params: {
             locationId,
@@ -437,6 +438,9 @@ const AssessmentsClient = () => {
               assessments={assessments}
               hasSQLiteAssessments={hasSQLiteAssessments}
               handleVisibilityChange={handleVisibilityChange}
+              fetchAssessments={() => {
+                void fetchAssessments();
+              }}
             />
           }
         </div>
