@@ -48,7 +48,6 @@ import {
   IconClipboard,
   IconClipboardCheck,
   IconClipboardData,
-  IconCloudExclamation,
   IconDeviceFloppy,
   IconPencil,
   IconTrash,
@@ -801,18 +800,19 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         />
 
         {isFilling && !isPreview && (
-          <div className="flex flex-col justify-center gap-4">
+          <div className="flex flex-col justify-center gap-4 pb-14">
             {pendingSaveFromDraft && (
               <Chip
                 label="Respostas não salvas!"
                 color="error"
-                icon={<IconCloudExclamation />}
+                icon={<IconDeviceFloppy />}
               />
             )}
-            <CButton type="submit">
-              <IconDeviceFloppy />
-              Salvar
-            </CButton>
+            <div className="fixed bottom-4 right-4 z-50">
+              <CButton type="submit" square tooltip="Salvar">
+                <IconDeviceFloppy />
+              </CButton>
+            </div>
           </div>
         )}
 

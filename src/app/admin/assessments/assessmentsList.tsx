@@ -22,8 +22,8 @@ import {
   IconCalendar,
   IconCheck,
   IconClipboard,
-  IconCloudExclamation,
   IconCloudX,
+  IconDeviceFloppy,
   IconExternalLink,
   IconEye,
   IconFilePencil,
@@ -237,7 +237,7 @@ const AssessmentsList = ({
                     <>
                       <span className="flex items-center text-base sm:text-xl">
                         <Chip
-                          icon={<IconCloudExclamation />}
+                          icon={<IconDeviceFloppy />}
                           label="Respostas não salvas!"
                           color="error"
                         />
