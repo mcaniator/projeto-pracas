@@ -85,7 +85,6 @@ const CustomDynamicIconManagerDialog = ({
           <CButton
             square
             tooltip="Adicionar ícone personalizado"
-            aria-label="Adicionar ícone personalizado"
             onClick={() => setIsSaveCustomDynamicIconOpen(true)}
           >
             <IconPlus />

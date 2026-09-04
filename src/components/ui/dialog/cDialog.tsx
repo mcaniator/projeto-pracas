@@ -9,6 +9,7 @@ import {
   DialogTitle,
   Fade,
   PaperProps,
+  Slide,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -55,13 +56,22 @@ type FormPaperProps = Omit<PaperProps, "action" | "component" | "onSubmit"> & {
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
 };
 
-const Transition = React.forwardRef(function Transition(
+const FadeTransition = React.forwardRef(function FadeTransition(
   props: TransitionProps & {
     children: React.ReactElement<unknown>;
   },
   ref: React.Ref<unknown>,
 ) {
   return <Fade ref={ref} {...props} />;
+});
+
+const SlideTransition = React.forwardRef(function SlideTransition(
+  props: TransitionProps & {
+    children: React.ReactElement<unknown>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
 });
 
 const CDialog = ({
@@ -124,6 +134,7 @@ const CDialog = ({
     () => fullScreen || (isMobileView && mobileFullScreen),
     [fullScreen, isMobileView, mobileFullScreen],
   );
+  const transition = memoFullScreen ? SlideTransition : FadeTransition;
 
   const onCloseRef = useRef(onClose);
   const skipNextPopStateRef = useRef(false);
@@ -189,13 +200,10 @@ const CDialog = ({
       <Dialog
         onClose={handleEventClose}
         slots={{
-          transition: Transition,
+          transition,
         }}
         fullScreen={memoFullScreen}
         slotProps={{
-          backdrop: {
-            className: "bg-black/25",
-          },
           paper: formPaperProps,
         }}
         {...props}
@@ -252,13 +260,10 @@ const CDialog = ({
     <Dialog
       onClose={handleEventClose}
       slots={{
-        transition: Transition,
+        transition,
       }}
       fullScreen={memoFullScreen}
       slotProps={{
-        backdrop: {
-          className: "bg-black/25",
-        },
         paper: {
           sx: {
             borderRadius: memoFullScreen ? "0px" : "12px",

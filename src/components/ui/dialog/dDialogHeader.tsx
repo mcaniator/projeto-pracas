@@ -1,4 +1,4 @@
-import { Button } from "@components/button";
+import CButton from "@/components/ui/cButton";
 import { IconX } from "@tabler/icons-react";
 
 const CDialogHeader = ({
@@ -19,16 +19,20 @@ const CDialogHeader = ({
           {title}
         </h4>
         {!removeCloseButton && (
-          <Button
-            className="ml-auto text-black"
-            variant={"ghost"}
-            size={"icon"}
-            onPress={() => {
+          <CButton
+            className="ml-auto"
+            variant={"text"}
+            square
+            sx={{
+              color: "black",
+              ":hover": { backgroundColor: "rgba(0,0,0,0.1)" },
+            }}
+            onClick={() => {
               close();
             }}
           >
             <IconX />
-          </Button>
+          </CButton>
         )}
       </div>
 

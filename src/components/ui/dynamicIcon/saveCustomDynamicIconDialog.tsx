@@ -147,6 +147,7 @@ const SaveCustomDynamicIconDialog = ({
           />
         ))}
         <CButton
+          tooltip="Adicionar outro nome alternativo"
           onClick={() => {
             setAliases((currentAliases) => [...currentAliases, ""]);
           }}
