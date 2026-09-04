@@ -71,7 +71,7 @@ const QuestionIconPicker = ({
   }, [fetchDynamicIcons, searchText, showAllIcons]);
 
   return (
-    <div className="flex flex-col gap-2 rounded border border-gray-300 p-2">
+    <div className="flex flex-col gap-2 rounded-2xl border border-gray-300 p-2">
       <h6 className="text-sm font-semibold">Ícone da questão *</h6>
       <div className="flex items-center justify-between gap-2">
         <CSwitch
@@ -84,10 +84,8 @@ const QuestionIconPicker = ({
         />
         <CButton
           type="button"
-          variant="outlined"
           square
           tooltip="Gerenciar ícones personalizados"
-          aria-label="Gerenciar ícones personalizados"
           onClick={() => setIsCustomDynamicIconManagerOpen(true)}
         >
           <SettingsIcon />
@@ -135,7 +133,6 @@ const QuestionIconPicker = ({
               const isSelected = selectedIconKey === icon.key;
               return (
                 <CButton
-                  type="button"
                   variant="outlined"
                   sx={{
                     width: "100%",

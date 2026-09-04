@@ -1,5 +1,6 @@
 import { fetchDynamicIconsParamsSchema } from "@/lib/serverFunctions/queries/questionIcon";
 import { fetchDynamicIcons } from "@/lib/serverFunctions/queries/questionIcon";
+import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
 import superjson from "superjson";
@@ -10,23 +11,17 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return new Response("Unauthorized", { status: 401 });
   }
+  const searchParams = request.nextUrl.searchParams;
+  const param = parseQueryParams(fetchDynamicIconsParamsSchema, searchParams);
+  const parse = fetchDynamicIconsParamsSchema.safeParse(param);
 
-  const parse = fetchDynamicIconsParamsSchema.safeParse({
-    query: request.nextUrl.searchParams.get("query"),
-    limit: request.nextUrl.searchParams.get("limit"),
-  });
-
-  if (!parse.success) {
-    return new Response("Invalid params", { status: 400 });
-  }
-
-  const response = fetchDynamicIcons({ params: parse.data });
+  const response = await fetchDynamicIcons({ params: parse.data });
 
   return new Response(superjson.stringify(response), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "private, max-age=86400",
+      "Cache-Control": "private, max-age=5",
     },
   });
 }

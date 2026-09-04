@@ -7,7 +7,7 @@ import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
-import { IconHelp, IconPlus, IconUpload } from "@tabler/icons-react";
+import { IconHelp, IconUpload } from "@tabler/icons-react";
 import { ChangeEvent, DragEvent, useEffect, useState } from "react";
 
 type SaveCustomDynamicIconDialogProps = {
@@ -26,10 +26,10 @@ const SaveCustomDynamicIconDialog = ({
 
   const [createCustomDynamicIcon, isCreatingCustomDynamicIcon] =
     useCreateCustomDynamicIcon({
-    callbacks: {
-      onSuccess: onClose,
-    },
-  });
+      callbacks: {
+        onSuccess: onClose,
+      },
+    });
 
   useEffect(() => {
     return () => {
@@ -65,9 +65,7 @@ const SaveCustomDynamicIconDialog = ({
       ...new Set(
         aliases
           .map((alias) => alias.trim())
-          .filter(
-            (alias) => alias.length > 0 && alias !== normalizedName,
-          ),
+          .filter((alias) => alias.length > 0 && alias !== normalizedName),
       ),
     ];
 
@@ -152,9 +150,8 @@ const SaveCustomDynamicIconDialog = ({
           onClick={() => {
             setAliases((currentAliases) => [...currentAliases, ""]);
           }}
-          square
         >
-          <IconPlus />
+          +1
         </CButton>
       </div>
     </CDialog>
