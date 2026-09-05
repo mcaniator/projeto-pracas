@@ -134,7 +134,7 @@ export const isSupportedDynamicIconKey = async (iconKey: string) => {
   }
   const customDynamicIcon = await prisma.customDynamicIcon.findUnique({
     where: {
-      name: iconKey,
+      name: iconKey.split(":")[1],
     },
   });
   return !!customDynamicIcon;
