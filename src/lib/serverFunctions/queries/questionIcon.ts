@@ -87,34 +87,18 @@ const searchDynamicIconsFuse = ({
   dynamicIconFuse,
   catalog,
 }: FetchDynamicIconsParams & {
-  dynamicIconFuse: Fuse<
-    | {
-        key: string;
-        libraryId: DynamicIconPackId;
-        iconName: string;
-        aliases: string[] | undefined;
-      }
-    | {
-        key: string;
-        libraryId: "custom";
-        iconName: string;
-        aliases: string[];
-      }
-  >;
-  catalog: (
-    | {
-        key: string;
-        libraryId: "mdi" | "tabler" | "lucide" | "ri";
-        iconName: string;
-        aliases: string[] | undefined;
-      }
-    | {
-        key: string;
-        libraryId: "custom";
-        iconName: string;
-        aliases: string[];
-      }
-  )[];
+  dynamicIconFuse: Fuse<{
+    key: string;
+    libraryId: DynamicIconPackId;
+    iconName: string;
+    aliases: string[] | undefined;
+  }>;
+  catalog: {
+    key: string;
+    libraryId: DynamicIconPackId;
+    iconName: string;
+    aliases: string[] | undefined;
+  }[];
 }) => {
   if (query && limit) {
     return dynamicIconFuse.search(query, { limit }).map((result) => ({

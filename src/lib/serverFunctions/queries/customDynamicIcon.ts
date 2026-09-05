@@ -35,7 +35,9 @@ export const fetchCustomDynamicIcons = async (_request: APIRequest) => {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
-      data: iconSet.export(),
+      data: {
+        icons: iconSet.export(),
+      },
     };
   } catch (error) {
     return {

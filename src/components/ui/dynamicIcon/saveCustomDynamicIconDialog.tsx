@@ -5,6 +5,7 @@ import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { fetchAndAddCustomDynamicIconCollection } from "@/components/ui/dynamicIcon/dynamicIconLoader";
 import { dynamicIconNameRegex } from "@/lib/questionIcons/dynamicIcon";
 import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
@@ -34,10 +35,21 @@ const SaveCustomDynamicIconDialog = ({
     return !normalizedAlias || dynamicIconNameRegex.test(normalizedAlias);
   });
 
+  const resetForm = () => {
+    setSvgPreviewUrl(null);
+    setName(null);
+    setSvg(null);
+    setAliases([""]);
+  };
+
   const [createCustomDynamicIcon, isCreatingCustomDynamicIcon] =
     useCreateCustomDynamicIcon({
       callbacks: {
-        onSuccess: onClose,
+        onSuccess: () => {
+          resetForm();
+          void fetchAndAddCustomDynamicIconCollection();
+          onClose();
+        },
       },
     });
 
