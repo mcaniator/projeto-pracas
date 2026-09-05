@@ -5,6 +5,7 @@ import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { dynamicIconNameRegex } from "@/lib/questionIcons/dynamicIcon";
 import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
 import { IconHelp, IconUpload } from "@tabler/icons-react";
@@ -15,6 +16,8 @@ type SaveCustomDynamicIconDialogProps = {
   onClose: () => void;
 };
 
+const iconNameErrorMessage = "Use letras minúsculas, números e hífens simples.";
+
 const SaveCustomDynamicIconDialog = ({
   open,
   onClose,
@@ -23,6 +26,13 @@ const SaveCustomDynamicIconDialog = ({
   const [name, setName] = useState<string | null>(null);
   const [svg, setSvg] = useState<string | null>(null);
   const [aliases, setAliases] = useState<string[]>([""]);
+
+  const normalizedName = name?.trim() ?? "";
+  const isNameValid = dynamicIconNameRegex.test(normalizedName);
+  const areAliasesValid = aliases.every((alias) => {
+    const normalizedAlias = alias.trim();
+    return !normalizedAlias || dynamicIconNameRegex.test(normalizedAlias);
+  });
 
   const [createCustomDynamicIcon, isCreatingCustomDynamicIcon] =
     useCreateCustomDynamicIcon({
@@ -58,9 +68,8 @@ const SaveCustomDynamicIconDialog = ({
   };
 
   const handleConfirm = () => {
-    if (!name?.trim() || !svg) return;
+    if (!isNameValid || !areAliasesValid || !svg) return;
 
-    const normalizedName = name.trim();
     const normalizedAliases = [
       ...new Set(
         aliases
@@ -85,7 +94,7 @@ const SaveCustomDynamicIconDialog = ({
       title="Adicionar ícone personalizado"
       confirmChildren="Salvar"
       onConfirm={handleConfirm}
-      disableConfirmButton={!name?.trim() || !svg}
+      disableConfirmButton={!isNameValid || !areAliasesValid || !svg}
       confirmLoading={isCreatingCustomDynamicIcon}
     >
       <div className="flex flex-col gap-2">
@@ -119,7 +128,10 @@ const SaveCustomDynamicIconDialog = ({
         <CTextField
           label="Nome (em inglês)"
           required
+          placeholder="Ex: recycling-bin"
           value={name}
+          error={normalizedName.length > 0 && !isNameValid}
+          errorMessage={iconNameErrorMessage}
           onChange={(e) => {
             setName(e.target.value);
           }}
@@ -137,6 +149,12 @@ const SaveCustomDynamicIconDialog = ({
             key={index}
             label={`Nome alternativo ${index + 1}`}
             value={alias}
+            placeholder="Ex: trash"
+            error={
+              alias.trim().length > 0 &&
+              !dynamicIconNameRegex.test(alias.trim())
+            }
+            errorMessage={iconNameErrorMessage}
             onChange={(e) => {
               setAliases((currentAliases) =>
                 currentAliases.map((currentAlias, currentIndex) =>

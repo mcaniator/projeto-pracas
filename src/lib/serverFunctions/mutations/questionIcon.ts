@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { dynamicIconNameRegex } from "@/lib/questionIcons/dynamicIcon";
 import { SVG, cleanupSVG, resetSVGOrigin, runSVGO } from "@iconify/tools";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -35,7 +36,7 @@ const createCustomDynamicIcon = async (
   const { name, svg } = data;
   const aliases = [...new Set(data.aliases.filter((alias) => alias !== name))];
 
-  if (!name || !svg) {
+  if (!name || !svg || !dynamicIconNameRegex.test(name)) {
     return {
       responseInfo: {
         statusCode: 400,
@@ -103,7 +104,4 @@ const createCustomDynamicIcon = async (
 };
 
 export { createCustomDynamicIcon, createCustomDynamicIconDataSchema };
-export type {
-  CreateCustomDynamicIconData,
-  CreateCustomDynamicIconResponse,
-};
+export type { CreateCustomDynamicIconData, CreateCustomDynamicIconResponse };

@@ -58,7 +58,8 @@ export const fetchDynamicIcons = async (
     const result = searchDynamicIconsFuse({
       query: trimmedQuery,
       limit: params.limit,
-      dynamicIconFuse,
+      dynamicIconFuse: dynamicIconFuse,
+      catalog: completeDynamicIconCatalog,
     });
 
     return {
@@ -84,6 +85,7 @@ const searchDynamicIconsFuse = ({
   query,
   limit,
   dynamicIconFuse,
+  catalog,
 }: FetchDynamicIconsParams & {
   dynamicIconFuse: Fuse<
     | {
@@ -99,6 +101,20 @@ const searchDynamicIconsFuse = ({
         aliases: string[];
       }
   >;
+  catalog: (
+    | {
+        key: string;
+        libraryId: "mdi" | "tabler" | "lucide" | "ri";
+        iconName: string;
+        aliases: string[] | undefined;
+      }
+    | {
+        key: string;
+        libraryId: "custom";
+        iconName: string;
+        aliases: string[];
+      }
+  )[];
 }) => {
   if (query && limit) {
     return dynamicIconFuse.search(query, { limit }).map((result) => ({
@@ -113,12 +129,12 @@ const searchDynamicIconsFuse = ({
     }));
   }
   if (limit) {
-    return staticDynamicIconCatalog.slice(0, limit).map((entry) => ({
+    return catalog.slice(0, limit).map((entry) => ({
       key: entry.key,
       iconName: entry.iconName,
     }));
   }
-  return staticDynamicIconCatalog.map((entry) => ({
+  return catalog.map((entry) => ({
     key: entry.key,
     iconName: entry.iconName,
   }));
