@@ -1,3 +1,5 @@
+const CUSTOM_DYNAMIC_ICON_MAX_SIZE = 10 * 1024;
+
 const DEFAULT_DYNAMIC_ICON_KEY = "tabler:help";
 
 const DYNAMIC_ICON_PACK_IDS = [
@@ -15,5 +17,10 @@ const buildDynamicIconKey = (libraryId: DynamicIconPackId, iconName: string) =>
 
 const dynamicIconNameRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-export { DEFAULT_DYNAMIC_ICON_KEY, buildDynamicIconKey, dynamicIconNameRegex };
+export {
+  DEFAULT_DYNAMIC_ICON_KEY,
+  CUSTOM_DYNAMIC_ICON_MAX_SIZE,
+  buildDynamicIconKey,
+  dynamicIconNameRegex,
+};
 export type { DynamicIconPackId };

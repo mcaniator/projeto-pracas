@@ -6,10 +6,15 @@ import CIconChip from "@/components/ui/cIconChip";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { fetchAndAddCustomDynamicIconCollection } from "@/components/ui/dynamicIcon/dynamicIconLoader";
-import { dynamicIconNameRegex } from "@/lib/questionIcons/dynamicIcon";
+import {
+  CUSTOM_DYNAMIC_ICON_MAX_SIZE,
+  dynamicIconNameRegex,
+} from "@/lib/questionIcons/dynamicIcon";
+import { formatFileSize } from "@/lib/utils/file";
 import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
 import { IconHelp, IconUpload } from "@tabler/icons-react";
+import { enqueueSnackbar } from "notistack";
 import { ChangeEvent, DragEvent, useEffect, useState } from "react";
 
 type SaveCustomDynamicIconDialogProps = {
@@ -63,6 +68,16 @@ const SaveCustomDynamicIconDialog = ({
     if (!file || file.type !== "image/svg+xml") return;
 
     const svgContent = await file.text();
+    if (new Blob([svgContent]).size > CUSTOM_DYNAMIC_ICON_MAX_SIZE) {
+      enqueueSnackbar(
+        `O SVG deve ter no máximo ${formatFileSize(CUSTOM_DYNAMIC_ICON_MAX_SIZE)}.`,
+        {
+          variant: "error",
+        },
+      );
+      return;
+    }
+
     setSvgPreviewUrl((currentPreviewUrl) => {
       if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
       return URL.createObjectURL(file);

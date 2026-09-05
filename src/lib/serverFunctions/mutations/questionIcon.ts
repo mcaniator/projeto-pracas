@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { dynamicIconNameRegex } from "@/lib/questionIcons/dynamicIcon";
+import {
+  CUSTOM_DYNAMIC_ICON_MAX_SIZE,
+  dynamicIconNameRegex,
+} from "@/lib/questionIcons/dynamicIcon";
+import { formatFileSize } from "@/lib/utils/file";
 import { SVG, cleanupSVG, resetSVGOrigin, runSVGO } from "@iconify/tools";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -41,6 +45,15 @@ const createCustomDynamicIcon = async (
       responseInfo: {
         statusCode: 400,
         message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+
+  if (new Blob([svg]).size > CUSTOM_DYNAMIC_ICON_MAX_SIZE) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: `O SVG deve ter no máximo ${formatFileSize(CUSTOM_DYNAMIC_ICON_MAX_SIZE)}.`,
       } as APIResponseInfo,
     };
   }
