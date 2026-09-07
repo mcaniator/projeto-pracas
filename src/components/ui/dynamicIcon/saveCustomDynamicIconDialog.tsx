@@ -31,6 +31,7 @@ type SaveCustomDynamicIconDialogProps = {
   open: boolean;
   iconId?: number;
   onClose: () => void;
+  reload: () => void;
 };
 
 const iconNameErrorMessage = "Use letras minúsculas, números e hífens simples.";
@@ -39,6 +40,7 @@ const SaveCustomDynamicIconDialog = ({
   open,
   iconId,
   onClose,
+  reload,
 }: SaveCustomDynamicIconDialogProps) => {
   const [svgPreviewUrl, setSvgPreviewUrl] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -96,6 +98,7 @@ const SaveCustomDynamicIconDialog = ({
         onSuccess: () => {
           resetForm();
           void fetchAndAddCustomDynamicIconCollection();
+          reload();
           onClose();
         },
       },
@@ -227,7 +230,7 @@ const SaveCustomDynamicIconDialog = ({
           <div className="flex items-center gap-1">
             Nomes alternativos
             <CIconChip
-              tooltip="Nomes alternativos para a busca por nome"
+              tooltip="Nomes alternativos para facilitar a busca por nome"
               icon={<IconHelp />}
             />
           </div>

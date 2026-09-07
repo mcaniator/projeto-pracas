@@ -9,7 +9,7 @@ import { useFetchDynamicIcons } from "@/lib/serverFunctions/apiCalls/questionIco
 import { FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { Box, CircularProgress } from "@mui/material";
 import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 
 import SaveCustomDynamicIconDialog from "./saveCustomDynamicIconDialog";
@@ -44,7 +44,7 @@ const CustomDynamicIconManagerDialog = ({
     },
   });
 
-  useEffect(() => {
+  const fetchList = useCallback(() => {
     if (searchText.length === 0 && !showAllIcons) {
       setResults([]);
       return;
@@ -65,6 +65,10 @@ const CustomDynamicIconManagerDialog = ({
       });
     }
   }, [fetchDynamicIcons, searchText, showAllIcons]);
+
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
 
   return (
     <CDialog
@@ -175,6 +179,7 @@ const CustomDynamicIconManagerDialog = ({
       <SaveCustomDynamicIconDialog
         open={isSaveCustomDynamicIconOpen}
         iconId={selectedCustomDynamicIconId}
+        reload={fetchList}
         onClose={() => {
           setIsSaveCustomDynamicIconOpen(false);
           setSelectedCustomDynamicIconId(undefined);
