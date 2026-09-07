@@ -31,12 +31,14 @@ export const fetchDynamicIcons = async (
     const trimmedQuery = params.query?.trim().replace(" ", "-") ?? "";
     const customDynamicIconCatalog = await prisma.customDynamicIcon.findMany({
       select: {
+        id: true,
         name: true,
         aliases: true,
       },
     });
     const formattedCustomDynamicIconCatalog = customDynamicIconCatalog.map(
       (icon) => ({
+        iconId: icon.id,
         key: `custom:${icon.name}`,
         libraryId: "custom" as const,
         iconName: icon.name,
@@ -88,12 +90,14 @@ const searchDynamicIconsFuse = ({
   catalog,
 }: FetchDynamicIconsParams & {
   dynamicIconFuse: Fuse<{
+    iconId?: number;
     key: string;
     libraryId: DynamicIconPackId;
     iconName: string;
     aliases: string[] | undefined;
   }>;
   catalog: {
+    iconId?: number;
     key: string;
     libraryId: DynamicIconPackId;
     iconName: string;
@@ -102,26 +106,85 @@ const searchDynamicIconsFuse = ({
 }) => {
   if (query && limit) {
     return dynamicIconFuse.search(query, { limit }).map((result) => ({
+      iconId: result.item.iconId,
       key: result.item.key,
       iconName: result.item.iconName,
     }));
   }
   if (query) {
     return dynamicIconFuse.search(query).map((result) => ({
+      iconId: result.item.iconId,
       key: result.item.key,
       iconName: result.item.iconName,
     }));
   }
   if (limit) {
     return catalog.slice(0, limit).map((entry) => ({
+      iconId: entry.iconId,
       key: entry.key,
       iconName: entry.iconName,
     }));
   }
   return catalog.map((entry) => ({
+    iconId: entry.iconId,
     key: entry.key,
     iconName: entry.iconName,
   }));
+};
+
+export const fetchCustomDynamicIconDetailsParamsSchema = z.object({
+  iconId: z.coerce.number().int().positive(),
+});
+
+export type FetchCustomDynamicIconDetailsParams = z.infer<
+  typeof fetchCustomDynamicIconDetailsParamsSchema
+>;
+
+export type FetchCustomDynamicIconDetailsResponse = Awaited<
+  ReturnType<typeof fetchCustomDynamicIconDetails>
+>["data"];
+
+export const fetchCustomDynamicIconDetails = async (
+  request: APIRequestParams<FetchCustomDynamicIconDetailsParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const customDynamicIcon = await prisma.customDynamicIcon.findUnique({
+      where: { id: params.iconId },
+      select: {
+        id: true,
+        name: true,
+        aliases: true,
+        body: true,
+        width: true,
+        height: true,
+      },
+    });
+
+    if (!customDynamicIcon) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Ícone personalizado não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { customDynamicIcon },
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar ícone personalizado!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
 };
 
 const dynamicIconByKey = new Map(

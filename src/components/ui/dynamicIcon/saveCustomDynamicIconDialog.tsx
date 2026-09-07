@@ -1,5 +1,6 @@
 "use client";
 
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import CButton from "@/components/ui/cButton";
 import CButtonFilePicker from "@/components/ui/cButtonFilePicker";
 import CIconChip from "@/components/ui/cIconChip";
@@ -11,14 +12,24 @@ import {
   dynamicIconNameRegex,
 } from "@/lib/questionIcons/dynamicIcon";
 import { formatFileSize } from "@/lib/utils/file";
-import { useSaveCustomDynamicIcon } from "@apiCalls/questionIcon";
+import {
+  useFetchCustomDynamicIconDetails,
+  useSaveCustomDynamicIcon,
+} from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
 import { IconHelp, IconUpload } from "@tabler/icons-react";
 import { enqueueSnackbar } from "notistack";
-import { ChangeEvent, DragEvent, useEffect, useState } from "react";
+import {
+  ChangeEvent,
+  DragEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 type SaveCustomDynamicIconDialogProps = {
   open: boolean;
+  iconId?: number;
   onClose: () => void;
 };
 
@@ -26,6 +37,7 @@ const iconNameErrorMessage = "Use letras minúsculas, números e hífens simples
 
 const SaveCustomDynamicIconDialog = ({
   open,
+  iconId,
   onClose,
 }: SaveCustomDynamicIconDialogProps) => {
   const [svgPreviewUrl, setSvgPreviewUrl] = useState<string | null>(null);
@@ -40,12 +52,43 @@ const SaveCustomDynamicIconDialog = ({
     return !normalizedAlias || dynamicIconNameRegex.test(normalizedAlias);
   });
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setSvgPreviewUrl(null);
     setName(null);
     setSvg(null);
     setAliases([""]);
-  };
+  }, []);
+
+  const setSvgContent = useCallback((svgContent: string) => {
+    setSvgPreviewUrl((currentPreviewUrl) => {
+      if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+      return URL.createObjectURL(
+        new Blob([svgContent], { type: "image/svg+xml" }),
+      );
+    });
+    setSvg(svgContent);
+  }, []);
+
+  const [fetchCustomDynamicIconDetails, isLoadingCustomDynamicIconDetails] =
+    useFetchCustomDynamicIconDetails({
+      callbacks: {
+        onSuccess: (response) => {
+          const customDynamicIcon = response.data?.customDynamicIcon;
+          if (!customDynamicIcon) return;
+
+          setName(customDynamicIcon.name);
+          setAliases(
+            customDynamicIcon.aliases.length > 0 ?
+              customDynamicIcon.aliases
+            : [""],
+          );
+          setSvgContent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${customDynamicIcon.width}" height="${customDynamicIcon.height}" viewBox="0 0 ${customDynamicIcon.width} ${customDynamicIcon.height}">${customDynamicIcon.body}</svg>`,
+          );
+        },
+        onError: resetForm,
+      },
+    });
 
   const [saveCustomDynamicIcon, isSavingCustomDynamicIcon] =
     useSaveCustomDynamicIcon({
@@ -64,6 +107,15 @@ const SaveCustomDynamicIconDialog = ({
     };
   }, [svgPreviewUrl]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    resetForm();
+    if (!iconId) return;
+
+    void fetchCustomDynamicIconDetails({ params: { iconId } });
+  }, [fetchCustomDynamicIconDetails, iconId, open, resetForm]);
+
   const selectSvg = async (file: File | undefined) => {
     if (!file || file.type !== "image/svg+xml") return;
 
@@ -78,11 +130,7 @@ const SaveCustomDynamicIconDialog = ({
       return;
     }
 
-    setSvgPreviewUrl((currentPreviewUrl) => {
-      if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
-      return URL.createObjectURL(file);
-    });
-    setSvg(svgContent);
+    setSvgContent(svgContent);
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +155,7 @@ const SaveCustomDynamicIconDialog = ({
 
     void saveCustomDynamicIcon({
       data: {
+        iconId,
         name: normalizedName,
         svg,
         aliases: normalizedAliases,
@@ -118,88 +167,100 @@ const SaveCustomDynamicIconDialog = ({
     <CDialog
       open={open}
       onClose={onClose}
-      title="Adicionar ícone personalizado"
+      title={
+        iconId ? "Editar ícone personalizado" : "Adicionar ícone personalizado"
+      }
       confirmChildren="Salvar"
       onConfirm={handleConfirm}
-      disableConfirmButton={!isNameValid || !areAliasesValid || !svg}
+      disableConfirmButton={
+        isLoadingCustomDynamicIconDetails ||
+        !isNameValid ||
+        !areAliasesValid ||
+        !svg
+      }
       confirmLoading={isSavingCustomDynamicIcon}
     >
-      <div className="flex flex-col gap-2">
-        <div
-          className="flex min-h-72 flex-col items-center justify-center gap-4 rounded border-2 border-dashed border-gray-300 p-6 text-center"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={handleDrop}
-        >
-          <CButtonFilePicker
-            type="button"
-            fileAccept="image/svg+xml,.svg"
-            onFileInput={handleFileChange}
+      {isLoadingCustomDynamicIconDetails ?
+        <div className="flex min-h-72 items-center justify-center">
+          <CCircularProgress label="Carregando ícone..." />
+        </div>
+      : <div className="flex flex-col gap-2">
+          <div
+            className="flex min-h-72 flex-col items-center justify-center gap-4 rounded border-2 border-dashed border-gray-300 p-6 text-center"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDrop}
           >
-            <IconUpload />
-            Selecionar SVG
-          </CButtonFilePicker>
-          <p className="text-sm text-gray-600">
-            Arraste um arquivo SVG para esta área ou selecione-o acima.
-          </p>
+            <CButtonFilePicker
+              type="button"
+              fileAccept="image/svg+xml,.svg"
+              onFileInput={handleFileChange}
+            >
+              <IconUpload />
+              Selecionar SVG
+            </CButtonFilePicker>
+            <p className="text-sm text-gray-600">
+              Arraste um arquivo SVG para esta área ou selecione-o acima.
+            </p>
 
-          {svgPreviewUrl && (
-            <div className="flex flex-col items-center gap-2">
-              <img
-                src={svgPreviewUrl}
-                alt={name ? `Prévia de ${name}` : "Prévia do SVG"}
-                className="h-32 w-32 object-contain"
-              />
-            </div>
-          )}
-        </div>
-        <CTextField
-          label="Nome (em inglês)"
-          required
-          placeholder="Ex: recycling-bin"
-          value={name}
-          error={normalizedName.length > 0 && !isNameValid}
-          errorMessage={iconNameErrorMessage}
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        />
-        <Divider />
-        <div className="flex items-center gap-1">
-          Nomes alternativos
-          <CIconChip
-            tooltip="Nomes alternativos para a busca por nome"
-            icon={<IconHelp />}
-          />
-        </div>
-        {aliases.map((alias, index) => (
+            {svgPreviewUrl && (
+              <div className="flex flex-col items-center gap-2">
+                <img
+                  src={svgPreviewUrl}
+                  alt={name ? `Prévia de ${name}` : "Prévia do SVG"}
+                  className="h-32 w-32 object-contain"
+                />
+              </div>
+            )}
+          </div>
           <CTextField
-            key={index}
-            label={`Nome alternativo ${index + 1}`}
-            value={alias}
-            placeholder="Ex: trash"
-            error={
-              alias.trim().length > 0 &&
-              !dynamicIconNameRegex.test(alias.trim())
-            }
+            label="Nome (em inglês)"
+            required
+            placeholder="Ex: recycling-bin"
+            value={name}
+            error={normalizedName.length > 0 && !isNameValid}
             errorMessage={iconNameErrorMessage}
             onChange={(e) => {
-              setAliases((currentAliases) =>
-                currentAliases.map((currentAlias, currentIndex) =>
-                  currentIndex === index ? e.target.value : currentAlias,
-                ),
-              );
+              setName(e.target.value);
             }}
           />
-        ))}
-        <CButton
-          tooltip="Adicionar outro nome alternativo"
-          onClick={() => {
-            setAliases((currentAliases) => [...currentAliases, ""]);
-          }}
-        >
-          +1
-        </CButton>
-      </div>
+          <Divider />
+          <div className="flex items-center gap-1">
+            Nomes alternativos
+            <CIconChip
+              tooltip="Nomes alternativos para a busca por nome"
+              icon={<IconHelp />}
+            />
+          </div>
+          {aliases.map((alias, index) => (
+            <CTextField
+              key={index}
+              label={`Nome alternativo ${index + 1}`}
+              value={alias}
+              placeholder="Ex: trash"
+              error={
+                alias.trim().length > 0 &&
+                !dynamicIconNameRegex.test(alias.trim())
+              }
+              errorMessage={iconNameErrorMessage}
+              onChange={(e) => {
+                setAliases((currentAliases) =>
+                  currentAliases.map((currentAlias, currentIndex) =>
+                    currentIndex === index ? e.target.value : currentAlias,
+                  ),
+                );
+              }}
+            />
+          ))}
+          <CButton
+            tooltip="Adicionar outro nome alternativo"
+            onClick={() => {
+              setAliases((currentAliases) => [...currentAliases, ""]);
+            }}
+          >
+            +1
+          </CButton>
+        </div>
+      }
     </CDialog>
   );
 };

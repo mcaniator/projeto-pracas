@@ -1,8 +1,10 @@
+import type { SaveCustomDynamicIconData } from "@/lib/serverFunctions/mutations/questionIcon";
 import type {
+  FetchCustomDynamicIconDetailsParams,
+  FetchCustomDynamicIconDetailsResponse,
   FetchDynamicIconsParams,
   FetchDynamicIconsResponse,
 } from "@/lib/serverFunctions/queries/questionIcon";
-import type { SaveCustomDynamicIconData } from "@/lib/serverFunctions/mutations/questionIcon";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -20,12 +22,23 @@ const useFetchDynamicIcons = (
   });
 };
 
-const useSaveCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
+const useFetchCustomDynamicIconDetails = (
+  params?: UseFetchAPIParams<FetchCustomDynamicIconDetailsResponse>,
+) => {
   return useFetchAPI<
-    null,
-    Record<string, never>,
-    SaveCustomDynamicIconData
+    FetchCustomDynamicIconDetailsResponse,
+    FetchCustomDynamicIconDetailsParams
   >({
+    url: "/api/admin/forms/dynamicIcons/details",
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+    },
+  });
+};
+
+const useSaveCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, SaveCustomDynamicIconData>({
     url: "/api/admin/forms/dynamicIcons/save",
     callbacks: params?.callbacks,
     options: {
@@ -34,4 +47,8 @@ const useSaveCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
   });
 };
 
-export { useSaveCustomDynamicIcon, useFetchDynamicIcons };
+export {
+  useFetchCustomDynamicIconDetails,
+  useSaveCustomDynamicIcon,
+  useFetchDynamicIcons,
+};

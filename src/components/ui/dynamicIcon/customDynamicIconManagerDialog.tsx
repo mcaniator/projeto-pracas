@@ -25,6 +25,8 @@ const CustomDynamicIconManagerDialog = ({
 }: CustomDynamicIconManagerDialogProps) => {
   const [isSaveCustomDynamicIconOpen, setIsSaveCustomDynamicIconOpen] =
     useState(false);
+  const [selectedCustomDynamicIconId, setSelectedCustomDynamicIconId] =
+    useState<number>();
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState<
     FetchDynamicIconsResponse["icons"][number][]
@@ -85,7 +87,10 @@ const CustomDynamicIconManagerDialog = ({
           <CButton
             square
             tooltip="Adicionar ícone personalizado"
-            onClick={() => setIsSaveCustomDynamicIconOpen(true)}
+            onClick={() => {
+              setSelectedCustomDynamicIconId(undefined);
+              setIsSaveCustomDynamicIconOpen(true);
+            }}
           >
             <IconPlus />
           </CButton>
@@ -145,7 +150,14 @@ const CustomDynamicIconManagerDialog = ({
                     <CDynamicIcon iconKey={icon.key} />
                     <span className="truncate">{icon.iconName}</span>
                     <div className="ml-auto flex gap-2">
-                      <CButton variant="text" dense>
+                      <CButton
+                        variant="text"
+                        dense
+                        onClick={() => {
+                          setSelectedCustomDynamicIconId(icon.iconId);
+                          setIsSaveCustomDynamicIconOpen(true);
+                        }}
+                      >
                         <IconPencil />
                       </CButton>
                       <CButton variant="text" color="error" dense>
@@ -162,7 +174,11 @@ const CustomDynamicIconManagerDialog = ({
 
       <SaveCustomDynamicIconDialog
         open={isSaveCustomDynamicIconOpen}
-        onClose={() => setIsSaveCustomDynamicIconOpen(false)}
+        iconId={selectedCustomDynamicIconId}
+        onClose={() => {
+          setIsSaveCustomDynamicIconOpen(false);
+          setSelectedCustomDynamicIconId(undefined);
+        }}
       />
     </CDialog>
   );
