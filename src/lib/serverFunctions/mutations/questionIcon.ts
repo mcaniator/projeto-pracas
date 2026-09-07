@@ -48,8 +48,8 @@ const createCustomDynamicIcon = async (
       } as APIResponseInfo,
     };
   }
-
-  if (new Blob([svg]).size > CUSTOM_DYNAMIC_ICON_MAX_SIZE) {
+  const svgSize = new Blob([svg]).size;
+  if (svgSize > CUSTOM_DYNAMIC_ICON_MAX_SIZE) {
     return {
       responseInfo: {
         statusCode: 400,
@@ -84,6 +84,7 @@ const createCustomDynamicIcon = async (
         body: icon.body,
         width: icon.width,
         height: icon.height,
+        sizeInBytes: svgSize,
         aliases,
       },
     });

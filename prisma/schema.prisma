@@ -652,15 +652,16 @@ model Image {
 //  ------------------------------------------------------------------------------------------------------------
 
 model CustomDynamicIcon {
-  id      Int      @id @default(autoincrement())
-  name    String   @unique
-  aliases String[] @default([])
-  body    String
-  width   Float
-  height  Float
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  aliases     String[] @default([])
+  body        String
+  width       Float
+  height      Float
+  sizeInBytes Float    @map("size_in_bytes")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@index([name])
-  @@index([aliases])
   @@map("custom_dynamic_icon")
 }
 
