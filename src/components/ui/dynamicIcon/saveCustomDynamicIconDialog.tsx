@@ -11,7 +11,7 @@ import {
   dynamicIconNameRegex,
 } from "@/lib/questionIcons/dynamicIcon";
 import { formatFileSize } from "@/lib/utils/file";
-import { useCreateCustomDynamicIcon } from "@apiCalls/questionIcon";
+import { useSaveCustomDynamicIcon } from "@apiCalls/questionIcon";
 import { Divider } from "@mui/material";
 import { IconHelp, IconUpload } from "@tabler/icons-react";
 import { enqueueSnackbar } from "notistack";
@@ -47,8 +47,8 @@ const SaveCustomDynamicIconDialog = ({
     setAliases([""]);
   };
 
-  const [createCustomDynamicIcon, isCreatingCustomDynamicIcon] =
-    useCreateCustomDynamicIcon({
+  const [saveCustomDynamicIcon, isSavingCustomDynamicIcon] =
+    useSaveCustomDynamicIcon({
       callbacks: {
         onSuccess: () => {
           resetForm();
@@ -105,7 +105,7 @@ const SaveCustomDynamicIconDialog = ({
       ),
     ];
 
-    void createCustomDynamicIcon({
+    void saveCustomDynamicIcon({
       data: {
         name: normalizedName,
         svg,
@@ -122,7 +122,7 @@ const SaveCustomDynamicIconDialog = ({
       confirmChildren="Salvar"
       onConfirm={handleConfirm}
       disableConfirmButton={!isNameValid || !areAliasesValid || !svg}
-      confirmLoading={isCreatingCustomDynamicIcon}
+      confirmLoading={isSavingCustomDynamicIcon}
     >
       <div className="flex flex-col gap-2">
         <div

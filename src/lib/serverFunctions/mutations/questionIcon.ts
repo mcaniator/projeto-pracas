@@ -13,21 +13,22 @@ import {
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
 
-const createCustomDynamicIconDataSchema = z.object({
+const saveCustomDynamicIconDataSchema = z.object({
   name: z.string().trim().min(1),
   svg: z.string().min(1),
   aliases: z.array(z.string().trim().min(1)).default([]),
+  iconId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
-type CreateCustomDynamicIconData = z.infer<
-  typeof createCustomDynamicIconDataSchema
+type SaveCustomDynamicIconData = z.infer<
+  typeof saveCustomDynamicIconDataSchema
 >;
-type CreateCustomDynamicIconResponse = Awaited<
-  ReturnType<typeof createCustomDynamicIcon>
+type SaveCustomDynamicIconResponse = Awaited<
+  ReturnType<typeof saveCustomDynamicIcon>
 >;
 
-const createCustomDynamicIcon = async (
-  request: APIRequestData<CreateCustomDynamicIconData>,
+const saveCustomDynamicIcon = async (
+  request: APIRequestData<SaveCustomDynamicIconData>,
 ) => {
   const data = request.data;
   if (!data)
@@ -78,16 +79,32 @@ const createCustomDynamicIcon = async (
   }
 
   try {
-    await prisma.customDynamicIcon.create({
-      data: {
-        name,
-        body: icon.body,
-        width: icon.width,
-        height: icon.height,
-        sizeInBytes: svgSize,
-        aliases,
-      },
-    });
+    if (data.iconId) {
+      await prisma.customDynamicIcon.update({
+        where: {
+          id: data.iconId,
+        },
+        data: {
+          name,
+          body: icon.body,
+          width: icon.width,
+          height: icon.height,
+          sizeInBytes: svgSize,
+          aliases,
+        },
+      });
+    } else {
+      await prisma.customDynamicIcon.create({
+        data: {
+          name,
+          body: icon.body,
+          width: icon.width,
+          height: icon.height,
+          sizeInBytes: svgSize,
+          aliases,
+        },
+      });
+    }
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -117,5 +134,5 @@ const createCustomDynamicIcon = async (
   };
 };
 
-export { createCustomDynamicIcon, createCustomDynamicIconDataSchema };
-export type { CreateCustomDynamicIconData, CreateCustomDynamicIconResponse };
+export { saveCustomDynamicIcon, saveCustomDynamicIconDataSchema };
+export type { SaveCustomDynamicIconData, SaveCustomDynamicIconResponse };

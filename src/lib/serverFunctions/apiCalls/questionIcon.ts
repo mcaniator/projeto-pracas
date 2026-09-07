@@ -2,7 +2,7 @@ import type {
   FetchDynamicIconsParams,
   FetchDynamicIconsResponse,
 } from "@/lib/serverFunctions/queries/questionIcon";
-import type { CreateCustomDynamicIconData } from "@/lib/serverFunctions/mutations/questionIcon";
+import type { SaveCustomDynamicIconData } from "@/lib/serverFunctions/mutations/questionIcon";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
@@ -20,13 +20,13 @@ const useFetchDynamicIcons = (
   });
 };
 
-const useCreateCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
+const useSaveCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
   return useFetchAPI<
     null,
     Record<string, never>,
-    CreateCustomDynamicIconData
+    SaveCustomDynamicIconData
   >({
-    url: "/api/admin/forms/dynamicIcons/create",
+    url: "/api/admin/forms/dynamicIcons/save",
     callbacks: params?.callbacks,
     options: {
       method: "POST",
@@ -34,4 +34,4 @@ const useCreateCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
   });
 };
 
-export { useCreateCustomDynamicIcon, useFetchDynamicIcons };
+export { useSaveCustomDynamicIcon, useFetchDynamicIcons };
