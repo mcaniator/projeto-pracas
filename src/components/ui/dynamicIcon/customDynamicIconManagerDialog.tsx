@@ -12,6 +12,7 @@ import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 
+import DeleteCustomDynamicIconDialog from "./deleteCustomDynamicIconDialog";
 import SaveCustomDynamicIconDialog from "./saveCustomDynamicIconDialog";
 
 type CustomDynamicIconManagerDialogProps = {
@@ -24,6 +25,8 @@ const CustomDynamicIconManagerDialog = ({
   onClose,
 }: CustomDynamicIconManagerDialogProps) => {
   const [isSaveCustomDynamicIconOpen, setIsSaveCustomDynamicIconOpen] =
+    useState(false);
+  const [isDeleteCustomDynamicIconOpen, setIsDeleteCustomDynamicIconOpen] =
     useState(false);
   const [selectedCustomDynamicIconId, setSelectedCustomDynamicIconId] =
     useState<number>();
@@ -164,7 +167,15 @@ const CustomDynamicIconManagerDialog = ({
                       >
                         <IconPencil />
                       </CButton>
-                      <CButton variant="text" color="error" dense>
+                      <CButton
+                        variant="text"
+                        color="error"
+                        dense
+                        onClick={() => {
+                          setSelectedCustomDynamicIconId(icon.iconId);
+                          setIsDeleteCustomDynamicIconOpen(true);
+                        }}
+                      >
                         <IconTrash />
                       </CButton>
                     </div>
@@ -182,6 +193,15 @@ const CustomDynamicIconManagerDialog = ({
         reload={fetchList}
         onClose={() => {
           setIsSaveCustomDynamicIconOpen(false);
+          setSelectedCustomDynamicIconId(undefined);
+        }}
+      />
+      <DeleteCustomDynamicIconDialog
+        open={isDeleteCustomDynamicIconOpen}
+        iconId={selectedCustomDynamicIconId}
+        reload={fetchList}
+        onClose={() => {
+          setIsDeleteCustomDynamicIconOpen(false);
           setSelectedCustomDynamicIconId(undefined);
         }}
       />

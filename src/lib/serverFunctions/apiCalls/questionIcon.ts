@@ -1,4 +1,8 @@
-import type { SaveCustomDynamicIconData } from "@/lib/serverFunctions/mutations/questionIcon";
+import type {
+  DeleteCustomDynamicIconData,
+  DeleteCustomDynamicIconResponse,
+  SaveCustomDynamicIconData,
+} from "@/lib/serverFunctions/mutations/questionIcon";
 import type {
   FetchCustomDynamicIconDetailsParams,
   FetchCustomDynamicIconDetailsResponse,
@@ -47,7 +51,24 @@ const useSaveCustomDynamicIcon = (params?: UseFetchAPIParams<null>) => {
   });
 };
 
+const useDeleteCustomDynamicIcon = (
+  params?: UseFetchAPIParams<DeleteCustomDynamicIconResponse>,
+) => {
+  return useFetchAPI<
+    DeleteCustomDynamicIconResponse,
+    Record<string, never>,
+    DeleteCustomDynamicIconData
+  >({
+    url: "/api/admin/forms/dynamicIcons/delete",
+    callbacks: params?.callbacks,
+    options: {
+      method: "POST",
+    },
+  });
+};
+
 export {
+  useDeleteCustomDynamicIcon,
   useFetchCustomDynamicIconDetails,
   useSaveCustomDynamicIcon,
   useFetchDynamicIcons,

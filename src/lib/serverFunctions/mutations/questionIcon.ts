@@ -134,5 +134,96 @@ const saveCustomDynamicIcon = async (
   };
 };
 
-export { saveCustomDynamicIcon, saveCustomDynamicIconDataSchema };
-export type { SaveCustomDynamicIconData, SaveCustomDynamicIconResponse };
+const deleteCustomDynamicIconDataSchema = z.object({
+  iconId: z.coerce.number().int().positive(),
+});
+
+type DeleteCustomDynamicIconData = z.infer<
+  typeof deleteCustomDynamicIconDataSchema
+>;
+type DeleteCustomDynamicIconResponse = Awaited<
+  ReturnType<typeof deleteCustomDynamicIcon>
+>["data"];
+
+const deleteCustomDynamicIcon = async (
+  request: APIRequestData<DeleteCustomDynamicIconData>,
+) => {
+  const data = request.data;
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+    };
+  }
+
+  try {
+    const customDynamicIcon = await prisma.customDynamicIcon.findUnique({
+      where: { id: data.iconId },
+      select: { name: true },
+    });
+
+    if (!customDynamicIcon) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Ícone personalizado não encontrado!",
+        } as APIResponseInfo,
+      };
+    }
+
+    const questions = await prisma.question.findMany({
+      where: {
+        iconKey: `custom:${customDynamicIcon.name}`,
+      },
+      select: { name: true },
+      orderBy: { name: "asc" },
+    });
+
+    // TODO: consultar outras entidades que utilizem ícones quando elas existirem.
+    if (questions.length > 0) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message:
+            "O ícone personalizado não pode ser excluído porque está em uso.",
+        } as APIResponseInfo,
+        data: {
+          questionNames: questions.map((question) => question.name),
+        },
+      };
+    }
+
+    await prisma.customDynamicIcon.delete({
+      where: { id: data.iconId },
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Ícone personalizado excluído com sucesso!",
+      } as APIResponseInfo,
+    };
+  } catch (error) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir ícone personalizado!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
+export {
+  deleteCustomDynamicIcon,
+  deleteCustomDynamicIconDataSchema,
+  saveCustomDynamicIcon,
+  saveCustomDynamicIconDataSchema,
+};
+export type {
+  DeleteCustomDynamicIconData,
+  DeleteCustomDynamicIconResponse,
+  SaveCustomDynamicIconData,
+  SaveCustomDynamicIconResponse,
+};

@@ -18,6 +18,8 @@
 
 - Declarar o schema Zod, tipos de parâmetros ou dados e tipo de resposta no
   mesmo arquivo da query ou mutation.
+- Declarar o schema Zod e os tipos de cada método principal imediatamente
+  acima desse método; não concentrá-los no início do arquivo.
 - Queries devem receber `APIRequestParams<TParams>`.
 - Mutations devem receber `APIRequestData<TData>`.
 - Retornar sempre o formato compatível com `APIResponse`:
