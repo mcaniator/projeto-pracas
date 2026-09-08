@@ -1,5 +1,14 @@
-import type { DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
-import { addCollection, type IconifyJSON } from "@iconify/react";
+import {
+  fetchAdminSQLiteCustomDynamicIcons,
+  saveAdminSQLiteCustomDynamicIcons,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/dynamicCustomIcon";
+import { type DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
+import { FetchCustomDynamicIconsResponse } from "@/lib/serverFunctions/queries/customDynamicIcon";
+import { APIResponse } from "@/lib/types/backendCalls/APIResponse";
+import { Capacitor } from "@capacitor/core";
+import { Network } from "@capacitor/network";
+import { type IconifyJSON, addCollection } from "@iconify/react";
+import superjson from "superjson";
 
 type CollectionLoader = () => Promise<IconifyJSON>;
 
@@ -8,6 +17,10 @@ const defaultCollectionLoaders: Record<DynamicIconPackId, CollectionLoader> = {
   tabler: () => import("@iconify-json/tabler/icons.json"),
   lucide: () => import("@iconify-json/lucide/icons.json"),
   ri: () => import("@iconify-json/ri/icons.json"),
+  custom: async () => {
+    const icons = await fetchCustomDynamicIconsCollection();
+    return icons;
+  },
 };
 const collectionLoaders: Record<DynamicIconPackId, CollectionLoader> = {
   ...defaultCollectionLoaders,
@@ -63,9 +76,49 @@ const preloadAllDynamicIconCollections = () =>
 const isDynamicIconCollectionLoaded = (packId: DynamicIconPackId) =>
   loadedCollections.has(packId);
 
+// #region Custom Icons
+const fetchCustomDynamicIconsCollection = async () => {
+  if (Capacitor.isNativePlatform()) {
+    const networkStatus = await Network.getStatus();
+    if (!networkStatus.connected) {
+      const cachedCustomIcons = await fetchAdminSQLiteCustomDynamicIcons({});
+      if (!cachedCustomIcons.data?.icons) {
+        throw new Error();
+      }
+      return cachedCustomIcons.data.icons;
+    }
+  }
+
+  const customIconsResponse = await fetch("/api/customIcons");
+  const jsonText = await customIconsResponse.text();
+  const json =
+    superjson.parse<APIResponse<FetchCustomDynamicIconsResponse>>(jsonText);
+  if (!json || !json.data || !json.data.icons) {
+    throw new Error();
+  }
+
+  if (Capacitor.isNativePlatform()) {
+    await saveAdminSQLiteCustomDynamicIcons({
+      data: { icons: json.data.icons },
+    });
+  }
+
+  return json.data.icons;
+};
+
+const fetchAndAddCustomDynamicIconCollection = async () => {
+  // This funcion is meant to reload the custom dynamic icon pack after it has been updated on the server.
+  // It should not be called  on page load, as the initial custom dynamic icon pack will be loaded by preloadAllDynamicIconCollections.
+
+  const icons = await fetchCustomDynamicIconsCollection();
+  addCollection(icons);
+};
+
+// #endregion
 export {
   ensureDynamicIconCollection,
   getDynamicIconPackId,
   isDynamicIconCollectionLoaded,
   preloadAllDynamicIconCollections,
+  fetchAndAddCustomDynamicIconCollection,
 };

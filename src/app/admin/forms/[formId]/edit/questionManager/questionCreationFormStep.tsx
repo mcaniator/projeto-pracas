@@ -11,6 +11,7 @@ import CNumberField from "@components/ui/cNumberField";
 import CRadioGroup from "@components/ui/cRadioGroup";
 import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
+import QuestionIconPicker from "@components/ui/dynamicIcon/questionIconPicker";
 import { Chip } from "@mui/material";
 import type { QuestionResponseCharacterTypes } from "@prisma/client";
 import {
@@ -23,7 +24,6 @@ import { Dayjs } from "dayjs";
 import { ReactNode, useState } from "react";
 
 import type { ScaleOptionMode } from "./questionCreationTypes";
-import QuestionIconPicker from "./questionIconPicker";
 
 const characterTypeOptions: {
   value: QuestionResponseCharacterTypes;
