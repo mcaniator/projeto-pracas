@@ -645,3 +645,24 @@ model Image {
 }
 
 // #endregion
+
+// #region Ícones personalizados
+//  ------------------------------------------------------------------------------------------------------------
+//  Ícones personalizados
+//  ------------------------------------------------------------------------------------------------------------
+
+model CustomDynamicIcon {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  aliases     String[] @default([])
+  body        String
+  width       Float
+  height      Float
+  sizeInBytes Float    @map("size_in_bytes")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("custom_dynamic_icon")
+}
+
+// #endregion

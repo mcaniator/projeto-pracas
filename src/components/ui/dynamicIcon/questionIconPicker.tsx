@@ -3,9 +3,11 @@
 import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import CustomDynamicIconManagerDialog from "@/components/ui/dynamicIcon/customDynamicIconManagerDialog";
 import { type FetchDynamicIconsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import { useFetchDynamicIcons } from "@apiCalls/questionIcon";
 import CTextField from "@components/ui/cTextField";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
@@ -42,6 +44,8 @@ const QuestionIconPicker = ({
     FetchDynamicIconsResponse["icons"][number][]
   >([]);
   const [showAllIcons, setShowAllIcons] = useState(false);
+  const [isCustomDynamicIconManagerOpen, setIsCustomDynamicIconManagerOpen] =
+    useState(false);
 
   const [fetchDynamicIcons, isLoading] = useFetchDynamicIcons({
     callbacks: {
@@ -67,16 +71,26 @@ const QuestionIconPicker = ({
   }, [fetchDynamicIcons, searchText, showAllIcons]);
 
   return (
-    <div className="flex flex-col gap-2 rounded border border-gray-300 p-2">
+    <div className="flex flex-col gap-2 rounded-2xl border border-gray-300 p-2">
       <h6 className="text-sm font-semibold">Ícone da questão *</h6>
-      <CSwitch
-        label="Mostrar todos os ícones"
-        onChange={(_, checked) => {
-          setShowAllIcons(checked);
-          if (checked) setSearchText("");
-        }}
-        checked={showAllIcons}
-      />
+      <div className="flex items-center justify-between gap-2">
+        <CSwitch
+          label="Mostrar todos os ícones"
+          onChange={(_, checked) => {
+            setShowAllIcons(checked);
+            if (checked) setSearchText("");
+          }}
+          checked={showAllIcons}
+        />
+        <CButton
+          type="button"
+          square
+          tooltip="Gerenciar ícones personalizados"
+          onClick={() => setIsCustomDynamicIconManagerOpen(true)}
+        >
+          <SettingsIcon />
+        </CButton>
+      </div>
       {!showAllIcons && (
         <>
           <CTextField
@@ -119,7 +133,6 @@ const QuestionIconPicker = ({
               const isSelected = selectedIconKey === icon.key;
               return (
                 <CButton
-                  type="button"
                   variant="outlined"
                   sx={{
                     width: "100%",
@@ -149,6 +162,11 @@ const QuestionIconPicker = ({
           {selectedIconKey ? selectedIconKey : "Nenhum icone selecionado"}
         </span>
       </div>
+
+      <CustomDynamicIconManagerDialog
+        open={isCustomDynamicIconManagerOpen}
+        onClose={() => setIsCustomDynamicIconManagerOpen(false)}
+      />
     </div>
   );
 };

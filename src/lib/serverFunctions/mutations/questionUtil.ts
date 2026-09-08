@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
+import { isSupportedDynamicIconKey } from "@/lib/serverFunctions/queries/questionIcon";
 import { optionSchema, questionSchema } from "@/lib/zodValidators";
 import { ZodError, z } from "zod";
 
@@ -102,7 +102,9 @@ const _questionSubmit = async (
 
       try {
         if (
-          !isSupportedDynamicIconKey(writtenOrBooleanQuestionParsed.iconKey)
+          !(await isSupportedDynamicIconKey(
+            writtenOrBooleanQuestionParsed.iconKey,
+          ))
         ) {
           return {
             responseInfo: {
@@ -199,7 +201,7 @@ const _questionSubmit = async (
       }
 
       try {
-        if (!isSupportedDynamicIconKey(optionsQuestionParsed.iconKey)) {
+        if (!(await isSupportedDynamicIconKey(optionsQuestionParsed.iconKey))) {
           return {
             responseInfo: {
               statusCode: 400,
@@ -356,7 +358,7 @@ const _questionUpdate = async (
         : undefined,
     });
 
-    if (!isSupportedDynamicIconKey(parsedQuestion.iconKey)) {
+    if (!(await isSupportedDynamicIconKey(parsedQuestion.iconKey))) {
       return {
         responseInfo: { statusCode: 400, message: "Ícone inválido!" },
       };
@@ -459,9 +461,7 @@ export type DeleteQuestionResponse = NonNullable<
   Awaited<ReturnType<typeof deleteQuestion>>
 >["data"];
 
-const deleteQuestion = async (
-  request: APIRequestData<DeleteQuestionData>,
-) => {
+const deleteQuestion = async (request: APIRequestData<DeleteQuestionData>) => {
   const formData = request.data!;
   const questionId = parseInt(formData.get("questionId") as string);
 

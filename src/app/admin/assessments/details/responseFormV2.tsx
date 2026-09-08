@@ -39,7 +39,7 @@ import type {
   SimpleMention,
 } from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
-import { Chip } from "@mui/material";
+import { Chip, useMediaQuery, useTheme } from "@mui/material";
 import {
   IconAlertTriangle,
   IconArrowBackUp,
@@ -133,6 +133,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
+    const theme = useTheme();
+    const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
     const { enqueueSnackbar } = useAppSnackbar();
     const { user } = useUserContext();
     const { setLoadingOverlay } = useLoadingOverlay();
@@ -809,7 +811,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               />
             )}
             <div className="fixed bottom-4 right-4 z-50">
-              <CButton type="submit" square tooltip="Salvar">
+              <CButton type="submit" square={isMobileView} tooltip="Salvar">
+                {!isMobileView && "Salvar"}
                 <IconDeviceFloppy />
               </CButton>
             </div>
