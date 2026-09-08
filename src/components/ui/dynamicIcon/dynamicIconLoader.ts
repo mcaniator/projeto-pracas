@@ -1,6 +1,12 @@
+import {
+  fetchAdminSQLiteCustomDynamicIcons,
+  saveAdminSQLiteCustomDynamicIcons,
+} from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/dynamicCustomIcon";
 import { type DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
 import { FetchCustomDynamicIconsResponse } from "@/lib/serverFunctions/queries/customDynamicIcon";
 import { APIResponse } from "@/lib/types/backendCalls/APIResponse";
+import { Capacitor } from "@capacitor/core";
+import { Network } from "@capacitor/network";
 import { type IconifyJSON, addCollection } from "@iconify/react";
 import superjson from "superjson";
 
@@ -72,7 +78,17 @@ const isDynamicIconCollectionLoaded = (packId: DynamicIconPackId) =>
 
 // #region Custom Icons
 const fetchCustomDynamicIconsCollection = async () => {
-  // TODO: Load from SQLite when offline
+  if (Capacitor.isNativePlatform()) {
+    const networkStatus = await Network.getStatus();
+    if (!networkStatus.connected) {
+      const cachedCustomIcons = await fetchAdminSQLiteCustomDynamicIcons({});
+      if (!cachedCustomIcons.data?.icons) {
+        throw new Error();
+      }
+      return cachedCustomIcons.data.icons;
+    }
+  }
+
   const customIconsResponse = await fetch("/api/customIcons");
   const jsonText = await customIconsResponse.text();
   const json =
@@ -80,6 +96,13 @@ const fetchCustomDynamicIconsCollection = async () => {
   if (!json || !json.data || !json.data.icons) {
     throw new Error();
   }
+
+  if (Capacitor.isNativePlatform()) {
+    await saveAdminSQLiteCustomDynamicIcons({
+      data: { icons: json.data.icons },
+    });
+  }
+
   return json.data.icons;
 };
 

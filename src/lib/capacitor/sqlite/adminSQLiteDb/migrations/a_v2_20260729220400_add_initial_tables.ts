@@ -261,6 +261,11 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         draft TEXT
       )`,
     },
+    {
+      statement: `CREATE TABLE custom_dynamic_icon (
+        iconify_json TEXT NOT NULL
+      )`,
+    },
   ],
 });
 
