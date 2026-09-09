@@ -8,6 +8,7 @@ import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
+import CalculationSynchronizer from "@/components/ui/responseForm/calculationSynchronizer";
 import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
@@ -38,7 +39,6 @@ import type {
   SerializedResponseQuestionValue,
   SimpleMention,
 } from "@/lib/types/assessments/responseFormTypes";
-import { Calculation } from "@/lib/utils/calculationUtils";
 import { Chip, Divider } from "@mui/material";
 import {
   IconAlertTriangle,
@@ -68,7 +68,6 @@ import {
 } from "react";
 import {
   type Control,
-  type UseFormSetValue,
   useForm,
   useWatch,
 } from "react-hook-form";
@@ -282,45 +281,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       },
       [],
     );
-
-    const calculationDependencyIds = useMemo(() => {
-      const ids = new Set<number>();
-
-      const addCalculationDependencies = (question: AssessmentQuestionItem) => {
-        if (!question.calculationExpression) return;
-
-        const calc = new Calculation(question.calculationExpression);
-        calc.getExpressionQuestionIds().forEach((id) => ids.add(id));
-      };
-
-      assessmentTree.categories.forEach((category) => {
-        category.categoryChildren.forEach((child) => {
-          if (isAssessmentSubcategoryItem(child)) {
-            child.questions.forEach(addCalculationDependencies);
-            return;
-          }
-
-          if (isAssessmentQuestionItem(child)) {
-            addCalculationDependencies(child);
-          }
-        });
-      });
-
-      return ids;
-    }, [assessmentTree.categories]);
-
-    const numericResponses = useMemo(() => {
-      const responses = new Map<number, number>();
-
-      calculationDependencyIds.forEach((questionId) => {
-        const value = allValues[String(questionId)];
-        if (typeof value === "number") {
-          responses.set(questionId, value);
-        }
-      });
-
-      return responses;
-    }, [allValues, calculationDependencyIds]);
 
     const totalQuestions = assessmentTree.totalQuestions;
 
@@ -692,6 +652,11 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         }}
         className="flex h-full w-full flex-col"
       >
+        <CalculationSynchronizer
+          categories={assessmentTree.categories}
+          control={control}
+          setValue={setValue}
+        />
         <div className="min-h-0 flex-1 px-2">
           <Virtuoso
             data={assessmentTree.categories}
@@ -835,7 +800,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
               <div className="pb-2">
                 <Category
                   category={category}
-                  numericResponses={numericResponses}
                   geometries={geometries}
                   responseImages={responseImages}
                   questionsForMention={questionsForMention}
@@ -848,7 +812,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   handleQuestionGeometryChange={handleQuestionGeometryChange}
                   handleQuestionImagesChange={handleQuestionImagesChange}
                   control={control}
-                  setValue={setValue}
                 />
               </div>
             )}
@@ -980,7 +943,6 @@ ResponseFormV2.displayName = "ResponseFormV2";
 
 const Category = ({
   category,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -988,7 +950,6 @@ const Category = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
   expanded,
   onExpandedChange,
@@ -996,7 +957,6 @@ const Category = ({
   onSubcategoryExpandedChange,
 }: {
   category: AssessmentCategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -1007,7 +967,6 @@ const Category = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
   expanded: boolean;
   onExpandedChange: (categoryId: number, expanded: boolean) => void;
@@ -1032,7 +991,6 @@ const Category = ({
               <Subcategory
                 key={index}
                 subcategory={child}
-                numericResponses={numericResponses}
                 geometries={geometries}
                 responseImages={responseImages}
                 questionsForMention={questionsForMention}
@@ -1043,7 +1001,6 @@ const Category = ({
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
-                setValue={setValue}
               />
             );
           } else if (isAssessmentQuestionItem(child)) {
@@ -1051,7 +1008,6 @@ const Category = ({
               <Question
                 key={index}
                 question={child}
-                numericResponses={numericResponses}
                 geometries={geometries}
                 responseImages={responseImages}
                 questionsForMention={questionsForMention}
@@ -1060,7 +1016,6 @@ const Category = ({
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
-                setValue={setValue}
               />
             );
           }
@@ -1072,7 +1027,6 @@ const Category = ({
 
 const Subcategory = ({
   subcategory,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -1080,13 +1034,11 @@ const Subcategory = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
   expanded,
   onExpandedChange,
 }: {
   subcategory: AssessmentSubcategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -1097,7 +1049,6 @@ const Subcategory = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
   expanded: boolean;
   onExpandedChange: (subcategoryId: number, expanded: boolean) => void;
@@ -1115,7 +1066,6 @@ const Subcategory = ({
           <Question
             key={index}
             question={question}
-            numericResponses={numericResponses}
             geometries={geometries}
             responseImages={responseImages}
             questionsForMention={questionsForMention}
@@ -1124,7 +1074,6 @@ const Subcategory = ({
             handleQuestionGeometryChange={handleQuestionGeometryChange}
             handleQuestionImagesChange={handleQuestionImagesChange}
             control={control}
-            setValue={setValue}
           />
         ))}
       </>
@@ -1134,7 +1083,6 @@ const Subcategory = ({
 
 const Question = ({
   question,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -1142,11 +1090,9 @@ const Question = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -1157,7 +1103,6 @@ const Question = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   return (
@@ -1184,9 +1129,7 @@ const Question = ({
     >
       <ControlledResponseQuestionField
         question={question}
-        numericResponses={numericResponses}
         control={control}
-        setValue={setValue}
         finalized={finalized}
       />
     </ResponseFormQuestionCard>
