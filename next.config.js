@@ -41,6 +41,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ["@iconify/tools"],
 };
 
 module.exports = nextConfig;
