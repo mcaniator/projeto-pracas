@@ -107,7 +107,7 @@ const Sidebar = () => {
           ],
         }) &&
         (Capacitor.isNativePlatform() ||
-          process.env.NEXT_PUBLIC_DEBUG === "true"),
+          process.env.NEXT_PUBLIC_APP_DEBUG === "true"),
     },
     {
       icon: <IconUserCog size={34} />,

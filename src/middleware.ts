@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
 
     if (
       pathname.startsWith("/admin/capacitor/") &&
-      process.env.NEXT_PUBLIC_DEBUG !== "true"
+      process.env.NEXT_PUBLIC_APP_DEBUG !== "true"
     ) {
       request.nextUrl.pathname = "/404";
       return NextResponse.rewrite(request.nextUrl);
