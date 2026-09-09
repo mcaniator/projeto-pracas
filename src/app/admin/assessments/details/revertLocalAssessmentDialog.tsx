@@ -34,8 +34,8 @@ const RevertLocalAssessmentDialog = ({
       <div className="flex flex-col items-center gap-2 text-center">
         <IconAlertSquareRounded size={32} color="orange" />
         <p>
-          Tem certeza que deseja descartar os dados não salvos neste e usar a
-          versão salva anteriormente?
+          Tem certeza que deseja descartar os dados não salvos usar a versão
+          salva anteriormente?
         </p>
         <div className="flex flex-col gap-1 text-left">
           <p>

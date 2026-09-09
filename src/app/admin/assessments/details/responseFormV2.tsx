@@ -10,6 +10,8 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import CalculationSynchronizer from "@/components/ui/responseForm/calculationSynchronizer";
 import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
+import FilledQuestionsCounter from "@/components/ui/responseForm/filledQuestionsCounter";
+import PreviewValuesSynchronizer from "@/components/ui/responseForm/previewValuesSynchronizer";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
@@ -39,12 +41,10 @@ import type {
   SerializedResponseQuestionValue,
   SimpleMention,
 } from "@/lib/types/assessments/responseFormTypes";
-import { Chip, Divider } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
-  IconAlertTriangle,
   IconArrowBackUp,
   IconBrandGoogleDrive,
-  IconCheck,
   IconClipboard,
   IconClipboardCheck,
   IconClipboardData,
@@ -66,11 +66,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  type Control,
-  useForm,
-  useWatch,
-} from "react-hook-form";
+import { type Control, useForm } from "react-hook-form";
 import { Virtuoso } from "react-virtuoso";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
@@ -151,8 +147,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const {
       control,
       handleSubmit,
+      getValues,
       reset,
       setValue,
+      subscribe,
       formState: { isDirty },
     } = useForm<FormValues>({
       mode: "onChange",
@@ -228,7 +226,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       useState<AssessmentDraft>();
     const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
       useState<Date>();
-    const [filledCount, setFilledCount] = useState(0);
     const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
     const [expandedCategoryIds, setExpandedCategoryIds] = useState(
       () =>
@@ -249,8 +246,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const geometriesRef = useRef(geometries);
     const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
     const nonResponseItemsIsDirtyRef = useRef(false);
-
-    const allValues = useWatch({ control });
+    const draftSaveTimeoutRef = useRef<number | undefined>(undefined);
 
     const handleCategoryExpandedChange = useCallback(
       (categoryId: number, expanded: boolean) => {
@@ -402,6 +398,43 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       setOpenSaveDialog(true);
     };
 
+    const scheduleDraftSave = useCallback(() => {
+      if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current)) {
+        return;
+      }
+
+      setPendingSaveFromDraft(true);
+      window.clearTimeout(draftSaveTimeoutRef.current);
+      draftSaveTimeoutRef.current = window.setTimeout(() => {
+        const localAssessment: AssessmentDraft = {
+          id: assessmentTree.id,
+          userId: user.id,
+          username: user.username,
+          serverUpdatedAt: serverUpdatedAtRef.current,
+          localUpdatedAt: new Date(),
+          isFinalized,
+          startDate: startDate.toDate(),
+          endDate: endDate?.toDate() ?? null,
+          driveFolderUrl,
+          responseFormValues: serializedFormValuesRef.current,
+          geometries: geometriesRef.current,
+        };
+
+        void saveAssessmentResponsesDraft(localAssessment);
+        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
+      }, 500);
+    }, [
+      assessmentTree.id,
+      driveFolderUrl,
+      endDate,
+      isDirty,
+      isFinalized,
+      isPreview,
+      startDate,
+      user.id,
+      user.username,
+    ]);
+
     const importData = async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
@@ -536,89 +569,71 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     ]);
 
     useEffect(() => {
-      // This useEffect is called when the form values change.
-      // It updates the numeric responses, the filled fields counter, calls the onValuesChange callback for the preview and updates the local database.
-      let filledFieldsCounter = 0;
-      const normalizedValues: FormValues = {};
-      const serializedValues: SerializedFormValues = {};
+      const serializeValue = (
+        questionId: string,
+        value: FormValues[string] | undefined,
+      ) => {
+        const normalizedValue = value === undefined ? null : value;
 
-      Object.entries(allValues).forEach(([key, value]) => {
-        const val = value === undefined ? null : value;
-        normalizedValues[key] = val as FormValues[string];
-
-        if (
-          val != null &&
-          val !== "" &&
-          (!(val instanceof Array) || val.length > 0) &&
-          (!dayjs.isDayjs(val) || val.isValid())
-        ) {
-          filledFieldsCounter++;
+        if (dayjs.isDayjs(normalizedValue)) {
+          const format = dateFormatByQuestionId.get(questionId);
+          return format && normalizedValue.isValid() ?
+              normalizedValue.format(format)
+            : null;
         }
 
-        // Here we are serializing the values. We don't use "serializeResponseFormValues" because we can use the current loop.
-        let serializedValue: SerializedResponseQuestionValue;
-        if (dayjs.isDayjs(val)) {
-          const format = dateFormatByQuestionId.get(key);
-          serializedValue = format && val.isValid() ? val.format(format) : null;
-        } else {
-          serializedValue = val as SerializedResponseQuestionValue;
+        return normalizedValue as SerializedResponseQuestionValue;
+      };
+
+      const synchronizeSerializedValues = (
+        values: FormValues,
+        changedQuestionId?: string,
+      ) => {
+        // For serialization, we don't use seriealizeResponseFormValues from lib, because it will iterate over all questions.
+        if (changedQuestionId && Object.hasOwn(values, changedQuestionId)) {
+          // Here we only update the changed response
+          serializedFormValuesRef.current[changedQuestionId] = serializeValue(
+            changedQuestionId,
+            values[changedQuestionId],
+          );
+          return;
         }
 
-        serializedValues[key] = serializedValue;
+        // Here we update all response are updated. This is needed because when the user calls 'reset', the all response are updated. This is also called when the user enter on the page.
+        const serializedValues: SerializedFormValues = {};
+        Object.entries(values).forEach(([questionId, value]) => {
+          serializedValues[questionId] = serializeValue(questionId, value);
+        });
+        serializedFormValuesRef.current = serializedValues;
+      };
+
+      synchronizeSerializedValues(getValues());
+
+      return subscribe({
+        formState: { values: true },
+        callback: ({ values, name }) => {
+          // When user calls 'reset', the 'name' param is undefined
+          synchronizeSerializedValues(values, name);
+          scheduleDraftSave();
+        },
       });
-
-      serializedFormValuesRef.current = serializedValues;
-      setFilledCount(filledFieldsCounter);
-      onValuesChange?.(normalizedValues);
-    }, [allValues, dateFormatByQuestionId, onValuesChange]);
+    }, [dateFormatByQuestionId, getValues, scheduleDraftSave, subscribe]);
 
     useEffect(() => {
       geometriesRef.current = geometries;
       onGeometriesChange?.(geometries);
-    }, [geometries, onGeometriesChange]);
+      scheduleDraftSave();
+    }, [geometries, onGeometriesChange, scheduleDraftSave]);
 
     useEffect(() => {
       onImagesChange?.(responseImages);
     }, [responseImages, onImagesChange]);
 
     useEffect(() => {
-      if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current))
-        return;
-      setPendingSaveFromDraft(true);
-      const timeoutId = window.setTimeout(() => {
-        const localAssessment: AssessmentDraft = {
-          id: assessmentTree.id,
-          userId: user.id,
-          username: user.username,
-          serverUpdatedAt: serverUpdatedAtRef.current,
-          localUpdatedAt: new Date(),
-          isFinalized: isFinalized,
-          startDate: startDate.toDate(),
-          endDate: endDate?.toDate() ?? null,
-          driveFolderUrl: driveFolderUrl,
-          responseFormValues: serializedFormValuesRef.current,
-          geometries: geometriesRef.current,
-        };
+      scheduleDraftSave();
+    }, [scheduleDraftSave]);
 
-        void saveAssessmentResponsesDraft(localAssessment);
-        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
-      }, 500);
-
-      return () => window.clearTimeout(timeoutId);
-    }, [
-      allValues,
-      assessmentTree.id,
-      assessmentTree.startDate,
-      assessmentTree.updatedAt,
-      isFinalized,
-      startDate,
-      endDate,
-      driveFolderUrl,
-      geometries,
-      isDirty,
-      isPreview,
-      user,
-    ]);
+    useEffect(() => () => window.clearTimeout(draftSaveTimeoutRef.current), []);
 
     return (
       <form
@@ -657,6 +672,12 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           control={control}
           setValue={setValue}
         />
+        {isPreview && onValuesChange && (
+          <PreviewValuesSynchronizer
+            control={control}
+            onValuesChange={onValuesChange}
+          />
+        )}
         <div className="min-h-0 flex-1 px-2">
           <Virtuoso
             data={assessmentTree.categories}
@@ -819,14 +840,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         </div>
         <Divider />
         <div className="mt-2 flex flex-col gap-2 px-2">
-          <Chip
-            label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
-            icon={
-              filledCount < totalQuestions ?
-                <IconAlertTriangle />
-              : <IconCheck />
-            }
-            color={filledCount < totalQuestions ? "warning" : "success"}
+          <FilledQuestionsCounter
+            control={control}
+            totalQuestions={totalQuestions}
           />
 
           {isFilling && !isPreview && (
