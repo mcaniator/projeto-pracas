@@ -13,21 +13,25 @@ import { useEffect, useState } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 
 const DEFAULT_QUESTION_ICONS = [
-  { key: "mdi:cctv", iconName: "cctv" },
-  { key: "mdi:police-badge", iconName: "police-badge" },
-  { key: "mdi:phone", iconName: "phone" },
-  { key: "tabler:trash", iconName: "trash" },
-  { key: "mdi:wifi", iconName: "wifi" },
-  { key: "lucide:toilet", iconName: "toilet" },
-  { key: "mdi:cup-water", iconName: "cup-water" },
-  { key: "mdi:volume", iconName: "volume" },
-  { key: "mdi:slide", iconName: "slide" },
-  { key: "mdi:wheelchair-accessibility", iconName: "wheelchair-accessibility" },
-  { key: "tabler:letter-a", iconName: "letter-a" },
-  { key: "ri:sketching", iconName: "sketching" },
-  { key: "mdi:bus-marker", iconName: "bus-marker" },
-  { key: "mdi:calendar", iconName: "calendar" },
-  { key: "mdi:wrench", iconName: "wrench" },
+  { iconId: undefined, key: "mdi:cctv", iconName: "cctv" },
+  { iconId: undefined, key: "mdi:police-badge", iconName: "police-badge" },
+  { iconId: undefined, key: "mdi:phone", iconName: "phone" },
+  { iconId: undefined, key: "tabler:trash", iconName: "trash" },
+  { iconId: undefined, key: "mdi:wifi", iconName: "wifi" },
+  { iconId: undefined, key: "lucide:toilet", iconName: "toilet" },
+  { iconId: undefined, key: "mdi:cup-water", iconName: "cup-water" },
+  { iconId: undefined, key: "mdi:volume", iconName: "volume" },
+  { iconId: undefined, key: "mdi:slide", iconName: "slide" },
+  {
+    iconId: undefined,
+    key: "mdi:wheelchair-accessibility",
+    iconName: "wheelchair-accessibility",
+  },
+  { iconId: undefined, key: "tabler:letter-a", iconName: "letter-a" },
+  { iconId: undefined, key: "ri:sketching", iconName: "sketching" },
+  { iconId: undefined, key: "mdi:bus-marker", iconName: "bus-marker" },
+  { iconId: undefined, key: "mdi:calendar", iconName: "calendar" },
+  { iconId: undefined, key: "mdi:wrench", iconName: "wrench" },
 ];
 
 type QuestionIconPickerProps = {

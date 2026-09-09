@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
+import {
+  DynamicIconPackId,
+  buildDynamicIconKey,
+} from "@/lib/questionIcons/dynamicIcon";
 import { staticDynamicIconCatalog } from "@/lib/serverFunctions/serverOnly/dynamicIconCatalog";
 import {
   APIRequestParams,
@@ -39,7 +42,7 @@ export const fetchDynamicIcons = async (
     const formattedCustomDynamicIconCatalog = customDynamicIconCatalog.map(
       (icon) => ({
         iconId: icon.id,
-        key: `custom:${icon.name}`,
+        key: buildDynamicIconKey("custom", icon.name),
         libraryId: "custom" as const,
         iconName: icon.name,
         aliases: icon.aliases,

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   CUSTOM_DYNAMIC_ICON_MAX_SIZE,
+  buildDynamicIconKey,
   dynamicIconNameRegex,
 } from "@/lib/questionIcons/dynamicIcon";
 import { formatFileSize } from "@/lib/utils/file";
@@ -79,19 +80,37 @@ const saveCustomDynamicIcon = async (
   }
 
   try {
-    if (data.iconId) {
-      await prisma.customDynamicIcon.update({
-        where: {
-          id: data.iconId,
-        },
-        data: {
-          name,
-          body: icon.body,
-          width: icon.width,
-          height: icon.height,
-          sizeInBytes: svgSize,
-          aliases,
-        },
+    if (data.iconId !== undefined) {
+      await prisma.$transaction(async (tx) => {
+        const previousIcon = await tx.customDynamicIcon.findUniqueOrThrow({
+          where: {
+            id: data.iconId,
+          },
+          select: {
+            name: true,
+          },
+        });
+        await tx.customDynamicIcon.update({
+          where: {
+            id: data.iconId,
+          },
+          data: {
+            name,
+            body: icon.body,
+            width: icon.width,
+            height: icon.height,
+            sizeInBytes: svgSize,
+            aliases,
+          },
+        });
+        await tx.question.updateMany({
+          where: {
+            iconKey: buildDynamicIconKey("custom", previousIcon.name),
+          },
+          data: {
+            iconKey: buildDynamicIconKey("custom", name),
+          },
+        });
       });
     } else {
       await prisma.customDynamicIcon.create({
@@ -175,7 +194,7 @@ const deleteCustomDynamicIcon = async (
 
     const questions = await prisma.question.findMany({
       where: {
-        iconKey: `custom:${customDynamicIcon.name}`,
+        iconKey: buildDynamicIconKey("custom", customDynamicIcon.name),
       },
       select: { name: true },
       orderBy: { name: "asc" },
