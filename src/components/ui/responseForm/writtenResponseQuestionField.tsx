@@ -11,23 +11,19 @@ const WrittenResponseQuestionField = ({
   question,
   value,
   readOnly,
-  disableDebouce = false,
   onChange,
 }: {
   question: AssessmentQuestionItem;
   value: ResponseQuestionValue;
   readOnly: boolean;
-  disableDebouce?: boolean;
   onChange: (value: ResponseQuestionValue) => void;
 }) => {
-  const debounce = disableDebouce ? 0 : 1000;
   switch (question.characterType) {
     case "TEXT":
       return (
         <CTextField
           clearable
           readOnly={readOnly}
-          debounce={debounce}
           value={typeof value === "string" ? value : ""}
           onChange={(event) => {
             onChange(event.target.value);
@@ -41,7 +37,6 @@ const WrittenResponseQuestionField = ({
         <CNumberField
           clearable
           readOnly={readOnly}
-          debounce={debounce}
           minValue={question.minValue ?? undefined}
           maxValue={question.maxValue ?? undefined}
           endAdornment={

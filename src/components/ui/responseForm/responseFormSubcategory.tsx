@@ -8,9 +8,13 @@ import type { ReactNode } from "react";
 
 const ResponseFormSubcategory = ({
   subcategory,
+  expanded,
+  onExpandedChange,
   children,
 }: {
   subcategory: Pick<AssessmentSubcategoryItem, "name" | "notes">;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   children: ReactNode;
 }) => {
   return (
@@ -22,7 +26,15 @@ const ResponseFormSubcategory = ({
         borderRadius: 1,
       }}
     >
-      <CAccordion defaultExpanded>
+      <CAccordion
+        expanded={expanded}
+        onChange={(_, nextExpanded) => onExpandedChange?.(nextExpanded)}
+        slotProps={{
+          transition: {
+            unmountOnExit: true,
+          },
+        }}
+      >
         <CAccordionSummary>
           <div className="flex flex-row items-center gap-1">
             <CNotesChip notes={subcategory.notes} />

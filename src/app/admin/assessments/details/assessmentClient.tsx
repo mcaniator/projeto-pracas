@@ -42,22 +42,24 @@ const AssessmentClient = ({
   const { setLoadingOverlay } = useLoadingOverlay();
   const { enqueueSnackbar } = useAppSnackbar();
   return (
-    <div className="flex h-full flex-col gap-1 overflow-auto bg-white p-2 text-black">
-      <CAdminHeader
-        title={`Avaliação em ${locationName}`}
-        titleIcon={<IconListCheck />}
-        append={
-          <CButton
-            square={isMobileView}
-            tooltip="Importar dados"
-            onClick={() => {
-              setOpenAssessmentImportDialog(true);
-            }}
-          >
-            <IconFileUpload /> {isMobileView ? "" : "Importar"}
-          </CButton>
-        }
-      />
+    <div className="flex h-full flex-col overflow-auto bg-white py-2 text-black">
+      <div className="px-2">
+        <CAdminHeader
+          title={`Avaliação em ${locationName}`}
+          titleIcon={<IconListCheck />}
+          append={
+            <CButton
+              square={isMobileView}
+              tooltip="Importar dados"
+              onClick={() => {
+                setOpenAssessmentImportDialog(true);
+              }}
+            >
+              <IconFileUpload /> {isMobileView ? "" : "Importar"}
+            </CButton>
+          }
+        />
+      </div>
 
       <ResponseFormV2
         ref={responseFormRef}

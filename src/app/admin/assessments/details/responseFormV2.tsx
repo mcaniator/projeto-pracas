@@ -39,7 +39,7 @@ import type {
   SimpleMention,
 } from "@/lib/types/assessments/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
-import { Chip, useMediaQuery, useTheme } from "@mui/material";
+import { Chip, Divider } from "@mui/material";
 import {
   IconAlertTriangle,
   IconArrowBackUp,
@@ -72,6 +72,7 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
+import { Virtuoso } from "react-virtuoso";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import {
@@ -133,8 +134,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
-    const theme = useTheme();
-    const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
     const { enqueueSnackbar } = useAppSnackbar();
     const { user } = useUserContext();
     const { setLoadingOverlay } = useLoadingOverlay();
@@ -232,11 +231,57 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       useState<Date>();
     const [filledCount, setFilledCount] = useState(0);
     const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
+    const [expandedCategoryIds, setExpandedCategoryIds] = useState(
+      () =>
+        new Set(
+          assessmentTree.categories.map((category) => category.categoryId),
+        ),
+    );
+    const [expandedSubcategoryIds, setExpandedSubcategoryIds] = useState(
+      () =>
+        new Set(
+          assessmentTree.categories.flatMap((category) =>
+            category.categoryChildren.flatMap((child) =>
+              isAssessmentSubcategoryItem(child) ? [child.subcategoryId] : [],
+            ),
+          ),
+        ),
+    );
     const geometriesRef = useRef(geometries);
     const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
     const nonResponseItemsIsDirtyRef = useRef(false);
 
     const allValues = useWatch({ control });
+
+    const handleCategoryExpandedChange = useCallback(
+      (categoryId: number, expanded: boolean) => {
+        setExpandedCategoryIds((current) => {
+          const next = new Set(current);
+          if (expanded) {
+            next.add(categoryId);
+          } else {
+            next.delete(categoryId);
+          }
+          return next;
+        });
+      },
+      [],
+    );
+
+    const handleSubcategoryExpandedChange = useCallback(
+      (subcategoryId: number, expanded: boolean) => {
+        setExpandedSubcategoryIds((current) => {
+          const next = new Set(current);
+          if (expanded) {
+            next.add(subcategoryId);
+          } else {
+            next.delete(subcategoryId);
+          }
+          return next;
+        });
+      },
+      [],
+    );
 
     const calculationDependencyIds = useMemo(() => {
       const ids = new Set<number>();
@@ -645,179 +690,196 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             }
           }
         }}
-        className="flex w-full flex-col gap-2"
+        className="flex h-full w-full flex-col"
       >
-        {!isPreview && (
-          <div className="flex w-full flex-col gap-1">
-            <CChip
-              label={assessmentTree.formName}
-              icon={<IconClipboard />}
-              sx={{ fontSize: 16 }}
-              tooltip="Formulário"
-              className="w-fit"
-            />
-            <CChip
-              label={assessmentTree.user.username}
-              icon={<IconUser />}
-              sx={{ fontSize: 16 }}
-              tooltip="Avaliador"
-              className="w-fit"
-            />
-            {!isFilling && (
-              <div className="flex flex-wrap justify-between gap-1">
-                <div className="flex flex-wrap gap-1">
-                  <CChip
-                    icon={<IconClipboardData />}
-                    label={dateTimeFormatter.format(assessmentTree.startDate)}
-                    sx={{ fontSize: 16 }}
-                    tooltip="Início"
-                  />
-                  <CChip
-                    icon={<IconClipboardCheck />}
-                    label={`${assessmentTree.endDate ? dateTimeFormatter.format(assessmentTree.endDate) : "Indefinido"}`}
-                    sx={{ fontSize: 16 }}
-                    tooltip="Fim"
-                  />
-                </div>
+        <div className="min-h-0 flex-1 px-2">
+          <Virtuoso
+            data={assessmentTree.categories}
+            style={{ height: "100%", overflowX: "hidden" }}
+            computeItemKey={(_, category) => category.categoryId}
+            components={{
+              Header: () => {
+                if (isPreview) return null;
 
-                <div className="flex gap-1">
-                  {userCanEdit && (
-                    <>
-                      <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
-                      <CButton
-                        square
-                        onClick={() => {
-                          setIsFilling(true);
-                        }}
-                      >
-                        <IconPencil />
-                      </CButton>
-                    </>
-                  )}
-                  <CButton
-                    topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingSaveFromDraft}
-                    tooltip="Reverter alterações locais"
-                    square
-                    disabled={!pendingSaveFromDraft}
-                    onClick={() => {
-                      setOpenRevertLocalAssessmentDialog(true);
-                    }}
-                  >
-                    <IconArrowBackUp />
-                  </CButton>
-                  <CButton
-                    square
-                    tooltip="Drive"
-                    enableTopLeftChip={!!driveFolderUrl}
-                    topLeftChipLabel={"1"}
-                    disabled={!driveFolderUrl}
-                    onClick={() => {
-                      setOpenDriveFolderUrlDialog(true);
-                    }}
-                  >
-                    <IconBrandGoogleDrive />
-                  </CButton>
-                </div>
-              </div>
-            )}
-            {isFilling && (
-              <div className="flex flex-wrap content-center justify-between gap-4">
-                <CDateTimePicker
-                  label="Início"
-                  value={startDate}
-                  onChange={(e) => {
-                    if (!e) return;
-                    nonResponseItemsIsDirtyRef.current = true;
-                    setStartDate(e);
-                  }}
+                return (
+                  <div className="flex w-full flex-col gap-1 py-2">
+                    <CChip
+                      label={assessmentTree.formName}
+                      icon={<IconClipboard />}
+                      sx={{ fontSize: 16 }}
+                      tooltip="Formulário"
+                      className="w-fit"
+                    />
+                    <CChip
+                      label={assessmentTree.user.username}
+                      icon={<IconUser />}
+                      sx={{ fontSize: 16 }}
+                      tooltip="Avaliador"
+                      className="w-fit"
+                    />
+                    {!isFilling && (
+                      <div className="flex flex-wrap justify-between gap-1">
+                        <div className="flex flex-wrap gap-1">
+                          <CChip
+                            icon={<IconClipboardData />}
+                            label={dateTimeFormatter.format(
+                              assessmentTree.startDate,
+                            )}
+                            sx={{ fontSize: 16 }}
+                            tooltip="Início"
+                          />
+                          <CChip
+                            icon={<IconClipboardCheck />}
+                            label={`${assessmentTree.endDate ? dateTimeFormatter.format(assessmentTree.endDate) : "Indefinido"}`}
+                            sx={{ fontSize: 16 }}
+                            tooltip="Fim"
+                          />
+                        </div>
+
+                        <div className="flex gap-1">
+                          {userCanEdit && (
+                            <>
+                              <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+                              <CButton
+                                square
+                                onClick={() => {
+                                  setIsFilling(true);
+                                }}
+                              >
+                                <IconPencil />
+                              </CButton>
+                            </>
+                          )}
+                          <CButton
+                            topLeftChipLabel={"!"}
+                            enableTopLeftChip={pendingSaveFromDraft}
+                            tooltip="Reverter alterações locais"
+                            square
+                            disabled={!pendingSaveFromDraft}
+                            onClick={() => {
+                              setOpenRevertLocalAssessmentDialog(true);
+                            }}
+                          >
+                            <IconArrowBackUp />
+                          </CButton>
+                          <CButton
+                            square
+                            tooltip="Drive"
+                            enableTopLeftChip={!!driveFolderUrl}
+                            topLeftChipLabel={"1"}
+                            disabled={!driveFolderUrl}
+                            onClick={() => {
+                              setOpenDriveFolderUrlDialog(true);
+                            }}
+                          >
+                            <IconBrandGoogleDrive />
+                          </CButton>
+                        </div>
+                      </div>
+                    )}
+                    {isFilling && (
+                      <div className="flex flex-wrap content-center justify-between gap-4">
+                        <CDateTimePicker
+                          label="Início"
+                          value={startDate}
+                          onChange={(e) => {
+                            if (!e) return;
+                            nonResponseItemsIsDirtyRef.current = true;
+                            setStartDate(e);
+                          }}
+                        />
+
+                        <div className="flex items-center justify-end gap-2">
+                          <CButton
+                            square
+                            tooltip="Drive"
+                            enableTopLeftChip={!!driveFolderUrl}
+                            topLeftChipLabel={"1"}
+                            onClick={() => {
+                              setOpenDriveFolderUrlDialog(true);
+                            }}
+                          >
+                            <IconBrandGoogleDrive />
+                          </CButton>
+                          <CButton
+                            topLeftChipLabel={"!"}
+                            enableTopLeftChip={pendingSaveFromDraft}
+                            tooltip="Reverter alterações locais"
+                            square
+                            color="warning"
+                            disabled={!pendingSaveFromDraft}
+                            onClick={() => {
+                              setOpenRevertLocalAssessmentDialog(true);
+                            }}
+                          >
+                            <IconArrowBackUp />
+                          </CButton>
+                          <CButton
+                            square
+                            tooltip="Excluir avaliação"
+                            color="error"
+                            onClick={() => {
+                              setOpenDeleteAssessmentDialog(true);
+                            }}
+                          >
+                            <IconTrash />
+                          </CButton>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              },
+            }}
+            itemContent={(_, category) => (
+              <div className="pb-2">
+                <Category
+                  category={category}
+                  numericResponses={numericResponses}
+                  geometries={geometries}
+                  responseImages={responseImages}
+                  questionsForMention={questionsForMention}
+                  finalized={!isFilling}
+                  expanded={expandedCategoryIds.has(category.categoryId)}
+                  onExpandedChange={handleCategoryExpandedChange}
+                  expandedSubcategoryIds={expandedSubcategoryIds}
+                  onSubcategoryExpandedChange={handleSubcategoryExpandedChange}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
+                  handleQuestionGeometryChange={handleQuestionGeometryChange}
+                  handleQuestionImagesChange={handleQuestionImagesChange}
+                  control={control}
+                  setValue={setValue}
                 />
-
-                <div className="flex items-center justify-end gap-2">
-                  <CButton
-                    square
-                    tooltip="Drive"
-                    enableTopLeftChip={!!driveFolderUrl}
-                    topLeftChipLabel={"1"}
-                    onClick={() => {
-                      setOpenDriveFolderUrlDialog(true);
-                    }}
-                  >
-                    <IconBrandGoogleDrive />
-                  </CButton>
-                  <CButton
-                    topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingSaveFromDraft}
-                    tooltip="Reverter alterações locais"
-                    square
-                    color="warning"
-                    disabled={!pendingSaveFromDraft}
-                    onClick={() => {
-                      setOpenRevertLocalAssessmentDialog(true);
-                    }}
-                  >
-                    <IconArrowBackUp />
-                  </CButton>
-                  {!isPreview && (
-                    <CButton
-                      square
-                      tooltip="Excluir avaliação"
-                      color="error"
-                      onClick={() => {
-                        setOpenDeleteAssessmentDialog(true);
-                      }}
-                    >
-                      <IconTrash />
-                    </CButton>
-                  )}
-                </div>
               </div>
             )}
-          </div>
-        )}
-
-        {assessmentTree.categories.map((cat, index) => (
-          <Category
-            key={index}
-            category={cat}
-            numericResponses={numericResponses}
-            geometries={geometries}
-            responseImages={responseImages}
-            questionsForMention={questionsForMention}
-            finalized={!isFilling}
-            locationPolygonGeoJson={locationPolygonGeoJson}
-            handleQuestionGeometryChange={handleQuestionGeometryChange}
-            handleQuestionImagesChange={handleQuestionImagesChange}
-            control={control}
-            setValue={setValue}
           />
-        ))}
+        </div>
+        <Divider />
+        <div className="mt-2 flex flex-col gap-2 px-2">
+          <Chip
+            label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
+            icon={
+              filledCount < totalQuestions ?
+                <IconAlertTriangle />
+              : <IconCheck />
+            }
+            color={filledCount < totalQuestions ? "warning" : "success"}
+          />
 
-        <Chip
-          label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
-          icon={
-            filledCount < totalQuestions ? <IconAlertTriangle /> : <IconCheck />
-          }
-          color={filledCount < totalQuestions ? "warning" : "success"}
-        />
-
-        {isFilling && !isPreview && (
-          <div className="flex flex-col justify-center gap-4 pb-14">
-            {pendingSaveFromDraft && (
-              <Chip
-                label="Respostas não salvas!"
-                color="error"
-                icon={<IconDeviceFloppy />}
-              />
-            )}
-            <div className="fixed bottom-4 right-4 z-50">
-              <CButton type="submit" square={isMobileView} tooltip="Salvar">
-                {!isMobileView && "Salvar"}
+          {isFilling && !isPreview && (
+            <div className="flex flex-col justify-center gap-4">
+              <CButton
+                className="ml-auto w-fit"
+                type="submit"
+                enableTopLeftChip={pendingSaveFromDraft}
+                topLeftChipLabel={"!"}
+              >
                 <IconDeviceFloppy />
+                Salvar
               </CButton>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {!isPreview && (
           <>
@@ -928,6 +990,10 @@ const Category = ({
   control,
   setValue,
   finalized,
+  expanded,
+  onExpandedChange,
+  expandedSubcategoryIds,
+  onSubcategoryExpandedChange,
 }: {
   category: AssessmentCategoryItem;
   numericResponses: Map<number, number>;
@@ -943,9 +1009,22 @@ const Category = ({
   control: Control<FormValues, unknown, FormValues>;
   setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
+  expanded: boolean;
+  onExpandedChange: (categoryId: number, expanded: boolean) => void;
+  expandedSubcategoryIds: Set<number>;
+  onSubcategoryExpandedChange: (
+    subcategoryId: number,
+    expanded: boolean,
+  ) => void;
 }) => {
   return (
-    <ResponseFormCategory category={category}>
+    <ResponseFormCategory
+      category={category}
+      expanded={expanded}
+      onExpandedChange={(nextExpanded) =>
+        onExpandedChange(category.categoryId, nextExpanded)
+      }
+    >
       <>
         {category.categoryChildren.map((child, index) => {
           if (isAssessmentSubcategoryItem(child)) {
@@ -958,6 +1037,8 @@ const Category = ({
                 responseImages={responseImages}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
+                expanded={expandedSubcategoryIds.has(child.subcategoryId)}
+                onExpandedChange={onSubcategoryExpandedChange}
                 locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
@@ -1001,6 +1082,8 @@ const Subcategory = ({
   control,
   setValue,
   finalized,
+  expanded,
+  onExpandedChange,
 }: {
   subcategory: AssessmentSubcategoryItem;
   numericResponses: Map<number, number>;
@@ -1016,9 +1099,17 @@ const Subcategory = ({
   control: Control<FormValues, unknown, FormValues>;
   setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
+  expanded: boolean;
+  onExpandedChange: (subcategoryId: number, expanded: boolean) => void;
 }) => {
   return (
-    <ResponseFormSubcategory subcategory={subcategory}>
+    <ResponseFormSubcategory
+      subcategory={subcategory}
+      expanded={expanded}
+      onExpandedChange={(nextExpanded) =>
+        onExpandedChange(subcategory.subcategoryId, nextExpanded)
+      }
+    >
       <>
         {subcategory.questions.map((question, index) => (
           <Question

@@ -130,7 +130,6 @@ const QuestionCreationPreviewStep = ({
       <ResponseQuestionFieldRenderer
         question={previewQuestion}
         value={value}
-        disableDebouce
         onChange={setValue}
       />
     </ResponseFormQuestionCard>
