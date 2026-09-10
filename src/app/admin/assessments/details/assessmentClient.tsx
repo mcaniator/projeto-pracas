@@ -43,23 +43,21 @@ const AssessmentClient = ({
   const { enqueueSnackbar } = useAppSnackbar();
   return (
     <div className="flex h-full flex-col overflow-auto bg-white py-2 text-black">
-      <div className="px-2">
-        <CAdminHeader
-          title={`Avaliação em ${locationName}`}
-          titleIcon={<IconListCheck />}
-          append={
-            <CButton
-              square={isMobileView}
-              tooltip="Importar dados"
-              onClick={() => {
-                setOpenAssessmentImportDialog(true);
-              }}
-            >
-              <IconFileUpload /> {isMobileView ? "" : "Importar"}
-            </CButton>
-          }
-        />
-      </div>
+      <CAdminHeader
+        title={`Avaliação em ${locationName}`}
+        titleIcon={<IconListCheck />}
+        append={
+          <CButton
+            square={isMobileView}
+            tooltip="Importar dados"
+            onClick={() => {
+              setOpenAssessmentImportDialog(true);
+            }}
+          >
+            <IconFileUpload /> {isMobileView ? "" : "Importar"}
+          </CButton>
+        }
+      />
 
       <ResponseFormV2
         ref={responseFormRef}
