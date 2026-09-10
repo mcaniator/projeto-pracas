@@ -7,13 +7,25 @@ import type { ReactNode } from "react";
 
 const ResponseFormCategory = ({
   category,
+  expanded,
+  onExpandedChange,
   children,
 }: {
   category: Pick<AssessmentCategoryItem, "name" | "notes">;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
   children: ReactNode;
 }) => {
   return (
-    <CAccordion defaultExpanded>
+    <CAccordion
+      expanded={expanded}
+      onChange={(_, nextExpanded) => onExpandedChange?.(nextExpanded)}
+      slotProps={{
+        transition: {
+          unmountOnExit: true,
+        },
+      }}
+    >
       <CAccordionSummary>
         <div className="flex flex-row items-center gap-1">
           <CNotesChip notes={category.notes} />

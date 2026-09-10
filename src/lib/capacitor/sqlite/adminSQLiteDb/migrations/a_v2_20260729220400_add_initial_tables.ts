@@ -209,7 +209,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE TABLE "assessment" (
         id INTEGER PRIMARY KEY,
-        created_locally INTEGER NOT NULL CHECK (created_locally IN (0, 1)),
+        exists_remotely INTEGER NOT NULL CHECK (exists_remotely IN (0, 1)),
         start_date TEXT NOT NULL,
         end_date TEXT,
         is_finalized INTEGER NOT NULL CHECK (is_finalized IN (0, 1)),
@@ -226,7 +226,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
       statement: `CREATE TABLE response (
         id INTEGER PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES "user"(id),
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE,
+        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         response TEXT,
         created_at TEXT NOT NULL,
@@ -238,7 +238,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
       statement: `CREATE TABLE response_option (
         id INTEGER PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES "user"(id),
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE,
+        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         option_id INTEGER REFERENCES "option"(id),
         override_value TEXT,
@@ -249,7 +249,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE TABLE response_geometry (
         id INTEGER PRIMARY KEY,
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE,
+        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         geometries TEXT,
         UNIQUE (assessment_id, question_id)

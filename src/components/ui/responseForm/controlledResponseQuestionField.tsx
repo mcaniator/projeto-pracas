@@ -1,38 +1,22 @@
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type {
-  FormValues,
-  ResponseQuestionValue,
-} from "@/lib/types/assessments/responseFormTypes";
-import {
-  type Control,
-  Controller,
-  type UseFormSetValue,
-} from "react-hook-form";
+import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import { type Control, Controller } from "react-hook-form";
 
 import CalculationResponseQuestionField from "./calculationResponseQuestionField";
 import ResponseQuestionFieldRenderer from "./responseQuestionFieldRenderer";
 
 const ControlledResponseQuestionField = ({
   question,
-  numericResponses,
   control,
-  setValue,
   finalized,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   if (question.calculationExpression) {
     return (
-      <CalculationResponseQuestionField
-        question={question}
-        numericResponses={numericResponses}
-        control={control}
-        setValue={setValue}
-      />
+      <CalculationResponseQuestionField question={question} control={control} />
     );
   }
 
@@ -44,7 +28,7 @@ const ControlledResponseQuestionField = ({
         <ResponseQuestionFieldRenderer
           question={question}
           readOnly={finalized}
-          value={(field.value ?? null) as ResponseQuestionValue}
+          value={field.value ?? null}
           onChange={field.onChange}
         />
       )}

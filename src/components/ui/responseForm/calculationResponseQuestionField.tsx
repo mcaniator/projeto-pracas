@@ -3,24 +3,14 @@
 import CNumberField from "@/components/ui/cNumberField";
 import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
 import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
-import { Calculation } from "@/lib/utils/calculationUtils";
-import { useEffect, useMemo } from "react";
-import {
-  type Control,
-  type UseFormSetValue,
-  useController,
-} from "react-hook-form";
+import { type Control, useController } from "react-hook-form";
 
 const CalculationResponseQuestionField = ({
   question,
-  numericResponses,
   control,
-  setValue,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
 }) => {
   const fieldName = String(question.questionId);
   const { field } = useController({
@@ -28,26 +18,13 @@ const CalculationResponseQuestionField = ({
     control,
   });
 
-  const value = useMemo(() => {
-    const calc = new Calculation(
-      question.calculationExpression,
-      numericResponses,
-    );
-    return calc.evaluate();
-  }, [numericResponses, question.calculationExpression]);
-
-  useEffect(() => {
-    if (!Object.is(field.value, value)) {
-      // If the value has changed, update the form without triggering validation
-      setValue(fieldName, value, {
-        shouldDirty: false,
-        shouldTouch: false,
-        shouldValidate: false,
-      });
-    }
-  }, [field.value, fieldName, setValue, value]);
-
-  return <CNumberField {...field} readOnly value={value} />;
+  return (
+    <CNumberField
+      {...field}
+      readOnly
+      value={typeof field.value === "number" ? field.value : null}
+    />
+  );
 };
 
 export default CalculationResponseQuestionField;

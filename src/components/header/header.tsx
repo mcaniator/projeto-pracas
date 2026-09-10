@@ -66,7 +66,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(
     },
     ref,
   ) => {
-    const isDebug = process.env.NEXT_PUBLIC_DEBUG === "true";
+    const isDebug = process.env.NEXT_PUBLIC_APP_DEBUG === "true";
     const { isConnected, setNetworkStatus, setServerOnline } = useNetwork();
     const [openUserPopper, setOpenUserPopper] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);

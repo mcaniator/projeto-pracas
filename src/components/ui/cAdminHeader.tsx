@@ -15,7 +15,7 @@ const CAdminHeader = ({
   below?: ReactNode;
 }) => {
   return (
-    <div className="mb-2 flex flex-col">
+    <div className="mb-1 flex flex-col">
       <div className="flex justify-between">
         <h3 className="flex items-center">
           {titleIcon}

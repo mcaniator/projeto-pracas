@@ -5,6 +5,7 @@ import {
 import { type DynamicIconPackId } from "@/lib/questionIcons/dynamicIcon";
 import { FetchCustomDynamicIconsResponse } from "@/lib/serverFunctions/queries/customDynamicIcon";
 import { APIResponse } from "@/lib/types/backendCalls/APIResponse";
+import { buildApiUrl } from "@/lib/utils/apiCall";
 import { Capacitor } from "@capacitor/core";
 import { Network } from "@capacitor/network";
 import { type IconifyJSON, addCollection } from "@iconify/react";
@@ -88,8 +89,8 @@ const fetchCustomDynamicIconsCollection = async () => {
       return cachedCustomIcons.data.icons;
     }
   }
-
-  const customIconsResponse = await fetch("/api/customIcons");
+  const customIconsUrl = buildApiUrl("/api/customIcons");
+  const customIconsResponse = await fetch(customIconsUrl);
   const jsonText = await customIconsResponse.text();
   const json =
     superjson.parse<APIResponse<FetchCustomDynamicIconsResponse>>(jsonText);

@@ -12,25 +12,25 @@ export default {
   cookies: {
     sessionToken: {
       name:
-        process.env.NEXT_PUBLIC_DEBUG === "true" ?
+        process.env.NEXT_PUBLIC_APP_DEBUG === "true" ?
           "authjs.session-token"
         : "__Secure-authjs.session-token",
       options: {
         httpOnly: true,
-        sameSite: process.env.NEXT_PUBLIC_DEBUG === "true" ? "lax" : "none",
-        secure: process.env.NEXT_PUBLIC_DEBUG === "true" ? false : true,
+        sameSite: process.env.NEXT_PUBLIC_APP_DEBUG === "true" ? "lax" : "none",
+        secure: process.env.NEXT_PUBLIC_APP_DEBUG === "true" ? false : true,
         path: "/",
       },
     },
     callbackUrl: {
       name:
-        process.env.NEXT_PUBLIC_DEBUG === "true" ?
+        process.env.NEXT_PUBLIC_APP_DEBUG === "true" ?
           "authjs.callback-url"
         : "__Secure-authjs.callback-url",
       options: {
         httpOnly: true,
-        sameSite: process.env.NEXT_PUBLIC_DEBUG === "true" ? "lax" : "none",
-        secure: process.env.NEXT_PUBLIC_DEBUG === "true" ? false : true,
+        sameSite: process.env.NEXT_PUBLIC_APP_DEBUG === "true" ? "lax" : "none",
+        secure: process.env.NEXT_PUBLIC_APP_DEBUG === "true" ? false : true,
         path: "/",
       },
     },

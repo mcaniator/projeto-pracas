@@ -8,7 +8,10 @@ import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
+import CalculationSynchronizer from "@/components/ui/responseForm/calculationSynchronizer";
 import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
+import FilledQuestionsCounter from "@/components/ui/responseForm/filledQuestionsCounter";
+import PreviewValuesSynchronizer from "@/components/ui/responseForm/previewValuesSynchronizer";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
@@ -38,13 +41,10 @@ import type {
   SerializedResponseQuestionValue,
   SimpleMention,
 } from "@/lib/types/assessments/responseFormTypes";
-import { Calculation } from "@/lib/utils/calculationUtils";
-import { Chip, useMediaQuery, useTheme } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
-  IconAlertTriangle,
   IconArrowBackUp,
   IconBrandGoogleDrive,
-  IconCheck,
   IconClipboard,
   IconClipboardCheck,
   IconClipboardData,
@@ -66,12 +66,8 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  type Control,
-  type UseFormSetValue,
-  useForm,
-  useWatch,
-} from "react-hook-form";
+import { type Control, useForm } from "react-hook-form";
+import { Virtuoso } from "react-virtuoso";
 
 import DeleteAssessmentDialog from "./deleteAssessmentDialog";
 import {
@@ -133,8 +129,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
-    const theme = useTheme();
-    const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
     const { enqueueSnackbar } = useAppSnackbar();
     const { user } = useUserContext();
     const { setLoadingOverlay } = useLoadingOverlay();
@@ -153,8 +147,10 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const {
       control,
       handleSubmit,
+      getValues,
       reset,
       setValue,
+      subscribe,
       formState: { isDirty },
     } = useForm<FormValues>({
       mode: "onChange",
@@ -230,52 +226,57 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       useState<AssessmentDraft>();
     const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
       useState<Date>();
-    const [filledCount, setFilledCount] = useState(0);
     const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
+    const [expandedCategoryIds, setExpandedCategoryIds] = useState(
+      () =>
+        new Set(
+          assessmentTree.categories.map((category) => category.categoryId),
+        ),
+    );
+    const [expandedSubcategoryIds, setExpandedSubcategoryIds] = useState(
+      () =>
+        new Set(
+          assessmentTree.categories.flatMap((category) =>
+            category.categoryChildren.flatMap((child) =>
+              isAssessmentSubcategoryItem(child) ? [child.subcategoryId] : [],
+            ),
+          ),
+        ),
+    );
     const geometriesRef = useRef(geometries);
     const serializedFormValuesRef = useRef(assessmentTree.responsesFormValues);
     const nonResponseItemsIsDirtyRef = useRef(false);
+    const draftSaveTimeoutRef = useRef<number | undefined>(undefined);
 
-    const allValues = useWatch({ control });
-
-    const calculationDependencyIds = useMemo(() => {
-      const ids = new Set<number>();
-
-      const addCalculationDependencies = (question: AssessmentQuestionItem) => {
-        if (!question.calculationExpression) return;
-
-        const calc = new Calculation(question.calculationExpression);
-        calc.getExpressionQuestionIds().forEach((id) => ids.add(id));
-      };
-
-      assessmentTree.categories.forEach((category) => {
-        category.categoryChildren.forEach((child) => {
-          if (isAssessmentSubcategoryItem(child)) {
-            child.questions.forEach(addCalculationDependencies);
-            return;
+    const handleCategoryExpandedChange = useCallback(
+      (categoryId: number, expanded: boolean) => {
+        setExpandedCategoryIds((current) => {
+          const next = new Set(current);
+          if (expanded) {
+            next.add(categoryId);
+          } else {
+            next.delete(categoryId);
           }
-
-          if (isAssessmentQuestionItem(child)) {
-            addCalculationDependencies(child);
-          }
+          return next;
         });
-      });
+      },
+      [],
+    );
 
-      return ids;
-    }, [assessmentTree.categories]);
-
-    const numericResponses = useMemo(() => {
-      const responses = new Map<number, number>();
-
-      calculationDependencyIds.forEach((questionId) => {
-        const value = allValues[String(questionId)];
-        if (typeof value === "number") {
-          responses.set(questionId, value);
-        }
-      });
-
-      return responses;
-    }, [allValues, calculationDependencyIds]);
+    const handleSubcategoryExpandedChange = useCallback(
+      (subcategoryId: number, expanded: boolean) => {
+        setExpandedSubcategoryIds((current) => {
+          const next = new Set(current);
+          if (expanded) {
+            next.add(subcategoryId);
+          } else {
+            next.delete(subcategoryId);
+          }
+          return next;
+        });
+      },
+      [],
+    );
 
     const totalQuestions = assessmentTree.totalQuestions;
 
@@ -396,6 +397,43 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       setFormValues(data);
       setOpenSaveDialog(true);
     };
+
+    const scheduleDraftSave = useCallback(() => {
+      if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current)) {
+        return;
+      }
+
+      setPendingSaveFromDraft(true);
+      window.clearTimeout(draftSaveTimeoutRef.current);
+      draftSaveTimeoutRef.current = window.setTimeout(() => {
+        const localAssessment: AssessmentDraft = {
+          id: assessmentTree.id,
+          userId: user.id,
+          username: user.username,
+          serverUpdatedAt: serverUpdatedAtRef.current,
+          localUpdatedAt: new Date(),
+          isFinalized,
+          startDate: startDate.toDate(),
+          endDate: endDate?.toDate() ?? null,
+          driveFolderUrl,
+          responseFormValues: serializedFormValuesRef.current,
+          geometries: geometriesRef.current,
+        };
+
+        void saveAssessmentResponsesDraft(localAssessment);
+        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
+      }, 500);
+    }, [
+      assessmentTree.id,
+      driveFolderUrl,
+      endDate,
+      isDirty,
+      isFinalized,
+      isPreview,
+      startDate,
+      user.id,
+      user.username,
+    ]);
 
     const importData = async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -531,89 +569,71 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     ]);
 
     useEffect(() => {
-      // This useEffect is called when the form values change.
-      // It updates the numeric responses, the filled fields counter, calls the onValuesChange callback for the preview and updates the local database.
-      let filledFieldsCounter = 0;
-      const normalizedValues: FormValues = {};
-      const serializedValues: SerializedFormValues = {};
+      const serializeValue = (
+        questionId: string,
+        value: FormValues[string] | undefined,
+      ) => {
+        const normalizedValue = value === undefined ? null : value;
 
-      Object.entries(allValues).forEach(([key, value]) => {
-        const val = value === undefined ? null : value;
-        normalizedValues[key] = val as FormValues[string];
-
-        if (
-          val != null &&
-          val !== "" &&
-          (!(val instanceof Array) || val.length > 0) &&
-          (!dayjs.isDayjs(val) || val.isValid())
-        ) {
-          filledFieldsCounter++;
+        if (dayjs.isDayjs(normalizedValue)) {
+          const format = dateFormatByQuestionId.get(questionId);
+          return format && normalizedValue.isValid() ?
+              normalizedValue.format(format)
+            : null;
         }
 
-        // Here we are serializing the values. We don't use "serializeResponseFormValues" because we can use the current loop.
-        let serializedValue: SerializedResponseQuestionValue;
-        if (dayjs.isDayjs(val)) {
-          const format = dateFormatByQuestionId.get(key);
-          serializedValue = format && val.isValid() ? val.format(format) : null;
-        } else {
-          serializedValue = val as SerializedResponseQuestionValue;
+        return normalizedValue as SerializedResponseQuestionValue;
+      };
+
+      const synchronizeSerializedValues = (
+        values: FormValues,
+        changedQuestionId?: string,
+      ) => {
+        // For serialization, we don't use seriealizeResponseFormValues from lib, because it will iterate over all questions.
+        if (changedQuestionId && Object.hasOwn(values, changedQuestionId)) {
+          // Here we only update the changed response
+          serializedFormValuesRef.current[changedQuestionId] = serializeValue(
+            changedQuestionId,
+            values[changedQuestionId],
+          );
+          return;
         }
 
-        serializedValues[key] = serializedValue;
+        // Here we update all response are updated. This is needed because when the user calls 'reset', the all response are updated. This is also called when the user enter on the page.
+        const serializedValues: SerializedFormValues = {};
+        Object.entries(values).forEach(([questionId, value]) => {
+          serializedValues[questionId] = serializeValue(questionId, value);
+        });
+        serializedFormValuesRef.current = serializedValues;
+      };
+
+      synchronizeSerializedValues(getValues());
+
+      return subscribe({
+        formState: { values: true },
+        callback: ({ values, name }) => {
+          // When user calls 'reset', the 'name' param is undefined
+          synchronizeSerializedValues(values, name);
+          scheduleDraftSave();
+        },
       });
-
-      serializedFormValuesRef.current = serializedValues;
-      setFilledCount(filledFieldsCounter);
-      onValuesChange?.(normalizedValues);
-    }, [allValues, dateFormatByQuestionId, onValuesChange]);
+    }, [dateFormatByQuestionId, getValues, scheduleDraftSave, subscribe]);
 
     useEffect(() => {
       geometriesRef.current = geometries;
       onGeometriesChange?.(geometries);
-    }, [geometries, onGeometriesChange]);
+      scheduleDraftSave();
+    }, [geometries, onGeometriesChange, scheduleDraftSave]);
 
     useEffect(() => {
       onImagesChange?.(responseImages);
     }, [responseImages, onImagesChange]);
 
     useEffect(() => {
-      if (isPreview || (!isDirty && !nonResponseItemsIsDirtyRef.current))
-        return;
-      setPendingSaveFromDraft(true);
-      const timeoutId = window.setTimeout(() => {
-        const localAssessment: AssessmentDraft = {
-          id: assessmentTree.id,
-          userId: user.id,
-          username: user.username,
-          serverUpdatedAt: serverUpdatedAtRef.current,
-          localUpdatedAt: new Date(),
-          isFinalized: isFinalized,
-          startDate: startDate.toDate(),
-          endDate: endDate?.toDate() ?? null,
-          driveFolderUrl: driveFolderUrl,
-          responseFormValues: serializedFormValuesRef.current,
-          geometries: geometriesRef.current,
-        };
+      scheduleDraftSave();
+    }, [scheduleDraftSave]);
 
-        void saveAssessmentResponsesDraft(localAssessment);
-        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
-      }, 500);
-
-      return () => window.clearTimeout(timeoutId);
-    }, [
-      allValues,
-      assessmentTree.id,
-      assessmentTree.startDate,
-      assessmentTree.updatedAt,
-      isFinalized,
-      startDate,
-      endDate,
-      driveFolderUrl,
-      geometries,
-      isDirty,
-      isPreview,
-      user,
-    ]);
+    useEffect(() => () => window.clearTimeout(draftSaveTimeoutRef.current), []);
 
     return (
       <form
@@ -645,179 +665,200 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             }
           }
         }}
-        className="flex w-full flex-col gap-2"
+        className="flex h-full w-full flex-col"
       >
-        {!isPreview && (
-          <div className="flex w-full flex-col gap-1">
-            <CChip
-              label={assessmentTree.formName}
-              icon={<IconClipboard />}
-              sx={{ fontSize: 16 }}
-              tooltip="Formulário"
-              className="w-fit"
-            />
-            <CChip
-              label={assessmentTree.user.username}
-              icon={<IconUser />}
-              sx={{ fontSize: 16 }}
-              tooltip="Avaliador"
-              className="w-fit"
-            />
-            {!isFilling && (
-              <div className="flex flex-wrap justify-between gap-1">
-                <div className="flex flex-wrap gap-1">
-                  <CChip
-                    icon={<IconClipboardData />}
-                    label={dateTimeFormatter.format(assessmentTree.startDate)}
-                    sx={{ fontSize: 16 }}
-                    tooltip="Início"
-                  />
-                  <CChip
-                    icon={<IconClipboardCheck />}
-                    label={`${assessmentTree.endDate ? dateTimeFormatter.format(assessmentTree.endDate) : "Indefinido"}`}
-                    sx={{ fontSize: 16 }}
-                    tooltip="Fim"
-                  />
-                </div>
-
-                <div className="flex gap-1">
-                  {userCanEdit && (
-                    <>
-                      <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
-                      <CButton
-                        square
-                        onClick={() => {
-                          setIsFilling(true);
-                        }}
-                      >
-                        <IconPencil />
-                      </CButton>
-                    </>
-                  )}
-                  <CButton
-                    topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingSaveFromDraft}
-                    tooltip="Reverter alterações locais"
-                    square
-                    disabled={!pendingSaveFromDraft}
-                    onClick={() => {
-                      setOpenRevertLocalAssessmentDialog(true);
-                    }}
-                  >
-                    <IconArrowBackUp />
-                  </CButton>
-                  <CButton
-                    square
-                    tooltip="Drive"
-                    enableTopLeftChip={!!driveFolderUrl}
-                    topLeftChipLabel={"1"}
-                    disabled={!driveFolderUrl}
-                    onClick={() => {
-                      setOpenDriveFolderUrlDialog(true);
-                    }}
-                  >
-                    <IconBrandGoogleDrive />
-                  </CButton>
-                </div>
-              </div>
-            )}
-            {isFilling && (
-              <div className="flex flex-wrap content-center justify-between gap-4">
-                <CDateTimePicker
-                  label="Início"
-                  value={startDate}
-                  onChange={(e) => {
-                    if (!e) return;
-                    nonResponseItemsIsDirtyRef.current = true;
-                    setStartDate(e);
-                  }}
-                />
-
-                <div className="flex items-center justify-end gap-2">
-                  <CButton
-                    square
-                    tooltip="Drive"
-                    enableTopLeftChip={!!driveFolderUrl}
-                    topLeftChipLabel={"1"}
-                    onClick={() => {
-                      setOpenDriveFolderUrlDialog(true);
-                    }}
-                  >
-                    <IconBrandGoogleDrive />
-                  </CButton>
-                  <CButton
-                    topLeftChipLabel={"!"}
-                    enableTopLeftChip={pendingSaveFromDraft}
-                    tooltip="Reverter alterações locais"
-                    square
-                    color="warning"
-                    disabled={!pendingSaveFromDraft}
-                    onClick={() => {
-                      setOpenRevertLocalAssessmentDialog(true);
-                    }}
-                  >
-                    <IconArrowBackUp />
-                  </CButton>
-                  {!isPreview && (
-                    <CButton
-                      square
-                      tooltip="Excluir avaliação"
-                      color="error"
-                      onClick={() => {
-                        setOpenDeleteAssessmentDialog(true);
-                      }}
-                    >
-                      <IconTrash />
-                    </CButton>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {assessmentTree.categories.map((cat, index) => (
-          <Category
-            key={index}
-            category={cat}
-            numericResponses={numericResponses}
-            geometries={geometries}
-            responseImages={responseImages}
-            questionsForMention={questionsForMention}
-            finalized={!isFilling}
-            locationPolygonGeoJson={locationPolygonGeoJson}
-            handleQuestionGeometryChange={handleQuestionGeometryChange}
-            handleQuestionImagesChange={handleQuestionImagesChange}
-            control={control}
-            setValue={setValue}
-          />
-        ))}
-
-        <Chip
-          label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
-          icon={
-            filledCount < totalQuestions ? <IconAlertTriangle /> : <IconCheck />
-          }
-          color={filledCount < totalQuestions ? "warning" : "success"}
+        <CalculationSynchronizer
+          categories={assessmentTree.categories}
+          control={control}
+          setValue={setValue}
         />
+        {isPreview && onValuesChange && (
+          <PreviewValuesSynchronizer
+            control={control}
+            onValuesChange={onValuesChange}
+          />
+        )}
+        <div className="min-h-0 flex-1">
+          <Virtuoso
+            data={assessmentTree.categories}
+            style={{ height: "100%", overflowX: "hidden" }}
+            computeItemKey={(_, category) => category.categoryId}
+            components={{
+              Header: () => {
+                if (isPreview) return null;
 
-        {isFilling && !isPreview && (
-          <div className="flex flex-col justify-center gap-4 pb-14">
-            {pendingSaveFromDraft && (
-              <Chip
-                label="Respostas não salvas!"
-                color="error"
-                icon={<IconDeviceFloppy />}
-              />
+                return (
+                  <div className="flex w-full flex-col gap-1">
+                    <CChip
+                      label={assessmentTree.formName}
+                      icon={<IconClipboard />}
+                      sx={{ fontSize: 16 }}
+                      tooltip="Formulário"
+                      className="w-fit"
+                    />
+                    <CChip
+                      label={assessmentTree.user.username}
+                      icon={<IconUser />}
+                      sx={{ fontSize: 16 }}
+                      tooltip="Avaliador"
+                      className="w-fit"
+                    />
+                    {!isFilling && (
+                      <div className="flex flex-wrap justify-between gap-1">
+                        <div className="flex flex-wrap gap-1">
+                          <CChip
+                            icon={<IconClipboardData />}
+                            label={dateTimeFormatter.format(
+                              assessmentTree.startDate,
+                            )}
+                            sx={{ fontSize: 16 }}
+                            tooltip="Início"
+                          />
+                          <CChip
+                            icon={<IconClipboardCheck />}
+                            label={`${assessmentTree.endDate ? dateTimeFormatter.format(assessmentTree.endDate) : "Indefinido"}`}
+                            sx={{ fontSize: 16 }}
+                            tooltip="Fim"
+                          />
+                        </div>
+
+                        <div className="flex gap-1">
+                          {userCanEdit && (
+                            <>
+                              <CHelpChip tooltip="Você possui permissão para editar esta avaliação finalizada." />
+                              <CButton
+                                square
+                                onClick={() => {
+                                  setIsFilling(true);
+                                }}
+                              >
+                                <IconPencil />
+                              </CButton>
+                            </>
+                          )}
+                          <CButton
+                            topLeftChipLabel={"!"}
+                            enableTopLeftChip={pendingSaveFromDraft}
+                            tooltip="Reverter alterações locais"
+                            square
+                            disabled={!pendingSaveFromDraft}
+                            onClick={() => {
+                              setOpenRevertLocalAssessmentDialog(true);
+                            }}
+                          >
+                            <IconArrowBackUp />
+                          </CButton>
+                          <CButton
+                            square
+                            tooltip="Drive"
+                            enableTopLeftChip={!!driveFolderUrl}
+                            topLeftChipLabel={"1"}
+                            disabled={!driveFolderUrl}
+                            onClick={() => {
+                              setOpenDriveFolderUrlDialog(true);
+                            }}
+                          >
+                            <IconBrandGoogleDrive />
+                          </CButton>
+                        </div>
+                      </div>
+                    )}
+                    {isFilling && (
+                      <div className="flex flex-wrap content-center justify-between gap-4">
+                        <CDateTimePicker
+                          label="Início"
+                          value={startDate}
+                          onChange={(e) => {
+                            if (!e) return;
+                            nonResponseItemsIsDirtyRef.current = true;
+                            setStartDate(e);
+                          }}
+                        />
+
+                        <div className="flex items-center justify-end gap-2">
+                          <CButton
+                            square
+                            tooltip="Drive"
+                            enableTopLeftChip={!!driveFolderUrl}
+                            topLeftChipLabel={"1"}
+                            onClick={() => {
+                              setOpenDriveFolderUrlDialog(true);
+                            }}
+                          >
+                            <IconBrandGoogleDrive />
+                          </CButton>
+                          <CButton
+                            topLeftChipLabel={"!"}
+                            enableTopLeftChip={pendingSaveFromDraft}
+                            tooltip="Reverter alterações locais"
+                            square
+                            color="warning"
+                            disabled={!pendingSaveFromDraft}
+                            onClick={() => {
+                              setOpenRevertLocalAssessmentDialog(true);
+                            }}
+                          >
+                            <IconArrowBackUp />
+                          </CButton>
+                          <CButton
+                            square
+                            tooltip="Excluir avaliação"
+                            color="error"
+                            onClick={() => {
+                              setOpenDeleteAssessmentDialog(true);
+                            }}
+                          >
+                            <IconTrash />
+                          </CButton>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              },
+            }}
+            itemContent={(_, category) => (
+              <div className="pb-2">
+                <Category
+                  category={category}
+                  geometries={geometries}
+                  responseImages={responseImages}
+                  questionsForMention={questionsForMention}
+                  finalized={!isFilling}
+                  expanded={expandedCategoryIds.has(category.categoryId)}
+                  onExpandedChange={handleCategoryExpandedChange}
+                  expandedSubcategoryIds={expandedSubcategoryIds}
+                  onSubcategoryExpandedChange={handleSubcategoryExpandedChange}
+                  locationPolygonGeoJson={locationPolygonGeoJson}
+                  handleQuestionGeometryChange={handleQuestionGeometryChange}
+                  handleQuestionImagesChange={handleQuestionImagesChange}
+                  control={control}
+                />
+              </div>
             )}
-            <div className="fixed bottom-4 right-4 z-50">
-              <CButton type="submit" square={isMobileView} tooltip="Salvar">
-                {!isMobileView && "Salvar"}
+          />
+        </div>
+        <Divider />
+        <div className="mt-2 flex flex-col gap-2 px-2">
+          <FilledQuestionsCounter
+            control={control}
+            totalQuestions={totalQuestions}
+          />
+
+          {isFilling && !isPreview && (
+            <div className="flex flex-col justify-center gap-4">
+              <CButton
+                className="ml-auto w-fit"
+                type="submit"
+                enableTopLeftChip={pendingSaveFromDraft}
+                topLeftChipLabel={"!"}
+              >
                 <IconDeviceFloppy />
+                Salvar
               </CButton>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {!isPreview && (
           <>
@@ -918,7 +959,6 @@ ResponseFormV2.displayName = "ResponseFormV2";
 
 const Category = ({
   category,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -926,11 +966,13 @@ const Category = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
+  expanded,
+  onExpandedChange,
+  expandedSubcategoryIds,
+  onSubcategoryExpandedChange,
 }: {
   category: AssessmentCategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -941,11 +983,23 @@ const Category = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
+  expanded: boolean;
+  onExpandedChange: (categoryId: number, expanded: boolean) => void;
+  expandedSubcategoryIds: Set<number>;
+  onSubcategoryExpandedChange: (
+    subcategoryId: number,
+    expanded: boolean,
+  ) => void;
 }) => {
   return (
-    <ResponseFormCategory category={category}>
+    <ResponseFormCategory
+      category={category}
+      expanded={expanded}
+      onExpandedChange={(nextExpanded) =>
+        onExpandedChange(category.categoryId, nextExpanded)
+      }
+    >
       <>
         {category.categoryChildren.map((child, index) => {
           if (isAssessmentSubcategoryItem(child)) {
@@ -953,16 +1007,16 @@ const Category = ({
               <Subcategory
                 key={index}
                 subcategory={child}
-                numericResponses={numericResponses}
                 geometries={geometries}
                 responseImages={responseImages}
                 questionsForMention={questionsForMention}
                 finalized={finalized}
+                expanded={expandedSubcategoryIds.has(child.subcategoryId)}
+                onExpandedChange={onSubcategoryExpandedChange}
                 locationPolygonGeoJson={locationPolygonGeoJson}
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
-                setValue={setValue}
               />
             );
           } else if (isAssessmentQuestionItem(child)) {
@@ -970,7 +1024,6 @@ const Category = ({
               <Question
                 key={index}
                 question={child}
-                numericResponses={numericResponses}
                 geometries={geometries}
                 responseImages={responseImages}
                 questionsForMention={questionsForMention}
@@ -979,7 +1032,6 @@ const Category = ({
                 handleQuestionGeometryChange={handleQuestionGeometryChange}
                 handleQuestionImagesChange={handleQuestionImagesChange}
                 control={control}
-                setValue={setValue}
               />
             );
           }
@@ -991,7 +1043,6 @@ const Category = ({
 
 const Subcategory = ({
   subcategory,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -999,11 +1050,11 @@ const Subcategory = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
+  expanded,
+  onExpandedChange,
 }: {
   subcategory: AssessmentSubcategoryItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -1014,17 +1065,23 @@ const Subcategory = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
+  expanded: boolean;
+  onExpandedChange: (subcategoryId: number, expanded: boolean) => void;
 }) => {
   return (
-    <ResponseFormSubcategory subcategory={subcategory}>
+    <ResponseFormSubcategory
+      subcategory={subcategory}
+      expanded={expanded}
+      onExpandedChange={(nextExpanded) =>
+        onExpandedChange(subcategory.subcategoryId, nextExpanded)
+      }
+    >
       <>
         {subcategory.questions.map((question, index) => (
           <Question
             key={index}
             question={question}
-            numericResponses={numericResponses}
             geometries={geometries}
             responseImages={responseImages}
             questionsForMention={questionsForMention}
@@ -1033,7 +1090,6 @@ const Subcategory = ({
             handleQuestionGeometryChange={handleQuestionGeometryChange}
             handleQuestionImagesChange={handleQuestionImagesChange}
             control={control}
-            setValue={setValue}
           />
         ))}
       </>
@@ -1043,7 +1099,6 @@ const Subcategory = ({
 
 const Question = ({
   question,
-  numericResponses,
   geometries,
   responseImages,
   questionsForMention,
@@ -1051,11 +1106,9 @@ const Question = ({
   handleQuestionGeometryChange,
   handleQuestionImagesChange,
   control,
-  setValue,
   finalized,
 }: {
   question: AssessmentQuestionItem;
-  numericResponses: Map<number, number>;
   geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
@@ -1066,7 +1119,6 @@ const Question = ({
     images: ResponseFormImage[],
   ) => void;
   control: Control<FormValues, unknown, FormValues>;
-  setValue: UseFormSetValue<FormValues>;
   finalized: boolean;
 }) => {
   return (
@@ -1093,9 +1145,7 @@ const Question = ({
     >
       <ControlledResponseQuestionField
         question={question}
-        numericResponses={numericResponses}
         control={control}
-        setValue={setValue}
         finalized={finalized}
       />
     </ResponseFormQuestionCard>

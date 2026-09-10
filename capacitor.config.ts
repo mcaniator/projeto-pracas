@@ -4,7 +4,7 @@ import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
 
 const serverUrl = process.env.NEXT_PUBLIC_BASE_URL;
-const isDebug = process.env.NEXT_PUBLIC_DEBUG === "true";
+const isDebug = process.env.NEXT_PUBLIC_APP_DEBUG === "true";
 
 const config: CapacitorConfig = {
   appId: "br.ufjf.pracas",

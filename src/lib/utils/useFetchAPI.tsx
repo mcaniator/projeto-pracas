@@ -70,8 +70,9 @@ export function useFetchAPI<
       const loadingMessage = projectOptions?.loadingMessage;
       const showLoadingOverlay = projectOptions?.showLoadingOverlay;
       const silent = projectOptions?.silent;
+      const hasLoadingOverlay = loadingMessage || showLoadingOverlay;
 
-      if (loadingMessage || showLoadingOverlay) {
+      if (hasLoadingOverlay) {
         setLoadingOverlay({
           show: true,
           message: loadingMessage ?? "",
@@ -93,7 +94,9 @@ export function useFetchAPI<
 
         if (isOffline) {
           if (!offlineFallback || disableOfflineFallback) {
-            setLoadingOverlay({ show: false });
+            if (hasLoadingOverlay) {
+              setLoadingOverlay({ show: false });
+            }
             setIsLoading(false);
             return {
               responseInfo: {
@@ -120,14 +123,18 @@ export function useFetchAPI<
                 showSuccessMessage,
               });
             }
-            setLoadingOverlay({ show: false });
+            if (hasLoadingOverlay) {
+              setLoadingOverlay({ show: false });
+            }
             setIsLoading(false);
             return {
               responseInfo: fallbackResponse.responseInfo,
               data: fallbackResponse.data,
             };
           } catch (e) {
-            setLoadingOverlay({ show: false });
+            if (hasLoadingOverlay) {
+              setLoadingOverlay({ show: false });
+            }
             setIsLoading(false);
             return {
               responseInfo: {
@@ -184,7 +191,9 @@ export function useFetchAPI<
               if (!silent) {
                 notifyApiResponse(errorResponseInfo, { showSuccessMessage });
               }
-              setLoadingOverlay({ show: false });
+              if (hasLoadingOverlay) {
+                setLoadingOverlay({ show: false });
+              }
               setIsLoading(false);
               return {
                 responseInfo: errorResponseInfo,
@@ -206,14 +215,18 @@ export function useFetchAPI<
             if (!silent) {
               notifyApiResponse(json.responseInfo, { showSuccessMessage });
             }
-            setLoadingOverlay({ show: false });
+            if (hasLoadingOverlay) {
+              setLoadingOverlay({ show: false });
+            }
             setIsLoading(false);
             return {
               responseInfo: json.responseInfo,
               data: json.data,
             };
           } catch (e) {
-            setLoadingOverlay({ show: false });
+            if (hasLoadingOverlay) {
+              setLoadingOverlay({ show: false });
+            }
             setIsLoading(false);
             return {
               responseInfo: {
@@ -253,14 +266,18 @@ export function useFetchAPI<
                     showSuccessMessage,
                   });
                 }
-                setLoadingOverlay({ show: false });
+                if (hasLoadingOverlay) {
+                  setLoadingOverlay({ show: false });
+                }
                 setIsLoading(false);
                 return {
                   responseInfo: fallbackResponse.responseInfo,
                   data: fallbackResponse.data,
                 };
               } catch (e) {
-                setLoadingOverlay({ show: false });
+                if (hasLoadingOverlay) {
+                  setLoadingOverlay({ show: false });
+                }
                 setIsLoading(false);
                 return {
                   responseInfo: {
@@ -285,7 +302,9 @@ export function useFetchAPI<
             // If is native app, the error about server not found has already been shown after setServerOnline(false)
             notifyApiResponse(errorResponseInfo);
           }
-          setLoadingOverlay({ show: false });
+          if (hasLoadingOverlay) {
+            setLoadingOverlay({ show: false });
+          }
           setIsLoading(false);
           return {
             responseInfo: errorResponseInfo,
@@ -304,7 +323,9 @@ export function useFetchAPI<
         if (!silent) {
           notifyApiResponse(errorResponseInfo);
         }
-        setLoadingOverlay({ show: false });
+        if (hasLoadingOverlay) {
+          setLoadingOverlay({ show: false });
+        }
         setIsLoading(false);
         return {
           responseInfo: errorResponseInfo,

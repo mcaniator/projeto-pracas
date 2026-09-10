@@ -9,13 +9,11 @@ const ResponseQuestionFieldRenderer = ({
   question,
   value,
   readOnly = false,
-  disableDebouce = false,
   onChange,
 }: {
   question: AssessmentQuestionItem;
   value: ResponseQuestionValue;
   readOnly?: boolean;
-  disableDebouce?: boolean;
   onChange: (value: ResponseQuestionValue) => void;
 }) => {
   if (question.questionType === "WRITTEN") {
@@ -24,7 +22,6 @@ const ResponseQuestionFieldRenderer = ({
         question={question}
         value={value}
         readOnly={readOnly}
-        disableDebouce={disableDebouce}
         onChange={onChange}
       />
     );

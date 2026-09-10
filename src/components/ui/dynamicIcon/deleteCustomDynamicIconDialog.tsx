@@ -4,6 +4,7 @@ import CCircularProgress from "@/components/ui/CCircularProgress";
 import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import { buildDynamicIconKey } from "@/lib/questionIcons/dynamicIcon";
 import type { FetchCustomDynamicIconDetailsResponse } from "@/lib/serverFunctions/queries/questionIcon";
 import {
   useDeleteCustomDynamicIcon,
@@ -94,7 +95,9 @@ const DeleteCustomDynamicIconDialog = ({
       : customDynamicIcon ?
         <div className="flex flex-col gap-2">
           <div className="flex justify-center rounded border border-gray-200 p-4">
-            <CDynamicIcon iconKey={`custom:${customDynamicIcon.name}`} />
+            <CDynamicIcon
+              iconKey={buildDynamicIconKey("custom", customDynamicIcon.name)}
+            />
           </div>
           <CTextField label="Nome" value={customDynamicIcon.name} readOnly />
           {customDynamicIcon.aliases.length > 0 ?

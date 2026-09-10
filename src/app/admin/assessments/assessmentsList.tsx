@@ -9,6 +9,7 @@ import {
   deleteAdminSQLiteAssessment,
   fetchAdminSQLiteAssessmentTableData,
   fetchAdminSQLiteAssessmentTree,
+  updateAdminSQLiteAssessmentRemoteReference,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
   useAddResponses,
@@ -114,13 +115,10 @@ const AssessmentsList = ({
         });
       const SQLiteAssessmentTableData = assessmentTableDataResponse.data;
       if (!SQLiteAssessmentTableData) {
-        enqueueSnackbar("Avaliação não encontrada no dispositivo!", {
-          variant: "error",
-        });
-        return;
+        throw new Error("Avaliação não encontrada no dispositivo!");
       }
       let serverAssessmentId = SQLiteAssessmentTableData.id; // We initialize with the local id. If it is an existing assessment, it will aleady be correct. Otherwise, we will create a new one on the server and update the variable.
-      if (SQLiteAssessmentTableData.createdLocally) {
+      if (!SQLiteAssessmentTableData.existsRemotely) {
         //Create the assessment on the server
         const createAssessmentResponse = await createAssessmentOnServer({
           data: {
@@ -135,31 +133,40 @@ const AssessmentsList = ({
           },
         });
         if (!createAssessmentResponse.data?.assessmentId) {
-          enqueueSnackbar("Erro ao criar avaliação!", {
-            variant: "error",
-          });
-          return;
+          throw new Error(
+            createAssessmentResponse.responseInfo.message ??
+              "Erro ao criar avaliação!",
+          );
         }
         serverAssessmentId = createAssessmentResponse.data.assessmentId;
+        const updateSQLiteAssessmentResponse =
+          await updateAdminSQLiteAssessmentRemoteReference({
+            data: {
+              oldAssessmentId: assessment.id,
+              newAssessmentId: serverAssessmentId,
+            },
+          });
+        if (updateSQLiteAssessmentResponse.responseInfo.statusCode !== 200) {
+          throw new Error(
+            updateSQLiteAssessmentResponse.responseInfo.message ??
+              "Erro ao atualizar a avaliação no dispositivo!",
+          );
+        }
       }
       // Fetch responses from SQLite and send them to the server
       const SQLiteAssessmentTree = await fetchAdminSQLiteAssessmentTree({
         params: {
-          assessmentId: assessment.id,
+          assessmentId: serverAssessmentId,
         },
       });
       const SQLiteAssessmentTreeData =
         SQLiteAssessmentTree.data?.assessmentTree;
       if (!SQLiteAssessmentTreeData) {
-        enqueueSnackbar(
+        throw new Error(
           "Respostas da avaliação não encontradas no dispositivo!",
-          {
-            variant: "error",
-          },
         );
-        return;
       }
-      await addResponsesOnServer({
+      const addResponsesResponse = await addResponsesOnServer({
         data: {
           assessmentId: serverAssessmentId,
           startDate: SQLiteAssessmentTreeData.startDate,
@@ -170,18 +177,30 @@ const AssessmentsList = ({
           responses: SQLiteAssessmentTreeData.responsesFormValues,
         },
       });
-
-      //Delete local data, as it is no longer need
-      await deleteAdminSQLiteAssessment({
+      if (addResponsesResponse.responseInfo.statusCode !== 201) {
+        throw new Error(
+          addResponsesResponse.responseInfo.message ??
+            "Erro ao enviar respostas!",
+        );
+      }
+      const deleteAssessmentResponse = await deleteAdminSQLiteAssessment({
         data: {
-          assessmentId: assessment.id,
+          assessmentId: serverAssessmentId,
         },
       });
-
+      if (deleteAssessmentResponse.responseInfo.statusCode !== 200) {
+        throw new Error(
+          deleteAssessmentResponse.responseInfo.message ??
+            "Erro ao excluir avaliação!",
+        );
+      }
       //Refresh the list
       fetchAssessments();
     } catch (e) {
-      enqueueSnackbar("Erro ao sincronizar!", { variant: "error" });
+      enqueueSnackbar(e instanceof Error ? e.message : "Erro ao sincronizar!", {
+        variant: "error",
+      });
+      fetchAssessments();
     } finally {
       setLoadingOverlay({ show: false });
     }
@@ -209,7 +228,11 @@ const AssessmentsList = ({
       )}
       <Virtuoso
         data={assessments}
-        style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
+        style={{
+          height: "100%",
+          overflowX: "hidden",
+          minHeight: "300px",
+        }}
         itemContent={(_, a) => {
           return (
             <div className="pb-4">
