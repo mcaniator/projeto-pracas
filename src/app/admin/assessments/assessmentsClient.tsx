@@ -387,7 +387,7 @@ const AssessmentsClient = () => {
     if (broadUnitId) total++;
     if (intermediateUnitId) total++;
     if (narrowUnitId) total++;
-    return total + 1; // +1 for the state filter always being shown
+    return total + 1; // +1 for the state filter always being on
   }, [
     locationId,
     formId,

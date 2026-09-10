@@ -7,13 +7,16 @@ import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import { adminSQLiteDbDataSync } from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { fetchAdminSQLiteLastSync } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/lastSync";
+import { fetchPendencies } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/pendencies";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchSQLiteSyncData } from "@/lib/serverFunctions/apiCalls/sqliteSync";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import { Chip } from "@mui/material";
 import {
   IconBuilding,
   IconCalendarClock,
   IconDownload,
+  IconListCheck,
   IconWifiOff,
 } from "@tabler/icons-react";
 import { enqueueSnackbar } from "notistack";
@@ -28,6 +31,9 @@ const CapacitorDataSync = () => {
     cityId: number;
     cityName: string;
   }>();
+  const [pendencies, setPendencies] = useState<{
+    assessments: number;
+  } | null>();
 
   const [selectedCity, setSelectedCity] = useState<
     FetchCitiesResponse["cities"][number] | null
@@ -42,6 +48,20 @@ const CapacitorDataSync = () => {
       cityId: lastSync.cityId,
       cityName: lastSync.cityName,
     });
+  };
+
+  const loadPendencies = async () => {
+    const response = await fetchPendencies({});
+    if (response.responseInfo.statusCode !== 200 || !response.data) {
+      enqueueSnackbar(
+        response.responseInfo.message ??
+          "Erro ao consultar pendências no dispositivo!",
+        { variant: "error" },
+      );
+      setPendencies({ assessments: 0 });
+      return;
+    }
+    setPendencies(response.data.assessments > 0 ? response.data : null);
   };
 
   const syncData = async () => {
@@ -71,6 +91,7 @@ const CapacitorDataSync = () => {
 
   useEffect(() => {
     void loadSqliteMetaData();
+    void loadPendencies();
   }, []);
 
   return (
@@ -108,11 +129,23 @@ const CapacitorDataSync = () => {
           onClick={() => {
             void syncData();
           }}
-          disabled={!isConnected}
+          disabled={!isConnected || pendencies !== null}
         >
           <IconDownload />
           Baixar dados
         </CButton>
+        {pendencies && (
+          <>
+            <p>Envie todas as pendências para receber novos dados</p>
+            <div className="flex flex-col gap-1">
+              <span className="font-semibold">Pendências a enviar:</span>
+              <Chip
+                icon={<IconListCheck />}
+                label={`Avaliações: ${pendencies.assessments}`}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
