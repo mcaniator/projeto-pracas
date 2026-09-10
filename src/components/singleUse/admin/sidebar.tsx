@@ -17,7 +17,6 @@ import {
   IconWifiOff,
   IconX,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { GrGroup } from "react-icons/gr";
@@ -143,17 +142,14 @@ const Sidebar = () => {
         )}
       >
         <div className="mb-4 flex justify-between">
-          <Link className="flex items-center" href={"/"}>
-            <Button
-              type={"button"}
-              variant={"ghost"}
-              use={"link"}
-              className="px-1 py-5"
-            >
-              <IconTree size={34} />
-              Projeto Praças
-            </Button>
-          </Link>
+          <ButtonLink
+            href="/map"
+            variant={"ghost"}
+            className="justify-start gap-1 px-1 py-5 transition-colors hover:bg-white hover:text-gray-800"
+          >
+            <IconTree size={34} />
+            Projeto Praças
+          </ButtonLink>
           <Button
             variant={"ghost"}
             onPress={closeSidebar}
