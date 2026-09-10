@@ -9,8 +9,8 @@ import {
   checkIfRolesArrayContainsAll,
   checkIfRolesArrayContainsAny,
 } from "../../lib/auth/rolesUtil";
-import LoadingIcon from "../LoadingIcon";
 import { useUserContext } from "../context/UserContext";
+import CCircularProgress from "../ui/CCircularProgress";
 
 const PermissionGuard = ({
   requiresAnyRoleGroups,
@@ -59,7 +59,7 @@ const PermissionGuard = ({
     if (redirect) {
       return (
         <div className="flex h-full w-full items-center justify-center">
-          <LoadingIcon size={128} />
+          <CCircularProgress size={128} />
         </div>
       );
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingIcon from "@/components/LoadingIcon";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchFinalizedTallysDataVisualization } from "@/lib/serverFunctions/apiCalls/tally";
 import type { FetchFinalizedTallysDataVisualizationResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,7 +42,7 @@ const ResultContent = () => {
   if (isLoading || !response?.tallys?.length) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingIcon size={128} />
+        <CCircularProgress size={128} />
       </div>
     );
   }
@@ -74,7 +74,7 @@ const Page = () => {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <LoadingIcon size={128} />
+          <CCircularProgress size={128} />
         </div>
       }
     >

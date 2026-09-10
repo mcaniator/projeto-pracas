@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingIcon from "@/components/LoadingIcon";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchOngoingTally } from "@/lib/serverFunctions/apiCalls/tally";
 import type { FetchOngoingTallyResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter } from "next-nprogress-bar";
@@ -42,7 +42,7 @@ const FillContent = () => {
   if (isLoading || !response?.tally) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingIcon size={128} />
+        <CCircularProgress size={128} />
       </div>
     );
   }
@@ -62,7 +62,7 @@ const Page = () => {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <LoadingIcon size={128} />
+          <CCircularProgress size={128} />
         </div>
       }
     >

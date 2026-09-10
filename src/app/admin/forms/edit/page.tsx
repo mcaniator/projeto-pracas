@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingIcon from "@/components/LoadingIcon";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
 import PermissionGuard from "@components/auth/permissionGuard";
@@ -42,7 +42,7 @@ const EditFormProtectedContent = () => {
   if (isLoading || !response?.form.formTree) {
     return (
       <div className="flex h-full items-center justify-center">
-        <LoadingIcon size={128} />
+        <CCircularProgress size={128} />
       </div>
     );
   }
@@ -63,7 +63,7 @@ const EditFormProtected = () => {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <LoadingIcon size={128} />
+          <CCircularProgress size={128} />
         </div>
       }
     >

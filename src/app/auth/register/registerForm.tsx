@@ -2,10 +2,10 @@
 
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useRegister } from "@/lib/serverFunctions/apiCalls/auth";
-import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
 import { useLoadingOverlay } from "@components/context/loadingContext";
 import GoogleRegisterButton from "@components/singleUse/auth/googleRegisterButton";
+import CCircularProgress from "@components/ui/CCircularProgress";
 import { Input } from "@components/ui/input";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import Link from "next/link";
@@ -102,7 +102,7 @@ const RegisterForm = ({
 
   return (
     <AuthPageShell showIllustration={false} centerContent>
-      {isPending && <LoadingIcon className="h-32 w-32" />}
+      {isPending && <CCircularProgress size={128} />}
       {state?.statusCode === 201 ?
         <div className="flex flex-col items-center gap-2 text-2xl text-white">
           Usuário criado com sucesso!

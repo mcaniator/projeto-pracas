@@ -1,7 +1,7 @@
 "use client";
 
 import Loading from "@/app/admin/loading";
-import LoadingIcon from "@/components/LoadingIcon";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useUserContext } from "@/components/context/UserContext";
 import {
   fetchAdminSQLiteAssessmentTree,
@@ -121,7 +121,7 @@ const Responses = () => {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <LoadingIcon size={128} />
+          <CCircularProgress size={128} />
         </div>
       }
     >

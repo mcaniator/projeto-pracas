@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingIcon from "@/components/LoadingIcon";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchPasswordResetToken } from "@/lib/serverFunctions/apiCalls/passwordReset";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -34,7 +34,7 @@ const PasswordRecoveryContent = () => {
   }, [token]);
 
   if (!email) {
-    return <LoadingIcon className="h-32 w-32" />;
+    return <CCircularProgress size={128} />;
   }
 
   return <PasswordResetForm token={token} email={email} />;
@@ -42,7 +42,7 @@ const PasswordRecoveryContent = () => {
 
 const PasswordRecoveryPage = () => {
   return (
-    <Suspense fallback={<LoadingIcon className="h-32 w-32" />}>
+    <Suspense fallback={<CCircularProgress size={128} />}>
       <PasswordRecoveryContent />
     </Suspense>
   );

@@ -2,8 +2,8 @@
 
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useResetPassword } from "@/lib/serverFunctions/apiCalls/auth";
-import LoadingIcon from "@components/LoadingIcon";
 import { Button } from "@components/button";
+import CCircularProgress from "@components/ui/CCircularProgress";
 import { Input } from "@components/ui/input";
 import { IconEye, IconEyeClosed, IconHelp } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
@@ -56,7 +56,7 @@ const PasswordResetForm = ({
 
   return (
     <AuthPageShell>
-      {isPending && <LoadingIcon className="h-32 w-32" />}
+      {isPending && <CCircularProgress size={128} />}
       <div className={`w-full max-w-xs ${isPending && "hidden"}`}>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-4 text-center text-white">
