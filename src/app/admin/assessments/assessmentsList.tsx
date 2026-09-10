@@ -228,7 +228,11 @@ const AssessmentsList = ({
       )}
       <Virtuoso
         data={assessments}
-        style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
+        style={{
+          height: "100%",
+          overflowX: "hidden",
+          minHeight: "300px",
+        }}
         itemContent={(_, a) => {
           return (
             <div className="pb-4">

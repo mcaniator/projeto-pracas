@@ -678,7 +678,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             onValuesChange={onValuesChange}
           />
         )}
-        <div className="min-h-0 flex-1 px-2">
+        <div className="min-h-0 flex-1">
           <Virtuoso
             data={assessmentTree.categories}
             style={{ height: "100%", overflowX: "hidden" }}
@@ -688,7 +688,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                 if (isPreview) return null;
 
                 return (
-                  <div className="flex w-full flex-col gap-1 py-2">
+                  <div className="flex w-full flex-col gap-1">
                     <CChip
                       label={assessmentTree.formName}
                       icon={<IconClipboard />}

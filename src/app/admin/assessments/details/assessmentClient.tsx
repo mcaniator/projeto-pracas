@@ -42,7 +42,7 @@ const AssessmentClient = ({
   const { setLoadingOverlay } = useLoadingOverlay();
   const { enqueueSnackbar } = useAppSnackbar();
   return (
-    <div className="flex h-full flex-col overflow-auto bg-white py-2 text-black">
+    <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader
         title={`Avaliação em ${locationName}`}
         titleIcon={<IconListCheck />}
