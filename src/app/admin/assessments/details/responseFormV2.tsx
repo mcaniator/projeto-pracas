@@ -665,7 +665,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             }
           }
         }}
-        className="flex h-full w-full flex-col"
+        className="flex h-full min-h-0 w-full flex-1 flex-col"
       >
         <CalculationSynchronizer
           categories={assessmentTree.categories}

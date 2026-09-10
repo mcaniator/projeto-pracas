@@ -340,7 +340,9 @@ const FormPreviewDialog = ({
 
       <div
         className={
-          viewMode === "form" ? "flex w-full flex-col pt-16" : "hidden"
+          viewMode === "form" ?
+            "flex h-full min-h-0 w-full flex-col pt-16"
+          : "hidden"
         }
       >
         <h5 className="text-xl font-bold">Preenchimento</h5>
