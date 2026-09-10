@@ -1030,7 +1030,7 @@ const adminSQLiteAddResponsesV2 = async (
 const fetchAdminSQLiteHasAssessments = async (_request: APIRequest) => {
   try {
     const hasAssessments = await adminSQLiteDb.query({
-      statement: `SELECT 1 FROM assessment WHERE exists_remotely = 0 LIMIT 1`,
+      statement: `SELECT 1 FROM assessment LIMIT 1`,
     });
     return {
       responseInfo: {
