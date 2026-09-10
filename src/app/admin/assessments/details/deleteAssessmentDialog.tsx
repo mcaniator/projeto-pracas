@@ -77,7 +77,9 @@ const DeleteAssessmentDialog = ({
           },
         });
         setIsLoadingSQLiteAssessmentData(false);
-        setCanDeleteAssessment(response.data?.createdLocally ?? false);
+        setCanDeleteAssessment(
+          response.data ? !response.data.existsRemotely : false,
+        );
       } else {
         setCanDeleteAssessment(true);
       }

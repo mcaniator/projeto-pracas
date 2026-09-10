@@ -6,9 +6,9 @@ import CButton from "@/components/ui/cButton";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import {
-  deleteAdminSQLiteAssessment,
   fetchAdminSQLiteAssessmentTableData,
   fetchAdminSQLiteAssessmentTree,
+  updateAdminSQLiteAssessmentRemoteReference,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
   useAddResponses,
@@ -120,7 +120,7 @@ const AssessmentsList = ({
         return;
       }
       let serverAssessmentId = SQLiteAssessmentTableData.id; // We initialize with the local id. If it is an existing assessment, it will aleady be correct. Otherwise, we will create a new one on the server and update the variable.
-      if (SQLiteAssessmentTableData.createdLocally) {
+      if (!SQLiteAssessmentTableData.existsRemotely) {
         //Create the assessment on the server
         const createAssessmentResponse = await createAssessmentOnServer({
           data: {
@@ -141,11 +141,26 @@ const AssessmentsList = ({
           return;
         }
         serverAssessmentId = createAssessmentResponse.data.assessmentId;
+        const updateSQLiteAssessmentResponse =
+          await updateAdminSQLiteAssessmentRemoteReference({
+            data: {
+              oldAssessmentId: assessment.id,
+              newAssessmentId: serverAssessmentId,
+            },
+          });
+        if (updateSQLiteAssessmentResponse.responseInfo.statusCode !== 200) {
+          enqueueSnackbar(
+            updateSQLiteAssessmentResponse.responseInfo.message ??
+              "Erro ao atualizar a avaliação no dispositivo!",
+            { variant: "error" },
+          );
+          return;
+        }
       }
       // Fetch responses from SQLite and send them to the server
       const SQLiteAssessmentTree = await fetchAdminSQLiteAssessmentTree({
         params: {
-          assessmentId: assessment.id,
+          assessmentId: serverAssessmentId,
         },
       });
       const SQLiteAssessmentTreeData =
@@ -170,14 +185,6 @@ const AssessmentsList = ({
           responses: SQLiteAssessmentTreeData.responsesFormValues,
         },
       });
-
-      //Delete local data, as it is no longer need
-      await deleteAdminSQLiteAssessment({
-        data: {
-          assessmentId: assessment.id,
-        },
-      });
-
       //Refresh the list
       fetchAssessments();
     } catch (e) {

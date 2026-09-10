@@ -1,6 +1,9 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
-import type { SQLiteBulkUpsertOperation } from "@/lib/capacitor/sqlite/sqlite";
+import type {
+  SQLiteBulkUpsertOperation,
+  SQLiteTransactionOperation,
+} from "@/lib/capacitor/sqlite/sqlite";
 import dayjs from "@/lib/dayjs";
 import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
@@ -183,7 +186,7 @@ const currentUserForResponsesSchema = z.object({
 
 const editableAssessmentSchema = z.object({
   id: z.coerce.number(),
-  createdLocally: sqliteBooleanSchema,
+  existsRemotely: sqliteBooleanSchema,
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable(),
   isFinalized: sqliteBooleanSchema,
@@ -263,7 +266,7 @@ const createAdminSQLiteAssessment = async (
 
     const result = await adminSQLiteDb.run(
       `INSERT INTO assessment (
-        created_locally,
+        exists_remotely,
         start_date,
         end_date,
         is_finalized,
@@ -275,7 +278,7 @@ const createAdminSQLiteAssessment = async (
         created_at,
         updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [1, startDate, null, 0, 0, null, userId, locationId, formId, now, now],
+      [0, startDate, null, 0, 0, null, userId, locationId, formId, now, now],
     );
 
     return {
@@ -327,7 +330,7 @@ const createAdminSQLiteAssessmentFromRemoteAssessment = async (
 
     const result = await adminSQLiteDb.run(
       `INSERT INTO assessment (
-        created_locally,
+        exists_remotely,
         id,
         start_date,
         end_date,
@@ -341,7 +344,7 @@ const createAdminSQLiteAssessmentFromRemoteAssessment = async (
         updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        0,
+        1,
         data.id,
         data.startDate,
         data.endDate,
@@ -432,6 +435,145 @@ const deleteAdminSQLiteAssessment = async (
   }
 };
 
+const assessmentExistsRemotelySchema = z.object({
+  existsRemotely: sqliteBooleanSchema,
+});
+
+type UpdateAdminSQLiteAssessmentRemoteReferenceData = {
+  oldAssessmentId: number;
+  newAssessmentId: number;
+};
+
+const updateAdminSQLiteAssessmentRemoteReference = async (
+  request: APIRequestData<UpdateAdminSQLiteAssessmentRemoteReferenceData>,
+) => {
+  const data = request.data;
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Dados inválidos para atualizar a avaliação no dispositivo!",
+      } as APIResponseInfo,
+    };
+  }
+
+  try {
+    const localAssessmentValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT exists_remotely AS existsRemotely
+        FROM assessment
+        WHERE id = ?
+        LIMIT 1
+      `,
+      values: [data.oldAssessmentId],
+    });
+    const localAssessment = assessmentExistsRemotelySchema.safeParse(
+      localAssessmentValues.values[0],
+    );
+    if (!localAssessment.success) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Avaliação local não encontrada!",
+        } as APIResponseInfo,
+      };
+    }
+    if (localAssessment.data.existsRemotely) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message: "A avaliação já existe no servidor!",
+        } as APIResponseInfo,
+      };
+    }
+
+    // If there is another assessment with the new id, it needs to be changed to the next available id
+    const assessmentWithConflictingIdValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT exists_remotely AS existsRemotely
+        FROM assessment
+        WHERE id = ?
+          AND id <> ?
+        LIMIT 1
+      `,
+      values: [data.newAssessmentId, data.oldAssessmentId],
+    });
+    const assessmentWithConflictingId =
+      assessmentExistsRemotelySchema.safeParse(
+        assessmentWithConflictingIdValues.values[0],
+      );
+    if (
+      assessmentWithConflictingId.success &&
+      assessmentWithConflictingId.data.existsRemotely
+    ) {
+      return {
+        responseInfo: {
+          statusCode: 409,
+          message:
+            "Já existe uma avaliação local espelhada remotamente com o identificador retornado pelo servidor!",
+        } as APIResponseInfo,
+      };
+    }
+
+    const transaction: SQLiteTransactionOperation[] = [];
+    if (assessmentWithConflictingId.success) {
+      // If there is another local assessment with the new id, it needs to be changed to the next available id
+      const nextAvailableIdValues = await adminSQLiteDb.query({
+        statement: `SELECT COALESCE(MAX(id), 0) + 1 AS id FROM assessment`,
+      });
+      const nextAvailableId = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(nextAvailableIdValues.values[0]).id;
+
+      transaction.push({
+        statement: `UPDATE assessment SET id = ? WHERE id = ?`,
+        values: [nextAvailableId, data.newAssessmentId],
+      });
+      // The draft needs to be updated manually, because the draft is does not have a foreign key
+      transaction.push({
+        statement: `
+          UPDATE assessment_draft
+          SET assessment_id = ?
+          WHERE assessment_id = ?
+        `,
+        values: [nextAvailableId, data.newAssessmentId],
+      });
+    }
+    // Update the local assessment id, to reflect the remote reference
+    transaction.push({
+      statement: `
+        UPDATE assessment
+        SET id = ?, exists_remotely = 1
+        WHERE id = ?
+      `,
+      values: [data.newAssessmentId, data.oldAssessmentId],
+    });
+    // The draft needs to be updated manually, because the draft is does not have a foreign key
+    transaction.push({
+      statement: `
+        UPDATE assessment_draft
+        SET assessment_id = ?
+        WHERE assessment_id = ?
+      `,
+      values: [data.newAssessmentId, data.oldAssessmentId],
+    });
+    await adminSQLiteDb.executeTransaction(transaction);
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao atualizar a avaliação no dispositivo!",
+      } as APIResponseInfo,
+    };
+  }
+};
+
 type FetchAdminSQLiteAssessmentBasicDataParams = {
   assessmentId: number;
 };
@@ -454,7 +596,7 @@ const fetchAdminSQLiteAssessmentTableData = async (
       statement: `
         SELECT
           id,
-          created_locally AS createdLocally,
+          exists_remotely AS existsRemotely,
           start_date AS startDate,
           end_date AS endDate,
           is_finalized AS isFinalized,
@@ -532,7 +674,7 @@ const adminSQLiteAddResponsesV2 = async (
       statement: `
         SELECT
           id,
-          created_locally AS createdLocally,
+          exists_remotely AS existsRemotely,
           start_date AS startDate,
           end_date AS endDate,
           is_finalized AS isFinalized,
@@ -720,7 +862,7 @@ const adminSQLiteAddResponsesV2 = async (
         table: "assessment",
         insertColumns: [
           "id",
-          "created_locally",
+          "exists_remotely",
           "start_date",
           "end_date",
           "is_finalized",
@@ -744,7 +886,7 @@ const adminSQLiteAddResponsesV2 = async (
         rows: [
           [
             assessment.id,
-            assessment.createdLocally,
+            assessment.existsRemotely,
             startDate.toISOString(),
             endDate?.toISOString() ?? null,
             isFinalized,
@@ -888,7 +1030,7 @@ const adminSQLiteAddResponsesV2 = async (
 const fetchAdminSQLiteHasAssessments = async (_request: APIRequest) => {
   try {
     const hasAssessments = await adminSQLiteDb.query({
-      statement: `SELECT 1 FROM assessment LIMIT 1`,
+      statement: `SELECT 1 FROM assessment WHERE exists_remotely = 0 LIMIT 1`,
     });
     return {
       responseInfo: {
@@ -1724,4 +1866,5 @@ export {
   fetchAdminSQLiteAssessmentDraftsIds,
   fetchAdminSQLiteAssessmentTableData,
   saveAdminSQLiteAssessmentDraft,
+  updateAdminSQLiteAssessmentRemoteReference,
 };
