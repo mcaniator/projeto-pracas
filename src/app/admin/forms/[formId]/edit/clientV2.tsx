@@ -340,7 +340,7 @@ const ClientV2 = ({
         enqueueSnackbar(<>Formulário salvo!</>, { variant: "success" });
         if (saveAsDone) {
           setIsRedirecting(true);
-          void router.push("/admin/forms");
+          void router.push("/admin/protocols");
         }
       }
     } catch (e) {

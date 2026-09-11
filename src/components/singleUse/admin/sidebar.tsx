@@ -72,8 +72,8 @@ const Sidebar = () => {
     },
     {
       icon: <IconClipboard size={34} />,
-      name: "Formulários",
-      path: "/admin/forms",
+      name: "Protocolos",
+      path: "/admin/protocols",
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
     },
     {

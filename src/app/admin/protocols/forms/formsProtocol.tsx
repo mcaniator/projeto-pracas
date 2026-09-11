@@ -1,10 +1,9 @@
 "use client";
 
-import FormArchiveDialog from "@/app/admin/forms/formArchiveDialog";
-import FormCreationDialog from "@/app/admin/forms/formCreationDialog";
+import FormArchiveDialog from "@/app/admin/protocols/forms/formArchiveDialog";
+import FormCreationDialog from "@/app/admin/protocols/forms/formCreationDialog";
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useNetwork } from "@/components/context/networkContext";
-import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CMenu from "@/components/ui/menu/cMenu";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
@@ -13,7 +12,6 @@ import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Chip, useMediaQuery, useTheme } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
-  IconClipboard,
   IconCopy,
   IconEye,
   IconPencil,
@@ -25,7 +23,7 @@ import { FaTrashRestore } from "react-icons/fa";
 
 type FormRow = FetchFormsResponse["forms"][number];
 
-const FormsClient = () => {
+const FormsProtocol = () => {
   const theme = useTheme();
   const { isConnected } = useNetwork();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
@@ -207,32 +205,26 @@ const FormsClient = () => {
   ];
 
   return (
-    <div
-      className={
-        "flex h-full min-h-0 w-full flex-col gap-5 overflow-auto bg-white p-2 text-black"
-      }
-    >
-      <CAdminHeader
-        titleIcon={<IconClipboard />}
-        title="Formulários"
-        append={
-          <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
-            <CButton
-              square={isMobileView}
-              disabled={!isConnected}
-              tooltip={isConnected ? "" : "Conecte-se para criar um formulário"}
-              onClick={() => {
-                setSelectedForm(undefined);
-                setOpenFormCreationDialog(true);
-              }}
-            >
-              <IconPlus /> {isMobileView ? "" : "Criar"}
-            </CButton>
-          </PermissionGuard>
-        }
-      />
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold">Formulários</h2>
+        <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+          <CButton
+            square={isMobileView}
+            disabled={!isConnected}
+            tooltip={isConnected ? "" : "Conecte-se para criar um formulário"}
+            onClick={() => {
+              setSelectedForm(undefined);
+              setOpenFormCreationDialog(true);
+            }}
+          >
+            <IconPlus /> {isMobileView ? "" : "Criar"}
+          </CButton>
+        </PermissionGuard>
+      </div>
 
       <DataGrid
+        className="min-h-0 flex-1"
         loading={loading}
         rows={forms}
         columns={columns}
@@ -259,4 +251,4 @@ const FormsClient = () => {
   );
 };
 
-export default FormsClient;
+export default FormsProtocol;

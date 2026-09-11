@@ -82,6 +82,9 @@ const muiTheme = createTheme(
             "& .MuiInputAdornment-outlined": {
               zIndex: 1,
             },
+            "& .MuiSelect-icon": {
+              zIndex: 1,
+            },
             "&.MuiInputBase-sizeSmall .MuiOutlinedInput-input": {
               paddingBottom: "0px",
               paddingTop: "12px",
