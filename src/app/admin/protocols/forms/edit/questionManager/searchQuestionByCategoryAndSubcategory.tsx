@@ -1,6 +1,6 @@
 import React from "react";
 
-import CAutocomplete from "../../../../../../components/ui/cAutoComplete";
+import CAutocomplete from "@/components/ui/cAutoComplete";
 
 const SearchQuestionByCategoryAndSubcategory = ({
   categories,

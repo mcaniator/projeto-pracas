@@ -1,7 +1,7 @@
 "use client";
 
-import QuestionDeletionDialog from "@/app/admin/forms/[formId]/edit/questionManager/questionDeletionDialog";
-import QuestionUses from "@/app/admin/forms/[formId]/edit/questionManager/questionUses";
+import QuestionDeletionDialog from "@/app/admin/protocols/forms/edit/questionManager/questionDeletionDialog";
+import QuestionUses from "@/app/admin/protocols/forms/edit/questionManager/questionUses";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {

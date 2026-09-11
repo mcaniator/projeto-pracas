@@ -8,7 +8,7 @@ import { prisma } from "@lib/prisma";
 import { fetchAssessmentGeometries } from "@serverOnly/geometries";
 import { z } from "zod";
 
-import { QuestionItem } from "../../../app/admin/forms/[formId]/edit/clientV2";
+import { QuestionItem } from "../../../app/admin/protocols/forms/edit/clientV2";
 import {
   APIRequest,
   APIRequestParams,

@@ -1,4 +1,4 @@
-import { QuestionItem } from "@/app/admin/forms/[formId]/edit/clientV2";
+import { QuestionItem } from "@/app/admin/protocols/forms/edit/clientV2";
 import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionAllowResponseImagesChip from "@/components/ui/question/cQuestionAllowResponseImagesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";

@@ -152,7 +152,7 @@ const FormsProtocol = () => {
                     <IconPencil />
                     Editar
                   </div>,
-              href: `/admin/forms/edit?formId=${params.row.id}`,
+              href: `/admin/protocols/forms/edit?formId=${params.row.id}`,
             },
             {
               label: (

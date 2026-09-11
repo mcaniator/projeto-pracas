@@ -7,7 +7,7 @@ import PermissionGuard from "@components/auth/permissionGuard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
-import ClientV2 from "../[formId]/edit/clientV2";
+import ClientV2 from "./clientV2";
 
 const EditFormProtectedContent = () => {
   const router = useRouter();
