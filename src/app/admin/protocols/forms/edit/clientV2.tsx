@@ -3,6 +3,7 @@
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import CAdminHeader from "@/components/ui/cAdminHeader";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useUpdateForm } from "@/lib/serverFunctions/apiCalls/form";
@@ -23,7 +24,7 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
-import { IconCalculator, IconEye } from "@tabler/icons-react";
+import { IconCalculator, IconClipboard, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -351,7 +352,8 @@ const ClientV2 = ({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-auto bg-white">
+    <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
+      <CAdminHeader title="Formulário" titleIcon={<IconClipboard />} />
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
           className={`${
