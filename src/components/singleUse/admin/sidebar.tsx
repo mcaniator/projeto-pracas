@@ -74,7 +74,9 @@ const Sidebar = () => {
       icon: <IconClipboard size={34} />,
       name: "Protocolos",
       path: "/admin/protocols",
-      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["FORM", "TALLY"],
+      }),
     },
     {
       icon: <IconTableExport size={34} />,
