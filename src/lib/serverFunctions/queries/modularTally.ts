@@ -55,3 +55,85 @@ export const fetchModularTallyTemplates = async (
     };
   }
 };
+
+export const fetchModularTallyTemplateStructureParamsSchema = z.object({
+  modularTallyTemplateId: z.coerce.number().int().positive(),
+});
+
+export type FetchModularTallyTemplateStructureParams = z.infer<
+  typeof fetchModularTallyTemplateStructureParamsSchema
+>;
+
+export type FetchModularTallyTemplateStructureResponse = Awaited<
+  ReturnType<typeof fetchModularTallyTemplateStructure>
+>["data"];
+
+export const fetchModularTallyTemplateStructure = async (
+  request: APIRequestParams<FetchModularTallyTemplateStructureParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const modularTallyTemplate = await prisma.modularTallyTemplate.findUnique({
+      where: { id: params.modularTallyTemplateId },
+      select: {
+        id: true,
+        name: true,
+        finalized: true,
+        tallyTemplateGroups: {
+          select: {
+            id: true,
+            position: true,
+            displayMode: true,
+            personCharacteristicGroup: {
+              select: {
+                id: true,
+                title: true,
+                isTagGroup: true,
+              },
+            },
+            characteristics: {
+              select: {
+                id: true,
+                position: true,
+                personCharacteristic: {
+                  select: {
+                    id: true,
+                    name: true,
+                    iconKey: true,
+                    color: true,
+                  },
+                },
+              },
+              orderBy: { position: "asc" },
+            },
+          },
+          orderBy: { position: "asc" },
+        },
+      },
+    });
+
+    if (!modularTallyTemplate) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Protocolo de contagem não encontrado!",
+        } as APIResponseInfo,
+        data: { modularTallyTemplate: null },
+      };
+    }
+
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { modularTallyTemplate },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar protocolo de contagem!",
+      } as APIResponseInfo,
+      data: { modularTallyTemplate: null },
+    };
+  }
+};

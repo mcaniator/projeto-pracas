@@ -12,7 +12,7 @@ import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { VirtuosoGrid } from "react-virtuoso";
 
-const DEFAULT_QUESTION_ICONS = [
+const DEFAULT_DYNAMIC_ICONS = [
   { iconId: undefined, key: "mdi:cctv", iconName: "cctv" },
   { iconId: undefined, key: "mdi:police-badge", iconName: "police-badge" },
   { iconId: undefined, key: "mdi:phone", iconName: "phone" },
@@ -34,15 +34,15 @@ const DEFAULT_QUESTION_ICONS = [
   { iconId: undefined, key: "mdi:wrench", iconName: "wrench" },
 ];
 
-type QuestionIconPickerProps = {
+type DynamicIconPickerProps = {
   selectedIconKey: string | null;
   onChange: (iconKey: string) => void;
 };
 
-const QuestionIconPicker = ({
+const DynamicIconPicker = ({
   selectedIconKey,
   onChange,
-}: QuestionIconPickerProps) => {
+}: DynamicIconPickerProps) => {
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState<
     FetchDynamicIconsResponse["icons"][number][]
@@ -64,7 +64,7 @@ const QuestionIconPicker = ({
 
   useEffect(() => {
     if (searchText.length === 0 && !showAllIcons) {
-      setResults(DEFAULT_QUESTION_ICONS);
+      setResults(DEFAULT_DYNAMIC_ICONS);
       return;
     }
     if (showAllIcons) {
@@ -76,7 +76,7 @@ const QuestionIconPicker = ({
 
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-gray-300 p-2">
-      <h6 className="text-sm font-semibold">Ícone da questão *</h6>
+      <h6 className="text-sm font-semibold">Ícone *</h6>
       <div className="flex items-center justify-between gap-2">
         <CSwitch
           label="Mostrar todos os ícones"
@@ -175,4 +175,4 @@ const QuestionIconPicker = ({
   );
 };
 
-export default QuestionIconPicker;
+export default DynamicIconPicker;

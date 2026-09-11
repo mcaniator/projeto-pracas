@@ -643,7 +643,6 @@ model PersonCharacteristicGroup {
   id Int @id @default(autoincrement())
 
   title      String  @db.VarChar(255)
-  iconKey    String  @map("icon_key") @db.VarChar(255)
   isTagGroup Boolean @default(false) @map("is_tag_group")
 
   personCharacteristics PersonCharacteristic[]

@@ -5,6 +5,8 @@ import type {
 import type {
   FetchModularTallyTemplatesParams,
   FetchModularTallyTemplatesResponse,
+  FetchModularTallyTemplateStructureParams,
+  FetchModularTallyTemplateStructureResponse,
 } from "@/lib/serverFunctions/queries/modularTally";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
@@ -19,6 +21,19 @@ export const useFetchModularTallyTemplates = (
     FetchModularTallyTemplatesParams
   >({
     url: modularTallyTemplatesUrl,
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
+export const useFetchModularTallyTemplateStructure = (
+  params?: UseFetchAPIParams<FetchModularTallyTemplateStructureResponse>,
+) => {
+  return useFetchAPI<
+    FetchModularTallyTemplateStructureResponse,
+    FetchModularTallyTemplateStructureParams
+  >({
+    url: `${modularTallyTemplatesUrl}/details`,
     callbacks: params?.callbacks,
     options: { method: "GET" },
   });

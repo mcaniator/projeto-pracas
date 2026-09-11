@@ -53,7 +53,7 @@ const buildQuestionsByCategoryQuery = ({
               ),
               '[]'::json
             )
-          ) ORDER BY q.name DESC
+          ) ORDER BY q.name ASC
         )
         FROM "question" q
         WHERE q."category_id" = c.id
@@ -100,7 +100,7 @@ const buildQuestionsByCategoryQuery = ({
                       ),
                       '[]'::json
                     )
-                  ) ORDER BY sq.name DESC
+                  ) ORDER BY sq.name ASC
                 )
                 FROM "question" sq
                 WHERE sq."subcategory_id" = s.id
@@ -108,7 +108,7 @@ const buildQuestionsByCategoryQuery = ({
               ),
               '[]'::json
             )
-          ) ORDER BY s.name DESC
+          ) ORDER BY s.name ASC
         )
         FROM "subcategory" s
         WHERE s."category_id" = c.id
@@ -119,7 +119,7 @@ const buildQuestionsByCategoryQuery = ({
   FROM "category" c
   WHERE 1 = 1
     ${categoryWhere}
-  ORDER BY c.name DESC
+  ORDER BY c.name ASC
 `;
 
 export const fetchQuestionsByCategoryAndSubcategoryParamsSchema = z.object({
