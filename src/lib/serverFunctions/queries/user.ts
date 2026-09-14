@@ -9,9 +9,7 @@ export type FetchCurrentUserResponse = NonNullable<
   Awaited<ReturnType<typeof fetchCurrentUser>>
 >["data"];
 export type CurrentUser = NonNullable<FetchCurrentUserResponse["user"]>;
-export const fetchCurrentUser = async (
-  _request: APIRequest,
-) => {
+export const fetchCurrentUser = async (_request: APIRequest) => {
   try {
     const sessionUser = await getSessionUser();
     if (!sessionUser) return null;
@@ -52,9 +50,7 @@ export const fetchCurrentUser = async (
 export type FetchUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchUsers>>["data"]
 >;
-export const fetchUsers = async (
-  _request: APIRequest,
-) => {
+export const fetchUsers = async (_request: APIRequest) => {
   try {
     const users = await prisma.user.findMany();
     return {

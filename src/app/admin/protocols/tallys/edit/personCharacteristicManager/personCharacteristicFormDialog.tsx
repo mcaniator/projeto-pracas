@@ -11,6 +11,11 @@ import type {
   PersonCharacteristicGroup,
 } from "./types";
 
+const getRandomCharacteristicColor = () =>
+  `#${Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0")}`;
+
 const PersonCharacteristicFormDialog = ({
   group,
   characteristic,
@@ -44,7 +49,7 @@ const PersonCharacteristicFormDialog = ({
     if (!open) return;
     setName(characteristic?.name ?? "");
     setIconKey(characteristic?.iconKey ?? null);
-    setColor(characteristic?.color ?? "#648A4B");
+    setColor(characteristic?.color ?? getRandomCharacteristicColor());
   }, [characteristic, open]);
 
   return (

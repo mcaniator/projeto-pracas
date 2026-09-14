@@ -64,9 +64,11 @@ export type FetchModularTallyTemplateStructureParams = z.infer<
   typeof fetchModularTallyTemplateStructureParamsSchema
 >;
 
-export type FetchModularTallyTemplateStructureResponse = Awaited<
+export type FetchModularTallyTemplateStructureResponse = NonNullable<
+  Awaited<
   ReturnType<typeof fetchModularTallyTemplateStructure>
->["data"];
+  >["data"]
+>;
 
 export const fetchModularTallyTemplateStructure = async (
   request: APIRequestParams<FetchModularTallyTemplateStructureParams>,
@@ -119,7 +121,7 @@ export const fetchModularTallyTemplateStructure = async (
           statusCode: 404,
           message: "Protocolo de contagem não encontrado!",
         } as APIResponseInfo,
-        data: { modularTallyTemplate: null },
+        data: null,
       };
     }
 
@@ -133,7 +135,7 @@ export const fetchModularTallyTemplateStructure = async (
         statusCode: 500,
         message: "Erro ao consultar protocolo de contagem!",
       } as APIResponseInfo,
-      data: { modularTallyTemplate: null },
+      data: null,
     };
   }
 };

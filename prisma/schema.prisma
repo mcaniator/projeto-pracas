@@ -96,7 +96,7 @@ enum WeatherConditions {
 }
 
 enum TallyTemplateGroupDisplayModes {
-  DEFAULT
+  COMMON
   COUNTERS
   SCREEN_CONTEXT_SELECTOR
 
@@ -469,8 +469,8 @@ model Location {
   broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  assessment Assessment[]
-  tally      Tally[]
+  assessment   Assessment[]
+  tally        Tally[]
   modularTally ModularTally[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -665,7 +665,7 @@ model PersonCharacteristic {
   group   PersonCharacteristicGroup @relation(fields: [groupId], references: [id])
 
   tallyTemplateCharacteristics TallyTemplateCharacteristic[]
-  observationCharacteristics  PersonObservationCharacteristic[]
+  observationCharacteristics   PersonObservationCharacteristic[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -693,13 +693,13 @@ model ModularTallyTemplate {
 model TallyTemplateGroup {
   id Int @id @default(autoincrement())
 
-  modularTallyTemplateId Int                 @map("modular_tally_template_id")
-  modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
+  modularTallyTemplateId      Int                       @map("modular_tally_template_id")
+  modularTallyTemplate        ModularTallyTemplate      @relation(fields: [modularTallyTemplateId], references: [id])
   personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
   personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
 
-  position    Int
-  displayMode TallyTemplateGroupDisplayModes @default(DEFAULT) @map("display_mode")
+  position    Int?
+  displayMode TallyTemplateGroupDisplayModes @map("display_mode")
 
   characteristics TallyTemplateCharacteristic[] @relation("tally_template_group_characteristics")
 
@@ -707,7 +707,6 @@ model TallyTemplateGroup {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([modularTallyTemplateId, personCharacteristicGroupId])
-  @@unique([modularTallyTemplateId, position])
   @@index([personCharacteristicGroupId])
   @@map("tally_template_group")
 }
@@ -715,8 +714,8 @@ model TallyTemplateGroup {
 model TallyTemplateCharacteristic {
   id Int @id @default(autoincrement())
 
-  tallyTemplateGroupId Int                @map("tally_template_group_id")
-  tallyTemplateGroup   TallyTemplateGroup @relation("tally_template_group_characteristics", fields: [tallyTemplateGroupId], references: [id])
+  tallyTemplateGroupId   Int                  @map("tally_template_group_id")
+  tallyTemplateGroup     TallyTemplateGroup   @relation("tally_template_group_characteristics", fields: [tallyTemplateGroupId], references: [id])
   personCharacteristicId Int                  @map("person_characteristic_id")
   personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
 
@@ -744,7 +743,7 @@ model ModularTally {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  modularTallyTemplateId Int                 @map("modular_tally_template_id")
+  modularTallyTemplateId Int                  @map("modular_tally_template_id")
   modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
 
   personObservations PersonObservation[]
@@ -772,9 +771,9 @@ model PersonObservation {
 }
 
 model PersonObservationCharacteristic {
-  personObservationId   Int                  @map("person_observation_id")
-  personObservation     PersonObservation    @relation(fields: [personObservationId], references: [id])
-  personCharacteristicId Int                 @map("person_characteristic_id")
+  personObservationId    Int                  @map("person_observation_id")
+  personObservation      PersonObservation    @relation(fields: [personObservationId], references: [id])
+  personCharacteristicId Int                  @map("person_characteristic_id")
   personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
 
   @@id([personObservationId, personCharacteristicId])

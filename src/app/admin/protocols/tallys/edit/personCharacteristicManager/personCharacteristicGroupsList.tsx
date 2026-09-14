@@ -1,4 +1,5 @@
 import CButton from "@/components/ui/cButton";
+import CColorViewer from "@/components/ui/cColorViewer";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CPersonCharacteristicGroupTypeChip from "@/components/ui/personCharacteristic/cPersonCharacteristicGroupTypeChip";
 import CAccordion from "@components/ui/accordion/CAccordion";
@@ -16,6 +17,8 @@ const PersonCharacteristicGroupsList = ({
   group,
   showAddToTemplate,
   onEditCharacteristic,
+  onAddCharacteristic,
+  addedPersonCharacteristicIds = [],
 }: {
   group: PersonCharacteristicGroup | null;
   showAddToTemplate: boolean;
@@ -23,7 +26,18 @@ const PersonCharacteristicGroupsList = ({
     characteristic: PersonCharacteristic,
     group: PersonCharacteristicGroup,
   ) => void;
+  onAddCharacteristic?: (
+    characteristic: PersonCharacteristic,
+    group: PersonCharacteristicGroup,
+  ) => void;
+  addedPersonCharacteristicIds?: number[];
 }) => {
+  const visibleCharacteristics = group?.personCharacteristics.filter(
+    (characteristic) =>
+      !showAddToTemplate ||
+      !addedPersonCharacteristicIds.includes(characteristic.id),
+  );
+
   if (!group) {
     return (
       <p className="p-2 text-center text-sm text-gray-600">
@@ -58,20 +72,18 @@ const PersonCharacteristicGroupsList = ({
           </CAccordionSummary>
           <CAccordionDetails>
             <div className="flex flex-col gap-2">
-              {group.personCharacteristics.length === 0 ?
+              {visibleCharacteristics?.length === 0 ?
                 <p className="text-sm text-gray-600">
-                  Nenhuma característica cadastrada neste grupo.
+                  {showAddToTemplate ?
+                    "Todas as características deste grupo já foram adicionadas ao protocolo."
+                  : "Nenhuma característica cadastrada neste grupo."}
                 </p>
-              : group.personCharacteristics.map((characteristic) => (
+              : visibleCharacteristics?.map((characteristic) => (
                   <div
                     key={characteristic.id}
                     className="flex items-center gap-2 rounded border border-gray-300 bg-white p-2"
                   >
-                    <span
-                      aria-label={`Cor ${characteristic.color}`}
-                      className="h-4 w-4 shrink-0 rounded-full border border-gray-400"
-                      style={{ backgroundColor: characteristic.color }}
-                    />
+                    <CColorViewer color={characteristic.color} />
                     <CDynamicIcon iconKey={characteristic.iconKey} />
                     <span className="min-w-0 flex-1 break-words">
                       {characteristic.name}
@@ -93,9 +105,12 @@ const PersonCharacteristicGroupsList = ({
                       <CButton
                         variant="text"
                         dense
-                        disabled
-                        tooltip="A adição ao protocolo será implementada em seguida."
+                        disabled={!onAddCharacteristic}
+                        tooltip="Adicionar característica ao protocolo"
                         aria-label={`Adicionar ${characteristic.name} ao protocolo`}
+                        onClick={() =>
+                          onAddCharacteristic?.(characteristic, group)
+                        }
                       >
                         <IconCirclePlus />
                       </CButton>

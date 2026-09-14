@@ -2,7 +2,10 @@ import CLinearProgress from "@/components/ui/CLinearProgress";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 
 import PersonCharacteristicGroupsList from "./personCharacteristicGroupsList";
-import type { PersonCharacteristicGroup } from "./types";
+import type {
+  PersonCharacteristic,
+  PersonCharacteristicGroup,
+} from "./types";
 
 const PersonCharacteristicGroupsTab = ({
   groups,
@@ -10,12 +13,19 @@ const PersonCharacteristicGroupsTab = ({
   selectedGroup,
   isLoadingSelectedGroup,
   onSelectedGroupIdChange,
+  onAddCharacteristic,
+  addedPersonCharacteristicIds,
 }: {
   groups: PersonCharacteristicGroup[];
   selectedGroupId: number | undefined;
   selectedGroup: PersonCharacteristicGroup | null;
   isLoadingSelectedGroup: boolean;
   onSelectedGroupIdChange: (groupId: number | undefined) => void;
+  onAddCharacteristic: (
+    characteristic: PersonCharacteristic,
+    group: PersonCharacteristicGroup,
+  ) => void;
+  addedPersonCharacteristicIds: number[];
 }) => {
   const selectedGroupOption = groups.find(
     (group) => group.id === selectedGroupId,
@@ -29,12 +39,17 @@ const PersonCharacteristicGroupsTab = ({
         value={selectedGroupOption ?? null}
         getOptionLabel={(group) => group.title}
         isOptionEqualToValue={(option, value) => option.id === value.id}
-        disableClearable
+        disableClearable={selectedGroupOption !== undefined}
         onChange={(_, group) => onSelectedGroupIdChange(group?.id)}
       />
       {isLoadingSelectedGroup ?
         <CLinearProgress label="Carregando grupo..." />
-      : <PersonCharacteristicGroupsList group={selectedGroup} showAddToTemplate />}
+      : <PersonCharacteristicGroupsList
+          group={selectedGroup}
+          showAddToTemplate
+          onAddCharacteristic={onAddCharacteristic}
+          addedPersonCharacteristicIds={addedPersonCharacteristicIds}
+        />}
     </>
   );
 };

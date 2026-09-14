@@ -40,10 +40,15 @@
 - Declarar o tipo de resposta a partir da função:
 
   ```ts
-  export type FetchResourceResponse = Awaited<
+  export type FetchResourceResponse = NonNullable<
+    Awaited<
     ReturnType<typeof fetchResource>
-  >["data"];
+    >["data"]
+  >;
   ```
+
+- Componentes devem derivar propriedades diretamente desse tipo exportado,
+  por exemplo `FetchResourceResponse["resource"]`; não criar aliases locais, a menos que seja necessário.
 
 - Erros esperados de regra de negócio devem retornar `responseInfo` com o
   código adequado, como `400`, `404` ou `409`.
@@ -211,7 +216,6 @@ const useFetchResource = (
 - Usar nomes consistentes entre rota, hook, schema, tipos e função de servidor.
 - Ao alterar uma rota, atualizar todas as referências: hook, tipos, chamadas e
   testes relacionados.
-
 
 ## Front-end
 

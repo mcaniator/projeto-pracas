@@ -28,8 +28,15 @@ const managerModeOptions = [
 
 const PersonCharacteristicManager = ({
   showTitle,
+  onAddCharacteristic,
+  addedPersonCharacteristicIds,
 }: {
   showTitle: boolean;
+  onAddCharacteristic: (
+    characteristic: PersonCharacteristic,
+    group: PersonCharacteristicGroup,
+  ) => void;
+  addedPersonCharacteristicIds: number[];
 }) => {
   const { user } = useUserContext();
   const canManage = checkIfRolesArrayContainsAny(user?.roles, {
@@ -172,6 +179,8 @@ const PersonCharacteristicManager = ({
           selectedGroup={selectedGroup}
           isLoadingSelectedGroup={isLoadingSelectedGroup}
           onSelectedGroupIdChange={setSelectedGroupId}
+          onAddCharacteristic={onAddCharacteristic}
+          addedPersonCharacteristicIds={addedPersonCharacteristicIds}
         />
       : <PersonCharacteristicRegistrationTab
           groups={groups}
