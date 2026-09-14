@@ -4,7 +4,9 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
+import { useUpdateTallyTemplate } from "@/lib/serverFunctions/apiCalls/modularTally";
 import type { FetchModularTallyTemplateStructureResponse } from "@/lib/serverFunctions/queries/modularTally";
+import { useRouter } from "next-nprogress-bar";
 import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -13,6 +15,7 @@ import type {
   PersonCharacteristic,
   PersonCharacteristicGroup,
 } from "./personCharacteristicManager/types";
+import SaveTallyTemplateDialog from "./saveTallyTemplateDialog";
 import {
   type TallyTemplateDraftGroup,
   buildTallyTemplateDraftGroups,
@@ -25,6 +28,7 @@ const TallyTemplateClient = ({
 }: {
   modularTallyTemplate: FetchModularTallyTemplateStructureResponse["modularTallyTemplate"];
 }) => {
+  const router = useRouter();
   const [templateName, setTemplateName] = useState(modularTallyTemplate.name);
   const [templateGroups, setTemplateGroups] = useState<
     TallyTemplateDraftGroup[]
@@ -34,6 +38,10 @@ const TallyTemplateClient = ({
   const [isMobileView, setIsMobileView] = useState(true);
   const [isCharacteristicManagerOpen, setIsCharacteristicManagerOpen] =
     useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [saveAsFinalized, setSaveAsFinalized] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [updateTallyTemplate, isSaving] = useUpdateTallyTemplate();
   const addedPersonCharacteristicIds = useMemo(
     () =>
       templateGroups.flatMap((group) =>
@@ -140,13 +148,79 @@ const TallyTemplateClient = ({
     [templateGroups],
   );
 
+  const saveTallyTemplate = async () => {
+    if (!templateName.trim()) {
+      enqueueSnackbar("Informe o nome do protocolo de contagem.", {
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      const response = await updateTallyTemplate({
+        data: {
+          modularTallyTemplateId: modularTallyTemplate.id,
+          name: templateName,
+          finalized: saveAsFinalized,
+          groups: templateGroups.map((group) => {
+            const baseGroup = {
+              personCharacteristicGroupId: group.personCharacteristicGroupId,
+              characteristics: group.characteristics.map((characteristic) => ({
+                personCharacteristicId: characteristic.personCharacteristicId,
+                position: characteristic.position,
+              })),
+            };
+
+            if (group.displayMode === tallyTemplateGroupDisplayModes.COMMON) {
+              return {
+                ...baseGroup,
+                position: group.position,
+                displayMode: tallyTemplateGroupDisplayModes.COMMON,
+              };
+            }
+
+            return {
+              ...baseGroup,
+              position: null,
+              displayMode: group.displayMode,
+            };
+          }),
+        },
+        projectOptions: { loadingMessage: "Salvando..." },
+      });
+
+      if (response.responseInfo.statusCode !== 200) {
+        enqueueSnackbar(
+          response.responseInfo.message ??
+            "Erro ao salvar protocolo de contagem.",
+          { variant: "error" },
+        );
+        return;
+      }
+
+      if (saveAsFinalized) {
+        setIsRedirecting(true);
+        void router.push("/admin/protocols?type=tally");
+        return;
+      }
+
+      setIsSaveDialogOpen(false);
+    } catch {
+      enqueueSnackbar("Erro ao salvar protocolo de contagem.", {
+        variant: "error",
+      });
+    }
+  };
+
   return (
     <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader title="Protocolo de contagem" />
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
           className={`${
-            isMobileView ? "col-span-5" : "col-span-3"
+            isMobileView || modularTallyTemplate.finalized ?
+              "col-span-5"
+            : "col-span-3"
           } overflow-auto`}
         >
           <TallyTemplateEditor
@@ -155,6 +229,7 @@ const TallyTemplateClient = ({
             onNameChange={setTemplateName}
             groups={templateGroups}
             onChangeGroups={setTemplateGroups}
+            onSave={() => setIsSaveDialogOpen(true)}
           />
           {isMobileView && !modularTallyTemplate.finalized && (
             <div className="ml-2 mt-3">
@@ -198,6 +273,17 @@ const TallyTemplateClient = ({
           />
         </CDialog>
       )}
+      <SaveTallyTemplateDialog
+        open={isSaveDialogOpen}
+        finalized={saveAsFinalized}
+        isRedirecting={isRedirecting}
+        isSaving={isSaving}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onFinalizedChange={setSaveAsFinalized}
+        onSave={() => {
+          void saveTallyTemplate();
+        }}
+      />
     </div>
   );
 };

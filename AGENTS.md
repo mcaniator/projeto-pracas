@@ -187,6 +187,8 @@ export async function POST(request: Request) {
 - Usar `useFetchAPI` para toda chamada de endpoint no cliente.
 - Declarar os tipos de resposta, parâmetros e dados da mutation no hook.
 - A URL do hook deve corresponder exatamente à rota da API.
+- Não criar constantes reutilizáveis para URLs; cada hook deve declarar sua URL
+  explicitamente.
 - Para GET, passar dados em `params`.
 - Para POST, PUT e DELETE, passar dados em `data`.
 - Não usar `fetch` diretamente em componentes quando existir um endpoint do
@@ -230,6 +232,14 @@ const useFetchResource = (
 - Componentes controlados devem receber `value`, `onChange`, `disabled` e
   estados de erro explicitamente. Nomear callbacks por ação, como `onSave`,
   `onDelete` e `onChange`.
+- Ao passar uma função assíncrona a uma prop de callback que espera retorno
+  `void`, usar uma função anônima que a invoque com `void`, por exemplo:
+
+  ```tsx
+  onSave={() => {
+    void saveTallyTemplate();
+  }}
+  ```
 
 ### Estado e dados
 

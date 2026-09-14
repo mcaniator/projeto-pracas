@@ -4,8 +4,8 @@ import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CColorViewer from "@/components/ui/cColorViewer";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import CPersonCharacteristicLegend from "@/components/ui/personCharacteristic/cPersonCharacteristicLegend";
 import CPersonCharacteristicGroupTypeChip from "@/components/ui/personCharacteristic/cPersonCharacteristicGroupTypeChip";
+import CPersonCharacteristicLegend from "@/components/ui/personCharacteristic/cPersonCharacteristicLegend";
 import {
   DndContext,
   type DragEndEvent,
@@ -32,8 +32,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   type TallyTemplateDraftCharacteristic,
-  type TallyTemplateDraftSpecialGroup,
   type TallyTemplateDraftGroup,
+  type TallyTemplateDraftSpecialGroup,
   isTallyTemplateDraftCommonGroup,
   tallyTemplateGroupDisplayModes,
 } from "./tallyTemplateDraft";
@@ -59,9 +59,11 @@ const getReorderedItems = <T extends { id: string; position: number }>(
 
 const SortableCounterCharacteristic = ({
   characteristic,
+  isFinalized,
   onRemove,
 }: {
   characteristic: TallyTemplateDraftCharacteristic;
+  isFinalized: boolean;
   onRemove: () => void;
 }) => {
   const {
@@ -76,7 +78,7 @@ const SortableCounterCharacteristic = ({
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
+      {...(!isFinalized ? attributes : {})}
       className="flex min-w-28 flex-col items-center rounded border border-gray-300 bg-white px-3 py-2 text-center shadow-sm"
       style={{
         transform: CSS.Transform.toString(transform),
@@ -85,35 +87,41 @@ const SortableCounterCharacteristic = ({
       }}
     >
       <div
-        {...listeners}
-        className="flex cursor-grab items-center gap-1 text-sm font-semibold active:cursor-grabbing"
+        {...(!isFinalized ? listeners : {})}
+        className={`flex items-center gap-1 text-sm font-semibold ${
+          isFinalized ? "" : "cursor-grab active:cursor-grabbing"
+        }`}
       >
-        <IconGripVertical size={18} />
+        {!isFinalized && <IconGripVertical size={18} />}
         <CColorViewer color={characteristic.personCharacteristic.color} />
         <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
         <span>{characteristic.personCharacteristic.name}</span>
       </div>
       <span className="mt-1 text-2xl font-bold text-primary">0</span>
-      <CButton
-        dense
-        disableMinWidth
-        variant="text"
-        color="error"
-        tooltip="Remover característica"
-        aria-label={`Remover ${characteristic.personCharacteristic.name}`}
-        onClick={onRemove}
-      >
-        <IconTrash size={18} />
-      </CButton>
+      {!isFinalized && (
+        <CButton
+          dense
+          disableMinWidth
+          variant="text"
+          color="error"
+          tooltip="Remover característica"
+          aria-label={`Remover ${characteristic.personCharacteristic.name}`}
+          onClick={onRemove}
+        >
+          <IconTrash size={18} />
+        </CButton>
+      )}
     </div>
   );
 };
 
 const SortableCommonCharacteristic = ({
   characteristic,
+  isFinalized,
   onRemove,
 }: {
   characteristic: TallyTemplateDraftCharacteristic;
+  isFinalized: boolean;
   onRemove: () => void;
 }) => {
   const {
@@ -128,39 +136,45 @@ const SortableCommonCharacteristic = ({
   return (
     <div
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className="flex cursor-grab items-center gap-1 rounded border border-gray-300 bg-white p-2 active:cursor-grabbing"
+      {...(!isFinalized ? attributes : {})}
+      {...(!isFinalized ? listeners : {})}
+      className={`flex items-center gap-1 rounded border border-gray-300 bg-white p-2 ${
+        isFinalized ? "" : "cursor-grab active:cursor-grabbing"
+      }`}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.55 : 1,
       }}
     >
-      <IconGripVertical size={18} />
+      {!isFinalized && <IconGripVertical size={18} />}
       <CColorViewer color={characteristic.personCharacteristic.color} />
       <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
-      <CButton
-        dense
-        disableMinWidth
-        variant="text"
-        color="error"
-        tooltip="Remover característica"
-        aria-label={`Remover ${characteristic.personCharacteristic.name}`}
-        onClick={onRemove}
-      >
-        <IconTrash size={18} />
-      </CButton>
+      {!isFinalized && (
+        <CButton
+          dense
+          disableMinWidth
+          variant="text"
+          color="error"
+          tooltip="Remover característica"
+          aria-label={`Remover ${characteristic.personCharacteristic.name}`}
+          onClick={onRemove}
+        >
+          <IconTrash size={18} />
+        </CButton>
+      )}
     </div>
   );
 };
 
 const SortableCommonGroup = ({
   group,
+  isFinalized,
   onReorderCharacteristics,
   onRemoveCharacteristic,
 }: {
   group: TallyTemplateDraftGroup;
+  isFinalized: boolean;
   onReorderCharacteristics: (
     groupId: string,
     activeId: string,
@@ -199,11 +213,13 @@ const SortableCommonGroup = ({
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div
-          {...attributes}
-          {...listeners}
-          className="flex cursor-grab items-center gap-1 active:cursor-grabbing"
+          {...(!isFinalized ? attributes : {})}
+          {...(!isFinalized ? listeners : {})}
+          className={`flex items-center gap-1 ${
+            isFinalized ? "" : "cursor-grab active:cursor-grabbing"
+          }`}
         >
-          <IconGripVertical size={18} />
+          {!isFinalized && <IconGripVertical size={18} />}
           <CPersonCharacteristicGroupTypeChip
             isTagGroup={group.personCharacteristicGroup.isTagGroup}
           />
@@ -222,11 +238,15 @@ const SortableCommonGroup = ({
         />
       </div>
       <DndContext
-        sensors={characteristicSensors}
+        sensors={isFinalized ? undefined : characteristicSensors}
         collisionDetection={pointerWithin}
-        onDragStart={() => setIsDraggingCharacteristics(true)}
-        onDragEnd={handleCharacteristicDragEnd}
-        onDragCancel={() => setIsDraggingCharacteristics(false)}
+        onDragStart={
+          isFinalized ? undefined : () => setIsDraggingCharacteristics(true)
+        }
+        onDragEnd={isFinalized ? undefined : handleCharacteristicDragEnd}
+        onDragCancel={
+          isFinalized ? undefined : () => setIsDraggingCharacteristics(false)
+        }
       >
         <SortableContext
           items={characteristics.map((characteristic) => characteristic.id)}
@@ -241,6 +261,7 @@ const SortableCommonGroup = ({
               <SortableCommonCharacteristic
                 key={characteristic.id}
                 characteristic={characteristic}
+                isFinalized={isFinalized}
                 onRemove={() =>
                   onRemoveCharacteristic(group.id, characteristic.id)
                 }
@@ -255,9 +276,11 @@ const SortableCommonGroup = ({
 
 const TallyTemplateCounters = ({
   groups,
+  isFinalized,
   onChangeGroups,
 }: {
   groups: TallyTemplateDraftGroup[];
+  isFinalized: boolean;
   onChangeGroups: (groups: TallyTemplateDraftGroup[]) => void;
 }) => {
   const sensors = useSensors(useSensor(PointerSensor));
@@ -430,7 +453,7 @@ const TallyTemplateCounters = ({
     <div className="flex flex-col gap-3">
       <h4 className="text-xl font-semibold">Contador</h4>
 
-      {groups.length > 0 && (
+      {!isFinalized && groups.length > 0 && (
         <div className="flex flex-col gap-3 rounded border border-gray-300 bg-slate-50 p-3">
           <h5 className="font-semibold">Configurações de contador</h5>
           <CAutocomplete
@@ -512,32 +535,42 @@ const TallyTemplateCounters = ({
                     }
                   </span>
                 </CButton>
-                <CButton
-                  dense
-                  disableMinWidth
-                  variant="text"
-                  color="error"
-                  tooltip="Remover característica"
-                  aria-label={`Remover ${activeScreenContextCharacteristic.personCharacteristic.name}`}
-                  onClick={() =>
-                    removeCharacteristic(
-                      screenContextGroup.id,
-                      activeScreenContextCharacteristic.id,
-                    )
-                  }
-                >
-                  <IconTrash size={18} />
-                </CButton>
+                {!isFinalized && (
+                  <CButton
+                    dense
+                    disableMinWidth
+                    variant="text"
+                    color="error"
+                    tooltip="Remover característica"
+                    aria-label={`Remover ${activeScreenContextCharacteristic.personCharacteristic.name}`}
+                    onClick={() =>
+                      removeCharacteristic(
+                        screenContextGroup.id,
+                        activeScreenContextCharacteristic.id,
+                      )
+                    }
+                  >
+                    <IconTrash size={18} />
+                  </CButton>
+                )}
               </div>
             )}
 
             {commonGroups.length > 0 && (
               <DndContext
-                sensors={sensors}
+                sensors={isFinalized ? undefined : sensors}
                 collisionDetection={pointerWithin}
-                onDragStart={() => setIsDraggingCommonGroups(true)}
-                onDragEnd={handleCommonGroupDragEnd}
-                onDragCancel={() => setIsDraggingCommonGroups(false)}
+                onDragStart={
+                  isFinalized ? undefined : (
+                    () => setIsDraggingCommonGroups(true)
+                  )
+                }
+                onDragEnd={isFinalized ? undefined : handleCommonGroupDragEnd}
+                onDragCancel={
+                  isFinalized ? undefined : (
+                    () => setIsDraggingCommonGroups(false)
+                  )
+                }
               >
                 <SortableContext
                   items={commonGroups.map((group) => group.id)}
@@ -552,6 +585,7 @@ const TallyTemplateCounters = ({
                       <SortableCommonGroup
                         key={group.id}
                         group={group}
+                        isFinalized={isFinalized}
                         onReorderCharacteristics={reorderCharacteristics}
                         onRemoveCharacteristic={removeCharacteristic}
                       />
@@ -567,11 +601,15 @@ const TallyTemplateCounters = ({
                   {counterGroup.personCharacteristicGroup.title}
                 </h5>
                 <DndContext
-                  sensors={sensors}
+                  sensors={isFinalized ? undefined : sensors}
                   collisionDetection={pointerWithin}
-                  onDragStart={() => setIsDraggingCounters(true)}
-                  onDragEnd={handleCounterDragEnd}
-                  onDragCancel={() => setIsDraggingCounters(false)}
+                  onDragStart={
+                    isFinalized ? undefined : () => setIsDraggingCounters(true)
+                  }
+                  onDragEnd={isFinalized ? undefined : handleCounterDragEnd}
+                  onDragCancel={
+                    isFinalized ? undefined : () => setIsDraggingCounters(false)
+                  }
                 >
                   <SortableContext
                     items={sortByPosition(counterGroup.characteristics).map(
@@ -589,6 +627,7 @@ const TallyTemplateCounters = ({
                           <SortableCounterCharacteristic
                             key={characteristic.id}
                             characteristic={characteristic}
+                            isFinalized={isFinalized}
                             onRemove={() =>
                               removeCharacteristic(
                                 counterGroup.id,

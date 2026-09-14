@@ -703,9 +703,6 @@ model TallyTemplateGroup {
 
   characteristics TallyTemplateCharacteristic[] @relation("tally_template_group_characteristics")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
   @@unique([modularTallyTemplateId, personCharacteristicGroupId])
   @@index([personCharacteristicGroupId])
   @@map("tally_template_group")
@@ -720,9 +717,6 @@ model TallyTemplateCharacteristic {
   personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
 
   position Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([tallyTemplateGroupId, personCharacteristicId])
   @@unique([tallyTemplateGroupId, position])

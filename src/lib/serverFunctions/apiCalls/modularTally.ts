@@ -1,17 +1,16 @@
 import type {
   CreateModularTallyTemplateData,
   UpdateModularTallyTemplateArchiveStatusData,
+  UpdateTallyTemplateData,
 } from "@/lib/serverFunctions/mutations/modularTally";
 import type {
-  FetchModularTallyTemplatesParams,
-  FetchModularTallyTemplatesResponse,
   FetchModularTallyTemplateStructureParams,
   FetchModularTallyTemplateStructureResponse,
+  FetchModularTallyTemplatesParams,
+  FetchModularTallyTemplatesResponse,
 } from "@/lib/serverFunctions/queries/modularTally";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-
-const modularTallyTemplatesUrl = "/api/admin/modularTallyTemplates";
 
 export const useFetchModularTallyTemplates = (
   params?: UseFetchAPIParams<FetchModularTallyTemplatesResponse>,
@@ -20,7 +19,7 @@ export const useFetchModularTallyTemplates = (
     FetchModularTallyTemplatesResponse,
     FetchModularTallyTemplatesParams
   >({
-    url: modularTallyTemplatesUrl,
+    url: "/api/admin/modularTallyTemplates",
     callbacks: params?.callbacks,
     options: { method: "GET" },
   });
@@ -33,7 +32,7 @@ export const useFetchModularTallyTemplateStructure = (
     FetchModularTallyTemplateStructureResponse,
     FetchModularTallyTemplateStructureParams
   >({
-    url: `${modularTallyTemplatesUrl}/details`,
+    url: "/api/admin/modularTallyTemplates/details",
     callbacks: params?.callbacks,
     options: { method: "GET" },
   });
@@ -47,7 +46,15 @@ export const useCreateModularTallyTemplate = (
     Record<string, never>,
     CreateModularTallyTemplateData
   >({
-    url: `${modularTallyTemplatesUrl}/create`,
+    url: "/api/admin/modularTallyTemplates/create",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useUpdateTallyTemplate = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, UpdateTallyTemplateData>({
+    url: "/api/admin/modularTallyTemplates/update",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });
@@ -61,7 +68,7 @@ export const useUpdateModularTallyTemplateArchiveStatus = (
     Record<string, never>,
     UpdateModularTallyTemplateArchiveStatusData
   >({
-    url: `${modularTallyTemplatesUrl}/archiveStatus`,
+    url: "/api/admin/modularTallyTemplates/archiveStatus",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });

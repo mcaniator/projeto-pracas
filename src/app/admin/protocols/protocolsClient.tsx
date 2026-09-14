@@ -16,6 +16,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { IconClipboard } from "@tabler/icons-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS";
@@ -26,13 +27,25 @@ const protocolTypeOptions: { id: ProtocolType; label: string }[] = [
   { id: "BEHAVIORAL_MAPS", label: "Mapas comportamentais" },
 ];
 
+const protocolTypeByQueryParam = {
+  form: "FORMS",
+  tally: "TALLYS",
+  behavioralMap: "BEHAVIORAL_MAPS",
+} as const satisfies Record<string, ProtocolType>;
+
 const ProtocolsClient = () => {
   const theme = useTheme();
+  const searchParams = useSearchParams();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [protocolType, setProtocolType] = useState<ProtocolType>("FORMS");
+  const initialProtocolType =
+    protocolTypeByQueryParam[
+      searchParams.get("type") as keyof typeof protocolTypeByQueryParam
+    ] ?? "FORMS";
+  const [protocolType, setProtocolType] =
+    useState<ProtocolType>(initialProtocolType);
   const [visitedProtocolTypes, setVisitedProtocolTypes] = useState<
     Set<ProtocolType>
-  >(() => new Set(["FORMS"]));
+  >(() => new Set([initialProtocolType]));
 
   const selectProtocolType = (nextProtocolType: ProtocolType) => {
     setProtocolType(nextProtocolType);
