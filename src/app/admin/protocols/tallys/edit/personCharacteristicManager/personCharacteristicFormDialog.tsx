@@ -4,12 +4,10 @@ import CTextField from "@/components/ui/cTextField";
 import CDialog from "@/components/ui/dialog/cDialog";
 import DynamicIconPicker from "@/components/ui/dynamicIcon/dynamicIconPicker";
 import { useSavePersonCharacteristic } from "@/lib/serverFunctions/apiCalls/personCharacteristic";
+import { MuiColorInput } from "mui-color-input";
 import { useEffect, useState } from "react";
 
-import type {
-  PersonCharacteristic,
-  PersonCharacteristicGroup,
-} from "./types";
+import type { PersonCharacteristic, PersonCharacteristicGroup } from "./types";
 
 const getRandomCharacteristicColor = () =>
   `#${Math.floor(Math.random() * 0xffffff)
@@ -93,11 +91,11 @@ const PersonCharacteristicFormDialog = ({
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
-        <CTextField
+        <MuiColorInput
           label="Cor"
-          type="color"
           value={color}
-          onChange={(event) => setColor(event.target.value)}
+          format="hex"
+          onChange={setColor}
         />
         <DynamicIconPicker selectedIconKey={iconKey} onChange={setIconKey} />
       </div>

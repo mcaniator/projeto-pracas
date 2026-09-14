@@ -2,10 +2,10 @@
 
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { useFetchPersonCharacteristicGroups } from "@/lib/serverFunctions/apiCalls/personCharacteristic";
 import { FetchPersonCharacteristicGroupsResponse } from "@/lib/serverFunctions/queries/personCharacteristic";
+import { Box, Tab, Tabs } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 
 import PersonCharacteristicDeletionDialog from "./personCharacteristicDeletionDialog";
@@ -23,7 +23,7 @@ const managerModes = {
 
 const managerModeOptions = [
   { id: managerModes.GROUPS, label: "Grupos" },
-  { id: managerModes.REGISTER, label: "Cadastros" },
+  { id: managerModes.REGISTER, label: "Cadastro" },
 ];
 
 const PersonCharacteristicManager = ({
@@ -164,13 +164,17 @@ const PersonCharacteristicManager = ({
           Administração de características
         </h3>
       )}
-      <CToggleButtonGroup
-        options={managerModeOptions}
-        getLabel={(option) => option.label}
-        getValue={(option) => option.id}
-        value={mode}
-        onChange={(_, option) => setMode(option.id)}
-      />
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs
+          value={mode}
+          onChange={(_, value: number) => setMode(value)}
+          aria-label="Modo de administração de características"
+        >
+          {managerModeOptions.map((option) => (
+            <Tab key={option.id} value={option.id} label={option.label} />
+          ))}
+        </Tabs>
+      </Box>
 
       {mode === managerModes.GROUPS ?
         <PersonCharacteristicGroupsTab
@@ -186,6 +190,7 @@ const PersonCharacteristicManager = ({
           groups={groups}
           selectedGroupId={selectedGroupId}
           selectedGroup={selectedGroup}
+          isLoadingSelectedGroup={isLoadingSelectedGroup}
           canManage={canManage}
           onSelectedGroupIdChange={setSelectedGroupId}
           onCreateGroup={openCreateGroup}

@@ -1,4 +1,4 @@
-import CLinearProgress from "@/components/ui/CLinearProgress";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 
 import PersonCharacteristicGroupsList from "./personCharacteristicGroupsList";
@@ -43,7 +43,9 @@ const PersonCharacteristicGroupsTab = ({
         onChange={(_, group) => onSelectedGroupIdChange(group?.id)}
       />
       {isLoadingSelectedGroup ?
-        <CLinearProgress label="Carregando grupo..." />
+        <div className="flex min-h-40 items-center justify-center">
+          <CCircularProgress label="Carregando grupo..." />
+        </div>
       : <PersonCharacteristicGroupsList
           group={selectedGroup}
           showAddToTemplate

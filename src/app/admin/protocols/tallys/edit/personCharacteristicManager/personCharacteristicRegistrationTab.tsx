@@ -1,5 +1,6 @@
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import { Divider } from "@mui/material";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 
@@ -13,6 +14,7 @@ const PersonCharacteristicRegistrationTab = ({
   groups,
   selectedGroupId,
   selectedGroup,
+  isLoadingSelectedGroup,
   canManage,
   onSelectedGroupIdChange,
   onCreateGroup,
@@ -23,6 +25,7 @@ const PersonCharacteristicRegistrationTab = ({
   groups: PersonCharacteristicGroup[];
   selectedGroupId: number | undefined;
   selectedGroup: PersonCharacteristicGroup | null;
+  isLoadingSelectedGroup: boolean;
   canManage: boolean;
   onSelectedGroupIdChange: (groupId: number | undefined) => void;
   onCreateGroup: () => void;
@@ -57,7 +60,7 @@ const PersonCharacteristicRegistrationTab = ({
             value={selectedGroupOption ?? null}
             getOptionLabel={(group) => group.title}
             isOptionEqualToValue={(option, value) => option.id === value.id}
-            disableClearable
+            disableClearable={selectedGroupOption !== undefined}
             appendIconButton={
               selectedGroup && canManage ? <IconPencil /> : undefined
             }
@@ -88,7 +91,11 @@ const PersonCharacteristicRegistrationTab = ({
       </div>
       <Divider />
       <h4>Características já cadastradas</h4>
-      {selectedGroup ?
+      {isLoadingSelectedGroup ?
+        <div className="flex min-h-40 items-center justify-center">
+          <CCircularProgress label="Carregando grupo..." />
+        </div>
+      : selectedGroup ?
         <PersonCharacteristicGroupsList
           group={selectedGroup}
           showAddToTemplate={false}
