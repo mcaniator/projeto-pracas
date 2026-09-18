@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import {
   APIRequestData,
@@ -5,6 +6,84 @@ import {
 } from "@/lib/types/backendCalls/APIResponse";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+
+export const createModularTallyDataSchema = z.object({
+  locationId: z.number().int().positive(),
+  startDate: z.coerce.date(),
+  modularTallyTemplateId: z.number().int().positive(),
+});
+
+export type CreateModularTallyData = z.infer<
+  typeof createModularTallyDataSchema
+>;
+
+export type CreateModularTallyResponse = NonNullable<
+  Awaited<ReturnType<typeof createModularTally>>["data"]
+>;
+
+export const createModularTally = async (
+  request: APIRequestData<CreateModularTallyData>,
+) => {
+  const data = request.data!;
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Não foi possível obter o usuário logado!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+
+  try {
+    const modularTallyTemplate = await prisma.modularTallyTemplate.findFirst({
+      where: {
+        id: data.modularTallyTemplateId,
+        finalized: true,
+        archived: false,
+      },
+      select: { id: true },
+    });
+
+    if (!modularTallyTemplate) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Protocolo de contagem finalizado não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const modularTally = await prisma.modularTally.create({
+      data: {
+        locationId: data.locationId,
+        startDate: data.startDate,
+        userId: session.user.id,
+        modularTallyTemplateId: modularTallyTemplate.id,
+      },
+      select: { id: true },
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 201,
+        message: "Contagem criada com sucesso!",
+      } as APIResponseInfo,
+      data: { modularTallyId: modularTally.id },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao criar contagem!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
 
 export const createModularTallyTemplateDataSchema = z.object({
   name: z.string().trim().min(1).max(255),
