@@ -1,23 +1,23 @@
 import CIconChip from "@/components/ui/cIconChip";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import { Box, Chip } from "@mui/material";
 import { IconMap } from "@tabler/icons-react";
 
-export type AssessmentQuestionIconGeometryProps = {
+export type QuestionIconGeometryProps = {
   hasGeometries?: boolean;
   onMapChipClick?: () => void;
 };
 
-const AssessmentQuestionIcon = ({
+const QuestionIcon = ({
   question,
   hasValue,
   hasGeometries = false,
   onMapChipClick,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   hasValue: boolean;
-} & AssessmentQuestionIconGeometryProps) => {
+} & QuestionIconGeometryProps) => {
   return (
     <div className="inline-flex items-start">
       {hasGeometries && (
@@ -51,4 +51,4 @@ const AssessmentQuestionIcon = ({
   );
 };
 
-export default AssessmentQuestionIcon;
+export default QuestionIcon;

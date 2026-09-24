@@ -1,7 +1,7 @@
 "use client";
 
-import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
 import { FetchMapAssessmentComparisonAssessmentTreesResponse } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { MapAssessmentComparisonLocation } from "@/lib/serverFunctions/queries/mapAssessmentComparisonUtils";
@@ -48,20 +48,12 @@ const ResultViewerAssessmentComparison = ({
     );
   }, [selectedAssessmentId, selectedLocation]);
 
-  const assessmentWithLocation = useMemo(() => {
-    if (!selectedAssessment || !selectedLocation) return null;
-
-    return {
-      ...selectedAssessment,
-      location: {
-        id: selectedLocation.id,
-        name: selectedLocation.name,
-        st_asgeojson:
-          locations.find((location) => location.id === selectedLocation.id)
-            ?.st_asgeojson ?? null,
-      },
-    };
-  }, [locations, selectedAssessment, selectedLocation]);
+  const locationPolygonGeoJson = useMemo(
+    () =>
+      locations.find((location) => location.id === selectedLocation?.id)
+        ?.st_asgeojson ?? null,
+    [locations, selectedLocation?.id],
+  );
 
   if (comparisonLocations.length === 0) {
     return (
@@ -106,9 +98,12 @@ const ResultViewerAssessmentComparison = ({
         />
       </div>
 
-      {assessmentWithLocation && (
+      {selectedAssessment && (
         <div className="rounded border border-gray-200 bg-white p-3">
-          <AssessmentResultViewer assessment={assessmentWithLocation} />
+          <FormSubmissionViewer
+            formSubmission={selectedAssessment.formSubmission}
+            locationPolygonGeoJson={locationPolygonGeoJson}
+          />
         </div>
       )}
     </div>

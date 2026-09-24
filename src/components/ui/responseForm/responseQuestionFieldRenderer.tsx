@@ -1,5 +1,5 @@
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseQuestionValue } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { ResponseQuestionValue } from "@/lib/types/formSubmission/responseFormTypes";
 
 import BooleanResponseQuestionField from "./booleanResponseQuestionField";
 import OptionsResponseQuestionField from "./optionsResponseQuestionField";
@@ -11,7 +11,7 @@ const ResponseQuestionFieldRenderer = ({
   readOnly = false,
   onChange,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: ResponseQuestionValue;
   readOnly?: boolean;
   onChange: (value: ResponseQuestionValue) => void;

@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@/lib/dayjs";
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import type { FormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { Chip } from "@mui/material";
 import { IconAlertTriangle, IconCheck } from "@tabler/icons-react";
 import { type Control, useWatch } from "react-hook-form";
@@ -32,6 +32,7 @@ const FilledQuestionsCounter = ({
 
   return (
     <Chip
+      sx={{ width: "100%" }}
       label={`Campos preenchidos: ${filledCount} / ${totalQuestions}`}
       icon={
         filledCount < totalQuestions ? <IconAlertTriangle /> : <IconCheck />

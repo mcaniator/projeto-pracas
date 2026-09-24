@@ -1,8 +1,8 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseFormGeometry } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { ResponseFormGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import { IconMap } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -15,7 +15,7 @@ const ResponseFormQuestionGeometryControls = ({
   finalized,
   handleQuestionGeometryChange,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   geometries: ResponseFormGeometry[];
   locationPolygonGeoJson: string | null;
   finalized: boolean;

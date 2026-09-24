@@ -1,4 +1,4 @@
-import { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import { Extent, buffer, createEmpty, extend, isEmpty } from "ol/extent";
 import GeoJSON from "ol/format/GeoJSON";
 import { Point, Polygon } from "ol/geom";

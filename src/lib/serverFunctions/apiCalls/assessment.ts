@@ -13,8 +13,8 @@ import type {
   UpdateAssessmentVisibilityData,
 } from "../mutations/assessmentUtil";
 import type {
-  AddResponsesData,
-  AddResponsesResponse,
+  AssessmentSubmitData,
+  AssessmentSubmitResponse,
 } from "../mutations/responseUtil";
 import type {
   FetchAssessmentTreeParams,
@@ -99,13 +99,13 @@ export const useUpdateAssessmentVisibility = (
   });
 };
 
-export const useAddResponses = (
-  params?: UseFetchAPIParams<AddResponsesResponse>,
+export const useAssessmentSubmit = (
+  params?: UseFetchAPIParams<AssessmentSubmitResponse>,
 ) => {
   return useFetchAPI<
-    AddResponsesResponse,
+    AssessmentSubmitResponse,
     Record<string, never>,
-    AddResponsesData
+    AssessmentSubmitData
   >({
     url: "/api/admin/assessments/responses",
     callbacks: params?.callbacks,

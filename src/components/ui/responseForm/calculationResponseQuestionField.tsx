@@ -1,15 +1,15 @@
 "use client";
 
 import CNumberField from "@/components/ui/cNumberField";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { FormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { type Control, useController } from "react-hook-form";
 
 const CalculationResponseQuestionField = ({
   question,
   control,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   control: Control<FormValues, unknown, FormValues>;
 }) => {
   const fieldName = String(question.questionId);

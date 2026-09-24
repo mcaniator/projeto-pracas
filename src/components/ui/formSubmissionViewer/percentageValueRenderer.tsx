@@ -1,24 +1,24 @@
 "use client";
 
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import { Box } from "@mui/material";
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "chart.js";
 import { Pie } from "react-chartjs-2";
 
-import AssessmentQuestionIcon from "./assessmentQuestionIcon";
-import type { AssessmentQuestionIconGeometryProps } from "./assessmentQuestionIcon";
+import QuestionIcon from "./questionIcon";
+import type { QuestionIconGeometryProps } from "./questionIcon";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const AssessmentPercentageValueRenderer = ({
+export const PercentageValueRenderer = ({
   question,
   value,
   hasGeometries,
   onMapChipClick,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: number;
-} & AssessmentQuestionIconGeometryProps) => {
+} & QuestionIconGeometryProps) => {
   const boundedValue = Math.max(0, Math.min(100, value));
   const percentageData = {
     labels: [`${question.name}`, ``],
@@ -36,7 +36,7 @@ export const AssessmentPercentageValueRenderer = ({
 
   return (
     <div className="flex items-center gap-1">
-      <AssessmentQuestionIcon
+      <QuestionIcon
         question={question}
         hasValue={value !== 0}
         hasGeometries={hasGeometries}

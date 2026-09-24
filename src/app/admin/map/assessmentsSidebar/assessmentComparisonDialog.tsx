@@ -1,7 +1,7 @@
 "use client";
 
-import TableAssessmentComparison from "@/app/admin/map/assessmentsSidebar/tableAssessmentComparison";
 import ResultViewerAssessmentComparison from "@/app/admin/map/assessmentsSidebar/resultViewerAssessmentComparison";
+import TableAssessmentComparison from "@/app/admin/map/assessmentsSidebar/tableAssessmentComparison";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { useFetchMapAssessmentComparisonAssessmentTrees } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";

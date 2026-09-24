@@ -4,7 +4,7 @@ import { useGeolocation } from "@/components/context/geolocationContext";
 import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
-import { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import { QuestionGeometryTypes } from "@prisma/client";
 import {
   IconClick,

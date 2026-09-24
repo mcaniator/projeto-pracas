@@ -7,23 +7,22 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import {
-  adminSQLiteAddResponsesV2,
+  adminSQLiteAssessmentSubmit,
   createAdminSQLiteAssessmentFromRemoteAssessment,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import dayjs from "@/lib/dayjs";
 import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
-import { serializeResponseFormValues } from "@/lib/responseForm/responseForm";
 import {
-  useAddResponses,
+  useAssessmentSubmit,
   useUploadImageResponse,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
 import type {
-  FormValues,
   ResponseFormGeometry,
   ResponseFormImages,
-} from "@/lib/types/assessments/responseFormTypes";
+  SerializedFormValues,
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { Capacitor } from "@capacitor/core";
 import { IconAlertSquare } from "@tabler/icons-react";
 import { Dayjs } from "dayjs";
@@ -117,7 +116,7 @@ const SaveAssessmentDialog = ({
   open,
   locationName,
   assessmentId,
-  formValues,
+  serializedFormValues,
   geometries,
   isFinalized,
   endDate,
@@ -140,7 +139,7 @@ const SaveAssessmentDialog = ({
   open: boolean;
   locationName: string;
   assessmentId: number;
-  formValues: FormValues;
+  serializedFormValues: SerializedFormValues;
   geometries: ResponseFormGeometry[];
   isFinalized: boolean;
   endDate: Dayjs | null;
@@ -199,7 +198,7 @@ const SaveAssessmentDialog = ({
       ),
     );
   };
-  const [serverSaveResponses] = useAddResponses({
+  const [serverSubmitAssessment] = useAssessmentSubmit({
     callbacks: {
       onSuccess: (response) => {
         // Delete local data, as it is no longer need
@@ -246,15 +245,13 @@ const SaveAssessmentDialog = ({
                 formId: formId,
               },
             });
-            const serializedFormValues = serializeResponseFormValues(
-              formValues,
-              categories,
-            );
-            const offlineSaveResponse = await adminSQLiteAddResponsesV2({
+            const offlineSaveResponse = await adminSQLiteAssessmentSubmit({
               data: {
                 assessmentId,
-                responses: serializedFormValues,
-                geometries: geometries,
+                formSubmission: {
+                  responses: serializedFormValues,
+                  geometries,
+                },
                 startDate: startDate.toDate(),
                 endDate: endDate?.toDate() ?? null,
                 isFinalized: isFinalized,
@@ -289,10 +286,6 @@ const SaveAssessmentDialog = ({
     }
 
     setLoadingOverlay({ show: true, message: "Salvando avaliação..." });
-    const serializedFormValues = serializeResponseFormValues(
-      formValues,
-      categories,
-    );
 
     try {
       // Save locally, to not lose data if something goes wrong in the server
@@ -341,11 +334,13 @@ const SaveAssessmentDialog = ({
         if (isConnected) {
           await saveResponseImages(responseImages);
 
-          await serverSaveResponses({
+          await serverSubmitAssessment({
             data: {
               assessmentId,
-              responses: serializedFormValues,
-              geometries: geometries,
+              formSubmission: {
+                responses: serializedFormValues,
+                geometries,
+              },
               startDate: startDate.toDate(),
               endDate: endDate?.toDate() ?? null,
               isFinalized: isFinalized,
@@ -358,11 +353,13 @@ const SaveAssessmentDialog = ({
           });
         }
       } else {
-        const offlineSaveResponse = await adminSQLiteAddResponsesV2({
+        const offlineSaveResponse = await adminSQLiteAssessmentSubmit({
           data: {
             assessmentId,
-            responses: serializedFormValues,
-            geometries: geometries,
+            formSubmission: {
+              responses: serializedFormValues,
+              geometries,
+            },
             startDate: startDate.toDate(),
             endDate: endDate?.toDate() ?? null,
             isFinalized: isFinalized,
@@ -437,7 +434,7 @@ const SaveAssessmentDialog = ({
         endDate: endDate?.toISOString() ?? null,
         isFinalized: isFinalized,
         assessmentId: assessmentId,
-        responses: serializeResponseFormValues(formValues, categories),
+        responses: serializedFormValues,
         geometries: geometries,
         driveFolderUrl: driveFolderUrl,
         responseImages: exportedImages,

@@ -5,7 +5,7 @@ import type {
   SQLiteTransactionOperation,
 } from "@/lib/capacitor/sqlite/sqlite";
 import dayjs from "@/lib/dayjs";
-import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
+import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   CreateAssessmentData,
@@ -13,25 +13,29 @@ import type {
   DeleteAssessmentData,
 } from "@/lib/serverFunctions/mutations/assessmentUtil";
 import type {
-  AddResponsesData,
-  AddResponsesResponse,
+  AssessmentSubmitData,
+  AssessmentSubmitResponse,
 } from "@/lib/serverFunctions/mutations/responseUtil";
 import type {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
   FetchAssessmentTreeParams,
   FetchAssessmentTreeResponse,
   FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormSubmissionCategoryItem,
+  FormSubmissionQuestionItem,
+  FormSubmissionSubcategoryItem,
+} from "@/lib/serverFunctions/queries/formSubmission";
 import {
   type AssessmentDraft,
-  type ResponseFormGeometry,
-  type SerializedFormValues,
   assessmentDraftSchema,
-} from "@/lib/types/assessments/responseFormTypes";
+} from "@/lib/types/assessments/assessmentDraft";
+import type {
+  ResponseFormGeometry,
+  SerializedFormValues,
+} from "@/lib/types/formSubmission/responseFormTypes";
 import type {
   APIRequest,
   APIRequestData,
@@ -39,7 +43,8 @@ import type {
   APIResponse,
 } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import type { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
+import type { FormSubmissionOptionValueWithOverride } from "@/lib/types/formSubmission/responseFormTypes";
+import { Calculation } from "@/lib/utils/calculationUtils";
 import {
   deserializeResponseGeometriesFromWkt,
   serializeResponseGeometriesToWkt,
@@ -88,6 +93,7 @@ const assessmentSchema = z.array(
     locationPolygon: z.string().nullable(),
     formId: z.coerce.number(),
     formName: z.string(),
+    formFinalized: sqliteBooleanSchema,
   }),
 );
 
@@ -229,7 +235,7 @@ const isSerializedOptionValueWithOverride = (
 
 const toOptionResponseValue = (
   response: unknown,
-): AssessmentOptionValueWithOverride | null => {
+): FormSubmissionOptionValueWithOverride | null => {
   const optionValue =
     isSerializedOptionValueWithOverride(response) ?
       response.value
@@ -643,18 +649,18 @@ const fetchAdminSQLiteAssessmentTableData = async (
   }
 };
 
-const adminSQLiteAddResponsesV2 = async (
-  request: APIRequestData<AddResponsesData>,
-): Promise<APIResponse<AddResponsesResponse>> => {
+const adminSQLiteAssessmentSubmit = async (
+  request: APIRequestData<AssessmentSubmitData>,
+): Promise<APIResponse<AssessmentSubmitResponse>> => {
   const {
     assessmentId,
-    responses,
-    geometries,
+    formSubmission,
     startDate,
     endDate,
     isFinalized,
     driveFolderUrl,
   } = request.data!;
+  const { responses, geometries } = formSubmission;
 
   try {
     const currentUserValues = await adminSQLiteDb.query({
@@ -740,7 +746,7 @@ const adminSQLiteAddResponsesV2 = async (
     }[] = [];
     const optionsResponses: {
       questionId: number;
-      value: AssessmentOptionValueWithOverride[];
+      value: FormSubmissionOptionValueWithOverride[];
     }[] = [];
     const booleanResponses: { questionId: number; value: boolean }[] = [];
 
@@ -812,7 +818,7 @@ const adminSQLiteAddResponsesV2 = async (
             value: response
               .map(toOptionResponseValue)
               .filter(
-                (item): item is AssessmentOptionValueWithOverride =>
+                (item): item is FormSubmissionOptionValueWithOverride =>
                   item !== null,
               ),
           });
@@ -1218,7 +1224,8 @@ const fetchAdminSQLiteAssessmentTree = async (
           l.name AS locationName,
           l.polygon AS locationPolygon,
           f.id AS formId,
-          f.name AS formName
+          f.name AS formName,
+          f.finalized AS formFinalized
         FROM assessment a
         INNER JOIN "user" u ON u.id = a.user_id
         INNER JOIN location l ON l.id = a.location_id
@@ -1388,13 +1395,7 @@ const fetchAdminSQLiteAssessmentTree = async (
       });
       result.set(option.questionId, questionOptions);
       return result;
-    }, new Map<number, NonNullable<AssessmentQuestionItem["options"]>>());
-    const calculationByQuestionId = new Map(
-      calculations.map((calculation) => [
-        calculation.targetQuestionId,
-        calculation.expression,
-      ]),
-    );
+    }, new Map<number, NonNullable<FormSubmissionQuestionItem["options"]>>());
     const responseByQuestionId = new Map(
       responses.map((response) => [response.questionId, response.response]),
     );
@@ -1412,7 +1413,7 @@ const fetchAdminSQLiteAssessmentTree = async (
       new Map<number, { optionId: number; overrideValue: string | null }[]>(),
     );
 
-    const categories: AssessmentCategoryItem[] = [];
+    const categories: FormSubmissionCategoryItem[] = [];
     categoryFormItems.forEach((item) => {
       if (
         !categories.some((category) => category.categoryId === item.categoryId)
@@ -1453,10 +1454,8 @@ const fetchAdminSQLiteAssessmentTree = async (
       }
     });
 
-    let totalQuestions = 0;
     const responsesFormValues: SerializedFormValues = {};
     questionFormItems.forEach((item) => {
-      totalQuestions++;
       const response = responseByQuestionId.get(item.questionId) ?? null;
       const selectedOptions =
         responseOptionsByQuestionId.get(item.questionId) ?? [];
@@ -1501,7 +1500,7 @@ const fetchAdminSQLiteAssessmentTree = async (
       if (!category) {
         throw new Error("Question's category not found");
       }
-      const question: AssessmentQuestionItem = {
+      const question: FormSubmissionQuestionItem = {
         id: item.id,
         position: item.position,
         questionId: item.questionId,
@@ -1517,7 +1516,6 @@ const fetchAdminSQLiteAssessmentTree = async (
         optionType: item.optionType,
         options: optionsByQuestionId.get(item.questionId) ?? [],
         geometryTypes: item.geometryTypes,
-        calculationExpression: calculationByQuestionId.get(item.questionId),
         categoryName: category.name,
         subcategoryName: null,
       };
@@ -1527,7 +1525,7 @@ const fetchAdminSQLiteAssessmentTree = async (
         return;
       }
       const subcategory = category.categoryChildren.find(
-        (child): child is AssessmentSubcategoryItem =>
+        (child): child is FormSubmissionSubcategoryItem =>
           "subcategoryId" in child &&
           child.subcategoryId === item.subcategoryId,
       );
@@ -1567,8 +1565,6 @@ const fetchAdminSQLiteAssessmentTree = async (
           isFinalized: assessment.isFinalized,
           updatedAt: assessment.updatedAt,
           driveFolderUrl: assessment.driveFolderUrl,
-          formName: assessment.formName,
-          formId: assessment.formId,
           location: {
             id: assessment.locationId,
             name: assessment.locationName,
@@ -1578,10 +1574,28 @@ const fetchAdminSQLiteAssessmentTree = async (
             id: assessment.userId,
             username: assessment.username,
           },
-          totalQuestions,
-          responsesFormValues,
-          geometries,
-          categories: nonEmptyCategories,
+          formSubmission: {
+            formTree: {
+              id: assessment.formId,
+              name: assessment.formName,
+              finalized: assessment.formFinalized,
+              categories: nonEmptyCategories,
+            },
+            calculations: calculations.map((calculation) => ({
+              targetQuestionId: calculation.targetQuestionId,
+              questionName:
+                questionFormItems.find(
+                  (question) =>
+                    question.questionId === calculation.targetQuestionId,
+                )?.name ?? "",
+              expression: calculation.expression,
+              expressionQuestionsIds: new Calculation(
+                calculation.expression,
+              ).getExpressionQuestionIds(),
+            })),
+            responsesFormValues,
+            geometries,
+          },
         },
       },
     };
@@ -1852,7 +1866,7 @@ const fetchAdminSQLiteAssessmentDraftsIds = async (_request: APIRequest) => {
 // #endregion
 
 export {
-  adminSQLiteAddResponsesV2,
+  adminSQLiteAssessmentSubmit,
   createAdminSQLiteAssessment,
   createAdminSQLiteAssessmentFromRemoteAssessment,
   fetchAdminSQLiteAssessments,

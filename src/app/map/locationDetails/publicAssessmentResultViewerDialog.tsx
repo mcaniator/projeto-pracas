@@ -1,6 +1,6 @@
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CDialog from "@/components/ui/dialog/cDialog";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
 import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import {
@@ -55,7 +55,16 @@ const PublicAssessmentResultViewerDialog = ({
       }
     >
       {loading && <CLinearProgress label="Carregando..." />}
-      {assessment && <AssessmentResultViewer assessment={assessment} />}
+      {assessment && (
+        <FormSubmissionViewer
+          formSubmission={{
+            formTree: assessment.formSubmission.formTree,
+            responsesFormValues: assessment.formSubmission.responsesFormValues,
+            geometries: assessment.formSubmission.geometries,
+          }}
+          locationPolygonGeoJson={assessment.location.st_asgeojson}
+        />
+      )}
     </CDialog>
   );
 };

@@ -1,21 +1,21 @@
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import { Chip } from "@mui/material";
 
-import AssessmentQuestionIcon from "./assessmentQuestionIcon";
-import type { AssessmentQuestionIconGeometryProps } from "./assessmentQuestionIcon";
+import QuestionIcon from "./questionIcon";
+import type { QuestionIconGeometryProps } from "./questionIcon";
 
-export const AssessmentNumericValueRenderer = ({
+export const NumericValueRenderer = ({
   question,
   value,
   hasGeometries,
   onMapChipClick,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: number;
-} & AssessmentQuestionIconGeometryProps) => {
+} & QuestionIconGeometryProps) => {
   return (
     <div className="inline-flex items-start">
-      <AssessmentQuestionIcon
+      <QuestionIcon
         question={question}
         hasValue={value !== 0}
         hasGeometries={hasGeometries}

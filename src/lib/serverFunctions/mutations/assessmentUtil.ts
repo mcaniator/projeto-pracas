@@ -60,6 +60,9 @@ const _createAssessmentV2 = async (
           user: { connect: { id: userId } },
           location: { connect: { id: Number(locationId) } },
           form: { connect: { id: Number(formId) } },
+          formSubmission: {
+            create: { form: { connect: { id: Number(formId) } } },
+          },
         },
         select: {
           id: true,
@@ -137,6 +140,7 @@ const _deleteAssessment = async (
   request: APIRequestData<DeleteAssessmentData>,
 ) => {
   const { assessmentId } = request.data!;
+  let formSubmissionId: number;
   try {
     const assessment = await prisma.assessment.findUnique({
       where: {
@@ -144,6 +148,7 @@ const _deleteAssessment = async (
       },
       select: {
         userId: true,
+        formSubmissionId: true,
       },
     });
     if (!assessment) {
@@ -154,6 +159,7 @@ const _deleteAssessment = async (
         } as APIResponseInfo,
       };
     }
+    formSubmissionId = assessment.formSubmissionId;
     const user = await getSessionUser();
     if (assessment.userId !== user?.id) {
       try {
@@ -179,24 +185,14 @@ const _deleteAssessment = async (
   }
   try {
     await prisma.$transaction([
-      prisma.questionGeometry.deleteMany({
-        where: {
-          assessmentId,
-        },
-      }),
-      prisma.response.deleteMany({
-        where: {
-          assessmentId,
-        },
-      }),
-      prisma.responseOption.deleteMany({
-        where: {
-          assessmentId,
-        },
-      }),
       prisma.assessment.delete({
         where: {
           id: assessmentId,
+        },
+      }),
+      prisma.formSubmission.delete({
+        where: {
+          id: formSubmissionId,
         },
       }),
     ]);

@@ -7,8 +7,8 @@ import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
-import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
+import { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
+import { FormEditorTree } from "@/app/admin/protocols/forms/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export const createFormDataSchema = z.instanceof(FormData);

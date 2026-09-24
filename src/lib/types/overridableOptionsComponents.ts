@@ -29,11 +29,6 @@ export type OptionValueWithOverride<
   override: O;
 };
 
-export type AssessmentOptionValueWithOverride = {
-  value: number;
-  override: string | null;
-};
-
 export type CheckboxOverrideOption = OverridableOptionConfig;
 export type CheckboxOverrideValue = OverridableOptionValue;
 export type CheckboxValueWithOverride<

@@ -1,4 +1,4 @@
-import type { AssessmentDraft } from "@/lib/types/assessments/responseFormTypes";
+import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import type { WeatherStats } from "@/lib/types/tallys/ongoingTally";
 import type { CommercialActivity } from "@/lib/zodValidators";
 import { Dexie, type EntityTable } from "dexie";

@@ -12,7 +12,7 @@ import {
   updateAdminSQLiteAssessmentRemoteReference,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
-  useAddResponses,
+  useAssessmentSubmit,
   useCreateAssessment,
   useUpdateAssessmentVisibility,
 } from "@/lib/serverFunctions/apiCalls/assessment";
@@ -67,7 +67,7 @@ const AssessmentsList = ({
   const [createAssessmentOnServer] = useCreateAssessment({
     disableOfflineFallback: true,
   });
-  const [addResponsesOnServer] = useAddResponses(); //This hook does not have offline fallback
+  const [submitAssessmentOnServer] = useAssessmentSubmit(); //This hook does not have offline fallback
   const [updateVisibility, updatingVisibility] = useUpdateAssessmentVisibility({
     callbacks: {
       onSuccess: () => {
@@ -166,20 +166,23 @@ const AssessmentsList = ({
           "Respostas da avaliação não encontradas no dispositivo!",
         );
       }
-      const addResponsesResponse = await addResponsesOnServer({
+      const assessmentSubmitResponse = await submitAssessmentOnServer({
         data: {
           assessmentId: serverAssessmentId,
           startDate: SQLiteAssessmentTreeData.startDate,
           endDate: SQLiteAssessmentTreeData.endDate,
           isFinalized: SQLiteAssessmentTreeData.isFinalized,
           driveFolderUrl: SQLiteAssessmentTreeData.driveFolderUrl,
-          geometries: SQLiteAssessmentTreeData.geometries,
-          responses: SQLiteAssessmentTreeData.responsesFormValues,
+          formSubmission: {
+            geometries: SQLiteAssessmentTreeData.formSubmission.geometries,
+            responses:
+              SQLiteAssessmentTreeData.formSubmission.responsesFormValues,
+          },
         },
       });
-      if (addResponsesResponse.responseInfo.statusCode !== 201) {
+      if (assessmentSubmitResponse.responseInfo.statusCode !== 201) {
         throw new Error(
-          addResponsesResponse.responseInfo.message ??
+          assessmentSubmitResponse.responseInfo.message ??
             "Erro ao enviar respostas!",
         );
       }

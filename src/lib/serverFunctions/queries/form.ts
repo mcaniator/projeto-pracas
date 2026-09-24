@@ -1,3 +1,9 @@
+import { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
+import {
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/app/admin/protocols/forms/edit/clientV2";
 import {
   APIRequestParams,
   APIResponseInfo,
@@ -7,12 +13,6 @@ import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { z } from "zod";
 
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
-import {
-  CategoryItem,
-  QuestionItem,
-  SubcategoryItem,
-} from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
@@ -107,7 +107,10 @@ export const fetchForms = async (
   }
 };
 
-const getFormTree = async (params: { formId: number }) => {
+const getFormTree = async (params: {
+  formId: number;
+  publicQuestionsOnly?: boolean;
+}) => {
   try {
     const form = await prisma.form.findUnique({
       where: { id: params.formId },
@@ -116,6 +119,12 @@ const getFormTree = async (params: { formId: number }) => {
         name: true,
         finalized: true,
         formItems: {
+          where:
+            params.publicQuestionsOnly ?
+              {
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
+              }
+            : undefined,
           orderBy: { position: "asc" },
           include: {
             category: {
@@ -132,6 +141,8 @@ const getFormTree = async (params: { formId: number }) => {
               },
             },
             question: {
+              where:
+                params.publicQuestionsOnly ? { isPublic: true } : undefined,
               select: {
                 name: true,
                 iconKey: true,
@@ -308,11 +319,18 @@ const getFormTree = async (params: { formId: number }) => {
   }
 };
 
-const getCalculationByFormId = async (formId: number) => {
+const getCalculationByFormId = async ({
+  formId,
+  publicQuestionsOnly = false,
+}: {
+  formId: number;
+  publicQuestionsOnly?: boolean;
+}) => {
   try {
     const dbCalculations = await prisma.calculation.findMany({
       where: {
         formId: formId,
+        targetQuestion: publicQuestionsOnly ? { isPublic: true } : undefined,
       },
       select: {
         expression: true,
@@ -359,7 +377,7 @@ export const fetchFormStructure = async (
   const params = request.params!;
   const [form, calculations] = await Promise.all([
     getFormTree(params),
-    getCalculationByFormId(params.formId),
+    getCalculationByFormId({ formId: params.formId }),
   ]);
 
   return {

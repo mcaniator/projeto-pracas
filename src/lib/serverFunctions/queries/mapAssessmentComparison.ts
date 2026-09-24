@@ -1,8 +1,3 @@
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
-import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
-import { fetchAssessmentsGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
-import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
-import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
 import { z } from "zod";
 
 import { prisma } from "../../prisma";
@@ -11,14 +6,11 @@ import {
   APIRequestParams,
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
-import { FormItemUtils } from "../../utils/formTreeUtils";
 import { buildImageUrl } from "../../utils/image";
 import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-  filterEmptyAssessmentCategories,
-} from "./assessment";
+  type GetFormSubmissionDataResult,
+  getFormSubmissionData,
+} from "./formSubmission";
 import {
   MapAssessmentComparisonCategory,
   MapAssessmentComparisonLocation,
@@ -249,9 +241,7 @@ export const fetchMapAssessmentComparisonResults = async (
 export type MapAssessmentComparisonAssessmentTree = {
   id: number;
   startDate: Date;
-  categories: AssessmentCategoryItem[];
-  responsesFormValues: FormValues;
-  geometries: { questionId: number; geometries: ResponseGeometry[] }[];
+  formSubmission: GetFormSubmissionDataResult;
 };
 
 export const fetchMapAssessmentComparisonAssessmentTreesParamsSchema = z.object(
@@ -275,92 +265,29 @@ export type FetchMapAssessmentComparisonAssessmentTreesResponse = NonNullable<
   >["data"]
 >;
 
-type MapAssessmentComparisonAssessmentQueryResult = {
-  id: number;
-  startDate: Date;
-  location: { id: number; name: string };
-  form: {
-    calculations: { expression: string; targetQuestionId: number }[];
-    formItems: {
-      id: number;
-      position: number;
-      categoryId: number;
-      subcategoryId: number | null;
-      questionId: number | null;
-      category: {
-        id: number;
-        name: string;
-        notes: string | null;
-      };
-      subcategory: {
-        id: number;
-        name: string;
-        notes: string | null;
-        categoryId: number;
-      } | null;
-      question: {
-        id: number;
-        name: string;
-        iconKey: string;
-        isPublic: boolean;
-        minValue: number | null;
-        maxValue: number | null;
-        notes: string | null;
-        questionType: AssessmentQuestionItem["questionType"];
-        characterType: AssessmentQuestionItem["characterType"];
-        optionType: AssessmentQuestionItem["optionType"];
-        options: { id: number; text: string; isOverridable: boolean }[];
-        categoryId: number;
-        subcategoryId: number | null;
-        geometryTypes: AssessmentQuestionItem["geometryTypes"];
-        allowResponseImages: boolean;
-        response: {
-          assessmentId: number;
-          response: string | null;
-        }[];
-        ResponseOption: {
-          assessmentId: number;
-          overrideValue: string | null;
-          option: { id: number } | null;
-        }[];
-      } | null;
-    }[];
-  };
-};
-
 export const fetchMapAssessmentComparisonAssessmentTrees = async (
   request: APIRequestParams<FetchMapAssessmentComparisonAssessmentTreesParams>,
 ) => {
   const { categoryId, locationIds } = request.params!;
   try {
-    const assessmentIds = (
-      await prisma.assessment.findMany({
-        where: {
-          isPublic: true,
-          locationId: {
-            in: locationIds,
-          },
-          form: {
-            formItems: {
-              some: {
-                categoryId,
-              },
-            },
-          },
-        },
-        select: { id: true },
-      })
-    ).map((assessment) => assessment.id);
-
     const assessments = await prisma.assessment.findMany({
       where: {
-        id: {
-          in: assessmentIds,
+        isPublic: true,
+        locationId: {
+          in: locationIds,
+        },
+        form: {
+          formItems: {
+            some: {
+              categoryId,
+            },
+          },
         },
       },
       orderBy: [{ location: { name: "asc" } }, { startDate: "desc" }],
       select: {
         id: true,
+        formSubmissionId: true,
         startDate: true,
         location: {
           select: {
@@ -368,125 +295,44 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
             name: true,
           },
         },
-        form: {
-          select: {
-            calculations: {
-              select: {
-                expression: true,
-                targetQuestionId: true,
-              },
-            },
-            formItems: {
-              where: {
-                categoryId,
-                OR: [{ questionId: null }, { question: { isPublic: true } }],
-              },
-              orderBy: {
-                position: "asc",
-              },
-              include: {
-                category: {
-                  select: {
-                    id: true,
-                    name: true,
-                    notes: true,
-                  },
-                },
-                subcategory: {
-                  select: {
-                    id: true,
-                    name: true,
-                    notes: true,
-                    categoryId: true,
-                  },
-                },
-                question: {
-                  where: {
-                    isPublic: true,
-                  },
-                  select: {
-                    id: true,
-                    name: true,
-                    iconKey: true,
-                    isPublic: true,
-                    minValue: true,
-                    maxValue: true,
-                    notes: true,
-                    questionType: true,
-                    characterType: true,
-                    optionType: true,
-                    options: {
-                      select: {
-                        text: true,
-                        id: true,
-                        isOverridable: true,
-                      },
-                    },
-                    categoryId: true,
-                    subcategoryId: true,
-                    geometryTypes: true,
-                    allowResponseImages: true,
-                    response: {
-                      where: {
-                        assessmentId: { in: assessmentIds },
-                      },
-                      select: {
-                        assessmentId: true,
-                        response: true,
-                      },
-                    },
-                    ResponseOption: {
-                      where: {
-                        assessmentId: { in: assessmentIds },
-                        optionId: { not: null },
-                      },
-                      select: {
-                        assessmentId: true,
-                        overrideValue: true,
-                        option: {
-                          select: {
-                            id: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
       },
     });
 
     const locationsById = new Map<number, { id: number; name: string }>();
-    const rawGeometries = (
-      await fetchAssessmentsGeometries(assessmentIds)
-    ).flat();
-    const geometriesByAssessmentId = new Map<
-      number,
-      { questionId: number; geometries: ResponseGeometry[] }[]
-    >();
-    rawGeometries.forEach((geometry) => {
-      const assessmentGeometries =
-        geometriesByAssessmentId.get(geometry.assessmentId) ?? [];
-      assessmentGeometries.push({
-        questionId: geometry.questionId,
-        geometries: deserializeResponseGeometriesFromWkt(geometry.geometry),
-      });
-      geometriesByAssessmentId.set(geometry.assessmentId, assessmentGeometries);
-    });
     const assessmentTreesByLocationId = new Map<
       number,
       MapAssessmentComparisonAssessmentTree[]
     >();
 
-    assessments.forEach((assessment) => {
+    const assessmentTrees = await Promise.all(
+      assessments.map(async (assessment) => {
+        const formSubmission = await getFormSubmissionData({
+          formSubmissionId: assessment.formSubmissionId,
+          includeCalculations: false,
+          publicQuestionsOnly: true,
+        });
+
+        return {
+          assessment,
+          assessmentTree: {
+            id: assessment.id,
+            startDate: assessment.startDate,
+            formSubmission: {
+              ...formSubmission,
+              formTree: {
+                ...formSubmission.formTree,
+                categories: formSubmission.formTree.categories.filter(
+                  (category) => category.categoryId === categoryId,
+                ),
+              },
+            },
+          } satisfies MapAssessmentComparisonAssessmentTree,
+        };
+      }),
+    );
+
+    assessmentTrees.forEach(({ assessment, assessmentTree }) => {
       locationsById.set(assessment.location.id, assessment.location);
-      const assessmentTree = buildMapAssessmentComparisonAssessmentTree({
-        assessment,
-        geometries: geometriesByAssessmentId.get(assessment.id) ?? [],
-      });
       const locationAssessmentTrees =
         assessmentTreesByLocationId.get(assessment.location.id) ?? [];
       locationAssessmentTrees.push(assessmentTree);
@@ -506,7 +352,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
         })),
       },
     };
-  } catch (e) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,
@@ -521,182 +367,4 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
       },
     };
   }
-};
-
-const buildMapAssessmentComparisonAssessmentTree = ({
-  assessment,
-  geometries,
-}: {
-  assessment: MapAssessmentComparisonAssessmentQueryResult;
-  geometries: { questionId: number; geometries: ResponseGeometry[] }[];
-}): MapAssessmentComparisonAssessmentTree => {
-  const categories: AssessmentCategoryItem[] = [];
-  const responsesFormValues: FormValues = {};
-
-  const sortedFormItems = assessment.form.formItems.sort((a, b) => {
-    const rankDiff =
-      FormItemUtils.getItemRankForSorting(a) -
-      FormItemUtils.getItemRankForSorting(b);
-    if (rankDiff !== 0) return rankDiff;
-
-    return a.position - b.position;
-  });
-
-  for (const item of sortedFormItems) {
-    if (FormItemUtils.isCategoryType(item)) {
-      if (!categories.find((c) => c.categoryId === item.categoryId)) {
-        categories.push({
-          id: item.id,
-          categoryId: item.categoryId,
-          name: item.category.name,
-          notes: item.category.notes,
-          position: item.position,
-          categoryChildren: [],
-        });
-      }
-      continue;
-    }
-
-    if (FormItemUtils.isSubcategoryType(item)) {
-      const dbSubcategory = item.subcategory;
-      if (!dbSubcategory) {
-        throw new Error("Subcategory form item without subcategory data");
-      }
-      const category = categories.find(
-        (c) => c.categoryId === dbSubcategory.categoryId,
-      );
-      if (!category) {
-        throw new Error("Subcategory's category not found");
-      }
-
-      let subcategory = category.categoryChildren.find(
-        (c): c is AssessmentSubcategoryItem =>
-          FormItemUtils.isSubcategoryType(c) &&
-          c.subcategoryId === item.subcategoryId,
-      );
-
-      if (!subcategory) {
-        subcategory = {
-          id: item.id,
-          position: item.position,
-          subcategoryId: item.subcategoryId,
-          name: dbSubcategory.name,
-          notes: dbSubcategory.notes,
-          questions: [],
-        };
-        category.categoryChildren.push(subcategory);
-      }
-      continue;
-    }
-
-    if (FormItemUtils.isQuestionType(item)) {
-      const dbQuestion = item.question;
-      if (!dbQuestion) continue;
-
-      if (dbQuestion.questionType === "WRITTEN") {
-        const response = dbQuestion.response.find(
-          (response) => response.assessmentId === assessment.id,
-        )?.response;
-        if (
-          dbQuestion.characterType === "NUMBER" ||
-          dbQuestion.characterType === "PERCENTAGE" ||
-          dbQuestion.characterType === "SCALE"
-        ) {
-          responsesFormValues[dbQuestion.id] =
-            response ? Number(response) : null;
-        } else {
-          responsesFormValues[dbQuestion.id] = response ?? null;
-        }
-      } else if (dbQuestion.questionType === "OPTIONS") {
-        const optionResponses = dbQuestion.ResponseOption.filter(
-          (response) => response.assessmentId === assessment.id,
-        );
-        if (dbQuestion.optionType === "RADIO") {
-          const response = optionResponses[0];
-          responsesFormValues[dbQuestion.id] =
-            response?.option?.id ?
-              {
-                value: response.option.id,
-                override: response.overrideValue,
-              }
-            : null;
-        } else if (dbQuestion.optionType === "CHECKBOX") {
-          responsesFormValues[dbQuestion.id] = optionResponses.map(
-            (response) => ({
-              value: response.option!.id,
-              override: response.overrideValue,
-            }),
-          );
-        }
-      } else if (dbQuestion.questionType === "BOOLEAN") {
-        responsesFormValues[dbQuestion.id] =
-          dbQuestion.response.find(
-            (response) => response.assessmentId === assessment.id,
-          )?.response === BooleanResponseValue.TRUE ?? false;
-      }
-
-      const relatedCalculation = assessment.form.calculations.find(
-        (calc) => calc.targetQuestionId === item.questionId,
-      );
-      const question: AssessmentQuestionItem = {
-        id: item.id,
-        position: item.position,
-        questionId: item.questionId,
-        name: dbQuestion.name,
-        iconKey: dbQuestion.iconKey,
-        minValue: dbQuestion.minValue,
-        maxValue: dbQuestion.maxValue,
-        isPublic: dbQuestion.isPublic,
-        allowResponseImages: dbQuestion.allowResponseImages,
-        notes: dbQuestion.notes,
-        questionType: dbQuestion.questionType,
-        characterType: dbQuestion.characterType,
-        optionType: dbQuestion.optionType,
-        options: dbQuestion.options,
-        geometryTypes: dbQuestion.geometryTypes,
-        calculationExpression: relatedCalculation?.expression,
-        categoryName: "placeholder",
-        subcategoryName: null,
-      };
-
-      const category = categories.find(
-        (c) => c.categoryId === dbQuestion.categoryId,
-      );
-      if (!category) {
-        throw new Error("Question's category not found");
-      }
-      question.categoryName = category.name;
-      if (dbQuestion.subcategoryId) {
-        const subcategory = category.categoryChildren.find(
-          (c): c is AssessmentSubcategoryItem =>
-            FormItemUtils.isSubcategoryType(c) &&
-            c.subcategoryId === dbQuestion.subcategoryId,
-        );
-        if (subcategory) {
-          question.subcategoryName = subcategory.name;
-          subcategory.questions.push(question);
-        }
-      } else {
-        category.categoryChildren.push(question);
-      }
-    }
-  }
-
-  categories.sort((a, b) => a.position - b.position);
-  categories.forEach((category) => {
-    category.categoryChildren.sort((a, b) => a.position - b.position);
-    category.categoryChildren.forEach((child) => {
-      if (FormItemUtils.isSubcategoryType(child)) {
-        child.questions.sort((a, b) => a.position - b.position);
-      }
-    });
-  });
-
-  return {
-    id: assessment.id,
-    startDate: assessment.startDate,
-    categories: filterEmptyAssessmentCategories(categories),
-    responsesFormValues,
-    geometries,
-  };
 };

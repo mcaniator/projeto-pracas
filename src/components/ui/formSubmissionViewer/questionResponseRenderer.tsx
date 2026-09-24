@@ -1,16 +1,16 @@
 "use client";
 
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import { type ReactNode, useState } from "react";
 
-import { AssessmentBooleanValueRenderer } from "./assessmentBooleanValueRenderer";
-import AssessmentGeometryDialog from "./assessmentGeometryDialog";
-import { AssessmentNumericValueRenderer } from "./assessmentNumericValueRenderer";
-import { AssessmentPercentageValueRenderer } from "./assessmentPercentageValueRenderer";
-import { AssessmentScaleValueRenderer } from "./assessmentScaleValueRenderer";
-import { AssessmentTextValueRenderer } from "./assessmentTextValueRenderer";
-import { AssessmentUnfilledValueRenderer } from "./assessmentUnfilledValueRenderer";
+import { BooleanValueRenderer } from "./booleanValueRenderer";
+import FormSubmissionGeometryDialog from "./geometryDialog";
+import { NumericValueRenderer } from "./numericValueRenderer";
+import { PercentageValueRenderer } from "./percentageValueRenderer";
+import { ScaleValueRenderer } from "./scaleValueRenderer";
+import { TextValueRenderer } from "./textValueRenderer";
+import { UnfilledValueRenderer } from "./unfilledValueRenderer";
 
 export type ResolvedQuestionValue =
   | { kind: "none" }
@@ -25,7 +25,7 @@ const QuestionResponseRenderer = ({
   geometries = [],
   locationPolygonGeoJson = null,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   resolvedValue: ResolvedQuestionValue;
   isPreview?: boolean;
   geometries?: ResponseGeometry[];
@@ -42,7 +42,7 @@ const QuestionResponseRenderer = ({
     <>
       {content}
       {hasGeometries && (
-        <AssessmentGeometryDialog
+        <FormSubmissionGeometryDialog
           open={openGeometryDialog}
           onClose={() => setOpenGeometryDialog(false)}
           questionName={question.name}
@@ -54,10 +54,7 @@ const QuestionResponseRenderer = ({
   );
   if (resolvedValue.kind === "none") {
     return renderWithGeometryDialog(
-      <AssessmentUnfilledValueRenderer
-        question={question}
-        {...geometryRendererProps}
-      />,
+      <UnfilledValueRenderer question={question} {...geometryRendererProps} />,
     );
   }
 
@@ -67,7 +64,7 @@ const QuestionResponseRenderer = ({
   ) {
     return renderWithGeometryDialog(
       <div className="flex flex-wrap gap-4">
-        <AssessmentBooleanValueRenderer
+        <BooleanValueRenderer
           question={question}
           value={resolvedValue.value}
           {...geometryRendererProps}
@@ -86,7 +83,7 @@ const QuestionResponseRenderer = ({
     return renderWithGeometryDialog(
       <div className="flex flex-wrap gap-4">
         {resolvedValue.values.map((value, index) => (
-          <AssessmentTextValueRenderer
+          <TextValueRenderer
             key={`${keyPrefix}-text-${index}`}
             question={question}
             value={value}
@@ -101,7 +98,7 @@ const QuestionResponseRenderer = ({
     return renderWithGeometryDialog(
       <div className="flex flex-wrap gap-4">
         {resolvedValue.values.map((value, index) => (
-          <AssessmentNumericValueRenderer
+          <NumericValueRenderer
             key={`${keyPrefix}-number-${index}`}
             question={question}
             value={value}
@@ -116,7 +113,7 @@ const QuestionResponseRenderer = ({
     return renderWithGeometryDialog(
       <>
         {resolvedValue.values.map((value, index) => (
-          <AssessmentScaleValueRenderer
+          <ScaleValueRenderer
             key={`${keyPrefix}-scale-${index}`}
             question={question}
             value={value}
@@ -134,7 +131,7 @@ const QuestionResponseRenderer = ({
     return renderWithGeometryDialog(
       <>
         {resolvedValue.values.map((value, index) => (
-          <AssessmentPercentageValueRenderer
+          <PercentageValueRenderer
             key={`${keyPrefix}-percentage-${index}`}
             question={question}
             value={value}

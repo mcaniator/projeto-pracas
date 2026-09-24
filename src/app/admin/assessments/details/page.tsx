@@ -1,8 +1,8 @@
 "use client";
 
 import Loading from "@/app/admin/loading";
-import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useUserContext } from "@/components/context/UserContext";
+import CCircularProgress from "@/components/ui/CCircularProgress";
 import {
   fetchAdminSQLiteAssessmentTree,
   fetchAdminSQLiteIfCanSaveAssessment,
@@ -76,7 +76,7 @@ const ResponsesContent = () => {
       if (!assessmentTree) return;
       const checkResponse = await fetchAdminSQLiteIfCanSaveAssessment({
         params: {
-          formId: assessmentTree.formId,
+          formId: assessmentTree.formSubmission.formTree.id,
           locationId: assessmentTree.location.id,
           userId: assessmentTree.user.id,
         },

@@ -5,14 +5,16 @@ import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharac
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { SimpleMention } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { SimpleMention } from "@/lib/types/formSubmission/responseFormTypes";
 
 const ResponseFormQuestionDescriptors = ({
   question,
+  calculationExpression,
   questionsForMention,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
+  calculationExpression?: string;
   questionsForMention: SimpleMention[];
 }) => {
   return (
@@ -32,7 +34,7 @@ const ResponseFormQuestionDescriptors = ({
       <CNotesChip notes={question.notes} name={question.name} />
       <CCalculationChip
         name={question.name}
-        expression={question.calculationExpression}
+        expression={calculationExpression}
         questions={questionsForMention}
       />
     </div>

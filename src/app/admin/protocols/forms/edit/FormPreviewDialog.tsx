@@ -1,26 +1,23 @@
 "use client";
 
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import AssessmentResultViewer, {
-  type PublicAssessmentCategoryItem,
-  type PublicAssessmentQuestionItem,
-  type PublicAssessmentSubcategoryItem,
-} from "@/components/ui/assessment/assessmentResultViewer";
 import CSwitch from "@/components/ui/cSwtich";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
+import type { ResponseFormValuesChange } from "@/components/ui/responseForm/responseFormV2";
 import type {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-  FetchAssessmentTreeResponse,
-} from "@/lib/serverFunctions/queries/assessment";
+  FormSubmissionCategoryItem,
+  FormSubmissionQuestionItem,
+  FormSubmissionSubcategoryItem,
+  GetFormSubmissionDataResult,
+} from "@/lib/serverFunctions/queries/formSubmission";
 import type {
   FormValues,
   ResponseFormGeometry,
+  ResponseFormImages,
   SerializedFormValues,
-} from "@/lib/types/assessments/responseFormTypes";
-import { Calculation } from "@/lib/utils/calculationUtils";
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
 import dynamic from "next/dynamic";
@@ -35,7 +32,7 @@ import type {
 } from "./clientV2";
 
 const ResponseFormV2 = dynamic(
-  () => import("@/app/admin/assessments/details/responseFormV2"),
+  () => import("@/components/ui/responseForm/responseFormV2"),
   {
     ssr: false,
     loading: () => <CLinearProgress label="Carregando prévia..." />,
@@ -55,11 +52,7 @@ const getInitialQuestionValue = (
   if (question.questionType === "OPTIONS") {
     return question.optionType === OptionTypes.CHECKBOX ? [] : null;
   }
-
-  if (question.questionType === "BOOLEAN") {
-    return false;
-  }
-
+  if (question.questionType === "BOOLEAN") return false;
   if (
     question.characterType === QuestionResponseCharacterTypes.NUMBER ||
     question.characterType === QuestionResponseCharacterTypes.PERCENTAGE ||
@@ -67,200 +60,79 @@ const getInitialQuestionValue = (
   ) {
     return null;
   }
-
   return "";
 };
 
-const toAssessmentQuestion = ({
-  question,
-  calculationExpression,
-}: {
-  question: QuestionItem;
-  calculationExpression?: string;
-}): PublicAssessmentQuestionItem => {
-  return {
-    ...question,
-    id: question.questionId,
-    options: question.options?.map((option) => ({
-      id: option.id,
-      text: option.text,
-      isOverridable: option.isOverridable ?? false,
-    })),
-    calculationExpression,
-  };
-};
+const toFormSubmissionQuestion = (
+  question: QuestionItem,
+): FormSubmissionQuestionItem => ({
+  ...question,
+  id: question.questionId,
+  options: question.options?.map((option) => ({
+    id: option.id,
+    text: option.text,
+    isOverridable: option.isOverridable ?? false,
+  })),
+});
 
-const toAssessmentSubcategory = ({
+const toFormSubmissionSubcategory = ({
   subcategory,
-  calculationByQuestionId,
   responsesFormValues,
 }: {
   subcategory: SubcategoryItem;
-  calculationByQuestionId: Map<number, CalculationParams>;
   responsesFormValues: SerializedFormValues;
-}): PublicAssessmentSubcategoryItem => ({
+}): FormSubmissionSubcategoryItem => ({
   ...subcategory,
   id: subcategory.subcategoryId,
   questions: subcategory.questions.map((question) => {
     responsesFormValues[String(question.questionId)] =
       getInitialQuestionValue(question);
-
-    return toAssessmentQuestion({
-      question,
-      calculationExpression: calculationByQuestionId.get(question.questionId)
-        ?.expression,
-    });
+    return toFormSubmissionQuestion(question);
   }),
 });
 
-const toAssessmentCategory = ({
+const toFormSubmissionCategory = ({
   category,
-  calculationByQuestionId,
   responsesFormValues,
 }: {
   category: CategoryItem;
-  calculationByQuestionId: Map<number, CalculationParams>;
   responsesFormValues: SerializedFormValues;
-}): PublicAssessmentCategoryItem => ({
+}): FormSubmissionCategoryItem => ({
   ...category,
   id: category.categoryId,
   categoryChildren: category.categoryChildren.map((child) => {
     if (FormItemUtils.isSubcategoryType(child)) {
-      return toAssessmentSubcategory({
+      return toFormSubmissionSubcategory({
         subcategory: child,
-        calculationByQuestionId,
         responsesFormValues,
       });
     }
 
     responsesFormValues[String(child.questionId)] =
       getInitialQuestionValue(child);
-
-    return toAssessmentQuestion({
-      question: child,
-      calculationExpression: calculationByQuestionId.get(child.questionId)
-        ?.expression,
-    });
+    return toFormSubmissionQuestion(child);
   }),
 });
 
-const countQuestions = (formTree: FormEditorTree) =>
-  formTree.categories.reduce((total, category) => {
-    const categoryQuestions = category.categoryChildren.reduce(
-      (categoryTotal, child) => {
-        if (FormItemUtils.isSubcategoryType(child)) {
-          return categoryTotal + child.questions.length;
-        }
-
-        return categoryTotal + 1;
-      },
-      0,
-    );
-
-    return total + categoryQuestions;
-  }, 0);
-
-const isAssessmentSubcategoryItem = (
-  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
-): item is AssessmentSubcategoryItem => {
-  return "questions" in item;
-};
-
-const forEachAssessmentQuestion = (
-  categories: AssessmentCategoryItem[],
-  callback: (question: AssessmentQuestionItem) => void,
-) => {
-  categories.forEach((category) => {
-    category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
-        child.questions.forEach(callback);
-        return;
-      }
-
-      callback(child);
-    });
-  });
-};
-
-const buildResultValues = ({
-  categories,
-  values,
-}: {
-  categories: AssessmentCategoryItem[];
-  values: FormValues;
-}) => {
-  const resultValues: FormValues = { ...values };
-  const numericResponses = new Map<number, number>();
-
-  Object.entries(values).forEach(([questionId, value]) => {
-    if (typeof value === "number" && Number.isFinite(value)) {
-      numericResponses.set(Number(questionId), value);
-    }
-  });
-
-  forEachAssessmentQuestion(categories, (question) => {
-    if (!question.calculationExpression) {
-      return;
-    }
-
-    const value = new Calculation(
-      question.calculationExpression,
-      numericResponses,
-    ).evaluate();
-
-    resultValues[String(question.questionId)] = value;
-
-    if (typeof value === "number" && Number.isFinite(value)) {
-      numericResponses.set(question.questionId, value);
-    }
-  });
-
-  return resultValues;
-};
-
-const buildPreviewAssessmentTree = ({
+const buildFormSubmissionData = ({
   formTree,
   formCalculations,
 }: {
   formTree: FormEditorTree;
   formCalculations: CalculationParams[];
-}): FetchAssessmentTreeResponse["assessmentTree"] => {
+}): GetFormSubmissionDataResult => {
   const responsesFormValues: SerializedFormValues = {};
-  const calculationByQuestionId = new Map(
-    formCalculations.map((calculation) => [
-      calculation.targetQuestionId,
-      calculation,
-    ]),
-  );
 
   return {
-    id: -1,
-    startDate: new Date(),
-    endDate: null,
-    isFinalized: false,
-    formName: formTree.name,
-    formId: formTree.id,
-    totalQuestions: countQuestions(formTree),
-    updatedAt: new Date(),
+    formTree: {
+      ...formTree,
+      categories: formTree.categories.map((category) =>
+        toFormSubmissionCategory({ category, responsesFormValues }),
+      ),
+    },
+    calculations: formCalculations,
     responsesFormValues,
     geometries: [],
-    user: {
-      username: "",
-      id: "",
-    },
-    location: {
-      id: -1,
-      name: "Praça",
-      st_asgeojson: null,
-    },
-    categories: formTree.categories.map((category) =>
-      toAssessmentCategory({
-        category,
-        calculationByQuestionId,
-        responsesFormValues,
-      }),
-    ),
-    driveFolderUrl: null,
   };
 };
 
@@ -277,45 +149,31 @@ const FormPreviewDialog = ({
 }) => {
   const [viewMode, setViewMode] = useState<PreviewViewMode>("form");
   const [showOnlyPublicQuestions, setShowOnlyPublicQuestions] = useState(false);
-  const assessmentTree = useMemo(
-    () => buildPreviewAssessmentTree({ formTree, formCalculations }),
+  const formSubmission = useMemo(
+    () => buildFormSubmissionData({ formTree, formCalculations }),
     [formTree, formCalculations],
   );
   const [previewValues, setPreviewValues] = useState<FormValues>(
-    assessmentTree.responsesFormValues,
+    formSubmission.responsesFormValues,
   );
   const [previewGeometries, setPreviewGeometries] = useState<
     ResponseFormGeometry[]
-  >(assessmentTree.geometries);
+  >([]);
+  const [previewImages, setPreviewImages] = useState<ResponseFormImages>({});
 
   useEffect(() => {
-    setPreviewValues(assessmentTree.responsesFormValues);
-    setPreviewGeometries(assessmentTree.geometries);
+    setPreviewValues(formSubmission.responsesFormValues);
+    setPreviewGeometries([]);
+    setPreviewImages({});
     setViewMode("form");
     setShowOnlyPublicQuestions(false);
-  }, [assessmentTree]);
+  }, [formSubmission]);
 
-  const handleValuesChange = useCallback((values: FormValues) => {
-    setPreviewValues({ ...values });
-  }, []);
-
-  const handleGeometriesChange = useCallback(
-    (geometries: ResponseFormGeometry[]) => {
-      setPreviewGeometries(geometries);
+  const handleValuesChange = useCallback(
+    ({ values }: ResponseFormValuesChange) => {
+      setPreviewValues({ ...values });
     },
     [],
-  );
-
-  const resultAssessmentTree = useMemo(
-    () => ({
-      ...assessmentTree,
-      responsesFormValues: buildResultValues({
-        categories: assessmentTree.categories,
-        values: previewValues,
-      }),
-      geometries: previewGeometries,
-    }),
-    [assessmentTree, previewGeometries, previewValues],
   );
 
   return (
@@ -332,9 +190,7 @@ const FormPreviewDialog = ({
           value={viewMode}
           getLabel={(option) => option.label}
           getValue={(option) => option.value}
-          onChange={(_, option) => {
-            setViewMode(option.value);
-          }}
+          onChange={(_, option) => setViewMode(option.value)}
         />
       </div>
 
@@ -347,15 +203,13 @@ const FormPreviewDialog = ({
       >
         <h5 className="text-xl font-bold">Preenchimento</h5>
         <ResponseFormV2
-          locationId={-1}
-          locationName="Preview"
-          locationPolygonGeoJson={null}
-          assessmentTree={assessmentTree}
-          finalized={false}
-          userCanEdit
-          isPreview
+          formSubmission={formSubmission}
+          geometries={previewGeometries}
+          responseImages={previewImages}
+          readOnly={false}
           onValuesChange={handleValuesChange}
-          onGeometriesChange={handleGeometriesChange}
+          onGeometriesChange={setPreviewGeometries}
+          onImagesChange={setPreviewImages}
         />
       </div>
 
@@ -365,12 +219,14 @@ const FormPreviewDialog = ({
           <CSwitch
             checked={showOnlyPublicQuestions}
             label="Mostrar apenas questões públicas"
-            onChange={(_, checked) => {
-              setShowOnlyPublicQuestions(checked);
-            }}
+            onChange={(_, checked) => setShowOnlyPublicQuestions(checked)}
           />
-          <AssessmentResultViewer
-            assessment={resultAssessmentTree}
+          <FormSubmissionViewer
+            formSubmission={{
+              formTree: formSubmission.formTree,
+              responsesFormValues: previewValues,
+              geometries: previewGeometries,
+            }}
             filterNonPublicQuestions={showOnlyPublicQuestions}
           />
         </div>

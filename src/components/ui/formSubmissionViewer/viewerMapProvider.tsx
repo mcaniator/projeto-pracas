@@ -1,6 +1,6 @@
 "use client";
 
-import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import type { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -38,7 +38,7 @@ const styleFunction = () =>
     }),
   });
 
-const AssessmentViewerMapProvider = ({
+const FormSubmissionViewerMapProvider = ({
   geometries,
   locationPolygonGeoJson,
 }: {
@@ -129,11 +129,11 @@ const AssessmentViewerMapProvider = ({
 
   return (
     <div
-      id="assessment-viewer-map"
+      id="form-submission-viewer-map"
       className="relative h-full w-full overflow-clip"
       ref={mapRef}
     />
   );
 };
 
-export default AssessmentViewerMapProvider;
+export default FormSubmissionViewerMapProvider;

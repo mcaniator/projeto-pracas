@@ -1,4 +1,4 @@
-import { BooleanResponseValue } from "@/lib/enums/assessmentResponse";
+import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import {
   dateFormatter,
   hourFormatter,
@@ -160,6 +160,7 @@ export const _exportAssessments = async (
       orderBy: [{ id: "asc" }, { startDate: "asc" }],
       select: {
         id: true,
+        formSubmissionId: true,
         endDate: true,
         startDate: true,
         user: {
@@ -223,26 +224,29 @@ export const _exportAssessments = async (
       },
     });
 
+    const formSubmissionIds = assessments.map(
+      (assessment) => assessment.formSubmissionId,
+    );
     const responses = await prisma.response.findMany({
       where: {
-        assessmentId: { in: assessmentIds },
+        formSubmissionId: { in: formSubmissionIds },
       },
       select: {
         id: true,
         questionId: true,
-        assessmentId: true,
+        formSubmissionId: true,
         response: true,
       },
     });
 
     const responsesOptions = await prisma.responseOption.findMany({
       where: {
-        assessmentId: { in: assessmentIds },
+        formSubmissionId: { in: formSubmissionIds },
       },
       select: {
         id: true,
         questionId: true,
-        assessmentId: true,
+        formSubmissionId: true,
         overrideValue: true,
         option: {
           select: {
@@ -461,7 +465,7 @@ export const _exportAssessments = async (
                   responseValue =
                     responses.find(
                       (r) =>
-                        r.assessmentId === assessment.id &&
+                        r.formSubmissionId === assessment.formSubmissionId &&
                         r.questionId === question.questionId,
                     )?.response || "";
                 } else if (question.questionType === "OPTIONS") {
@@ -469,7 +473,7 @@ export const _exportAssessments = async (
                     responsesOptions
                       .filter(
                         (r) =>
-                          r.assessmentId === assessment.id &&
+                          r.formSubmissionId === assessment.formSubmissionId &&
                           r.questionId === question.questionId,
                       )
                       .map((r) => {
@@ -487,7 +491,7 @@ export const _exportAssessments = async (
                   const checked =
                     responses.find(
                       (r) =>
-                        r.assessmentId === assessment.id &&
+                        r.formSubmissionId === assessment.formSubmissionId &&
                         r.questionId === question.questionId,
                     )?.response === BooleanResponseValue.TRUE;
                   if (checked) {
@@ -505,7 +509,7 @@ export const _exportAssessments = async (
                 responseValue =
                   responses.find(
                     (r) =>
-                      r.assessmentId === assessment.id &&
+                      r.formSubmissionId === assessment.formSubmissionId &&
                       r.questionId === child.questionId,
                   )?.response || "";
                 if (child.characterType === "PERCENTAGE") {
@@ -516,7 +520,7 @@ export const _exportAssessments = async (
                   responsesOptions
                     .filter(
                       (r) =>
-                        r.assessmentId === assessment.id &&
+                        r.formSubmissionId === assessment.formSubmissionId &&
                         r.questionId === child.questionId,
                     )
                     .map((r) => {
@@ -534,7 +538,7 @@ export const _exportAssessments = async (
                 const checked =
                   responses.find(
                     (r) =>
-                      r.assessmentId === assessment.id &&
+                      r.formSubmissionId === assessment.formSubmissionId &&
                       r.questionId === child.questionId,
                   )?.response === BooleanResponseValue.TRUE;
                 if (checked) {

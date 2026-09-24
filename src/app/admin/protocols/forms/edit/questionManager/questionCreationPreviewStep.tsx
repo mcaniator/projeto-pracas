@@ -1,19 +1,19 @@
 "use client";
 
-import QuestionResponseRenderer from "@/components/ui/assessment/questionResponseRenderer";
+import QuestionResponseRenderer from "@/components/ui/formSubmissionViewer/questionResponseRenderer";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import {
   ResponseFormGeometry,
   ResponseFormImages,
   ResponseQuestionValue,
-} from "@/lib/types/assessments/responseFormTypes";
-import { resolveQuestionValue } from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
+} from "@/lib/types/formSubmission/responseFormTypes";
+import { resolveQuestionValue } from "@/lib/utils/formSubmissionViewer/formSubmissionViewerUtils";
 import { useEffect, useMemo, useState } from "react";
 
 import type { QuestionCreationDraft } from "./questionCreationTypes";
@@ -26,7 +26,7 @@ const buildPreviewQuestion = ({
   draft: QuestionCreationDraft;
   categoryName: string | undefined;
   subcategoryName: string | undefined;
-}): AssessmentQuestionItem => {
+}): FormSubmissionQuestionItem => {
   const options =
     draft.questionType === "OPTIONS" ?
       draft.options.map((option, index) => ({
@@ -54,7 +54,6 @@ const buildPreviewQuestion = ({
     options,
     allowResponseImages: draft.allowResponseImages,
     geometryTypes: draft.hasAssociatedGeometry ? draft.geometryTypes : [],
-    calculationExpression: undefined,
   };
 };
 

@@ -1,15 +1,15 @@
 "use client";
 
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import type { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import dynamic from "next/dynamic";
 
-const AssessmentViewerMapProvider = dynamic(
-  () => import("./assessmentViewerMapProvider"),
+const FormSubmissionViewerMapProvider = dynamic(
+  () => import("./viewerMapProvider"),
   { ssr: false },
 );
 
-const AssessmentGeometryDialog = ({
+const FormSubmissionGeometryDialog = ({
   geometries,
   locationPolygonGeoJson,
   onClose,
@@ -31,7 +31,7 @@ const AssessmentGeometryDialog = ({
     onClose={onClose}
   >
     <div className="flex h-full flex-col">
-      <AssessmentViewerMapProvider
+      <FormSubmissionViewerMapProvider
         geometries={geometries}
         locationPolygonGeoJson={locationPolygonGeoJson}
       />
@@ -39,4 +39,4 @@ const AssessmentGeometryDialog = ({
   </CDialog>
 );
 
-export default AssessmentGeometryDialog;
+export default FormSubmissionGeometryDialog;

@@ -5,7 +5,7 @@ import {
   saveAdminSQLiteAssessmentDraft,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { dexieDb } from "@/lib/dexie/dexie";
-import type { AssessmentDraft } from "@/lib/types/assessments/responseFormTypes";
+import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import { Capacitor } from "@capacitor/core";
 
 export const saveAssessmentResponsesDraft = async (draft: AssessmentDraft) => {

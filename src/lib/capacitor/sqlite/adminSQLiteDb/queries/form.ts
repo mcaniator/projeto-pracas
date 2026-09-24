@@ -1,9 +1,9 @@
-import type { CalculationParams } from "@/app/admin/forms/[formId]/edit/calculations/calculationDialog";
+import type { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
 import type {
   CategoryItem,
   QuestionItem,
   SubcategoryItem,
-} from "@/app/admin/forms/[formId]/edit/clientV2";
+} from "@/app/admin/protocols/forms/edit/clientV2";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type {

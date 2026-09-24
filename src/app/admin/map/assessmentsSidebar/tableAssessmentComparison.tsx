@@ -1,21 +1,21 @@
 "use client";
 
-import QuestionResponseRenderer from "@/components/ui/assessment/questionResponseRenderer";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import QuestionResponseRenderer from "@/components/ui/formSubmissionViewer/questionResponseRenderer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-} from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormSubmissionCategoryItem,
+  FormSubmissionQuestionItem,
+  FormSubmissionSubcategoryItem,
+} from "@/lib/serverFunctions/queries/formSubmission";
 import {
   FetchMapAssessmentComparisonAssessmentTreesResponse,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import {
-  resolveAssessmentQuestionGeometries,
-  resolveAssessmentQuestionValue,
-} from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
+  resolveFormSubmissionQuestionGeometries,
+  resolveFormSubmissionQuestionValue,
+} from "@/lib/utils/formSubmissionViewer/formSubmissionViewerUtils";
 import { IconCalendar, IconChartBar } from "@tabler/icons-react";
 import { type CSSProperties, Fragment, useMemo, useState } from "react";
 
@@ -123,41 +123,41 @@ const mergeCellStyles = (
   );
 };
 
-const isAssessmentSubcategoryItem = (
-  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
-): item is AssessmentSubcategoryItem => {
+const isFormSubmissionSubcategoryItem = (
+  item: FormSubmissionQuestionItem | FormSubmissionSubcategoryItem,
+): item is FormSubmissionSubcategoryItem => {
   return "questions" in item;
 };
 
 const cloneQuestion = (
-  question: AssessmentQuestionItem,
-): AssessmentQuestionItem => ({
+  question: FormSubmissionQuestionItem,
+): FormSubmissionQuestionItem => ({
   ...question,
   options: question.options ? [...question.options] : undefined,
 });
 
 const cloneCategory = (
-  category: AssessmentCategoryItem,
-): AssessmentCategoryItem => ({
+  category: FormSubmissionCategoryItem,
+): FormSubmissionCategoryItem => ({
   ...category,
   categoryChildren: [],
 });
 
 const cloneSubcategory = (
-  subcategory: AssessmentSubcategoryItem,
-): AssessmentSubcategoryItem => ({
+  subcategory: FormSubmissionSubcategoryItem,
+): FormSubmissionSubcategoryItem => ({
   ...subcategory,
   questions: [],
 });
 
 const buildComparisonCategories = (
   assessments: (ComparisonAssessmentTree | null)[],
-): AssessmentCategoryItem[] => {
-  const categories: AssessmentCategoryItem[] = [];
+): FormSubmissionCategoryItem[] => {
+  const categories: FormSubmissionCategoryItem[] = [];
   const includedQuestionIds = new Set<number>();
 
   assessments.forEach((assessment) => {
-    assessment?.categories.forEach((category) => {
+    assessment?.formSubmission.formTree.categories.forEach((category) => {
       let comparisonCategory = categories.find(
         (existingCategory) =>
           existingCategory.categoryId === category.categoryId,
@@ -169,10 +169,10 @@ const buildComparisonCategories = (
       }
 
       category.categoryChildren.forEach((child) => {
-        if (isAssessmentSubcategoryItem(child)) {
+        if (isFormSubmissionSubcategoryItem(child)) {
           let comparisonSubcategory = comparisonCategory.categoryChildren.find(
-            (existingChild): existingChild is AssessmentSubcategoryItem =>
-              isAssessmentSubcategoryItem(existingChild) &&
+            (existingChild): existingChild is FormSubmissionSubcategoryItem =>
+              isFormSubmissionSubcategoryItem(existingChild) &&
               existingChild.subcategoryId === child.subcategoryId,
           );
 
@@ -203,11 +203,11 @@ const buildComparisonCategories = (
 };
 
 const buildQuestionMap = (assessment: ComparisonAssessmentTree | null) => {
-  const questionMap = new Map<number, AssessmentQuestionItem>();
+  const questionMap = new Map<number, FormSubmissionQuestionItem>();
 
-  assessment?.categories.forEach((category) => {
+  assessment?.formSubmission.formTree.categories.forEach((category) => {
     category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
+      if (isFormSubmissionSubcategoryItem(child)) {
         child.questions.forEach((question) => {
           questionMap.set(question.questionId, question);
         });
@@ -280,7 +280,7 @@ type ComparisonLocation = {
   location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
   locationNumber: number;
   locationPolygonGeoJson: string | null;
-  questionMap: Map<number, AssessmentQuestionItem>;
+  questionMap: Map<number, FormSubmissionQuestionItem>;
   selectedAssessment: ComparisonAssessmentTree | null;
 };
 
@@ -291,7 +291,7 @@ const QuestionComparisonCell = ({
 }: {
   cellStyle?: CSSProperties;
   comparisonLocation: ComparisonLocation;
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
 }) => {
   const assessmentQuestion = comparisonLocation.questionMap.get(
     question.questionId,
@@ -309,12 +309,12 @@ const QuestionComparisonCell = ({
         <span className="text-sm italic text-gray-600">(Não avaliado)</span>
       : <QuestionResponseRenderer
           question={assessmentQuestion}
-          resolvedValue={resolveAssessmentQuestionValue(
-            comparisonLocation.selectedAssessment,
+          resolvedValue={resolveFormSubmissionQuestionValue(
+            comparisonLocation.selectedAssessment.formSubmission,
             assessmentQuestion,
           )}
-          geometries={resolveAssessmentQuestionGeometries(
-            comparisonLocation.selectedAssessment,
+          geometries={resolveFormSubmissionQuestionGeometries(
+            comparisonLocation.selectedAssessment.formSubmission,
             assessmentQuestion,
           )}
           locationPolygonGeoJson={comparisonLocation.locationPolygonGeoJson}
@@ -480,7 +480,7 @@ const TableAssessmentComparison = ({
                       const isLastCategoryChild =
                         childIndex === category.categoryChildren.length - 1;
 
-                      if (isAssessmentSubcategoryItem(child)) {
+                      if (isFormSubmissionSubcategoryItem(child)) {
                         const subcategoryColor = getSubcategoryColor(
                           categoryIndex,
                           childIndex,

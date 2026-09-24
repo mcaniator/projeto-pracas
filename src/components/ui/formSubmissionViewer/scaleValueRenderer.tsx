@@ -1,19 +1,19 @@
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import { Box } from "@mui/material";
 import { IconChevronDown } from "@tabler/icons-react";
 
-import AssessmentQuestionIcon from "./assessmentQuestionIcon";
-import type { AssessmentQuestionIconGeometryProps } from "./assessmentQuestionIcon";
+import QuestionIcon from "./questionIcon";
+import type { QuestionIconGeometryProps } from "./questionIcon";
 
-export const AssessmentScaleValueRenderer = ({
+export const ScaleValueRenderer = ({
   question,
   value,
   hasGeometries,
   onMapChipClick,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: number;
-} & AssessmentQuestionIconGeometryProps) => {
+} & QuestionIconGeometryProps) => {
   if (question.minValue == null || question.maxValue == null) return null;
   const { minValue, maxValue } = question;
 
@@ -24,7 +24,7 @@ export const AssessmentScaleValueRenderer = ({
 
   return (
     <div className="flex w-full items-center gap-3">
-      <AssessmentQuestionIcon
+      <QuestionIcon
         question={question}
         hasValue={true}
         hasGeometries={hasGeometries}

@@ -1,22 +1,22 @@
-import AssessmentQuestionIcon, {
-  type AssessmentQuestionIconGeometryProps,
-} from "@/components/ui/assessment/assessmentQuestionIcon";
-import { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import QuestionIcon, {
+  type QuestionIconGeometryProps,
+} from "@/components/ui/formSubmissionViewer/questionIcon";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import { Chip } from "@mui/material";
 import { IconCheck, IconX } from "@tabler/icons-react";
 
-export const AssessmentBooleanValueRenderer = ({
+export const BooleanValueRenderer = ({
   question,
   value,
   hasGeometries,
   onMapChipClick,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: boolean;
-} & AssessmentQuestionIconGeometryProps) => {
+} & QuestionIconGeometryProps) => {
   return (
     <div className="inline-flex items-start">
-      <AssessmentQuestionIcon
+      <QuestionIcon
         question={question}
         hasValue={value}
         hasGeometries={hasGeometries}

@@ -1,48 +1,21 @@
 "use client";
 
-import type {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-} from "@/lib/serverFunctions/queries/assessment";
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import type { GetFormSubmissionDataResult } from "@/lib/serverFunctions/queries/formSubmission";
+import type { FormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import { useEffect, useMemo } from "react";
-import {
-  type Control,
-  type UseFormSetValue,
-  useWatch,
-} from "react-hook-form";
-
-const isAssessmentSubcategoryItem = (
-  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
-): item is AssessmentSubcategoryItem => "questions" in item;
+import { type Control, type UseFormSetValue, useWatch } from "react-hook-form";
 
 const CalculationSynchronizer = ({
-  categories,
+  calculations,
   control,
   setValue,
 }: {
-  categories: AssessmentCategoryItem[];
+  calculations: GetFormSubmissionDataResult["calculations"];
   control: Control<FormValues, unknown, FormValues>;
   setValue: UseFormSetValue<FormValues>;
 }) => {
   const allValues = useWatch({ control });
-  const calculatedQuestions = useMemo(
-    () =>
-      categories.flatMap((category) =>
-        category.categoryChildren.flatMap((child) => {
-          if (isAssessmentSubcategoryItem(child)) {
-            return child.questions.filter(
-              (question) => question.calculationExpression,
-            );
-          }
-
-          return child.calculationExpression ? [child] : [];
-        }),
-      ),
-    [categories],
-  );
   const numericResponses = useMemo(() => {
     const responses = new Map<number, number>();
 
@@ -56,12 +29,12 @@ const CalculationSynchronizer = ({
   }, [allValues]);
 
   useEffect(() => {
-    calculatedQuestions.forEach((question) => {
+    calculations.forEach((calculation) => {
       const value = new Calculation(
-        question.calculationExpression,
+        calculation.expression,
         numericResponses,
       ).evaluate();
-      const fieldName = String(question.questionId);
+      const fieldName = String(calculation.targetQuestionId);
 
       if (!Object.is(allValues[fieldName], value)) {
         setValue(fieldName, value, {
@@ -71,7 +44,7 @@ const CalculationSynchronizer = ({
         });
       }
     });
-  }, [allValues, calculatedQuestions, numericResponses, setValue]);
+  }, [allValues, calculations, numericResponses, setValue]);
 
   return null;
 };

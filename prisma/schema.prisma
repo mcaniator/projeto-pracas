@@ -305,15 +305,15 @@ model Question {
 }
 
 model QuestionGeometry {
-  id           Int        @id @default(autoincrement())
-  questionId   Int        @map("question_id")
-  question     Question   @relation(fields: [questionId], references: [id])
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+  id               Int            @id @default(autoincrement())
+  questionId       Int            @map("question_id")
+  question         Question       @relation(fields: [questionId], references: [id])
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   geometry Unsupported("Geometry")?
 
-  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
   @@map("question_geometry")
 }
 
@@ -336,8 +336,8 @@ model Response {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -346,7 +346,7 @@ model Response {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
   @@map("response")
 }
 
@@ -372,8 +372,8 @@ model ResponseOption {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -388,14 +388,31 @@ model ResponseOption {
   @@map("response_option")
 }
 
+model FormSubmission {
+  id Int @id @default(autoincrement())
+
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  assessment      Assessment?
+  geometries      QuestionGeometry[]
+  responses       Response[]
+  responseOptions ResponseOption[]
+
+  @@index([formId])
+  @@unique([id, formId])
+  @@map("form_submission")
+}
+
 model Form {
-  id           Int           @id @default(autoincrement())
-  name         String        @db.VarChar(255)
-  archived     Boolean       @default(false)
-  finalized    Boolean       @default(false)
-  assessment   Assessment[]
-  calculations Calculation[]
-  formItems    FormItem[]
+  id              Int              @id @default(autoincrement())
+  name            String           @db.VarChar(255)
+  archived        Boolean          @default(false)
+  finalized       Boolean          @default(false)
+  assessment      Assessment[]
+  calculations    Calculation[]
+  formSubmissions FormSubmission[]
+  formItems       FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -583,15 +600,15 @@ model Assessment {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  question       Question[]
-  response       Response[]
-  responseOption ResponseOption[]
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId, formId], references: [id, formId])
 
-  geometries QuestionGeometry[]
+  question Question[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([formSubmissionId, formId])
   @@map("assessment")
 }
 

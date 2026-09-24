@@ -57,20 +57,20 @@ export const simpleMentionSchema = z.object({
 
 export type SimpleMention = z.infer<typeof simpleMentionSchema>;
 
-export const assessmentOptionValueWithOverrideSchema = z.object({
+export const formSubmissionOptionValueWithOverrideSchema = z.object({
   value: z.number(),
   override: z.string().nullable(),
 });
 
-export type AssessmentOptionValueWithOverride = z.infer<
-  typeof assessmentOptionValueWithOverrideSchema
+export type FormSubmissionOptionValueWithOverride = z.infer<
+  typeof formSubmissionOptionValueWithOverrideSchema
 >;
 
 export const responseQuestionValueSchema = z.union([
   z.string(),
   z.number(),
-  assessmentOptionValueWithOverrideSchema,
-  z.array(assessmentOptionValueWithOverrideSchema),
+  formSubmissionOptionValueWithOverrideSchema,
+  z.array(formSubmissionOptionValueWithOverrideSchema),
   z.boolean(),
   z.custom<Dayjs>(dayjs.isDayjs),
   z.null(),
@@ -90,7 +90,7 @@ export type SerializedOptionValueWithOverride = z.infer<
 export const serializedResponseQuestionValueSchema = z.union([
   z.string(),
   z.number(),
-  assessmentOptionValueWithOverrideSchema,
+  formSubmissionOptionValueWithOverrideSchema,
   z.array(serializedOptionValueWithOverrideSchema),
   z.boolean(),
   z.null(),
@@ -114,31 +114,16 @@ export const serializedFormValuesSchema = z.record(
 
 export type SerializedFormValues = z.infer<typeof serializedFormValuesSchema>;
 
-export const assessmentDraftSchema = z.object({
-  id: z.coerce.number(),
-  userId: z.string(),
-  username: z.string(),
-  serverUpdatedAt: z.coerce.date(),
-  localUpdatedAt: z.coerce.date(),
-  isFinalized: z.boolean(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  driveFolderUrl: z.string().nullable(),
-  responseFormValues: serializedFormValuesSchema,
-  geometries: z.array(responseFormGeometrySchema),
-});
-
-export type AssessmentDraft = z.infer<typeof assessmentDraftSchema>;
-
-export function isAssessmentOptionValueWithOverride(
+export function isFormSubmissionOptionValueWithOverride(
   rawValue: ResponseQuestionValue | undefined,
-): rawValue is AssessmentOptionValueWithOverride {
-  return assessmentOptionValueWithOverrideSchema.safeParse(rawValue).success;
+): rawValue is FormSubmissionOptionValueWithOverride {
+  return formSubmissionOptionValueWithOverrideSchema.safeParse(rawValue)
+    .success;
 }
 
-export function isAssessmentOptionValueWithOverrideArray(
+export function isFormSubmissionOptionValueWithOverrideArray(
   value: unknown,
-): value is AssessmentOptionValueWithOverride[] {
-  return z.array(assessmentOptionValueWithOverrideSchema).safeParse(value)
+): value is FormSubmissionOptionValueWithOverride[] {
+  return z.array(formSubmissionOptionValueWithOverrideSchema).safeParse(value)
     .success;
 }
