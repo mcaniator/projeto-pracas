@@ -98,7 +98,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
-    const categories = formSubmission.formTree.categories;
+    const categories = formSubmission.formStructure.formTree.categories;
     const defaultResponseFormValues = useMemo(
       () =>
         deserializeResponseFormValues(
@@ -114,12 +114,12 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const calculationByQuestionId = useMemo(
       () =>
         new Map(
-          formSubmission.calculations.map((calculation) => [
+          formSubmission.formStructure.calculations.map((calculation) => [
             calculation.targetQuestionId,
             calculation,
           ]),
         ),
-      [formSubmission.calculations],
+      [formSubmission.formStructure.calculations],
     );
     const virtuosoComponents = useMemo(
       () => ({
@@ -308,7 +308,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         className="flex h-full min-h-0 w-full flex-1 flex-col"
       >
         <CalculationSynchronizer
-          calculations={formSubmission.calculations}
+          calculations={formSubmission.formStructure.calculations}
           control={control}
           setValue={setValue}
         />
@@ -356,7 +356,7 @@ ResponseFormV2.displayName = "ResponseFormV2";
 
 type CalculationByQuestionId = Map<
   number,
-  GetFormSubmissionDataResult["calculations"][number]
+  GetFormSubmissionDataResult["formStructure"]["calculations"][number]
 >;
 
 type SharedQuestionProps = {

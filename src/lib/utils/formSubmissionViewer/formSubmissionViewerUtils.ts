@@ -13,7 +13,7 @@ import {
 import dayjs from "dayjs";
 
 export type FormSubmissionViewerData = {
-  formTree: GetFormSubmissionDataResult["formTree"];
+  formStructure: GetFormSubmissionDataResult["formStructure"];
   responsesFormValues: FormValues;
   geometries: {
     questionId: number;

@@ -55,8 +55,8 @@ const FormSubmissionViewer = ({
 }: FormSubmissionViewerProps) => {
   const categories =
     filterNonPublicQuestions ?
-      filterPublicCategories(formSubmission.formTree.categories)
-    : formSubmission.formTree.categories;
+      filterPublicCategories(formSubmission.formStructure.formTree.categories)
+    : formSubmission.formStructure.formTree.categories;
 
   return (
     <div className="flex flex-col gap-5">

@@ -2,8 +2,8 @@
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import {
-  getAssessmentsDraftsIds,
-  loadAssessmentResponsesDraft,
+  fetchAssessmentDraftIds,
+  fetchAssessmentResponsesDraft,
 } from "@/app/admin/assessments/details/responseFormUtil";
 import {
   fetchAdminSQLiteAssessments,
@@ -102,7 +102,7 @@ const AssessmentsClient = () => {
 
   const getUnsavedAssessmentIds = useCallback(async () => {
     if (!unsavedAssessmentIdsPromiseRef.current) {
-      unsavedAssessmentIdsPromiseRef.current = getAssessmentsDraftsIds();
+      unsavedAssessmentIdsPromiseRef.current = fetchAssessmentDraftIds();
     }
 
     return unsavedAssessmentIdsPromiseRef.current;
@@ -114,7 +114,7 @@ const AssessmentsClient = () => {
       return assessments.map(async (assessment) => {
         if (unsavedAssessmentIds.has(assessment.id)) {
           //If the assessment has unsynced filling, we need to fetch it from draft and insert the local unsynced data into the assessment
-          const localAssessment = await loadAssessmentResponsesDraft(
+          const localAssessment = await fetchAssessmentResponsesDraft(
             assessment.id,
           );
           if (!localAssessment) {

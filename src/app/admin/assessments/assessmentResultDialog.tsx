@@ -68,7 +68,7 @@ const AssessmentResultDialog = ({
       {!loading && assessmentTree && (
         <FormSubmissionViewer
           formSubmission={{
-            formTree: assessmentTree.formSubmission.formTree,
+            formStructure: assessmentTree.formSubmission.formStructure,
             responsesFormValues:
               assessmentTree.formSubmission.responsesFormValues,
             geometries: assessmentTree.formSubmission.geometries,

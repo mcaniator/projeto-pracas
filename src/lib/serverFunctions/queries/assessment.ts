@@ -15,10 +15,10 @@ export type {
   FormSubmissionSubcategoryItem as AssessmentSubcategoryItem,
 } from "./formSubmission";
 
-export type FetchRecentlyCompletedAssessmentsResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchRecentlyCompletedAssessments>>["data"]
+export type GetRecentlyCompletedAssessmentsResponse = NonNullable<
+  Awaited<ReturnType<typeof getRecentlyCompletedAssessments>>["data"]
 >;
-const fetchRecentlyCompletedAssessments = async () => {
+const getRecentlyCompletedAssessments = async () => {
   try {
     const assessments = await prisma.assessment.findMany({
       where: {
@@ -213,11 +213,11 @@ const fetchAssessmentTree = async (
   }
 };
 
-export type FetchPublicAssessmentTreeResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchPublicAssessmentTree>>["data"]
+export type GetPublicAssessmentTreeResponse = NonNullable<
+  Awaited<ReturnType<typeof getPublicAssessmentTree>>["data"]
 >;
 
-const fetchPublicAssessmentTree = async (params: { assessmentId: number }) =>
+const getPublicAssessmentTree = async (params: { assessmentId: number }) =>
   fetchAssessmentTree({
     params: {
       assessmentId: params.assessmentId,
@@ -373,8 +373,8 @@ export const fetchPublicAssessments = async (
 };
 
 export {
-  fetchRecentlyCompletedAssessments,
+  getRecentlyCompletedAssessments,
   fetchAssessmentTree,
   fetchAssessments,
-  fetchPublicAssessmentTree,
+  getPublicAssessmentTree,
 };

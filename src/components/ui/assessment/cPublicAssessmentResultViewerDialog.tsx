@@ -4,8 +4,8 @@ import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmi
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import {
-  FetchPublicAssessmentTreeResponse,
   FetchPublicAssessmentsResponse,
+  GetPublicAssessmentTreeResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import { useEffect, useState } from "react";
 
@@ -21,7 +21,7 @@ const CPublicAssessmentResultViewerDialog = ({
   onClose: () => void;
 }) => {
   const [assessment, setAssessment] =
-    useState<FetchPublicAssessmentTreeResponse["assessmentTree"]>();
+    useState<GetPublicAssessmentTreeResponse["assessmentTree"]>();
   const [fetchAssessmentTree, loading] = useFetchAssessmentTree({
     params: {
       callbacks: {
@@ -58,7 +58,7 @@ const CPublicAssessmentResultViewerDialog = ({
       {assessment && (
         <FormSubmissionViewer
           formSubmission={{
-            formTree: assessment.formSubmission.formTree,
+            formStructure: assessment.formSubmission.formStructure,
             responsesFormValues: assessment.formSubmission.responsesFormValues,
             geometries: assessment.formSubmission.geometries,
           }}

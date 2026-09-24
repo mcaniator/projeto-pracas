@@ -124,13 +124,16 @@ const buildFormSubmissionData = ({
   const responsesFormValues: SerializedFormValues = {};
 
   return {
-    formTree: {
-      ...formTree,
-      categories: formTree.categories.map((category) =>
-        toFormSubmissionCategory({ category, responsesFormValues }),
-      ),
+    formStructure: {
+      formTree: {
+        id: formTree.id,
+        name: formTree.name,
+        categories: formTree.categories.map((category) =>
+          toFormSubmissionCategory({ category, responsesFormValues }),
+        ),
+      },
+      calculations: formCalculations,
     },
-    calculations: formCalculations,
     responsesFormValues,
     geometries: [],
   };
@@ -223,7 +226,7 @@ const FormPreviewDialog = ({
           />
           <FormSubmissionViewer
             formSubmission={{
-              formTree: formSubmission.formTree,
+              formStructure: formSubmission.formStructure,
               responsesFormValues: previewValues,
               geometries: previewGeometries,
             }}

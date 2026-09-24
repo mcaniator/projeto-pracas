@@ -5,12 +5,12 @@ import type {
 } from "@/app/admin/protocols/forms/edit/clientV2";
 import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { prisma } from "@/lib/prisma";
-import { fetchFormSubmissionResponseGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
+import { getFormSubmissionResponseGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { SerializedFormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
 
-import { getCalculationByFormId, getFormTree } from "./form";
+import { getFormStructure } from "./form";
 
 export type FormSubmissionQuestionItem = Omit<QuestionItem, "options"> & {
   id: number;
@@ -61,9 +61,13 @@ export const getFormSubmissionData = async ({
   }
 
   const { formId } = formSubmission;
-  const [form, responses, responseOptions, rawGeometries, calculationsResult] =
+  const [formStructure, responses, responseOptions, rawGeometries] =
     await Promise.all([
-      getFormTree({ formId, publicQuestionsOnly }),
+      getFormStructure({
+        formId,
+        publicQuestionsOnly,
+        includeCalculations,
+      }),
       prisma.response.findMany({
         where: {
           formSubmissionId,
@@ -84,18 +88,13 @@ export const getFormSubmissionData = async ({
           option: { select: { id: true } },
         },
       }),
-      fetchFormSubmissionResponseGeometries({
+      getFormSubmissionResponseGeometries({
         formSubmissionId,
         publicQuestionsOnly,
       }),
-      includeCalculations ?
-        getCalculationByFormId({ formId, publicQuestionsOnly })
-      : null,
     ]);
 
-  if (!form.formTree) {
-    throw new Error("Formulário não encontrado");
-  }
+  const { formTree } = formStructure;
 
   const responseByQuestionId = new Map(
     responses.map((response) => [response.questionId, response.response]),
@@ -162,7 +161,7 @@ export const getFormSubmissionData = async ({
     };
   };
 
-  const categories = form.formTree.categories
+  const categories = formTree.categories
     .map(
       (category): FormSubmissionCategoryItem => ({
         ...category,
@@ -190,11 +189,14 @@ export const getFormSubmissionData = async ({
     .filter((category) => category.categoryChildren.length > 0);
 
   return {
-    formTree: {
-      ...form.formTree,
-      categories,
+    formStructure: {
+      formTree: {
+        id: formTree.id,
+        name: formTree.name,
+        categories,
+      },
+      calculations: formStructure.calculations,
     },
-    calculations: calculationsResult?.calculations ?? [],
     responsesFormValues,
     geometries: rawGeometries.map(({ questionId, geometry }) => ({
       questionId,

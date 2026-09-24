@@ -23,6 +23,9 @@ const adminSQLiteDbClearTransaction: SQLiteTransactionOperation[] = [
     statement: `DELETE FROM "assessment";`,
   },
   {
+    statement: `DELETE FROM "form_submission";`,
+  },
+  {
     statement: `DELETE FROM "calculation";`,
   },
   {

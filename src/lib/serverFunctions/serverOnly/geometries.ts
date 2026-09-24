@@ -7,10 +7,10 @@ import { parseShp } from "shpjs";
 import { prisma } from "../../prisma";
 
 type FetchedFormSubmissionResponseGeometries = NonNullable<
-  Awaited<ReturnType<typeof fetchFormSubmissionResponseGeometries>>
+  Awaited<ReturnType<typeof getFormSubmissionResponseGeometries>>
 >;
 
-const fetchFormSubmissionResponseGeometries = async ({
+const getFormSubmissionResponseGeometries = async ({
   formSubmissionId,
   publicQuestionsOnly = false,
 }: {
@@ -38,12 +38,12 @@ const fetchFormSubmissionResponseGeometries = async ({
   return geometries;
 };
 
-const fetchFormSubmissionsResponseGeometries = async (
+const getFormSubmissionsResponseGeometries = async (
   formSubmissionIds: number[],
 ) => {
   const geometries = await Promise.all(
     formSubmissionIds.map((formSubmissionId) =>
-      fetchFormSubmissionResponseGeometries({ formSubmissionId }),
+      getFormSubmissionResponseGeometries({ formSubmissionId }),
     ),
   );
   return geometries;
@@ -190,8 +190,8 @@ const hasPolygon = async (id: number) => {
 };
 
 export {
-  fetchFormSubmissionResponseGeometries,
-  fetchFormSubmissionsResponseGeometries,
+  getFormSubmissionResponseGeometries,
+  getFormSubmissionsResponseGeometries,
   getPolygonsFromShp,
   addPolygonFromWKT,
   addPolygon,

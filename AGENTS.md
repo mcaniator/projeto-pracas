@@ -41,9 +41,7 @@
 
   ```ts
   export type FetchResourceResponse = NonNullable<
-    Awaited<
-    ReturnType<typeof fetchResource>
-    >["data"]
+    Awaited<ReturnType<typeof fetchResource>>["data"]
   >;
   ```
 
@@ -213,7 +211,14 @@ const useFetchResource = (
 ### Convenções gerais
 
 - Usar `save` para operações que criam ou atualizam o mesmo recurso.
-- Usar `fetch` para consultas.
+- Funções de consulta chamadas explicitamente por `route.ts` devem usar
+  `fetch` no nome.
+- No fluxo SQLite, funções de consulta usadas como `offlineFallback` ou
+  chamadas por componentes React devem usar `fetch` no nome.
+- Funções auxiliares internas de consulta devem começar com `get`.
+- Uma camada intermediária que apenas escolhe entre os fluxos Dexie e SQLite
+  não transforma a função SQLite em auxiliar. Se a função SQLite mantém o
+  contrato `APIRequest`/`APIResponse`, ela deve continuar usando `fetch`.
 - Usar `delete` para remoções.
 - Usar nomes consistentes entre rota, hook, schema, tipos e função de servidor.
 - Ao alterar uma rota, atualizar todas as referências: hook, tipos, chamadas e

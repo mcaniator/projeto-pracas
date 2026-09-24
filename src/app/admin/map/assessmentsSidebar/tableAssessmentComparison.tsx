@@ -157,46 +157,51 @@ const buildComparisonCategories = (
   const includedQuestionIds = new Set<number>();
 
   assessments.forEach((assessment) => {
-    assessment?.formSubmission.formTree.categories.forEach((category) => {
-      let comparisonCategory = categories.find(
-        (existingCategory) =>
-          existingCategory.categoryId === category.categoryId,
-      );
+    assessment?.formSubmission.formStructure.formTree.categories.forEach(
+      (category) => {
+        let comparisonCategory = categories.find(
+          (existingCategory) =>
+            existingCategory.categoryId === category.categoryId,
+        );
 
-      if (!comparisonCategory) {
-        comparisonCategory = cloneCategory(category);
-        categories.push(comparisonCategory);
-      }
-
-      category.categoryChildren.forEach((child) => {
-        if (isFormSubmissionSubcategoryItem(child)) {
-          let comparisonSubcategory = comparisonCategory.categoryChildren.find(
-            (existingChild): existingChild is FormSubmissionSubcategoryItem =>
-              isFormSubmissionSubcategoryItem(existingChild) &&
-              existingChild.subcategoryId === child.subcategoryId,
-          );
-
-          if (!comparisonSubcategory) {
-            comparisonSubcategory = cloneSubcategory(child);
-            comparisonCategory.categoryChildren.push(comparisonSubcategory);
-          }
-
-          child.questions.forEach((question) => {
-            if (includedQuestionIds.has(question.questionId)) return;
-
-            includedQuestionIds.add(question.questionId);
-            comparisonSubcategory.questions.push(cloneQuestion(question));
-          });
-
-          return;
+        if (!comparisonCategory) {
+          comparisonCategory = cloneCategory(category);
+          categories.push(comparisonCategory);
         }
 
-        if (includedQuestionIds.has(child.questionId)) return;
+        category.categoryChildren.forEach((child) => {
+          if (isFormSubmissionSubcategoryItem(child)) {
+            let comparisonSubcategory =
+              comparisonCategory.categoryChildren.find(
+                (
+                  existingChild,
+                ): existingChild is FormSubmissionSubcategoryItem =>
+                  isFormSubmissionSubcategoryItem(existingChild) &&
+                  existingChild.subcategoryId === child.subcategoryId,
+              );
 
-        includedQuestionIds.add(child.questionId);
-        comparisonCategory.categoryChildren.push(cloneQuestion(child));
-      });
-    });
+            if (!comparisonSubcategory) {
+              comparisonSubcategory = cloneSubcategory(child);
+              comparisonCategory.categoryChildren.push(comparisonSubcategory);
+            }
+
+            child.questions.forEach((question) => {
+              if (includedQuestionIds.has(question.questionId)) return;
+
+              includedQuestionIds.add(question.questionId);
+              comparisonSubcategory.questions.push(cloneQuestion(question));
+            });
+
+            return;
+          }
+
+          if (includedQuestionIds.has(child.questionId)) return;
+
+          includedQuestionIds.add(child.questionId);
+          comparisonCategory.categoryChildren.push(cloneQuestion(child));
+        });
+      },
+    );
   });
 
   return categories;
@@ -205,18 +210,20 @@ const buildComparisonCategories = (
 const buildQuestionMap = (assessment: ComparisonAssessmentTree | null) => {
   const questionMap = new Map<number, FormSubmissionQuestionItem>();
 
-  assessment?.formSubmission.formTree.categories.forEach((category) => {
-    category.categoryChildren.forEach((child) => {
-      if (isFormSubmissionSubcategoryItem(child)) {
-        child.questions.forEach((question) => {
-          questionMap.set(question.questionId, question);
-        });
-        return;
-      }
+  assessment?.formSubmission.formStructure.formTree.categories.forEach(
+    (category) => {
+      category.categoryChildren.forEach((child) => {
+        if (isFormSubmissionSubcategoryItem(child)) {
+          child.questions.forEach((question) => {
+            questionMap.set(question.questionId, question);
+          });
+          return;
+        }
 
-      questionMap.set(child.questionId, child);
-    });
-  });
+        questionMap.set(child.questionId, child);
+      });
+    },
+  );
 
   return questionMap;
 };

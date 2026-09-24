@@ -207,6 +207,17 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
       )`,
     },
     {
+      statement: `CREATE TABLE form_submission (
+        id INTEGER PRIMARY KEY,
+        form_id INTEGER NOT NULL REFERENCES form(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        UNIQUE (id, form_id)
+      )`,
+    },
+    {
+      statement: `CREATE INDEX form_submission_form_id_idx
+        ON form_submission(form_id)`,
+    },
+    {
       statement: `CREATE TABLE "assessment" (
         id INTEGER PRIMARY KEY,
         exists_remotely INTEGER NOT NULL CHECK (exists_remotely IN (0, 1)),
@@ -218,27 +229,33 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         user_id TEXT NOT NULL REFERENCES "user"(id),
         location_id INTEGER NOT NULL REFERENCES location(id),
         form_id INTEGER NOT NULL REFERENCES form(id),
+        form_submission_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        UNIQUE (form_submission_id, form_id),
+        FOREIGN KEY (form_submission_id, form_id)
+          REFERENCES form_submission(id, form_id)
+          ON DELETE RESTRICT
+          ON UPDATE CASCADE
       )`,
     },
     {
       statement: `CREATE TABLE response (
         id INTEGER PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES "user"(id),
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        form_submission_id INTEGER NOT NULL REFERENCES form_submission(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         response TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        UNIQUE (assessment_id, question_id)
+        UNIQUE (form_submission_id, question_id)
       )`,
     },
     {
       statement: `CREATE TABLE response_option (
         id INTEGER PRIMARY KEY,
         user_id TEXT NOT NULL REFERENCES "user"(id),
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        form_submission_id INTEGER NOT NULL REFERENCES form_submission(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         option_id INTEGER REFERENCES "option"(id),
         override_value TEXT,
@@ -249,12 +266,12 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE TABLE response_geometry (
         id INTEGER PRIMARY KEY,
-        assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        form_submission_id INTEGER NOT NULL REFERENCES form_submission(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         geometry TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        UNIQUE (assessment_id, question_id)
+        UNIQUE (form_submission_id, question_id)
       )`,
     },
     {

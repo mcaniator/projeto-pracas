@@ -319,11 +319,15 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
             startDate: assessment.startDate,
             formSubmission: {
               ...formSubmission,
-              formTree: {
-                ...formSubmission.formTree,
-                categories: formSubmission.formTree.categories.filter(
-                  (category) => category.categoryId === categoryId,
-                ),
+              formStructure: {
+                ...formSubmission.formStructure,
+                formTree: {
+                  ...formSubmission.formStructure.formTree,
+                  categories:
+                    formSubmission.formStructure.formTree.categories.filter(
+                      (category) => category.categoryId === categoryId,
+                    ),
+                },
               },
             },
           } satisfies MapAssessmentComparisonAssessmentTree,

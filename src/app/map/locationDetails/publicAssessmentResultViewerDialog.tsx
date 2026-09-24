@@ -58,7 +58,7 @@ const PublicAssessmentResultViewerDialog = ({
       {assessment && (
         <FormSubmissionViewer
           formSubmission={{
-            formTree: assessment.formSubmission.formTree,
+            formStructure: assessment.formSubmission.formStructure,
             responsesFormValues: assessment.formSubmission.responsesFormValues,
             geometries: assessment.formSubmission.geometries,
           }}

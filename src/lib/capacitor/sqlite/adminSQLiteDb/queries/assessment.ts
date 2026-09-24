@@ -1,11 +1,6 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
-import type {
-  SQLiteBulkUpsertOperation,
-  SQLiteTransactionOperation,
-} from "@/lib/capacitor/sqlite/sqlite";
-import dayjs from "@/lib/dayjs";
-import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
+import type { SQLiteTransactionOperation } from "@/lib/capacitor/sqlite/sqlite";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type {
   CreateAssessmentData,
@@ -23,19 +18,10 @@ import type {
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
-import type {
-  FormSubmissionCategoryItem,
-  FormSubmissionQuestionItem,
-  FormSubmissionSubcategoryItem,
-} from "@/lib/serverFunctions/queries/formSubmission";
 import {
   type AssessmentDraft,
   assessmentDraftSchema,
 } from "@/lib/types/assessments/assessmentDraft";
-import type {
-  ResponseFormGeometry,
-  SerializedFormValues,
-} from "@/lib/types/formSubmission/responseFormTypes";
 import type {
   APIRequest,
   APIRequestData,
@@ -43,20 +29,14 @@ import type {
   APIResponse,
 } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import type { FormSubmissionOptionValueWithOverride } from "@/lib/types/formSubmission/responseFormTypes";
-import { Calculation } from "@/lib/utils/calculationUtils";
-import {
-  deserializeResponseGeometriesFromWkt,
-  serializeResponseGeometriesToWkt,
-} from "@/lib/utils/responseGeometry";
-import {
-  OptionTypes,
-  QuestionGeometryTypes,
-  QuestionResponseCharacterTypes,
-  QuestionTypes,
-  Role,
-} from "@prisma/client";
+import { Role } from "@prisma/client";
 import { z } from "zod";
+
+import {
+  getAdminSQLiteFormSubmissionCreateOperation,
+  getAdminSQLiteFormSubmissionData,
+  getAdminSQLiteFormSubmissionUpdateOperations,
+} from "./formSubmission";
 
 const assessmentsSchema = z.array(
   z.object({
@@ -91,94 +71,7 @@ const assessmentSchema = z.array(
     locationId: z.coerce.number(),
     locationName: z.string(),
     locationPolygon: z.string().nullable(),
-    formId: z.coerce.number(),
-    formName: z.string(),
-    formFinalized: sqliteBooleanSchema,
-  }),
-);
-
-const categoryFormItemsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    categoryId: z.coerce.number(),
-    name: z.string(),
-    notes: z.string().nullable(),
-    position: z.coerce.number(),
-  }),
-);
-
-const subcategoryFormItemsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    categoryId: z.coerce.number(),
-    subcategoryId: z.coerce.number(),
-    name: z.string(),
-    notes: z.string().nullable(),
-    position: z.coerce.number(),
-  }),
-);
-
-const geometryTypesSchema = z
-  .string()
-  .transform((value) => JSON.parse(value) as unknown)
-  .pipe(z.array(z.nativeEnum(QuestionGeometryTypes)));
-
-const questionFormItemsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    categoryId: z.coerce.number(),
-    subcategoryId: z.coerce.number().nullable(),
-    questionId: z.coerce.number(),
-    position: z.coerce.number(),
-    name: z.string(),
-    iconKey: z.string(),
-    isPublic: sqliteBooleanSchema,
-    allowResponseImages: sqliteBooleanSchema,
-    minValue: z.coerce.number().nullable(),
-    maxValue: z.coerce.number().nullable(),
-    notes: z.string().nullable(),
-    questionType: z.nativeEnum(QuestionTypes),
-    characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-    optionType: z.nativeEnum(OptionTypes).nullable(),
-    geometryTypes: geometryTypesSchema,
-  }),
-);
-
-const optionsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    questionId: z.coerce.number(),
-    text: z.string(),
-    isOverridable: sqliteBooleanSchema,
-  }),
-);
-
-const calculationsSchema = z.array(
-  z.object({
-    targetQuestionId: z.coerce.number(),
-    expression: z.string(),
-  }),
-);
-
-const responsesSchema = z.array(
-  z.object({
-    questionId: z.coerce.number(),
-    response: z.string().nullable(),
-  }),
-);
-
-const responseOptionsSchema = z.array(
-  z.object({
-    questionId: z.coerce.number(),
-    optionId: z.coerce.number(),
-    overrideValue: z.string().nullable(),
-  }),
-);
-
-const responseGeometriesSchema = z.array(
-  z.object({
-    questionId: z.coerce.number(),
-    geometry: z.string().nullable(),
+    formSubmissionId: z.coerce.number(),
   }),
 );
 
@@ -201,61 +94,10 @@ const editableAssessmentSchema = z.object({
   userId: z.string(),
   locationId: z.coerce.number(),
   formId: z.coerce.number(),
+  formSubmissionId: z.coerce.number(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
-
-const responseQuestionSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    questionType: z.nativeEnum(QuestionTypes),
-    characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-  }),
-);
-
-const existingResponseOptionsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    questionId: z.coerce.number(),
-    createdAt: z.coerce.date(),
-  }),
-);
-
-const isSerializedOptionValueWithOverride = (
-  response: unknown,
-): response is {
-  value: number;
-  override: string | number | boolean | null;
-} =>
-  typeof response === "object" &&
-  response !== null &&
-  "value" in response &&
-  typeof response.value === "number" &&
-  "override" in response;
-
-const toOptionResponseValue = (
-  response: unknown,
-): FormSubmissionOptionValueWithOverride | null => {
-  const optionValue =
-    isSerializedOptionValueWithOverride(response) ?
-      response.value
-    : Number(response);
-
-  if (!Number.isFinite(optionValue)) {
-    return null;
-  }
-
-  return {
-    value: optionValue,
-    override:
-      (
-        isSerializedOptionValueWithOverride(response) &&
-        response.override !== null
-      ) ?
-        String(response.override)
-      : null,
-  };
-};
 
 const createAdminSQLiteAssessment = async (
   request: APIRequestData<CreateAssessmentData>,
@@ -269,23 +111,49 @@ const createAdminSQLiteAssessment = async (
       .object({ id: z.string() })
       .parse(currentUserValues.values[0]).id;
     const now = new Date();
+    const nextAssessmentIdValues = await adminSQLiteDb.query({
+      statement: `SELECT COALESCE(MAX(id), 0) + 1 AS id FROM assessment`,
+    });
+    const assessmentId = z
+      .object({ id: z.coerce.number().int().positive() })
+      .parse(nextAssessmentIdValues.values[0]).id;
+    const createFormSubmissionOperation =
+      getAdminSQLiteFormSubmissionCreateOperation({ formId });
 
-    const result = await adminSQLiteDb.run(
-      `INSERT INTO assessment (
-        exists_remotely,
-        start_date,
-        end_date,
-        is_finalized,
-        is_public,
-        drive_folder_url,
-        user_id,
-        location_id,
-        form_id,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [0, startDate, null, 0, 0, null, userId, locationId, formId, now, now],
-    );
+    await adminSQLiteDb.executeTransaction([
+      createFormSubmissionOperation,
+      {
+        statement: `INSERT INTO assessment (
+          id,
+          exists_remotely,
+          start_date,
+          end_date,
+          is_finalized,
+          is_public,
+          drive_folder_url,
+          user_id,
+          location_id,
+          form_id,
+          form_submission_id,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, last_insert_rowid(), ?, ?)`,
+        values: [
+          assessmentId,
+          0,
+          startDate,
+          null,
+          0,
+          0,
+          null,
+          userId,
+          locationId,
+          formId,
+          now,
+          now,
+        ],
+      },
+    ]);
 
     return {
       responseInfo: {
@@ -293,7 +161,7 @@ const createAdminSQLiteAssessment = async (
         message: "Avaliação criada no dispositivo!",
       } as APIResponseInfo,
       data: {
-        assessmentId: result.changes.lastId,
+        assessmentId,
       },
     };
   } catch (e) {
@@ -333,37 +201,43 @@ const createAdminSQLiteAssessmentFromRemoteAssessment = async (
       .object({ id: z.string() })
       .parse(currentUserValues.values[0]).id;
     const now = new Date();
+    const createFormSubmissionOperation =
+      getAdminSQLiteFormSubmissionCreateOperation({ formId: data.formId });
 
-    const result = await adminSQLiteDb.run(
-      `INSERT INTO assessment (
-        exists_remotely,
-        id,
-        start_date,
-        end_date,
-        is_finalized,
-        is_public,
-        drive_folder_url,
-        user_id,
-        location_id,
-        form_id,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        1,
-        data.id,
-        data.startDate,
-        data.endDate,
-        data.isFinalized,
-        data.isPublic,
-        data.driveFolderUrl,
-        userId,
-        data.locationId,
-        data.formId,
-        now,
-        now,
-      ],
-    );
+    await adminSQLiteDb.executeTransaction([
+      createFormSubmissionOperation,
+      {
+        statement: `INSERT INTO assessment (
+          exists_remotely,
+          id,
+          start_date,
+          end_date,
+          is_finalized,
+          is_public,
+          drive_folder_url,
+          user_id,
+          location_id,
+          form_id,
+          form_submission_id,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, last_insert_rowid(), ?, ?)`,
+        values: [
+          1,
+          data.id,
+          data.startDate,
+          data.endDate,
+          data.isFinalized,
+          data.isPublic,
+          data.driveFolderUrl,
+          userId,
+          data.locationId,
+          data.formId,
+          now,
+          now,
+        ],
+      },
+    ]);
 
     return {
       responseInfo: {
@@ -371,7 +245,7 @@ const createAdminSQLiteAssessmentFromRemoteAssessment = async (
         message: "Avaliação criada no dispositivo!",
       } as APIResponseInfo,
       data: {
-        assessmentId: result.changes.lastId,
+        assessmentId: data.id,
       },
     };
   } catch (e) {
@@ -400,10 +274,17 @@ const deleteAdminSQLiteAssessment = async (
   }
   try {
     const assessmentToDelete = await adminSQLiteDb.query({
-      statement: `SELECT * FROM assessment WHERE id = ?`,
+      statement: `
+        SELECT form_submission_id AS formSubmissionId
+        FROM assessment
+        WHERE id = ?
+      `,
       values: [data.assessmentId],
     });
-    if (assessmentToDelete.values.length < 1) {
+    const formSubmissionId = z
+      .object({ formSubmissionId: z.coerce.number() })
+      .safeParse(assessmentToDelete.values[0]);
+    if (!formSubmissionId.success) {
       return {
         responseInfo: {
           statusCode: 404,
@@ -420,6 +301,10 @@ const deleteAdminSQLiteAssessment = async (
       {
         statement: `DELETE FROM assessment WHERE id = ?`,
         values: [data.assessmentId],
+      },
+      {
+        statement: `DELETE FROM form_submission WHERE id = ?`,
+        values: [formSubmissionId.data.formSubmissionId],
       },
     ]);
 
@@ -611,6 +496,7 @@ const fetchAdminSQLiteAssessmentTableData = async (
           user_id AS userId,
           location_id AS locationId,
           form_id AS formId,
+          form_submission_id AS formSubmissionId,
           created_at AS createdAt,
           updated_at AS updatedAt
         FROM assessment
@@ -660,7 +546,6 @@ const adminSQLiteAssessmentSubmit = async (
     isFinalized,
     driveFolderUrl,
   } = request.data!;
-  const { responses, geometries } = formSubmission;
 
   try {
     const currentUserValues = await adminSQLiteDb.query({
@@ -689,6 +574,7 @@ const adminSQLiteAssessmentSubmit = async (
           user_id AS userId,
           location_id AS locationId,
           form_id AS formId,
+          form_submission_id AS formSubmissionId,
           created_at AS createdAt,
           updated_at AS updatedAt
         FROM assessment
@@ -720,150 +606,18 @@ const adminSQLiteAssessmentSubmit = async (
       };
     }
 
-    // It is too dangerous to use WHERE q.id IN (Object.keys(responses).map((key) => Number(key))) because of the 999 parameter limit on older versions of SQLite.
-    // The workaround is to get all the questions from the form and filter them in memory.
-    const questionValues = await adminSQLiteDb.query({
-      statement: `SELECT DISTINCT
-        q.id,
-        q.question_type AS questionType,
-        q.character_type AS characterType
-      FROM question q
-      INNER JOIN form_item fi ON fi.question_id = q.id
-      INNER JOIN assessment a ON a.form_id = fi.form_id
-      WHERE a.id = ?`,
-      values: [assessmentId],
-    });
-    const responseQuestionIds = new Set(
-      Object.keys(responses).map((key) => Number(key)),
-    );
-    const questions = responseQuestionSchema
-      .parse(questionValues.values)
-      .filter((question) => responseQuestionIds.has(question.id));
-
-    const writtenResponses: {
-      questionId: number;
-      value: string | number | null;
-    }[] = [];
-    const optionsResponses: {
-      questionId: number;
-      value: FormSubmissionOptionValueWithOverride[];
-    }[] = [];
-    const booleanResponses: { questionId: number; value: boolean }[] = [];
-
-    questions.forEach((question) => {
-      if (!Object.hasOwn(responses, question.id)) {
-        throw new Error("Resposta não enviada para uma ou mais questões!");
-      }
-      const response = responses[question.id];
-
-      if (question.questionType === QuestionTypes.WRITTEN) {
-        if (Array.isArray(response)) {
-          throw new Error("Resposta em array enviada para questão escrita!");
-        }
-        if (typeof response === "object" && response !== null) {
-          throw new Error("Resposta em objeto enviada para questão escrita!");
-        }
-        if (typeof response === "boolean") {
-          throw new Error("Resposta em booleana enviada para questão escrita!");
-        }
-
-        let writtenResponse = response;
-        if (question.characterType === QuestionResponseCharacterTypes.DATE) {
-          writtenResponse =
-            (
-              typeof writtenResponse === "string" &&
-              dayjs(writtenResponse, "DD/MM/YYYY", true).isValid()
-            ) ?
-              writtenResponse
-            : null;
-        } else if (
-          question.characterType === QuestionResponseCharacterTypes.TIME
-        ) {
-          writtenResponse =
-            (
-              typeof writtenResponse === "string" &&
-              dayjs(writtenResponse, "HH:mm", true).isValid()
-            ) ?
-              writtenResponse
-            : null;
-        } else if (
-          question.characterType === QuestionResponseCharacterTypes.DATETIME
-        ) {
-          writtenResponse =
-            (
-              typeof writtenResponse === "string" &&
-              dayjs(writtenResponse, "DD/MM/YYYY HH:mm", true).isValid()
-            ) ?
-              writtenResponse
-            : null;
-        }
-
-        writtenResponses.push({
-          questionId: question.id,
-          value: writtenResponse ?? null,
-        });
-      } else if (question.questionType === QuestionTypes.OPTIONS) {
-        if (!Array.isArray(response)) {
-          const optionResponseValue = toOptionResponseValue(response);
-          optionsResponses.push({
-            questionId: question.id,
-            value:
-              response == null || optionResponseValue === null ?
-                []
-              : [optionResponseValue],
-          });
-        } else {
-          optionsResponses.push({
-            questionId: question.id,
-            value: response
-              .map(toOptionResponseValue)
-              .filter(
-                (item): item is FormSubmissionOptionValueWithOverride =>
-                  item !== null,
-              ),
-          });
-        }
-      } else if (question.questionType === QuestionTypes.BOOLEAN) {
-        if (typeof response !== "boolean") {
-          throw new Error(
-            "Resposta não booleana enviada para questão de verdadeiro ou falso!",
-          );
-        }
-        booleanResponses.push({ questionId: question.id, value: response });
-      }
-    });
-
-    const existingResponseOptionValues = await adminSQLiteDb.query({
-      statement: `
-        SELECT
-          id,
-          question_id AS questionId,
-          created_at AS createdAt
-        FROM response_option
-        WHERE assessment_id = ?
-        ORDER BY created_at ASC, id ASC
-      `,
-      values: [assessmentId],
-    });
-    const existingResponseOptions = existingResponseOptionsSchema.parse(
-      existingResponseOptionValues.values,
-    );
-    const responseOptionsByQuestion = existingResponseOptions.reduce(
-      (result, responseOption) => {
-        const questionResponseOptions =
-          result.get(responseOption.questionId) ?? [];
-        questionResponseOptions.push(responseOption);
-        result.set(responseOption.questionId, questionResponseOptions);
-        return result;
-      },
-      new Map<number, typeof existingResponseOptions>(),
-    );
-
-    // The assessment is also in the UPSERT because it is only updated if the transaction succeeds.
-
     const now = new Date();
-    const nowISOString = now.toISOString();
-    const bulkUpserts: SQLiteBulkUpsertOperation[] = [
+    const formSubmissionOperations =
+      await getAdminSQLiteFormSubmissionUpdateOperations({
+        formSubmissionId: assessment.formSubmissionId,
+        formSubmission,
+        userId: currentUser.id,
+        updatedAt: now,
+      });
+
+    // The assessment is part of the same transaction and is only updated when
+    // every form-submission operation succeeds.
+    await adminSQLiteDb.executeBulkUpsertTransaction([
       {
         table: "assessment",
         insertColumns: [
@@ -877,6 +631,7 @@ const adminSQLiteAssessmentSubmit = async (
           "user_id",
           "location_id",
           "form_id",
+          "form_submission_id",
           "created_at",
           "updated_at",
         ],
@@ -901,125 +656,14 @@ const adminSQLiteAssessmentSubmit = async (
             assessment.userId,
             assessment.locationId,
             assessment.formId,
+            assessment.formSubmissionId,
             assessment.createdAt.toISOString(),
-            nowISOString,
+            now.toISOString(),
           ],
         ],
       },
-    ];
-
-    const characterResponseRows = [
-      ...writtenResponses.map((response) => ({
-        questionId: response.questionId,
-        value: response.value,
-      })),
-      ...booleanResponses.map((response) => ({
-        questionId: response.questionId,
-        value:
-          response.value ?
-            BooleanResponseValue.TRUE
-          : BooleanResponseValue.FALSE,
-      })),
-    ].map((response) => [
-      currentUser.id,
-      assessmentId,
-      response.questionId,
-      response.value,
-      nowISOString,
-      nowISOString,
+      ...formSubmissionOperations,
     ]);
-    if (characterResponseRows.length > 0) {
-      bulkUpserts.push({
-        table: "response",
-        insertColumns: [
-          "user_id",
-          "assessment_id",
-          "question_id",
-          "response",
-          "created_at",
-          "updated_at",
-        ],
-        updateColumns: ["user_id", "response", "updated_at"],
-        conflictColumns: ["assessment_id", "question_id"],
-        rows: characterResponseRows,
-      });
-    }
-
-    const responseOptionRows: unknown[][] = [];
-    optionsResponses.forEach(({ questionId, value }) => {
-      const existingOptions = responseOptionsByQuestion.get(questionId) ?? [];
-      // Update existing response_option
-      existingOptions.forEach((existingOption, index) => {
-        const selectedOption = value[index];
-        responseOptionRows.push([
-          existingOption.id,
-          currentUser.id,
-          assessmentId,
-          questionId,
-          selectedOption?.value ?? null,
-          selectedOption?.override ?? null,
-          existingOption.createdAt.toISOString(),
-          nowISOString,
-        ]);
-      });
-      // Add new reponse_option
-      for (let index = existingOptions.length; index < value.length; index++) {
-        const selectedOption = value[index];
-        if (!selectedOption) continue;
-        responseOptionRows.push([
-          null,
-          currentUser.id,
-          assessmentId,
-          questionId,
-          selectedOption.value,
-          selectedOption.override,
-          nowISOString,
-          nowISOString,
-        ]);
-      }
-    });
-    if (responseOptionRows.length > 0) {
-      bulkUpserts.push({
-        table: "response_option",
-        insertColumns: [
-          "id",
-          "user_id",
-          "assessment_id",
-          "question_id",
-          "option_id",
-          "override_value",
-          "created_at",
-          "updated_at",
-        ],
-        updateColumns: ["user_id", "option_id", "override_value", "updated_at"],
-        conflictColumns: ["id"],
-        rows: responseOptionRows,
-      });
-    }
-
-    if (geometries.length > 0) {
-      bulkUpserts.push({
-        table: "response_geometry",
-        insertColumns: [
-          "assessment_id",
-          "question_id",
-          "geometry",
-          "created_at",
-          "updated_at",
-        ],
-        updateColumns: ["geometry", "updated_at"],
-        conflictColumns: ["assessment_id", "question_id"],
-        rows: geometries.map((geometryByQuestion) => [
-          assessmentId,
-          geometryByQuestion.questionId,
-          serializeResponseGeometriesToWkt(geometryByQuestion.geometries),
-          nowISOString,
-          nowISOString,
-        ]),
-      });
-    }
-
-    await adminSQLiteDb.executeBulkUpsertTransaction(bulkUpserts);
 
     return {
       responseInfo: {
@@ -1031,11 +675,11 @@ const adminSQLiteAssessmentSubmit = async (
         updatedAt: now,
       },
     };
-  } catch (e) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao salvar avaliaÃ§Ã£o!",
+        message: "Erro ao salvar avaliação!",
       } as APIResponseInfo,
     };
   }
@@ -1226,18 +870,15 @@ const fetchAdminSQLiteAssessmentTree = async (
           a.is_finalized AS isFinalized,
           a.updated_at AS updatedAt,
           a.drive_folder_url AS driveFolderUrl,
+          a.form_submission_id AS formSubmissionId,
           u.id AS userId,
           u.username,
           l.id AS locationId,
           l.name AS locationName,
-          l.polygon AS locationPolygon,
-          f.id AS formId,
-          f.name AS formName,
-          f.finalized AS formFinalized
+          l.polygon AS locationPolygon
         FROM assessment a
         INNER JOIN "user" u ON u.id = a.user_id
         INNER JOIN location l ON l.id = a.location_id
-        INNER JOIN form f ON f.id = a.form_id
         WHERE a.id = ?
         LIMIT 1
       `,
@@ -1248,318 +889,10 @@ const fetchAdminSQLiteAssessmentTree = async (
       throw new Error("Assessment not found");
     }
 
-    const [
-      categoryFormItemsValues,
-      subcategoryFormItemsValues,
-      questionFormItemsValues,
-      optionsValues,
-      calculationsValues,
-      responsesValues,
-      responseOptionsValues,
-      responseGeometriesValues,
-    ] = await Promise.all([
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            fi.id,
-            fi.category_id AS categoryId,
-            c.name,
-            c.notes,
-            fi.position
-          FROM form_item fi
-          INNER JOIN category c ON c.id = fi.category_id
-          WHERE fi.form_id = ?
-            AND fi.subcategory_id IS NULL
-            AND fi.question_id IS NULL
-        `,
-        values: [assessment.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            fi.id,
-            fi.category_id AS categoryId,
-            fi.subcategory_id AS subcategoryId,
-            s.name,
-            s.notes,
-            fi.position
-          FROM form_item fi
-          INNER JOIN subcategory s ON s.id = fi.subcategory_id
-          WHERE fi.form_id = ?
-            AND fi.subcategory_id IS NOT NULL
-            AND fi.question_id IS NULL
-        `,
-        values: [assessment.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            fi.id,
-            fi.category_id AS categoryId,
-            fi.subcategory_id AS subcategoryId,
-            fi.question_id AS questionId,
-            fi.position,
-            q.name,
-            q.icon_key AS iconKey,
-            q.is_public AS isPublic,
-            q.allow_response_images AS allowResponseImages,
-            q.min_value AS minValue,
-            q.max_value AS maxValue,
-            q.notes,
-            q.question_type AS questionType,
-            q.character_type AS characterType,
-            q.option_type AS optionType,
-            q.geometry_types AS geometryTypes
-          FROM form_item fi
-          INNER JOIN question q ON q.id = fi.question_id
-          WHERE fi.form_id = ?
-            AND fi.question_id IS NOT NULL
-        `,
-        values: [assessment.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            o.id,
-            o.question_id AS questionId,
-            o.text,
-            o.is_overridable AS isOverridable
-          FROM "option" o
-          INNER JOIN form_item fi ON fi.question_id = o.question_id
-          WHERE fi.form_id = ?
-        `,
-        values: [assessment.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT target_question_id AS targetQuestionId, expression
-          FROM calculation
-          WHERE form_id = ?
-        `,
-        values: [assessment.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT question_id AS questionId, response
-          FROM response
-          WHERE assessment_id = ?
-        `,
-        values: [assessment.id],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            question_id AS questionId,
-            option_id AS optionId,
-            override_value AS overrideValue
-          FROM response_option
-          WHERE assessment_id = ?
-            AND option_id IS NOT NULL
-        `,
-        values: [assessment.id],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            question_id AS questionId,
-            geometry
-          FROM response_geometry
-          WHERE assessment_id = ?
-        `,
-        values: [assessment.id],
-      }),
-    ]);
-
-    const categoryFormItems = categoryFormItemsSchema.parse(
-      categoryFormItemsValues.values,
-    );
-    const subcategoryFormItems = subcategoryFormItemsSchema.parse(
-      subcategoryFormItemsValues.values,
-    );
-    const questionFormItems = questionFormItemsSchema.parse(
-      questionFormItemsValues.values,
-    );
-    const options = optionsSchema.parse(optionsValues.values);
-    const calculations = calculationsSchema.parse(calculationsValues.values);
-    const responses = responsesSchema.parse(responsesValues.values);
-    const responseOptions = responseOptionsSchema.parse(
-      responseOptionsValues.values,
-    );
-    const geometries: ResponseFormGeometry[] = responseGeometriesSchema
-      .parse(responseGeometriesValues.values)
-      .map((geometryByQuestion) => ({
-        questionId: geometryByQuestion.questionId,
-        geometries: deserializeResponseGeometriesFromWkt(
-          geometryByQuestion.geometry,
-        ),
-      }));
-
-    const optionsByQuestionId = options.reduce((result, option) => {
-      const questionOptions = result.get(option.questionId) ?? [];
-      questionOptions.push({
-        id: option.id,
-        text: option.text,
-        isOverridable: option.isOverridable,
-      });
-      result.set(option.questionId, questionOptions);
-      return result;
-    }, new Map<number, NonNullable<FormSubmissionQuestionItem["options"]>>());
-    const responseByQuestionId = new Map(
-      responses.map((response) => [response.questionId, response.response]),
-    );
-    const responseOptionsByQuestionId = responseOptions.reduce(
-      (result, responseOption) => {
-        const questionResponseOptions =
-          result.get(responseOption.questionId) ?? [];
-        questionResponseOptions.push({
-          optionId: responseOption.optionId,
-          overrideValue: responseOption.overrideValue,
-        });
-        result.set(responseOption.questionId, questionResponseOptions);
-        return result;
-      },
-      new Map<number, { optionId: number; overrideValue: string | null }[]>(),
-    );
-
-    const categories: FormSubmissionCategoryItem[] = [];
-    categoryFormItems.forEach((item) => {
-      if (
-        !categories.some((category) => category.categoryId === item.categoryId)
-      ) {
-        categories.push({
-          id: item.id,
-          categoryId: item.categoryId,
-          name: item.name,
-          notes: item.notes,
-          position: item.position,
-          categoryChildren: [],
-        });
-      }
+    const formSubmission = await getAdminSQLiteFormSubmissionData({
+      formSubmissionId: assessment.formSubmissionId,
+      includeCalculations: true,
     });
-
-    subcategoryFormItems.forEach((item) => {
-      const category = categories.find(
-        (category) => category.categoryId === item.categoryId,
-      );
-      if (!category) {
-        throw new Error("Subcategory's category not found");
-      }
-      if (
-        !category.categoryChildren.some(
-          (child) =>
-            "subcategoryId" in child &&
-            child.subcategoryId === item.subcategoryId,
-        )
-      ) {
-        category.categoryChildren.push({
-          id: item.id,
-          position: item.position,
-          subcategoryId: item.subcategoryId,
-          name: item.name,
-          notes: item.notes,
-          questions: [],
-        });
-      }
-    });
-
-    const responsesFormValues: SerializedFormValues = {};
-    questionFormItems.forEach((item) => {
-      const response = responseByQuestionId.get(item.questionId) ?? null;
-      const selectedOptions =
-        responseOptionsByQuestionId.get(item.questionId) ?? [];
-
-      if (item.questionType === QuestionTypes.WRITTEN) {
-        if (
-          item.characterType === QuestionResponseCharacterTypes.NUMBER ||
-          item.characterType === QuestionResponseCharacterTypes.PERCENTAGE ||
-          item.characterType === QuestionResponseCharacterTypes.SCALE
-        ) {
-          responsesFormValues[item.questionId] =
-            response ? Number(response) : null;
-        } else {
-          responsesFormValues[item.questionId] = response;
-        }
-      } else if (item.questionType === QuestionTypes.OPTIONS) {
-        if (item.optionType === OptionTypes.RADIO) {
-          const selectedOption = selectedOptions[0];
-          responsesFormValues[item.questionId] =
-            selectedOption ?
-              {
-                value: selectedOption.optionId,
-                override: selectedOption.overrideValue,
-              }
-            : null;
-        } else if (item.optionType === OptionTypes.CHECKBOX) {
-          responsesFormValues[item.questionId] = selectedOptions.map(
-            (selectedOption) => ({
-              value: selectedOption.optionId,
-              override: selectedOption.overrideValue,
-            }),
-          );
-        }
-      } else if (item.questionType === QuestionTypes.BOOLEAN) {
-        responsesFormValues[item.questionId] =
-          response === BooleanResponseValue.TRUE;
-      }
-
-      const category = categories.find(
-        (category) => category.categoryId === item.categoryId,
-      );
-      if (!category) {
-        throw new Error("Question's category not found");
-      }
-      const question: FormSubmissionQuestionItem = {
-        id: item.id,
-        position: item.position,
-        questionId: item.questionId,
-        name: item.name,
-        iconKey: item.iconKey,
-        isPublic: item.isPublic,
-        allowResponseImages: item.allowResponseImages,
-        minValue: item.minValue,
-        maxValue: item.maxValue,
-        notes: item.notes,
-        questionType: item.questionType,
-        characterType: item.characterType,
-        optionType: item.optionType,
-        options: optionsByQuestionId.get(item.questionId) ?? [],
-        geometryTypes: item.geometryTypes,
-        categoryName: category.name,
-        subcategoryName: null,
-      };
-
-      if (item.subcategoryId === null) {
-        category.categoryChildren.push(question);
-        return;
-      }
-      const subcategory = category.categoryChildren.find(
-        (child): child is FormSubmissionSubcategoryItem =>
-          "subcategoryId" in child &&
-          child.subcategoryId === item.subcategoryId,
-      );
-      if (subcategory) {
-        question.subcategoryName = subcategory.name;
-        subcategory.questions.push(question);
-      }
-    });
-
-    categories.sort((a, b) => a.position - b.position);
-    categories.forEach((category) => {
-      category.categoryChildren.sort((a, b) => a.position - b.position);
-      category.categoryChildren.forEach((child) => {
-        if ("subcategoryId" in child) {
-          child.questions.sort((a, b) => a.position - b.position);
-        }
-      });
-    });
-    const nonEmptyCategories = categories
-      .map((category) => ({
-        ...category,
-        categoryChildren: category.categoryChildren.filter(
-          (child) => !("subcategoryId" in child) || child.questions.length > 0,
-        ),
-      }))
-      .filter((category) => category.categoryChildren.length > 0);
 
     return {
       responseInfo: {
@@ -1582,32 +915,11 @@ const fetchAdminSQLiteAssessmentTree = async (
             id: assessment.userId,
             username: assessment.username,
           },
-          formSubmission: {
-            formTree: {
-              id: assessment.formId,
-              name: assessment.formName,
-              finalized: assessment.formFinalized,
-              categories: nonEmptyCategories,
-            },
-            calculations: calculations.map((calculation) => ({
-              targetQuestionId: calculation.targetQuestionId,
-              questionName:
-                questionFormItems.find(
-                  (question) =>
-                    question.questionId === calculation.targetQuestionId,
-                )?.name ?? "",
-              expression: calculation.expression,
-              expressionQuestionsIds: new Calculation(
-                calculation.expression,
-              ).getExpressionQuestionIds(),
-            })),
-            responsesFormValues,
-            geometries,
-          },
+          formSubmission,
         },
       },
     };
-  } catch (e) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,

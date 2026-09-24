@@ -4,8 +4,8 @@ import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
 import { useUpdateLocationVisibility } from "@/lib/serverFunctions/apiCalls/location";
 import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
@@ -155,7 +155,7 @@ const LocationInfo = ({
         <>
           <FormSubmissionViewer
             formSubmission={{
-              formTree: latestAssessment.formSubmission.formTree,
+              formStructure: latestAssessment.formSubmission.formStructure,
               responsesFormValues:
                 latestAssessment.formSubmission.responsesFormValues,
               geometries: latestAssessment.formSubmission.geometries,

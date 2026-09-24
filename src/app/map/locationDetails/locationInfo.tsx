@@ -1,8 +1,8 @@
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
-import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
+import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
 import { PublicFetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
@@ -125,7 +125,7 @@ const LocationInfo = ({
         <>
           <FormSubmissionViewer
             formSubmission={{
-              formTree: latestAssessment.formSubmission.formTree,
+              formStructure: latestAssessment.formSubmission.formStructure,
               responsesFormValues:
                 latestAssessment.formSubmission.responsesFormValues,
               geometries: latestAssessment.formSubmission.geometries,

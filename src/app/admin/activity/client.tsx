@@ -4,7 +4,7 @@ import { useUserContext } from "@/components/context/UserContext";
 import CIconChip from "@/components/ui/cIconChip";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
-import { FetchRecentlyCompletedAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
+import { GetRecentlyCompletedAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchRecentlyCompletedTallyResponse } from "@/lib/serverFunctions/queries/tally";
 import { Divider } from "@mui/material";
 import {
@@ -21,7 +21,7 @@ const Client = ({
   assessments,
   tallys,
 }: {
-  assessments: FetchRecentlyCompletedAssessmentsResponse["assessments"];
+  assessments: GetRecentlyCompletedAssessmentsResponse["assessments"];
   tallys: FetchRecentlyCompletedTallyResponse["tallys"];
 }) => {
   const userContext = useUserContext();

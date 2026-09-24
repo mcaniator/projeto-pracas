@@ -131,14 +131,14 @@ const fetchAdminSQLiteForms = async (
         ORDER BY f.archived ASC, f.updated_at DESC
       `,
     });
-    const forms = formsSchema.parse(formsValues.values).map(
-      ({ assessmentCount, ...form }) => ({
+    const forms = formsSchema
+      .parse(formsValues.values)
+      .map(({ assessmentCount, ...form }) => ({
         ...form,
         _count: {
           assessment: assessmentCount,
         },
-      }),
-    );
+      }));
 
     return {
       responseInfo: {
@@ -161,18 +161,22 @@ const fetchAdminSQLiteForms = async (
   }
 };
 
-const fetchAdminSQLiteFormStructure = async (
-  request: APIRequestParams<fetchFormStructureParams>,
-): Promise<APIResponse<fetchFormStructureResponse>> => {
-  const params = request.params!;
-  try {
+const getAdminSQLiteFormStructure = async ({
+  formId,
+  publicQuestionsOnly = false,
+  includeCalculations,
+}: {
+  formId: number;
+  publicQuestionsOnly?: boolean;
+  includeCalculations: boolean;
+}) => {
+  const getFormTree = async () => {
     const [
       formValues,
       categoryFormItemsValues,
       subcategoryFormItemsValues,
       questionFormItemsValues,
       optionsValues,
-      calculationsValues,
     ] = await Promise.all([
       adminSQLiteDb.query({
         statement: `
@@ -181,7 +185,7 @@ const fetchAdminSQLiteFormStructure = async (
           WHERE id = ?
           LIMIT 1
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -196,7 +200,7 @@ const fetchAdminSQLiteFormStructure = async (
             AND fi.subcategory_id IS NULL
             AND fi.question_id IS NULL
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -212,7 +216,7 @@ const fetchAdminSQLiteFormStructure = async (
             AND fi.subcategory_id IS NOT NULL
             AND fi.question_id IS NULL
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -240,8 +244,9 @@ const fetchAdminSQLiteFormStructure = async (
           LEFT JOIN subcategory s ON s.id = q.subcategory_id
           WHERE fi.form_id = ?
             AND fi.question_id IS NOT NULL
+            ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -252,21 +257,11 @@ const fetchAdminSQLiteFormStructure = async (
             o.is_overridable AS isOverridable
           FROM "option" o
           INNER JOIN form_item fi ON fi.question_id = o.question_id
+          INNER JOIN question q ON q.id = o.question_id
           WHERE fi.form_id = ?
+            ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
         `,
-        values: [params.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            c.expression,
-            c.target_question_id AS targetQuestionId,
-            q.name AS questionName
-          FROM calculation c
-          INNER JOIN question q ON q.id = c.target_question_id
-          WHERE c.form_id = ?
-        `,
-        values: [params.formId],
+        values: [formId],
       }),
     ]);
 
@@ -299,9 +294,7 @@ const fetchAdminSQLiteFormStructure = async (
     const categories: CategoryItem[] = [];
     categoryFormItems.forEach((item) => {
       if (
-        !categories.some(
-          (category) => category.categoryId === item.categoryId,
-        )
+        !categories.some((category) => category.categoryId === item.categoryId)
       ) {
         categories.push({
           categoryId: item.categoryId,
@@ -390,6 +383,30 @@ const fetchAdminSQLiteFormStructure = async (
       });
     });
 
+    return {
+      id: form.id,
+      name: form.name,
+      finalized: form.finalized,
+      categories,
+    };
+  };
+
+  const getFormCalculations = async () => {
+    if (!includeCalculations) return [];
+
+    const calculationsValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT
+          c.expression,
+          c.target_question_id AS targetQuestionId,
+          q.name AS questionName
+        FROM calculation c
+        INNER JOIN question q ON q.id = c.target_question_id
+        WHERE c.form_id = ?
+          ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
+      `,
+      values: [formId],
+    });
     const calculations: CalculationParams[] = calculationsSchema
       .parse(calculationsValues.values)
       .map((item) => ({
@@ -401,6 +418,27 @@ const fetchAdminSQLiteFormStructure = async (
         ).getExpressionQuestionIds(),
       }));
 
+    return calculations;
+  };
+
+  const [formTree, calculations] = await Promise.all([
+    getFormTree(),
+    getFormCalculations(),
+  ]);
+
+  return { formTree, calculations };
+};
+
+const fetchAdminSQLiteFormStructure = async (
+  request: APIRequestParams<fetchFormStructureParams>,
+): Promise<APIResponse<fetchFormStructureResponse>> => {
+  const params = request.params!;
+  try {
+    const { formTree, calculations } = await getAdminSQLiteFormStructure({
+      formId: params.formId,
+      includeCalculations: true,
+    });
+
     return {
       responseInfo: {
         statusCode: 200,
@@ -408,12 +446,7 @@ const fetchAdminSQLiteFormStructure = async (
       data: {
         form: {
           statusCode: 200,
-          formTree: {
-            id: form.id,
-            name: form.name,
-            finalized: form.finalized,
-            categories,
-          },
+          formTree,
         },
         calculations,
       },
@@ -435,4 +468,8 @@ const fetchAdminSQLiteFormStructure = async (
   }
 };
 
-export { fetchAdminSQLiteForms, fetchAdminSQLiteFormStructure };
+export {
+  fetchAdminSQLiteForms,
+  fetchAdminSQLiteFormStructure,
+  getAdminSQLiteFormStructure,
+};

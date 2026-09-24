@@ -6,7 +6,7 @@ import DeleteAssessmentDialog from "@/app/admin/assessments/details/deleteAssess
 import DriveFolderUrlDialog from "@/app/admin/assessments/details/driveFolderUrlDialog";
 import {
   deleteAssessmentResponsesDraft,
-  loadAssessmentResponsesDraft,
+  fetchAssessmentResponsesDraft,
   saveAssessmentResponsesDraft,
 } from "@/app/admin/assessments/details/responseFormUtil";
 import RevertLocalAssessmentDialog from "@/app/admin/assessments/details/revertLocalAssessmentDialog";
@@ -164,10 +164,7 @@ const AssessmentClient = ({
   ]);
 
   const handleValuesChange = useCallback(
-    ({
-      serializedValues,
-      changedQuestionId,
-    }: ResponseFormValuesChange) => {
+    ({ serializedValues, changedQuestionId }: ResponseFormValuesChange) => {
       serializedFormValuesRef.current = serializedValues;
       if (changedQuestionId !== undefined) {
         responsesAreDirtyRef.current = true;
@@ -337,7 +334,7 @@ const AssessmentClient = ({
           show: true,
           message: "Carregando respostas locais...",
         });
-        const localAssessment = await loadAssessmentResponsesDraft(
+        const localAssessment = await fetchAssessmentResponsesDraft(
           assessmentTree.id,
         );
 
@@ -380,7 +377,7 @@ const AssessmentClient = ({
     <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
       <div className="flex flex-wrap gap-1">
         <CChip
-          label={formSubmission.formTree.name}
+          label={formSubmission.formStructure.formTree.name}
           icon={<IconClipboard />}
           sx={{ fontSize: 16 }}
           tooltip="Formulário"
@@ -537,9 +534,9 @@ const AssessmentClient = ({
         startDate={startDate}
         driveFolderUrl={driveFolderUrl}
         responseImages={responseImages}
-        categories={formSubmission.formTree.categories}
+        categories={formSubmission.formStructure.formTree.categories}
         locationId={locationId}
-        formId={formSubmission.formTree.id}
+        formId={formSubmission.formStructure.formTree.id}
         serverUpdatedAt={serverUpdatedAtRef.current}
         canSaveOffline={canSaveOffline}
         isSQLiteAssessment={isSQLiteAssessment}
