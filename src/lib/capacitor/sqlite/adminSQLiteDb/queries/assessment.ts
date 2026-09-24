@@ -178,7 +178,7 @@ const responseOptionsSchema = z.array(
 const responseGeometriesSchema = z.array(
   z.object({
     questionId: z.coerce.number(),
-    geometries: z.string().nullable(),
+    geometry: z.string().nullable(),
   }),
 );
 
@@ -1000,13 +1000,21 @@ const adminSQLiteAssessmentSubmit = async (
     if (geometries.length > 0) {
       bulkUpserts.push({
         table: "response_geometry",
-        insertColumns: ["assessment_id", "question_id", "geometries"],
-        updateColumns: ["geometries"],
+        insertColumns: [
+          "assessment_id",
+          "question_id",
+          "geometry",
+          "created_at",
+          "updated_at",
+        ],
+        updateColumns: ["geometry", "updated_at"],
         conflictColumns: ["assessment_id", "question_id"],
         rows: geometries.map((geometryByQuestion) => [
           assessmentId,
           geometryByQuestion.questionId,
           serializeResponseGeometriesToWkt(geometryByQuestion.geometries),
+          nowISOString,
+          nowISOString,
         ]),
       });
     }
@@ -1354,7 +1362,7 @@ const fetchAdminSQLiteAssessmentTree = async (
         statement: `
           SELECT
             question_id AS questionId,
-            geometries
+            geometry
           FROM response_geometry
           WHERE assessment_id = ?
         `,
@@ -1382,7 +1390,7 @@ const fetchAdminSQLiteAssessmentTree = async (
       .map((geometryByQuestion) => ({
         questionId: geometryByQuestion.questionId,
         geometries: deserializeResponseGeometriesFromWkt(
-          geometryByQuestion.geometries,
+          geometryByQuestion.geometry,
         ),
       }));
 

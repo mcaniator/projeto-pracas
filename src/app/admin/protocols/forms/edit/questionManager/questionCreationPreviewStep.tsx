@@ -2,8 +2,8 @@
 
 import QuestionResponseRenderer from "@/components/ui/formSubmissionViewer/questionResponseRenderer";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
+import ResponseFormGeometryControls from "@/components/ui/responseForm/responseFormGeometryControls";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
-import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
@@ -88,12 +88,12 @@ const QuestionCreationPreviewStep = ({
       questionsForMention={[]}
       questionControls={
         <>
-          <ResponseFormQuestionGeometryControls
+          <ResponseFormGeometryControls
             question={previewQuestion}
             geometries={geometries}
             locationPolygonGeoJson={null}
             finalized={false}
-            handleQuestionGeometryChange={(nextGeometry) => {
+            handleResponseGeometryChange={(nextGeometry) => {
               setGeometries((prev) => {
                 if (
                   prev.some(

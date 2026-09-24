@@ -292,7 +292,7 @@ model Question {
 
   ResponseOption ResponseOption[]
 
-  geometries QuestionGeometry[]
+  responseGeometries ResponseGeometry[]
 
   formItems FormItem[]
 
@@ -304,7 +304,7 @@ model Question {
   @@map("question")
 }
 
-model QuestionGeometry {
+model ResponseGeometry {
   id               Int            @id @default(autoincrement())
   questionId       Int            @map("question_id")
   question         Question       @relation(fields: [questionId], references: [id])
@@ -313,8 +313,11 @@ model QuestionGeometry {
 
   geometry Unsupported("Geometry")?
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
-  @@map("question_geometry")
+  @@map("response_geometry")
 }
 
 model Calculation {
@@ -394,13 +397,13 @@ model FormSubmission {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  assessment      Assessment?
-  geometries      QuestionGeometry[]
-  responses       Response[]
-  responseOptions ResponseOption[]
+  assessment         Assessment?
+  responseGeometries ResponseGeometry[]
+  responses          Response[]
+  responseOptions    ResponseOption[]
 
-  @@index([formId])
   @@unique([id, formId])
+  @@index([formId])
   @@map("form_submission")
 }
 

@@ -4,8 +4,8 @@ import CalculationSynchronizer from "@/components/ui/responseForm/calculationSyn
 import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
 import FilledQuestionsCounter from "@/components/ui/responseForm/filledQuestionsCounter";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
+import ResponseFormGeometryControls from "@/components/ui/responseForm/responseFormGeometryControls";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
-import ResponseFormQuestionGeometryControls from "@/components/ui/responseForm/responseFormQuestionGeometryControls";
 import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import dayjs from "@/lib/dayjs";
@@ -32,8 +32,8 @@ import type {
 import { isFormSubmissionSubcategoryItem } from "@/lib/utils/formSubmissionUtils";
 import { Divider } from "@mui/material";
 import {
-  forwardRef,
   type ReactNode,
+  forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -255,7 +255,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       },
       [],
     );
-    const handleQuestionGeometryChange = ({
+    const handleResponseGeometryChange = ({
       questionId,
       geometries: questionGeometries,
     }: {
@@ -317,9 +317,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             data={categories}
             components={virtuosoComponents}
             style={{ height: "100%", overflowX: "hidden" }}
-            computeItemKey={(_, category) =>
-              `category-${category.categoryId}`
-            }
+            computeItemKey={(_, category) => `category-${category.categoryId}`}
             itemContent={(_, category) => (
               <div className="pb-2">
                 <Category
@@ -334,7 +332,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   expandedSubcategoryIds={expandedSubcategoryIds}
                   onSubcategoryExpandedChange={handleSubcategoryExpandedChange}
                   locationPolygonGeoJson={locationPolygonGeoJson}
-                  onQuestionGeometryChange={handleQuestionGeometryChange}
+                  onResponseGeometryChange={handleResponseGeometryChange}
                   onQuestionImagesChange={handleQuestionImagesChange}
                   control={control}
                 />
@@ -367,7 +365,7 @@ type SharedQuestionProps = {
   responseImages: ResponseFormImages;
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
-  onQuestionGeometryChange: (params: ResponseFormGeometry) => void;
+  onResponseGeometryChange: (params: ResponseFormGeometry) => void;
   onQuestionImagesChange: (
     questionId: number,
     images: ResponseFormImage[],
@@ -383,7 +381,7 @@ const Category = ({
   responseImages,
   questionsForMention,
   locationPolygonGeoJson,
-  onQuestionGeometryChange,
+  onResponseGeometryChange,
   onQuestionImagesChange,
   control,
   readOnly,
@@ -419,7 +417,7 @@ const Category = ({
               responseImages,
               questionsForMention,
               locationPolygonGeoJson,
-              onQuestionGeometryChange,
+              onResponseGeometryChange,
               onQuestionImagesChange,
               control,
               readOnly,
@@ -436,7 +434,7 @@ const Category = ({
               responseImages,
               questionsForMention,
               locationPolygonGeoJson,
-              onQuestionGeometryChange,
+              onResponseGeometryChange,
               onQuestionImagesChange,
               control,
               readOnly,
@@ -484,7 +482,7 @@ const Question = ({
   responseImages,
   questionsForMention,
   locationPolygonGeoJson,
-  onQuestionGeometryChange,
+  onResponseGeometryChange,
   onQuestionImagesChange,
   control,
   readOnly,
@@ -498,12 +496,12 @@ const Question = ({
       questionsForMention={questionsForMention}
       questionControls={
         <>
-          <ResponseFormQuestionGeometryControls
+          <ResponseFormGeometryControls
             question={question}
             geometries={geometries}
             locationPolygonGeoJson={locationPolygonGeoJson}
             finalized={readOnly}
-            handleQuestionGeometryChange={onQuestionGeometryChange}
+            handleResponseGeometryChange={onResponseGeometryChange}
           />
           <ResponseFormQuestionImageControls
             question={question}

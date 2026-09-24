@@ -8,18 +8,18 @@ import { useState } from "react";
 
 import ResponseFormMapDialog from "./responseFormMapDialog";
 
-const ResponseFormQuestionGeometryControls = ({
+const ResponseFormGeometryControls = ({
   question,
   geometries,
   locationPolygonGeoJson,
   finalized,
-  handleQuestionGeometryChange,
+  handleResponseGeometryChange,
 }: {
   question: FormSubmissionQuestionItem;
   geometries: ResponseFormGeometry[];
   locationPolygonGeoJson: string | null;
   finalized: boolean;
-  handleQuestionGeometryChange: (params: ResponseFormGeometry) => void;
+  handleResponseGeometryChange: (params: ResponseFormGeometry) => void;
 }) => {
   const [openMapDialog, setOpenMapDialog] = useState(false);
   const currentGeometriesCount =
@@ -57,8 +57,8 @@ const ResponseFormQuestionGeometryControls = ({
         }
         geometryType={question.geometryTypes}
         finalized={finalized}
-        handleQuestionGeometryChange={(questionId, nextGeometries) => {
-          handleQuestionGeometryChange({
+        handleResponseGeometryChange={(questionId, nextGeometries) => {
+          handleResponseGeometryChange({
             questionId,
             geometries: nextGeometries,
           });
@@ -68,4 +68,4 @@ const ResponseFormQuestionGeometryControls = ({
   );
 };
 
-export default ResponseFormQuestionGeometryControls;
+export default ResponseFormGeometryControls;

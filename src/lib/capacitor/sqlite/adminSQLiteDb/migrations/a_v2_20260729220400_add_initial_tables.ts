@@ -251,7 +251,9 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         id INTEGER PRIMARY KEY,
         assessment_id INTEGER NOT NULL REFERENCES assessment(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
-        geometries TEXT,
+        geometry TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
         UNIQUE (assessment_id, question_id)
       )`,
     },

@@ -75,7 +75,7 @@ interface MapProviderProps {
   questionId: number;
   locationPolygonGeoJson: string | null;
   initialGeometries: ResponseGeometry[] | undefined;
-  handleQuestionGeometryChange: (
+  handleResponseGeometryChange: (
     questionId: number,
     geometries: ResponseGeometry[],
   ) => void;
@@ -92,7 +92,7 @@ const MapProvider = forwardRef(
       questionId,
       locationPolygonGeoJson,
       initialGeometries,
-      handleQuestionGeometryChange,
+      handleResponseGeometryChange,
       handleChangeIsInSelectMode,
       finalized,
     }: MapProviderProps,
@@ -274,7 +274,7 @@ const MapProvider = forwardRef(
         .filter((g) => g !== undefined);
 
       if (geometries !== undefined) {
-        handleQuestionGeometryChange(questionId, geometries);
+        handleResponseGeometryChange(questionId, geometries);
       }
     };
 

@@ -328,25 +328,28 @@ export const getFormSubmissionUpdateTransactions = async ({
     transactions.push(prisma.$executeRaw(responseOptionInsert));
   }
 
-  const geometryValues = geometries.map((geometryByQuestion) => {
-    const { questionId, geometries: questionGeometries } = geometryByQuestion;
-    const geometryCollectionWkt =
-      serializeResponseGeometriesToWkt(questionGeometries);
+  const responseGeometryValues = geometries.map((responseGeometry) => {
+    const { questionId, geometries: geometriesForQuestion } = responseGeometry;
+    const geometryCollectionWkt = serializeResponseGeometriesToWkt(
+      geometriesForQuestion,
+    );
     const geoText =
       geometryCollectionWkt ?
         Prisma.sql`ST_GeomFromText(${geometryCollectionWkt}, 4326)`
       : Prisma.sql`NULL`;
-    return Prisma.sql`(${formSubmissionId}, ${questionId}, ${geoText})`;
+    return Prisma.sql`(${formSubmissionId}, ${questionId}, ${geoText}, NOW())`;
   });
-  if (geometryValues.length > 0) {
-    const geometryQuery = Prisma.sql`
-      INSERT INTO question_geometry (form_submission_id, question_id, geometry)
-      VALUES ${Prisma.join(geometryValues, ",")}
+  if (responseGeometryValues.length > 0) {
+    const responseGeometryQuery = Prisma.sql`
+      INSERT INTO response_geometry (form_submission_id, question_id, geometry, updated_at)
+      VALUES ${Prisma.join(responseGeometryValues, ",")}
       ON CONFLICT (form_submission_id, question_id)
-      DO UPDATE SET geometry = EXCLUDED.geometry
+      DO UPDATE SET
+        geometry = EXCLUDED.geometry,
+        updated_at = EXCLUDED.updated_at
     `;
 
-    transactions.push(prisma.$executeRaw(geometryQuery));
+    transactions.push(prisma.$executeRaw(responseGeometryQuery));
   }
 
   return transactions;

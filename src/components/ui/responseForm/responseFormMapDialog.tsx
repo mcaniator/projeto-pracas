@@ -23,7 +23,7 @@ const ResponseFormMapDialog = ({
   geometryType,
   questionName,
   finalized,
-  handleQuestionGeometryChange,
+  handleResponseGeometryChange,
 }: {
   openMapDialog: boolean;
   onClose: () => void;
@@ -33,7 +33,7 @@ const ResponseFormMapDialog = ({
   geometryType: QuestionGeometryTypes[];
   questionName: string;
   finalized: boolean;
-  handleQuestionGeometryChange: (
+  handleResponseGeometryChange: (
     questionId: number,
     geometries: ResponseGeometry[],
   ) => void;
@@ -82,7 +82,7 @@ const ResponseFormMapDialog = ({
           questionId={questionId}
           locationPolygonGeoJson={locationPolygonGeoJson}
           initialGeometries={initialGeometries}
-          handleQuestionGeometryChange={handleQuestionGeometryChange}
+          handleResponseGeometryChange={handleResponseGeometryChange}
           handleChangeIsInSelectMode={handleChangeIsInSelectMode}
           finalized={finalized}
           ref={mapProviderRef}

@@ -5,7 +5,7 @@ import type {
 } from "@/app/admin/protocols/forms/edit/clientV2";
 import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { prisma } from "@/lib/prisma";
-import { fetchFormSubmissionGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
+import { fetchFormSubmissionResponseGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { SerializedFormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
@@ -84,7 +84,7 @@ export const getFormSubmissionData = async ({
           option: { select: { id: true } },
         },
       }),
-      fetchFormSubmissionGeometries({
+      fetchFormSubmissionResponseGeometries({
         formSubmissionId,
         publicQuestionsOnly,
       }),
