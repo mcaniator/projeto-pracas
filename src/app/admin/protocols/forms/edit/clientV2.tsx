@@ -32,7 +32,7 @@ import CalculationDialog from "./calculations/calculationDialog";
 import QuestionFormV2 from "./questionManager/questionFormV2";
 import SaveFormDialog from "./saveFormDialog";
 
-const FormEditor = dynamic(() => import("./formEditor"), {
+const FormStructureEditor = dynamic(() => import("./formStructureEditor"), {
   ssr: false,
   loading: () => (
     <div className="text-black">
@@ -410,7 +410,7 @@ const ClientV2 = ({
               </div>
             )}
             {
-              <FormEditor
+              <FormStructureEditor
                 categories={formStructure.categories}
                 isFinalized={isFinalized}
                 onCategoriesChange={handleFormCategoriesChange}

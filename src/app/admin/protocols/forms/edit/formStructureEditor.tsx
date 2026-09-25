@@ -32,7 +32,7 @@ import { useState } from "react";
 
 type CategoriesChangeHandler = (categories: CategoryItem[]) => void;
 
-const FormEditor = ({
+const FormStructureEditor = ({
   categories,
   isFinalized,
   onCategoriesChange,
@@ -600,4 +600,4 @@ const SortableFormItem = ({
   }
 };
 
-export default FormEditor;
+export default FormStructureEditor;
