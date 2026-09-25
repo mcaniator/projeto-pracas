@@ -4,11 +4,11 @@ import Loading from "@/app/admin/loading";
 import { useUserContext } from "@/components/context/UserContext";
 import CCircularProgress from "@/components/ui/CCircularProgress";
 import {
-  fetchAdminSQLiteAssessmentTree,
+  fetchAdminSQLiteAssessmentDetails,
   fetchAdminSQLiteIfCanSaveAssessment,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
-import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
-import type { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import { useFetchAssessmentDetails } from "@/lib/serverFunctions/apiCalls/assessment";
+import type { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { Capacitor } from "@capacitor/core";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -24,9 +24,9 @@ const ResponsesContent = () => {
       searchParams.get("isSQLiteAssessment") === "true",
   );
   const { user } = useUserContext();
-  const [fetchAssessmentTree, isLoading] = useFetchAssessmentTree({});
-  const [assessmentTree, setAssessmentTree] = useState<
-    FetchAssessmentTreeResponse["assessmentTree"] | null
+  const [fetchAssessmentDetails, isLoading] = useFetchAssessmentDetails({});
+  const [assessmentDetails, setAssessmentDetails] = useState<
+    FetchAssessmentDetailsResponse["assessmentDetails"] | null
   >(null);
   const [canSaveOffline, setCanSaveOffline] = useState(false);
 
@@ -36,76 +36,76 @@ const ResponsesContent = () => {
         router.replace("/error");
         return;
       }
-      let assessmentTree:
-        | FetchAssessmentTreeResponse["assessmentTree"]
+      let assessmentDetails:
+        | FetchAssessmentDetailsResponse["assessmentDetails"]
         | undefined = undefined;
       if (
         Capacitor.isNativePlatform() &&
         searchParams.get("isSQLiteAssessment") === "true"
       ) {
         //SQLite assessment
-        const response = await fetchAdminSQLiteAssessmentTree({
+        const response = await fetchAdminSQLiteAssessmentDetails({
           params: { assessmentId },
         });
-        assessmentTree = response.data?.assessmentTree;
+        assessmentDetails = response.data?.assessmentDetails;
       } else {
         //Server assessment
-        const response = await fetchAssessmentTree({
+        const response = await fetchAssessmentDetails({
           params: { assessmentId },
           requestOptions: {
             cache: "reload",
           },
         });
-        assessmentTree = response.data?.assessmentTree;
+        assessmentDetails = response.data?.assessmentDetails;
       }
 
-      if (!assessmentTree) {
+      if (!assessmentDetails) {
         router.replace("/error");
         return;
       }
 
-      setAssessmentTree(assessmentTree);
+      setAssessmentDetails(assessmentDetails);
     };
 
     void loadAssessment();
-  }, [assessmentId, fetchAssessmentTree, searchParams, router]);
+  }, [assessmentId, fetchAssessmentDetails, searchParams, router]);
 
   useEffect(() => {
     const checkIfCanSaveOffline = async () => {
       // Check if can save offline
-      if (!assessmentTree) return;
+      if (!assessmentDetails) return;
       const checkResponse = await fetchAdminSQLiteIfCanSaveAssessment({
         params: {
-          formId: assessmentTree.formSubmission.formStructure.formId,
-          locationId: assessmentTree.location.id,
-          userId: assessmentTree.user.id,
+          formId: assessmentDetails.formSubmission.formStructure.formId,
+          locationId: assessmentDetails.location.id,
+          userId: assessmentDetails.user.id,
         },
       });
 
       setCanSaveOffline(checkResponse.data?.canSave || false);
     };
 
-    if (assessmentTree) {
+    if (assessmentDetails) {
       void checkIfCanSaveOffline();
     }
-  }, [assessmentTree]);
+  }, [assessmentDetails]);
 
-  if (isLoading || !assessmentTree?.location) {
+  if (isLoading || !assessmentDetails?.location) {
     return <Loading />;
   }
 
   const userCanEdit =
-    assessmentTree.user.id === user.id ||
+    assessmentDetails.user.id === user.id ||
     user.roles.includes("ASSESSMENT_MANAGER");
-  const location = assessmentTree.location;
+  const location = assessmentDetails.location;
 
   return (
     <AssessmentClient
       locationId={location.id}
       locationName={location.name}
       locationPolygonGeoJson={location.st_asgeojson}
-      assessmentTree={assessmentTree}
-      finalized={assessmentTree.isFinalized}
+      assessmentDetails={assessmentDetails}
+      finalized={assessmentDetails.isFinalized}
       userCanEdit={userCanEdit}
       canSaveOffline={canSaveOffline}
       isSQLiteAssessment={isSQLiteAssessment}

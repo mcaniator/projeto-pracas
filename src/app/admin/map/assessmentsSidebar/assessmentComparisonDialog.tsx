@@ -4,9 +4,9 @@ import ResultViewerAssessmentComparison from "@/app/admin/map/assessmentsSidebar
 import TableAssessmentComparison from "@/app/admin/map/assessmentsSidebar/tableAssessmentComparison";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { useFetchMapAssessmentComparisonAssessmentTrees } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
+import { useFetchMapAssessmentComparisonAssessmentDetails } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
 import {
-  FetchMapAssessmentComparisonAssessmentTreesResponse,
+  FetchMapAssessmentComparisonAssessmentDetailsResponse,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { useMediaQuery, useTheme } from "@mui/material";
@@ -26,7 +26,7 @@ const AssessmentComparisonDialog = ({
   const theme = useTheme();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
   const [comparisonLocations, setComparisonLocations] = useState<
-    FetchMapAssessmentComparisonAssessmentTreesResponse["locations"]
+    FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"]
   >([]);
   const locationOrderById = useMemo(
     () =>
@@ -40,8 +40,8 @@ const AssessmentComparisonDialog = ({
     () => locations.map((location) => location.id),
     [locations],
   );
-  const [fetchAssessmentTrees, loadingAssessmentTrees] =
-    useFetchMapAssessmentComparisonAssessmentTrees({
+  const [fetchAssessmentDetails, loadingAssessmentDetails] =
+    useFetchMapAssessmentComparisonAssessmentDetails({
       callbacks: {
         onSuccess: (response) => {
           const nextLocations = [...(response.data?.locations ?? [])].sort(
@@ -61,13 +61,13 @@ const AssessmentComparisonDialog = ({
       return;
     }
 
-    void fetchAssessmentTrees({
+    void fetchAssessmentDetails({
       params: {
         categoryId: category.id,
         locationIds,
       },
     });
-  }, [category, fetchAssessmentTrees, locationIds, open]);
+  }, [category, fetchAssessmentDetails, locationIds, open]);
   return (
     <CDialog
       title={category?.name ?? "Avaliações"}
@@ -77,7 +77,7 @@ const AssessmentComparisonDialog = ({
       maxWidth="xl"
       disableDialogActions
     >
-      {loadingAssessmentTrees ?
+      {loadingAssessmentDetails ?
         <CLinearProgress label="Carregando..." />
       : isMobileView ?
         <ResultViewerAssessmentComparison

@@ -1,6 +1,6 @@
 import {
-  fetchAssessmentTree,
-  fetchAssessmentTreeParamsSchema,
+  fetchAssessmentDetails,
+  fetchAssessmentDetailsParamsSchema,
 } from "@/lib/serverFunctions/queries/assessment";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
@@ -15,10 +15,10 @@ export async function GET(request: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
     const params = parseQueryParams(
-      fetchAssessmentTreeParamsSchema,
+      fetchAssessmentDetailsParamsSchema,
       request.nextUrl.searchParams,
     );
-    const assessments = await fetchAssessmentTree({
+    const assessments = await fetchAssessmentDetails({
       params: {
         ...params,
         isPublic: true,

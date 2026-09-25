@@ -7,8 +7,8 @@ import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import {
   deleteAdminSQLiteAssessment,
+  fetchAdminSQLiteAssessmentDetails,
   fetchAdminSQLiteAssessmentTableData,
-  fetchAdminSQLiteAssessmentTree,
   updateAdminSQLiteAssessmentRemoteReference,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import {
@@ -154,14 +154,15 @@ const AssessmentsList = ({
         }
       }
       // Fetch responses from SQLite and send them to the server
-      const SQLiteAssessmentTree = await fetchAdminSQLiteAssessmentTree({
-        params: {
-          assessmentId: serverAssessmentId,
-        },
-      });
-      const SQLiteAssessmentTreeData =
-        SQLiteAssessmentTree.data?.assessmentTree;
-      if (!SQLiteAssessmentTreeData) {
+      const sqliteAssessmentDetailsResponse =
+        await fetchAdminSQLiteAssessmentDetails({
+          params: {
+            assessmentId: serverAssessmentId,
+          },
+        });
+      const sqliteAssessmentDetails =
+        sqliteAssessmentDetailsResponse.data?.assessmentDetails;
+      if (!sqliteAssessmentDetails) {
         throw new Error(
           "Respostas da avaliação não encontradas no dispositivo!",
         );
@@ -169,14 +170,14 @@ const AssessmentsList = ({
       const assessmentSubmitResponse = await submitAssessmentOnServer({
         data: {
           assessmentId: serverAssessmentId,
-          startDate: SQLiteAssessmentTreeData.startDate,
-          endDate: SQLiteAssessmentTreeData.endDate,
-          isFinalized: SQLiteAssessmentTreeData.isFinalized,
-          driveFolderUrl: SQLiteAssessmentTreeData.driveFolderUrl,
+          startDate: sqliteAssessmentDetails.startDate,
+          endDate: sqliteAssessmentDetails.endDate,
+          isFinalized: sqliteAssessmentDetails.isFinalized,
+          driveFolderUrl: sqliteAssessmentDetails.driveFolderUrl,
           formSubmission: {
-            geometries: SQLiteAssessmentTreeData.formSubmission.geometries,
+            geometries: sqliteAssessmentDetails.formSubmission.geometries,
             responses:
-              SQLiteAssessmentTreeData.formSubmission.responsesFormValues,
+              sqliteAssessmentDetails.formSubmission.responsesFormValues,
           },
         },
       });

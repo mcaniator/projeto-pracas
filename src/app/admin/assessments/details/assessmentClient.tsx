@@ -25,7 +25,7 @@ import ResponseFormV2, {
 import dayjs from "@/lib/dayjs";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
-import type { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import type { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import type {
   ResponseFormGeometry,
@@ -61,7 +61,7 @@ const AssessmentClient = ({
   locationId,
   locationName,
   locationPolygonGeoJson,
-  assessmentTree,
+  assessmentDetails,
   finalized,
   userCanEdit,
   canSaveOffline,
@@ -71,7 +71,7 @@ const AssessmentClient = ({
   locationId: number;
   locationName: string;
   locationPolygonGeoJson: string | null;
-  assessmentTree: FetchAssessmentTreeResponse["assessmentTree"];
+  assessmentDetails: FetchAssessmentDetailsResponse["assessmentDetails"];
   finalized: boolean;
   userCanEdit: boolean;
   canSaveOffline: boolean;
@@ -84,22 +84,22 @@ const AssessmentClient = ({
   const { enqueueSnackbar } = useAppSnackbar();
   const { user } = useUserContext();
   const { setLoadingOverlay } = useLoadingOverlay();
-  const formSubmission = assessmentTree.formSubmission;
+  const formSubmission = assessmentDetails.formSubmission;
 
   const [openAssessmentImportDialog, setOpenAssessmentImportDialog] =
     useState(false);
   const [isFinalized, setIsFinalized] = useState(finalized);
   const [isFilling, setIsFilling] = useState(finalized ? false : userCanEdit);
   const [endDate, setEndDate] = useState<Dayjs | null>(
-    assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null,
+    assessmentDetails.endDate ? dayjs(assessmentDetails.endDate) : null,
   );
   const [startDate, setStartDate] = useState<Dayjs>(
-    dayjs(assessmentTree.startDate),
+    dayjs(assessmentDetails.startDate),
   );
   const [openDriveFolderUrlDialog, setOpenDriveFolderUrlDialog] =
     useState(false);
   const [driveFolderUrl, setDriveFolderUrl] = useState<string | null>(
-    assessmentTree.driveFolderUrl,
+    assessmentDetails.driveFolderUrl,
   );
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
     formSubmission.geometries,
@@ -116,10 +116,10 @@ const AssessmentClient = ({
     useState<Date>();
   const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
   const [serverUpdatedAtState, setServerUpdatedAtState] = useState(
-    assessmentTree.updatedAt,
+    assessmentDetails.updatedAt,
   );
 
-  const serverUpdatedAtRef = useRef(assessmentTree.updatedAt);
+  const serverUpdatedAtRef = useRef(assessmentDetails.updatedAt);
   const geometriesRef = useRef(geometries);
   const serializedFormValuesRef = useRef<SerializedFormValues>(
     formSubmission.responsesFormValues,
@@ -137,7 +137,7 @@ const AssessmentClient = ({
     window.clearTimeout(draftSaveTimeoutRef.current);
     draftSaveTimeoutRef.current = window.setTimeout(() => {
       const localAssessment: AssessmentDraft = {
-        id: assessmentTree.id,
+        id: assessmentDetails.id,
         userId: user.id,
         username: user.username,
         serverUpdatedAt: serverUpdatedAtRef.current,
@@ -154,7 +154,7 @@ const AssessmentClient = ({
       setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
     }, 500);
   }, [
-    assessmentTree.id,
+    assessmentDetails.id,
     driveFolderUrl,
     endDate,
     isFinalized,
@@ -210,11 +210,13 @@ const AssessmentClient = ({
       setLoadingOverlay({ show: true, message: "Carregando..." });
       responseFormRef.current?.reset(formSubmission.responsesFormValues);
       serializedFormValuesRef.current = formSubmission.responsesFormValues;
-      setIsFinalized(assessmentTree.isFinalized);
-      setIsFilling(!assessmentTree.isFinalized);
-      setStartDate(dayjs(assessmentTree.startDate));
-      setEndDate(assessmentTree.endDate ? dayjs(assessmentTree.endDate) : null);
-      setDriveFolderUrl(assessmentTree.driveFolderUrl);
+      setIsFinalized(assessmentDetails.isFinalized);
+      setIsFilling(!assessmentDetails.isFinalized);
+      setStartDate(dayjs(assessmentDetails.startDate));
+      setEndDate(
+        assessmentDetails.endDate ? dayjs(assessmentDetails.endDate) : null,
+      );
+      setDriveFolderUrl(assessmentDetails.driveFolderUrl);
       setGeometries(formSubmission.geometries);
       setResponseImages({});
       geometriesRef.current = formSubmission.geometries;
@@ -222,7 +224,7 @@ const AssessmentClient = ({
       nonResponseItemsIsDirtyRef.current = false;
       setPendingLocalAssessmentChoice(undefined);
       try {
-        await deleteAssessmentResponsesDraft(assessmentTree.id);
+        await deleteAssessmentResponsesDraft(assessmentDetails.id);
         setPendingSaveFromDraft(false);
         setLocalAssessmentUpdatedAt(undefined);
       } catch {
@@ -230,7 +232,7 @@ const AssessmentClient = ({
           variant: "error",
         });
       } finally {
-        if (assessmentTree.isFinalized) {
+        if (assessmentDetails.isFinalized) {
           setIsFilling(false);
         }
         setLoadingOverlay({ show: false });
@@ -239,7 +241,7 @@ const AssessmentClient = ({
 
     void applyServerValuesAndDeleteLocalValues();
   }, [
-    assessmentTree,
+    assessmentDetails,
     enqueueSnackbar,
     formSubmission.geometries,
     formSubmission.responsesFormValues,
@@ -335,14 +337,14 @@ const AssessmentClient = ({
           message: "Carregando respostas locais...",
         });
         const localAssessment = await fetchAssessmentResponsesDraft(
-          assessmentTree.id,
+          assessmentDetails.id,
         );
 
         if (ignore || !localAssessment) return;
 
         setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
         if (
-          assessmentTree.updatedAt.getTime() <=
+          assessmentDetails.updatedAt.getTime() <=
           localAssessment.serverUpdatedAt.getTime()
         ) {
           applyLocalAssessmentValues(localAssessment);
@@ -365,8 +367,8 @@ const AssessmentClient = ({
     };
   }, [
     applyLocalAssessmentValues,
-    assessmentTree.id,
-    assessmentTree.updatedAt,
+    assessmentDetails.id,
+    assessmentDetails.updatedAt,
     enqueueSnackbar,
     setLoadingOverlay,
   ]);
@@ -383,7 +385,7 @@ const AssessmentClient = ({
           tooltip="Formulário"
         />
         <CChip
-          label={assessmentTree.user.username}
+          label={assessmentDetails.user.username}
           icon={<IconUser />}
           sx={{ fontSize: 16 }}
           tooltip="Avaliador"
@@ -392,15 +394,15 @@ const AssessmentClient = ({
           <>
             <CChip
               icon={<IconClipboardData />}
-              label={dateTimeFormatter.format(assessmentTree.startDate)}
+              label={dateTimeFormatter.format(assessmentDetails.startDate)}
               sx={{ fontSize: 16 }}
               tooltip="Início"
             />
             <CChip
               icon={<IconClipboardCheck />}
               label={
-                assessmentTree.endDate ?
-                  dateTimeFormatter.format(assessmentTree.endDate)
+                assessmentDetails.endDate ?
+                  dateTimeFormatter.format(assessmentDetails.endDate)
                 : "Indefinido"
               }
               sx={{ fontSize: 16 }}
@@ -525,7 +527,7 @@ const AssessmentClient = ({
       />
       <SaveAssessmentDialog
         locationName={locationName}
-        assessmentId={assessmentTree.id}
+        assessmentId={assessmentDetails.id}
         open={openSaveDialog}
         serializedFormValues={serializedFormValuesRef.current}
         geometries={geometries}
@@ -560,7 +562,7 @@ const AssessmentClient = ({
         onIsSQLiteAssessmentChange={onIsSQLiteAssessmentChange}
       />
       <DeleteAssessmentDialog
-        assessmentId={assessmentTree.id}
+        assessmentId={assessmentDetails.id}
         open={openDeleteAssessmentDialog}
         isSQLiteAssessment={isSQLiteAssessment}
         onClose={() => setOpenDeleteAssessmentDialog(false)}
@@ -590,8 +592,8 @@ const AssessmentClient = ({
       {!!pendingLocalAssessmentChoice && (
         <ChooseResponsesSourceDialog
           serverSource={{
-            updatedAt: assessmentTree.updatedAt,
-            username: assessmentTree.user.username,
+            updatedAt: assessmentDetails.updatedAt,
+            username: assessmentDetails.user.username,
           }}
           localSource={{
             updatedAt: pendingLocalAssessmentChoice.localUpdatedAt,

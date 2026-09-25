@@ -12,8 +12,8 @@ import type {
   AssessmentSubmitResponse,
 } from "@/lib/serverFunctions/mutations/responseUtil";
 import type {
-  FetchAssessmentTreeParams,
-  FetchAssessmentTreeResponse,
+  FetchAssessmentDetailsParams,
+  FetchAssessmentDetailsResponse,
   FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
@@ -856,9 +856,9 @@ const fetchAdminSQLiteAssessmentUsers = async (
   }
 };
 
-const fetchAdminSQLiteAssessmentTree = async (
-  request: APIRequestParams<FetchAssessmentTreeParams>,
-): Promise<APIResponse<FetchAssessmentTreeResponse>> => {
+const fetchAdminSQLiteAssessmentDetails = async (
+  request: APIRequestParams<FetchAssessmentDetailsParams>,
+): Promise<APIResponse<FetchAssessmentDetailsResponse>> => {
   const params = request.params!;
   try {
     const assessmentValues = await adminSQLiteDb.query({
@@ -899,7 +899,7 @@ const fetchAdminSQLiteAssessmentTree = async (
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        assessmentTree: {
+        assessmentDetails: {
           id: assessment.id,
           startDate: assessment.startDate,
           endDate: assessment.endDate,
@@ -1190,7 +1190,7 @@ export {
   createAdminSQLiteAssessment,
   createAdminSQLiteAssessmentFromRemoteAssessment,
   fetchAdminSQLiteAssessments,
-  fetchAdminSQLiteAssessmentTree,
+  fetchAdminSQLiteAssessmentDetails,
   fetchAdminSQLiteAssessmentUsers,
   fetchAdminSQLiteHasAssessments,
   fetchAdminSQLiteIfCanSaveAssessment,

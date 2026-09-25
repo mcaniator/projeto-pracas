@@ -104,23 +104,23 @@ export const fetchAssessmentUsers = async (_request: APIRequest) => {
   }
 };
 
-export const fetchAssessmentTreeParamsSchema = z.object({
+export const fetchAssessmentDetailsParamsSchema = z.object({
   assessmentId: z.coerce.number().int().positive(),
 });
 
-export type FetchAssessmentTreeParams = z.infer<
-  typeof fetchAssessmentTreeParamsSchema
+export type FetchAssessmentDetailsParams = z.infer<
+  typeof fetchAssessmentDetailsParamsSchema
 >;
 
-export type FetchAssessmentTreeResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentTree>>["data"]
+export type FetchAssessmentDetailsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchAssessmentDetails>>["data"]
 >;
 
 type AssessmentLocationPolygon = {
   st_asgeojson: string | null;
 };
 
-const fetchAssessmentTree = async (
+const fetchAssessmentDetails = async (
   request: APIRequestParams<{
     assessmentId: number;
     isPublic?: boolean;
@@ -185,7 +185,7 @@ const fetchAssessmentTree = async (
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        assessmentTree: {
+        assessmentDetails: {
           id: assessment.id,
           startDate: assessment.startDate,
           endDate: assessment.endDate,
@@ -213,12 +213,12 @@ const fetchAssessmentTree = async (
   }
 };
 
-export type GetPublicAssessmentTreeResponse = NonNullable<
-  Awaited<ReturnType<typeof getPublicAssessmentTree>>["data"]
+export type GetPublicAssessmentDetailsResponse = NonNullable<
+  Awaited<ReturnType<typeof getPublicAssessmentDetails>>["data"]
 >;
 
-const getPublicAssessmentTree = async (params: { assessmentId: number }) =>
-  fetchAssessmentTree({
+const getPublicAssessmentDetails = async (params: { assessmentId: number }) =>
+  fetchAssessmentDetails({
     params: {
       assessmentId: params.assessmentId,
       isPublic: true,
@@ -374,7 +374,7 @@ export const fetchPublicAssessments = async (
 
 export {
   getRecentlyCompletedAssessments,
-  fetchAssessmentTree,
+  fetchAssessmentDetails,
   fetchAssessments,
-  getPublicAssessmentTree,
+  getPublicAssessmentDetails,
 };

@@ -238,35 +238,34 @@ export const fetchMapAssessmentComparisonResults = async (
   }
 };
 
-export type MapAssessmentComparisonAssessmentTree = {
+export type MapAssessmentComparisonAssessmentDetails = {
   id: number;
   startDate: Date;
   formSubmission: GetFormSubmissionDataResult;
 };
 
-export const fetchMapAssessmentComparisonAssessmentTreesParamsSchema = z.object(
-  {
+export const fetchMapAssessmentComparisonAssessmentDetailsParamsSchema =
+  z.object({
     categoryId: z.coerce.number(),
     locationIds: z
       .string()
       .transform((value) =>
         value.split(",").map((id) => z.coerce.number().parse(id)),
       ),
-  },
-);
+  });
 
-export type FetchMapAssessmentComparisonAssessmentTreesParams = z.infer<
-  typeof fetchMapAssessmentComparisonAssessmentTreesParamsSchema
+export type FetchMapAssessmentComparisonAssessmentDetailsParams = z.infer<
+  typeof fetchMapAssessmentComparisonAssessmentDetailsParamsSchema
 >;
 
-export type FetchMapAssessmentComparisonAssessmentTreesResponse = NonNullable<
+export type FetchMapAssessmentComparisonAssessmentDetailsResponse = NonNullable<
   Awaited<
-    ReturnType<typeof fetchMapAssessmentComparisonAssessmentTrees>
+    ReturnType<typeof fetchMapAssessmentComparisonAssessmentDetails>
   >["data"]
 >;
 
-export const fetchMapAssessmentComparisonAssessmentTrees = async (
-  request: APIRequestParams<FetchMapAssessmentComparisonAssessmentTreesParams>,
+export const fetchMapAssessmentComparisonAssessmentDetails = async (
+  request: APIRequestParams<FetchMapAssessmentComparisonAssessmentDetailsParams>,
 ) => {
   const { categoryId, locationIds } = request.params!;
   try {
@@ -299,12 +298,12 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
     });
 
     const locationsById = new Map<number, { id: number; name: string }>();
-    const assessmentTreesByLocationId = new Map<
+    const assessmentDetailsByLocationId = new Map<
       number,
-      MapAssessmentComparisonAssessmentTree[]
+      MapAssessmentComparisonAssessmentDetails[]
     >();
 
-    const assessmentTrees = await Promise.all(
+    const assessmentDetails = await Promise.all(
       assessments.map(async (assessment) => {
         const formSubmission = await getFormSubmissionData({
           formSubmissionId: assessment.formSubmissionId,
@@ -314,7 +313,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
 
         return {
           assessment,
-          assessmentTree: {
+          assessmentDetails: {
             id: assessment.id,
             startDate: assessment.startDate,
             formSubmission: {
@@ -326,19 +325,19 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
                 ),
               },
             },
-          } satisfies MapAssessmentComparisonAssessmentTree,
+          } satisfies MapAssessmentComparisonAssessmentDetails,
         };
       }),
     );
 
-    assessmentTrees.forEach(({ assessment, assessmentTree }) => {
+    assessmentDetails.forEach(({ assessment, assessmentDetails }) => {
       locationsById.set(assessment.location.id, assessment.location);
-      const locationAssessmentTrees =
-        assessmentTreesByLocationId.get(assessment.location.id) ?? [];
-      locationAssessmentTrees.push(assessmentTree);
-      assessmentTreesByLocationId.set(
+      const locationAssessmentDetails =
+        assessmentDetailsByLocationId.get(assessment.location.id) ?? [];
+      locationAssessmentDetails.push(assessmentDetails);
+      assessmentDetailsByLocationId.set(
         assessment.location.id,
-        locationAssessmentTrees,
+        locationAssessmentDetails,
       );
     });
 
@@ -348,7 +347,8 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
         locations: [...locationsById.values()].map((location) => ({
           id: location.id,
           name: location.name,
-          assessmentTrees: assessmentTreesByLocationId.get(location.id) ?? [],
+          assessmentDetails:
+            assessmentDetailsByLocationId.get(location.id) ?? [],
         })),
       },
     };
@@ -362,7 +362,7 @@ export const fetchMapAssessmentComparisonAssessmentTrees = async (
         locations: [] as {
           id: number;
           name: string;
-          assessmentTrees: MapAssessmentComparisonAssessmentTree[];
+          assessmentDetails: MapAssessmentComparisonAssessmentDetails[];
         }[],
       },
     };

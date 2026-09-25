@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
-  type FetchAssessmentTreeResponse,
-  fetchAssessmentTree,
+  type FetchAssessmentDetailsResponse,
+  fetchAssessmentDetails,
 } from "@/lib/serverFunctions/queries/assessment";
 import {
   APIRequestParams,
@@ -60,21 +60,21 @@ export const publicFetchPublicAssessments = async (
   }
 };
 
-export const publicFetchPublicAssessmentTreeParamsSchema = z.object({
+export const publicFetchPublicAssessmentDetailsParamsSchema = z.object({
   assessmentId: z.number().int().positive(),
 });
 
-export type PublicFetchPublicAssessmentTreeParams = z.infer<
-  typeof publicFetchPublicAssessmentTreeParamsSchema
+export type PublicFetchPublicAssessmentDetailsParams = z.infer<
+  typeof publicFetchPublicAssessmentDetailsParamsSchema
 >;
 
-export type PublicFetchPublicAssessmentTreeResponse =
-  FetchAssessmentTreeResponse;
+export type PublicFetchPublicAssessmentDetailsResponse =
+  FetchAssessmentDetailsResponse;
 
-export const publicFetchPublicAssessmentTree = (
-  request: APIRequestParams<PublicFetchPublicAssessmentTreeParams>,
+export const publicFetchPublicAssessmentDetails = (
+  request: APIRequestParams<PublicFetchPublicAssessmentDetailsParams>,
 ) =>
-  fetchAssessmentTree({
+  fetchAssessmentDetails({
     params: {
       assessmentId: request.params!.assessmentId,
       isPublic: true,

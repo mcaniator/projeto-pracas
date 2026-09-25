@@ -17,8 +17,8 @@ import type {
   AssessmentSubmitResponse,
 } from "../mutations/responseUtil";
 import type {
-  FetchAssessmentTreeParams,
-  FetchAssessmentTreeResponse,
+  FetchAssessmentDetailsParams,
+  FetchAssessmentDetailsResponse,
   FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
@@ -130,12 +130,15 @@ export const useFetchPublicAssessments = (
   });
 };
 
-export const useFetchAssessmentTree = ({
+export const useFetchAssessmentDetails = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchAssessmentDetailsResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+  return useFetchAPI<
+    FetchAssessmentDetailsResponse,
+    FetchAssessmentDetailsParams
+  >({
     url: "/api/admin/assessment",
     callbacks: params?.callbacks,
     options: {
@@ -144,12 +147,15 @@ export const useFetchAssessmentTree = ({
   });
 };
 
-export const useFetchPublicAssessmentTree = ({
+export const useFetchPublicAssessmentDetails = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchAssessmentDetailsResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+  return useFetchAPI<
+    FetchAssessmentDetailsResponse,
+    FetchAssessmentDetailsParams
+  >({
     url: "/api/admin/assessment/public",
     callbacks: params?.callbacks,
     options: {

@@ -3,8 +3,8 @@ import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { usePublicFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/public/assessment";
-import { PublicFetchPublicAssessmentTreeResponse } from "@/lib/serverFunctions/queries/public/assessment";
+import { usePublicFetchPublicAssessmentDetails } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { PublicFetchPublicAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
 import {
@@ -20,14 +20,14 @@ const LocationInfo = ({
   location: PublicFetchLocationsResponse["locations"][number];
 }) => {
   const [latestAssessment, setLatestAssessment] =
-    useState<PublicFetchPublicAssessmentTreeResponse["assessmentTree"]>();
+    useState<PublicFetchPublicAssessmentDetailsResponse["assessmentDetails"]>();
 
-  const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
-    usePublicFetchPublicAssessmentTree({
+  const [fetchLatestAssessmentDetails, fetchLatestAssessmentDetailsLoading] =
+    usePublicFetchPublicAssessmentDetails({
       params: {
         callbacks: {
           onSuccess: (response) => {
-            setLatestAssessment(response.data?.assessmentTree);
+            setLatestAssessment(response.data?.assessmentDetails);
           },
         },
       },
@@ -36,7 +36,7 @@ const LocationInfo = ({
   useEffect(() => {
     setLatestAssessment(undefined);
     if (location.latestAssessmentId) {
-      void fetchLatestAssessmentTree({
+      void fetchLatestAssessmentDetails({
         params: {
           assessmentId: location.latestAssessmentId,
         },
@@ -44,7 +44,7 @@ const LocationInfo = ({
     } else {
       setLatestAssessment(undefined);
     }
-  }, [location, fetchLatestAssessmentTree]);
+  }, [location, fetchLatestAssessmentDetails]);
 
   return (
     <div className="flex flex-col gap-1 pr-2">
@@ -118,7 +118,7 @@ const LocationInfo = ({
         </>
       )}
       <Divider />
-      {fetchLatestAssessmentTreeLoading && (
+      {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
       {latestAssessment && (

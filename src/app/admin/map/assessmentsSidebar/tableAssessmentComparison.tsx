@@ -9,7 +9,7 @@ import type {
   FormSubmissionSubcategoryItem,
 } from "@/lib/serverFunctions/queries/formSubmission";
 import {
-  FetchMapAssessmentComparisonAssessmentTreesResponse,
+  FetchMapAssessmentComparisonAssessmentDetailsResponse,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import {
@@ -19,8 +19,8 @@ import {
 import { IconCalendar, IconChartBar } from "@tabler/icons-react";
 import { type CSSProperties, Fragment, useMemo, useState } from "react";
 
-type ComparisonAssessmentTree =
-  FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number]["assessmentTrees"][number];
+type ComparisonAssessmentDetails =
+  FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number]["assessmentDetails"][number];
 
 const LOCATION_COLORS: [string, ...string[]] = [
   "#2563EB",
@@ -151,7 +151,7 @@ const cloneSubcategory = (
 });
 
 const buildComparisonCategories = (
-  assessments: (ComparisonAssessmentTree | null)[],
+  assessments: (ComparisonAssessmentDetails | null)[],
 ): FormSubmissionCategoryItem[] => {
   const categories: FormSubmissionCategoryItem[] = [];
   const includedQuestionIds = new Set<number>();
@@ -202,7 +202,7 @@ const buildComparisonCategories = (
   return categories;
 };
 
-const buildQuestionMap = (assessment: ComparisonAssessmentTree | null) => {
+const buildQuestionMap = (assessment: ComparisonAssessmentDetails | null) => {
   const questionMap = new Map<number, FormSubmissionQuestionItem>();
 
   assessment?.formSubmission.formStructure.categories.forEach((category) => {
@@ -229,16 +229,16 @@ const LocationAssessmentSelector = ({
   selectedAssessmentId,
 }: {
   color: string;
-  location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
+  location: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number];
   locationNumber: number;
   onAssessmentChange: (assessmentId: number) => void;
   selectedAssessmentId: number | null;
 }) => {
   const selectedAssessment =
-    location.assessmentTrees.find(
+    location.assessmentDetails.find(
       (assessment) => assessment.id === selectedAssessmentId,
     ) ??
-    location.assessmentTrees[0] ??
+    location.assessmentDetails[0] ??
     null;
 
   return (
@@ -262,7 +262,7 @@ const LocationAssessmentSelector = ({
         <CAutocomplete
           label="Avaliação"
           disableClearable
-          options={location.assessmentTrees}
+          options={location.assessmentDetails}
           value={selectedAssessment}
           isOptionEqualToValue={(option, value) => option.id === value.id}
           getOptionLabel={(option) => dateFormatter.format(option.startDate)}
@@ -277,11 +277,11 @@ const LocationAssessmentSelector = ({
 
 type ComparisonLocation = {
   color: string;
-  location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
+  location: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number];
   locationNumber: number;
   locationPolygonGeoJson: string | null;
   questionMap: Map<number, FormSubmissionQuestionItem>;
-  selectedAssessment: ComparisonAssessmentTree | null;
+  selectedAssessment: ComparisonAssessmentDetails | null;
 };
 
 const QuestionComparisonCell = ({
@@ -329,7 +329,7 @@ const TableAssessmentComparison = ({
   comparisonLocations,
 }: {
   locations: MapAssessmentComparisonLocation[];
-  comparisonLocations: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"];
+  comparisonLocations: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"];
 }) => {
   const [selectedAssessmentIds, setSelectedAssessmentIds] = useState<
     Record<number, number>
@@ -338,10 +338,10 @@ const TableAssessmentComparison = ({
   const comparisonTableLocations = useMemo<ComparisonLocation[]>(() => {
     return comparisonLocations.map((location, index) => {
       const selectedAssessment =
-        location.assessmentTrees.find(
+        location.assessmentDetails.find(
           (assessment) => assessment.id === selectedAssessmentIds[location.id],
         ) ??
-        location.assessmentTrees[0] ??
+        location.assessmentDetails[0] ??
         null;
 
       return {

@@ -1,5 +1,5 @@
-import { fetchMapAssessmentComparisonAssessmentTreesParamsSchema } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
-import { fetchMapAssessmentComparisonAssessmentTrees } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
+import { fetchMapAssessmentComparisonAssessmentDetailsParamsSchema } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
+import { fetchMapAssessmentComparisonAssessmentDetails } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const params = parseQueryParams(
-      fetchMapAssessmentComparisonAssessmentTreesParamsSchema,
+      fetchMapAssessmentComparisonAssessmentDetailsParamsSchema,
       searchParams,
     );
-    const results = await fetchMapAssessmentComparisonAssessmentTrees({
+    const results = await fetchMapAssessmentComparisonAssessmentDetails({
       params,
     });
 

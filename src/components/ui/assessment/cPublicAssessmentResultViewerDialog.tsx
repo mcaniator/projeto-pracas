@@ -2,10 +2,10 @@ import CLinearProgress from "@/components/ui/CLinearProgress";
 import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { useFetchAssessmentDetails } from "@/lib/serverFunctions/apiCalls/assessment";
 import {
   FetchPublicAssessmentsResponse,
-  GetPublicAssessmentTreeResponse,
+  GetPublicAssessmentDetailsResponse,
 } from "@/lib/serverFunctions/queries/assessment";
 import { useEffect, useState } from "react";
 
@@ -21,12 +21,12 @@ const CPublicAssessmentResultViewerDialog = ({
   onClose: () => void;
 }) => {
   const [assessment, setAssessment] =
-    useState<GetPublicAssessmentTreeResponse["assessmentTree"]>();
-  const [fetchAssessmentTree, loading] = useFetchAssessmentTree({
+    useState<GetPublicAssessmentDetailsResponse["assessmentDetails"]>();
+  const [fetchAssessmentDetails, loading] = useFetchAssessmentDetails({
     params: {
       callbacks: {
         onSuccess: (response) => {
-          setAssessment(response.data?.assessmentTree);
+          setAssessment(response.data?.assessmentDetails);
         },
       },
     },
@@ -34,12 +34,12 @@ const CPublicAssessmentResultViewerDialog = ({
 
   useEffect(() => {
     if (!selectedAssessment) return;
-    void fetchAssessmentTree({
+    void fetchAssessmentDetails({
       params: {
         assessmentId: selectedAssessment?.id,
       },
     });
-  }, [selectedAssessment, fetchAssessmentTree]);
+  }, [selectedAssessment, fetchAssessmentDetails]);
   return (
     <CDialog
       open={!!selectedAssessment}

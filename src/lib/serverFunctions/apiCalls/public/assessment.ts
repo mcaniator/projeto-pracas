@@ -1,6 +1,6 @@
 import type {
-  PublicFetchPublicAssessmentTreeParams,
-  PublicFetchPublicAssessmentTreeResponse,
+  PublicFetchPublicAssessmentDetailsParams,
+  PublicFetchPublicAssessmentDetailsResponse,
   PublicFetchPublicAssessmentsParams,
   PublicFetchPublicAssessmentsResponse,
 } from "@/lib/serverFunctions/queries/public/assessment";
@@ -22,14 +22,14 @@ export const usePublicFetchPublicAssessments = (
   });
 };
 
-export const usePublicFetchPublicAssessmentTree = ({
+export const usePublicFetchPublicAssessmentDetails = ({
   params,
 }: {
-  params?: UseFetchAPIParams<PublicFetchPublicAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<PublicFetchPublicAssessmentDetailsResponse>;
 }) => {
   return useFetchAPI<
-    PublicFetchPublicAssessmentTreeResponse,
-    PublicFetchPublicAssessmentTreeParams
+    PublicFetchPublicAssessmentDetailsResponse,
+    PublicFetchPublicAssessmentDetailsParams
   >({
     url: "/api/public/publicAssessment",
     callbacks: params?.callbacks,
