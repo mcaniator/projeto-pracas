@@ -1,21 +1,17 @@
 "use client";
 
+import type {
+  CalculationParams,
+  CategoryItem,
+} from "@/lib/types/forms/formStructure";
 import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import CDialog from "@components/ui/dialog/cDialog";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import { QuestionTypes } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import { CategoryItem, FormEditorTree } from "../clientV2";
 import CalculationCreation from "./calculationCreation";
 import Calculations from "./calculations";
-
-export type CalculationParams = {
-  targetQuestionId: number;
-  questionName: string;
-  expression: string;
-  expressionQuestionsIds: number[];
-};
 
 export type Mention = {
   id: string;
@@ -24,19 +20,19 @@ export type Mention = {
 };
 
 const CalculationDialog = ({
-  formTree,
+  categories,
   openCalculationDialog,
   formCalculations,
   isFinalized,
   setOpenCalculationModal,
-  setFormCalculations,
+  onCalculationsChange,
 }: {
-  formTree: FormEditorTree;
+  categories: CategoryItem[];
   openCalculationDialog: boolean;
   formCalculations: CalculationParams[];
   isFinalized: boolean;
   setOpenCalculationModal: Dispatch<SetStateAction<boolean>>;
-  setFormCalculations: Dispatch<SetStateAction<CalculationParams[]>>;
+  onCalculationsChange: (calculations: CalculationParams[]) => void;
 }) => {
   const [calculationsDialogState, setCalculationsDialogState] = useState(0);
   const [newCalculation, setNewCalculation] =
@@ -48,18 +44,14 @@ const CalculationDialog = ({
   );
   const addCalculation = () => {
     if (!newCalculation) return;
-    setFormCalculations((prev) => {
-      const newArr = prev;
-      newArr.push(newCalculation);
-      return [...newArr];
-    });
+    onCalculationsChange([...formCalculations, newCalculation]);
     setNewCalculation(null);
     setCalculationsDialogState(0);
   };
 
   useEffect(() => {
     const newMentions: Mention[] = [];
-    const newFilteredCategories = formTree.categories.reduce<CategoryItem[]>(
+    const newFilteredCategories = categories.reduce<CategoryItem[]>(
       (acc, cat) => {
         const catQuestions = cat.categoryChildren.filter(
           (child) =>
@@ -112,7 +104,7 @@ const CalculationDialog = ({
     );
     setFilteredCategories(newFilteredCategories);
     setMentions(newMentions);
-  }, [formTree]);
+  }, [categories]);
   return (
     <CDialog
       title="Cálculos"
@@ -148,7 +140,7 @@ const CalculationDialog = ({
           formCalculations={formCalculations}
           mentions={mentions}
           isFinalized={isFinalized}
-          setFormCalculations={setFormCalculations}
+          onCalculationsChange={onCalculationsChange}
         />
       )}
       {calculationsDialogState === 1 && (

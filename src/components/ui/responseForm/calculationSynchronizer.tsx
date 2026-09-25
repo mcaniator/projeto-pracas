@@ -11,7 +11,9 @@ const CalculationSynchronizer = ({
   control,
   setValue,
 }: {
-  calculations: GetFormSubmissionDataResult["formStructure"]["calculations"];
+  calculations: NonNullable<
+    GetFormSubmissionDataResult["formStructure"]["calculations"]
+  >;
   control: Control<FormValues, unknown, FormValues>;
   setValue: UseFormSetValue<FormValues>;
 }) => {

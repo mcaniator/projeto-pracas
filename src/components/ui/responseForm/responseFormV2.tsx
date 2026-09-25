@@ -98,7 +98,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     },
     ref,
   ) => {
-    const categories = formSubmission.formStructure.formTree.categories;
+    const categories = formSubmission.formStructure.categories;
     const defaultResponseFormValues = useMemo(
       () =>
         deserializeResponseFormValues(
@@ -111,15 +111,19 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       () => buildDateResponseFormatByQuestionId(categories),
       [categories],
     );
+    const calculations = useMemo(
+      () => formSubmission.formStructure.calculations ?? [],
+      [formSubmission.formStructure.calculations],
+    );
     const calculationByQuestionId = useMemo(
       () =>
         new Map(
-          formSubmission.formStructure.calculations.map((calculation) => [
+          calculations.map((calculation) => [
             calculation.targetQuestionId,
             calculation,
           ]),
         ),
-      [formSubmission.formStructure.calculations],
+      [calculations],
     );
     const virtuosoComponents = useMemo(
       () => ({
@@ -308,7 +312,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         className="flex h-full min-h-0 w-full flex-1 flex-col"
       >
         <CalculationSynchronizer
-          calculations={formSubmission.formStructure.calculations}
+          calculations={calculations}
           control={control}
           setValue={setValue}
         />
@@ -354,10 +358,11 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
 ResponseFormV2.displayName = "ResponseFormV2";
 
-type CalculationByQuestionId = Map<
-  number,
-  GetFormSubmissionDataResult["formStructure"]["calculations"][number]
+type FormSubmissionCalculations = NonNullable<
+  GetFormSubmissionDataResult["formStructure"]["calculations"]
 >;
+
+type CalculationByQuestionId = Map<number, FormSubmissionCalculations[number]>;
 
 type SharedQuestionProps = {
   calculationByQuestionId: CalculationByQuestionId;

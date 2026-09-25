@@ -28,7 +28,7 @@ const EditFormProtectedContent = () => {
       const result = await fetchFormStructure({
         params: { formId },
       });
-      if (!result.data?.form.formTree) {
+      if (!result.data?.formStructure) {
         router.replace("/error");
         return;
       }
@@ -39,7 +39,7 @@ const EditFormProtectedContent = () => {
     void loadForm();
   }, [formId, fetchFormStructure, router]);
 
-  if (isLoading || !response?.form.formTree) {
+  if (isLoading || !response?.formStructure) {
     return (
       <div className="flex h-full items-center justify-center">
         <CCircularProgress size={128} />
@@ -49,11 +49,7 @@ const EditFormProtectedContent = () => {
 
   return (
     <PermissionGuard redirect requiresAnyRoleGroups={["FORM"]}>
-      <ClientV2
-        formId={formId}
-        form={response.form}
-        dbCalculations={response.calculations}
-      />
+      <ClientV2 initialFormStructure={response.formStructure} />
     </PermissionGuard>
   );
 };

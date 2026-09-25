@@ -2,6 +2,7 @@
 
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CQuestionDescriptionChips from "@/components/ui/question/cQuestionDescriptionChips";
+import type { CategoryItem } from "@/lib/types/forms/formStructure";
 import CAccordion from "@components/ui/accordion/CAccordion";
 import CAccordionDetails from "@components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
@@ -27,18 +28,18 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import { IconGripVertical, IconTrash } from "@tabler/icons-react";
 import { FormItemUtils } from "@utils/formTreeUtils";
-import React, { useState } from "react";
+import { useState } from "react";
 
-import { FormEditorTree } from "./clientV2";
+type CategoriesChangeHandler = (categories: CategoryItem[]) => void;
 
 const FormEditor = ({
-  formTree,
+  categories,
   isFinalized,
-  setFormTree,
+  onCategoriesChange,
 }: {
-  formTree: FormEditorTree;
+  categories: CategoryItem[];
   isFinalized: boolean;
-  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  onCategoriesChange: CategoriesChangeHandler;
 }) => {
   const sensors = useSensors(useSensor(PointerSensor));
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
@@ -53,24 +54,18 @@ const FormEditor = ({
     const activeId = Number(String(active.id).split("-")[1]);
     const overId = Number(String(over.id).split("-")[1]);
 
-    setFormTree((prev) => {
-      const oldIndex = prev.categories.findIndex(
-        (c) => c.categoryId === activeId,
-      );
-      const newIndex = prev.categories.findIndex(
-        (c) => c.categoryId === overId,
-      );
+    const oldIndex = categories.findIndex((c) => c.categoryId === activeId);
+    const newIndex = categories.findIndex((c) => c.categoryId === overId);
 
-      return {
-        ...prev,
-        categories: arrayMove(prev.categories, oldIndex, newIndex).map(
-          (c, idx) => ({ ...c, position: idx + 1 }),
-        ),
-      };
-    });
+    onCategoriesChange(
+      arrayMove(categories, oldIndex, newIndex).map((c, idx) => ({
+        ...c,
+        position: idx + 1,
+      })),
+    );
   };
 
-  if (formTree.categories.length === 0) {
+  if (categories.length === 0) {
     return (
       <div className="text-black">
         Adicione questões para montar o formulário!
@@ -85,20 +80,21 @@ const FormEditor = ({
       onDragStart={handleCategoryDragStart}
     >
       <SortableContext
-        items={formTree.categories.map((c) => `category-${c.categoryId}`)}
+        items={categories.map((c) => `category-${c.categoryId}`)}
         strategy={verticalListSortingStrategy}
       >
         <div
           className={`text-black ${isDraggingCategory ? "bg-green-50" : ""}`}
         >
-          {formTree.categories
+          {categories
             .sort((a, b) => a.position - b.position)
             .map((category) => (
               <SortableCategory
                 key={category.categoryId}
                 category={category}
+                categories={categories}
                 isFinalized={isFinalized}
-                setFormTree={setFormTree}
+                onCategoriesChange={onCategoriesChange}
               />
             ))}
         </div>
@@ -112,12 +108,14 @@ const FormEditor = ({
 // ----------------------------
 const SortableCategory = ({
   category,
+  categories,
   isFinalized,
-  setFormTree,
+  onCategoriesChange,
 }: {
-  category: FormEditorTree["categories"][number];
+  category: CategoryItem;
+  categories: CategoryItem[];
   isFinalized: boolean;
-  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  onCategoriesChange: CategoriesChangeHandler;
 }) => {
   const {
     attributes,
@@ -150,49 +148,45 @@ const SortableCategory = ({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    setFormTree((prev) => {
-      const categoryIndex = prev.categories.findIndex(
-        (c) => c.categoryId === category.categoryId,
-      );
-      if (categoryIndex === -1) return prev;
-      const categoryFromArray = prev.categories[categoryIndex];
+    const categoryIndex = categories.findIndex(
+      (c) => c.categoryId === category.categoryId,
+    );
+    if (categoryIndex === -1) return;
+    const categoryFromArray = categories[categoryIndex];
 
-      if (!categoryFromArray) {
-        return prev;
-      }
+    if (!categoryFromArray) return;
 
-      const items = categoryFromArray.categoryChildren;
+    const items = categoryFromArray.categoryChildren;
 
-      const oldIndex = items.findIndex(
-        (fi) =>
-          FormItemUtils.buildCategoryChildId({
-            item: fi,
-            categoryId: category.categoryId,
-          }) === active.id,
-      );
-      const newIndex = items.findIndex(
-        (fi) =>
-          FormItemUtils.buildCategoryChildId({
-            item: fi,
-            categoryId: category.categoryId,
-          }) === over.id,
-      );
+    const oldIndex = items.findIndex(
+      (fi) =>
+        FormItemUtils.buildCategoryChildId({
+          item: fi,
+          categoryId: category.categoryId,
+        }) === active.id,
+    );
+    const newIndex = items.findIndex(
+      (fi) =>
+        FormItemUtils.buildCategoryChildId({
+          item: fi,
+          categoryId: category.categoryId,
+        }) === over.id,
+    );
 
-      if (oldIndex === -1 || newIndex === -1) return prev;
+    if (oldIndex === -1 || newIndex === -1) return;
 
-      const reordered = arrayMove(items, oldIndex, newIndex).map((fi, idx) => ({
-        ...fi,
-        position: idx + 1,
-      }));
+    const reordered = arrayMove(items, oldIndex, newIndex).map((fi, idx) => ({
+      ...fi,
+      position: idx + 1,
+    }));
 
-      const newCategories = [...prev.categories];
-      newCategories[categoryIndex] = {
-        ...categoryFromArray,
-        categoryChildren: reordered,
-      };
+    const newCategories = [...categories];
+    newCategories[categoryIndex] = {
+      ...categoryFromArray,
+      categoryChildren: reordered,
+    };
 
-      return { ...prev, categories: newCategories };
-    });
+    onCategoriesChange(newCategories);
   };
 
   return (
@@ -275,8 +269,9 @@ const SortableCategory = ({
                         } //This key is only used for react to distinguish between items created in a iteration
                         formItem={fi}
                         categoryId={category.categoryId}
+                        categories={categories}
                         isFinalized={isFinalized}
-                        setFormTree={setFormTree}
+                        onCategoriesChange={onCategoriesChange}
                       />
                     ))}
                 </div>
@@ -293,14 +288,16 @@ const SortableFormItem = ({
   categoryId,
   subcategoryId,
   formItem,
+  categories,
   isFinalized,
-  setFormTree,
+  onCategoriesChange,
 }: {
   categoryId: number;
   subcategoryId?: number;
-  formItem: FormEditorTree["categories"][number]["categoryChildren"][number];
+  formItem: CategoryItem["categoryChildren"][number];
+  categories: CategoryItem[];
   isFinalized: boolean;
-  setFormTree: React.Dispatch<React.SetStateAction<FormEditorTree>>;
+  onCategoriesChange: CategoriesChangeHandler;
 }) => {
   const {
     attributes,
@@ -339,160 +336,148 @@ const SortableFormItem = ({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    setFormTree((prev) => {
-      const questionSubcategoryId = parseInt(
-        active.id.toString().split("-")[2] ?? "",
-      );
-      if (Number.isNaN(questionSubcategoryId)) {
-        return prev;
-      }
-      const categoryIndex = prev.categories.findIndex(
-        (c) => c.categoryId === categoryId,
-      );
-      if (categoryIndex === -1) return prev;
-      const categoryFromArray = prev.categories[categoryIndex];
-      if (!categoryFromArray) {
-        return prev;
-      }
-      const subcategoryIndex = categoryFromArray.categoryChildren.findIndex(
-        (fi) =>
-          FormItemUtils.isSubcategoryType(fi) &&
-          fi.subcategoryId === questionSubcategoryId,
-      );
-      const subcategoryFromArray =
-        categoryFromArray.categoryChildren[subcategoryIndex];
-      if (!subcategoryFromArray) {
-        return prev;
-      }
-      if (!FormItemUtils.isSubcategoryType(subcategoryFromArray)) {
-        return prev;
-      }
-      const prevQuestionsArray = subcategoryFromArray.questions;
-      if (!prevQuestionsArray) {
-        return prev;
-      }
-      const oldIndex = prevQuestionsArray?.findIndex(
-        (pq) =>
-          `formItem-${categoryId}-${questionSubcategoryId}-QUESTION-${pq.questionId}` ===
-          active.id,
-      );
-      const newIndex = prevQuestionsArray?.findIndex(
-        (pq) =>
-          `formItem-${categoryId}-${questionSubcategoryId}-QUESTION-${pq.questionId}` ===
-          over.id,
-      );
-      if (oldIndex === -1 || newIndex === -1) return prev;
-      const reordered = arrayMove(prevQuestionsArray, oldIndex, newIndex).map(
-        (q, idx) => ({
-          ...q,
-          position: idx + 1,
-        }),
-      );
+    const questionSubcategoryId = parseInt(
+      active.id.toString().split("-")[2] ?? "",
+    );
+    if (Number.isNaN(questionSubcategoryId)) return;
 
-      const newCategories = [...prev.categories];
-      const newCategory = { ...categoryFromArray };
-      const newFormItems = [...newCategory.categoryChildren];
+    const categoryIndex = categories.findIndex(
+      (c) => c.categoryId === categoryId,
+    );
+    if (categoryIndex === -1) return;
+    const categoryFromArray = categories[categoryIndex];
+    if (!categoryFromArray) return;
 
-      newFormItems[subcategoryIndex] = {
-        ...subcategoryFromArray,
-        questions: reordered,
-      };
+    const subcategoryIndex = categoryFromArray.categoryChildren.findIndex(
+      (fi) =>
+        FormItemUtils.isSubcategoryType(fi) &&
+        fi.subcategoryId === questionSubcategoryId,
+    );
+    const subcategoryFromArray =
+      categoryFromArray.categoryChildren[subcategoryIndex];
+    if (
+      !subcategoryFromArray ||
+      !FormItemUtils.isSubcategoryType(subcategoryFromArray)
+    )
+      return;
 
-      newCategory.categoryChildren = newFormItems;
-      newCategories[categoryIndex] = newCategory;
+    const previousQuestions = subcategoryFromArray.questions;
+    const oldIndex = previousQuestions.findIndex(
+      (question) =>
+        `formItem-${categoryId}-${questionSubcategoryId}-QUESTION-${question.questionId}` ===
+        active.id,
+    );
+    const newIndex = previousQuestions.findIndex(
+      (question) =>
+        `formItem-${categoryId}-${questionSubcategoryId}-QUESTION-${question.questionId}` ===
+        over.id,
+    );
+    if (oldIndex === -1 || newIndex === -1) return;
 
-      return {
-        ...prev,
-        categories: newCategories,
-      };
-    });
+    const reordered = arrayMove(previousQuestions, oldIndex, newIndex).map(
+      (question, index) => ({
+        ...question,
+        position: index + 1,
+      }),
+    );
+    const newCategories = [...categories];
+    const newCategory = { ...categoryFromArray };
+    const newFormItems = [...newCategory.categoryChildren];
+
+    newFormItems[subcategoryIndex] = {
+      ...subcategoryFromArray,
+      questions: reordered,
+    };
+    newCategory.categoryChildren = newFormItems;
+    newCategories[categoryIndex] = newCategory;
+
+    onCategoriesChange(newCategories);
   };
 
   const handleQuestionRemoval = () => {
-    if (!FormItemUtils.isSubcategoryType(formItem))
-      setFormTree((prev) => {
-        const categoryIndex = prev.categories.findIndex(
-          (c) => c.categoryId === categoryId,
-        );
-        if (categoryIndex === -1) return prev;
+    if (!FormItemUtils.isQuestionType(formItem)) return;
 
-        const category = prev.categories[categoryIndex];
-        if (!category) return prev;
+    const categoryIndex = categories.findIndex(
+      (c) => c.categoryId === categoryId,
+    );
+    if (categoryIndex === -1) return;
 
-        let updatedCategory = { ...category };
+    const category = categories[categoryIndex];
+    if (!category) return;
 
-        if (subcategoryId) {
-          // Question inside subcategory
-          const subcategoryIndex = category.categoryChildren.findIndex(
+    let updatedCategory = { ...category };
+
+    if (subcategoryId) {
+      // Question inside subcategory
+      const subcategoryIndex = category.categoryChildren.findIndex(
+        (fi) =>
+          FormItemUtils.isSubcategoryType(fi) &&
+          fi.subcategoryId === subcategoryId,
+      );
+      if (subcategoryIndex === -1) return;
+
+      const subcategory = category.categoryChildren[subcategoryIndex];
+      if (
+        !subcategory ||
+        !FormItemUtils.isSubcategoryType(subcategory) ||
+        !subcategory.questions
+      )
+        return;
+
+      const newQuestions = subcategory.questions
+        .filter((q) => q.questionId !== formItem.questionId)
+        .map((q, i) => ({ ...q, position: i + 1 }));
+
+      let newFormItems = category.categoryChildren;
+      if (newQuestions.length === 0) {
+        // remove whole subcategory
+        newFormItems = category.categoryChildren
+          .filter(
             (fi) =>
-              FormItemUtils.isSubcategoryType(fi) &&
-              fi.subcategoryId === subcategoryId,
-          );
-          if (subcategoryIndex === -1) return prev;
-
-          const subcategory = category.categoryChildren[subcategoryIndex];
-          if (
-            !subcategory ||
-            !FormItemUtils.isSubcategoryType(subcategory) ||
-            !subcategory.questions
+              !(
+                FormItemUtils.isSubcategoryType(fi) &&
+                fi.subcategoryId === subcategoryId
+              ),
           )
-            return prev;
+          .map((s, i) => ({ ...s, position: i + 1 }));
+      } else {
+        const newSubcategory = { ...subcategory, questions: newQuestions };
+        newFormItems = [...category.categoryChildren];
+        newFormItems[subcategoryIndex] = newSubcategory;
+      }
 
-          const newQuestions = subcategory.questions
-            .filter((q) => q.questionId !== formItem.questionId)
-            .map((q, i) => ({ ...q, position: i + 1 }));
+      updatedCategory = {
+        ...updatedCategory,
+        categoryChildren: newFormItems,
+      };
+    } else {
+      // Question directly in category
+      const newFormItems = category.categoryChildren
+        .filter(
+          (fi) =>
+            !(
+              FormItemUtils.isQuestionType(fi) &&
+              fi.questionId === formItem.questionId
+            ),
+        )
+        .map((c, i) => ({ ...c, position: i + 1 }));
 
-          let newFormItems = category.categoryChildren;
-          if (newQuestions.length === 0) {
-            // remove whole subcategory
-            newFormItems = category.categoryChildren
-              .filter(
-                (fi) =>
-                  !(
-                    FormItemUtils.isSubcategoryType(fi) &&
-                    fi.subcategoryId === subcategoryId
-                  ),
-              )
-              .map((s, i) => ({ ...s, position: i + 1 }));
-          } else {
-            const newSubcategory = { ...subcategory, questions: newQuestions };
-            newFormItems = [...category.categoryChildren];
-            newFormItems[subcategoryIndex] = newSubcategory;
-          }
+      updatedCategory = {
+        ...updatedCategory,
+        categoryChildren: newFormItems,
+      };
+    }
 
-          updatedCategory = {
-            ...updatedCategory,
-            categoryChildren: newFormItems,
-          };
-        } else {
-          // Question directly in category
-          const newFormItems = category.categoryChildren
-            .filter(
-              (fi) =>
-                !(
-                  FormItemUtils.isQuestionType(fi) &&
-                  fi.questionId === formItem.questionId
-                ),
-            )
-            .map((c, i) => ({ ...c, position: i + 1 }));
+    let newCategories = [...categories];
+    if (updatedCategory.categoryChildren.length === 0) {
+      newCategories = categories
+        .filter((c) => c.categoryId !== categoryId)
+        .map((c, i) => ({ ...c, position: i + 1 }));
+    } else {
+      newCategories[categoryIndex] = updatedCategory;
+    }
 
-          updatedCategory = {
-            ...updatedCategory,
-            categoryChildren: newFormItems,
-          };
-        }
-
-        let newCategories = [...prev.categories];
-        if (updatedCategory.categoryChildren.length === 0) {
-          newCategories = prev.categories
-            .filter((c) => c.categoryId !== categoryId)
-            .map((c, i) => ({ ...c, position: i + 1 }));
-        } else {
-          newCategories[categoryIndex] = updatedCategory;
-        }
-
-        return { ...prev, categories: newCategories };
-      });
+    onCategoriesChange(newCategories);
   };
 
   if (FormItemUtils.isSubcategoryType(formItem)) {
@@ -559,8 +544,9 @@ const SortableFormItem = ({
                         formItem={q}
                         categoryId={categoryId}
                         subcategoryId={formItem.subcategoryId}
+                        categories={categories}
                         isFinalized={isFinalized}
-                        setFormTree={setFormTree}
+                        onCategoriesChange={onCategoriesChange}
                       />
                     ))}
                 </div>

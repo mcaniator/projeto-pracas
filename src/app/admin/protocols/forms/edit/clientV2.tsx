@@ -8,31 +8,27 @@ import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useUpdateForm } from "@/lib/serverFunctions/apiCalls/form";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
+import type {
+  CalculationParams,
+  CategoryItem,
+  FormStructure,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { useFetchCategoriesWithSubcategories } from "@apiCalls/category";
 import CButton from "@components/ui/cButton";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import { useLoadingOverlay } from "@context/loadingContext";
-import {
-  OptionForQuestionPicker,
-  QuestionPickerQuestionToAdd,
-} from "@customTypes/forms/formCreation";
+import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
-import {
-  OptionTypes,
-  QuestionGeometryTypes,
-  QuestionResponseCharacterTypes,
-  QuestionTypes,
-} from "@prisma/client";
 import { IconCalculator, IconClipboard, IconEye } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import FormPreviewDialog from "./FormPreviewDialog";
-import CalculationDialog, {
-  CalculationParams,
-} from "./calculations/calculationDialog";
+import CalculationDialog from "./calculations/calculationDialog";
 import QuestionFormV2 from "./questionManager/questionFormV2";
 import SaveFormDialog from "./saveFormDialog";
 
@@ -45,76 +41,25 @@ const FormEditor = dynamic(() => import("./formEditor"), {
   ),
 });
 
-export type SubcategoryItem = {
-  position: number;
-  subcategoryId: number;
-  name: string;
-  notes: string | null;
-  questions: QuestionItem[];
-};
-
-export type QuestionItem = {
-  position: number;
-  questionId: number;
-  name: string;
-  iconKey: string;
-  isPublic: boolean;
-  notes: string | null;
-  questionType: QuestionTypes;
-  characterType: QuestionResponseCharacterTypes;
-  optionType?: OptionTypes | null;
-  categoryName: string;
-  subcategoryName: string | null;
-  options?: OptionForQuestionPicker[];
-  minValue: number | null;
-  maxValue: number | null;
-  allowResponseImages: boolean;
-  geometryTypes: QuestionGeometryTypes[];
-};
-
-export type CategoryItem = {
-  categoryId: number;
-  name: string;
-  notes: string | null;
-  position: number;
-  categoryChildren: (QuestionItem | SubcategoryItem)[];
-};
-
-export type FormEditorTree = {
-  id: number;
-  name: string;
-  finalized: boolean;
-  categories: CategoryItem[];
-};
-
 const ClientV2 = ({
-  form,
-  dbCalculations,
-  formId,
+  initialFormStructure,
 }: {
-  form: {
-    formTree: FormEditorTree;
-    statusCode: number;
-  };
-  dbCalculations: CalculationParams[];
-  formId: number;
+  initialFormStructure: FormStructure;
 }) => {
   const userContext = useUserContext();
   const router = useRouter();
   const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
-    form.formTree.finalized ||
+    initialFormStructure.formIsFinalized ||
       checkIfRolesArrayContainsAny(userContext.user?.roles, {
         roles: ["FORM_VIEWER"],
       }),
   );
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
-  const [formName, setFormName] = useState(form.formTree.name);
   const [formQuestionsIds, setFormQuestionsIds] = useState<number[]>([]);
-  const [formTree, setFormTree] = useState<FormEditorTree>(form.formTree);
-  const [formCalculations, setFormCalculations] =
-    useState<CalculationParams[]>(dbCalculations);
+  const [formStructure, setFormStructure] =
+    useState<FormStructure>(initialFormStructure);
   const [openQuestionFormModal, setOpenQuestionFormModal] = useState(false);
   const [openCalculationDialog, setOpenCalculationDialog] = useState(false);
   const [openFormPreviewDialog, setOpenFormPreviewDialog] = useState(false);
@@ -134,6 +79,19 @@ const ClientV2 = ({
       },
     });
   const [updateForm] = useUpdateForm();
+  const formCalculations = formStructure.calculations ?? [];
+
+  const handleFormNameChange = (formName: string) => {
+    setFormStructure((previous) => ({ ...previous, formName }));
+  };
+
+  const handleFormCategoriesChange = (categories: CategoryItem[]) => {
+    setFormStructure((previous) => ({ ...previous, categories }));
+  };
+
+  const handleFormCalculationsChange = (calculations: CalculationParams[]) => {
+    setFormStructure((previous) => ({ ...previous, calculations }));
+  };
 
   const reloadCategories = useCallback(() => {
     void fetchCategories({});
@@ -142,134 +100,132 @@ const ClientV2 = ({
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
     if (formQuestionsIds.includes(question.id)) return;
 
-    setFormTree((prev) => {
-      const categoryId = question.categoryId;
-      const subcategoryId = question.subcategoryId;
+    const previousCategories = formStructure.categories;
+    const categoryId = question.categoryId;
+    const subcategoryId = question.subcategoryId;
 
-      // Busca ou cria categoria
-      let category = prev.categories.find(
-        (cat) => cat.categoryId === categoryId,
-      );
-      const categoryFromCategoriesList = categories.find(
-        (cat) => cat.id === categoryId,
-      );
-      if (!category) {
-        if (!categoryFromCategoriesList) {
-          throw new Error("Tried to find category that does not exists");
-        }
-        category = {
-          categoryId: categoryId,
-          name: categoryFromCategoriesList.name,
-          notes: categoryFromCategoriesList.notes,
-          position: prev.categories.length + 1,
-          categoryChildren: [],
-        };
+    // Busca ou cria categoria
+    let category = previousCategories.find(
+      (cat) => cat.categoryId === categoryId,
+    );
+    const categoryFromCategoriesList = categories.find(
+      (cat) => cat.id === categoryId,
+    );
+    if (!category) {
+      if (!categoryFromCategoriesList) {
+        throw new Error("Tried to find category that does not exists");
       }
+      category = {
+        categoryId: categoryId,
+        name: categoryFromCategoriesList.name,
+        notes: categoryFromCategoriesList.notes,
+        position: previousCategories.length + 1,
+        categoryChildren: [],
+      };
+    }
 
-      let newCategory = { ...category };
+    let newCategory = { ...category };
 
-      if (subcategoryId) {
-        // Adiciona questão dentro de subcategoria
-        let subItem = newCategory.categoryChildren.find(
-          (item): item is SubcategoryItem =>
-            FormItemUtils.isSubcategoryType(item) &&
-            item.subcategoryId === subcategoryId,
-        );
+    if (subcategoryId) {
+      // Adiciona questão dentro de subcategoria
+      let subItem = newCategory.categoryChildren.find(
+        (item): item is SubcategoryItem =>
+          FormItemUtils.isSubcategoryType(item) &&
+          item.subcategoryId === subcategoryId,
+      );
 
-        if (!subItem) {
-          const subcategoryFromCategoriesList =
-            categoryFromCategoriesList?.subcategory.find(
-              (sub) => sub.id === subcategoryId,
-            );
-          if (!subcategoryFromCategoriesList) {
-            throw new Error("Tried to find subcategory that does not exists");
-          }
-          subItem = {
-            subcategoryId: subcategoryId,
-            name: subcategoryFromCategoriesList.name,
-            position: newCategory.categoryChildren.length + 1, // insere no final
-            notes: subcategoryFromCategoriesList.notes,
-            questions: [],
-          };
+      if (!subItem) {
+        const subcategoryFromCategoriesList =
+          categoryFromCategoriesList?.subcategory.find(
+            (sub) => sub.id === subcategoryId,
+          );
+        if (!subcategoryFromCategoriesList) {
+          throw new Error("Tried to find subcategory that does not exists");
         }
-
-        // Adiciona a questão dentro da subcategoria
         subItem = {
-          ...subItem,
-          questions: [
-            ...(subItem.questions ?? []),
-            {
-              questionId: question.id,
-              name: question.name,
-              iconKey: question.iconKey,
-              isPublic: question.isPublic,
-              notes: question.notes,
-              minValue: question.minValue,
-              maxValue: question.maxValue,
-              questionType: question.questionType,
-              position: (subItem.questions?.length ?? 0) + 1,
-              characterType: question.characterType,
-              optionType: question.optionType,
-              options: question.options,
-              allowResponseImages: question.allowResponseImages,
-              geometryTypes: question.geometryTypes,
-              categoryName: category.name,
-              subcategoryName: subItem.name,
-            },
-          ],
-        };
-
-        // Atualiza formItems substituindo ou adicionando subcategoria
-        const newCategoryChildren = [
-          ...newCategory.categoryChildren.filter(
-            (item) =>
-              !(
-                FormItemUtils.isSubcategoryType(item) &&
-                item.subcategoryId === subcategoryId
-              ),
-          ),
-          subItem,
-        ].sort((a, b) => a.position - b.position);
-
-        newCategory = { ...newCategory, categoryChildren: newCategoryChildren };
-      } else {
-        // Adiciona questão direta na categoria
-        const questionItem: QuestionItem = {
-          questionId: question.id,
-          name: question.name,
-          iconKey: question.iconKey,
-          isPublic: question.isPublic,
-          notes: question.notes,
-          minValue: question.minValue,
-          maxValue: question.maxValue,
-          questionType: question.questionType,
-          characterType: question.characterType,
-          optionType: question.optionType,
-          options: question.options,
-          geometryTypes: question.geometryTypes,
-          allowResponseImages: question.allowResponseImages,
-          position: newCategory.categoryChildren.length + 1,
-          categoryName: category.name,
-          subcategoryName: null,
-        };
-
-        newCategory = {
-          ...newCategory,
-          categoryChildren: [
-            ...newCategory.categoryChildren,
-            questionItem,
-          ].sort((a, b) => a.position - b.position),
+          subcategoryId: subcategoryId,
+          name: subcategoryFromCategoriesList.name,
+          position: newCategory.categoryChildren.length + 1, // insere no final
+          notes: subcategoryFromCategoriesList.notes,
+          questions: [],
         };
       }
 
-      // Atualiza lista de categorias
-      const newCategories = [
-        ...prev.categories.filter((cat) => cat.categoryId !== categoryId),
-        newCategory,
+      // Adiciona a questão dentro da subcategoria
+      subItem = {
+        ...subItem,
+        questions: [
+          ...(subItem.questions ?? []),
+          {
+            questionId: question.id,
+            name: question.name,
+            iconKey: question.iconKey,
+            isPublic: question.isPublic,
+            notes: question.notes,
+            minValue: question.minValue,
+            maxValue: question.maxValue,
+            questionType: question.questionType,
+            position: (subItem.questions?.length ?? 0) + 1,
+            characterType: question.characterType,
+            optionType: question.optionType,
+            options: question.options,
+            allowResponseImages: question.allowResponseImages,
+            geometryTypes: question.geometryTypes,
+            categoryName: category.name,
+            subcategoryName: subItem.name,
+          },
+        ],
+      };
+
+      // Atualiza formItems substituindo ou adicionando subcategoria
+      const newCategoryChildren = [
+        ...newCategory.categoryChildren.filter(
+          (item) =>
+            !(
+              FormItemUtils.isSubcategoryType(item) &&
+              item.subcategoryId === subcategoryId
+            ),
+        ),
+        subItem,
       ].sort((a, b) => a.position - b.position);
 
-      return { ...prev, categories: newCategories };
-    });
+      newCategory = { ...newCategory, categoryChildren: newCategoryChildren };
+    } else {
+      // Adiciona questão direta na categoria
+      const questionItem: QuestionItem = {
+        questionId: question.id,
+        name: question.name,
+        iconKey: question.iconKey,
+        isPublic: question.isPublic,
+        notes: question.notes,
+        minValue: question.minValue,
+        maxValue: question.maxValue,
+        questionType: question.questionType,
+        characterType: question.characterType,
+        optionType: question.optionType,
+        options: question.options,
+        geometryTypes: question.geometryTypes,
+        allowResponseImages: question.allowResponseImages,
+        position: newCategory.categoryChildren.length + 1,
+        categoryName: category.name,
+        subcategoryName: null,
+      };
+
+      newCategory = {
+        ...newCategory,
+        categoryChildren: [...newCategory.categoryChildren, questionItem].sort(
+          (a, b) => a.position - b.position,
+        ),
+      };
+    }
+
+    // Atualiza lista de categorias
+    const newCategories = [
+      ...previousCategories.filter((cat) => cat.categoryId !== categoryId),
+      newCategory,
+    ].sort((a, b) => a.position - b.position);
+
+    handleFormCategoriesChange(newCategories);
   };
 
   useEffect(() => {
@@ -291,7 +247,7 @@ const ClientV2 = ({
 
   useEffect(() => {
     const questionsIds: number[] = [];
-    formTree.categories.forEach((c) => {
+    formStructure.categories.forEach((c) => {
       c.categoryChildren.forEach((fi) => {
         if (FormItemUtils.isQuestionType(fi)) {
           questionsIds.push(fi.questionId);
@@ -303,7 +259,7 @@ const ClientV2 = ({
       });
     });
     setFormQuestionsIds(questionsIds);
-  }, [formTree]);
+  }, [formStructure.categories]);
 
   const formCategoriesAndSubcategoriesIds = useMemo(() => {
     const result = {
@@ -311,7 +267,7 @@ const ClientV2 = ({
       subcategoriesIds: [] as number[],
     };
 
-    formTree.categories.forEach((cat) => {
+    formStructure.categories.forEach((cat) => {
       result.categoriesIds.push(cat.categoryId);
       cat.categoryChildren.forEach((sub) => {
         if (FormItemUtils.isSubcategoryType(sub)) {
@@ -321,18 +277,18 @@ const ClientV2 = ({
     });
 
     return result;
-  }, [formTree]);
+  }, [formStructure.categories]);
 
   const handleUpdateForm = async () => {
     try {
       setLoadingOverlay({ show: true, message: "Salvando..." });
       const response = await updateForm({
         data: {
-          formId: formId,
-          newFormName: formName,
-          formTree: formTree,
-          isFinalized: saveAsDone,
-          calculations: formCalculations,
+          formStructure: {
+            ...formStructure,
+            formIsFinalized: saveAsDone,
+            calculations: formCalculations,
+          },
         },
       });
       if (response.responseInfo.statusCode !== 200) {
@@ -364,10 +320,10 @@ const ClientV2 = ({
             <div className="mt-1 flex flex-row items-center justify-between gap-2">
               <CTextField
                 label="Nome"
-                value={formName}
+                value={formStructure.formName}
                 readOnly={isFinalized}
                 onChange={(e) => {
-                  setFormName(e.target.value);
+                  handleFormNameChange(e.target.value);
                 }}
               />
               {!isMobileView && (
@@ -455,9 +411,9 @@ const ClientV2 = ({
             )}
             {
               <FormEditor
-                formTree={formTree}
+                categories={formStructure.categories}
                 isFinalized={isFinalized}
-                setFormTree={setFormTree}
+                onCategoriesChange={handleFormCategoriesChange}
               />
             }
           </div>
@@ -509,18 +465,17 @@ const ClientV2 = ({
       )}
 
       <CalculationDialog
-        formTree={formTree}
+        categories={formStructure.categories}
         openCalculationDialog={openCalculationDialog}
         formCalculations={formCalculations}
         isFinalized={isFinalized}
         setOpenCalculationModal={setOpenCalculationDialog}
-        setFormCalculations={setFormCalculations}
+        onCalculationsChange={handleFormCalculationsChange}
       />
       <FormPreviewDialog
         open={openFormPreviewDialog}
         onClose={() => setOpenFormPreviewDialog(false)}
-        formTree={formTree}
-        formCalculations={formCalculations}
+        formStructure={formStructure}
       />
       <SaveFormDialog
         openSaveFormDialog={openSaveFormDialog}

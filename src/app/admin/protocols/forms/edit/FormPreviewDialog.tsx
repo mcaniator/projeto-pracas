@@ -18,18 +18,16 @@ import type {
   ResponseFormImages,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
+import type {
+  CategoryItem,
+  FormStructure,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-import type { CalculationParams } from "./calculations/calculationDialog";
-import type {
-  CategoryItem,
-  FormEditorTree,
-  QuestionItem,
-  SubcategoryItem,
-} from "./clientV2";
 
 const ResponseFormV2 = dynamic(
   () => import("@/components/ui/responseForm/responseFormV2"),
@@ -115,24 +113,20 @@ const toFormSubmissionCategory = ({
 });
 
 const buildFormSubmissionData = ({
-  formTree,
-  formCalculations,
+  formStructure,
 }: {
-  formTree: FormEditorTree;
-  formCalculations: CalculationParams[];
+  formStructure: FormStructure;
 }): GetFormSubmissionDataResult => {
   const responsesFormValues: SerializedFormValues = {};
 
   return {
     formStructure: {
-      formTree: {
-        id: formTree.id,
-        name: formTree.name,
-        categories: formTree.categories.map((category) =>
-          toFormSubmissionCategory({ category, responsesFormValues }),
-        ),
-      },
-      calculations: formCalculations,
+      formId: formStructure.formId,
+      formName: formStructure.formName,
+      categories: formStructure.categories.map((category) =>
+        toFormSubmissionCategory({ category, responsesFormValues }),
+      ),
+      calculations: formStructure.calculations ?? [],
     },
     responsesFormValues,
     geometries: [],
@@ -142,19 +136,17 @@ const buildFormSubmissionData = ({
 const FormPreviewDialog = ({
   open,
   onClose,
-  formTree,
-  formCalculations,
+  formStructure,
 }: {
   open: boolean;
   onClose: () => void;
-  formTree: FormEditorTree;
-  formCalculations: CalculationParams[];
+  formStructure: FormStructure;
 }) => {
   const [viewMode, setViewMode] = useState<PreviewViewMode>("form");
   const [showOnlyPublicQuestions, setShowOnlyPublicQuestions] = useState(false);
   const formSubmission = useMemo(
-    () => buildFormSubmissionData({ formTree, formCalculations }),
-    [formTree, formCalculations],
+    () => buildFormSubmissionData({ formStructure }),
+    [formStructure],
   );
   const [previewValues, setPreviewValues] = useState<FormValues>(
     formSubmission.responsesFormValues,

@@ -1,13 +1,13 @@
-import { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
-import {
-  CategoryItem,
-  QuestionItem,
-  SubcategoryItem,
-} from "@/app/admin/protocols/forms/edit/clientV2";
 import {
   APIRequestParams,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  CalculationParams,
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { sleep } from "@/lib/utils/sleep";
 import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
@@ -116,7 +116,7 @@ const getFormStructure = async ({
   publicQuestionsOnly?: boolean;
   includeCalculations: boolean;
 }) => {
-  const getFormTree = async () => {
+  const getFormData = async () => {
     const form = await prisma.form.findUnique({
       where: { id: formId },
       select: {
@@ -310,15 +310,15 @@ const getFormStructure = async ({
     });
 
     return {
-      id: form.id,
-      name: form.name,
-      finalized: form.finalized,
+      formId: form.id,
+      formName: form.name,
+      formIsFinalized: form.finalized,
       categories: categories,
     };
   };
 
   const getFormCalculations = async () => {
-    if (!includeCalculations) return [];
+    if (!includeCalculations) return undefined;
 
     const dbCalculations = await prisma.calculation.findMany({
       where: {
@@ -349,12 +349,15 @@ const getFormStructure = async ({
     return calculations;
   };
 
-  const [formTree, calculations] = await Promise.all([
-    getFormTree(),
+  const [formData, calculations] = await Promise.all([
+    getFormData(),
     getFormCalculations(),
   ]);
 
-  return { formTree, calculations };
+  return {
+    ...formData,
+    ...(calculations !== undefined ? { calculations } : {}),
+  };
 };
 
 export const fetchFormStructureParamsSchema = z.object({
@@ -374,7 +377,7 @@ export const fetchFormStructure = async (
 ) => {
   const params = request.params!;
   try {
-    const { formTree, calculations } = await getFormStructure({
+    const formStructure = await getFormStructure({
       formId: params.formId,
       includeCalculations: true,
     });
@@ -384,11 +387,7 @@ export const fetchFormStructure = async (
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        form: {
-          statusCode: 200,
-          formTree,
-        },
-        calculations,
+        formStructure,
       },
     };
   } catch (e) {
@@ -397,13 +396,7 @@ export const fetchFormStructure = async (
         statusCode: 500,
         message: "Erro ao consultar estrutura do formulário!",
       } as APIResponseInfo,
-      data: {
-        form: {
-          statusCode: 500,
-          formTree: null,
-        },
-        calculations: [],
-      },
+      data: null,
     };
   }
 };

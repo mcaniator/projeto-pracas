@@ -76,7 +76,7 @@ const ResponsesContent = () => {
       if (!assessmentTree) return;
       const checkResponse = await fetchAdminSQLiteIfCanSaveAssessment({
         params: {
-          formId: assessmentTree.formSubmission.formStructure.formTree.id,
+          formId: assessmentTree.formSubmission.formStructure.formId,
           locationId: assessmentTree.location.id,
           userId: assessmentTree.user.id,
         },

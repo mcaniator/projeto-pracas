@@ -1,12 +1,12 @@
-import type {
-  CategoryItem,
-  QuestionItem,
-  SubcategoryItem,
-} from "@/app/admin/protocols/forms/edit/clientV2";
 import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { prisma } from "@/lib/prisma";
 import { getFormSubmissionResponseGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { SerializedFormValues } from "@/lib/types/formSubmission/responseFormTypes";
+import type {
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
 
@@ -94,8 +94,6 @@ export const getFormSubmissionData = async ({
       }),
     ]);
 
-  const { formTree } = formStructure;
-
   const responseByQuestionId = new Map(
     responses.map((response) => [response.questionId, response.response]),
   );
@@ -161,7 +159,7 @@ export const getFormSubmissionData = async ({
     };
   };
 
-  const categories = formTree.categories
+  const categories = formStructure.categories
     .map(
       (category): FormSubmissionCategoryItem => ({
         ...category,
@@ -190,12 +188,12 @@ export const getFormSubmissionData = async ({
 
   return {
     formStructure: {
-      formTree: {
-        id: formTree.id,
-        name: formTree.name,
-        categories,
-      },
-      calculations: formStructure.calculations,
+      formId: formStructure.formId,
+      formName: formStructure.formName,
+      categories,
+      ...(includeCalculations ?
+        { calculations: formStructure.calculations ?? [] }
+      : {}),
     },
     responsesFormValues,
     geometries: rawGeometries.map(({ questionId, geometry }) => ({

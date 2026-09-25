@@ -1,3 +1,9 @@
+import type {
+  CalculationParams,
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
 import CMentionsTextField from "@components/ui/cMentionsTextField";
@@ -19,13 +25,7 @@ import {
 import { IconX } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import {
-  CategoryItem,
-  FormEditorTree,
-  QuestionItem,
-  SubcategoryItem,
-} from "../clientV2";
-import { CalculationParams, Mention } from "./calculationDialog";
+import type { Mention } from "./calculationDialog";
 
 type TestValue = Map<number, number | null>;
 
@@ -151,7 +151,7 @@ const Category = ({
   category,
   setTestValues,
 }: {
-  category: FormEditorTree["categories"][number];
+  category: CategoryItem;
   setTestValues: Dispatch<SetStateAction<TestValue>>;
 }) => {
   return (

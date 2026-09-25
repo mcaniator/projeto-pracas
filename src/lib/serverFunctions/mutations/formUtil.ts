@@ -3,12 +3,11 @@ import {
   APIRequestData,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import type { FormStructure } from "@/lib/types/forms/formStructure";
 import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
-import { FormEditorTree } from "@/app/admin/protocols/forms/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export const createFormDataSchema = z.instanceof(FormData);
@@ -105,11 +104,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
 };
 
 export const updateFormDataSchema = z.custom<{
-  formId: number;
-  formTree: FormEditorTree;
-  calculations: CalculationParams[];
-  isFinalized: boolean;
-  newFormName?: string;
+  formStructure: FormStructure;
 }>();
 export type UpdateFormData = z.infer<typeof updateFormDataSchema>;
 export type UpdateFormResponse = Awaited<
@@ -117,8 +112,14 @@ export type UpdateFormResponse = Awaited<
 >["data"];
 
 const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
-  const { formId, formTree, calculations, isFinalized, newFormName } =
-    request.data!;
+  const { formStructure } = request.data!;
+  const {
+    formId,
+    formName,
+    formIsFinalized,
+    categories,
+    calculations = [],
+  } = formStructure;
   try {
     const currentForm = await prisma.form.findFirst({
       where: {
@@ -137,7 +138,7 @@ const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
       questionId?: number;
     }[] = [];
 
-    formTree.categories.forEach((cat) => {
+    categories.forEach((cat) => {
       flatItems.push({ position: cat.position, categoryId: cat.categoryId });
 
       cat.categoryChildren.forEach((fi) => {
@@ -335,7 +336,7 @@ const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
     //Transaction
     await prisma.$transaction(async (tx) => {
       await tx.form.update({
-        data: { name: newFormName, finalized: isFinalized },
+        data: { name: formName, finalized: formIsFinalized },
         where: { id: formId },
       });
       if (deleteQuery) {

@@ -1,9 +1,3 @@
-import type { CalculationParams } from "@/app/admin/protocols/forms/edit/calculations/calculationDialog";
-import type {
-  CategoryItem,
-  QuestionItem,
-  SubcategoryItem,
-} from "@/app/admin/protocols/forms/edit/clientV2";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type {
@@ -17,6 +11,12 @@ import type {
   APIResponse,
 } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  CalculationParams,
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import {
   OptionTypes,
@@ -170,7 +170,7 @@ const getAdminSQLiteFormStructure = async ({
   publicQuestionsOnly?: boolean;
   includeCalculations: boolean;
 }) => {
-  const getFormTree = async () => {
+  const getFormData = async () => {
     const [
       formValues,
       categoryFormItemsValues,
@@ -384,15 +384,15 @@ const getAdminSQLiteFormStructure = async ({
     });
 
     return {
-      id: form.id,
-      name: form.name,
-      finalized: form.finalized,
+      formId: form.id,
+      formName: form.name,
+      formIsFinalized: form.finalized,
       categories,
     };
   };
 
   const getFormCalculations = async () => {
-    if (!includeCalculations) return [];
+    if (!includeCalculations) return undefined;
 
     const calculationsValues = await adminSQLiteDb.query({
       statement: `
@@ -421,12 +421,15 @@ const getAdminSQLiteFormStructure = async ({
     return calculations;
   };
 
-  const [formTree, calculations] = await Promise.all([
-    getFormTree(),
+  const [formData, calculations] = await Promise.all([
+    getFormData(),
     getFormCalculations(),
   ]);
 
-  return { formTree, calculations };
+  return {
+    ...formData,
+    ...(calculations !== undefined ? { calculations } : {}),
+  };
 };
 
 const fetchAdminSQLiteFormStructure = async (
@@ -434,7 +437,7 @@ const fetchAdminSQLiteFormStructure = async (
 ): Promise<APIResponse<fetchFormStructureResponse>> => {
   const params = request.params!;
   try {
-    const { formTree, calculations } = await getAdminSQLiteFormStructure({
+    const formStructure = await getAdminSQLiteFormStructure({
       formId: params.formId,
       includeCalculations: true,
     });
@@ -444,11 +447,7 @@ const fetchAdminSQLiteFormStructure = async (
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        form: {
-          statusCode: 200,
-          formTree,
-        },
-        calculations,
+        formStructure,
       },
     };
   } catch (e) {
@@ -457,13 +456,7 @@ const fetchAdminSQLiteFormStructure = async (
         statusCode: 500,
         message: "Erro ao consultar estrutura do formulário!",
       } as APIResponseInfo,
-      data: {
-        form: {
-          statusCode: 500,
-          formTree: null,
-        },
-        calculations: [],
-      },
+      data: null,
     };
   }
 };

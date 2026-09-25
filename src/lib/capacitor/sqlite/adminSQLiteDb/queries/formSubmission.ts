@@ -1,4 +1,3 @@
-import type { QuestionItem } from "@/app/admin/protocols/forms/edit/clientV2";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import type {
   SQLiteBulkUpsertOperation,
@@ -16,6 +15,7 @@ import type {
   ResponseFormGeometry,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
+import type { QuestionItem } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import {
   deserializeResponseGeometriesFromWkt,
@@ -213,8 +213,6 @@ const getAdminSQLiteFormSubmissionData = async ({
       }),
     ]);
 
-  const { formTree } = formStructure;
-
   const responses = responsesSchema.parse(responsesValues.values);
   const responseOptions = responseOptionsSchema.parse(
     responseOptionsValues.values,
@@ -284,7 +282,7 @@ const getAdminSQLiteFormSubmissionData = async ({
     };
   };
 
-  const categories = formTree.categories
+  const categories = formStructure.categories
     .map(
       (category): FormSubmissionCategoryItem => ({
         ...category,
@@ -313,12 +311,12 @@ const getAdminSQLiteFormSubmissionData = async ({
 
   return {
     formStructure: {
-      formTree: {
-        id: formTree.id,
-        name: formTree.name,
-        categories,
-      },
-      calculations: formStructure.calculations,
+      formId: formStructure.formId,
+      formName: formStructure.formName,
+      categories,
+      ...(includeCalculations ?
+        { calculations: formStructure.calculations ?? [] }
+      : {}),
     },
     responsesFormValues,
     geometries,

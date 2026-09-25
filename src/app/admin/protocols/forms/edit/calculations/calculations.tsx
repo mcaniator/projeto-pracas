@@ -1,27 +1,27 @@
+import type { CalculationParams } from "@/lib/types/forms/formStructure";
 import CButton from "@components/ui/cButton";
 import CMentionsTextField from "@components/ui/cMentionsTextField";
 import { IconTrash } from "@tabler/icons-react";
-import { Dispatch, SetStateAction } from "react";
 
-import { CalculationParams, Mention } from "./calculationDialog";
+import type { Mention } from "./calculationDialog";
 
 const Calculations = ({
   formCalculations,
   mentions,
   isFinalized,
-  setFormCalculations,
+  onCalculationsChange,
 }: {
   formCalculations: CalculationParams[];
   mentions: Mention[];
   isFinalized: boolean;
-  setFormCalculations: Dispatch<SetStateAction<CalculationParams[]>>;
+  onCalculationsChange: (calculations: CalculationParams[]) => void;
 }) => {
   const removeCalculation = (calculationToRemove: CalculationParams) => {
-    setFormCalculations((prev) => {
-      return prev.filter(
+    onCalculationsChange(
+      formCalculations.filter(
         (p) => p.targetQuestionId !== calculationToRemove.targetQuestionId,
-      );
-    });
+      ),
+    );
   };
   return (
     <div className="mt-2 flex flex-col gap-1">

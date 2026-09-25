@@ -1,10 +1,10 @@
-import { QuestionItem } from "@/app/admin/protocols/forms/edit/clientV2";
 import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionAllowResponseImagesChip from "@/components/ui/question/cQuestionAllowResponseImagesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
 import CQuestionTypeChip from "@/components/ui/question/cQuestionTypeChip";
 import CQuestionVisibilityChip from "@/components/ui/question/cQuestionVisibility";
+import type { QuestionItem } from "@/lib/types/forms/formStructure";
 
 type QuestionDescriptionChipsQuestion = Pick<
   QuestionItem,
