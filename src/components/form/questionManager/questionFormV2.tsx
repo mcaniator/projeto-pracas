@@ -4,13 +4,12 @@ import CLinearProgress from "@/components/ui/CLinearProgress";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import { useFetchQuestionsByCategoryAndSubcategory } from "@apiCalls/question";
 import CTextField from "@components/ui/cTextField";
-import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import {
   CategoryForQuestionPicker,
   QuestionPickerQuestionToAdd,
   QuestionPickerQuestionToEdit,
 } from "@customTypes/forms/formCreation";
-import { CircularProgress, Divider } from "@mui/material";
+import { Box, CircularProgress, Divider, Tab, Tabs } from "@mui/material";
 import type { FormUse } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -195,16 +194,20 @@ const QuestionFormV2 = ({
       {showTitle && (
         <h3 className="text-2xl font-semibold">Adicionar questões</h3>
       )}
-      <CToggleButtonGroup
-        options={SEARCH_METHODS_OPTIONS}
-        getLabel={(i) => i.label}
-        getValue={(i) => i.id}
-        value={currentSearchMethod}
-        onChange={(e, newVal) => {
-          lastSearchMethod.current = currentSearchMethod;
-          setCurrentSearchMethod(newVal.id);
-        }}
-      />
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs
+          value={currentSearchMethod}
+          onChange={(_, value: number) => {
+            lastSearchMethod.current = currentSearchMethod;
+            setCurrentSearchMethod(value);
+          }}
+          aria-label="Método de busca de questões"
+        >
+          {SEARCH_METHODS_OPTIONS.map((option) => (
+            <Tab key={option.id} value={option.id} label={option.label} />
+          ))}
+        </Tabs>
+      </Box>
 
       {currentSearchMethod === SEARCH_METHODS.CATEGORY && (
         <SearchQuestionByCategoryAndSubcategory
@@ -263,6 +266,9 @@ const QuestionFormV2 = ({
             showAllQuestions={showAllQuestions}
             disableNoQuestionsLeftMessage={
               currentSearchMethod === 1 && !searchedName
+            }
+            showFullyAddedGroups={
+              currentSearchMethod === SEARCH_METHODS.CATEGORY
             }
             addQuestion={addQuestion}
             editQuestion={(val) => {

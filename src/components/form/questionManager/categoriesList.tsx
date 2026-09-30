@@ -27,6 +27,7 @@ const CategoriesListV2 = ({
   showAllQuestions,
   formQuestionsIds,
   disableNoQuestionsLeftMessage,
+  showFullyAddedGroups = false,
   addQuestion,
   editQuestion,
 }: {
@@ -34,9 +35,15 @@ const CategoriesListV2 = ({
   formQuestionsIds: number[];
   showAllQuestions: boolean;
   disableNoQuestionsLeftMessage: boolean;
+  showFullyAddedGroups?: boolean;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
 }) => {
+  const searchHasQuestions = categories.some(
+    (cat) =>
+      cat.question.length > 0 ||
+      cat.subcategory.some((sub) => sub.question.length > 0),
+  );
   const searchHasRemainingQuestions = categories.some(
     (cat) =>
       cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
@@ -47,7 +54,8 @@ const CategoriesListV2 = ({
   if (
     !disableNoQuestionsLeftMessage &&
     !searchHasRemainingQuestions &&
-    !showAllQuestions
+    !showAllQuestions &&
+    (!showFullyAddedGroups || !searchHasQuestions)
   ) {
     return (
       <div className="p-1">
@@ -61,13 +69,19 @@ const CategoriesListV2 = ({
   return (
     <div className="p-1">
       {categories.map((cat, index) => {
+        const categoryHasQuestions =
+          cat.question.length > 0 ||
+          cat.subcategory.some((sub) => sub.question.length > 0);
         const categoryHasRemainingQuestions =
           showAllQuestions ||
           cat.question.some((q) => !formQuestionsIds.includes(q.id)) ||
           cat.subcategory.some((sub) =>
             sub.question.some((q) => !formQuestionsIds.includes(q.id)),
           );
-        if (categoryHasRemainingQuestions) {
+        if (
+          categoryHasRemainingQuestions ||
+          (showFullyAddedGroups && categoryHasQuestions)
+        ) {
           return (
             <CAccordion
               key={index}
@@ -101,6 +115,7 @@ const CategoriesListV2 = ({
                       formQuestionsIds={formQuestionsIds}
                       categoryId={cat.id}
                       showAllQuestions={showAllQuestions}
+                      showFullyAddedGroups={showFullyAddedGroups}
                       categoryName={cat.name}
                       addQuestion={addQuestion}
                       editQuestion={editQuestion}
@@ -109,7 +124,8 @@ const CategoriesListV2 = ({
                   {((showAllQuestions && cat.question.length > 0) ||
                     cat.question.some(
                       (q) => !formQuestionsIds.includes(q.id),
-                    )) && (
+                    ) ||
+                    (showFullyAddedGroups && cat.question.length > 0)) && (
                     <QuestionListV2
                       questions={cat.question}
                       formQuestionsIds={formQuestionsIds}
@@ -119,6 +135,11 @@ const CategoriesListV2 = ({
                       categoryName={cat.name}
                       subcategoryName={null}
                       editQuestion={editQuestion}
+                      emptyMessage={
+                        showFullyAddedGroups ?
+                          "Todas as questões diretas desta categoria já foram adicionadas ao formulário."
+                        : undefined
+                      }
                     />
                   )}
                 </div>
@@ -136,6 +157,7 @@ const SubcategoriesListV2 = ({
   formQuestionsIds,
   categoryId,
   showAllQuestions,
+  showFullyAddedGroups,
   categoryName,
   editQuestion,
   addQuestion,
@@ -144,6 +166,7 @@ const SubcategoriesListV2 = ({
   formQuestionsIds: number[];
   categoryId: number;
   showAllQuestions: boolean;
+  showFullyAddedGroups: boolean;
   categoryName: string;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
   editQuestion?: (question: QuestionPickerQuestionToEdit) => void;
@@ -154,7 +177,8 @@ const SubcategoriesListV2 = ({
         if (
           (showAllQuestions && sub.question.length > 0) ||
           sub.question.filter((q) => !formQuestionsIds.includes(q.id)).length >
-            0
+            0 ||
+          (showFullyAddedGroups && sub.question.length > 0)
         ) {
           return (
             <CAccordion
@@ -183,6 +207,11 @@ const SubcategoriesListV2 = ({
                   subcategoryName={sub.name}
                   addQuestion={addQuestion}
                   editQuestion={editQuestion}
+                  emptyMessage={
+                    showFullyAddedGroups ?
+                      "Todas as questões desta subcategoria já foram adicionadas ao formulário."
+                    : undefined
+                  }
                 />
               </CAccordionDetails>
             </CAccordion>
@@ -201,6 +230,7 @@ const QuestionListV2 = ({
   subcategoryName,
   subcategoryId,
   showAllQuestions,
+  emptyMessage,
   editQuestion,
   addQuestion,
 }: {
@@ -209,6 +239,7 @@ const QuestionListV2 = ({
   categoryId: number;
   subcategoryId?: number | null;
   showAllQuestions: boolean;
+  emptyMessage?: string;
   categoryName: string;
   subcategoryName: string | null;
   addQuestion: (question: QuestionPickerQuestionToAdd) => void;
@@ -219,14 +250,12 @@ const QuestionListV2 = ({
       questions.filter((q) => !formQuestionsIds.includes(q.id))
     );
 
+  if (filteredQuestions.length === 0 && emptyMessage) {
+    return <p className="text-sm text-gray-600">{emptyMessage}</p>;
+  }
+
   return (
     <div className="px-1">
-      {!showAllQuestions ||
-        (filteredQuestions.length === 0 && (
-          <p className="my-4 text-center">
-            Nenhuma questão restante encontrada!
-          </p>
-        ))}
       {filteredQuestions.map((question) => (
         <QuestionComponentV2
           key={question.id}
@@ -362,6 +391,8 @@ const QuestionComponentV2 = ({
       : <CButton
           type="submit"
           className={"w-min"}
+          variant="text"
+          dense
           onClick={() =>
             addQuestion({
               id: questionId,

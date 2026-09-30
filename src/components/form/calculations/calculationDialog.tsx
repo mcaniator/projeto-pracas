@@ -4,9 +4,9 @@ import type {
   CalculationParams,
   CategoryItem,
 } from "@/lib/types/forms/formStructure";
-import CToggleButtonGroup from "@components/ui/cToggleButtonGroup";
 import CDialog from "@components/ui/dialog/cDialog";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
+import { Box, Tab, Tabs } from "@mui/material";
 import { QuestionTypes } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -18,6 +18,11 @@ export type Mention = {
   display: string;
   questionType: QuestionTypes;
 };
+
+const calculationDialogOptions = [
+  { id: 0, label: "Criados" },
+  { id: 1, label: "Criar" },
+];
 
 const CalculationDialog = ({
   categories,
@@ -120,19 +125,17 @@ const CalculationDialog = ({
       onConfirm={addCalculation}
     >
       {!isFinalized && (
-        <CToggleButtonGroup
-          className="mt-2"
-          value={calculationsDialogState}
-          getLabel={(a) => a.label}
-          getValue={(a) => a.id}
-          options={[
-            { id: 0, label: "Criados" },
-            { id: 1, label: "Criar" },
-          ]}
-          onChange={(e, val) => {
-            setCalculationsDialogState(val.id);
-          }}
-        />
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs
+            value={calculationsDialogState}
+            onChange={(_, value: number) => setCalculationsDialogState(value)}
+            aria-label="Modo de administração de cálculos"
+          >
+            {calculationDialogOptions.map((option) => (
+              <Tab key={option.id} value={option.id} label={option.label} />
+            ))}
+          </Tabs>
+        </Box>
       )}
 
       {calculationsDialogState === 0 && (

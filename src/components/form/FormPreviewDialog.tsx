@@ -2,7 +2,6 @@
 
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CSwitch from "@/components/ui/cSwtich";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import type { ResponseFormValuesChange } from "@/components/ui/responseForm/responseFormV2";
@@ -25,6 +24,7 @@ import type {
   SubcategoryItem,
 } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
+import { Box, Tab, Tabs } from "@mui/material";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -179,21 +179,21 @@ const FormPreviewDialog = ({
       open={open}
       onClose={onClose}
     >
-      <div className="fixed left-1/2 top-16 z-50 -translate-x-1/2">
-        <CToggleButtonGroup
-          options={previewViewModes}
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs
           value={viewMode}
-          getLabel={(option) => option.label}
-          getValue={(option) => option.value}
-          onChange={(_, option) => setViewMode(option.value)}
-        />
-      </div>
+          onChange={(_, value: PreviewViewMode) => setViewMode(value)}
+          aria-label="Modo de visualização da prévia do formulário"
+        >
+          {previewViewModes.map((option) => (
+            <Tab key={option.value} value={option.value} label={option.label} />
+          ))}
+        </Tabs>
+      </Box>
 
       <div
         className={
-          viewMode === "form" ?
-            "flex h-full min-h-0 w-full flex-col pt-16"
-          : "hidden"
+          viewMode === "form" ? "flex h-full min-h-0 w-full flex-col" : "hidden"
         }
       >
         <h5 className="text-xl font-bold">Preenchimento</h5>
@@ -209,7 +209,7 @@ const FormPreviewDialog = ({
       </div>
 
       {viewMode === "result" && (
-        <div className="flex w-full flex-col gap-2 pt-16">
+        <div className="flex w-full flex-col gap-2">
           <h5 className="text-xl font-bold">Resultados</h5>
           <CSwitch
             checked={showOnlyPublicQuestions}
