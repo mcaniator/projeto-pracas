@@ -8,10 +8,7 @@ import CAccordionSummary from "@components/ui/accordion/CAccordionSummary";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { IconCirclePlus, IconPencil } from "@tabler/icons-react";
 
-import type {
-  PersonCharacteristic,
-  PersonCharacteristicGroup,
-} from "./types";
+import type { PersonCharacteristic, PersonCharacteristicGroup } from "./types";
 
 const PersonCharacteristicGroupsList = ({
   group,
@@ -56,69 +53,66 @@ const PersonCharacteristicGroupsList = ({
           borderRadius: 1,
         }}
       >
-          <CAccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              backgroundColor: "primary.lighter4",
-              "&:hover": { backgroundColor: "primary.lighter3" },
-            }}
-          >
-            <div className="flex min-w-0 items-center gap-1 p-1">
-              <CPersonCharacteristicGroupTypeChip
-                isTagGroup={group.isTagGroup}
-              />
-              <span className="truncate font-semibold">{group.title}</span>
-            </div>
-          </CAccordionSummary>
-          <CAccordionDetails>
-            <div className="flex flex-col gap-2">
-              {visibleCharacteristics?.length === 0 ?
-                <p className="text-sm text-gray-600">
-                  {showAddToTemplate ?
-                    "Todas as características deste grupo já foram adicionadas ao protocolo."
-                  : "Nenhuma característica cadastrada neste grupo."}
-                </p>
-              : visibleCharacteristics?.map((characteristic) => (
-                  <div
-                    key={characteristic.id}
-                    className="flex items-center gap-2 rounded border border-gray-300 bg-white p-2"
-                  >
-                    <CColorViewer color={characteristic.color} />
-                    <CDynamicIcon iconKey={characteristic.iconKey} />
-                    <span className="min-w-0 flex-1 break-words">
-                      {characteristic.name}
-                    </span>
-                    {onEditCharacteristic && (
-                      <CButton
-                        variant="text"
-                        dense
-                        tooltip="Editar característica"
-                        aria-label={`Editar ${characteristic.name}`}
-                        onClick={() =>
-                          onEditCharacteristic(characteristic, group)
-                        }
-                      >
-                        <IconPencil />
-                      </CButton>
-                    )}
-                    {showAddToTemplate && (
-                      <CButton
-                        variant="text"
-                        dense
-                        disabled={!onAddCharacteristic}
-                        tooltip="Adicionar característica ao protocolo"
-                        aria-label={`Adicionar ${characteristic.name} ao protocolo`}
-                        onClick={() =>
-                          onAddCharacteristic?.(characteristic, group)
-                        }
-                      >
-                        <IconCirclePlus />
-                      </CButton>
-                    )}
-                  </div>
-                ))}
-            </div>
-          </CAccordionDetails>
+        <CAccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          sx={{
+            backgroundColor: "primary.lighter4",
+            "&:hover": { backgroundColor: "primary.lighter3" },
+          }}
+        >
+          <div className="flex min-w-0 items-center gap-1 p-1">
+            <CPersonCharacteristicGroupTypeChip isTagGroup={group.isTagGroup} />
+            <span className="truncate font-semibold">{group.title}</span>
+          </div>
+        </CAccordionSummary>
+        <CAccordionDetails>
+          <div className="flex flex-col gap-2">
+            {visibleCharacteristics?.length === 0 ?
+              <p className="text-sm text-gray-600">
+                {showAddToTemplate ?
+                  "Todas as características deste grupo já foram adicionadas ao protocolo."
+                : "Nenhuma característica cadastrada neste grupo."}
+              </p>
+            : visibleCharacteristics?.map((characteristic) => (
+                <div
+                  key={characteristic.id}
+                  className="flex items-center gap-2 rounded border border-gray-300 bg-white p-2"
+                >
+                  <CColorViewer color={characteristic.color} />
+                  <CDynamicIcon iconKey={characteristic.iconKey} />
+                  <span className="min-w-0 flex-1 break-words">
+                    {characteristic.name}
+                  </span>
+                  {onEditCharacteristic && (
+                    <CButton
+                      variant="text"
+                      dense
+                      aria-label={`Editar ${characteristic.name}`}
+                      onClick={() =>
+                        onEditCharacteristic(characteristic, group)
+                      }
+                    >
+                      <IconPencil />
+                    </CButton>
+                  )}
+                  {showAddToTemplate && (
+                    <CButton
+                      variant="text"
+                      dense
+                      disabled={!onAddCharacteristic}
+                      aria-label={`Adicionar ${characteristic.name} ao protocolo`}
+                      onClick={() =>
+                        onAddCharacteristic?.(characteristic, group)
+                      }
+                    >
+                      <IconCirclePlus />
+                    </CButton>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+        </CAccordionDetails>
       </CAccordion>
     </div>
   );

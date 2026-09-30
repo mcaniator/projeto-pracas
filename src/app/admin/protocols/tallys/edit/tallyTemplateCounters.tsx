@@ -78,7 +78,6 @@ const SortableCounterCharacteristic = ({
   return (
     <div
       ref={setNodeRef}
-      {...(!isFinalized ? attributes : {})}
       className="flex min-w-28 flex-col items-center rounded border border-gray-300 bg-white px-3 py-2 text-center shadow-sm"
       style={{
         transform: CSS.Transform.toString(transform),
@@ -87,6 +86,7 @@ const SortableCounterCharacteristic = ({
       }}
     >
       <div
+        {...(!isFinalized ? attributes : {})}
         {...(!isFinalized ? listeners : {})}
         className={`flex items-center gap-1 text-sm font-semibold ${
           isFinalized ? "" : "cursor-grab active:cursor-grabbing"
@@ -104,7 +104,6 @@ const SortableCounterCharacteristic = ({
           disableMinWidth
           variant="text"
           color="error"
-          tooltip="Remover característica"
           aria-label={`Remover ${characteristic.personCharacteristic.name}`}
           onClick={onRemove}
         >
@@ -136,27 +135,30 @@ const SortableCommonCharacteristic = ({
   return (
     <div
       ref={setNodeRef}
-      {...(!isFinalized ? attributes : {})}
-      {...(!isFinalized ? listeners : {})}
-      className={`flex items-center gap-1 rounded border border-gray-300 bg-white p-2 ${
-        isFinalized ? "" : "cursor-grab active:cursor-grabbing"
-      }`}
+      className="flex items-center gap-1 rounded border border-gray-300 bg-white p-2"
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.55 : 1,
       }}
     >
-      {!isFinalized && <IconGripVertical size={18} />}
-      <CColorViewer color={characteristic.personCharacteristic.color} />
-      <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
+      <div
+        {...(!isFinalized ? attributes : {})}
+        {...(!isFinalized ? listeners : {})}
+        className={`flex items-center gap-1 ${
+          isFinalized ? "" : "cursor-grab active:cursor-grabbing"
+        }`}
+      >
+        {!isFinalized && <IconGripVertical size={18} />}
+        <CColorViewer color={characteristic.personCharacteristic.color} />
+        <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
+      </div>
       {!isFinalized && (
         <CButton
           dense
           disableMinWidth
           variant="text"
           color="error"
-          tooltip="Remover característica"
           aria-label={`Remover ${characteristic.personCharacteristic.name}`}
           onClick={onRemove}
         >
@@ -541,7 +543,6 @@ const TallyTemplateCounters = ({
                     disableMinWidth
                     variant="text"
                     color="error"
-                    tooltip="Remover característica"
                     aria-label={`Remover ${activeScreenContextCharacteristic.personCharacteristic.name}`}
                     onClick={() =>
                       removeCharacteristic(
