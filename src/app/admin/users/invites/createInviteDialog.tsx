@@ -50,8 +50,8 @@ const CreateInviteDialog = ({
           role: getRoleForGroup(invite.roles, "PARK"),
         },
         {
-          section: "FORM",
-          role: getRoleForGroup(invite.roles, "FORM"),
+          section: "PROTOCOL",
+          role: getRoleForGroup(invite.roles, "PROTOCOL"),
         },
         {
           section: "TALLY",
@@ -72,7 +72,7 @@ const CreateInviteDialog = ({
           role: null,
         },
         {
-          section: "FORM",
+          section: "PROTOCOL",
           role: null,
         },
         {
@@ -103,7 +103,7 @@ const CreateInviteDialog = ({
         role: null,
       },
       {
-        section: "FORM",
+        section: "PROTOCOL",
         role: null,
       },
       {
@@ -129,8 +129,8 @@ const CreateInviteDialog = ({
         role: getRoleForGroup(invite?.roles, "PARK"),
       },
       {
-        section: "FORM",
-        role: getRoleForGroup(invite?.roles, "FORM"),
+        section: "PROTOCOL",
+        role: getRoleForGroup(invite?.roles, "PROTOCOL"),
       },
       {
         section: "TALLY",

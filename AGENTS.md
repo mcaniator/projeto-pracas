@@ -126,7 +126,7 @@ import superjson from "superjson";
 export async function GET(request: NextRequest) {
   try {
     await checkIfLoggedInUserHasAnyPermission({
-      roles: ["FORM_MANAGER"],
+      roles: ["PROTOCOL_MANAGER"],
     });
   } catch {
     return new Response("Unauthorized", { status: 401 });
@@ -157,7 +157,7 @@ Exemplo de POST:
 export async function POST(request: Request) {
   try {
     await checkIfLoggedInUserHasAnyPermission({
-      roles: ["FORM_MANAGER"],
+      roles: ["PROTOCOL_MANAGER"],
     });
   } catch {
     return new Response("Unauthorized", { status: 401 });

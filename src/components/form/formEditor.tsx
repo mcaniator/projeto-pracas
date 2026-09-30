@@ -3,7 +3,6 @@
 import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
-import PermissionGuard from "@components/auth/permissionGuard";
 import { useEffect, useState } from "react";
 
 import ClientV2 from "./clientV2";
@@ -66,11 +65,7 @@ const FormEditor = ({
     );
   }
 
-  return (
-    <PermissionGuard redirect requiresAnyRoleGroups={["FORM"]}>
-      <ClientV2 initialFormStructure={formStructure} onSave={onSave} />
-    </PermissionGuard>
-  );
+  return <ClientV2 initialFormStructure={formStructure} onSave={onSave} />;
 };
 
 export default FormEditor;

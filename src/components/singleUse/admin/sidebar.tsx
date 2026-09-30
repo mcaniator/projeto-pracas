@@ -81,7 +81,7 @@ const Sidebar = () => {
       name: "Protocolos",
       path: "/admin/protocols",
       show: checkIfRolesArrayContainsAny(user.roles, {
-        roleGroups: ["FORM", "TALLY"],
+        roleGroups: ["PROTOCOL", "TALLY"],
       }),
     },
     {

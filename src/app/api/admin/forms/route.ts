@@ -9,7 +9,9 @@ import superjson from "superjson";
 export async function GET(request: NextRequest) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+      await checkIfLoggedInUserHasAnyPermission({
+        roleGroups: ["PROTOCOL"],
+      });
     } catch (e) {
       return new Response("Sem permissão para consultar formulários!", {
         status: 401,

@@ -53,7 +53,7 @@ const ClientV2 = ({
   const [isFinalized] = useState(
     initialFormStructure.formIsFinalized ||
       checkIfRolesArrayContainsAny(userContext.user?.roles, {
-        roles: ["FORM_VIEWER"],
+        roles: ["PROTOCOL_VIEWER"],
       }),
   );
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
@@ -344,7 +344,7 @@ const ClientV2 = ({
                     <IconEye />
                   </CButton>
                   {!isFinalized && (
-                    <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                    <PermissionGuard requiresAnyRoles={["PROTOCOL_MANAGER"]}>
                       <CButton
                         className="w-fit"
                         onClick={() => {
@@ -361,7 +361,7 @@ const ClientV2 = ({
             {isMobileView && (
               <div className="ml-2 mt-2 flex flex-wrap items-center gap-2">
                 {!isFinalized && (
-                  <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                  <PermissionGuard requiresAnyRoles={["PROTOCOL_MANAGER"]}>
                     <CButton
                       onClick={() => {
                         setOpenQuestionFormModal(true);
@@ -392,7 +392,7 @@ const ClientV2 = ({
                   <IconEye />
                 </CButton>
                 {!isFinalized && (
-                  <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+                  <PermissionGuard requiresAnyRoles={["PROTOCOL_MANAGER"]}>
                     <CButton
                       className="w-fit"
                       onClick={() => {

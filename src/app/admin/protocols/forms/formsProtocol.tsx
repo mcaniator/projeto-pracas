@@ -208,7 +208,7 @@ const FormsProtocol = () => {
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Formulários</h2>
-        <PermissionGuard requiresAnyRoles={["FORM_MANAGER"]}>
+        <PermissionGuard requiresAnyRoles={["PROTOCOL_MANAGER"]}>
           <CButton
             square={isMobileView}
             disabled={!isConnected}
