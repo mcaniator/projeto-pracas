@@ -11,6 +11,7 @@ import type {
 import { sleep } from "@/lib/utils/sleep";
 import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
+import { FormUse } from "@prisma/client";
 import { z } from "zod";
 
 import { Calculation } from "../../utils/calculationUtils";
@@ -56,6 +57,7 @@ const getFormsLatest = async (params?: { finalizedOnly: boolean }) => {
 };
 
 export const fetchFormParamsSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   finalizedOnly: booleanFromString.nullish(),
   includeArchived: booleanFromString.nullish(),
 });
@@ -70,6 +72,7 @@ export const fetchForms = async (
   try {
     const forms = await prisma.form.findMany({
       where: {
+        formUse: params.formUse,
         ...(params?.finalizedOnly && { finalized: true }),
         ...(!params?.includeArchived && { archived: false }),
       },

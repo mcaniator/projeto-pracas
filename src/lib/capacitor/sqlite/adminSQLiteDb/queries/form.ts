@@ -124,12 +124,13 @@ const fetchAdminSQLiteForms = async (
           COUNT(DISTINCT a.id) AS assessmentCount
         FROM form f
         LEFT JOIN assessment a ON a.form_id = f.id
-        WHERE 1 = 1
+        WHERE f.form_use = ?
           ${params.finalizedOnly ? "AND f.finalized = 1" : ""}
           ${params.includeArchived ? "" : "AND f.archived = 0"}
         GROUP BY f.id, f.name, f.finalized, f.archived, f.updated_at
         ORDER BY f.archived ASC, f.updated_at DESC
       `,
+      values: [params.formUse],
     });
     const forms = formsSchema
       .parse(formsValues.values)

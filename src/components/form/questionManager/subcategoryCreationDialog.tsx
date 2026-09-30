@@ -1,9 +1,11 @@
 import { useSubcategorySubmit } from "@/lib/serverFunctions/apiCalls/category";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
+import type { FormUse } from "@prisma/client";
 import { FormEventHandler } from "react";
 
 const SubcategoryCreationDialog = ({
+  formUse,
   categoryId,
   categoryName,
   subcategoryId,
@@ -14,6 +16,7 @@ const SubcategoryCreationDialog = ({
   reloadCategories,
   openSubcategoryDeletionDialog,
 }: {
+  formUse: FormUse;
   categoryId: number;
   categoryName: string;
   subcategoryId?: number;
@@ -53,6 +56,7 @@ const SubcategoryCreationDialog = ({
       confirmLoading={isPending}
     >
       <div className="flex flex-col gap-1">
+        <input type="hidden" name="formUse" value={formUse} />
         <h6 className="text-base font-semibold">
           Categoria pai: {categoryName}
         </h6>

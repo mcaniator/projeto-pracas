@@ -19,6 +19,7 @@ const EditFormPageContent = () => {
   return (
     <FormEditor
       formId={formId}
+      formUse="ASSESSMENT"
       onSave={(finalized) => {
         if (!finalized) {
           return;

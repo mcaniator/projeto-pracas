@@ -1,5 +1,6 @@
 import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
+  FormUse,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -133,12 +134,14 @@ export type { userRegisterType, userUpdateUsernameType, userLoginType };
 //  ------------------------------------------------------------------------------------------------------------
 
 const categoryInfoToCreateSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   name: z.string().trim().min(1).max(255),
   notes: z.string().trim().optional().nullish(),
   categoryId: z.coerce.number().int().finite().nonnegative().optional(),
 });
 
 const subcategoryInfoToCreateSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   name: z.string().trim().min(1).max(255),
   categoryId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().optional().nullish(),
@@ -146,6 +149,7 @@ const subcategoryInfoToCreateSchema = z.object({
 });
 
 const questionSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   name: z.string().trim().min(1).max(255),
   iconKey: z.string().trim(),
   notes: z.string().trim().optional().nullish(),
@@ -221,6 +225,7 @@ const optionSchema = z
   .nonempty();
 
 const formSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   name: z.string().trim().min(1).max(255),
   cloneFormId: z.coerce.number(),
 });

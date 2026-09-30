@@ -1,9 +1,11 @@
 import { useCategorySubmit } from "@/lib/serverFunctions/apiCalls/category";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
+import type { FormUse } from "@prisma/client";
 import { FormEventHandler } from "react";
 
 const CategoryCreationDialog = ({
+  formUse,
   open,
   categoryId,
   categoryName,
@@ -12,6 +14,7 @@ const CategoryCreationDialog = ({
   reloadCategories,
   openCategoryDeletionDialog,
 }: {
+  formUse: FormUse;
   open: boolean;
   categoryId?: number;
   categoryName?: string;
@@ -49,6 +52,7 @@ const CategoryCreationDialog = ({
       confirmLoading={isPending}
     >
       <div className="flex flex-col">
+        <input type="hidden" name="formUse" value={formUse} />
         {categoryId && (
           <>
             <div>

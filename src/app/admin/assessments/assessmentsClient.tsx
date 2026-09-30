@@ -326,7 +326,7 @@ const AssessmentsClient = () => {
 
   useEffect(() => {
     void fetchForms({
-      params: { finalizedOnly: true },
+      params: { formUse: "ASSESSMENT", finalizedOnly: true },
     });
     void fetchAssessmentUsers({});
   }, [fetchAssessmentUsers, fetchForms]);

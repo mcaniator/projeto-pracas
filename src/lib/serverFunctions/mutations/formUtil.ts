@@ -17,15 +17,17 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
   const formData = request.data!;
   try {
     const newFormData = formSchema.parse({
+      formUse: formData.get("formUse"),
       name: formData.get("name"),
       cloneFormId: formData.get("cloneFormId"),
     });
     try {
       if (newFormData.cloneFormId) {
         //CLONE FORM
-        const formToBeCloned = await prisma.form.findUniqueOrThrow({
+        const formToBeCloned = await prisma.form.findFirstOrThrow({
           where: {
             id: newFormData.cloneFormId,
+            formUse: newFormData.formUse,
           },
           include: {
             formItems: true,
@@ -35,6 +37,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
         await prisma.$transaction(async (tx) => {
           const form = await tx.form.create({
             data: {
+              formUse: newFormData.formUse,
               name: newFormData.name,
             },
             select: {
@@ -74,6 +77,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
         //CREATE EMPTY FORM
         await prisma.form.create({
           data: {
+            formUse: newFormData.formUse,
             name: newFormData.name,
           },
         });

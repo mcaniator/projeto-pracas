@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     );
     if (params.name) {
       const questions = await searchQuestionsByName({
-        params: { name: params.name },
+        params: { name: params.name, formUse: params.formUse },
       });
       return new Response(superjson.stringify(questions), {
         status: 200,

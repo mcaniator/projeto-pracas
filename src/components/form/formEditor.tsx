@@ -3,15 +3,18 @@
 import CCircularProgress from "@/components/ui/CCircularProgress";
 import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
+import type { FormUse } from "@prisma/client";
 import { useEffect, useState } from "react";
 
 import ClientV2 from "./clientV2";
 
 const FormEditor = ({
   formId,
+  formUse,
   onSave,
 }: {
   formId: number;
+  formUse: FormUse;
   onSave: (finalized: boolean) => void;
 }) => {
   const [formStructure, setFormStructure] =
@@ -65,7 +68,13 @@ const FormEditor = ({
     );
   }
 
-  return <ClientV2 initialFormStructure={formStructure} onSave={onSave} />;
+  return (
+    <ClientV2
+      initialFormStructure={formStructure}
+      formUse={formUse}
+      onSave={onSave}
+    />
+  );
 };
 
 export default FormEditor;

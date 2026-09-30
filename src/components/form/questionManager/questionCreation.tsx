@@ -18,6 +18,7 @@ import type {
 } from "@customTypes/forms/formCreation";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import type {
+  FormUse,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
@@ -46,6 +47,7 @@ import type {
 const steps = ["Configuração", "Prévia"];
 
 const QuestionCreation = ({
+  formUse,
   categoryId,
   categoryName,
   subcategoryId,
@@ -55,6 +57,7 @@ const QuestionCreation = ({
   fetchCategoriesAfterCreation,
   question,
 }: {
+  formUse: FormUse;
   categoryId: number | undefined;
   categoryName: string | undefined;
   subcategoryId: number | undefined;
@@ -471,6 +474,7 @@ const QuestionCreation = ({
             : "hidden"
           }
         >
+          <input type="hidden" name="formUse" value={formUse} />
           <QuestionCreationFormStep
             categoryId={activeCategoryId}
             categoryName={activeCategoryName}

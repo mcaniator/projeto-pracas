@@ -1,6 +1,7 @@
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
+import type { FormUse } from "@prisma/client";
 import { IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -11,12 +12,14 @@ import SubcategoryCreationDialog from "./subcategoryCreationDialog";
 import SubcategoryDeletionDialog from "./subcategoryDeletionDialog";
 
 const FormItemManager = ({
+  formUse,
   categories,
   selectedCategoryAndSubcategoryId,
   formCategoriesAndSubcategoriesIds,
   reloadCategories,
   setSelectedCategoryAndSubcategoryId,
 }: {
+  formUse: FormUse;
   categories: FetchCategoriesWithSubcategoriesReponse["categories"];
   selectedCategoryAndSubcategoryId: {
     categoryId: number | undefined;
@@ -272,6 +275,7 @@ const FormItemManager = ({
           Criar questão
         </CButton>
         <CategoryCreationDialog
+          formUse={formUse}
           open={openCategoryCreationDialog}
           categoryId={isEdition ? selectedCategory?.id : undefined}
           categoryName={isEdition ? selectedCategory?.name : undefined}
@@ -289,6 +293,7 @@ const FormItemManager = ({
         {!!selectedCategoryAndSubcategoryId.categoryId && (
           <>
             <SubcategoryCreationDialog
+              formUse={formUse}
               categoryId={selectedCategoryAndSubcategoryId.categoryId}
               categoryName={selectedCategory?.name ?? "ERRO"}
               subcategoryId={isEdition ? selectedSubcategory?.id : undefined}
@@ -335,6 +340,7 @@ const FormItemManager = ({
               />
             )}
             <QuestionCreation
+              formUse={formUse}
               fetchCategoriesAfterCreation={reloadCategories}
               open={openQuestionCreationDialog}
               onClose={() => {

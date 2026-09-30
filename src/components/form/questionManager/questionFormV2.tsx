@@ -11,6 +11,7 @@ import {
   QuestionPickerQuestionToEdit,
 } from "@customTypes/forms/formCreation";
 import { CircularProgress, Divider } from "@mui/material";
+import type { FormUse } from "@prisma/client";
 import { IconX } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -32,6 +33,7 @@ const SEARCH_METHODS_OPTIONS = [
 ];
 
 const QuestionFormV2 = ({
+  formUse,
   categories,
   formQuestionsIds,
   showTitle,
@@ -40,6 +42,7 @@ const QuestionFormV2 = ({
   addQuestion,
   reloadCategories,
 }: {
+  formUse: FormUse;
   categories: FetchCategoriesWithSubcategoriesReponse["categories"];
   formQuestionsIds: number[];
   showTitle: boolean;
@@ -95,22 +98,23 @@ const QuestionFormV2 = ({
       },
     });
 
-  const searchByName = useCallback(async () => {
+  const searchByName = useCallback(() => {
     if (!searchedName || searchedName.length === 0) {
       setCategoriesList([]);
       return;
     }
-    await fetchQuestionsByCategoryAndSubcategory({
-      params: { name: searchedName },
+    void fetchQuestionsByCategoryAndSubcategory({
+      params: { name: searchedName, formUse },
     });
-  }, [searchedName, fetchQuestionsByCategoryAndSubcategory]);
+  }, [searchedName, formUse, fetchQuestionsByCategoryAndSubcategory]);
 
-  const searchByCategoryAndSubcateogory = useCallback(async () => {
+  const searchByCategoryAndSubcateogory = useCallback(() => {
     if (isLoadingCategories || !selectedCategoryAndSubcategoryId.categoryId)
       return;
 
-    await fetchQuestionsByCategoryAndSubcategory({
+    void fetchQuestionsByCategoryAndSubcategory({
       params: {
+        formUse,
         categoryId: selectedCategoryAndSubcategoryId.categoryId,
         subcategoryId: selectedCategoryAndSubcategoryId.subcategoryId,
         verifySubcategoryNullness:
@@ -119,6 +123,7 @@ const QuestionFormV2 = ({
     });
   }, [
     selectedCategoryAndSubcategoryId,
+    formUse,
     isLoadingCategories,
     fetchQuestionsByCategoryAndSubcategory,
   ]);
@@ -231,6 +236,7 @@ const QuestionFormV2 = ({
       {currentSearchMethod == SEARCH_METHODS.REGISTER && (
         <>
           <FormItemManager
+            formUse={formUse}
             categories={categories}
             selectedCategoryAndSubcategoryId={selectedCategoryAndSubcategoryId}
             formCategoriesAndSubcategoriesIds={
@@ -270,6 +276,7 @@ const QuestionFormV2 = ({
         </div>
       }
       <QuestionCreation
+        formUse={formUse}
         open={!!questionToEdit}
         question={questionToEdit}
         categoryId={questionToEdit?.categoryId}

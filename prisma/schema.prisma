@@ -110,6 +110,13 @@ enum ImageHosts {
   @@map("image_hosts")
 }
 
+enum FormUse {
+  ASSESSMENT
+  TALLY_AND_BEHAVIORAL_MAP
+
+  @@map("FORM_USE")
+}
+
 // #endregion
 
 // #region Auth
@@ -234,7 +241,8 @@ model PasswordReset {
 model Category {
   id Int @id @default(autoincrement())
 
-  name     String     @unique @db.VarChar(255)
+  formUse  FormUse    @map("form_use")
+  name     String     @db.VarChar(255)
   optional Boolean    @default(false)
   active   Boolean    @default(true)
   notes    String?    @db.Text
@@ -245,12 +253,14 @@ model Category {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
+  @@unique([formUse, name])
   @@map("category")
 }
 
 model Subcategory {
   id Int @id @default(autoincrement())
 
+  formUse   FormUse    @map("form_use")
   name      String     @db.VarChar(255)
   optional  Boolean    @default(false)
   active    Boolean    @default(true)
@@ -261,13 +271,14 @@ model Subcategory {
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@unique([categoryId, name])
+  @@unique([formUse, categoryId, name])
   @@map("subcategory")
 }
 
 model Question {
   id Int @id @default(autoincrement())
 
+  formUse             FormUse                        @map("form_use")
   name                String                         @db.VarChar(255)
   iconKey             String                         @map("icon_key") @db.VarChar(255)
   notes               String?                        @db.Text
@@ -299,7 +310,7 @@ model Question {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([name, categoryId, subcategoryId])
+  @@unique([formUse, name, categoryId, subcategoryId])
   @@index([name])
   @@map("question")
 }
@@ -409,6 +420,7 @@ model FormSubmission {
 
 model Form {
   id              Int              @id @default(autoincrement())
+  formUse         FormUse          @map("form_use")
   name            String           @db.VarChar(255)
   archived        Boolean          @default(false)
   finalized       Boolean          @default(false)

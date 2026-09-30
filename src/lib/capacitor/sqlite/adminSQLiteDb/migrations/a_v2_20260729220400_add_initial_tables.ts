@@ -123,28 +123,32 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE TABLE category (
         id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
+        form_use TEXT NOT NULL CHECK (form_use IN ('ASSESSMENT', 'TALLY_AND_BEHAVIORAL_MAP')),
+        name TEXT NOT NULL,
         optional INTEGER NOT NULL CHECK (optional IN (0, 1)),
         active INTEGER NOT NULL CHECK (active IN (0, 1)),
         notes TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        UNIQUE (form_use, name)
       )`,
     },
     {
       statement: `CREATE TABLE subcategory (
         id INTEGER PRIMARY KEY,
+        form_use TEXT NOT NULL CHECK (form_use IN ('ASSESSMENT', 'TALLY_AND_BEHAVIORAL_MAP')),
         name TEXT NOT NULL,
         optional INTEGER NOT NULL CHECK (optional IN (0, 1)),
         active INTEGER NOT NULL CHECK (active IN (0, 1)),
         notes TEXT,
         category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
-        UNIQUE (category_id, name)
+        UNIQUE (form_use, category_id, name)
       )`,
     },
     {
       statement: `CREATE TABLE question (
         id INTEGER PRIMARY KEY,
+        form_use TEXT NOT NULL CHECK (form_use IN ('ASSESSMENT', 'TALLY_AND_BEHAVIORAL_MAP')),
         name TEXT NOT NULL,
         icon_key TEXT NOT NULL,
         notes TEXT,
@@ -160,7 +164,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         subcategory_id INTEGER REFERENCES subcategory(id) ON DELETE CASCADE,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        UNIQUE (name, category_id, subcategory_id)
+        UNIQUE (form_use, name, category_id, subcategory_id)
       )`,
     },
     {
@@ -179,6 +183,7 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE TABLE form (
         id INTEGER PRIMARY KEY,
+        form_use TEXT NOT NULL CHECK (form_use IN ('ASSESSMENT', 'TALLY_AND_BEHAVIORAL_MAP')),
         name TEXT NOT NULL,
         archived INTEGER NOT NULL CHECK (archived IN (0, 1)),
         finalized INTEGER NOT NULL CHECK (finalized IN (0, 1)),

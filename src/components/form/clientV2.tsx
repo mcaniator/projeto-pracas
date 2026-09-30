@@ -22,6 +22,7 @@ import CDialog from "@components/ui/dialog/cDialog";
 import { useLoadingOverlay } from "@context/loadingContext";
 import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
+import type { FormUse } from "@prisma/client";
 import { IconCalculator, IconClipboard, IconEye } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -42,9 +43,11 @@ const FormStructureEditor = dynamic(() => import("./formStructureEditor"), {
 
 const ClientV2 = ({
   initialFormStructure,
+  formUse,
   onSave,
 }: {
   initialFormStructure: FormStructure;
+  formUse: FormUse;
   onSave: (finalized: boolean) => void;
 }) => {
   const userContext = useUserContext();
@@ -93,8 +96,8 @@ const ClientV2 = ({
   };
 
   const reloadCategories = useCallback(() => {
-    void fetchCategories({});
-  }, [fetchCategories]);
+    void fetchCategories({ params: { formUse } });
+  }, [fetchCategories, formUse]);
 
   const addQuestion = (question: QuestionPickerQuestionToAdd) => {
     if (formQuestionsIds.includes(question.id)) return;
@@ -229,8 +232,8 @@ const ClientV2 = ({
 
   useEffect(() => {
     if (isFinalized) return;
-    void fetchCategories({});
-  }, [fetchCategories, isFinalized]);
+    void fetchCategories({ params: { formUse } });
+  }, [fetchCategories, formUse, isFinalized]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -423,6 +426,7 @@ const ClientV2 = ({
             }}
           >
             <QuestionFormV2
+              formUse={formUse}
               addQuestion={addQuestion}
               reloadCategories={reloadCategories}
               categories={categories}
@@ -447,6 +451,7 @@ const ClientV2 = ({
           }}
         >
           <QuestionFormV2
+            formUse={formUse}
             addQuestion={addQuestion}
             reloadCategories={reloadCategories}
             categories={categories}

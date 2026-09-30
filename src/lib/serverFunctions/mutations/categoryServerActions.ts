@@ -14,13 +14,12 @@ import {
 export const categorySubmitDataSchema = z.instanceof(FormData);
 export type CategorySubmitData = z.infer<typeof categorySubmitDataSchema>;
 
-const _categorySubmit = async (
-  request: APIRequestData<CategorySubmitData>,
-) => {
+const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
   const formData = request.data!;
   let parse;
   try {
     parse = categoryInfoToCreateSchema.parse({
+      formUse: formData.get("formUse"),
       name: formData.get("name"),
       notes: formData.get("notes"),
       categoryId: formData.get("categoryId"),
@@ -50,7 +49,11 @@ const _categorySubmit = async (
       };
     }
     const category = await prisma.category.create({
-      data: { name: parse.name, notes: parse.notes },
+      data: {
+        formUse: parse.formUse,
+        name: parse.name,
+        notes: parse.notes,
+      },
     });
     return {
       responseInfo: {
@@ -301,6 +304,7 @@ const _subcategorySubmit = async (
   let parse;
   try {
     parse = subcategoryInfoToCreateSchema.parse({
+      formUse: formData.get("formUse"),
       name: formData.get("subcategory-name"),
       categoryId: formData.get("category-id"),
       notes: formData.get("notes"),
@@ -332,6 +336,7 @@ const _subcategorySubmit = async (
     }
     const subcategory = await prisma.subcategory.create({
       data: {
+        formUse: parse.formUse,
         name: parse.name,
         categoryId: parse.categoryId,
         notes: parse.notes ?? null,

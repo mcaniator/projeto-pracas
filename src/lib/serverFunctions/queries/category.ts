@@ -1,27 +1,40 @@
 import {
-  APIRequest,
+  APIRequestParams,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
 import { prisma } from "@lib/prisma";
-
-type CategoriesForFieldsCreation = NonNullable<
-  Awaited<ReturnType<typeof fetchCategoriesForFieldsCreation>>
->;
+import { FormUse } from "@prisma/client";
+import { z } from "zod";
 
 export type FetchCategoriesWithSubcategoriesReponse = NonNullable<
   Awaited<ReturnType<typeof getCategoriesWithSubcategories>>
 >["data"];
 
+export const getCategoriesWithSubcategoriesParamsSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
+});
+
+export type GetCategoriesWithSubcategoriesParams = z.infer<
+  typeof getCategoriesWithSubcategoriesParamsSchema
+>;
+
 const getCategoriesWithSubcategories = async (
-  _request: APIRequest,
+  request: APIRequestParams<GetCategoriesWithSubcategoriesParams>,
 ) => {
+  const { formUse } = request.params!;
   try {
     const categories = await prisma.category.findMany({
+      where: {
+        formUse,
+      },
       select: {
         id: true,
         name: true,
         notes: true,
         subcategory: {
+          where: {
+            formUse,
+          },
           select: {
             id: true,
             name: true,
@@ -52,23 +65,4 @@ const getCategoriesWithSubcategories = async (
   }
 };
 
-const fetchCategoriesForFieldsCreation = async (
-  _request: APIRequest,
-) => {
-  try {
-    const categories = await prisma.category.findMany({
-      include: {
-        subcategory: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-    return { statusCode: 200, categories };
-  } catch (e) {
-    return { statusCode: 500, categories: null };
-  }
-};
-
-export { getCategoriesWithSubcategories, fetchCategoriesForFieldsCreation };
-export { type CategoriesForFieldsCreation };
+export { getCategoriesWithSubcategories };

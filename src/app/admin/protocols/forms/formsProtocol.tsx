@@ -40,7 +40,7 @@ const FormsProtocol = () => {
   const loadForms = useCallback(
     ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
       void _fetchForms({
-        params: { includeArchived: true },
+        params: { formUse: "ASSESSMENT", includeArchived: true },
         requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
@@ -233,6 +233,7 @@ const FormsProtocol = () => {
 
       <FormCreationDialog
         open={openFormCreationDialog}
+        formUse="ASSESSMENT"
         cloneForm={selectedForm}
         reloadForms={() => {
           loadForms({ invalidateCache: true });
