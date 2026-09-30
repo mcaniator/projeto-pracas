@@ -2,10 +2,11 @@
 
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import CTabs from "@/components/ui/cTabs";
 import { checkIfRolesArrayContainsAny } from "@/lib/auth/rolesUtil";
 import { useFetchPersonCharacteristicGroups } from "@/lib/serverFunctions/apiCalls/personCharacteristic";
 import { FetchPersonCharacteristicGroupsResponse } from "@/lib/serverFunctions/queries/personCharacteristic";
-import { Box, Tab, Tabs } from "@mui/material";
+import { Tab } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 
 import PersonCharacteristicDeletionDialog from "./personCharacteristicDeletionDialog";
@@ -164,17 +165,15 @@ const PersonCharacteristicManager = ({
           Administração de características
         </h3>
       )}
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs
-          value={mode}
-          onChange={(_, value: number) => setMode(value)}
-          aria-label="Modo de administração de características"
-        >
-          {managerModeOptions.map((option) => (
-            <Tab key={option.id} value={option.id} label={option.label} />
-          ))}
-        </Tabs>
-      </Box>
+      <CTabs
+        value={mode}
+        onChange={(_, value: number) => setMode(value)}
+        aria-label="Modo de administração de características"
+      >
+        {managerModeOptions.map((option) => (
+          <Tab key={option.id} value={option.id} label={option.label} />
+        ))}
+      </CTabs>
 
       {mode === managerModes.GROUPS ?
         <PersonCharacteristicGroupsTab

@@ -4,14 +4,13 @@ import BehavioralMapProtocols from "@/app/admin/protocols/behavioralMaps/behavio
 import FormsProtocol from "@/app/admin/protocols/forms/formsProtocol";
 import TallyProtocols from "@/app/admin/protocols/tallys/tallyProtocols";
 import CAdminHeader from "@/components/ui/cAdminHeader";
+import CTabs from "@/components/ui/cTabs";
 import {
-  Box,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   Tab,
-  Tabs,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -78,18 +77,16 @@ const ProtocolsClient = () => {
             ))}
           </Select>
         </FormControl>
-      : <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={protocolType}
-            onChange={(_, value: ProtocolType) => selectProtocolType(value)}
-            aria-label="Tipo de protocolo"
-            centered
-          >
-            {protocolTypeOptions.map((option) => (
-              <Tab key={option.id} value={option.id} label={option.label} />
-            ))}
-          </Tabs>
-        </Box>
+      : <CTabs
+          value={protocolType}
+          onChange={(_, value: ProtocolType) => selectProtocolType(value)}
+          aria-label="Tipo de protocolo"
+          centered
+        >
+          {protocolTypeOptions.map((option) => (
+            <Tab key={option.id} value={option.id} label={option.label} />
+          ))}
+        </CTabs>
       }
 
       {visitedProtocolTypes.has("FORMS") && (

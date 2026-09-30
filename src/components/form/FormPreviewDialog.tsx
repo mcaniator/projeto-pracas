@@ -2,6 +2,7 @@
 
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CSwitch from "@/components/ui/cSwtich";
+import CTabs from "@/components/ui/cTabs";
 import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import type { ResponseFormValuesChange } from "@/components/ui/responseForm/responseFormV2";
@@ -24,7 +25,7 @@ import type {
   SubcategoryItem,
 } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import { Box, Tab, Tabs } from "@mui/material";
+import { Tab } from "@mui/material";
 import { OptionTypes, QuestionResponseCharacterTypes } from "@prisma/client";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -179,17 +180,15 @@ const FormPreviewDialog = ({
       open={open}
       onClose={onClose}
     >
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs
-          value={viewMode}
-          onChange={(_, value: PreviewViewMode) => setViewMode(value)}
-          aria-label="Modo de visualização da prévia do formulário"
-        >
-          {previewViewModes.map((option) => (
-            <Tab key={option.value} value={option.value} label={option.label} />
-          ))}
-        </Tabs>
-      </Box>
+      <CTabs
+        value={viewMode}
+        onChange={(_, value: PreviewViewMode) => setViewMode(value)}
+        aria-label="Modo de visualização da prévia do formulário"
+      >
+        {previewViewModes.map((option) => (
+          <Tab key={option.value} value={option.value} label={option.label} />
+        ))}
+      </CTabs>
 
       <div
         className={

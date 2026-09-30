@@ -4,9 +4,10 @@ import type {
   CalculationParams,
   CategoryItem,
 } from "@/lib/types/forms/formStructure";
+import CTabs from "@components/ui/cTabs";
 import CDialog from "@components/ui/dialog/cDialog";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
-import { Box, Tab, Tabs } from "@mui/material";
+import { Tab } from "@mui/material";
 import { QuestionTypes } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -125,17 +126,15 @@ const CalculationDialog = ({
       onConfirm={addCalculation}
     >
       {!isFinalized && (
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={calculationsDialogState}
-            onChange={(_, value: number) => setCalculationsDialogState(value)}
-            aria-label="Modo de administração de cálculos"
-          >
-            {calculationDialogOptions.map((option) => (
-              <Tab key={option.id} value={option.id} label={option.label} />
-            ))}
-          </Tabs>
-        </Box>
+        <CTabs
+          value={calculationsDialogState}
+          onChange={(_, value: number) => setCalculationsDialogState(value)}
+          aria-label="Modo de administração de cálculos"
+        >
+          {calculationDialogOptions.map((option) => (
+            <Tab key={option.id} value={option.id} label={option.label} />
+          ))}
+        </CTabs>
       )}
 
       {calculationsDialogState === 0 && (
