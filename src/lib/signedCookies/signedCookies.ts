@@ -54,4 +54,9 @@ const getSignedCookieValue = async (name: string) => {
   return value;
 };
 
-export { setSignedCookie, getSignedCookieValue };
+const deleteSignedCookie = async (name: string) => {
+  const cookieStore = await cookies();
+  cookieStore.delete(name);
+};
+
+export { deleteSignedCookie, getSignedCookieValue, setSignedCookie };
