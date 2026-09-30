@@ -23,7 +23,6 @@ import { useLoadingOverlay } from "@context/loadingContext";
 import { QuestionPickerQuestionToAdd } from "@customTypes/forms/formCreation";
 import { FormItemUtils } from "@lib/utils/formTreeUtils";
 import { IconCalculator, IconClipboard, IconEye } from "@tabler/icons-react";
-import { useRouter } from "next-nprogress-bar";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -43,11 +42,12 @@ const FormStructureEditor = dynamic(() => import("./formStructureEditor"), {
 
 const ClientV2 = ({
   initialFormStructure,
+  onSave,
 }: {
   initialFormStructure: FormStructure;
+  onSave: (finalized: boolean) => void;
 }) => {
   const userContext = useUserContext();
-  const router = useRouter();
   const { enqueueSnackbar } = useAppSnackbar();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [isFinalized] = useState(
@@ -68,7 +68,6 @@ const ClientV2 = ({
   const [categories, setCategories] = useState<
     FetchCategoriesWithSubcategoriesReponse["categories"]
   >([]);
-  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const [fetchCategories, isLoadingCategories] =
     useFetchCategoriesWithSubcategories({
@@ -295,10 +294,7 @@ const ClientV2 = ({
         enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
       } else {
         enqueueSnackbar(<>Formulário salvo!</>, { variant: "success" });
-        if (saveAsDone) {
-          setIsRedirecting(true);
-          void router.push("/admin/protocols");
-        }
+        onSave(saveAsDone);
       }
     } catch (e) {
       enqueueSnackbar(<>Erro ao salvar!</>, { variant: "error" });
@@ -308,7 +304,7 @@ const ClientV2 = ({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
+    <div className="flex h-full flex-col overflow-auto bg-white text-black">
       <CAdminHeader title="Formulário" titleIcon={<IconClipboard />} />
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
@@ -481,7 +477,6 @@ const ClientV2 = ({
         openSaveFormDialog={openSaveFormDialog}
         setOpenSaveFormDialog={setOpenSaveFormDialog}
         saveAsDone={saveAsDone}
-        isRedirecting={isRedirecting}
         setSaveAsDone={setSaveAsDone}
         save={() => {
           void handleUpdateForm();

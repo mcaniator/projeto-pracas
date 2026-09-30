@@ -1,71 +1,50 @@
 "use client";
 
 import CCircularProgress from "@/components/ui/CCircularProgress";
-import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
-import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
-import PermissionGuard from "@components/auth/permissionGuard";
+import CLinearProgress from "@/components/ui/CLinearProgress";
+import FormEditor from "@components/form/formEditor";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 
-import ClientV2 from "./clientV2";
-
-const EditFormProtectedContent = () => {
+const EditFormPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formId = Number(searchParams.get("formId"));
-  const [fetchFormStructure, isLoading] = useFetchFormStructure();
-  const [response, setResponse] = useState<fetchFormStructureResponse | null>(
-    null,
-  );
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  useEffect(() => {
-    const loadForm = async () => {
-      if (!Number.isFinite(formId)) {
-        router.replace("/error");
-        return;
-      }
-
-      const result = await fetchFormStructure({
-        params: { formId },
-      });
-      if (!result.data?.formStructure) {
-        router.replace("/error");
-        return;
-      }
-
-      setResponse(result.data);
-    };
-
-    void loadForm();
-  }, [formId, fetchFormStructure, router]);
-
-  if (isLoading || !response?.formStructure) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <CCircularProgress size={128} />
-      </div>
-    );
+  if (isRedirecting) {
+    return <CLinearProgress label="Redirecionando..." />;
   }
 
   return (
-    <PermissionGuard redirect requiresAnyRoleGroups={["FORM"]}>
-      <ClientV2 initialFormStructure={response.formStructure} />
-    </PermissionGuard>
+    <FormEditor
+      formId={formId}
+      onSave={(finalized) => {
+        if (!finalized) {
+          return;
+        }
+
+        setIsRedirecting(true);
+        void router.push("/admin/protocols");
+      }}
+    />
   );
 };
 
-const EditFormProtected = () => {
+const EditFormPage = () => {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-full items-center justify-center">
-          <CCircularProgress size={128} />
-        </div>
-      }
-    >
-      <EditFormProtectedContent />
-    </Suspense>
+    <div className="h-full p-2">
+      <Suspense
+        fallback={
+          <div className="flex h-full items-center justify-center">
+            <CCircularProgress size={128} />
+          </div>
+        }
+      >
+        <EditFormPageContent />
+      </Suspense>
+    </div>
   );
 };
 
-export default EditFormProtected;
+export default EditFormPage;

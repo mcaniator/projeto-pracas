@@ -285,6 +285,10 @@ const useFetchResource = (
   reagir ao resultado: `onSuccess` e `onError` cobrem qualquer origem;
   `onServerSuccess` e `onServerError` cobrem o servidor; `onOfflineSuccess` e
   `onOfflineError` cobrem o fallback offline.
+- Como boa prática, priorizar os callbacks de `useFetchAPI`, como `onSuccess` e
+  `onError`, para tratar o resultado da chamada. Usar `await` diretamente na
+  função de request quando o fluxo realmente depender do retorno imediato ou
+  exigir operações sequenciais.
 - O hook já exibe notificações para respostas por padrão. Usar
   `projectOptions.silent` apenas quando a interface tratar a mensagem
   explicitamente. Usar `loadingMessage` ou `showLoadingOverlay` apenas quando
