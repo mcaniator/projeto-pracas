@@ -30,6 +30,10 @@ const TallyTemplateClient = ({
 }) => {
   const router = useRouter();
   const [templateName, setTemplateName] = useState(modularTallyTemplate.name);
+  const [selectedForm, setSelectedForm] = useState<{
+    id: number;
+    name: string;
+  } | null>(modularTallyTemplate.form);
   const [templateGroups, setTemplateGroups] = useState<
     TallyTemplateDraftGroup[]
   >(() =>
@@ -160,6 +164,7 @@ const TallyTemplateClient = ({
       const response = await updateTallyTemplate({
         data: {
           modularTallyTemplateId: modularTallyTemplate.id,
+          formId: selectedForm?.id ?? null,
           name: templateName,
           finalized: saveAsFinalized,
           groups: templateGroups.map((group) => {
@@ -227,6 +232,8 @@ const TallyTemplateClient = ({
             modularTallyTemplate={modularTallyTemplate}
             name={templateName}
             onNameChange={setTemplateName}
+            selectedForm={selectedForm}
+            onSelectedFormChange={setSelectedForm}
             groups={templateGroups}
             onChangeGroups={setTemplateGroups}
             onSave={() => setIsSaveDialogOpen(true)}

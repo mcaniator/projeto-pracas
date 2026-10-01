@@ -420,16 +420,16 @@ model FormSubmission {
 }
 
 model Form {
-  id              Int              @id @default(autoincrement())
-  formUse         FormUse          @map("form_use")
-  name            String           @db.VarChar(255)
-  archived        Boolean          @default(false)
-  finalized       Boolean          @default(false)
-  assessment      Assessment[]
-  calculations    Calculation[]
-  formSubmissions FormSubmission[]
-  formItems       FormItem[]
-  modularTally    ModularTally[]
+  id                    Int                    @id @default(autoincrement())
+  formUse               FormUse                @map("form_use")
+  name                  String                 @db.VarChar(255)
+  archived              Boolean                @default(false)
+  finalized             Boolean                @default(false)
+  assessment            Assessment[]
+  calculations          Calculation[]
+  formSubmissions       FormSubmission[]
+  formItems             FormItem[]
+  modularTallyTemplates ModularTallyTemplate[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -718,6 +718,9 @@ model ModularTallyTemplate {
   archived  Boolean @default(false)
   finalized Boolean @default(false)
 
+  formId Int?  @map("form_id")
+  form   Form? @relation(fields: [formId], references: [id])
+
   tallyTemplateGroups TallyTemplateGroup[]
   modularTally        ModularTally[]
 
@@ -777,11 +780,8 @@ model ModularTally {
   modularTallyTemplateId Int                  @map("modular_tally_template_id")
   modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
 
-  formId Int?  @map("form_id")
-  form   Form? @relation(fields: [formId], references: [id])
-
-  formSubmissionId Int?            @map("form_submission_id")
-  formSubmission   FormSubmission? @relation(fields: [formSubmissionId, formId], references: [id, formId])
+  formSubmissionId Int?            @unique @map("form_submission_id")
+  formSubmission   FormSubmission? @relation(fields: [formSubmissionId], references: [id])
 
   personObservations PersonObservation[]
 
@@ -791,7 +791,6 @@ model ModularTally {
   @@index([userId])
   @@index([locationId])
   @@index([modularTallyTemplateId])
-  @@unique([formSubmissionId, formId])
   @@map("modular_tally")
 }
 

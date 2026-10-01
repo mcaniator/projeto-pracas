@@ -232,6 +232,7 @@ const specialTallyTemplateGroupDataSchema = z.object({
 
 export const updateTallyTemplateDataSchema = z.object({
   modularTallyTemplateId: z.number().int().positive(),
+  formId: z.number().int().positive().nullable(),
   name: z.string().trim().min(1).max(255),
   finalized: z.boolean(),
   groups: z
@@ -318,6 +319,29 @@ export const updateTallyTemplate = async (
         } as APIResponseInfo,
         data: null,
       };
+    }
+
+    if (data.formId !== null) {
+      const form = await prisma.form.findFirst({
+        where: {
+          id: data.formId,
+          formUse: "TALLY_AND_BEHAVIORAL_MAP",
+          finalized: true,
+          archived: false,
+        },
+        select: { id: true },
+      });
+
+      if (!form) {
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message:
+              "O formulário selecionado não foi encontrado ou não está disponível para uso.",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
     }
 
     const currentGroupsByPersonCharacteristicGroupId = new Map(
@@ -483,7 +507,11 @@ export const updateTallyTemplate = async (
     await prisma.$transaction(async (tx) => {
       await tx.modularTallyTemplate.update({
         where: { id: data.modularTallyTemplateId },
-        data: { name: data.name, finalized: data.finalized },
+        data: {
+          name: data.name,
+          finalized: data.finalized,
+          formId: data.formId,
+        },
       });
 
       if (characteristicsDeleteQuery) {

@@ -59,7 +59,7 @@ const FormArchiveDialog = ({
         {isDeleting && (
           <span className="text-md text-red-500">
             {formToArchive.finalized ?
-              "Este formulário será excluído permanentemente caso não tenha avaliações associadas. Caso tenha, será apenas arquivado."
+              "Este formulário será excluído permanentemente caso não tenha usos. Caso tenha, será apenas arquivado."
             : "Este formulário está em construção! Ele será excluído permanentemente."
             }
           </span>

@@ -12,6 +12,8 @@ const TallyTemplateEditor = ({
   modularTallyTemplate,
   name,
   onNameChange,
+  selectedForm,
+  onSelectedFormChange,
   groups,
   onChangeGroups,
   onSave,
@@ -19,6 +21,8 @@ const TallyTemplateEditor = ({
   modularTallyTemplate: FetchModularTallyTemplateStructureResponse["modularTallyTemplate"];
   name: string;
   onNameChange: (name: string) => void;
+  selectedForm: { id: number; name: string } | null;
+  onSelectedFormChange: (form: { id: number; name: string } | null) => void;
   groups: TallyTemplateDraftGroup[];
   onChangeGroups: (groups: TallyTemplateDraftGroup[]) => void;
   onSave: () => void;
@@ -41,7 +45,10 @@ const TallyTemplateEditor = ({
         )}
       </div>
       <Divider />
-      <TallyTemplateFormManager />
+      <TallyTemplateFormManager
+        value={selectedForm}
+        onValueChange={onSelectedFormChange}
+      />
       <Divider />
       <TallyTemplateCounters
         groups={groups}

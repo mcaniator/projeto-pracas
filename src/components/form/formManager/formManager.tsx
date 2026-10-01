@@ -2,12 +2,24 @@
 
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useNetwork } from "@/components/context/networkContext";
+import CCircularProgress from "@/components/ui/CCircularProgress";
+import CAccordion from "@/components/ui/accordion/CAccordion";
+import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
+import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CButton from "@/components/ui/cButton";
+import CChip from "@/components/ui/cChip";
 import CDialog from "@/components/ui/dialog/cDialog";
 import CMenu from "@/components/ui/menu/cMenu";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
-import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
-import { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
+import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
+import {
+  useFetchFormStructure,
+  useFetchForms,
+} from "@/lib/serverFunctions/apiCalls/form";
+import {
+  FetchFormsResponse,
+  fetchFormStructureResponse,
+} from "@/lib/serverFunctions/queries/form";
 import { Chip, Radio, useMediaQuery, useTheme } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type { FormUse } from "@prisma/client";
@@ -18,12 +30,26 @@ import {
   IconPlus,
   IconTrashX,
 } from "@tabler/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaTrashRestore } from "react-icons/fa";
 
 import FormEditor from "../formEditor";
+import { buildFormPreviewSubmission } from "../formPreviewUtils";
 import FormArchiveDialog from "./formArchiveDialog";
 import FormCreationDialog from "./formCreationDialog";
+
+const ResponseFormV2 = dynamic(
+  () => import("@/components/ui/responseForm/responseFormV2"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center">
+        <CCircularProgress label="Carregando prévia..." />
+      </div>
+    ),
+  },
+);
 
 type FormRow = FetchFormsResponse["forms"][number];
 
@@ -32,13 +58,16 @@ const FormManager = ({
   title,
   value,
   onValueChange,
+  enablePreview = false,
 }: {
   formUse: FormUse;
   title?: string;
-  value?: number;
-  onValueChange?: (value: number) => void;
+  value?: number | null;
+  onValueChange?: (value: FormRow | null) => void;
+  enablePreview?: boolean;
 }) => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useAppSnackbar();
   const { isConnected } = useNetwork();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
   const [_fetchForms, loading] = useFetchForms({
@@ -47,6 +76,16 @@ const FormManager = ({
         if (data) {
           setForms(data.forms);
         }
+      },
+    },
+  });
+  const [fetchFormStructure, isPreviewLoading] = useFetchFormStructure({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        setPreviewFormStructure(data?.formStructure);
+      },
+      onError: () => {
+        setPreviewFormStructure(undefined);
       },
     },
   });
@@ -68,6 +107,8 @@ const FormManager = ({
   }, [loadForms]);
 
   const [forms, setForms] = useState<FetchFormsResponse["forms"]>([]);
+  const [previewFormStructure, setPreviewFormStructure] =
+    useState<fetchFormStructureResponse["formStructure"]>();
   const [openFormCreationDialog, setOpenFormCreationDialog] = useState(false);
   const [openFormArchiveDialog, setOpenFormArchiveDialog] = useState(false);
   const [openFormEditorDialog, setOpenFormEditorDialog] = useState(false);
@@ -79,6 +120,28 @@ const FormManager = ({
     archived: boolean;
     finalized: boolean;
   }>();
+  const isFormSelectionEnabled = value !== undefined;
+  const previewFormSubmission = useMemo(
+    () =>
+      previewFormStructure ?
+        buildFormPreviewSubmission({ formStructure: previewFormStructure })
+      : undefined,
+    [previewFormStructure],
+  );
+  const selectedFormValue = useMemo(
+    () => forms.find((form) => form.id === value),
+    [forms, value],
+  );
+
+  useEffect(() => {
+    setPreviewFormStructure(undefined);
+
+    if (!enablePreview || value === undefined || value === null) {
+      return;
+    }
+
+    void fetchFormStructure({ params: { formId: value } });
+  }, [enablePreview, fetchFormStructure, value]);
 
   useEffect(() => {
     if (openFormEditorDialog || !needsListReload) return;
@@ -120,21 +183,35 @@ const FormManager = ({
     {
       field: "Ações",
       headerName: "",
-      width: value === undefined ? 80 : 130,
+      width: isFormSelectionEnabled ? 130 : 80,
       sortable: false,
       filterable: false,
       hideable: false,
       renderCell: (params: GridRenderCellParams<FormRow>) => (
         <div className="flex h-full items-center">
-          {value !== undefined && (
+          {isFormSelectionEnabled && (
             <Radio
               checked={params.row.id === value}
               inputProps={{
                 "aria-label": `Selecionar formulário ${params.row.name}`,
               }}
               onChange={() => {
+                if (params.row.archived) {
+                  enqueueSnackbar(
+                    "Não é possível selecionar um formulário arquivado!",
+                    { variant: "error" },
+                  );
+                  return;
+                }
+                if (!params.row.finalized) {
+                  enqueueSnackbar(
+                    "Não é possível selecionar um formulário em construção!",
+                    { variant: "error" },
+                  );
+                  return;
+                }
                 if (params.row.id !== value) {
-                  onValueChange?.(params.row.id);
+                  onValueChange?.(params.row);
                 }
               }}
             />
@@ -185,7 +262,7 @@ const FormManager = ({
                     }
                   </div>
                 ),
-                disabled: !isConnected,
+                disabled: !isConnected || params.row.id === value,
                 sx: {
                   color: "red",
                 },
@@ -281,6 +358,46 @@ const FormManager = ({
         autoHeight={false}
         rowSelection={false}
       />
+
+      {isFormSelectionEnabled && (
+        <div className="flex items-center gap-2">
+          <span>Selecionado:</span>
+          {selectedFormValue && onValueChange ?
+            <CChip
+              label={selectedFormValue.name}
+              onDelete={() => onValueChange(null)}
+            />
+          : <span className="text-gray-500">Nenhum</span>}
+        </div>
+      )}
+
+      {enablePreview && value !== undefined && value !== null && (
+        <CAccordion>
+          <CAccordionSummary>
+            Prévia de preenchimento de formulário
+          </CAccordionSummary>
+          <CAccordionDetails>
+            <div className="h-[500px] min-h-0">
+              {isPreviewLoading && (
+                <div className="flex h-full items-center justify-center">
+                  <CCircularProgress label="Carregando prévia..." />
+                </div>
+              )}
+              {!isPreviewLoading && previewFormSubmission && (
+                <ResponseFormV2
+                  key={previewFormSubmission.formStructure.formId}
+                  formSubmission={previewFormSubmission}
+                  geometries={[]}
+                  responseImages={{}}
+                  readOnly={false}
+                  onGeometriesChange={() => undefined}
+                  onImagesChange={() => undefined}
+                />
+              )}
+            </div>
+          </CAccordionDetails>
+        </CAccordion>
+      )}
 
       <CDialog
         title="Formulário"

@@ -201,6 +201,12 @@ export const fetchModularTallyTemplateStructure = async (
         id: true,
         name: true,
         finalized: true,
+        form: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         tallyTemplateGroups: {
           select: {
             id: true,
