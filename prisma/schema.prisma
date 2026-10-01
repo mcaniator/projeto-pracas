@@ -409,6 +409,7 @@ model FormSubmission {
   form   Form @relation(fields: [formId], references: [id])
 
   assessment         Assessment?
+  modularTally       ModularTally?
   responseGeometries ResponseGeometry[]
   responses          Response[]
   responseOptions    ResponseOption[]
@@ -428,6 +429,7 @@ model Form {
   calculations    Calculation[]
   formSubmissions FormSubmission[]
   formItems       FormItem[]
+  modularTally    ModularTally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -623,6 +625,9 @@ model Assessment {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([userId])
+  @@index([locationId])
+  @@index([formId])
   @@unique([formSubmissionId, formId])
   @@map("assessment")
 }
@@ -772,6 +777,12 @@ model ModularTally {
   modularTallyTemplateId Int                  @map("modular_tally_template_id")
   modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
 
+  formId Int?  @map("form_id")
+  form   Form? @relation(fields: [formId], references: [id])
+
+  formSubmissionId Int?            @map("form_submission_id")
+  formSubmission   FormSubmission? @relation(fields: [formSubmissionId, formId], references: [id, formId])
+
   personObservations PersonObservation[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -780,6 +791,7 @@ model ModularTally {
   @@index([userId])
   @@index([locationId])
   @@index([modularTallyTemplateId])
+  @@unique([formSubmissionId, formId])
   @@map("modular_tally")
 }
 
