@@ -1,8 +1,8 @@
 "use client";
 
 import BehavioralMapProtocols from "@/app/admin/protocols/behavioralMaps/behavioralMapProtocols";
-import FormsProtocol from "@/app/admin/protocols/forms/formsProtocol";
 import TallyProtocols from "@/app/admin/protocols/tallys/tallyProtocols";
+import FormManager from "@/components/form/formManager/formManager";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CTabs from "@/components/ui/cTabs";
 import {
@@ -21,7 +21,7 @@ import { useState } from "react";
 type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS";
 
 const protocolTypeOptions: { id: ProtocolType; label: string }[] = [
-  { id: "FORMS", label: "Formulários" },
+  { id: "FORMS", label: "Avaliações" },
   { id: "TALLYS", label: "Contagens" },
   { id: "BEHAVIORAL_MAPS", label: "Mapas comportamentais" },
 ];
@@ -95,7 +95,11 @@ const ProtocolsClient = () => {
             protocolType === "FORMS" ? "flex min-h-0 flex-1 flex-col" : "hidden"
           }
         >
-          <FormsProtocol />
+          <FormManager
+            formUse="ASSESSMENT"
+            title="Avaliações"
+            formEditorRoute="/admin/protocols/forms/edit"
+          />
         </div>
       )}
       {visitedProtocolTypes.has("TALLYS") && (

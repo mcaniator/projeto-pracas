@@ -59,12 +59,14 @@ const FormManager = ({
   value,
   onValueChange,
   enablePreview = false,
+  formEditorRoute,
 }: {
   formUse: FormUse;
   title?: string;
   value?: number | null;
   onValueChange?: (value: FormRow | null) => void;
   enablePreview?: boolean;
+  formEditorRoute?: string;
 }) => {
   const theme = useTheme();
   const { enqueueSnackbar } = useAppSnackbar();
@@ -229,7 +231,13 @@ const FormManager = ({
                       <IconPencil />
                       Editar
                     </div>,
-                onClick: () => handleOpenFormEditor(params.row.id),
+                ...(formEditorRoute ?
+                  {
+                    href: `${formEditorRoute}${formEditorRoute.includes("?") ? "&" : "?"}formId=${params.row.id}`,
+                  }
+                : {
+                    onClick: () => handleOpenFormEditor(params.row.id),
+                  }),
               },
               {
                 label: (
