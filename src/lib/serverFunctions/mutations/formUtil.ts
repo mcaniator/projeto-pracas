@@ -385,10 +385,16 @@ const _updateFormArchiveStatus = async (
       where: { id: formId },
       select: {
         name: true,
+        _count: {
+          select: {
+            assessment: true,
+            modularTallyTemplates: true,
+          },
+        },
       },
     });
 
-    let archivedDueToAssessments = false;
+    let archivedDueToUses = false;
 
     if (!archived) {
       await prisma.form.update({
@@ -400,12 +406,11 @@ const _updateFormArchiveStatus = async (
         },
       });
     } else {
-      const assessmentsCount = await prisma.assessment.count({
-        where: { formId },
-      });
+      const hasUses =
+        dbForm._count.assessment > 0 || dbForm._count.modularTallyTemplates > 0;
 
-      if (assessmentsCount > 0) {
-        archivedDueToAssessments = true;
+      if (hasUses) {
+        archivedDueToUses = true;
         await prisma.form.update({
           where: {
             id: formId,
@@ -428,7 +433,7 @@ const _updateFormArchiveStatus = async (
         statusCode: 200,
         message:
           archived ?
-            archivedDueToAssessments ?
+            archivedDueToUses ?
               `Formulário "${dbForm.name}" arquivado com sucesso!`
             : `Formulário "${dbForm.name}" excluído com sucesso!`
           : "Formulário restaurado com sucesso!",

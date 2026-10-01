@@ -70,7 +70,7 @@ export const fetchForms = async (
 ) => {
   const params = request.params!;
   try {
-    const forms = await prisma.form.findMany({
+    const databaseForms = await prisma.form.findMany({
       where: {
         formUse: params.formUse,
         ...(params?.finalizedOnly && { finalized: true }),
@@ -82,7 +82,13 @@ export const fetchForms = async (
         finalized: true,
         archived: true,
         updatedAt: true,
-        _count: { select: { assessment: true } },
+        _count: {
+          select: {
+            assessment: params.formUse === FormUse.ASSESSMENT,
+            modularTallyTemplates:
+              params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
+          },
+        },
       },
       orderBy: [
         {
@@ -93,6 +99,14 @@ export const fetchForms = async (
         },
       ],
     });
+    const forms = databaseForms.map(({ _count, ...form }) => ({
+      ...form,
+      usageCount:
+        params.formUse === FormUse.ASSESSMENT ?
+          (_count.assessment ?? 0)
+        : (_count.modularTallyTemplates ?? 0),
+    }));
+
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: { forms },

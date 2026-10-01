@@ -33,7 +33,7 @@ const formsSchema = z.array(
     finalized: sqliteBooleanSchema,
     archived: sqliteBooleanSchema,
     updatedAt: z.coerce.date(),
-    assessmentCount: z.coerce.number(),
+    usageCount: z.coerce.number(),
   }),
 );
 
@@ -121,9 +121,9 @@ const fetchAdminSQLiteForms = async (
           f.finalized,
           f.archived,
           f.updated_at AS updatedAt,
-          COUNT(DISTINCT a.id) AS assessmentCount
+          ${params.formUse === "ASSESSMENT" ? "COUNT(DISTINCT a.id)" : "0"} AS usageCount
         FROM form f
-        LEFT JOIN assessment a ON a.form_id = f.id
+        ${params.formUse === "ASSESSMENT" ? "LEFT JOIN assessment a ON a.form_id = f.id" : ""}
         WHERE f.form_use = ?
           ${params.finalizedOnly ? "AND f.finalized = 1" : ""}
           ${params.includeArchived ? "" : "AND f.archived = 0"}
@@ -134,11 +134,9 @@ const fetchAdminSQLiteForms = async (
     });
     const forms = formsSchema
       .parse(formsValues.values)
-      .map(({ assessmentCount, ...form }) => ({
+      .map(({ usageCount, ...form }) => ({
         ...form,
-        _count: {
-          assessment: assessmentCount,
-        },
+        usageCount,
       }));
 
     return {

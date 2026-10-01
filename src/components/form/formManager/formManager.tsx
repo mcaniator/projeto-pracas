@@ -313,12 +313,12 @@ const FormManager = ({
       ),
     },
     {
-      field: "assessmentsCount",
-      headerName: "Avaliações",
+      field: "usageCount",
+      headerName: "Usos",
       width: 100,
       align: "center",
       renderCell: (params: GridRenderCellParams<FormRow>) =>
-        params.row._count.assessment,
+        params.row.usageCount,
     },
     {
       field: "updatedAt",
