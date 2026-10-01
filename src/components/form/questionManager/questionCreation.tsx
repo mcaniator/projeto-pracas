@@ -90,7 +90,7 @@ const QuestionCreation = ({
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(formUse === "ASSESSMENT");
   const [allowResponseImages, setAllowResponseImages] =
     useState<boolean>(false);
   const [minValue, setMinValue] = useState<number | null>(null);
@@ -229,7 +229,7 @@ const QuestionCreation = ({
     setMaxValue(null);
     setScaleOptionMode("MANUAL");
     setScaleStep(null);
-    setIsPublic(true);
+    setIsPublic(formUse === "ASSESSMENT");
     setTitle(null);
     setNotes(null);
     setStep(1);
@@ -476,6 +476,7 @@ const QuestionCreation = ({
         >
           <input type="hidden" name="formUse" value={formUse} />
           <QuestionCreationFormStep
+            formUse={formUse}
             categoryId={activeCategoryId}
             categoryName={activeCategoryName}
             subcategoryId={activeSubcategoryId ?? undefined}

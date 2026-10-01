@@ -13,7 +13,7 @@ import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
 import DynamicIconPicker from "@components/ui/dynamicIcon/dynamicIconPicker";
 import { Chip } from "@mui/material";
-import type { QuestionResponseCharacterTypes } from "@prisma/client";
+import type { FormUse, QuestionResponseCharacterTypes } from "@prisma/client";
 import {
   IconAlertTriangle,
   IconHelp,
@@ -64,6 +64,7 @@ const buildDefaultOption = (
 });
 
 const QuestionCreationFormStep = ({
+  formUse,
   categoryId,
   categoryName,
   subcategoryId,
@@ -108,6 +109,7 @@ const QuestionCreationFormStep = ({
   onScaleStepChange,
   showError,
 }: {
+  formUse: FormUse;
   categoryId: number | undefined;
   categoryName: string | undefined;
   subcategoryId: number | undefined;
@@ -153,6 +155,7 @@ const QuestionCreationFormStep = ({
   showError: (content: ReactNode) => void;
 }) => {
   const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(null);
+  const isAssessmentForm = formUse === "ASSESSMENT";
 
   const handleOptionChange = (
     optionText: string,
@@ -239,6 +242,7 @@ const QuestionCreationFormStep = ({
           />
           <CSwitch
             checked={isPublic}
+            disabled={!isAssessmentForm}
             label="Respostas públicas"
             name="isPublic"
             id="isPublic"
@@ -248,7 +252,7 @@ const QuestionCreationFormStep = ({
           />
           <CIconChip
             icon={<IconHelp />}
-            tooltip="Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente"
+            tooltip={`${isAssessmentForm ? "" : "(Apenas para avaliações) "}Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente`}
           />
         </div>
 

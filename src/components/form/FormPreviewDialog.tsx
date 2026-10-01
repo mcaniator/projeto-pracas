@@ -41,7 +41,7 @@ const ResponseFormV2 = dynamic(
 type PreviewViewMode = "form" | "result";
 
 const previewViewModes: { label: string; value: PreviewViewMode }[] = [
-  { label: "Formulário", value: "form" },
+  { label: "Preenchimento", value: "form" },
   { label: "Resultado", value: "result" },
 ];
 
@@ -180,51 +180,59 @@ const FormPreviewDialog = ({
       open={open}
       onClose={onClose}
     >
-      <CTabs
-        value={viewMode}
-        onChange={(_, value: PreviewViewMode) => setViewMode(value)}
-        aria-label="Modo de visualização da prévia do formulário"
-      >
-        {previewViewModes.map((option) => (
-          <Tab key={option.value} value={option.value} label={option.label} />
-        ))}
-      </CTabs>
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
+        <div className="shrink-0">
+          <CTabs
+            value={viewMode}
+            onChange={(_, value: PreviewViewMode) => setViewMode(value)}
+            aria-label="Modo de visualização da prévia do formulário"
+          >
+            {previewViewModes.map((option) => (
+              <Tab
+                key={option.value}
+                value={option.value}
+                label={option.label}
+              />
+            ))}
+          </CTabs>
+        </div>
 
-      <div
-        className={
-          viewMode === "form" ? "flex h-full min-h-0 w-full flex-col" : "hidden"
-        }
-      >
-        <h5 className="text-xl font-bold">Preenchimento</h5>
-        <ResponseFormV2
-          formSubmission={formSubmission}
-          geometries={previewGeometries}
-          responseImages={previewImages}
-          readOnly={false}
-          onValuesChange={handleValuesChange}
-          onGeometriesChange={setPreviewGeometries}
-          onImagesChange={setPreviewImages}
-        />
-      </div>
-
-      {viewMode === "result" && (
-        <div className="flex w-full flex-col gap-2">
-          <h5 className="text-xl font-bold">Resultados</h5>
-          <CSwitch
-            checked={showOnlyPublicQuestions}
-            label="Mostrar apenas questões públicas"
-            onChange={(_, checked) => setShowOnlyPublicQuestions(checked)}
-          />
-          <FormSubmissionViewer
-            formSubmission={{
-              formStructure: formSubmission.formStructure,
-              responsesFormValues: previewValues,
-              geometries: previewGeometries,
-            }}
-            filterNonPublicQuestions={showOnlyPublicQuestions}
+        <div
+          className={
+            viewMode === "form" ?
+              "flex min-h-0 w-full flex-1 flex-col"
+            : "hidden"
+          }
+        >
+          <ResponseFormV2
+            formSubmission={formSubmission}
+            geometries={previewGeometries}
+            responseImages={previewImages}
+            readOnly={false}
+            onValuesChange={handleValuesChange}
+            onGeometriesChange={setPreviewGeometries}
+            onImagesChange={setPreviewImages}
           />
         </div>
-      )}
+
+        {viewMode === "result" && (
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-auto">
+            <CSwitch
+              checked={showOnlyPublicQuestions}
+              label="Mostrar apenas questões públicas"
+              onChange={(_, checked) => setShowOnlyPublicQuestions(checked)}
+            />
+            <FormSubmissionViewer
+              formSubmission={{
+                formStructure: formSubmission.formStructure,
+                responsesFormValues: previewValues,
+                geometries: previewGeometries,
+              }}
+              filterNonPublicQuestions={showOnlyPublicQuestions}
+            />
+          </div>
+        )}
+      </div>
     </CDialog>
   );
 };
