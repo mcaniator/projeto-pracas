@@ -2,7 +2,9 @@
 
 import CCircularProgress from "@/components/ui/CCircularProgress";
 import CLinearProgress from "@/components/ui/CLinearProgress";
+import CAdminHeader from "@/components/ui/cAdminHeader";
 import FormEditor from "@components/form/formEditor";
+import { IconClipboard } from "@tabler/icons-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -34,16 +36,19 @@ const EditFormPageContent = () => {
 
 const EditFormPage = () => {
   return (
-    <div className="h-full p-2">
-      <Suspense
-        fallback={
-          <div className="flex h-full items-center justify-center">
-            <CCircularProgress size={128} />
-          </div>
-        }
-      >
-        <EditFormPageContent />
-      </Suspense>
+    <div className="flex h-full min-h-0 flex-col bg-white p-2 text-black">
+      <CAdminHeader title="Formulário" titleIcon={<IconClipboard />} />
+      <div className="min-h-0 flex-1">
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center">
+              <CCircularProgress size={128} />
+            </div>
+          }
+        >
+          <EditFormPageContent />
+        </Suspense>
+      </div>
     </div>
   );
 };

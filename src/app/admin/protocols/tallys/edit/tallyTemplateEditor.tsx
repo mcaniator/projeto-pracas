@@ -1,3 +1,4 @@
+import TallyTemplateFormManager from "@/app/admin/protocols/tallys/edit/tallyTemplateFormManager";
 import PermissionGuard from "@/components/auth/permissionGuard";
 import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
@@ -39,6 +40,8 @@ const TallyTemplateEditor = ({
           </PermissionGuard>
         )}
       </div>
+      <Divider />
+      <TallyTemplateFormManager />
       <Divider />
       <TallyTemplateCounters
         groups={groups}
