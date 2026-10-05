@@ -8,7 +8,9 @@ import superjson from "superjson";
 export async function POST(request: Request) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["PROTOCOL_MANAGER"],
+      });
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }

@@ -6,25 +6,45 @@ import { parseShp } from "shpjs";
 
 import { prisma } from "../../prisma";
 
-type FetchedAssessmentGeometries = NonNullable<
-  Awaited<ReturnType<typeof fetchAssessmentGeometries>>
+type FetchedFormSubmissionResponseGeometries = NonNullable<
+  Awaited<ReturnType<typeof getFormSubmissionResponseGeometries>>
 >;
 
-const fetchAssessmentGeometries = async (assessmentId: number) => {
+const getFormSubmissionResponseGeometries = async ({
+  formSubmissionId,
+  publicQuestionsOnly = false,
+}: {
+  formSubmissionId: number;
+  publicQuestionsOnly?: boolean;
+}) => {
   const geometries = await prisma.$queryRaw<
-    { assessmentId: number; questionId: number; geometry: string | null }[]
+    {
+      formSubmissionId: number;
+      questionId: number;
+      geometry: string | null;
+    }[]
   >`
-    SELECT assessment_id as "assessmentId", question_id as "questionId", ST_AsText(geometry) as geometry
-    FROM question_geometry
-    WHERE assessment_id = ${assessmentId}
+    SELECT
+      response_geometry.form_submission_id as "formSubmissionId",
+      response_geometry.question_id as "questionId",
+      ST_AsText(response_geometry.geometry) as geometry
+    FROM response_geometry
+    INNER JOIN question
+      ON question.id = response_geometry.question_id
+    WHERE response_geometry.form_submission_id = ${formSubmissionId}
+      ${publicQuestionsOnly ? Prisma.sql`AND question.is_public = TRUE` : Prisma.empty}
   `;
 
   return geometries;
 };
 
-const fetchAssessmentsGeometries = async (assessmentsIds: number[]) => {
+const getFormSubmissionsResponseGeometries = async (
+  formSubmissionIds: number[],
+) => {
   const geometries = await Promise.all(
-    assessmentsIds.flatMap((a) => fetchAssessmentGeometries(a)),
+    formSubmissionIds.map((formSubmissionId) =>
+      getFormSubmissionResponseGeometries({ formSubmissionId }),
+    ),
   );
   return geometries;
 };
@@ -170,11 +190,11 @@ const hasPolygon = async (id: number) => {
 };
 
 export {
-  fetchAssessmentGeometries,
-  fetchAssessmentsGeometries,
+  getFormSubmissionResponseGeometries,
+  getFormSubmissionsResponseGeometries,
   getPolygonsFromShp,
   addPolygonFromWKT,
   addPolygon,
   hasPolygon,
 };
-export type { FetchedAssessmentGeometries };
+export type { FetchedFormSubmissionResponseGeometries };

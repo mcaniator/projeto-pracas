@@ -3,8 +3,8 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CNumberField from "@/components/ui/cNumberField";
 import CTextField from "@/components/ui/cTextField";
 import CTimePicker from "@/components/ui/cTimePicker";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { ResponseQuestionValue } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { ResponseQuestionValue } from "@/lib/types/formSubmission/responseFormTypes";
 import dayjs from "dayjs";
 
 const WrittenResponseQuestionField = ({
@@ -13,7 +13,7 @@ const WrittenResponseQuestionField = ({
   readOnly,
   onChange,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: ResponseQuestionValue;
   readOnly: boolean;
   onChange: (value: ResponseQuestionValue) => void;

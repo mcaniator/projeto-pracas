@@ -23,6 +23,9 @@ const adminSQLiteDbClearTransaction: SQLiteTransactionOperation[] = [
     statement: `DELETE FROM "assessment";`,
   },
   {
+    statement: `DELETE FROM "form_submission";`,
+  },
+  {
     statement: `DELETE FROM "calculation";`,
   },
   {
@@ -264,6 +267,7 @@ const adminSQLiteDbDataSync = async ({
       table: "category",
       columns: [
         "id",
+        "form_use",
         "name",
         "optional",
         "active",
@@ -273,6 +277,7 @@ const adminSQLiteDbDataSync = async ({
       ],
       rows: categories.map((item) => [
         item.id,
+        item.formUse,
         item.name,
         item.optional,
         item.active,
@@ -283,9 +288,18 @@ const adminSQLiteDbDataSync = async ({
     },
     {
       table: "subcategory",
-      columns: ["id", "name", "optional", "active", "notes", "category_id"],
+      columns: [
+        "id",
+        "form_use",
+        "name",
+        "optional",
+        "active",
+        "notes",
+        "category_id",
+      ],
       rows: subcategories.map((item) => [
         item.id,
+        item.formUse,
         item.name,
         item.optional,
         item.active,
@@ -297,6 +311,7 @@ const adminSQLiteDbDataSync = async ({
       table: "question",
       columns: [
         "id",
+        "form_use",
         "name",
         "icon_key",
         "notes",
@@ -315,6 +330,7 @@ const adminSQLiteDbDataSync = async ({
       ],
       rows: questions.map((item) => [
         item.id,
+        item.formUse,
         item.name,
         item.iconKey,
         item.notes,
@@ -355,6 +371,7 @@ const adminSQLiteDbDataSync = async ({
       table: "form",
       columns: [
         "id",
+        "form_use",
         "name",
         "archived",
         "finalized",
@@ -363,6 +380,7 @@ const adminSQLiteDbDataSync = async ({
       ],
       rows: forms.map((item) => [
         item.id,
+        item.formUse,
         item.name,
         item.archived,
         item.finalized,

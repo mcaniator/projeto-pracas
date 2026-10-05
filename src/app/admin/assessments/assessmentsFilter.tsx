@@ -56,7 +56,7 @@ const FormSelector = ({
       suffixButtonLoading={isRedirecting}
       onSuffixButtonClick={() => {
         setIsRedirecting(true);
-        router.push("/admin/forms");
+        router.push("/admin/protocols");
       }}
     />
   );

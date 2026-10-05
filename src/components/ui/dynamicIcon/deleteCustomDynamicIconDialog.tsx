@@ -32,6 +32,9 @@ const DeleteCustomDynamicIconDialog = ({
   const [customDynamicIcon, setCustomDynamicIcon] =
     useState<CustomDynamicIcon | null>(null);
   const [questionNames, setQuestionNames] = useState<string[]>([]);
+  const [personCharacteristicNames, setPersonCharacteristicNames] = useState<
+    string[]
+  >([]);
 
   const [fetchCustomDynamicIconDetails, isLoadingCustomDynamicIconDetails] =
     useFetchCustomDynamicIconDetails({
@@ -54,6 +57,9 @@ const DeleteCustomDynamicIconDialog = ({
         },
         onError: (response) => {
           setQuestionNames(response.data?.questionNames ?? []);
+          setPersonCharacteristicNames(
+            response.data?.personCharacteristicNames ?? [],
+          );
         },
       },
     });
@@ -63,6 +69,7 @@ const DeleteCustomDynamicIconDialog = ({
 
     setCustomDynamicIcon(null);
     setQuestionNames([]);
+    setPersonCharacteristicNames([]);
     if (!iconId) return;
 
     void fetchCustomDynamicIconDetails({ params: { iconId } });
@@ -111,16 +118,29 @@ const DeleteCustomDynamicIconDialog = ({
             ))
           : <CTextField label="Nomes alternativos" value="Nenhum" readOnly />}
 
-          {questionNames.length > 0 && (
+          {(questionNames.length > 0 || personCharacteristicNames.length > 0) && (
             <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
-              <p>
-                Este ícone não pode ser excluído porque é usado pelas questões:
-              </p>
-              <ul className="list-disc pl-5">
-                {questionNames.map((questionName, index) => (
-                  <li key={`${questionName}-${index}`}>{questionName}</li>
-                ))}
-              </ul>
+              <p>Este ícone não pode ser excluído porque está em uso.</p>
+              {questionNames.length > 0 && (
+                <>
+                  <p className="mt-2">Questões:</p>
+                  <ul className="list-disc pl-5">
+                    {questionNames.map((questionName, index) => (
+                      <li key={`${questionName}-${index}`}>{questionName}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {personCharacteristicNames.length > 0 && (
+                <>
+                  <p className="mt-2">Características:</p>
+                  <ul className="list-disc pl-5">
+                    {personCharacteristicNames.map((name, index) => (
+                      <li key={`${name}-${index}`}>{name}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
         </div>

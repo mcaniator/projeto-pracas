@@ -4,7 +4,7 @@ import { useGeolocation } from "@/components/context/geolocationContext";
 import CButton from "@/components/ui/cButton";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
-import { ResponseGeometry } from "@/lib/types/assessments/responseFormTypes";
+import { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import { QuestionGeometryTypes } from "@prisma/client";
 import {
   IconClick,
@@ -75,7 +75,7 @@ interface MapProviderProps {
   questionId: number;
   locationPolygonGeoJson: string | null;
   initialGeometries: ResponseGeometry[] | undefined;
-  handleQuestionGeometryChange: (
+  handleResponseGeometryChange: (
     questionId: number,
     geometries: ResponseGeometry[],
   ) => void;
@@ -92,7 +92,7 @@ const MapProvider = forwardRef(
       questionId,
       locationPolygonGeoJson,
       initialGeometries,
-      handleQuestionGeometryChange,
+      handleResponseGeometryChange,
       handleChangeIsInSelectMode,
       finalized,
     }: MapProviderProps,
@@ -274,7 +274,7 @@ const MapProvider = forwardRef(
         .filter((g) => g !== undefined);
 
       if (geometries !== undefined) {
-        handleQuestionGeometryChange(questionId, geometries);
+        handleResponseGeometryChange(questionId, geometries);
       }
     };
 

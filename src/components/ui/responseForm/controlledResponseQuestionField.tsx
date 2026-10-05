@@ -1,5 +1,5 @@
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { FormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { type Control, Controller } from "react-hook-form";
 
 import CalculationResponseQuestionField from "./calculationResponseQuestionField";
@@ -7,14 +7,16 @@ import ResponseQuestionFieldRenderer from "./responseQuestionFieldRenderer";
 
 const ControlledResponseQuestionField = ({
   question,
+  calculationExpression,
   control,
   finalized,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
+  calculationExpression?: string;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
 }) => {
-  if (question.calculationExpression) {
+  if (calculationExpression) {
     return (
       <CalculationResponseQuestionField question={question} control={control} />
     );

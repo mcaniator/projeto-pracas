@@ -1,23 +1,24 @@
 "use client";
 
-import AssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
-import { FetchMapAssessmentComparisonAssessmentTreesResponse } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
+import { FetchMapAssessmentComparisonAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import { MapAssessmentComparisonLocation } from "@/lib/serverFunctions/queries/mapAssessmentComparisonUtils";
 import { useMemo, useState } from "react";
 
 type ComparisonLocation =
-  FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
+  FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number];
 
-type ComparisonAssessmentTree = ComparisonLocation["assessmentTrees"][number];
+type ComparisonAssessmentDetails =
+  ComparisonLocation["assessmentDetails"][number];
 
 const ResultViewerAssessmentComparison = ({
   locations,
   comparisonLocations,
 }: {
   locations: MapAssessmentComparisonLocation[];
-  comparisonLocations: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"];
+  comparisonLocations: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"];
 }) => {
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(
     null,
@@ -36,32 +37,24 @@ const ResultViewerAssessmentComparison = ({
     );
   }, [comparisonLocations, selectedLocationId]);
 
-  const selectedAssessment = useMemo<ComparisonAssessmentTree | null>(() => {
+  const selectedAssessment = useMemo<ComparisonAssessmentDetails | null>(() => {
     if (!selectedLocation) return null;
 
     return (
-      selectedLocation.assessmentTrees.find(
+      selectedLocation.assessmentDetails.find(
         (assessment) => assessment.id === selectedAssessmentId,
       ) ??
-      selectedLocation.assessmentTrees[0] ??
+      selectedLocation.assessmentDetails[0] ??
       null
     );
   }, [selectedAssessmentId, selectedLocation]);
 
-  const assessmentWithLocation = useMemo(() => {
-    if (!selectedAssessment || !selectedLocation) return null;
-
-    return {
-      ...selectedAssessment,
-      location: {
-        id: selectedLocation.id,
-        name: selectedLocation.name,
-        st_asgeojson:
-          locations.find((location) => location.id === selectedLocation.id)
-            ?.st_asgeojson ?? null,
-      },
-    };
-  }, [locations, selectedAssessment, selectedLocation]);
+  const locationPolygonGeoJson = useMemo(
+    () =>
+      locations.find((location) => location.id === selectedLocation?.id)
+        ?.st_asgeojson ?? null,
+    [locations, selectedLocation?.id],
+  );
 
   if (comparisonLocations.length === 0) {
     return (
@@ -89,14 +82,14 @@ const ResultViewerAssessmentComparison = ({
             if (!value) return;
 
             setSelectedLocationId(value.id);
-            setSelectedAssessmentId(value.assessmentTrees[0]?.id ?? null);
+            setSelectedAssessmentId(value.assessmentDetails[0]?.id ?? null);
           }}
         />
 
         <CAutocomplete
           label="Avaliação"
           disableClearable
-          options={selectedLocation?.assessmentTrees ?? []}
+          options={selectedLocation?.assessmentDetails ?? []}
           value={selectedAssessment}
           isOptionEqualToValue={(option, value) => option.id === value.id}
           getOptionLabel={(option) => dateFormatter.format(option.startDate)}
@@ -106,9 +99,12 @@ const ResultViewerAssessmentComparison = ({
         />
       </div>
 
-      {assessmentWithLocation && (
+      {selectedAssessment && (
         <div className="rounded border border-gray-200 bg-white p-3">
-          <AssessmentResultViewer assessment={assessmentWithLocation} />
+          <FormSubmissionViewer
+            formSubmission={selectedAssessment.formSubmission}
+            locationPolygonGeoJson={locationPolygonGeoJson}
+          />
         </div>
       )}
     </div>

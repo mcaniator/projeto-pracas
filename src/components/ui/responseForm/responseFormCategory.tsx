@@ -2,7 +2,7 @@ import CAccordion from "@/components/ui/accordion/CAccordion";
 import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
 import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CNotesChip from "@/components/ui/question/cNotesChip";
-import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionCategoryItem } from "@/lib/serverFunctions/queries/formSubmission";
 import type { ReactNode } from "react";
 
 const ResponseFormCategory = ({
@@ -11,7 +11,7 @@ const ResponseFormCategory = ({
   onExpandedChange,
   children,
 }: {
-  category: Pick<AssessmentCategoryItem, "name" | "notes">;
+  category: Pick<FormSubmissionCategoryItem, "name" | "notes">;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
   children: ReactNode;

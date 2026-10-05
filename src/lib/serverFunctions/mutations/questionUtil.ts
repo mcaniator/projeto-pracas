@@ -59,6 +59,7 @@ const _questionSubmit = async (
 
       try {
         writtenOrBooleanQuestionParsed = questionSchema.parse({
+          formUse: formData.get("formUse"),
           name: formData.get("name"),
           iconKey: iconKey,
           notes: notes.length > 0 ? notes : null,
@@ -170,6 +171,7 @@ const _questionSubmit = async (
       let optionsQuestionParsed;
       try {
         optionsQuestionParsed = questionSchema.parse({
+          formUse: formData.get("formUse"),
           name,
           iconKey,
           notes: notes.length > 0 ? notes : null,
@@ -253,6 +255,7 @@ const _questionSubmit = async (
         await prisma.$transaction(async (prisma) => {
           const newQuestion = await prisma.question.create({
             data: {
+              formUse: optionsQuestionParsed.formUse,
               name: optionsQuestionParsed.name,
               iconKey: optionsQuestionParsed.iconKey,
               notes: optionsQuestionParsed.notes,
@@ -333,6 +336,7 @@ const _questionUpdate = async (
     }
 
     const parsedQuestion = questionSchema.parse({
+      formUse: formData.get("formUse"),
       name: formData.get("name"),
       iconKey,
       notes: notes.length > 0 ? notes : null,

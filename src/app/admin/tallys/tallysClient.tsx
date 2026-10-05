@@ -48,7 +48,6 @@ const TallysClient = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [params] = useState(useSearchParams());
-  const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const unsyncedTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(null);
   const [tallys, setTallys] = useState<TallyWithSyncStatus[]>([]);
@@ -179,107 +178,97 @@ const TallysClient = () => {
     }
   };
 
-  const fetchTallys = useCallback(
-    async (params?: { forceFetch: boolean }) => {
-      if (!params?.forceFetch) {
-        lastFetchedLocationId.current === locationId;
-      }
+  const fetchTallys = useCallback(async () => {
+    if (
+      !locationId &&
+      !formId &&
+      !userId &&
+      !startDate &&
+      !endDate &&
+      !cityId &&
+      !broadUnitId &&
+      !intermediateUnitId &&
+      !narrowUnitId &&
+      !finalizationStatus
+    ) {
+      // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
+      setTallys([]);
+      return;
+    }
 
-      if (
-        !locationId &&
-        !formId &&
-        !userId &&
-        !startDate &&
-        !endDate &&
-        !cityId &&
-        !broadUnitId &&
-        !intermediateUnitId &&
-        !narrowUnitId &&
-        !finalizationStatus
-      ) {
-        // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
-        setTallys([]);
+    if (startDate) {
+      if (isNaN(startDate.getTime())) {
         return;
       }
-
-      if (startDate) {
-        if (isNaN(startDate.getTime())) {
-          return;
-        }
+    }
+    if (endDate) {
+      if (isNaN(endDate.getTime())) {
+        return;
       }
-      if (endDate) {
-        if (isNaN(endDate.getTime())) {
-          return;
-        }
-      }
-      setIsLoading(true);
+    }
+    setIsLoading(true);
 
-      lastFetchedLocationId.current = locationId;
-      const response = await _fetchTallys({
-        params: {
-          locationId,
-          startDate,
-          endDate,
-          userId,
-          cityId,
-          broadUnitId,
-          intermediateUnitId,
-          narrowUnitId,
-          finalizationStatus,
-        },
-      });
-      const unsyncedTallyIds = await getUnsyncedTallyIds();
-      const formattedTallysPromises = response.data?.tallys.map(
-        async (tally) => {
-          if (unsyncedTallyIds.has(tally.id)) {
-            const localTally = await dexieDb.tallys.get(tally.id);
-            if (!localTally) {
-              return {
-                ...tally,
-                hasUnsyncedFilling: false,
-              };
-            }
-
-            return {
-              ...tally,
-              startDate: localTally.startDate,
-              endDate: localTally.endDate,
-              isFinalized: localTally.isFinalized,
-              hasUnsyncedFilling: true,
-            };
-          }
-
+    const response = await _fetchTallys({
+      params: {
+        locationId,
+        startDate,
+        endDate,
+        userId,
+        cityId,
+        broadUnitId,
+        intermediateUnitId,
+        narrowUnitId,
+        finalizationStatus,
+      },
+    });
+    const unsyncedTallyIds = await getUnsyncedTallyIds();
+    const formattedTallysPromises = response.data?.tallys.map(async (tally) => {
+      if (unsyncedTallyIds.has(tally.id)) {
+        const localTally = await dexieDb.tallys.get(tally.id);
+        if (!localTally) {
           return {
             ...tally,
             hasUnsyncedFilling: false,
           };
-        },
-      );
+        }
 
-      if (formattedTallysPromises) {
-        const formattedTallys = await Promise.all(formattedTallysPromises);
-        setTallys(formattedTallys);
-      } else {
-        setTallys([]);
+        return {
+          ...tally,
+          startDate: localTally.startDate,
+          endDate: localTally.endDate,
+          isFinalized: localTally.isFinalized,
+          hasUnsyncedFilling: true,
+        };
       }
 
-      setIsLoading(false);
-    },
-    [
-      _fetchTallys,
-      getUnsyncedTallyIds,
-      locationId,
-      formId,
-      startDate,
-      endDate,
-      userId,
-      cityId,
-      broadUnitId,
-      intermediateUnitId,
-      narrowUnitId,
-      finalizationStatus,
-    ],
-  );
+      return {
+        ...tally,
+        hasUnsyncedFilling: false,
+      };
+    });
+
+    if (formattedTallysPromises) {
+      const formattedTallys = await Promise.all(formattedTallysPromises);
+      setTallys(formattedTallys);
+    } else {
+      setTallys([]);
+    }
+
+    setIsLoading(false);
+  }, [
+    _fetchTallys,
+    getUnsyncedTallyIds,
+    locationId,
+    formId,
+    startDate,
+    endDate,
+    userId,
+    cityId,
+    broadUnitId,
+    intermediateUnitId,
+    narrowUnitId,
+    finalizationStatus,
+  ]);
 
   useEffect(() => {
     void getUnsyncedTallyIds();
@@ -343,7 +332,7 @@ const TallysClient = () => {
     <div className="flex h-full flex-col overflow-auto bg-white p-2 text-black">
       <CAdminHeader
         titleIcon={<GrGroup size={28} />}
-        title="Contagens"
+        title="Contagens (Legado)"
         append={
           <div className="flex items-center gap-1">
             {isMobileView && (

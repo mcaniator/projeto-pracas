@@ -5,7 +5,7 @@ import {
   saveAdminSQLiteAssessmentDraft,
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { dexieDb } from "@/lib/dexie/dexie";
-import type { AssessmentDraft } from "@/lib/types/assessments/responseFormTypes";
+import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import { Capacitor } from "@capacitor/core";
 
 export const saveAssessmentResponsesDraft = async (draft: AssessmentDraft) => {
@@ -22,7 +22,7 @@ export const saveAssessmentResponsesDraft = async (draft: AssessmentDraft) => {
 };
 
 export const deleteAssessmentResponsesDraft = async (assessmentId: number) => {
-  const assessment = await loadAssessmentResponsesDraft(assessmentId);
+  const assessment = await fetchAssessmentResponsesDraft(assessmentId);
   if (!assessment) {
     return;
   }
@@ -37,7 +37,7 @@ export const deleteAssessmentResponsesDraft = async (assessmentId: number) => {
   }
 };
 
-export const loadAssessmentResponsesDraft = async (assessmentId: number) => {
+export const fetchAssessmentResponsesDraft = async (assessmentId: number) => {
   if (Capacitor.isNativePlatform()) {
     const SQLiteDraft = await fetchAdminSQLiteAssessmentDraft({
       params: {
@@ -50,7 +50,7 @@ export const loadAssessmentResponsesDraft = async (assessmentId: number) => {
   return dexieDraft ?? null;
 };
 
-export const getAssessmentsDraftsIds = async () => {
+export const fetchAssessmentDraftIds = async () => {
   if (Capacitor.isNativePlatform()) {
     const fetchResult = await fetchAdminSQLiteAssessmentDraftsIds({});
     const assessmentsIdsSet = new Set<number>();

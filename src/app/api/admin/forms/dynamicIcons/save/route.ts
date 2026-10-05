@@ -8,7 +8,9 @@ import superjson from "superjson";
 export async function POST(request: Request) {
   try {
     try {
-      await checkIfLoggedInUserHasAnyPermission({ roles: ["FORM_MANAGER"] });
+      await checkIfLoggedInUserHasAnyPermission({
+        roles: ["PROTOCOL_MANAGER"],
+      });
     } catch (error) {
       return new Response("Sem permissao para salvar ícones personalizados!", {
         status: 401,

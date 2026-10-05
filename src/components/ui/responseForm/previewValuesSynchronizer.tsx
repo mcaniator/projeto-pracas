@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormValues } from "@/lib/types/assessments/responseFormTypes";
+import type { FormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { useEffect } from "react";
 import { type Control, useWatch } from "react-hook-form";
 

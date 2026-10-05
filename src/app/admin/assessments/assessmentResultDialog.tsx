@@ -1,9 +1,9 @@
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CAssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CDialog from "@/components/ui/dialog/cDialog";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
-import { useFetchAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
-import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import { useFetchAssessmentDetails } from "@/lib/serverFunctions/apiCalls/assessment";
+import { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { IconEye } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
@@ -25,25 +25,25 @@ const AssessmentResultDialog = ({
   isSQLiteAssessment: boolean;
   onClose: () => void;
 }) => {
-  const [assessmentTree, setAssessmentTree] =
-    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
-  const [fetchAssessmentTree, loading] = useFetchAssessmentTree({
+  const [assessmentDetails, setAssessmentDetails] =
+    useState<FetchAssessmentDetailsResponse["assessmentDetails"]>();
+  const [fetchAssessmentDetails, loading] = useFetchAssessmentDetails({
     params: {
       callbacks: {
         onSuccess: (response) => {
-          setAssessmentTree(response.data?.assessmentTree);
+          setAssessmentDetails(response.data?.assessmentDetails);
         },
       },
     },
   });
   useEffect(() => {
     if (!assessment) return;
-    void fetchAssessmentTree({
+    void fetchAssessmentDetails({
       params: {
         assessmentId: assessment.id,
       },
     });
-  }, [assessment, fetchAssessmentTree]);
+  }, [assessment, fetchAssessmentDetails]);
   if (!assessment) {
     return null;
   }
@@ -65,8 +65,16 @@ const AssessmentResultDialog = ({
         loadingOnClick: true,
       }}
     >
-      {!loading && assessmentTree && (
-        <CAssessmentResultViewer assessment={assessmentTree} />
+      {!loading && assessmentDetails && (
+        <FormSubmissionViewer
+          formSubmission={{
+            formStructure: assessmentDetails.formSubmission.formStructure,
+            responsesFormValues:
+              assessmentDetails.formSubmission.responsesFormValues,
+            geometries: assessmentDetails.formSubmission.geometries,
+          }}
+          locationPolygonGeoJson={assessmentDetails.location.st_asgeojson}
+        />
       )}
       {loading && <CLinearProgress label="Carregando..." />}
     </CDialog>

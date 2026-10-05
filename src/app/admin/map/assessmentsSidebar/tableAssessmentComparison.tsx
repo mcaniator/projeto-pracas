@@ -1,26 +1,26 @@
 "use client";
 
-import QuestionResponseRenderer from "@/components/ui/assessment/questionResponseRenderer";
 import CAutocomplete from "@/components/ui/cAutoComplete";
+import QuestionResponseRenderer from "@/components/ui/formSubmissionViewer/questionResponseRenderer";
 import { dateFormatter } from "@/lib/formatters/dateFormatters";
+import type {
+  FormSubmissionCategoryItem,
+  FormSubmissionQuestionItem,
+  FormSubmissionSubcategoryItem,
+} from "@/lib/serverFunctions/queries/formSubmission";
 import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-  AssessmentSubcategoryItem,
-} from "@/lib/serverFunctions/queries/assessment";
-import {
-  FetchMapAssessmentComparisonAssessmentTreesResponse,
+  FetchMapAssessmentComparisonAssessmentDetailsResponse,
   MapAssessmentComparisonLocation,
 } from "@/lib/serverFunctions/queries/mapAssessmentComparison";
 import {
-  resolveAssessmentQuestionGeometries,
-  resolveAssessmentQuestionValue,
-} from "@/lib/utils/assessmentResultViewer/assessmentResultViewerUtils";
+  resolveFormSubmissionQuestionGeometries,
+  resolveFormSubmissionQuestionValue,
+} from "@/lib/utils/formSubmissionViewer/formSubmissionViewerUtils";
 import { IconCalendar, IconChartBar } from "@tabler/icons-react";
 import { type CSSProperties, Fragment, useMemo, useState } from "react";
 
-type ComparisonAssessmentTree =
-  FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number]["assessmentTrees"][number];
+type ComparisonAssessmentDetails =
+  FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number]["assessmentDetails"][number];
 
 const LOCATION_COLORS: [string, ...string[]] = [
   "#2563EB",
@@ -123,41 +123,41 @@ const mergeCellStyles = (
   );
 };
 
-const isAssessmentSubcategoryItem = (
-  item: AssessmentQuestionItem | AssessmentSubcategoryItem,
-): item is AssessmentSubcategoryItem => {
+const isFormSubmissionSubcategoryItem = (
+  item: FormSubmissionQuestionItem | FormSubmissionSubcategoryItem,
+): item is FormSubmissionSubcategoryItem => {
   return "questions" in item;
 };
 
 const cloneQuestion = (
-  question: AssessmentQuestionItem,
-): AssessmentQuestionItem => ({
+  question: FormSubmissionQuestionItem,
+): FormSubmissionQuestionItem => ({
   ...question,
   options: question.options ? [...question.options] : undefined,
 });
 
 const cloneCategory = (
-  category: AssessmentCategoryItem,
-): AssessmentCategoryItem => ({
+  category: FormSubmissionCategoryItem,
+): FormSubmissionCategoryItem => ({
   ...category,
   categoryChildren: [],
 });
 
 const cloneSubcategory = (
-  subcategory: AssessmentSubcategoryItem,
-): AssessmentSubcategoryItem => ({
+  subcategory: FormSubmissionSubcategoryItem,
+): FormSubmissionSubcategoryItem => ({
   ...subcategory,
   questions: [],
 });
 
 const buildComparisonCategories = (
-  assessments: (ComparisonAssessmentTree | null)[],
-): AssessmentCategoryItem[] => {
-  const categories: AssessmentCategoryItem[] = [];
+  assessments: (ComparisonAssessmentDetails | null)[],
+): FormSubmissionCategoryItem[] => {
+  const categories: FormSubmissionCategoryItem[] = [];
   const includedQuestionIds = new Set<number>();
 
   assessments.forEach((assessment) => {
-    assessment?.categories.forEach((category) => {
+    assessment?.formSubmission.formStructure.categories.forEach((category) => {
       let comparisonCategory = categories.find(
         (existingCategory) =>
           existingCategory.categoryId === category.categoryId,
@@ -169,10 +169,10 @@ const buildComparisonCategories = (
       }
 
       category.categoryChildren.forEach((child) => {
-        if (isAssessmentSubcategoryItem(child)) {
+        if (isFormSubmissionSubcategoryItem(child)) {
           let comparisonSubcategory = comparisonCategory.categoryChildren.find(
-            (existingChild): existingChild is AssessmentSubcategoryItem =>
-              isAssessmentSubcategoryItem(existingChild) &&
+            (existingChild): existingChild is FormSubmissionSubcategoryItem =>
+              isFormSubmissionSubcategoryItem(existingChild) &&
               existingChild.subcategoryId === child.subcategoryId,
           );
 
@@ -202,12 +202,12 @@ const buildComparisonCategories = (
   return categories;
 };
 
-const buildQuestionMap = (assessment: ComparisonAssessmentTree | null) => {
-  const questionMap = new Map<number, AssessmentQuestionItem>();
+const buildQuestionMap = (assessment: ComparisonAssessmentDetails | null) => {
+  const questionMap = new Map<number, FormSubmissionQuestionItem>();
 
-  assessment?.categories.forEach((category) => {
+  assessment?.formSubmission.formStructure.categories.forEach((category) => {
     category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
+      if (isFormSubmissionSubcategoryItem(child)) {
         child.questions.forEach((question) => {
           questionMap.set(question.questionId, question);
         });
@@ -229,16 +229,16 @@ const LocationAssessmentSelector = ({
   selectedAssessmentId,
 }: {
   color: string;
-  location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
+  location: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number];
   locationNumber: number;
   onAssessmentChange: (assessmentId: number) => void;
   selectedAssessmentId: number | null;
 }) => {
   const selectedAssessment =
-    location.assessmentTrees.find(
+    location.assessmentDetails.find(
       (assessment) => assessment.id === selectedAssessmentId,
     ) ??
-    location.assessmentTrees[0] ??
+    location.assessmentDetails[0] ??
     null;
 
   return (
@@ -262,7 +262,7 @@ const LocationAssessmentSelector = ({
         <CAutocomplete
           label="Avaliação"
           disableClearable
-          options={location.assessmentTrees}
+          options={location.assessmentDetails}
           value={selectedAssessment}
           isOptionEqualToValue={(option, value) => option.id === value.id}
           getOptionLabel={(option) => dateFormatter.format(option.startDate)}
@@ -277,11 +277,11 @@ const LocationAssessmentSelector = ({
 
 type ComparisonLocation = {
   color: string;
-  location: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"][number];
+  location: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"][number];
   locationNumber: number;
   locationPolygonGeoJson: string | null;
-  questionMap: Map<number, AssessmentQuestionItem>;
-  selectedAssessment: ComparisonAssessmentTree | null;
+  questionMap: Map<number, FormSubmissionQuestionItem>;
+  selectedAssessment: ComparisonAssessmentDetails | null;
 };
 
 const QuestionComparisonCell = ({
@@ -291,7 +291,7 @@ const QuestionComparisonCell = ({
 }: {
   cellStyle?: CSSProperties;
   comparisonLocation: ComparisonLocation;
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
 }) => {
   const assessmentQuestion = comparisonLocation.questionMap.get(
     question.questionId,
@@ -309,12 +309,12 @@ const QuestionComparisonCell = ({
         <span className="text-sm italic text-gray-600">(Não avaliado)</span>
       : <QuestionResponseRenderer
           question={assessmentQuestion}
-          resolvedValue={resolveAssessmentQuestionValue(
-            comparisonLocation.selectedAssessment,
+          resolvedValue={resolveFormSubmissionQuestionValue(
+            comparisonLocation.selectedAssessment.formSubmission,
             assessmentQuestion,
           )}
-          geometries={resolveAssessmentQuestionGeometries(
-            comparisonLocation.selectedAssessment,
+          geometries={resolveFormSubmissionQuestionGeometries(
+            comparisonLocation.selectedAssessment.formSubmission,
             assessmentQuestion,
           )}
           locationPolygonGeoJson={comparisonLocation.locationPolygonGeoJson}
@@ -329,7 +329,7 @@ const TableAssessmentComparison = ({
   comparisonLocations,
 }: {
   locations: MapAssessmentComparisonLocation[];
-  comparisonLocations: FetchMapAssessmentComparisonAssessmentTreesResponse["locations"];
+  comparisonLocations: FetchMapAssessmentComparisonAssessmentDetailsResponse["locations"];
 }) => {
   const [selectedAssessmentIds, setSelectedAssessmentIds] = useState<
     Record<number, number>
@@ -338,10 +338,10 @@ const TableAssessmentComparison = ({
   const comparisonTableLocations = useMemo<ComparisonLocation[]>(() => {
     return comparisonLocations.map((location, index) => {
       const selectedAssessment =
-        location.assessmentTrees.find(
+        location.assessmentDetails.find(
           (assessment) => assessment.id === selectedAssessmentIds[location.id],
         ) ??
-        location.assessmentTrees[0] ??
+        location.assessmentDetails[0] ??
         null;
 
       return {
@@ -480,7 +480,7 @@ const TableAssessmentComparison = ({
                       const isLastCategoryChild =
                         childIndex === category.categoryChildren.length - 1;
 
-                      if (isAssessmentSubcategoryItem(child)) {
+                      if (isFormSubmissionSubcategoryItem(child)) {
                         const subcategoryColor = getSubcategoryColor(
                           categoryIndex,
                           childIndex,

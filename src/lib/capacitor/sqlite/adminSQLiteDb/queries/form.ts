@@ -1,9 +1,3 @@
-import type { CalculationParams } from "@/app/admin/forms/[formId]/edit/calculations/calculationDialog";
-import type {
-  CategoryItem,
-  QuestionItem,
-  SubcategoryItem,
-} from "@/app/admin/forms/[formId]/edit/clientV2";
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type {
@@ -17,6 +11,12 @@ import type {
   APIResponse,
 } from "@/lib/types/backendCalls/APIResponse";
 import { APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
+import type {
+  CalculationParams,
+  CategoryItem,
+  QuestionItem,
+  SubcategoryItem,
+} from "@/lib/types/forms/formStructure";
 import { Calculation } from "@/lib/utils/calculationUtils";
 import {
   OptionTypes,
@@ -33,7 +33,7 @@ const formsSchema = z.array(
     finalized: sqliteBooleanSchema,
     archived: sqliteBooleanSchema,
     updatedAt: z.coerce.date(),
-    assessmentCount: z.coerce.number(),
+    usageCount: z.coerce.number(),
   }),
 );
 
@@ -121,24 +121,23 @@ const fetchAdminSQLiteForms = async (
           f.finalized,
           f.archived,
           f.updated_at AS updatedAt,
-          COUNT(DISTINCT a.id) AS assessmentCount
+          ${params.formUse === "ASSESSMENT" ? "COUNT(DISTINCT a.id)" : "0"} AS usageCount
         FROM form f
-        LEFT JOIN assessment a ON a.form_id = f.id
-        WHERE 1 = 1
+        ${params.formUse === "ASSESSMENT" ? "LEFT JOIN assessment a ON a.form_id = f.id" : ""}
+        WHERE f.form_use = ?
           ${params.finalizedOnly ? "AND f.finalized = 1" : ""}
           ${params.includeArchived ? "" : "AND f.archived = 0"}
         GROUP BY f.id, f.name, f.finalized, f.archived, f.updated_at
         ORDER BY f.archived ASC, f.updated_at DESC
       `,
+      values: [params.formUse],
     });
-    const forms = formsSchema.parse(formsValues.values).map(
-      ({ assessmentCount, ...form }) => ({
+    const forms = formsSchema
+      .parse(formsValues.values)
+      .map(({ usageCount, ...form }) => ({
         ...form,
-        _count: {
-          assessment: assessmentCount,
-        },
-      }),
-    );
+        usageCount,
+      }));
 
     return {
       responseInfo: {
@@ -161,18 +160,22 @@ const fetchAdminSQLiteForms = async (
   }
 };
 
-const fetchAdminSQLiteFormStructure = async (
-  request: APIRequestParams<fetchFormStructureParams>,
-): Promise<APIResponse<fetchFormStructureResponse>> => {
-  const params = request.params!;
-  try {
+const getAdminSQLiteFormStructure = async ({
+  formId,
+  publicQuestionsOnly = false,
+  includeCalculations,
+}: {
+  formId: number;
+  publicQuestionsOnly?: boolean;
+  includeCalculations: boolean;
+}) => {
+  const getFormData = async () => {
     const [
       formValues,
       categoryFormItemsValues,
       subcategoryFormItemsValues,
       questionFormItemsValues,
       optionsValues,
-      calculationsValues,
     ] = await Promise.all([
       adminSQLiteDb.query({
         statement: `
@@ -181,7 +184,7 @@ const fetchAdminSQLiteFormStructure = async (
           WHERE id = ?
           LIMIT 1
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -196,7 +199,7 @@ const fetchAdminSQLiteFormStructure = async (
             AND fi.subcategory_id IS NULL
             AND fi.question_id IS NULL
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -212,7 +215,7 @@ const fetchAdminSQLiteFormStructure = async (
             AND fi.subcategory_id IS NOT NULL
             AND fi.question_id IS NULL
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -240,8 +243,9 @@ const fetchAdminSQLiteFormStructure = async (
           LEFT JOIN subcategory s ON s.id = q.subcategory_id
           WHERE fi.form_id = ?
             AND fi.question_id IS NOT NULL
+            ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
         `,
-        values: [params.formId],
+        values: [formId],
       }),
       adminSQLiteDb.query({
         statement: `
@@ -252,21 +256,11 @@ const fetchAdminSQLiteFormStructure = async (
             o.is_overridable AS isOverridable
           FROM "option" o
           INNER JOIN form_item fi ON fi.question_id = o.question_id
+          INNER JOIN question q ON q.id = o.question_id
           WHERE fi.form_id = ?
+            ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
         `,
-        values: [params.formId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
-          SELECT
-            c.expression,
-            c.target_question_id AS targetQuestionId,
-            q.name AS questionName
-          FROM calculation c
-          INNER JOIN question q ON q.id = c.target_question_id
-          WHERE c.form_id = ?
-        `,
-        values: [params.formId],
+        values: [formId],
       }),
     ]);
 
@@ -299,9 +293,7 @@ const fetchAdminSQLiteFormStructure = async (
     const categories: CategoryItem[] = [];
     categoryFormItems.forEach((item) => {
       if (
-        !categories.some(
-          (category) => category.categoryId === item.categoryId,
-        )
+        !categories.some((category) => category.categoryId === item.categoryId)
       ) {
         categories.push({
           categoryId: item.categoryId,
@@ -390,6 +382,30 @@ const fetchAdminSQLiteFormStructure = async (
       });
     });
 
+    return {
+      formId: form.id,
+      formName: form.name,
+      formIsFinalized: form.finalized,
+      categories,
+    };
+  };
+
+  const getFormCalculations = async () => {
+    if (!includeCalculations) return undefined;
+
+    const calculationsValues = await adminSQLiteDb.query({
+      statement: `
+        SELECT
+          c.expression,
+          c.target_question_id AS targetQuestionId,
+          q.name AS questionName
+        FROM calculation c
+        INNER JOIN question q ON q.id = c.target_question_id
+        WHERE c.form_id = ?
+          ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
+      `,
+      values: [formId],
+    });
     const calculations: CalculationParams[] = calculationsSchema
       .parse(calculationsValues.values)
       .map((item) => ({
@@ -401,21 +417,36 @@ const fetchAdminSQLiteFormStructure = async (
         ).getExpressionQuestionIds(),
       }));
 
+    return calculations;
+  };
+
+  const [formData, calculations] = await Promise.all([
+    getFormData(),
+    getFormCalculations(),
+  ]);
+
+  return {
+    ...formData,
+    ...(calculations !== undefined ? { calculations } : {}),
+  };
+};
+
+const fetchAdminSQLiteFormStructure = async (
+  request: APIRequestParams<fetchFormStructureParams>,
+): Promise<APIResponse<fetchFormStructureResponse>> => {
+  const params = request.params!;
+  try {
+    const formStructure = await getAdminSQLiteFormStructure({
+      formId: params.formId,
+      includeCalculations: true,
+    });
+
     return {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        form: {
-          statusCode: 200,
-          formTree: {
-            id: form.id,
-            name: form.name,
-            finalized: form.finalized,
-            categories,
-          },
-        },
-        calculations,
+        formStructure,
       },
     };
   } catch (e) {
@@ -424,15 +455,13 @@ const fetchAdminSQLiteFormStructure = async (
         statusCode: 500,
         message: "Erro ao consultar estrutura do formulário!",
       } as APIResponseInfo,
-      data: {
-        form: {
-          statusCode: 500,
-          formTree: null,
-        },
-        calculations: [],
-      },
+      data: null,
     };
   }
 };
 
-export { fetchAdminSQLiteForms, fetchAdminSQLiteFormStructure };
+export {
+  fetchAdminSQLiteForms,
+  fetchAdminSQLiteFormStructure,
+  getAdminSQLiteFormStructure,
+};

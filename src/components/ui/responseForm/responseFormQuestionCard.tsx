@@ -1,6 +1,6 @@
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
-import type { SimpleMention } from "@/lib/types/assessments/responseFormTypes";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
+import type { SimpleMention } from "@/lib/types/formSubmission/responseFormTypes";
 import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 
@@ -8,11 +8,13 @@ import ResponseFormQuestionDescriptors from "./responseFormQuestionDescriptors";
 
 const ResponseFormQuestionCard = ({
   question,
+  calculationExpression,
   questionsForMention,
   questionControls,
   children,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
+  calculationExpression?: string;
   questionsForMention: SimpleMention[];
   questionControls?: ReactNode;
   children: ReactNode;
@@ -24,6 +26,7 @@ const ResponseFormQuestionCard = ({
     >
       <ResponseFormQuestionDescriptors
         question={question}
+        calculationExpression={calculationExpression}
         questionsForMention={questionsForMention}
       />
       <div className="flex items-center gap-2 break-all">

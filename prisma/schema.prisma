@@ -95,11 +95,26 @@ enum WeatherConditions {
   @@map("weather_conditions")
 }
 
+enum TallyTemplateGroupDisplayModes {
+  COMMON
+  COUNTERS
+  SCREEN_CONTEXT_SELECTOR
+
+  @@map("tally_template_group_display_modes")
+}
+
 enum ImageHosts {
   IMAGEKIT
   DRIVE
 
   @@map("image_hosts")
+}
+
+enum FormUse {
+  ASSESSMENT
+  TALLY_AND_BEHAVIORAL_MAP
+
+  @@map("FORM_USE")
 }
 
 // #endregion
@@ -111,8 +126,8 @@ enum ImageHosts {
 enum Role {
   PARK_VIEWER
   PARK_MANAGER
-  FORM_VIEWER
-  FORM_MANAGER
+  PROTOCOL_VIEWER
+  PROTOCOL_MANAGER
   ASSESSMENT_VIEWER
   ASSESSMENT_EDITOR
   ASSESSMENT_MANAGER
@@ -143,6 +158,7 @@ model User {
   response       Response[]
   responseOption ResponseOption[]
   tally          Tally[]
+  modularTally   ModularTally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -225,7 +241,8 @@ model PasswordReset {
 model Category {
   id Int @id @default(autoincrement())
 
-  name     String     @unique @db.VarChar(255)
+  formUse  FormUse    @map("form_use")
+  name     String     @db.VarChar(255)
   optional Boolean    @default(false)
   active   Boolean    @default(true)
   notes    String?    @db.Text
@@ -236,12 +253,14 @@ model Category {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
+  @@unique([formUse, name])
   @@map("category")
 }
 
 model Subcategory {
   id Int @id @default(autoincrement())
 
+  formUse   FormUse    @map("form_use")
   name      String     @db.VarChar(255)
   optional  Boolean    @default(false)
   active    Boolean    @default(true)
@@ -252,13 +271,14 @@ model Subcategory {
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@unique([categoryId, name])
+  @@unique([formUse, categoryId, name])
   @@map("subcategory")
 }
 
 model Question {
   id Int @id @default(autoincrement())
 
+  formUse             FormUse                        @map("form_use")
   name                String                         @db.VarChar(255)
   iconKey             String                         @map("icon_key") @db.VarChar(255)
   notes               String?                        @db.Text
@@ -283,29 +303,32 @@ model Question {
 
   ResponseOption ResponseOption[]
 
-  geometries QuestionGeometry[]
+  responseGeometries ResponseGeometry[]
 
   formItems FormItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([name, categoryId, subcategoryId])
+  @@unique([formUse, name, categoryId, subcategoryId])
   @@index([name])
   @@map("question")
 }
 
-model QuestionGeometry {
-  id           Int        @id @default(autoincrement())
-  questionId   Int        @map("question_id")
-  question     Question   @relation(fields: [questionId], references: [id])
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id])
+model ResponseGeometry {
+  id               Int            @id @default(autoincrement())
+  questionId       Int            @map("question_id")
+  question         Question       @relation(fields: [questionId], references: [id])
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   geometry Unsupported("Geometry")?
 
-  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
-  @@map("question_geometry")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
+  @@map("response_geometry")
 }
 
 model Calculation {
@@ -327,8 +350,8 @@ model Response {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -337,7 +360,7 @@ model Response {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([assessmentId, questionId], name: "assessmentId_questionId")
+  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
   @@map("response")
 }
 
@@ -363,8 +386,8 @@ model ResponseOption {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id])
 
-  assessmentId Int        @map("assessment_id")
-  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   questionId Int      @map("question_id")
   question   Question @relation(fields: [questionId], references: [id])
@@ -379,14 +402,34 @@ model ResponseOption {
   @@map("response_option")
 }
 
+model FormSubmission {
+  id Int @id @default(autoincrement())
+
+  formId Int  @map("form_id")
+  form   Form @relation(fields: [formId], references: [id])
+
+  assessment         Assessment?
+  modularTally       ModularTally?
+  responseGeometries ResponseGeometry[]
+  responses          Response[]
+  responseOptions    ResponseOption[]
+
+  @@unique([id, formId])
+  @@index([formId])
+  @@map("form_submission")
+}
+
 model Form {
-  id           Int           @id @default(autoincrement())
-  name         String        @db.VarChar(255)
-  archived     Boolean       @default(false)
-  finalized    Boolean       @default(false)
-  assessment   Assessment[]
-  calculations Calculation[]
-  formItems    FormItem[]
+  id                    Int                    @id @default(autoincrement())
+  formUse               FormUse                @map("form_use")
+  name                  String                 @db.VarChar(255)
+  archived              Boolean                @default(false)
+  finalized             Boolean                @default(false)
+  assessment            Assessment[]
+  calculations          Calculation[]
+  formSubmissions       FormSubmission[]
+  formItems             FormItem[]
+  modularTallyTemplates ModularTallyTemplate[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -460,8 +503,9 @@ model Location {
   broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  assessment Assessment[]
-  tally      Tally[]
+  assessment   Assessment[]
+  tally        Tally[]
+  modularTally ModularTally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -573,15 +617,18 @@ model Assessment {
   formId Int  @map("form_id")
   form   Form @relation(fields: [formId], references: [id])
 
-  question       Question[]
-  response       Response[]
-  responseOption ResponseOption[]
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId, formId], references: [id, formId])
 
-  geometries QuestionGeometry[]
+  question Question[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([userId])
+  @@index([locationId])
+  @@index([formId])
+  @@unique([formSubmissionId, formId])
   @@map("assessment")
 }
 
@@ -625,6 +672,153 @@ model Tally {
 
   @@map("tally")
 }
+
+// #region Contagens Modulares
+//  ------------------------------------------------------------------------------------------------------------
+
+model PersonCharacteristicGroup {
+  id Int @id @default(autoincrement())
+
+  title      String  @db.VarChar(255)
+  isTagGroup Boolean @default(false) @map("is_tag_group")
+
+  personCharacteristics PersonCharacteristic[]
+  tallyTemplateGroups   TallyTemplateGroup[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("person_characteristic_group")
+}
+
+model PersonCharacteristic {
+  id Int @id @default(autoincrement())
+
+  name    String @db.VarChar(255)
+  iconKey String @map("icon_key") @db.VarChar(255)
+  color   String @db.VarChar(64)
+
+  groupId Int                       @map("group_id")
+  group   PersonCharacteristicGroup @relation(fields: [groupId], references: [id])
+
+  tallyTemplateCharacteristics TallyTemplateCharacteristic[]
+  observationCharacteristics   PersonObservationCharacteristic[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([groupId])
+  @@map("person_characteristic")
+}
+
+model ModularTallyTemplate {
+  id Int @id @default(autoincrement())
+
+  name      String  @db.VarChar(255)
+  archived  Boolean @default(false)
+  finalized Boolean @default(false)
+
+  formId Int?  @map("form_id")
+  form   Form? @relation(fields: [formId], references: [id])
+
+  tallyTemplateGroups TallyTemplateGroup[]
+  modularTally        ModularTally[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("modular_tally_template")
+}
+
+model TallyTemplateGroup {
+  id Int @id @default(autoincrement())
+
+  modularTallyTemplateId      Int                       @map("modular_tally_template_id")
+  modularTallyTemplate        ModularTallyTemplate      @relation(fields: [modularTallyTemplateId], references: [id])
+  personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
+  personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
+
+  position    Int?
+  displayMode TallyTemplateGroupDisplayModes @map("display_mode")
+
+  characteristics TallyTemplateCharacteristic[] @relation("tally_template_group_characteristics")
+
+  @@unique([modularTallyTemplateId, personCharacteristicGroupId])
+  @@index([personCharacteristicGroupId])
+  @@map("tally_template_group")
+}
+
+model TallyTemplateCharacteristic {
+  id Int @id @default(autoincrement())
+
+  tallyTemplateGroupId   Int                  @map("tally_template_group_id")
+  tallyTemplateGroup     TallyTemplateGroup   @relation("tally_template_group_characteristics", fields: [tallyTemplateGroupId], references: [id])
+  personCharacteristicId Int                  @map("person_characteristic_id")
+  personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
+
+  position Int
+
+  @@unique([tallyTemplateGroupId, personCharacteristicId])
+  @@unique([tallyTemplateGroupId, position])
+  @@index([personCharacteristicId])
+  @@map("tally_template_characteristic")
+}
+
+model ModularTally {
+  id Int @id @default(autoincrement())
+
+  startDate   DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate     DateTime? @map("end_date") @db.Timestamptz(0)
+  isFinalized Boolean   @default(false) @map("is_finalized")
+
+  userId String @map("user_id") @db.VarChar(255)
+  user   User   @relation(fields: [userId], references: [id])
+
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  modularTallyTemplateId Int                  @map("modular_tally_template_id")
+  modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
+
+  formSubmissionId Int?            @unique @map("form_submission_id")
+  formSubmission   FormSubmission? @relation(fields: [formSubmissionId], references: [id])
+
+  personObservations PersonObservation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([locationId])
+  @@index([modularTallyTemplateId])
+  @@map("modular_tally")
+}
+
+model PersonObservation {
+  id Int @id @default(autoincrement())
+
+  modularTallyId Int          @map("modular_tally_id")
+  modularTally   ModularTally @relation(fields: [modularTallyId], references: [id])
+  quantity       Int
+
+  characteristics PersonObservationCharacteristic[]
+
+  @@index([modularTallyId])
+  @@map("person_observation")
+}
+
+model PersonObservationCharacteristic {
+  personObservationId    Int                  @map("person_observation_id")
+  personObservation      PersonObservation    @relation(fields: [personObservationId], references: [id])
+  personCharacteristicId Int                  @map("person_characteristic_id")
+  personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
+
+  @@id([personObservationId, personCharacteristicId])
+  @@index([personCharacteristicId])
+  @@map("person_observation_characteristic")
+}
+
+// #endregion
 
 // #endregion
 

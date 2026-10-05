@@ -4,6 +4,7 @@ import {
   APIRequestData,
 } from "@/lib/types/backendCalls/APIResponse";
 import { auth, signIn, signOut } from "@auth/auth";
+import { deleteSignedCookie } from "@signedCookies/signedCookies";
 import { userLoginSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
@@ -16,6 +17,7 @@ const _login = async (
     if (session) {
       await signOut({ redirect: false });
     }
+    await deleteSignedCookie("permissions");
     const loginUser = userLoginSchema.parse({
       email: formData.get("email"),
       password: formData.get("password"),
@@ -70,11 +72,10 @@ export const login = async (request: APIRequestData<FormData>) => {
 };
 
 export type LogoutResponse = Awaited<ReturnType<typeof logout>>["data"];
-export const logout = async (
-  _request: APIRequest,
-) => {
+export const logout = async (_request: APIRequest) => {
   try {
     await signOut({ redirect: false });
+    await deleteSignedCookie("permissions");
     return { responseInfo: { statusCode: 200 }, data: null };
   } catch {
     return {

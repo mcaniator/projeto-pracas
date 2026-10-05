@@ -29,7 +29,7 @@ const seed = async () => {
         password: hashedPassword,
         roles: [
           "ASSESSMENT_MANAGER",
-          "FORM_MANAGER",
+          "PROTOCOL_MANAGER",
           "PARK_MANAGER",
           "TALLY_MANAGER",
           "USER_MANAGER",

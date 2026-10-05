@@ -111,6 +111,14 @@ const saveCustomDynamicIcon = async (
             iconKey: buildDynamicIconKey("custom", name),
           },
         });
+        await tx.personCharacteristic.updateMany({
+          where: {
+            iconKey: buildDynamicIconKey("custom", previousIcon.name),
+          },
+          data: {
+            iconKey: buildDynamicIconKey("custom", name),
+          },
+        });
       });
     } else {
       await prisma.customDynamicIcon.create({
@@ -192,16 +200,24 @@ const deleteCustomDynamicIcon = async (
       };
     }
 
-    const questions = await prisma.question.findMany({
-      where: {
-        iconKey: buildDynamicIconKey("custom", customDynamicIcon.name),
-      },
-      select: { name: true },
-      orderBy: { name: "asc" },
-    });
+    const [questions, personCharacteristics] = await Promise.all([
+      prisma.question.findMany({
+        where: {
+          iconKey: buildDynamicIconKey("custom", customDynamicIcon.name),
+        },
+        select: { name: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.personCharacteristic.findMany({
+        where: {
+          iconKey: buildDynamicIconKey("custom", customDynamicIcon.name),
+        },
+        select: { name: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
 
-    // TODO: consultar outras entidades que utilizem ícones quando elas existirem.
-    if (questions.length > 0) {
+    if (questions.length > 0 || personCharacteristics.length > 0) {
       return {
         responseInfo: {
           statusCode: 409,
@@ -210,6 +226,9 @@ const deleteCustomDynamicIcon = async (
         } as APIResponseInfo,
         data: {
           questionNames: questions.map((question) => question.name),
+          personCharacteristicNames: personCharacteristics.map(
+            (personCharacteristic) => personCharacteristic.name,
+          ),
         },
       };
     }

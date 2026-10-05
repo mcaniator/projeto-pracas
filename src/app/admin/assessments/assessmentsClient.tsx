@@ -2,8 +2,8 @@
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
 import {
-  getAssessmentsDraftsIds,
-  loadAssessmentResponsesDraft,
+  fetchAssessmentDraftIds,
+  fetchAssessmentResponsesDraft,
 } from "@/app/admin/assessments/details/responseFormUtil";
 import {
   fetchAdminSQLiteAssessments,
@@ -50,7 +50,6 @@ const AssessmentsClient = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [params] = useState(useSearchParams());
-  const lastFetchedLocationId = useRef<number | undefined>(undefined);
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
   const [hasSQLiteAssessments, setHasSQLiteAssessments] = useState(false);
   const unsavedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
@@ -103,7 +102,7 @@ const AssessmentsClient = () => {
 
   const getUnsavedAssessmentIds = useCallback(async () => {
     if (!unsavedAssessmentIdsPromiseRef.current) {
-      unsavedAssessmentIdsPromiseRef.current = getAssessmentsDraftsIds();
+      unsavedAssessmentIdsPromiseRef.current = fetchAssessmentDraftIds();
     }
 
     return unsavedAssessmentIdsPromiseRef.current;
@@ -115,7 +114,7 @@ const AssessmentsClient = () => {
       return assessments.map(async (assessment) => {
         if (unsavedAssessmentIds.has(assessment.id)) {
           //If the assessment has unsynced filling, we need to fetch it from draft and insert the local unsynced data into the assessment
-          const localAssessment = await loadAssessmentResponsesDraft(
+          const localAssessment = await fetchAssessmentResponsesDraft(
             assessment.id,
           );
           if (!localAssessment) {
@@ -239,114 +238,95 @@ const AssessmentsClient = () => {
     [assessments],
   );
 
-  const fetchAssessments = useCallback(
-    async (params?: { forceFetch: boolean }) => {
-      if (!params?.forceFetch) {
-        lastFetchedLocationId.current === locationId;
+  const fetchAssessments = useCallback(async () => {
+    if (
+      !locationId &&
+      !formId &&
+      !userId &&
+      !startDate &&
+      !endDate &&
+      !cityId &&
+      !broadUnitId &&
+      !intermediateUnitId &&
+      !narrowUnitId &&
+      !finalizationStatus
+    ) {
+      // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
+      setAssessments([]);
+      return;
+    }
 
-        /*if (
-          !!locationId &&
-          lastFetchedLocationId.current === locationId &&
-          !formId &&
-          !userId &&
-          !startDate &&
-          !endDate
-        ) {
-          return; //Prevents loading a second time the data filtered by location in params.
-        }*/
-      }
-
-      if (
-        !locationId &&
-        !formId &&
-        !userId &&
-        !startDate &&
-        !endDate &&
-        !cityId &&
-        !broadUnitId &&
-        !intermediateUnitId &&
-        !narrowUnitId &&
-        !finalizationStatus
-      ) {
-        // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
-        setAssessments([]);
+    if (startDate) {
+      if (isNaN(startDate.getTime())) {
         return;
       }
-
-      if (startDate) {
-        if (isNaN(startDate.getTime())) {
-          return;
-        }
+    }
+    if (endDate) {
+      if (isNaN(endDate.getTime())) {
+        return;
       }
-      if (endDate) {
-        if (isNaN(endDate.getTime())) {
-          return;
-        }
-      }
+    }
 
-      lastFetchedLocationId.current = locationId;
-      setIsLoading(true);
+    setIsLoading(true);
 
-      let assessments: FetchAssessmentsResponse["assessments"] = [];
-      const hasSQLiteAssessmentsResponse = await fetchAdminSQLiteHasAssessments(
-        {},
+    let assessments: FetchAssessmentsResponse["assessments"] = [];
+    const hasSQLiteAssessmentsResponse = await fetchAdminSQLiteHasAssessments(
+      {},
+    );
+    if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
+      // If there are SQLite assessments, we cannot show server assessments until they are synced
+      setHasSQLiteAssessments(true);
+      const offlineResponse = await fetchAdminSQLiteAssessments({});
+      const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
+      assessments = SQLiteAssessments;
+    } else {
+      setHasSQLiteAssessments(false);
+      const response = await _fetchAssessments({
+        params: {
+          locationId,
+          formId,
+          startDate,
+          endDate,
+          userId,
+          cityId,
+          broadUnitId,
+          intermediateUnitId,
+          narrowUnitId,
+          finalizationStatus: finalizationStatus,
+        },
+      });
+      assessments = response.data?.assessments ?? [];
+    }
+
+    const formattedAssessmentsPromises =
+      await formatAssessmentsWithUnsavedFilling(assessments);
+    if (formattedAssessmentsPromises) {
+      const formattedAssessments = await Promise.all(
+        formattedAssessmentsPromises,
       );
-      if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
-        // If there are SQLite assessments, we cannot show server assessments until they are synced
-        setHasSQLiteAssessments(true);
-        const offlineResponse = await fetchAdminSQLiteAssessments({});
-        const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
-        assessments = SQLiteAssessments;
-      } else {
-        setHasSQLiteAssessments(false);
-        const response = await _fetchAssessments({
-          params: {
-            locationId,
-            formId,
-            startDate,
-            endDate,
-            userId,
-            cityId,
-            broadUnitId,
-            intermediateUnitId,
-            narrowUnitId,
-            finalizationStatus: finalizationStatus,
-          },
-        });
-        assessments = response.data?.assessments ?? [];
-      }
-
-      const formattedAssessmentsPromises =
-        await formatAssessmentsWithUnsavedFilling(assessments);
-      if (formattedAssessmentsPromises) {
-        const formattedAssessments = await Promise.all(
-          formattedAssessmentsPromises,
-        );
-        setAssessments(formattedAssessments);
-      } else {
-        setAssessments([]);
-      }
-      setIsLoading(false);
-    },
-    [
-      _fetchAssessments,
-      formatAssessmentsWithUnsavedFilling,
-      locationId,
-      formId,
-      startDate,
-      endDate,
-      userId,
-      cityId,
-      broadUnitId,
-      intermediateUnitId,
-      narrowUnitId,
-      finalizationStatus,
-    ],
-  );
+      setAssessments(formattedAssessments);
+    } else {
+      setAssessments([]);
+    }
+    setIsLoading(false);
+  }, [
+    _fetchAssessments,
+    formatAssessmentsWithUnsavedFilling,
+    locationId,
+    formId,
+    startDate,
+    endDate,
+    userId,
+    cityId,
+    broadUnitId,
+    intermediateUnitId,
+    narrowUnitId,
+    finalizationStatus,
+  ]);
 
   useEffect(() => {
     void fetchForms({
-      params: { finalizedOnly: true },
+      params: { formUse: "ASSESSMENT", finalizedOnly: true },
     });
     void fetchAssessmentUsers({});
   }, [fetchAssessmentUsers, fetchForms]);

@@ -4,34 +4,34 @@ import { IconCheck } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 
 const ChooseResponsesSourceDialog = ({
-  serverSource,
-  localSource,
-  applyLocalAssessmentValues,
-  applyServerAssessmentValues,
+  savedSource,
+  draftSource,
+  applyDraftAssessmentValues,
+  applySavedAssessmentValues,
 }: {
-  serverSource: { username: string; updatedAt: Date };
-  localSource: { username: string; updatedAt: Date };
-  applyLocalAssessmentValues: () => void;
-  applyServerAssessmentValues: () => void;
+  savedSource: { username: string; updatedAt: Date };
+  draftSource: { username: string; updatedAt: Date };
+  applyDraftAssessmentValues: () => void;
+  applySavedAssessmentValues: () => void;
 }) => {
   const options = useMemo(() => {
     return [
       {
         value: 0,
-        label: `Avaliação atualizada no servidor por ${serverSource.username} em ${serverSource.updatedAt.toLocaleString()}`,
+        label: `Avaliação salva por ${savedSource.username} em ${savedSource.updatedAt.toLocaleString()}`,
       },
       {
         value: 1,
-        label: `Avaliação atualizada localmente por ${localSource.username} em ${localSource.updatedAt.toLocaleString()}`,
+        label: `Rascunho de ${draftSource.username} atualizado em ${draftSource.updatedAt.toLocaleString()}`,
       },
     ];
-  }, [serverSource, localSource]);
+  }, [draftSource, savedSource]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const apply = () => {
     if (selectedOption === 0) {
-      applyServerAssessmentValues();
+      applySavedAssessmentValues();
     } else {
-      applyLocalAssessmentValues();
+      applyDraftAssessmentValues();
     }
   };
   return (
@@ -42,12 +42,12 @@ const ChooseResponsesSourceDialog = ({
       onConfirm={apply}
       disableConfirmButton={selectedOption === null}
       confirmChildren={<IconCheck />}
-      title="Avaliação atualizada no servidor!"
+      title="A avaliação salva foi atualizada!"
     >
       <div className="flex flex-col gap-2">
         <p>
-          Existem respostas salvas neste dispositivo, mas a avaliação foi
-          atualizada no servidor depois desse salvamento local.
+          Existe um rascunho de respostas, mas a avaliação salva foi atualizada
+          depois desse rascunho.
         </p>
         <CRadioGroup
           label="Escolha qual versão deseja usar"

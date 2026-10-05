@@ -2,8 +2,8 @@ import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 import type {
-  FetchMapAssessmentComparisonAssessmentTreesParams,
-  FetchMapAssessmentComparisonAssessmentTreesResponse,
+  FetchMapAssessmentComparisonAssessmentDetailsParams,
+  FetchMapAssessmentComparisonAssessmentDetailsResponse,
   FetchMapAssessmentComparisonCategoriesResponse,
   FetchMapAssessmentComparisonResultsParams,
   FetchMapAssessmentComparisonResultsResponse,
@@ -39,14 +39,14 @@ export const useFetchMapAssessmentComparisonResults = (
   });
 };
 
-export const useFetchMapAssessmentComparisonAssessmentTrees = (
-  params?: UseFetchAPIParams<FetchMapAssessmentComparisonAssessmentTreesResponse>,
+export const useFetchMapAssessmentComparisonAssessmentDetails = (
+  params?: UseFetchAPIParams<FetchMapAssessmentComparisonAssessmentDetailsResponse>,
 ) => {
   return useFetchAPI<
-    FetchMapAssessmentComparisonAssessmentTreesResponse,
-    FetchMapAssessmentComparisonAssessmentTreesParams
+    FetchMapAssessmentComparisonAssessmentDetailsResponse,
+    FetchMapAssessmentComparisonAssessmentDetailsParams
   >({
-    url: "/api/admin/mapAssessmentComparison/assessmentTrees",
+    url: "/api/admin/mapAssessmentComparison/assessmentDetails",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

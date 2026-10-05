@@ -1,14 +1,14 @@
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CAssessmentResultViewer from "@/components/ui/assessment/assessmentResultViewer";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { useFetchPublicAssessmentTree } from "@/lib/serverFunctions/apiCalls/assessment";
+import { useFetchPublicAssessmentDetails } from "@/lib/serverFunctions/apiCalls/assessment";
 import { useUpdateLocationVisibility } from "@/lib/serverFunctions/apiCalls/location";
-import { FetchAssessmentTreeResponse } from "@/lib/serverFunctions/queries/assessment";
+import { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { Divider } from "@mui/material";
 import {
@@ -34,14 +34,14 @@ const LocationInfo = ({
     null,
   );
   const [latestAssessment, setLatestAssessment] =
-    useState<FetchAssessmentTreeResponse["assessmentTree"]>();
+    useState<FetchAssessmentDetailsResponse["assessmentDetails"]>();
 
-  const [fetchLatestAssessmentTree, fetchLatestAssessmentTreeLoading] =
-    useFetchPublicAssessmentTree({
+  const [fetchLatestAssessmentDetails, fetchLatestAssessmentDetailsLoading] =
+    useFetchPublicAssessmentDetails({
       params: {
         callbacks: {
           onSuccess: (response) => {
-            setLatestAssessment(response.data?.assessmentTree);
+            setLatestAssessment(response.data?.assessmentDetails);
           },
         },
       },
@@ -70,7 +70,7 @@ const LocationInfo = ({
     setOpenVisibilityDialog(false);
     setLatestAssessment(undefined);
     if (location.latestAssessmentId) {
-      void fetchLatestAssessmentTree({
+      void fetchLatestAssessmentDetails({
         params: {
           assessmentId: location.latestAssessmentId,
         },
@@ -78,7 +78,7 @@ const LocationInfo = ({
     } else {
       setLatestAssessment(undefined);
     }
-  }, [location, fetchLatestAssessmentTree]);
+  }, [location, fetchLatestAssessmentDetails]);
 
   return (
     <div className="flex flex-col gap-1 pr-2">
@@ -148,12 +148,20 @@ const LocationInfo = ({
       <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "(Não preenchido)"}`}</span>
       <span>{`Legislação: ${location.legislation ?? "(Não preenchido)"}`}</span>
       <Divider />
-      {fetchLatestAssessmentTreeLoading && (
+      {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
       {latestAssessment && (
         <>
-          <CAssessmentResultViewer assessment={latestAssessment} />
+          <FormSubmissionViewer
+            formSubmission={{
+              formStructure: latestAssessment.formSubmission.formStructure,
+              responsesFormValues:
+                latestAssessment.formSubmission.responsesFormValues,
+              geometries: latestAssessment.formSubmission.geometries,
+            }}
+            locationPolygonGeoJson={latestAssessment.location.st_asgeojson}
+          />
           <Divider />
         </>
       )}

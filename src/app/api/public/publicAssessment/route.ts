@@ -1,6 +1,6 @@
 import {
-  publicFetchPublicAssessmentTree,
-  publicFetchPublicAssessmentTreeParamsSchema,
+  publicFetchPublicAssessmentDetails,
+  publicFetchPublicAssessmentDetailsParamsSchema,
 } from "@/lib/serverFunctions/queries/public/assessment";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { NextRequest } from "next/server";
@@ -9,10 +9,10 @@ import superjson from "superjson";
 export async function GET(request: NextRequest) {
   try {
     const params = parseQueryParams(
-      publicFetchPublicAssessmentTreeParamsSchema,
+      publicFetchPublicAssessmentDetailsParamsSchema,
       request.nextUrl.searchParams,
     );
-    const assessments = await publicFetchPublicAssessmentTree({ params });
+    const assessments = await publicFetchPublicAssessmentDetails({ params });
     return new Response(superjson.stringify(assessments), {
       status: 200,
       headers: {

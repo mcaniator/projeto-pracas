@@ -42,6 +42,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   serverExternalPackages: ["@iconify/tools"],
+  transpilePackages: ["mui-color-input"],
 };
 
 module.exports = nextConfig;

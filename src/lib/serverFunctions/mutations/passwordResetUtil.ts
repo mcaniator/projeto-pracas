@@ -1,8 +1,9 @@
-import { auth, signOut } from "@auth/auth";
 import { APIRequestData } from "@/lib/types/backendCalls/APIResponse";
+import { auth, signOut } from "@auth/auth";
 import { prisma } from "@lib/prisma";
 import { emailTransporter } from "@serverOnly/email";
 import { getPasswordResetEmail } from "@serverOnly/renderEmail";
+import { deleteSignedCookie } from "@signedCookies/signedCookies";
 import { passwordResetSchema } from "@zodValidators";
 import bcrypt from "bcryptjs";
 import * as crypto from "crypto";
@@ -17,6 +18,7 @@ const _createPasswordReset = async (formData: FormData) => {
   if (session) {
     await signOut({ redirect: false });
   }
+  await deleteSignedCookie("permissions");
   const emailSchema = z.string().email();
 
   const emailResult = emailSchema.safeParse(formData.get("email"));

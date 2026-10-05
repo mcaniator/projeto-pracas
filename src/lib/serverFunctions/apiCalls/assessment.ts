@@ -4,7 +4,6 @@ import {
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import { useCallback } from "react";
 
 import type {
   CreateAssessmentData,
@@ -13,22 +12,18 @@ import type {
   UpdateAssessmentVisibilityData,
 } from "../mutations/assessmentUtil";
 import type {
-  AddResponsesData,
-  AddResponsesResponse,
+  AssessmentSubmitData,
+  AssessmentSubmitResponse,
 } from "../mutations/responseUtil";
 import type {
-  FetchAssessmentTreeParams,
-  FetchAssessmentTreeResponse,
+  FetchAssessmentDetailsParams,
+  FetchAssessmentDetailsResponse,
   FetchAssessmentUsersResponse,
   FetchAssessmentsParams,
   FetchAssessmentsResponse,
   FetchPublicAssessmentsParams,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
-import type {
-  UploadImageResponseData,
-  UploadImageResponseParams,
-} from "../storage/drive/assessment";
 
 export const useFetchAssessments = (
   params?: UseFetchAPIParams<FetchAssessmentsResponse>,
@@ -99,13 +94,13 @@ export const useUpdateAssessmentVisibility = (
   });
 };
 
-export const useAddResponses = (
-  params?: UseFetchAPIParams<AddResponsesResponse>,
+export const useAssessmentSubmit = (
+  params?: UseFetchAPIParams<AssessmentSubmitResponse>,
 ) => {
   return useFetchAPI<
-    AddResponsesResponse,
+    AssessmentSubmitResponse,
     Record<string, never>,
-    AddResponsesData
+    AssessmentSubmitData
   >({
     url: "/api/admin/assessments/responses",
     callbacks: params?.callbacks,
@@ -130,12 +125,15 @@ export const useFetchPublicAssessments = (
   });
 };
 
-export const useFetchAssessmentTree = ({
+export const useFetchAssessmentDetails = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchAssessmentDetailsResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+  return useFetchAPI<
+    FetchAssessmentDetailsResponse,
+    FetchAssessmentDetailsParams
+  >({
     url: "/api/admin/assessment",
     callbacks: params?.callbacks,
     options: {
@@ -144,53 +142,19 @@ export const useFetchAssessmentTree = ({
   });
 };
 
-export const useFetchPublicAssessmentTree = ({
+export const useFetchPublicAssessmentDetails = ({
   params,
 }: {
-  params?: UseFetchAPIParams<FetchAssessmentTreeResponse>;
+  params?: UseFetchAPIParams<FetchAssessmentDetailsResponse>;
 }) => {
-  return useFetchAPI<FetchAssessmentTreeResponse, FetchAssessmentTreeParams>({
+  return useFetchAPI<
+    FetchAssessmentDetailsResponse,
+    FetchAssessmentDetailsParams
+  >({
     url: "/api/admin/assessment/public",
     callbacks: params?.callbacks,
     options: {
       method: "GET",
     },
   });
-};
-
-export const useUploadImageResponse = (
-  params?: UseFetchAPIParams<UploadImageResponseData>,
-) => {
-  const [uploadImageResponseFetch, isLoading] = useFetchAPI<
-    UploadImageResponseData,
-    Record<string, never>
-  >({
-    url: "/api/admin/uploadImageResponse",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
-    },
-  });
-
-  const uploadImageResponse = useCallback(
-    (
-      { folderId, image }: UploadImageResponseParams,
-      projectOptions?: NonNullable<
-        Parameters<typeof uploadImageResponseFetch>[0]
-      >["projectOptions"],
-    ) => {
-      const formData = new FormData();
-      //formData.append("folderId", folderId);
-      formData.append("folderId", folderId);
-      formData.append("image", image);
-
-      return uploadImageResponseFetch({
-        data: formData,
-        projectOptions,
-      });
-    },
-    [uploadImageResponseFetch],
-  );
-
-  return [uploadImageResponse, isLoading] as const;
 };

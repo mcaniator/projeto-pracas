@@ -12,7 +12,7 @@ const CQuestionAllowResponseImagesChip = ({
   return (
     <CIconChip
       icon={<IconPhoto />}
-      tooltip={"Permite anexar à resposta imagens do Google Drive"}
+      tooltip={"Permite anexar imagens na resposta"}
     />
   );
 };

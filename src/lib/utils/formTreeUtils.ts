@@ -1,9 +1,8 @@
-import { FormItemType } from "@enums/formTree";
-
-import {
+import type {
   QuestionItem,
   SubcategoryItem,
-} from "../../app/admin/forms/[formId]/edit/clientV2";
+} from "@/lib/types/forms/formStructure";
+import { FormItemType } from "@enums/formTree";
 
 abstract class FormItemUtils {
   public static getFormItemType(item: {

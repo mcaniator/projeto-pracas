@@ -1,13 +1,13 @@
 import COverridableCheckboxGroup from "@/components/ui/cOverridableCheckboxGroup";
 import COverridableRadioGroup from "@/components/ui/cOverridableRadioGroup";
 import { localeNumberFormatter } from "@/lib/formatters/numberFormatters";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import {
+  type FormSubmissionOptionValueWithOverride,
   type ResponseQuestionValue,
-  isAssessmentOptionValueWithOverride,
-  isAssessmentOptionValueWithOverrideArray,
-} from "@/lib/types/assessments/responseFormTypes";
-import { AssessmentOptionValueWithOverride } from "@/lib/types/overridableOptionsComponents";
+  isFormSubmissionOptionValueWithOverride,
+  isFormSubmissionOptionValueWithOverrideArray,
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { useMemo } from "react";
 
 const OptionsResponseQuestionField = ({
@@ -16,7 +16,7 @@ const OptionsResponseQuestionField = ({
   readOnly,
   onChange,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   value: ResponseQuestionValue;
   readOnly: boolean;
   onChange: (value: ResponseQuestionValue) => void;
@@ -43,10 +43,10 @@ const OptionsResponseQuestionField = ({
     }));
   }, [question.options, isPercentage, question.characterType]);
 
-  const selectedValues: AssessmentOptionValueWithOverride[] =
-    isAssessmentOptionValueWithOverrideArray(value) ? value : [];
-  const selectedValue: AssessmentOptionValueWithOverride | null =
-    isAssessmentOptionValueWithOverride(value) ? value : null;
+  const selectedValues: FormSubmissionOptionValueWithOverride[] =
+    isFormSubmissionOptionValueWithOverrideArray(value) ? value : [];
+  const selectedValue: FormSubmissionOptionValueWithOverride | null =
+    isFormSubmissionOptionValueWithOverride(value) ? value : null;
 
   if (question.optionType === "CHECKBOX") {
     return (

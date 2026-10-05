@@ -40,10 +40,13 @@
 - Declarar o tipo de resposta a partir da função:
 
   ```ts
-  export type FetchResourceResponse = Awaited<
-    ReturnType<typeof fetchResource>
-  >["data"];
+  export type FetchResourceResponse = NonNullable<
+    Awaited<ReturnType<typeof fetchResource>>["data"]
+  >;
   ```
+
+- Componentes devem derivar propriedades diretamente desse tipo exportado,
+  por exemplo `FetchResourceResponse["resource"]`; não criar aliases locais, a menos que seja necessário.
 
 - Erros esperados de regra de negócio devem retornar `responseInfo` com o
   código adequado, como `400`, `404` ou `409`.
@@ -123,7 +126,7 @@ import superjson from "superjson";
 export async function GET(request: NextRequest) {
   try {
     await checkIfLoggedInUserHasAnyPermission({
-      roles: ["FORM_MANAGER"],
+      roles: ["PROTOCOL_MANAGER"],
     });
   } catch {
     return new Response("Unauthorized", { status: 401 });
@@ -154,7 +157,7 @@ Exemplo de POST:
 export async function POST(request: Request) {
   try {
     await checkIfLoggedInUserHasAnyPermission({
-      roles: ["FORM_MANAGER"],
+      roles: ["PROTOCOL_MANAGER"],
     });
   } catch {
     return new Response("Unauthorized", { status: 401 });
@@ -182,6 +185,8 @@ export async function POST(request: Request) {
 - Usar `useFetchAPI` para toda chamada de endpoint no cliente.
 - Declarar os tipos de resposta, parâmetros e dados da mutation no hook.
 - A URL do hook deve corresponder exatamente à rota da API.
+- Não criar constantes reutilizáveis para URLs; cada hook deve declarar sua URL
+  explicitamente.
 - Para GET, passar dados em `params`.
 - Para POST, PUT e DELETE, passar dados em `data`.
 - Não usar `fetch` diretamente em componentes quando existir um endpoint do
@@ -206,8 +211,92 @@ const useFetchResource = (
 ### Convenções gerais
 
 - Usar `save` para operações que criam ou atualizam o mesmo recurso.
-- Usar `fetch` para consultas.
+- Funções de consulta chamadas explicitamente por `route.ts` devem usar
+  `fetch` no nome.
+- No fluxo SQLite, funções de consulta usadas como `offlineFallback` ou
+  chamadas por componentes React devem usar `fetch` no nome.
+- Funções auxiliares internas de consulta devem começar com `get`.
+- Uma camada intermediária que apenas escolhe entre os fluxos Dexie e SQLite
+  não transforma a função SQLite em auxiliar. Se a função SQLite mantém o
+  contrato `APIRequest`/`APIResponse`, ela deve continuar usando `fetch`.
 - Usar `delete` para remoções.
 - Usar nomes consistentes entre rota, hook, schema, tipos e função de servidor.
 - Ao alterar uma rota, atualizar todas as referências: hook, tipos, chamadas e
   testes relacionados.
+
+## Front-end
+
+### Organização de componentes
+
+- Páginas devem orquestrar dados, permissões e composição. Componentes de
+  feature concentram a interface e o estado local.
+- Criar componentes reutilizáveis em `src/components/ui` apenas quando forem
+  realmente genéricos. Componentes específicos devem permanecer próximos da
+  página ou feature que os utiliza.
+- Usar os componentes `C*` existentes antes de criar equivalentes com MUI puro.
+- Componentes controlados devem receber `value`, `onChange`, `disabled` e
+  estados de erro explicitamente. Nomear callbacks por ação, como `onSave`,
+  `onDelete` e `onChange`.
+- Ao passar uma função assíncrona a uma prop de callback que espera retorno
+  `void`, usar uma função anônima que a invoque com `void`, por exemplo:
+
+  ```tsx
+  onSave={() => {
+    void saveTallyTemplate();
+  }}
+  ```
+
+### Estado e dados
+
+- Dados retornados pela API são a fonte de verdade. Não duplicá-los em estado
+  local sem necessidade; preferir valores derivados por função ou memoização.
+- Manter estado temporário de interface local ao componente: diálogos abertos,
+  item selecionado, seções expandidas e rascunhos ainda não salvos.
+- Componentes não devem chamar `fetch` diretamente. Toda comunicação com a API
+  deve ocorrer por hooks em `src/lib/serverFunctions/apiCalls`.
+
+### Operações e interface
+
+- Toda operação assíncrona deve expor carregamento e erro. Desabilitar ações que
+  não podem ser executadas novamente enquanto a requisição estiver em curso.
+- Ações destrutivas exigem confirmação e devem usar o padrão de diálogo já
+  existente no projeto.
+- Preservar responsividade com Tailwind e MUI; evitar valores fixos que quebrem
+  o layout em telas menores.
+- Garantir acessibilidade básica: campos com rótulos, botões com texto ou
+  `aria-label`, estado não comunicado apenas por cor e uso por teclado.
+- Usar o conjunto de ícones já adotado no projeto; não introduzir SVGs ou novas
+  bibliotecas quando o conjunto existente cobrir o caso.
+- Escrever textos de interface e mensagens de erro em português, orientando a
+  ação esperada do usuário.
+
+### `useFetchAPI`
+
+- Hooks de API devem encapsular `useFetchAPI<T, P, D>`, em que `T` é o dado da
+  resposta, `P` são os query params e `D` é o corpo da requisição.
+- `useFetchAPI` retorna `[request, isLoading]`: `request` é uma função assíncrona
+  e `isLoading` é o booleano que representa a requisição em curso. O hook não
+  executa a requisição automaticamente.
+- Chamar `request` com `params` para GET e `data` para POST, PUT e DELETE. O
+  argumento também aceita `projectOptions` e `requestOptions` quando necessário.
+- A resposta de `request` tem o formato `APIResponse<T>`: `responseInfo` contém
+  `statusCode` e `message`; `data` contém o dado tipado ou pode ser nulo.
+- Declarar callbacks em `UseFetchAPIParams<T>` quando o componente precisar
+  reagir ao resultado: `onSuccess` e `onError` cobrem qualquer origem;
+  `onServerSuccess` e `onServerError` cobrem o servidor; `onOfflineSuccess` e
+  `onOfflineError` cobrem o fallback offline.
+- Como boa prática, priorizar os callbacks de `useFetchAPI`, como `onSuccess` e
+  `onError`, para tratar o resultado da chamada. Usar `await` diretamente na
+  função de request quando o fluxo realmente depender do retorno imediato ou
+  exigir operações sequenciais.
+- O hook já exibe notificações para respostas por padrão. Usar
+  `projectOptions.silent` apenas quando a interface tratar a mensagem
+  explicitamente. Usar `loadingMessage` ou `showLoadingOverlay` apenas quando
+  um overlay global for apropriado.
+- `useFetchAPI` serializa `data` como JSON. Usar `FormData` apenas para envio
+  real de arquivos; nesse caso, o hook preserva o corpo como `FormData`.
+
+### Regras condicionais
+
+- Antes de criar ou alterar o front-end de um editor de templates de contagem,
+  ler integralmente `.agents/tally-template-editor.md`.

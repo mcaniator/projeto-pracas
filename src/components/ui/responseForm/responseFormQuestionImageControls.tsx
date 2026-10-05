@@ -4,11 +4,11 @@ import CImage from "@/components/ui/CImage";
 import CImageInput from "@/components/ui/CImageInput";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { AssessmentQuestionItem } from "@/lib/serverFunctions/queries/assessment";
+import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import type {
   ResponseFormImage,
   ResponseFormImages,
-} from "@/lib/types/assessments/responseFormTypes";
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { IconPhoto, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
@@ -81,7 +81,7 @@ const ResponseFormQuestionImagesDialog = ({
   onImagesChange,
 }: {
   open: boolean;
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   images: ResponseFormImage[];
   finalized: boolean;
   onClose: () => void;
@@ -134,7 +134,7 @@ const ResponseFormQuestionImageControls = ({
   finalized,
   onQuestionImagesChange,
 }: {
-  question: AssessmentQuestionItem;
+  question: FormSubmissionQuestionItem;
   responseImages: ResponseFormImages;
   finalized: boolean;
   onQuestionImagesChange: (

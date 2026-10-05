@@ -23,7 +23,9 @@ const FormsDataGrid = ({
     },
   });
   const loadForms = useCallback(() => {
-    void _fetchForms({ params: { finalizedOnly: true } });
+    void _fetchForms({
+      params: { formUse: "ASSESSMENT", finalizedOnly: true },
+    });
   }, [_fetchForms]);
   useEffect(() => {
     void loadForms();

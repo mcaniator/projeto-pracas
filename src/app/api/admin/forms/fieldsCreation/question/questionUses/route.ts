@@ -7,7 +7,9 @@ import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
-    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["FORM"] });
+    await checkIfLoggedInUserHasAnyPermission({
+      roleGroups: ["PROTOCOL"],
+    });
   } catch (e) {
     return new Response("Unauthorized", {
       status: 401,

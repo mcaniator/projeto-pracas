@@ -1,6 +1,6 @@
 import {
-  _addResponsesV2,
-  addResponsesDataSchema,
+  assessmentSubmit,
+  assessmentSubmitDataSchema,
 } from "@/lib/serverFunctions/mutations/responseUtil";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import superjson from "superjson";
@@ -14,8 +14,8 @@ export async function POST(request: Request) {
     } catch (e) {
       return new Response("Unauthorized", { status: 401 });
     }
-    const data = addResponsesDataSchema.parse(await request.json());
-    const result = await _addResponsesV2({ data });
+    const data = assessmentSubmitDataSchema.parse(await request.json());
+    const result = await assessmentSubmit({ data });
     return new Response(superjson.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

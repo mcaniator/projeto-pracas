@@ -1,19 +1,21 @@
-import {
-  isAssessmentQuestionItem,
-  isAssessmentSubcategoryItem,
-} from "@/app/admin/assessments/details/responseFormV2";
 import dayjs from "@/lib/dayjs";
-import {
-  AssessmentCategoryItem,
-  AssessmentQuestionItem,
-} from "@/lib/serverFunctions/queries/assessment";
+import type {
+  FormSubmissionCategoryItem,
+  FormSubmissionQuestionItem,
+} from "@/lib/serverFunctions/queries/formSubmission";
 import {
   FormValues,
   SerializedFormValues,
-} from "@/lib/types/assessments/responseFormTypes";
+} from "@/lib/types/formSubmission/responseFormTypes";
+import {
+  isFormSubmissionQuestionItem,
+  isFormSubmissionSubcategoryItem,
+} from "@/lib/utils/formSubmissionUtils";
 import { QuestionResponseCharacterTypes } from "@prisma/client";
 
-export const getDateTimeResponseFormat = (question: AssessmentQuestionItem) => {
+export const getDateTimeResponseFormat = (
+  question: FormSubmissionQuestionItem,
+) => {
   switch (question.characterType) {
     case "DATE":
       return "DD/MM/YYYY";
@@ -27,13 +29,13 @@ export const getDateTimeResponseFormat = (question: AssessmentQuestionItem) => {
 };
 
 export const buildDateResponseFormatByQuestionId = (
-  categories: AssessmentCategoryItem[],
+  categories: FormSubmissionCategoryItem[],
 ) => {
   const formatByQuestionId = new Map<string, string>();
 
   categories.forEach((category) => {
     category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
+      if (isFormSubmissionSubcategoryItem(child)) {
         child.questions.forEach((question) => {
           if (
             question.questionType === "WRITTEN" &&
@@ -51,7 +53,7 @@ export const buildDateResponseFormatByQuestionId = (
       }
 
       if (
-        isAssessmentQuestionItem(child) &&
+        isFormSubmissionQuestionItem(child) &&
         child.questionType === "WRITTEN" &&
         (child.characterType === "DATE" ||
           child.characterType === "TIME" ||
@@ -70,14 +72,14 @@ export const buildDateResponseFormatByQuestionId = (
 
 export const deserializeResponseFormValues = (
   values: SerializedFormValues,
-  categories: AssessmentCategoryItem[],
+  categories: FormSubmissionCategoryItem[],
 ): FormValues => {
   //We need to map all date questions to construct their dayjs objects based on their serialized values
   const dateQuestionsMap = new Map<number, QuestionResponseCharacterTypes>();
 
   categories.forEach((category) => {
     category.categoryChildren.forEach((child) => {
-      if (isAssessmentSubcategoryItem(child)) {
+      if (isFormSubmissionSubcategoryItem(child)) {
         child.questions.forEach((question) => {
           if (
             question.questionType === "WRITTEN" &&
@@ -92,7 +94,7 @@ export const deserializeResponseFormValues = (
       }
 
       if (
-        isAssessmentQuestionItem(child) &&
+        isFormSubmissionQuestionItem(child) &&
         child.questionType === "WRITTEN" &&
         (child.characterType === "DATE" ||
           child.characterType === "TIME" ||
@@ -135,7 +137,7 @@ export const deserializeResponseFormValues = (
 
 export const serializeResponseFormValues = (
   values: FormValues,
-  categories: AssessmentCategoryItem[],
+  categories: FormSubmissionCategoryItem[],
 ) => {
   const dateFormatByQuestionId =
     buildDateResponseFormatByQuestionId(categories);

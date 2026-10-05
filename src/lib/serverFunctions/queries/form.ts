@@ -2,25 +2,26 @@ import {
   APIRequestParams,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
-import { sleep } from "@/lib/utils/sleep";
-import { booleanFromString } from "@/lib/zodValidators";
-import { prisma } from "@lib/prisma";
-import { z } from "zod";
-
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
-import {
+import type {
+  CalculationParams,
   CategoryItem,
   QuestionItem,
   SubcategoryItem,
-} from "../../../app/admin/forms/[formId]/edit/clientV2";
+} from "@/lib/types/forms/formStructure";
+import { sleep } from "@/lib/utils/sleep";
+import { booleanFromString } from "@/lib/zodValidators";
+import { prisma } from "@lib/prisma";
+import { FormUse } from "@prisma/client";
+import { z } from "zod";
+
 import { Calculation } from "../../utils/calculationUtils";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
-export type FetchFormsLatestResponse = Awaited<
-  ReturnType<typeof fetchFormsLatest>
+export type GetFormsLatestResponse = Awaited<
+  ReturnType<typeof getFormsLatest>
 >["data"];
 
-const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
+const getFormsLatest = async (params?: { finalizedOnly: boolean }) => {
   const whereStatement: Record<string, boolean | number | string> = {};
   if (params?.finalizedOnly) {
     whereStatement.finalized = true;
@@ -56,6 +57,7 @@ const fetchFormsLatest = async (params?: { finalizedOnly: boolean }) => {
 };
 
 export const fetchFormParamsSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   finalizedOnly: booleanFromString.nullish(),
   includeArchived: booleanFromString.nullish(),
 });
@@ -68,8 +70,9 @@ export const fetchForms = async (
 ) => {
   const params = request.params!;
   try {
-    const forms = await prisma.form.findMany({
+    const databaseForms = await prisma.form.findMany({
       where: {
+        formUse: params.formUse,
         ...(params?.finalizedOnly && { finalized: true }),
         ...(!params?.includeArchived && { archived: false }),
       },
@@ -79,7 +82,13 @@ export const fetchForms = async (
         finalized: true,
         archived: true,
         updatedAt: true,
-        _count: { select: { assessment: true } },
+        _count: {
+          select: {
+            assessment: params.formUse === FormUse.ASSESSMENT,
+            modularTallyTemplates:
+              params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
+          },
+        },
       },
       orderBy: [
         {
@@ -90,6 +99,14 @@ export const fetchForms = async (
         },
       ],
     });
+    const forms = databaseForms.map(({ _count, ...form }) => ({
+      ...form,
+      usageCount:
+        params.formUse === FormUse.ASSESSMENT ?
+          (_count.assessment ?? 0)
+        : (_count.modularTallyTemplates ?? 0),
+    }));
+
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: { forms },
@@ -107,15 +124,29 @@ export const fetchForms = async (
   }
 };
 
-const getFormTree = async (params: { formId: number }) => {
-  try {
+const getFormStructure = async ({
+  formId,
+  publicQuestionsOnly = false,
+  includeCalculations,
+}: {
+  formId: number;
+  publicQuestionsOnly?: boolean;
+  includeCalculations: boolean;
+}) => {
+  const getFormData = async () => {
     const form = await prisma.form.findUnique({
-      where: { id: params.formId },
+      where: { id: formId },
       select: {
         id: true,
         name: true,
         finalized: true,
         formItems: {
+          where:
+            publicQuestionsOnly ?
+              {
+                OR: [{ questionId: null }, { question: { isPublic: true } }],
+              }
+            : undefined,
           orderBy: { position: "asc" },
           include: {
             category: {
@@ -132,6 +163,7 @@ const getFormTree = async (params: { formId: number }) => {
               },
             },
             question: {
+              where: publicQuestionsOnly ? { isPublic: true } : undefined,
               select: {
                 name: true,
                 iconKey: true,
@@ -295,24 +327,20 @@ const getFormTree = async (params: { formId: number }) => {
     });
 
     return {
-      statusCode: 200,
-      formTree: {
-        id: form.id,
-        name: form.name,
-        finalized: form.finalized,
-        categories: categories,
-      },
+      formId: form.id,
+      formName: form.name,
+      formIsFinalized: form.finalized,
+      categories: categories,
     };
-  } catch (e) {
-    return { statusCode: 500, formTree: null };
-  }
-};
+  };
 
-const getCalculationByFormId = async (formId: number) => {
-  try {
+  const getFormCalculations = async () => {
+    if (!includeCalculations) return undefined;
+
     const dbCalculations = await prisma.calculation.findMany({
       where: {
         formId: formId,
+        targetQuestion: publicQuestionsOnly ? { isPublic: true } : undefined,
       },
       select: {
         expression: true,
@@ -335,10 +363,18 @@ const getCalculationByFormId = async (formId: number) => {
       acc.push(calcParams);
       return acc;
     }, [] as CalculationParams[]);
-    return { statusCode: 200, calculations: calculations };
-  } catch (e) {
-    return { statusCode: 500, calculations: [] };
-  }
+    return calculations;
+  };
+
+  const [formData, calculations] = await Promise.all([
+    getFormData(),
+    getFormCalculations(),
+  ]);
+
+  return {
+    ...formData,
+    ...(calculations !== undefined ? { calculations } : {}),
+  };
 };
 
 export const fetchFormStructureParamsSchema = z.object({
@@ -357,21 +393,29 @@ export const fetchFormStructure = async (
   request: APIRequestParams<fetchFormStructureParams>,
 ) => {
   const params = request.params!;
-  const [form, calculations] = await Promise.all([
-    getFormTree(params),
-    getCalculationByFormId(params.formId),
-  ]);
+  try {
+    const formStructure = await getFormStructure({
+      formId: params.formId,
+      includeCalculations: true,
+    });
 
-  return {
-    responseInfo: {
-      statusCode:
-        form.statusCode === 200 ? calculations.statusCode : form.statusCode,
-    } as APIResponseInfo,
-    data: {
-      form,
-      calculations: calculations.calculations,
-    },
-  };
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: {
+        formStructure,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar estrutura do formulário!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
 };
 
-export { fetchFormsLatest, getFormTree, getCalculationByFormId };
+export { getFormsLatest, getFormStructure };

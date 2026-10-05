@@ -67,14 +67,22 @@ const Sidebar = () => {
     {
       icon: <GrGroup size={34} />,
       name: "Contagens",
+      path: "/admin/modularTally",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
+    },
+    {
+      icon: <GrGroup size={34} />,
+      name: "Contagens (Legado)",
       path: "/admin/tallys",
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
     },
     {
       icon: <IconClipboard size={34} />,
-      name: "Formulários",
-      path: "/admin/forms",
-      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["FORM"] }),
+      name: "Protocolos",
+      path: "/admin/protocols",
+      show: checkIfRolesArrayContainsAny(user.roles, {
+        roleGroups: ["PROTOCOL", "TALLY"],
+      }),
     },
     {
       icon: <IconTableExport size={34} />,

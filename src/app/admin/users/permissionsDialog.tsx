@@ -49,10 +49,11 @@ const PermissionsDialog = ({
           ) ?? null,
       },
       {
-        section: "FORM",
+        section: "PROTOCOL",
         role:
-          user.roles.find((r) => r === "FORM_MANAGER" || r === "FORM_VIEWER") ??
-          null,
+          user.roles.find(
+            (r) => r === "PROTOCOL_MANAGER" || r === "PROTOCOL_VIEWER",
+          ) ?? null,
       },
       {
         section: "PARK",

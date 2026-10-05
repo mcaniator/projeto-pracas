@@ -8,11 +8,15 @@ import type {
   SubcategorySubmitData,
 } from "../mutations/categoryServerActions";
 import type { FetchCategoriesWithSubcategoriesReponse } from "../queries/category";
+import type { GetCategoriesWithSubcategoriesParams } from "../queries/category";
 
 export const useFetchCategoriesWithSubcategories = (
   params?: UseFetchAPIParams<FetchCategoriesWithSubcategoriesReponse>,
 ) => {
-  return useFetchAPI<FetchCategoriesWithSubcategoriesReponse>({
+  return useFetchAPI<
+    FetchCategoriesWithSubcategoriesReponse,
+    GetCategoriesWithSubcategoriesParams
+  >({
     url: "/api/admin/forms/categoriesWithSubcategories",
     callbacks: params?.callbacks,
     options: {

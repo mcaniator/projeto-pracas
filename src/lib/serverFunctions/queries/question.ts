@@ -4,7 +4,7 @@ import {
 } from "@/lib/types/backendCalls/APIResponse";
 import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
-import { Prisma } from "@prisma/client";
+import { FormUse, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { CategoryForQuestionPicker } from "../../types/forms/formCreation";
@@ -53,10 +53,11 @@ const buildQuestionsByCategoryQuery = ({
               ),
               '[]'::json
             )
-          ) ORDER BY q.name DESC
+          ) ORDER BY q.name ASC
         )
         FROM "question" q
         WHERE q."category_id" = c.id
+          AND q."form_use" = c."form_use"
           AND q."subcategory_id" IS NULL
           ${categoryQuestionWhere}
       ),
@@ -100,18 +101,20 @@ const buildQuestionsByCategoryQuery = ({
                       ),
                       '[]'::json
                     )
-                  ) ORDER BY sq.name DESC
+                  ) ORDER BY sq.name ASC
                 )
                 FROM "question" sq
                 WHERE sq."subcategory_id" = s.id
+                  AND sq."form_use" = c."form_use"
                   ${subcategoryQuestionWhere}
               ),
               '[]'::json
             )
-          ) ORDER BY s.name DESC
+          ) ORDER BY s.name ASC
         )
         FROM "subcategory" s
         WHERE s."category_id" = c.id
+          AND s."form_use" = c."form_use"
       ),
       '[]'::json
     ) AS subcategory
@@ -119,10 +122,11 @@ const buildQuestionsByCategoryQuery = ({
   FROM "category" c
   WHERE 1 = 1
     ${categoryWhere}
-  ORDER BY c.name DESC
+  ORDER BY c.name ASC
 `;
 
 export const fetchQuestionsByCategoryAndSubcategoryParamsSchema = z.object({
+  formUse: z.nativeEnum(FormUse),
   categoryId: z.coerce.number().int().nullish(),
   subcategoryId: z.coerce.number().nullish(),
   verifySubcategoryNullness: booleanFromString.nullish(),
@@ -158,7 +162,7 @@ const searchQuestionsByCategoryAndSubcategory = async (
 
     const categories = await prisma.$queryRaw<Array<CategoryForQuestionPicker>>(
       buildQuestionsByCategoryQuery({
-        categoryWhere: Prisma.sql`AND c.id = ${params.categoryId}`,
+        categoryWhere: Prisma.sql`AND c.id = ${params.categoryId} AND c."form_use" = ${params.formUse}::"FORM_USE"`,
         categoryQuestionWhere: categoryQuestionFilter,
         subcategoryQuestionWhere: subcategoryQuestionFilter,
       }),
@@ -190,9 +194,10 @@ const searchQuestionsByCategoryAndSubcategory = async (
 };
 
 const searchQuestionsByName = async (
-  request: APIRequestParams<{ name: string }>,
+  request: APIRequestParams<{ name: string; formUse: FormUse }>,
 ) => {
   let { name } = request.params!;
+  const { formUse } = request.params!;
   if (!name)
     return {
       responseInfo: {
@@ -207,7 +212,7 @@ const searchQuestionsByName = async (
   try {
     const categories = await prisma.$queryRaw<Array<CategoryForQuestionPicker>>(
       buildQuestionsByCategoryQuery({
-        categoryWhere: Prisma.empty,
+        categoryWhere: Prisma.sql`AND c."form_use" = ${formUse}::"FORM_USE"`,
         categoryQuestionWhere: Prisma.sql`AND unaccent(q.name) ILIKE unaccent(${name})`,
         subcategoryQuestionWhere: Prisma.sql`AND unaccent(sq.name) ILIKE unaccent(${name})`,
       }),

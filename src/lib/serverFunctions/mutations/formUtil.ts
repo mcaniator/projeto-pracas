@@ -3,12 +3,11 @@ import {
   APIRequestData,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import type { FormStructure } from "@/lib/types/forms/formStructure";
 import { booleanFromString, formSchema } from "@/lib/zodValidators";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-import { CalculationParams } from "../../../app/admin/forms/[formId]/edit/calculations/calculationDialog";
-import { FormEditorTree } from "../../../app/admin/forms/[formId]/edit/clientV2";
 import { FormItemUtils } from "../../utils/formTreeUtils";
 
 export const createFormDataSchema = z.instanceof(FormData);
@@ -18,15 +17,17 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
   const formData = request.data!;
   try {
     const newFormData = formSchema.parse({
+      formUse: formData.get("formUse"),
       name: formData.get("name"),
       cloneFormId: formData.get("cloneFormId"),
     });
     try {
       if (newFormData.cloneFormId) {
         //CLONE FORM
-        const formToBeCloned = await prisma.form.findUniqueOrThrow({
+        const formToBeCloned = await prisma.form.findFirstOrThrow({
           where: {
             id: newFormData.cloneFormId,
+            formUse: newFormData.formUse,
           },
           include: {
             formItems: true,
@@ -36,6 +37,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
         await prisma.$transaction(async (tx) => {
           const form = await tx.form.create({
             data: {
+              formUse: newFormData.formUse,
               name: newFormData.name,
             },
             select: {
@@ -75,6 +77,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
         //CREATE EMPTY FORM
         await prisma.form.create({
           data: {
+            formUse: newFormData.formUse,
             name: newFormData.name,
           },
         });
@@ -105,11 +108,7 @@ const _createForm = async (request: APIRequestData<CreateFormData>) => {
 };
 
 export const updateFormDataSchema = z.custom<{
-  formId: number;
-  formTree: FormEditorTree;
-  calculations: CalculationParams[];
-  isFinalized: boolean;
-  newFormName?: string;
+  formStructure: FormStructure;
 }>();
 export type UpdateFormData = z.infer<typeof updateFormDataSchema>;
 export type UpdateFormResponse = Awaited<
@@ -117,8 +116,14 @@ export type UpdateFormResponse = Awaited<
 >["data"];
 
 const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
-  const { formId, formTree, calculations, isFinalized, newFormName } =
-    request.data!;
+  const { formStructure } = request.data!;
+  const {
+    formId,
+    formName,
+    formIsFinalized,
+    categories,
+    calculations = [],
+  } = formStructure;
   try {
     const currentForm = await prisma.form.findFirst({
       where: {
@@ -137,7 +142,7 @@ const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
       questionId?: number;
     }[] = [];
 
-    formTree.categories.forEach((cat) => {
+    categories.forEach((cat) => {
       flatItems.push({ position: cat.position, categoryId: cat.categoryId });
 
       cat.categoryChildren.forEach((fi) => {
@@ -335,7 +340,7 @@ const _updateFormV2 = async (request: APIRequestData<UpdateFormData>) => {
     //Transaction
     await prisma.$transaction(async (tx) => {
       await tx.form.update({
-        data: { name: newFormName, finalized: isFinalized },
+        data: { name: formName, finalized: formIsFinalized },
         where: { id: formId },
       });
       if (deleteQuery) {
@@ -380,10 +385,16 @@ const _updateFormArchiveStatus = async (
       where: { id: formId },
       select: {
         name: true,
+        _count: {
+          select: {
+            assessment: true,
+            modularTallyTemplates: true,
+          },
+        },
       },
     });
 
-    let archivedDueToAssessments = false;
+    let archivedDueToUses = false;
 
     if (!archived) {
       await prisma.form.update({
@@ -395,12 +406,11 @@ const _updateFormArchiveStatus = async (
         },
       });
     } else {
-      const assessmentsCount = await prisma.assessment.count({
-        where: { formId },
-      });
+      const hasUses =
+        dbForm._count.assessment > 0 || dbForm._count.modularTallyTemplates > 0;
 
-      if (assessmentsCount > 0) {
-        archivedDueToAssessments = true;
+      if (hasUses) {
+        archivedDueToUses = true;
         await prisma.form.update({
           where: {
             id: formId,
@@ -423,7 +433,7 @@ const _updateFormArchiveStatus = async (
         statusCode: 200,
         message:
           archived ?
-            archivedDueToAssessments ?
+            archivedDueToUses ?
               `Formulário "${dbForm.name}" arquivado com sucesso!`
             : `Formulário "${dbForm.name}" excluído com sucesso!`
           : "Formulário restaurado com sucesso!",

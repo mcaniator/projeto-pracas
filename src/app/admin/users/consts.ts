@@ -1,6 +1,11 @@
 import { Role } from "@prisma/client";
 
-export type SystemSection = "PARK" | "FORM" | "ASSESSMENT" | "TALLY" | "USER";
+export type SystemSection =
+  | "PARK"
+  | "PROTOCOL"
+  | "ASSESSMENT"
+  | "TALLY"
+  | "USER";
 export const rows: { title: string; section: SystemSection }[] = [
   {
     title: "Praças",
@@ -8,7 +13,7 @@ export const rows: { title: string; section: SystemSection }[] = [
   },
   {
     title: "Formulários",
-    section: "FORM",
+    section: "PROTOCOL",
   },
   {
     title: "Avaliações físicas",
@@ -52,21 +57,21 @@ export const roles = [
     color: warningColors.level3,
   },
   {
-    section: "FORM",
+    section: "PROTOCOL",
     name: "Nenhuma",
     value: null,
     color: warningColors.none,
   },
   {
-    section: "FORM",
+    section: "PROTOCOL",
     name: "Visualizador",
-    value: "FORM_VIEWER",
+    value: "PROTOCOL_VIEWER",
     color: warningColors.level1,
   },
   {
-    section: "FORM",
+    section: "PROTOCOL",
     name: "Administrador",
-    value: "FORM_MANAGER",
+    value: "PROTOCOL_MANAGER",
     color: warningColors.level3,
   },
   {
