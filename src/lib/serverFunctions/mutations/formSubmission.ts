@@ -1,3 +1,4 @@
+import { getSessionUser } from "@/lib/auth/userUtil";
 import dayjs from "@/lib/dayjs";
 import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { prisma } from "@/lib/prisma";
@@ -68,7 +69,6 @@ const toOptionResponseValue = (
 export type getFormSubmissionUpdateTransactionsParams = {
   formSubmissionId: number;
   formSubmission: FormSubmissionData;
-  userId: string;
 };
 
 /**
@@ -79,10 +79,15 @@ export type getFormSubmissionUpdateTransactionsParams = {
 export const getFormSubmissionUpdateTransactions = async ({
   formSubmissionId,
   formSubmission: { responses, geometries },
-  userId,
 }: getFormSubmissionUpdateTransactionsParams): Promise<
   Prisma.PrismaPromise<number>[]
 > => {
+  const userId = (await getSessionUser())?.id;
+
+  if (!userId) {
+    throw new Error("Usuário não autenticado");
+  }
+
   const storedFormSubmission = await prisma.formSubmission.findUnique({
     where: { id: formSubmissionId },
     select: { formId: true },

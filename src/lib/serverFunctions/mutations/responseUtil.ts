@@ -86,7 +86,6 @@ const assessmentSubmit = async (
       await getFormSubmissionUpdateTransactions({
         formSubmissionId: assessment.formSubmissionId,
         formSubmission,
-        userId: user.id,
       });
 
     const assessmentUpdate = prisma.assessment.update({

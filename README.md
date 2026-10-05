@@ -6,13 +6,13 @@ Projeto apoidado pela Pró-Reitoria de Extensão sendo realizado em parceria com
 
 O projeto é feito em TypeScript, utilizando o framework Next.js. Para executar, é necessário possuir um dos seguintes gerenciadores de pacotes: <br>
 **npm**: https://www.npmjs.com/get-npm <br>
-**pnpm**: https://pnpm.io/installation
+**pnpm**: https://pnpm.io/installation RECOMENDADO!!
 
 É necessário acesso a um banco de dados PostgreSQL. Recomenda-se utilizar um versão igual ou superior a 16.0.
 
 ### Configurações iniciais
 
-#### Configuração do Google Cloud
+#### Configuração do Google Cloud (Não obrigatório)
 
 Caso seja utilizado o OAuth da Google para autenticar usuários e/ou a conta de e-mail utilizada pelo sistema, é necessário criar um projeto no Google Cloud.
 <br>
@@ -43,7 +43,7 @@ O sistema utiliza uma conta da Google para enviar e-mails de convite e de recupe
 <br>
 Há 2 maneiras de autenticar a conta no sistema:
 
-##### Oauth
+##### Oauth NÃO RECOMENDADO!
 
 Uma vez criado e configurado um projeto no Google Cloud, acesse https://developers.google.com/oauthplayground/.
 
@@ -55,7 +55,7 @@ Uma vez criado e configurado um projeto no Google Cloud, acesse https://develope
 - Automaticamente será aberto a aba de etapa 3. Abra a etapa 2 novamente e copie o refresh token, ele será necessário para o preenchimento de variáveis de ambiente.
 - Observação: Caso o público-alvo do projeto no Google Cloud esteja marcado como "externo", e o status de publicação esteja como "em teste", o refresh token será revogado dentro de alguns dias.
 
-##### App password
+##### App password RECOMENDADO!
 
 - Ative a autenticação de 2 fatores na conta Google.
 - Configure uma senha de app.
@@ -150,9 +150,28 @@ ou
 pnpm run start
 ```
 
-# Configuração do HTTPS para desenvolvimento (Next.js + Capacitor)
+### Estensões VSCode recomendadas
 
-Esta seção descreve todas as etapas necessárias para que o aplicativo gerado pelo Capacitor consiga acessar as API Routes do projeto Next.js durante o desenvolvimento utilizando HTTPS.
+Prisma versão 6
+
+# Testando o aplicativo em debug
+
+Utilize no .env: NEXT_PUBLIC_APP_DEBUG="false"
+NEXT_PUBLIC_BASE_URL e BASE_URL com o seu ip na rede, por exemplo: http://192.168.2.102:3000
+
+Execute:
+
+npx cap sync android
+
+npx cap open android (para abrir o android studio)
+
+Execute o projeto com pnpm run dev
+
+Para acompanhar mensagens no terminal do aplicativo, utlize o navegador Google Chrome e acesse chrome://inspect/. Lá o aplicativo em execução no seu dispositivo Android ficará listado e poderá ser inspecionado com a opção "inspect".
+
+# Configuração do HTTPS para desenvolvimento (Next.js + Capacitor) ATUALIZAR!!
+
+Esta seção descreve todas as etapas necessárias para que o aplicativo gerado pelo Capacitor consiga acessar as API Routes do projeto Next.js durante o desenvolvimento utilizando HTTPS. Essas instruções não são necessárias caso esteja testando o app via Android Studio com a chave NEXT_PUBLIC_APP_DEBUG com o valor "true".
 
 ---
 
