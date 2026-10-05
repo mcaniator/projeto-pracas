@@ -28,10 +28,7 @@ import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import type { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
-import type {
-  ResponseFormImages,
-  SerializedFormValues,
-} from "@/lib/types/formSubmission/responseFormTypes";
+import type { SerializedFormValues } from "@/lib/types/formSubmission/responseFormTypes";
 import { useMediaQuery, useTheme } from "@mui/material";
 import {
   IconArrowBackUp,
@@ -101,7 +98,6 @@ const AssessmentClient = ({
   const [driveFolderUrl, setDriveFolderUrl] = useState<string | null>(
     assessmentDetails.driveFolderUrl,
   );
-  const [responseImages, setResponseImages] = useState<ResponseFormImages>({});
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
@@ -219,7 +215,6 @@ const AssessmentClient = ({
         assessmentDetails.endDate ? dayjs(assessmentDetails.endDate) : null,
       );
       setDriveFolderUrl(assessmentDetails.driveFolderUrl);
-      setResponseImages({});
       geometriesRef.current = formSubmission.geometries;
       responsesAreDirtyRef.current = false;
       nonResponseItemsIsDirtyRef.current = false;
@@ -261,44 +256,12 @@ const AssessmentClient = ({
       const importedData = assessmentImportDataSchema.parse(
         JSON.parse(await manifestFile.async("string")),
       );
-      const importedImages: ResponseFormImages = Object.fromEntries(
-        await Promise.all(
-          Object.entries(importedData.responseImages).map(
-            async ([questionId, images]) =>
-              [
-                questionId,
-                await Promise.all(
-                  images.map(async (image) => {
-                    const imageEntry = image.path ? zip.file(image.path) : null;
-                    if (image.path && !imageEntry) {
-                      throw new Error(`Imagem ausente: ${image.path}`);
-                    }
-                    const imageBytes = await imageEntry?.async("arraybuffer");
-                    return {
-                      file:
-                        imageBytes ?
-                          new File([imageBytes], image.name, {
-                            type: image.type,
-                            lastModified: image.lastModified,
-                          })
-                        : undefined,
-                      url: image.url,
-                      status: image.status,
-                    };
-                  }),
-                ),
-              ] as const,
-          ),
-        ),
-      );
-
       responseFormRef.current?.reset({
         responsesFormValues: importedData.responses,
         geometries: importedData.geometries,
       });
       serializedFormValuesRef.current = importedData.responses;
       geometriesRef.current = importedData.geometries;
-      setResponseImages(importedImages);
       setStartDate(dayjs(importedData.startDate));
       setEndDate(
         importedData.endDate && dayjs(importedData.endDate).isValid() ?
@@ -316,18 +279,6 @@ const AssessmentClient = ({
     } finally {
       event.target.value = "";
     }
-  };
-
-  const handleQuestionImageSynced = (
-    questionId: number,
-    imageIndex: number,
-  ) => {
-    setResponseImages((current) => ({
-      ...current,
-      [questionId]: (current[questionId] ?? []).map((image, index) =>
-        index === imageIndex ? { ...image, status: "SYNCED" } : image,
-      ),
-    }));
   };
 
   useEffect(() => {
@@ -492,12 +443,10 @@ const AssessmentClient = ({
           ref={responseFormRef}
           header={responseFormHeader}
           formSubmission={formSubmission}
-          responseImages={responseImages}
           readOnly={!isFilling}
           locationPolygonGeoJson={locationPolygonGeoJson}
           onValuesChange={handleValuesChange}
           onGeometriesChange={handleGeometriesChange}
-          onImagesChange={setResponseImages}
           onSubmit={() => {
             setOpenSaveDialog(true);
           }}
@@ -537,14 +486,11 @@ const AssessmentClient = ({
         isFinalized={isFinalized}
         startDate={startDate}
         driveFolderUrl={driveFolderUrl}
-        responseImages={responseImages}
-        categories={formSubmission.formStructure.categories}
         locationId={locationId}
         formId={formSubmission.formStructure.formId}
         savedUpdatedAt={savedUpdatedAtRef.current}
         canSaveOffline={canSaveOffline}
         isSQLiteAssessment={isSQLiteAssessment}
-        onResponseImageSynced={handleQuestionImageSynced}
         onSaveSuccess={(newUpdatedAt) => {
           savedUpdatedAtRef.current = newUpdatedAt;
           setSavedUpdatedAtState(newUpdatedAt);

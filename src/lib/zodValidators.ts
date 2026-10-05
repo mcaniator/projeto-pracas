@@ -516,19 +516,6 @@ const serializedAssessmentResponseSchema = z.union([
   ),
 ]);
 
-const assessmentExportImageSchema = z
-  .object({
-    path: z.string().min(1).optional(),
-    name: z.string().min(1),
-    type: z.string(),
-    lastModified: z.number().int().nonnegative(),
-    url: z.string().optional(),
-    status: z.enum(["SYNCED", "UNSYNCED"]),
-  })
-  .refine((image) => image.path || image.url, {
-    message: "A imagem deve possuir um arquivo ou URL",
-  });
-
 const assessmentImportDataSchema = z.object({
   startDate: z.string().datetime(),
   endDate: z.string().datetime().nullable(),
@@ -555,7 +542,6 @@ const assessmentImportDataSchema = z.object({
     }),
   ),
   driveFolderUrl: z.string().nullable(),
-  responseImages: z.record(z.array(assessmentExportImageSchema)),
 });
 
 type Tally = z.infer<typeof tallySchema>;

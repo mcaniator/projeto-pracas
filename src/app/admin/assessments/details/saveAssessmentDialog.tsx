@@ -13,14 +13,9 @@ import {
 import dayjs from "@/lib/dayjs";
 import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
-import {
-  useAssessmentSubmit,
-  useUploadImageResponse,
-} from "@/lib/serverFunctions/apiCalls/assessment";
-import type { AssessmentCategoryItem } from "@/lib/serverFunctions/queries/assessment";
+import { useAssessmentSubmit } from "@/lib/serverFunctions/apiCalls/assessment";
 import type {
   ResponseFormGeometry,
-  ResponseFormImages,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import { Capacitor } from "@capacitor/core";
@@ -35,83 +30,6 @@ import {
   saveAssessmentResponsesDraft,
 } from "./responseFormUtil";
 
-const imageExtensionsByMimeType: Record<string, readonly string[]> = {
-  "image/avif": ["avif"],
-  "image/bmp": ["bmp"],
-  "image/gif": ["gif"],
-  "image/heic": ["heic"],
-  "image/heif": ["heif"],
-  "image/jpeg": ["jpg", "jpeg", "jfif"],
-  "image/jpg": ["jpg", "jpeg"],
-  "image/png": ["png"],
-  "image/svg+xml": ["svg"],
-  "image/tiff": ["tif", "tiff"],
-  "image/webp": ["webp"],
-};
-
-const ensureImageFileExtension = (name: string, mimeType: string) => {
-  const validExtensions = imageExtensionsByMimeType[mimeType.toLowerCase()];
-  if (!validExtensions) return name;
-
-  const currentExtension = name.match(/\.([^.]+)$/)?.[1]?.toLowerCase();
-  if (currentExtension && validExtensions.includes(currentExtension)) {
-    return name;
-  }
-
-  const nameWithoutExtension =
-    currentExtension ? name.slice(0, -currentExtension.length - 1) : name;
-  return `${nameWithoutExtension}.${validExtensions[0]}`;
-};
-
-const normalizeToSnakeCase = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-
-const normalizeImageFileName = (name: string) => {
-  const extensionStart = name.lastIndexOf(".");
-  const extension = name
-    .slice(extensionStart + 1)
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-  if (extensionStart <= 0) return normalizeToSnakeCase(name) || "imagem";
-
-  const normalizedName = normalizeToSnakeCase(name.slice(0, extensionStart));
-
-  return extension ?
-      `${normalizedName || "imagem"}.${extension}`
-    : normalizedName;
-};
-
-const normalizeQuestionFolderName = (name: string, questionId: number) => {
-  const normalizedName = normalizeToSnakeCase(name)
-    .slice(0, 20)
-    .replace(/_+$/g, "");
-
-  return normalizedName || `questao_${questionId}`;
-};
-
-const buildQuestionFolderNameById = (categories: AssessmentCategoryItem[]) => {
-  const folderNameById = new Map<number, string>();
-
-  categories.forEach((category) => {
-    category.categoryChildren.forEach((child) => {
-      const questions = "questions" in child ? child.questions : [child];
-      questions.forEach((question) => {
-        folderNameById.set(
-          question.questionId,
-          normalizeQuestionFolderName(question.name, question.questionId),
-        );
-      });
-    });
-  });
-
-  return folderNameById;
-};
-
 const SaveAssessmentDialog = ({
   open,
   locationName,
@@ -122,14 +40,11 @@ const SaveAssessmentDialog = ({
   endDate,
   startDate,
   driveFolderUrl,
-  responseImages,
-  categories,
   locationId,
   formId,
   savedUpdatedAt,
   canSaveOffline,
   isSQLiteAssessment,
-  onResponseImageSynced,
   onSaveSuccess,
   onIsFinalizedChange,
   onEndDateChange,
@@ -145,14 +60,11 @@ const SaveAssessmentDialog = ({
   endDate: Dayjs | null;
   startDate: Dayjs;
   driveFolderUrl: string | null;
-  responseImages: ResponseFormImages;
-  categories: AssessmentCategoryItem[];
   locationId: number;
   formId: number;
   savedUpdatedAt: Date;
   canSaveOffline: boolean;
   isSQLiteAssessment: boolean;
-  onResponseImageSynced: (questionId: number, imageIndex: number) => void;
   onSaveSuccess: (newSavedUpdatedAt: Date) => void;
   onIsFinalizedChange: (newIsFinalized: boolean) => void;
   onEndDateChange: (newEndDate: Dayjs | null) => void;
@@ -167,37 +79,6 @@ const SaveAssessmentDialog = ({
   const { setLoadingOverlay } = useLoadingOverlay();
   const { enqueueSnackbar } = useAppSnackbar();
   const { user } = useUserContext();
-  const [uploadImage] = useUploadImageResponse();
-  const saveResponseImages = async (responseImages: ResponseFormImages) => {
-    //Unused because of problems with the Google API
-    return;
-    await Promise.all(
-      Object.entries(responseImages).flatMap(([questionId, images]) =>
-        images.flatMap((image, imageIndex) => {
-          if (!image.file || image.status !== "UNSYNCED") {
-            return [];
-          }
-
-          return uploadImage({
-            image: image.file,
-            folderId: "",
-          }).then((response) => {
-            if (
-              response.responseInfo.statusCode < 200 ||
-              response.responseInfo.statusCode >= 300
-            ) {
-              throw new Error(
-                response.responseInfo.message ??
-                  "Erro ao enviar imagem ao Google Drive!",
-              );
-            }
-
-            onResponseImageSynced(Number(questionId), imageIndex);
-          });
-        }),
-      ),
-    );
-  };
   const [serverSubmitAssessment] = useAssessmentSubmit({
     callbacks: {
       onSuccess: (response) => {
@@ -332,8 +213,6 @@ const SaveAssessmentDialog = ({
       }
       if (!funcIsSQLiteAssessment) {
         if (isConnected) {
-          await saveResponseImages(responseImages);
-
           await serverSubmitAssessment({
             data: {
               assessmentId,
@@ -391,44 +270,6 @@ const SaveAssessmentDialog = ({
     setLoadingOverlay({ show: true, message: "Gerando arquivo da avaliação" });
     try {
       const zip = new JSZip();
-      const questionFolderNameById = buildQuestionFolderNameById(categories);
-      const exportedImages = Object.fromEntries(
-        Object.entries(responseImages).map(
-          ([questionId, images]) =>
-            [
-              questionId,
-              images.map((image, imageIndex) => {
-                const fallbackName = `imagem-${imageIndex + 1}`;
-                const name = ensureImageFileExtension(
-                  image.file?.name || fallbackName,
-                  image.file?.type ?? "",
-                );
-                const safeName = normalizeImageFileName(name);
-                const questionFolderName =
-                  questionFolderNameById.get(Number(questionId)) ??
-                  `questao_${questionId}`;
-                const path =
-                  image.file ?
-                    `images/${questionId}_${questionFolderName}/${imageIndex}-${safeName}`
-                  : undefined;
-
-                if (image.file && path) {
-                  zip.file(path, image.file);
-                }
-
-                return {
-                  path,
-                  name,
-                  type: image.file?.type ?? "",
-                  lastModified: image.file?.lastModified ?? 0,
-                  url: image.url,
-                  status: image.status,
-                };
-              }),
-            ] as const,
-        ),
-      );
-
       const data = {
         startDate: startDate.toISOString(),
         endDate: endDate?.toISOString() ?? null,
@@ -437,7 +278,6 @@ const SaveAssessmentDialog = ({
         responses: serializedFormValues,
         geometries: geometries,
         driveFolderUrl: driveFolderUrl,
-        responseImages: exportedImages,
       };
 
       zip.file("assessment.json", JSON.stringify(data, null, 2));

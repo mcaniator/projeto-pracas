@@ -420,9 +420,7 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
                   <ResponseFormV2
                     key={previewFormSubmission.formStructure.formId}
                     formSubmission={previewFormSubmission}
-                    responseImages={{}}
                     readOnly={false}
-                    onImagesChange={() => undefined}
                   />
                 )}
               </div>

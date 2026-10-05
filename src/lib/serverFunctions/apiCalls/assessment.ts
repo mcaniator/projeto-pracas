@@ -4,7 +4,6 @@ import {
 } from "@/lib/capacitor/sqlite/adminSQLiteDb/queries/assessment";
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
-import { useCallback } from "react";
 
 import type {
   CreateAssessmentData,
@@ -25,10 +24,6 @@ import type {
   FetchPublicAssessmentsParams,
   FetchPublicAssessmentsResponse,
 } from "../queries/assessment";
-import type {
-  UploadImageResponseData,
-  UploadImageResponseParams,
-} from "../storage/drive/assessment";
 
 export const useFetchAssessments = (
   params?: UseFetchAPIParams<FetchAssessmentsResponse>,
@@ -162,41 +157,4 @@ export const useFetchPublicAssessmentDetails = ({
       method: "GET",
     },
   });
-};
-
-export const useUploadImageResponse = (
-  params?: UseFetchAPIParams<UploadImageResponseData>,
-) => {
-  const [uploadImageResponseFetch, isLoading] = useFetchAPI<
-    UploadImageResponseData,
-    Record<string, never>
-  >({
-    url: "/api/admin/uploadImageResponse",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
-    },
-  });
-
-  const uploadImageResponse = useCallback(
-    (
-      { folderId, image }: UploadImageResponseParams,
-      projectOptions?: NonNullable<
-        Parameters<typeof uploadImageResponseFetch>[0]
-      >["projectOptions"],
-    ) => {
-      const formData = new FormData();
-      //formData.append("folderId", folderId);
-      formData.append("folderId", folderId);
-      formData.append("image", image);
-
-      return uploadImageResponseFetch({
-        data: formData,
-        projectOptions,
-      });
-    },
-    [uploadImageResponseFetch],
-  );
-
-  return [uploadImageResponse, isLoading] as const;
 };

@@ -724,7 +724,7 @@ const QuestionCreationFormStep = ({
                 readOnly={isQuestionUsed}
                 name="allowResponseImages"
                 id="allowResponseImages"
-                label="Permite anexar à resposta imagens do Google Drive"
+                label="Permite anexar imagens na resposta"
                 onChange={(e) => {
                   onAllowResponseImagesChange(e.target.checked);
                 }}

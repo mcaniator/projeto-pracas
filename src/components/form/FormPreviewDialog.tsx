@@ -12,7 +12,6 @@ import type {
 import type {
   FormValues,
   ResponseFormGeometry,
-  ResponseFormImages,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import type { FormStructure } from "@/lib/types/forms/formStructure";
 import { Tab } from "@mui/material";
@@ -58,7 +57,6 @@ const FormPreviewDialog = ({
   const [previewGeometries, setPreviewGeometries] = useState<
     ResponseFormGeometry[]
   >([]);
-  const [previewImages, setPreviewImages] = useState<ResponseFormImages>({});
 
   useEffect(() => {
     responseFormRef.current?.reset({
@@ -67,7 +65,6 @@ const FormPreviewDialog = ({
     });
     setPreviewValues(formSubmission.responsesFormValues);
     setPreviewGeometries([]);
-    setPreviewImages({});
     setViewMode("form");
     setShowOnlyPublicQuestions(false);
   }, [formSubmission]);
@@ -114,13 +111,11 @@ const FormPreviewDialog = ({
           <ResponseFormV2
             ref={responseFormRef}
             formSubmission={formSubmission}
-            responseImages={previewImages}
             readOnly={false}
             onValuesChange={handleValuesChange}
             onGeometriesChange={(change) =>
               setPreviewGeometries(change.geometries)
             }
-            onImagesChange={setPreviewImages}
           />
         </div>
 
