@@ -35,7 +35,7 @@ const dexieDb = new Dexie("PracasLocal") as Dexie & {
 // Schema declaration:
 dexieDb.version(1).stores({
   assessments:
-    "id, userId, username, serverUpdatedAt, localUpdatedAt, isFinalized, startDate, endDate, driveFolderUrl, responseFormValues, geometries",
+    "id, userId, username, savedUpdatedAt, draftUpdatedAt, isFinalized, startDate, endDate, driveFolderUrl, responseFormValues, geometries",
   tallys:
     "id, userId, username, serverUpdatedAt, localUpdatedAt, isFinalized, startDate, endDate, weatherStats, tallyMap, commercialActivities, complementaryData",
 });

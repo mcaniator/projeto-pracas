@@ -9,7 +9,7 @@ import {
   fetchAssessmentResponsesDraft,
   saveAssessmentResponsesDraft,
 } from "@/app/admin/assessments/details/responseFormUtil";
-import RevertLocalAssessmentDialog from "@/app/admin/assessments/details/revertLocalAssessmentDialog";
+import RevertAssessmentDraftDialog from "@/app/admin/assessments/details/revertAssessmentDraftDialog";
 import SaveAssessmentDialog from "@/app/admin/assessments/details/saveAssessmentDialog";
 import { useUserContext } from "@/components/context/UserContext";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
@@ -105,18 +105,17 @@ const AssessmentClient = ({
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
     useState(false);
-  const [openRevertLocalAssessmentDialog, setOpenRevertLocalAssessmentDialog] =
+  const [openRevertAssessmentDraftDialog, setOpenRevertAssessmentDraftDialog] =
     useState(false);
-  const [pendingLocalAssessmentChoice, setPendingLocalAssessmentChoice] =
+  const [pendingDraftAssessmentChoice, setPendingDraftAssessmentChoice] =
     useState<AssessmentDraft>();
-  const [localAssessmentUpdatedAt, setLocalAssessmentUpdatedAt] =
-    useState<Date>();
+  const [draftUpdatedAt, setDraftUpdatedAt] = useState<Date>();
   const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
-  const [serverUpdatedAtState, setServerUpdatedAtState] = useState(
+  const [savedUpdatedAtState, setSavedUpdatedAtState] = useState(
     assessmentDetails.updatedAt,
   );
 
-  const serverUpdatedAtRef = useRef(assessmentDetails.updatedAt);
+  const savedUpdatedAtRef = useRef(assessmentDetails.updatedAt);
   const geometriesRef = useRef(formSubmission.geometries);
   const serializedFormValuesRef = useRef<SerializedFormValues>(
     formSubmission.responsesFormValues,
@@ -133,12 +132,12 @@ const AssessmentClient = ({
     setPendingSaveFromDraft(true);
     window.clearTimeout(draftSaveTimeoutRef.current);
     draftSaveTimeoutRef.current = window.setTimeout(() => {
-      const localAssessment: AssessmentDraft = {
+      const assessmentDraft: AssessmentDraft = {
         id: assessmentDetails.id,
         userId: user.id,
         username: user.username,
-        serverUpdatedAt: serverUpdatedAtRef.current,
-        localUpdatedAt: new Date(),
+        savedUpdatedAt: savedUpdatedAtRef.current,
+        draftUpdatedAt: new Date(),
         isFinalized,
         startDate: startDate.toDate(),
         endDate: endDate?.toDate() ?? null,
@@ -147,8 +146,8 @@ const AssessmentClient = ({
         geometries: geometriesRef.current,
       };
 
-      void saveAssessmentResponsesDraft(localAssessment);
-      setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
+      void saveAssessmentResponsesDraft(assessmentDraft);
+      setDraftUpdatedAt(assessmentDraft.draftUpdatedAt);
     }, 500);
   }, [
     assessmentDetails.id,
@@ -182,31 +181,31 @@ const AssessmentClient = ({
     [scheduleDraftSave],
   );
 
-  const applyLocalAssessmentValues = useCallback(
-    (localAssessment: AssessmentDraft) => {
+  const applyDraftAssessmentValues = useCallback(
+    (assessmentDraft: AssessmentDraft) => {
       responseFormRef.current?.reset({
-        responsesFormValues: localAssessment.responseFormValues,
-        geometries: localAssessment.geometries,
+        responsesFormValues: assessmentDraft.responseFormValues,
+        geometries: assessmentDraft.geometries,
       });
-      serializedFormValuesRef.current = localAssessment.responseFormValues;
-      setIsFinalized(localAssessment.isFinalized);
+      serializedFormValuesRef.current = assessmentDraft.responseFormValues;
+      setIsFinalized(assessmentDraft.isFinalized);
       setIsFilling(true);
-      setStartDate(dayjs(localAssessment.startDate));
+      setStartDate(dayjs(assessmentDraft.startDate));
       setEndDate(
-        localAssessment.endDate ? dayjs(localAssessment.endDate) : null,
+        assessmentDraft.endDate ? dayjs(assessmentDraft.endDate) : null,
       );
-      setDriveFolderUrl(localAssessment.driveFolderUrl);
-      geometriesRef.current = localAssessment.geometries;
+      setDriveFolderUrl(assessmentDraft.driveFolderUrl);
+      geometriesRef.current = assessmentDraft.geometries;
       responsesAreDirtyRef.current = false;
       nonResponseItemsIsDirtyRef.current = false;
-      setPendingLocalAssessmentChoice(undefined);
+      setPendingDraftAssessmentChoice(undefined);
       setPendingSaveFromDraft(true);
     },
     [],
   );
 
-  const applyServerAssessmentValues = useCallback(() => {
-    const applyServerValuesAndDeleteLocalValues = async () => {
+  const applySavedAssessmentValues = useCallback(() => {
+    const applySavedValuesAndDeleteDraft = async () => {
       setLoadingOverlay({ show: true, message: "Carregando..." });
       responseFormRef.current?.reset({
         responsesFormValues: formSubmission.responsesFormValues,
@@ -224,11 +223,11 @@ const AssessmentClient = ({
       geometriesRef.current = formSubmission.geometries;
       responsesAreDirtyRef.current = false;
       nonResponseItemsIsDirtyRef.current = false;
-      setPendingLocalAssessmentChoice(undefined);
+      setPendingDraftAssessmentChoice(undefined);
       try {
         await deleteAssessmentResponsesDraft(assessmentDetails.id);
         setPendingSaveFromDraft(false);
-        setLocalAssessmentUpdatedAt(undefined);
+        setDraftUpdatedAt(undefined);
       } catch {
         enqueueSnackbar("Erro ao remover dados locais!", {
           variant: "error",
@@ -241,7 +240,7 @@ const AssessmentClient = ({
       }
     };
 
-    void applyServerValuesAndDeleteLocalValues();
+    void applySavedValuesAndDeleteDraft();
   }, [
     assessmentDetails,
     enqueueSnackbar,
@@ -334,28 +333,28 @@ const AssessmentClient = ({
   useEffect(() => {
     let ignore = false;
 
-    const loadLocalAssessment = async () => {
+    const loadAssessmentDraft = async () => {
       try {
         setLoadingOverlay({
           show: true,
           message: "Carregando respostas locais...",
         });
-        const localAssessment = await fetchAssessmentResponsesDraft(
+        const assessmentDraft = await fetchAssessmentResponsesDraft(
           assessmentDetails.id,
         );
 
-        if (ignore || !localAssessment) return;
+        if (ignore || !assessmentDraft) return;
 
-        setLocalAssessmentUpdatedAt(localAssessment.localUpdatedAt);
+        setDraftUpdatedAt(assessmentDraft.draftUpdatedAt);
         if (
           assessmentDetails.updatedAt.getTime() <=
-          localAssessment.serverUpdatedAt.getTime()
+          assessmentDraft.savedUpdatedAt.getTime()
         ) {
-          applyLocalAssessmentValues(localAssessment);
+          applyDraftAssessmentValues(assessmentDraft);
           return;
         }
 
-        setPendingLocalAssessmentChoice(localAssessment);
+        setPendingDraftAssessmentChoice(assessmentDraft);
       } catch {
         enqueueSnackbar(<>Erro ao carregar respostas locais!</>, {
           variant: "error",
@@ -365,12 +364,12 @@ const AssessmentClient = ({
       }
     };
 
-    void loadLocalAssessment();
+    void loadAssessmentDraft();
     return () => {
       ignore = true;
     };
   }, [
-    applyLocalAssessmentValues,
+    applyDraftAssessmentValues,
     assessmentDetails.id,
     assessmentDetails.updatedAt,
     enqueueSnackbar,
@@ -454,7 +453,7 @@ const AssessmentClient = ({
           square
           color={isFilling ? "warning" : undefined}
           disabled={!pendingSaveFromDraft}
-          onClick={() => setOpenRevertLocalAssessmentDialog(true)}
+          onClick={() => setOpenRevertAssessmentDraftDialog(true)}
         >
           <IconArrowBackUp />
         </CButton>
@@ -542,13 +541,13 @@ const AssessmentClient = ({
         categories={formSubmission.formStructure.categories}
         locationId={locationId}
         formId={formSubmission.formStructure.formId}
-        serverUpdatedAt={serverUpdatedAtRef.current}
+        savedUpdatedAt={savedUpdatedAtRef.current}
         canSaveOffline={canSaveOffline}
         isSQLiteAssessment={isSQLiteAssessment}
         onResponseImageSynced={handleQuestionImageSynced}
         onSaveSuccess={(newUpdatedAt) => {
-          serverUpdatedAtRef.current = newUpdatedAt;
-          setServerUpdatedAtState(newUpdatedAt);
+          savedUpdatedAtRef.current = newUpdatedAt;
+          setSavedUpdatedAtState(newUpdatedAt);
           setPendingSaveFromDraft(false);
           responsesAreDirtyRef.current = false;
           nonResponseItemsIsDirtyRef.current = false;
@@ -570,14 +569,14 @@ const AssessmentClient = ({
         isSQLiteAssessment={isSQLiteAssessment}
         onClose={() => setOpenDeleteAssessmentDialog(false)}
       />
-      <RevertLocalAssessmentDialog
-        open={openRevertLocalAssessmentDialog}
-        localUpdatedAt={localAssessmentUpdatedAt}
-        serverUpdatedAt={serverUpdatedAtState}
-        onClose={() => setOpenRevertLocalAssessmentDialog(false)}
+      <RevertAssessmentDraftDialog
+        open={openRevertAssessmentDraftDialog}
+        draftUpdatedAt={draftUpdatedAt}
+        savedUpdatedAt={savedUpdatedAtState}
+        onClose={() => setOpenRevertAssessmentDraftDialog(false)}
         onConfirm={() => {
-          setOpenRevertLocalAssessmentDialog(false);
-          applyServerAssessmentValues();
+          setOpenRevertAssessmentDraftDialog(false);
+          applySavedAssessmentValues();
           enqueueSnackbar("Revertido com sucesso!", { variant: "success" });
         }}
       />
@@ -592,19 +591,19 @@ const AssessmentClient = ({
           scheduleDraftSave();
         }}
       />
-      {!!pendingLocalAssessmentChoice && (
+      {!!pendingDraftAssessmentChoice && (
         <ChooseResponsesSourceDialog
-          serverSource={{
+          savedSource={{
             updatedAt: assessmentDetails.updatedAt,
             username: assessmentDetails.user.username,
           }}
-          localSource={{
-            updatedAt: pendingLocalAssessmentChoice.localUpdatedAt,
-            username: pendingLocalAssessmentChoice.username,
+          draftSource={{
+            updatedAt: pendingDraftAssessmentChoice.draftUpdatedAt,
+            username: pendingDraftAssessmentChoice.username,
           }}
-          applyServerAssessmentValues={applyServerAssessmentValues}
-          applyLocalAssessmentValues={() =>
-            applyLocalAssessmentValues(pendingLocalAssessmentChoice)
+          applySavedAssessmentValues={applySavedAssessmentValues}
+          applyDraftAssessmentValues={() =>
+            applyDraftAssessmentValues(pendingDraftAssessmentChoice)
           }
         />
       )}

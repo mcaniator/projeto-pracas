@@ -126,7 +126,7 @@ const SaveAssessmentDialog = ({
   categories,
   locationId,
   formId,
-  serverUpdatedAt,
+  savedUpdatedAt,
   canSaveOffline,
   isSQLiteAssessment,
   onResponseImageSynced,
@@ -149,11 +149,11 @@ const SaveAssessmentDialog = ({
   categories: AssessmentCategoryItem[];
   locationId: number;
   formId: number;
-  serverUpdatedAt: Date;
+  savedUpdatedAt: Date;
   canSaveOffline: boolean;
   isSQLiteAssessment: boolean;
   onResponseImageSynced: (questionId: number, imageIndex: number) => void;
-  onSaveSuccess: (newServerUpdatedAt: Date) => void;
+  onSaveSuccess: (newSavedUpdatedAt: Date) => void;
   onIsFinalizedChange: (newIsFinalized: boolean) => void;
   onEndDateChange: (newEndDate: Dayjs | null) => void;
   onIsSQLiteAssessmentChange?: (newIsSQLiteAssessment: boolean) => void;
@@ -293,8 +293,8 @@ const SaveAssessmentDialog = ({
         id: assessmentId,
         userId: user.id,
         username: user.username,
-        serverUpdatedAt: serverUpdatedAt,
-        localUpdatedAt: new Date(),
+        savedUpdatedAt,
+        draftUpdatedAt: new Date(),
         isFinalized: isFinalized,
         startDate: startDate.toDate(),
         endDate: endDate?.toDate() ?? null,
