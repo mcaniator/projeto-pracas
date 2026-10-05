@@ -1,9 +1,11 @@
 import TallyTemplateFormManager from "@/app/admin/protocols/tallys/edit/tallyTemplateFormManager";
 import PermissionGuard from "@/components/auth/permissionGuard";
+import type { FormManagerRef } from "@/components/form/formManager/formManager";
 import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
 import type { FetchModularTallyTemplateStructureResponse } from "@/lib/serverFunctions/queries/modularTally";
 import { Divider } from "@mui/material";
+import type { RefObject } from "react";
 
 import TallyTemplateCounters from "./tallyTemplateCounters";
 import type { TallyTemplateDraftGroup } from "./tallyTemplateDraft";
@@ -14,6 +16,7 @@ const TallyTemplateEditor = ({
   onNameChange,
   selectedForm,
   onSelectedFormChange,
+  formManagerRef,
   groups,
   onChangeGroups,
   onSave,
@@ -23,6 +26,7 @@ const TallyTemplateEditor = ({
   onNameChange: (name: string) => void;
   selectedForm: { id: number; name: string } | null;
   onSelectedFormChange: (form: { id: number; name: string } | null) => void;
+  formManagerRef: RefObject<FormManagerRef | null>;
   groups: TallyTemplateDraftGroup[];
   onChangeGroups: (groups: TallyTemplateDraftGroup[]) => void;
   onSave: () => void;
@@ -46,6 +50,7 @@ const TallyTemplateEditor = ({
       </div>
       <Divider />
       <TallyTemplateFormManager
+        formManagerRef={formManagerRef}
         value={selectedForm}
         onValueChange={onSelectedFormChange}
       />

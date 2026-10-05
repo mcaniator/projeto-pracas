@@ -1,6 +1,7 @@
 "use client";
 
 import PermissionGuard from "@/components/auth/permissionGuard";
+import type { FormManagerRef } from "@/components/form/formManager/formManager";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -8,7 +9,7 @@ import { useUpdateTallyTemplate } from "@/lib/serverFunctions/apiCalls/modularTa
 import type { FetchModularTallyTemplateStructureResponse } from "@/lib/serverFunctions/queries/modularTally";
 import { useRouter } from "next-nprogress-bar";
 import { enqueueSnackbar } from "notistack";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PersonCharacteristicManager from "./personCharacteristicManager/personCharacteristicManager";
 import type {
@@ -29,6 +30,7 @@ const TallyTemplateClient = ({
   modularTallyTemplate: FetchModularTallyTemplateStructureResponse["modularTallyTemplate"];
 }) => {
   const router = useRouter();
+  const formManagerRef = useRef<FormManagerRef>(null);
   const [templateName, setTemplateName] = useState(modularTallyTemplate.name);
   const [selectedForm, setSelectedForm] = useState<{
     id: number;
@@ -203,6 +205,8 @@ const TallyTemplateClient = ({
         return;
       }
 
+      formManagerRef.current?.reload();
+
       if (saveAsFinalized) {
         setIsRedirecting(true);
         void router.push("/admin/protocols?type=tally");
@@ -229,6 +233,7 @@ const TallyTemplateClient = ({
           } overflow-auto`}
         >
           <TallyTemplateEditor
+            formManagerRef={formManagerRef}
             modularTallyTemplate={modularTallyTemplate}
             name={templateName}
             onNameChange={setTemplateName}
