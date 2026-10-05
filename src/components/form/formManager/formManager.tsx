@@ -420,10 +420,8 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
                   <ResponseFormV2
                     key={previewFormSubmission.formStructure.formId}
                     formSubmission={previewFormSubmission}
-                    geometries={[]}
                     responseImages={{}}
                     readOnly={false}
-                    onGeometriesChange={() => undefined}
                     onImagesChange={() => undefined}
                   />
                 )}

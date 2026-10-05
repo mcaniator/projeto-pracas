@@ -43,27 +43,38 @@ import {
 import { type Control, useForm } from "react-hook-form";
 import { Virtuoso } from "react-virtuoso";
 
+export type ResponseFormChangeSource = "user" | "reset";
+
 export type ResponseFormValuesChange = {
   values: FormValues;
   serializedValues: SerializedFormValues;
-  changedQuestionId?: string;
+  source: ResponseFormChangeSource;
 };
 
+export type ResponseFormGeometriesChange = {
+  geometries: ResponseFormGeometry[];
+  source: ResponseFormChangeSource;
+};
+
+export type ResponseFormResetData = Pick<
+  GetFormSubmissionDataResult,
+  "responsesFormValues" | "geometries"
+>;
+
 export type ResponseFormV2Handle = {
-  reset: (values: SerializedFormValues) => void;
+  reset: (data: ResponseFormResetData) => void;
   submit: () => void;
 };
 
 type ResponseFormV2Props = {
   formSubmission: GetFormSubmissionDataResult;
-  geometries: ResponseFormGeometry[];
   responseImages: ResponseFormImages;
   readOnly: boolean;
   header?: ReactNode;
   footer?: ReactNode;
   locationPolygonGeoJson?: string | null;
   onValuesChange?: (change: ResponseFormValuesChange) => void;
-  onGeometriesChange: (geometries: ResponseFormGeometry[]) => void;
+  onGeometriesChange?: (change: ResponseFormGeometriesChange) => void;
   onImagesChange: (images: ResponseFormImages) => void;
   onSubmit?: (values: FormValues) => void;
 };
@@ -85,7 +96,6 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
   (
     {
       formSubmission,
-      geometries,
       responseImages,
       readOnly,
       header,
@@ -141,6 +151,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         mode: "onChange",
         defaultValues: defaultResponseFormValues,
       });
+    const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
+      () => formSubmission.geometries,
+    );
     const [expandedCategoryIds, setExpandedCategoryIds] = useState(
       () => new Set(categories.map((category) => category.categoryId)),
     );
@@ -185,17 +198,29 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       [categories, reset],
     );
 
+    const resetFormSubmission = useCallback(
+      (data: ResponseFormResetData) => {
+        resetSerializedValues(data.responsesFormValues);
+        setGeometries(data.geometries);
+        onGeometriesChange?.({
+          geometries: data.geometries,
+          source: "reset",
+        });
+      },
+      [onGeometriesChange, resetSerializedValues],
+    );
+
     useImperativeHandle(
       ref,
       () => ({
-        reset: resetSerializedValues,
+        reset: resetFormSubmission,
         submit: () => {
           if (onSubmit) {
             void handleSubmit(onSubmit)();
           }
         },
       }),
-      [handleSubmit, onSubmit, resetSerializedValues],
+      [handleSubmit, onSubmit, resetFormSubmission],
     );
 
     useEffect(() => {
@@ -217,7 +242,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
       const notifyValuesChange = (
         values: FormValues,
-        changedQuestionId?: string,
+        source: ResponseFormChangeSource,
       ) => {
         const serializedValues: SerializedFormValues = {};
         Object.entries(values).forEach(([questionId, value]) => {
@@ -226,15 +251,15 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         onValuesChange?.({
           values,
           serializedValues,
-          changedQuestionId,
+          source,
         });
       };
 
-      notifyValuesChange(getValues());
+      notifyValuesChange(getValues(), "reset");
       return subscribe({
         formState: { values: true },
         callback: ({ values, name }) => {
-          notifyValuesChange(values, name);
+          notifyValuesChange(values, name === undefined ? "reset" : "user");
         },
       });
     }, [dateFormatByQuestionId, getValues, onValuesChange, subscribe]);
@@ -274,7 +299,11 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             : item,
           )
         : [...geometries, { questionId, geometries: questionGeometries }];
-      onGeometriesChange(nextGeometries);
+      setGeometries(nextGeometries);
+      onGeometriesChange?.({
+        geometries: nextGeometries,
+        source: "user",
+      });
     };
     const handleQuestionImagesChange = (
       questionId: number,

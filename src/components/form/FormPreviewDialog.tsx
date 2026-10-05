@@ -5,7 +5,10 @@ import CSwitch from "@/components/ui/cSwtich";
 import CTabs from "@/components/ui/cTabs";
 import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
-import type { ResponseFormValuesChange } from "@/components/ui/responseForm/responseFormV2";
+import type {
+  ResponseFormV2Handle,
+  ResponseFormValuesChange,
+} from "@/components/ui/responseForm/responseFormV2";
 import type {
   FormValues,
   ResponseFormGeometry,
@@ -14,7 +17,7 @@ import type {
 import type { FormStructure } from "@/lib/types/forms/formStructure";
 import { Tab } from "@mui/material";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { buildFormPreviewSubmission } from "./formPreviewUtils";
 
@@ -42,6 +45,7 @@ const FormPreviewDialog = ({
   onClose: () => void;
   formStructure: FormStructure;
 }) => {
+  const responseFormRef = useRef<ResponseFormV2Handle>(null);
   const [viewMode, setViewMode] = useState<PreviewViewMode>("form");
   const [showOnlyPublicQuestions, setShowOnlyPublicQuestions] = useState(false);
   const formSubmission = useMemo(
@@ -57,6 +61,10 @@ const FormPreviewDialog = ({
   const [previewImages, setPreviewImages] = useState<ResponseFormImages>({});
 
   useEffect(() => {
+    responseFormRef.current?.reset({
+      responsesFormValues: formSubmission.responsesFormValues,
+      geometries: formSubmission.geometries,
+    });
     setPreviewValues(formSubmission.responsesFormValues);
     setPreviewGeometries([]);
     setPreviewImages({});
@@ -104,12 +112,14 @@ const FormPreviewDialog = ({
           }
         >
           <ResponseFormV2
+            ref={responseFormRef}
             formSubmission={formSubmission}
-            geometries={previewGeometries}
             responseImages={previewImages}
             readOnly={false}
             onValuesChange={handleValuesChange}
-            onGeometriesChange={setPreviewGeometries}
+            onGeometriesChange={(change) =>
+              setPreviewGeometries(change.geometries)
+            }
             onImagesChange={setPreviewImages}
           />
         </div>

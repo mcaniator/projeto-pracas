@@ -19,6 +19,7 @@ import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import ResponseFormV2, {
+  type ResponseFormGeometriesChange,
   type ResponseFormV2Handle,
   type ResponseFormValuesChange,
 } from "@/components/ui/responseForm/responseFormV2";
@@ -28,7 +29,6 @@ import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import type { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import type {
-  ResponseFormGeometry,
   ResponseFormImages,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
@@ -101,9 +101,6 @@ const AssessmentClient = ({
   const [driveFolderUrl, setDriveFolderUrl] = useState<string | null>(
     assessmentDetails.driveFolderUrl,
   );
-  const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
-    formSubmission.geometries,
-  );
   const [responseImages, setResponseImages] = useState<ResponseFormImages>({});
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openDeleteAssessmentDialog, setOpenDeleteAssessmentDialog] =
@@ -120,7 +117,7 @@ const AssessmentClient = ({
   );
 
   const serverUpdatedAtRef = useRef(assessmentDetails.updatedAt);
-  const geometriesRef = useRef(geometries);
+  const geometriesRef = useRef(formSubmission.geometries);
   const serializedFormValuesRef = useRef<SerializedFormValues>(
     formSubmission.responsesFormValues,
   );
@@ -164,9 +161,9 @@ const AssessmentClient = ({
   ]);
 
   const handleValuesChange = useCallback(
-    ({ serializedValues, changedQuestionId }: ResponseFormValuesChange) => {
+    ({ serializedValues, source }: ResponseFormValuesChange) => {
       serializedFormValuesRef.current = serializedValues;
-      if (changedQuestionId !== undefined) {
+      if (source === "user") {
         responsesAreDirtyRef.current = true;
         scheduleDraftSave();
       }
@@ -175,18 +172,22 @@ const AssessmentClient = ({
   );
 
   const handleGeometriesChange = useCallback(
-    (nextGeometries: ResponseFormGeometry[]) => {
-      geometriesRef.current = nextGeometries;
-      setGeometries(nextGeometries);
-      nonResponseItemsIsDirtyRef.current = true;
-      scheduleDraftSave();
+    ({ geometries, source }: ResponseFormGeometriesChange) => {
+      geometriesRef.current = geometries;
+      if (source === "user") {
+        nonResponseItemsIsDirtyRef.current = true;
+        scheduleDraftSave();
+      }
     },
     [scheduleDraftSave],
   );
 
   const applyLocalAssessmentValues = useCallback(
     (localAssessment: AssessmentDraft) => {
-      responseFormRef.current?.reset(localAssessment.responseFormValues);
+      responseFormRef.current?.reset({
+        responsesFormValues: localAssessment.responseFormValues,
+        geometries: localAssessment.geometries,
+      });
       serializedFormValuesRef.current = localAssessment.responseFormValues;
       setIsFinalized(localAssessment.isFinalized);
       setIsFilling(true);
@@ -195,7 +196,6 @@ const AssessmentClient = ({
         localAssessment.endDate ? dayjs(localAssessment.endDate) : null,
       );
       setDriveFolderUrl(localAssessment.driveFolderUrl);
-      setGeometries(localAssessment.geometries);
       geometriesRef.current = localAssessment.geometries;
       responsesAreDirtyRef.current = false;
       nonResponseItemsIsDirtyRef.current = false;
@@ -208,7 +208,10 @@ const AssessmentClient = ({
   const applyServerAssessmentValues = useCallback(() => {
     const applyServerValuesAndDeleteLocalValues = async () => {
       setLoadingOverlay({ show: true, message: "Carregando..." });
-      responseFormRef.current?.reset(formSubmission.responsesFormValues);
+      responseFormRef.current?.reset({
+        responsesFormValues: formSubmission.responsesFormValues,
+        geometries: formSubmission.geometries,
+      });
       serializedFormValuesRef.current = formSubmission.responsesFormValues;
       setIsFinalized(assessmentDetails.isFinalized);
       setIsFilling(!assessmentDetails.isFinalized);
@@ -217,7 +220,6 @@ const AssessmentClient = ({
         assessmentDetails.endDate ? dayjs(assessmentDetails.endDate) : null,
       );
       setDriveFolderUrl(assessmentDetails.driveFolderUrl);
-      setGeometries(formSubmission.geometries);
       setResponseImages({});
       geometriesRef.current = formSubmission.geometries;
       responsesAreDirtyRef.current = false;
@@ -291,9 +293,11 @@ const AssessmentClient = ({
         ),
       );
 
-      responseFormRef.current?.reset(importedData.responses);
+      responseFormRef.current?.reset({
+        responsesFormValues: importedData.responses,
+        geometries: importedData.geometries,
+      });
       serializedFormValuesRef.current = importedData.responses;
-      setGeometries(importedData.geometries);
       geometriesRef.current = importedData.geometries;
       setResponseImages(importedImages);
       setStartDate(dayjs(importedData.startDate));
@@ -489,7 +493,6 @@ const AssessmentClient = ({
           ref={responseFormRef}
           header={responseFormHeader}
           formSubmission={formSubmission}
-          geometries={geometries}
           responseImages={responseImages}
           readOnly={!isFilling}
           locationPolygonGeoJson={locationPolygonGeoJson}
@@ -530,7 +533,7 @@ const AssessmentClient = ({
         assessmentId={assessmentDetails.id}
         open={openSaveDialog}
         serializedFormValues={serializedFormValuesRef.current}
-        geometries={geometries}
+        geometries={geometriesRef.current}
         endDate={endDate}
         isFinalized={isFinalized}
         startDate={startDate}
