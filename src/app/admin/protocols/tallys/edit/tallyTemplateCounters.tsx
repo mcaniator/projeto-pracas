@@ -296,7 +296,10 @@ const TallyTemplateCounters = ({
       group.displayMode ===
       tallyTemplateGroupDisplayModes.SCREEN_CONTEXT_SELECTOR,
   );
-  const screenContextGroupOptions = groups.filter(
+  const counterGroupOptions = groups.filter(
+    (group) => !group.personCharacteristicGroup.isTagGroup,
+  );
+  const screenContextGroupOptions = counterGroupOptions.filter(
     (group) => group.id !== counterGroup?.id,
   );
   const commonGroups = sortByPosition(
@@ -460,7 +463,7 @@ const TallyTemplateCounters = ({
           <h5 className="font-semibold">Configurações de contador</h5>
           <CAutocomplete
             label="Grupo de contadores"
-            options={groups}
+            options={counterGroupOptions}
             error={counterGroup === undefined}
             value={counterGroup ?? null}
             getOptionLabel={(group) => group.personCharacteristicGroup.title}

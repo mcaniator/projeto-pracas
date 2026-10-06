@@ -90,51 +90,6 @@ const TallyProtocols = () => {
 
   const columns: GridColDef<ModularTallyTemplateRow>[] = [
     {
-      field: "name",
-      headerName: "Nome",
-      flex: 1,
-      minWidth: 150,
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 150,
-      valueGetter: (_, row) =>
-        row.archived ? "Arquivado"
-        : row.finalized ? "Finalizado"
-        : "Em construção",
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) => (
-        <Chip
-          sx={{ width: "120px" }}
-          color={
-            params.row.archived ? "error"
-            : params.row.finalized ? "primary"
-            : "info"
-          }
-          label={
-            params.row.archived ? "Arquivado"
-            : params.row.finalized ? "Finalizado"
-            : "Em construção"
-          }
-        />
-      ),
-    },
-    {
-      field: "modularTallyCount",
-      headerName: "Contagens",
-      width: 110,
-      align: "center",
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
-        params.row._count.modularTally,
-    },
-    {
-      field: "updatedAt",
-      headerName: "Última edição",
-      width: 180,
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
-        dateTimeWithoutSecondsFormater.format(params.row.updatedAt),
-    },
-    {
       field: "actions",
       headerName: "",
       width: 80,
@@ -201,6 +156,51 @@ const TallyProtocols = () => {
           ]}
         />
       ),
+    },
+    {
+      field: "name",
+      headerName: "Nome",
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 150,
+      valueGetter: (_, row) =>
+        row.archived ? "Arquivado"
+        : row.finalized ? "Finalizado"
+        : "Em construção",
+      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) => (
+        <Chip
+          sx={{ width: "120px" }}
+          color={
+            params.row.archived ? "error"
+            : params.row.finalized ? "primary"
+            : "info"
+          }
+          label={
+            params.row.archived ? "Arquivado"
+            : params.row.finalized ? "Finalizado"
+            : "Em construção"
+          }
+        />
+      ),
+    },
+    {
+      field: "modularTallyCount",
+      headerName: "Usos",
+      width: 110,
+      align: "center",
+      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
+        params.row._count.modularTally,
+    },
+    {
+      field: "updatedAt",
+      headerName: "Última edição",
+      width: 180,
+      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
+        dateTimeWithoutSecondsFormater.format(params.row.updatedAt),
     },
   ];
 

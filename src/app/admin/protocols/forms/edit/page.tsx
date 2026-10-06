@@ -37,7 +37,10 @@ const EditFormPageContent = () => {
 const EditFormPage = () => {
   return (
     <div className="flex h-full min-h-0 flex-col bg-white p-2 text-black">
-      <CAdminHeader title="Formulário" titleIcon={<IconClipboard />} />
+      <CAdminHeader
+        title="Protocolo de avaliação"
+        titleIcon={<IconClipboard />}
+      />
       <div className="min-h-0 flex-1">
         <Suspense
           fallback={
