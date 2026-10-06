@@ -292,8 +292,6 @@ model Question {
   optionType          OptionTypes?                   @map("option_type")
   geometryTypes       QuestionGeometryTypes[]        @map("geometry_types")
 
-  assessment Assessment[]
-
   categoryId         Int           @map("category_id")
   category           Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subcategoryId      Int?          @map("subcategory_id")
@@ -620,15 +618,13 @@ model Assessment {
   formSubmissionId Int            @map("form_submission_id")
   formSubmission   FormSubmission @relation(fields: [formSubmissionId, formId], references: [id, formId])
 
-  question Question[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([formSubmissionId, formId])
   @@index([userId])
   @@index([locationId])
   @@index([formId])
-  @@unique([formSubmissionId, formId])
   @@map("assessment")
 }
 
