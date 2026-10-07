@@ -1,4 +1,5 @@
 import type {
+  FetchQuestionUsesParams,
   FetchQuestionsByCategoryAndSubcategoryParams,
   FetchquestionUsesResponse,
   FetchquestionsByCategoryAndSubcategoryResponse,
@@ -34,7 +35,7 @@ export const useFetchQuestionUses = (
   params?: UseFetchAPIParams<FetchquestionUsesResponse>,
 ) => {
   const url = `/api/admin/forms/fieldsCreation/question/questionUses`;
-  return useFetchAPI<FetchquestionUsesResponse>({
+  return useFetchAPI<FetchquestionUsesResponse, FetchQuestionUsesParams>({
     url,
     callbacks: params?.callbacks,
     options: {
