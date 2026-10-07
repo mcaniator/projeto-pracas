@@ -66,6 +66,7 @@ const CSwitch = React.forwardRef<HTMLButtonElement, CSwtichProps>(
     const component = (
       <FormControlLabel
         sx={formControlSx}
+        style={readOnly ? { cursor: "default" } : undefined}
         control={
           <Switch
             {...rest}

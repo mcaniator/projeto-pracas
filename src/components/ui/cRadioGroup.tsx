@@ -50,6 +50,7 @@ function CRadioGroup<T, V extends string | number | boolean = string>({
       };
 
   const handleClear = () => {
+    if (readOnly) return;
     setLocalValue(null);
     onChange?.(null);
   };
@@ -91,7 +92,7 @@ function CRadioGroup<T, V extends string | number | boolean = string>({
         >
           {label}
           {clearable && localValue !== null && (
-            <IconButton onClick={handleClear}>
+            <IconButton disabled={readOnly} onClick={handleClear}>
               <IconX />
             </IconButton>
           )}
@@ -118,13 +119,17 @@ function CRadioGroup<T, V extends string | number | boolean = string>({
             <FormControlLabel
               key={index}
               value={String(optionValue)}
-              control={<Radio />}
+              control={<Radio disabled={readOnly} />}
               label={optionLabel}
             />
           );
         })}
         {!label && clearable && !!localValue && (
-          <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
+          <IconButton
+            disabled={readOnly}
+            sx={{ width: "fit-content" }}
+            onClick={handleClear}
+          >
             <IconX />
           </IconButton>
         )}
