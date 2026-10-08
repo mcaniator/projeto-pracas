@@ -14,6 +14,7 @@ type CToggleButtonGroupProps<T> = Omit<
   mapValues?: boolean;
   toggleButtonSx?: SxProps<Theme>;
   toggleButtonColor?: string;
+  getToggleButtonColor?: (option: T) => string | undefined;
   tooltipPlacement?: TooltipProps["placement"];
   getLabel?: (option: T) => React.ReactNode;
   getValue?: (option: T) => string | number;
@@ -26,6 +27,7 @@ function CToggleButtonGroup<T>({
   mapValues = true,
   toggleButtonSx,
   toggleButtonColor,
+  getToggleButtonColor,
   tooltipPlacement,
   getLabel,
   getValue,
@@ -41,23 +43,28 @@ function CToggleButtonGroup<T>({
     boxShadow: "inset 0 0 4px rgba(0,0,0,0.3)",
   };
 
-  const computedToggleButtonSx = {
-    color: "black",
-    borderTop: "none",
-    borderBottom: "none",
-    "&.Mui-selected": {
-      bgcolor: toggleButtonColor ?? "primary.main",
-      color: "white",
-      "&:hover": {
-        bgcolor: toggleButtonColor ?? "primary.dark",
-      },
-    },
-    "&:hover": {
-      bgcolor: "grey.300",
-    },
+  const getComputedToggleButtonSx = (option: T) => {
+    const selectedColor =
+      getToggleButtonColor?.(option) ?? toggleButtonColor ?? "primary.main";
 
-    padding: { xs: "4px", sm: "8px" },
-    ...toggleButtonSx,
+    return {
+      color: "black",
+      borderTop: "none",
+      borderBottom: "none",
+      "&.Mui-selected": {
+        bgcolor: selectedColor,
+        color: "white",
+        "&:hover": {
+          bgcolor: selectedColor,
+        },
+      },
+      "&:hover": {
+        bgcolor: "grey.300",
+      },
+
+      padding: { xs: "4px", sm: "8px" },
+      ...toggleButtonSx,
+    };
   };
 
   if (!mapValues) {
@@ -81,7 +88,7 @@ function CToggleButtonGroup<T>({
               >
                 <ToggleButton
                   value={String(option)}
-                  sx={computedToggleButtonSx}
+                  sx={getComputedToggleButtonSx(option)}
                 >
                   {String(option)}
                 </ToggleButton>
@@ -89,7 +96,7 @@ function CToggleButtonGroup<T>({
             : <ToggleButton
                 key={index}
                 value={String(option)}
-                sx={computedToggleButtonSx}
+                sx={getComputedToggleButtonSx(option)}
               >
                 {String(option)}
               </ToggleButton>
@@ -125,7 +132,7 @@ function CToggleButtonGroup<T>({
               <ToggleButton
                 key={String(getValue(option))}
                 value={getValue(option)}
-                sx={computedToggleButtonSx}
+                sx={getComputedToggleButtonSx(option)}
               >
                 {getLabel(option)}
               </ToggleButton>
@@ -133,7 +140,7 @@ function CToggleButtonGroup<T>({
           : <ToggleButton
               key={index}
               value={getValue(option)}
-              sx={computedToggleButtonSx}
+              sx={getComputedToggleButtonSx(option)}
             >
               {getLabel(option)}
             </ToggleButton>,

@@ -231,12 +231,7 @@ const SortableCommonGroup = ({
         </div>
         <CPersonCharacteristicLegend
           title={group.personCharacteristicGroup.title}
-          characteristics={characteristics.map((characteristic) => ({
-            id: characteristic.id,
-            name: characteristic.personCharacteristic.name,
-            iconKey: characteristic.personCharacteristic.iconKey,
-            color: characteristic.personCharacteristic.color,
-          }))}
+          characteristics={characteristics}
         />
       </div>
       <DndContext

@@ -4,6 +4,7 @@ import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import CPersonCharacteristicLegend from "@/components/ui/personCharacteristic/cPersonCharacteristicLegend";
 import type { GetModularTallySubmissionDataResult } from "@/lib/serverFunctions/queries/modularTally";
 import { Paper } from "@mui/material";
 import { useMemo, useState } from "react";
@@ -44,14 +45,30 @@ const CounterButton = ({
     <div className="flex w-16 flex-col gap-1">
       <CButton
         disabled={readOnly}
-        sx={{ width: "100%", fontSize: "20px" }}
+        sx={{
+          width: "100%",
+          fontSize: "20px",
+          backgroundColor: characteristic.personCharacteristic.color,
+          "&:hover": {
+            backgroundColor: characteristic.personCharacteristic.color,
+          },
+        }}
         onClick={onIncrement}
       >
         {`+ ${count}`}
       </CButton>
       <CButton
         disabled={readOnly || count === 0}
-        sx={{ py: 0, width: "100%", fontSize: "20px", height: "24px" }}
+        sx={{
+          py: 0,
+          width: "100%",
+          fontSize: "20px",
+          height: "24px",
+          backgroundColor: characteristic.personCharacteristic.color,
+          "&:hover": {
+            backgroundColor: characteristic.personCharacteristic.color,
+          },
+        }}
         onClick={onDecrement}
       >
         -
@@ -197,9 +214,17 @@ const PersonsCounter = ({
                 key={group.id}
                 className="flex flex-col gap-2 rounded border border-gray-300 bg-slate-50 p-3"
               >
-                <h5 className="font-semibold">
-                  {group.personCharacteristicGroup.title}
-                </h5>
+                <div className="flex items-center justify-between gap-2">
+                  <h5 className="font-semibold">
+                    {group.personCharacteristicGroup.title}
+                  </h5>
+                  {!group.personCharacteristicGroup.isTagGroup && (
+                    <CPersonCharacteristicLegend
+                      title={group.personCharacteristicGroup.title}
+                      characteristics={characteristics}
+                    />
+                  )}
+                </div>
                 {group.personCharacteristicGroup.isTagGroup ?
                   <div className="flex flex-wrap justify-center gap-2">
                     {characteristics.map((characteristic) => {
@@ -211,6 +236,11 @@ const PersonsCounter = ({
                           checked={selectedTagCharacteristicIds.has(
                             characteristicId,
                           )}
+                          sx={{
+                            "&.Mui-checked": {
+                              color: characteristic.personCharacteristic.color,
+                            },
+                          }}
                           label={
                             <span className="flex items-center gap-1">
                               <CDynamicIcon
@@ -244,6 +274,9 @@ const PersonsCounter = ({
                         padding: { xs: "8px" },
                         fontSize: "32px",
                       }}
+                      getToggleButtonColor={(characteristic) =>
+                        characteristic.personCharacteristic.color
+                      }
                       getLabel={(characteristic) => (
                         <CDynamicIcon
                           iconKey={characteristic.personCharacteristic.iconKey}
