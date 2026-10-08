@@ -8,17 +8,18 @@ import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const params = parseQueryParams(fetchFormParamsSchema, searchParams);
     try {
       await checkIfLoggedInUserHasAnyPermission({
-        roleGroups: ["PROTOCOL"],
+        roleGroups:
+          params.formUse === "LOCATION" ? ["PARK", "PROTOCOL"] : ["PROTOCOL"],
       });
     } catch (e) {
       return new Response("Sem permissão para consultar formulários!", {
         status: 401,
       });
     }
-    const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(fetchFormParamsSchema, searchParams);
     const forms = await fetchForms({ params });
     return new Response(superjson.stringify(forms), {
       status: 200,

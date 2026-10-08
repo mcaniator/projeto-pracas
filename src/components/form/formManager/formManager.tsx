@@ -368,7 +368,11 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
           className={`flex items-center gap-2 ${title ? "justify-between" : "justify-end"}`}
         >
           {title && <h2 className="text-xl font-semibold">{title}</h2>}
-          <PermissionGuard requiresAnyRoles={["PROTOCOL_MANAGER"]}>
+          <PermissionGuard
+            requiresAnyRoles={
+              formUse === "LOCATION" ? ["PARK_MANAGER"] : ["PROTOCOL_MANAGER"]
+            }
+          >
             <CButton
               square={isMobileView}
               disabled={!isConnected}

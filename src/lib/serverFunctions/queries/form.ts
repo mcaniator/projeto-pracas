@@ -84,9 +84,9 @@ export const fetchForms = async (
         updatedAt: true,
         _count: {
           select: {
-            assessment: params.formUse === FormUse.ASSESSMENT,
-            modularTallyTemplates:
-              params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
+            assessment: true,
+            modularTallyTemplates: true,
+            formSubmissions: true,
           },
         },
       },
@@ -102,9 +102,10 @@ export const fetchForms = async (
     const forms = databaseForms.map(({ _count, ...form }) => ({
       ...form,
       usageCount:
-        params.formUse === FormUse.ASSESSMENT ?
-          (_count.assessment ?? 0)
-        : (_count.modularTallyTemplates ?? 0),
+        params.formUse === FormUse.ASSESSMENT ? _count.assessment
+        : params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP ?
+          _count.modularTallyTemplates
+        : _count.formSubmissions,
     }));
 
     return {
